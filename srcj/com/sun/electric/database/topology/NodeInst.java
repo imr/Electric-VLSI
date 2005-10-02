@@ -27,7 +27,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -45,8 +44,6 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -71,6 +68,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
@@ -235,9 +233,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(),
-                Name.findName("@"), 0, ImmutableTextDescriptor.getNodeTextDescriptor(),
+                Name.findName("@"), 0, TextDescriptor.getNodeTextDescriptor(),
                 orient, EPoint.ORIGIN, width, height,
-                0,  0, ImmutableTextDescriptor.getInstanceTextDescriptor());
+                0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(d, null);
 	}
 
@@ -292,9 +290,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
-                                       String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+                                       String name, int duplicate, TextDescriptor nameDescriptor,
                                        Point2D center, double width, double height, Orientation orient,
-                                       int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
+                                       int flags, int techBits, TextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
 //        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
@@ -350,8 +348,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
         CellId parentId = (CellId)parent.getId();
         
-        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
-        if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
+        if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
+        if (protoDescriptor == null) protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
         
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(),
                 nameKey, duplicate, nameDescriptor,
@@ -869,24 +867,24 @@ public class NodeInst extends Geometric implements Nodable, Comparable
     public ImmutableNodeInst getD() { return d; }
     
     /**
-     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
     public ImmutableElectricObject getImmutable() { return d; }
     
     /**
-     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * Changes persistent data of this ElectricObject with Variables.
      * @param immutable new persistent data of this ElectricObject.
      */
     protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableNodeInst)immutable; }
     
     /**
-     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
-     * @param vd ImmutableVariable to add.
+     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * @param var Variable to add.
      * @return updated persistent data.
      */
-    protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        d = d.withVariable(vd);
+    protected ImmutableElectricObject withVariable(Variable var) {
+        d = d.withVariable(var);
         return d;
     }
     
@@ -994,30 +992,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			return false;
 		}
 	}
-
-    /**
-     * This method can be overridden by extending objects.
-     * For objects (such as instances) that have instance variables that are
-     * inherited from some Object that has the default variables, this gets
-     * the object that has the default variables. From that object the
-     * default values of the variables can then be found.
-     * @return the object that holds the default variables and values.
-     */
-    public ElectricObject getVarDefaultOwner() {
-        if (getProto() instanceof Cell) {
-            Cell proto = (Cell)getProto();
-            if (proto.isIcon()) {
-                // schematic has default vars
-                Cell sch = proto.getCellGroup().getMainSchematics();
-                if (sch != null) {
-                    return sch;
-                }
-                return proto;
-            } else
-                return proto;
-        }
-        return this;
-    }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -1288,7 +1262,84 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return ret;
 	}
 
+    /**
+     * Method to return the Variable on this NideInst with the given key
+     * that is a parameter.  If the variable is not found on this object, it
+     * is also searched for on the default var owner.
+     * @param key the key of the variable
+     * @return the Variable with that key, that may exist either on this NodeInst
+     * or the default owner.  Returns null if none found.
+     */
+    public Variable getParameter(Variable.Key key) {
+        Variable var = getVar(key, null);
+        if (var != null && isParam(key)) return var;
+        // look on default var owner
+        Cell defOwner = getVarDefaultOwner();
+        if (defOwner == null) return null;
+        return defOwner.getParameter(key);
+    }
+
+    /**
+     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
+     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+     * @return an Iterator over all Variables on this NodeInst.
+     */
+    public Iterator getParameters() {
+        TreeMap keysToVars = new TreeMap();
+        // get all parameters on this object
+        for (Iterator it = getVariables(); it.hasNext(); ) {
+            Variable v = (Variable)it.next();
+            if (!isParam(v.getKey())) continue;
+            keysToVars.put(v.getKey(), v);
+        }
+        // look on default var owner
+        Cell defOwner = getVarDefaultOwner();
+        if (defOwner != null) {
+            for (Iterator it = defOwner.getParameters(); it.hasNext(); ) {
+                Variable v = (Variable)it.next();
+                if (keysToVars.get(v.getKey()) == null)
+                    keysToVars.put(v.getKey(), v);
+            }
+        }
+        return keysToVars.values().iterator();
+    }
+
 	/**
+	 * Method to return true if the Variable on this NodeInst with given key is a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+     * @param varKey key to test
+	 * @return true if the Variable with given key is a parameter.
+	 */
+    public boolean isParam(Variable.Key varKey) {
+        Cell sch = getVarDefaultOwner();
+        return sch != null && sch.getParameter(varKey) != null;
+    }
+
+    /**
+     * For instance variables of this NodeInst that are
+     * inherited from some Cell that has the default variables, this gets
+     * the Cell that has the default variables. From that Cell the
+     * default values of the variables can then be found.
+     * @return the Cell that holds the default variables and values.
+     */
+    public Cell getVarDefaultOwner() {
+        if (getProto() instanceof Cell) {
+            Cell proto = (Cell)getProto();
+            if (proto.isIcon()) {
+                // schematic has default vars
+                Cell sch = proto.getCellGroup().getMainSchematics();
+                if (sch != null) {
+                    return sch;
+                }
+                return proto;
+            } else
+                return proto;
+        }
+        return null;
+    }
+
+    /**
 	 * Method to return the number of displayable Variables on this NodeInst and all of its PortInsts.
 	 * A displayable Variable is one that will be shown with its object.
 	 * Displayable Variables can only sensibly exist on NodeInst, ArcInst, and PortInst objects.
@@ -2304,7 +2355,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
+	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
 		if (varKey == NODE_NAME) return d.nameDescriptor;
 		if (varKey == NODE_PROTO) return d.protoDescriptor;
@@ -2434,13 +2485,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 		}
 
-		for(Iterator it = this.getVariables(); it.hasNext(); )
+		for(Iterator it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDisplay() && (var.getXOff() != 0 || var.getYOff() != 0))
 			{
 				Point2D retVal = new Point2D.Double(getAnchorCenterX() + var.getXOff(), getAnchorCenterY() +var.getYOff());
-				if (repair) var.setOff(0, 0);
+				if (repair) setOff(var.getKey(), 0, 0);
+//				if (repair) var.setOff(0, 0);
 				return retVal;
 			}
 		}

@@ -804,7 +804,7 @@ public class ELIB extends Output
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			writeVariable(var, scale);
+			writeVariable(obj, var, scale);
 		}
 
 		// write variables on PortInsts
@@ -818,7 +818,7 @@ public class ELIB extends Output
 				for (Iterator it = pi.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-						writeVariable(var, scale);
+						writeVariable(pi, var, scale);
 				}
 			}
 		}
@@ -848,14 +848,16 @@ public class ELIB extends Output
 	}
 
 	/**
-	 * Method to write an object variables.  returns negative upon error and
-	 * otherwise returns the number of variables write
+	 * Method to write an object variables.
+     * @param owner owner of the Variabkle
+     * @param var variable
+     * @param scale of coordiantes.
 	 */
-	private void writeVariable(Variable var, double scale)
+	private void writeVariable(ElectricObject owner, Variable var, double scale)
 		throws IOException
 	{
 //		if (var.isDontSave()) return;
-		writeVariableName(diskName(var));
+		writeVariableName(diskName(owner, var));
 
 		// create the "type" field
 		Object varObj = var.getObject();
@@ -875,12 +877,12 @@ public class ELIB extends Output
 		// Only string variables may have language code bits.
 		if ((type&ELIBConstants.VTYPE) != ELIBConstants.VSTRING && (type&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0)
 		{
-			System.out.println("Variable " + var + " on " + var.getOwner() + " is not a string. Language bits are cleared.");
+			System.out.println("Variable " + var + " on " + owner + " is not a string. Language bits are cleared.");
 			type &= ~(ELIBConstants.VCODE1|ELIBConstants.VCODE2);
 		}
 
 		// special case for "trace" information on NodeInsts
-		if (var.getOwner() instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Point2D[])
+		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Point2D[])
 		{
 			Point2D [] points = (Point2D [])varObj;
 			type = var.getTextDescriptor().getCFlags();

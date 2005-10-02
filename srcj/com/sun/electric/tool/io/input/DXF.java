@@ -32,7 +32,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -1242,13 +1242,15 @@ public class DXF extends Input
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY, curCell);
 			if (ni == null) return true;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, msg);
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setPos(TextDescriptor.Position.BOXED);
-				var.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
-			}
+            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.BOXED).withAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
+            ni.newVar(Artwork.ART_MESSAGE, msg, td);
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, msg);
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setPos(TextDescriptor.Position.BOXED);
+//				var.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
+//			}
 			ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			readTexts++;
 		}

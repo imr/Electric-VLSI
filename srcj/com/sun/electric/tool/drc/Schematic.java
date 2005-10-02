@@ -230,15 +230,17 @@ public class Schematic
 				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-					if (!var.isParam()) continue;
+                    if (!ni.isParam(var.getKey())) continue;
+//					if (!var.isParam()) continue;
 
-					Variable foundVar = null;
-					for(Iterator cIt = contentsCell.getVariables(); cIt.hasNext(); )
-					{
-						Variable fVar = (Variable)cIt.next();
-						if (!fVar.isParam()) continue;
-						if (var.getKey() == fVar.getKey()) { foundVar = fVar;   break; }
-					}
+                    Variable foundVar = contentsCell.getParameter(var.getKey());
+//					Variable foundVar = null;
+//					for(Iterator cIt = contentsCell.getVariables(); cIt.hasNext(); )
+//					{
+//						Variable fVar = (Variable)cIt.next();
+//						if (!fVar.isParam()) continue;
+//						if (var.getKey() == fVar.getKey()) { foundVar = fVar;   break; }
+//					}
 					if (foundVar == null)
 					{
 						// this node's parameter is no longer on the cell: delete from instance
@@ -260,7 +262,8 @@ public class Schematic
 							ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 								" had incorrect units (now fixed)", cell, 0);
 							err.addGeom(geom, true, cell, null);
-							var.setUnit(foundVar.getUnit());
+							ni.addVar(var.withUnit(foundVar.getUnit()));
+//							var.setUnit(foundVar.getUnit());
 						}
 
 						// make sure visibility is OK
@@ -272,7 +275,8 @@ public class Schematic
 								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should not be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
-								var.setDisplay(false);
+                                ni.addVar(var.withDisplay(false));
+//								var.setDisplay(false);
 							}
 						} else
 						{
@@ -282,7 +286,8 @@ public class Schematic
 								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
-								var.setDisplay(true);
+                                ni.addVar(var.withDisplay(true));
+//								var.setDisplay(true);
 							}
 						}
 					}

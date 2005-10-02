@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -195,7 +194,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/** Arc prototype. */                                           public final ArcProto protoType;
 	/** name of this ImmutableArcInst. */							public final Name name;
     /** duplicate index of this ImmutableArcInst in the Cell */     public final int duplicate;
-	/** The text descriptor of name of ImmutableArcInst. */         public final ImmutableTextDescriptor nameDescriptor;
+	/** The text descriptor of name of ImmutableArcInst. */         public final TextDescriptor nameDescriptor;
     
 	/** NodeId on tail end of this ImmutableArcInst. */             public final int tailNodeId;
     /** PortProtoId on tail end of this ImmutableArcInst. */        public final PortProtoId tailPortId;
@@ -227,13 +226,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param length the length of this ImmutableArcInst.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
      * @param flags flag bits of this ImmutableArcInst.
-     * @param vars array of ImmutableVariables of this ImmutableArcInst
+     * @param vars array of Variables of this ImmutableArcInst
      */
     ImmutableArcInst(int arcId, ArcProto protoType,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Name name, int duplicate, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            double width, double length, short angle, int flags, ImmutableVariable[] vars) {
+            double width, double length, short angle, int flags, Variable[] vars) {
         super(vars);
         this.arcId = arcId;
         this.protoType = protoType;
@@ -282,9 +281,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-        ImmutableTextDescriptor immutableNameDescriptor = null;
         if (nameDescriptor != null)
-            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
         if (tailLocation == null) throw new NullPointerException("tailLocation");
@@ -295,10 +293,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
-		return new ImmutableArcInst(arcId, protoType, name, duplicate, immutableNameDescriptor,
+		return new ImmutableArcInst(arcId, protoType, name, duplicate, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, ImmutableVariable.NULL_ARRAY);
+                width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -326,11 +324,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name descriptor.
 	 */
 	public ImmutableArcInst withNameDescriptor(TextDescriptor nameDescriptor) {
-        ImmutableTextDescriptor immutableNameDescriptor = null;
         if (nameDescriptor != null)
-            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
-        if (this.nameDescriptor == immutableNameDescriptor) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, immutableNameDescriptor,
+            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+        if (this.nameDescriptor == nameDescriptor) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, getVars());
@@ -412,17 +409,17 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
 
 	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by additional ImmutableVariable.
-     * If this ImmutableArcInst has ImmutableVariable with the same key as new, the old variable will not be in new
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by additional Variable.
+     * If this ImmutableArcInst has Variable with the same key as new, the old variable will not be in new
      * ImmutableArcInst.
-	 * @param var additional ImmutableVariable.
-	 * @return ImmutableArcInst with additional ImmutableVariable.
+	 * @param var additional Variable.
+	 * @return ImmutableArcInst with additional Variable.
 	 * @throws NullPointerException if var is null
 	 */
-    public ImmutableArcInst withVariable(ImmutableVariable var) {
+    public ImmutableArcInst withVariable(Variable var) {
         if (var.descriptor.isParam())
-            var = var.withDescriptor(var.descriptor.withoutParam());
-        ImmutableVariable[] vars = arrayWithVariable(var);
+            var = var.withParam(false);
+        Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -431,14 +428,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
     
 	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by removing ImmutableVariable
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by removing Variable
      * with the specified key. Returns this ImmutableArcInst if it doesn't contain variable with the specified key.
 	 * @param key Variable Key to remove.
-	 * @return ImmutableArcInst without ImmutableVariable with the specified key.
+	 * @return ImmutableArcInst without Variable with the specified key.
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableArcInst withoutVariable(Variable.Key key) {
-        ImmutableVariable[] vars = arrayWithoutVariable(key);
+        Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -463,7 +460,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        super.check();
+        super.check(false);
 		assert protoType != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();

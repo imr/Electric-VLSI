@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -38,9 +37,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
@@ -59,7 +57,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -86,7 +89,7 @@ public abstract class LibraryFiles extends Input
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
-    /** buffer for reading ImmutableVariables. */                           ArrayList/*<ImmutableVariable>*/ variablesBuf = new ArrayList/*<ImmutableVariable>*/();
+    /** buffer for reading Variables. */                                    ArrayList/*<Variable>*/ variablesBuf = new ArrayList/*<Variable>*/();
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 
@@ -95,7 +98,7 @@ public abstract class LibraryFiles extends Input
 		NodeInst []  theNode;
 		NodeProto [] protoType;
 		String []    name;
-        ImmutableTextDescriptor [] nameTextDescriptor;
+        TextDescriptor[] nameTextDescriptor;
 		int []       lowX;
 		int []       highX;
 		int []       lowY;
@@ -104,16 +107,16 @@ public abstract class LibraryFiles extends Input
 		int []       anchorY;
 		short []     rotation;
 		int []       transpose;
-        ImmutableTextDescriptor [] protoTextDescriptor;
+        TextDescriptor[] protoTextDescriptor;
 		int []       userBits;
-        ImmutableVariable[][] vars;
+        Variable[][] vars;
         
         NodeInstList(int nodeCount, boolean hasAnchor)
         {
             theNode = new NodeInst[nodeCount];
             protoType = new NodeProto[nodeCount];
             name = new String[nodeCount];
-            nameTextDescriptor = new ImmutableTextDescriptor[nodeCount];
+            nameTextDescriptor = new TextDescriptor[nodeCount];
             lowX = new int[nodeCount];
             highX = new int[nodeCount];
             lowY = new int[nodeCount];
@@ -124,9 +127,9 @@ public abstract class LibraryFiles extends Input
             }
             rotation = new short[nodeCount];
             transpose = new int[nodeCount];
-            protoTextDescriptor = new ImmutableTextDescriptor[nodeCount];
+            protoTextDescriptor = new TextDescriptor[nodeCount];
             userBits = new int[nodeCount];
-            vars = new ImmutableVariable[nodeCount][];
+            vars = new Variable[nodeCount][];
         }
 	};
 
@@ -844,14 +847,14 @@ public abstract class LibraryFiles extends Input
                 center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
-        ImmutableVariable[] vars = nil.vars[nodeIndex];
+        Variable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
             // Preprocess TRACE variables
             for (int j = 0; j < vars.length; j++) {
-                ImmutableVariable vd = vars[j];
-                if (vd == null) continue;
-                if (vd.key == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
-                    Object value = vd.getValue();
+                Variable var = vars[j];
+                if (var == null) continue;
+                if (var.key == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
+                    Object value = var.getValue();
                     if (value instanceof Integer[] || value instanceof Float[]) {
                         // convert outline information, if present
                         Number[] outline = (Number[])value;
@@ -863,11 +866,11 @@ public abstract class LibraryFiles extends Input
                             double oldY = outline[k*2+1].doubleValue()/lam;
                             newOutline[k] = new EPoint(oldX, oldY);
                         }
-                        vd = vd.withValue(newOutline);
+                        var = var.withValue(newOutline);
                     }
                 }
-                if (ni.isDeprecatedVariable(vd.key)) continue;
-                ni.newVar(vd);
+                if (ni.isDeprecatedVariable(var.key)) continue;
+                ni.addVar(var);
             }
         }
 
@@ -878,26 +881,26 @@ public abstract class LibraryFiles extends Input
         }
     }
 
-    void realizeVariables(ElectricObject eObj, ImmutableVariable[] vars) {
+    void realizeVariables(ElectricObject eObj, Variable[] vars) {
         if (vars == null) return;
         for (int i = 0; i < vars.length; i++) {
-            ImmutableVariable vd = vars[i];
-			if (vd == null || eObj.isDeprecatedVariable(vd.key)) continue;
-            eObj.newVar(vd);
+            Variable var = vars[i];
+			if (var == null || eObj.isDeprecatedVariable(var.key)) continue;
+            eObj.addVar(var);
         }
     }
     
 	/**
 	 * Method to add meaning preferences to an ElectricObject from a List of strings.
 	 * @param obj the Object to augment with meaning preferences.
-	 * @param vars ImmutableVariables with meaning preferences.
+	 * @param vars Variables with meaning preferences.
 	 */
-	void realizeMeaningPrefs(Object obj, ImmutableVariable[] vars)
+	void realizeMeaningPrefs(Object obj, Variable[] vars)
 	{
         for (int i = 0; i < vars.length; i++) {
-            ImmutableVariable vd = vars[i];
-            if (vd == null) continue;
-            Object value = vd.getValue();
+            Variable var = vars[i];
+            if (var == null) continue;
+            Object value = var.getValue();
             if (!(value instanceof String)) {
                 if (value instanceof Short || value instanceof Byte) 
                     value = new Integer(((Number)value).intValue());
@@ -906,7 +909,7 @@ public abstract class LibraryFiles extends Input
             }
                 
 			// change "meaning option"
-            String varName = vd.key.getName();
+            String varName = var.key.getName();
 			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName); // What about case-sensitivite search ?
 			if (meaning != null)
 			{
@@ -919,14 +922,14 @@ public abstract class LibraryFiles extends Input
         }
 	}
 
-    ImmutableTextDescriptor makeDescriptor(int td0, int td1) {
+    TextDescriptor makeDescriptor(int td0, int td1) {
         mtd.setCBits(td0, fixTextDescriptorFont(td1));
-        return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+        return TextDescriptor.newTextDescriptor(mtd);
     }
         
-    ImmutableTextDescriptor makeDescriptor(int td0, int td1, int flags) {
+    TextDescriptor makeDescriptor(int td0, int td1, int flags) {
         mtd.setCBits(td0, fixTextDescriptorFont(td1), flags);
-        return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+        return TextDescriptor.newTextDescriptor(mtd);
     }
         
 	/**

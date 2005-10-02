@@ -70,7 +70,19 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -2452,6 +2464,45 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
 		newVar(Cell.CELL_TEXT_KEY, strings);
 	}
 
+    /**
+     * Method to return the Variable on this Cell with the given key
+     * that is a parameter. Returns null if not found.
+     * @param key the key of the variable
+     * @return the Variable with that key, that is parameter. Returns null if none found.
+     */
+    public Variable getParameter(Variable.Key key) {
+        Variable var = getVar(key);
+        return var != null && var.getTextDescriptor().isParam() ? var : null;
+    }
+
+    /**
+     * Method to return an Iterator over all Variables marked as parameters on this Cell.
+     * @return an Iterator over all Variables on this Cell.
+     */
+    public Iterator getParameters() {
+        TreeMap keysToVars = new TreeMap();
+        // get all parameters on this object
+        for (Iterator it = getVariables(); it.hasNext(); ) {
+            Variable v = (Variable)it.next();
+            if (!v.getTextDescriptor().isParam()) continue;
+            keysToVars.put(v.getKey(), v);
+        }
+        return keysToVars.values().iterator();
+    }
+
+	/**
+	 * Method to return true if the Variable on this ElectricObject with given key is a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+     * @param varKey key to test
+	 * @return true if the Variable with given key is a parameter.
+	 */
+    public boolean isParam(Variable.Key varKey) {
+        Variable var = getVar(varKey);
+        return var != null && var.getTextDescriptor().isParam();
+    }
+    
 	/**
 	 * Method to return a list of Polys that describes all text on this Cell.
 	 * @param hardToSelect is true if considering hard-to-select text.

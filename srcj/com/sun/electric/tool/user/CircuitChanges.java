@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
@@ -45,8 +44,8 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -2350,12 +2349,14 @@ public class CircuitChanges
 			{
 				infstr.append("Structure of library " + Library.getCurrent().getName());
 			}
-			Variable var = titleNi.newDisplayVar(Artwork.ART_MESSAGE, infstr.toString());
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setRelSize(6);
-			}
+            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(6);
+            titleNi.newVar(Artwork.ART_MESSAGE, infstr.toString(), td);
+//			Variable var = titleNi.newDisplayVar(Artwork.ART_MESSAGE, infstr.toString());
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setRelSize(6);
+//			}
 
 			// place the components
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -2375,12 +2376,14 @@ public class CircuitChanges
 					cgn.pin = ni;
 
 					// write the cell name in the node
-					var = ni.newDisplayVar(Artwork.ART_MESSAGE, cell.describe(false));
-					if (var != null)
-					{
-//						var.setDisplay(true);
-						var.setRelSize(1);
-					}
+                    TextDescriptor ctd = TextDescriptor.getNodeTextDescriptor().withRelSize(1);
+					ni.newVar(Artwork.ART_MESSAGE, cell.describe(false), ctd);
+//					var = ni.newDisplayVar(Artwork.ART_MESSAGE, cell.describe(false));
+//					if (var != null)
+//					{
+////						var.setDisplay(true);
+//						var.setRelSize(1);
+//					}
 				}
 			}
 
@@ -5307,7 +5310,8 @@ public class CircuitChanges
 				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-					if (!var.isParam()) continue;
+					if (!ni.isParam(var.getKey())) continue;
+//					if (!var.isParam()) continue;
 					Variable oVar = null;
                     // try to find equivalent in all parameters on prototype
                     Iterator oIt = cNp.getVariables();
@@ -5315,7 +5319,8 @@ public class CircuitChanges
 					while (oIt.hasNext())
 					{
 						oVar = (Variable)oIt.next();
-						if (!oVar.isParam()) continue;
+						if (!cNp.isParam(oVar.getKey())) continue;
+//						if (!oVar.isParam()) continue;
 						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
 					}
 					if (delete)
@@ -5349,17 +5354,19 @@ public class CircuitChanges
 			if (newVar != null) continue;
 
 			// set the attribute
-			newVar = pi.newVar(attrKey, inheritAddress(pp, var));
-			if (newVar != null)
-			{
-				double lambda = 1;
-				MutableTextDescriptor descript = new MutableTextDescriptor();
-                // setTextDescriptor will set display and code bits also. Is it necessary here ???
-                descript.setDisplay(false);
-				var.setTextDescriptor(descript);
-				double dX = descript.getXOff();
-				double dY = descript.getYOff();
-
+            TextDescriptor td = TextDescriptor.getPortInstTextDescriptor().withDisplay(false);
+			pi.newVar(attrKey, inheritAddress(pp, var), td);
+//			newVar = pi.newVar(attrKey, inheritAddress(pp, var));
+//			if (newVar != null)
+//			{
+//				double lambda = 1;
+//				MutableTextDescriptor descript = new MutableTextDescriptor();
+//                // setTextDescriptor will set display and code bits also. Is it necessary here ???
+//                descript.setDisplay(false);
+//				var.setTextDescriptor(descript);
+//				double dX = descript.getXOff();
+//				double dY = descript.getYOff();
+//
 //				saverot = pp->subnodeinst->rotation;
 //				savetrn = pp->subnodeinst->transpose;
 //				pp->subnodeinst->rotation = pp->subnodeinst->transpose = 0;
@@ -5408,7 +5415,7 @@ public class CircuitChanges
 //				TDSETOFF(descript, x, y);
 //				TDSETINHERIT(descript, 0);
 //				TDCOPY(newVar->textdescript, descript);
-			}
+//			}
 		}
 	}
 
@@ -5429,7 +5436,8 @@ public class CircuitChanges
 				// parameter should be visible: make it so
 				if (!newVar.isDisplay())
 				{
-					newVar.setDisplay(true);
+                    ni.addVar(newVar.withDisplay(true));
+//					newVar.setDisplay(true);
 				}
 			} else
 			{
@@ -5438,7 +5446,8 @@ public class CircuitChanges
 				{
 					if (var.describe(-1).equals(newVar.describe(-1)))
 					{
-						newVar.setDisplay(false);
+                        ni.addVar(newVar.withDisplay(false));
+//						newVar.setDisplay(false);
 					}
 				}
 			}
@@ -5448,25 +5457,16 @@ public class CircuitChanges
         }
     }
 
-
-    public static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon) {
+    private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon) {
 
         if (nivar == null) return;
 
         // determine offset of the attribute on the instance
         Variable posVar = np.getVar(nivar.getKey());
         Variable var = posVar;
-        if (icon != null)
-        {
-            for(Iterator it = icon.getVariables(); it.hasNext(); )
-            {
-                Variable ivar = (Variable)it.next();
-                if (ivar.getKey().equals(nivar.getKey()))
-                {
-                    posVar = ivar;
-                    break;
-                }
-            }
+        if (icon != null) {
+            Variable iconVar = icon.getVar(nivar.getKey());
+            if (iconVar != null) posVar = var;
         }
 
 		double xc = posVar.getXOff();
@@ -5474,37 +5474,90 @@ public class CircuitChanges
 		double yc = posVar.getYOff();
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
-//        if (oldDescript.isInterior())
-//        {
-//            nivar.clearDisplay();
-//        } else
-//        {
-//            nivar.setDisplay();
-//        }
-        nivar.setDisplay(posVar.isDisplay());
-        nivar.setInherit(false);
-        nivar.setOff(xc, yc);
-        nivar.setParam(posVar.isParam());
-        if (posVar.isParam())
+        MutableTextDescriptor mtd = new MutableTextDescriptor(nivar.getTextDescriptor());
+        mtd.setDisplay(posVar.isDisplay());
+        mtd.setInherit(false);
+        mtd.setOff(xc, yc);
+//        mtd.setParam(posVar.isParam());
+        if (posVar.getTextDescriptor().isParam())
+//        if (posVar.isParam())
         {
-            nivar.setInterior(false);
-            nivar.setDispPart(posVar.getDispPart());
-            nivar.setPos(posVar.getPos());
-            nivar.setRotation(posVar.getRotation());
-            nivar.setBold(posVar.isBold());
-            nivar.setItalic(posVar.isItalic());
-            nivar.setUnderline(posVar.isUnderline());
-            nivar.setFace(posVar.getFace());
+            mtd.setInterior(false);
+            mtd.setDispPart(posVar.getDispPart());
+            mtd.setPos(posVar.getPos());
+            mtd.setRotation(posVar.getRotation());
+            mtd.setBold(posVar.isBold());
+            mtd.setItalic(posVar.isItalic());
+            mtd.setUnderline(posVar.isUnderline());
+            mtd.setFace(posVar.getFace());
             //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
             //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
             TextDescriptor.Size s = posVar.getSize();
 			if (s.isAbsolute())
-				nivar.setAbsSize((int)s.getSize());
+				mtd.setAbsSize((int)s.getSize());
 			else
-				nivar.setRelSize(s.getSize());
+				mtd.setRelSize(s.getSize());
         }
-        nivar.setCode(posVar.getCode());
+        mtd.setCode(posVar.getCode());
+        ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
 	}
+
+//    public static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon) {
+//
+//        if (nivar == null) return;
+//
+//        // determine offset of the attribute on the instance
+//        Variable posVar = np.getVar(nivar.getKey());
+//        Variable var = posVar;
+//        if (icon != null)
+//        {
+//            for(Iterator it = icon.getVariables(); it.hasNext(); )
+//            {
+//                Variable ivar = (Variable)it.next();
+//                if (ivar.getKey().equals(nivar.getKey()))
+//                {
+//                    posVar = ivar;
+//                    break;
+//                }
+//            }
+//        }
+//
+//		double xc = posVar.getXOff();
+//		if (posVar == var) xc -= np.getBounds().getCenterX();
+//		double yc = posVar.getYOff();
+//		if (posVar == var) yc -= np.getBounds().getCenterY();
+//
+////        if (oldDescript.isInterior())
+////        {
+////            nivar.clearDisplay();
+////        } else
+////        {
+////            nivar.setDisplay();
+////        }
+//        nivar.setDisplay(posVar.isDisplay());
+//        nivar.setInherit(false);
+//        nivar.setOff(xc, yc);
+//        nivar.setParam(posVar.isParam());
+//        if (posVar.isParam())
+//        {
+//            nivar.setInterior(false);
+//            nivar.setDispPart(posVar.getDispPart());
+//            nivar.setPos(posVar.getPos());
+//            nivar.setRotation(posVar.getRotation());
+//            nivar.setBold(posVar.isBold());
+//            nivar.setItalic(posVar.isItalic());
+//            nivar.setUnderline(posVar.isUnderline());
+//            nivar.setFace(posVar.getFace());
+//            //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
+//            //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//            TextDescriptor.Size s = posVar.getSize();
+//			if (s.isAbsolute())
+//				nivar.setAbsSize((int)s.getSize());
+//			else
+//				nivar.setRelSize(s.getSize());
+//        }
+//        nivar.setCode(posVar.getCode());
+//	}
 
 	/**
 	 * Helper method to determine the proper value of an inherited Variable.

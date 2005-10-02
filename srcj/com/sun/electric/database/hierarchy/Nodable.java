@@ -145,7 +145,7 @@ public interface Nodable
      * default values of the variables can then be found.
      * @return the object that holds the default variables and values.
      */
-    public ElectricObject getVarDefaultOwner();
+    public Cell getVarDefaultOwner();
 
 	/**
 	 * Returns a printable version of this Nodable.

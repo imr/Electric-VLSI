@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (10/02/05, DN) Transactional DB: Variable and TextDescriptor are immutable classes. They have "with*" API.
+
 BUG: (09/30/05, GVG) preferences don't "stick" (Bug#575).
 FIX: Making DRC options not meaning variables to avoid confusion.
 

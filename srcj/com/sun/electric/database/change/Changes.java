@@ -32,7 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 
@@ -111,7 +111,7 @@ public interface Changes
      * @param varName name of variable or special name.
      * @param oldDescriptor old text descriptor.
 	 */
-	void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor);
+	void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor);
 
 	/**
 	 * Method to announce the creation of a new ElectricObject.
@@ -146,9 +146,9 @@ public interface Changes
 	void redrawObject(ElectricObject obj);
 
 	/**
-	 * Method to announce a change of object ImmutableVariables.
-	 * @param obj the ElectricObject on which ImmutableVariables changed.
-	 * @param oldImmutable the old ImmutableVariables.
+	 * Method to announce a change of object Variables.
+	 * @param obj the ElectricObject on which Variables changed.
+	 * @param oldImmutable the old Variables.
 	 */
 	void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable);
 

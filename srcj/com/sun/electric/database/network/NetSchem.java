@@ -242,27 +242,6 @@ class NetSchem extends NetCell {
             return v;
         }
 
-//        /**
-//         * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
-//         * @param key the key of the arrayed Variable.
-//         * @param value the object to store in an entry of the arrayed Variable.
-//         * @param index the location in the arrayed Variable to store the value.
-//         */
-//        public void setVar(Variable.Key key, Object value, int index) {
-//            if (shared == null)
-//                nodeInst.setVar(key, value, index);
-//            else {
-//                // find which one has var on it
-//                for (int i=0; i < shared.length; i++) {
-//                    if (shared[i].nodeInst.getVar(key) != null) {
-//                        shared[i].nodeInst.setVar(key, value, index);
-//                        return;
-//                    }
-//                }
-//                // if none had var on them, nothing is done (conforms to ElectricObject.setVar())
-//            }
-//        }
-
         /**
          * Method to delete a Variable from this ElectricObject.
          * @param key the key of the Variable to delete.
@@ -290,7 +269,7 @@ class NetSchem extends NetCell {
          * default values of the variables can then be found.
          * @return the object that holds the default variables and values.
          */
-        public ElectricObject getVarDefaultOwner() {
+        public Cell getVarDefaultOwner() {
             //ActivityLogger.logMessage("getVarDefaultOwner called for "+this);
             return nodeInst.getVarDefaultOwner();
         }

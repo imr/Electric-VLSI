@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -46,7 +45,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -74,7 +73,7 @@ public class ReadableDump extends LibraryFiles
 		private ArcInst []   arcList;
 		private ArcProto []  arcProto;
 		private String []    arcInstName;
-        private ImmutableTextDescriptor [] arcNameDescriptor;
+        private TextDescriptor[] arcNameDescriptor;
 		private int []       arcWidth;
 		private int []       arcHeadNode;
 		private String []    arcHeadPort;
@@ -85,17 +84,17 @@ public class ReadableDump extends LibraryFiles
 		private int []       arcTailX;
 		private int []       arcTailY;
 		private int []       arcUserBits;
-        private ImmutableVariable[][] arcVars;
+        private Variable[][] arcVars;
 	};
 	private static class ExportList
 	{
 		private Export []   exportList;
 		private String []   exportName;
-        private ImmutableTextDescriptor [] exportNameDescriptor;
+        private TextDescriptor[] exportNameDescriptor;
 		private int []      exportSubNode;
 		private String []   exportSubPort;
         private int []      exportUserBits;
-        private ImmutableVariable[][] exportVars;
+        private Variable[][] exportVars;
 	};
 
 	/** The current position in the file. */						private int filePosition;
@@ -1133,7 +1132,7 @@ public class ReadableDump extends LibraryFiles
 		ail.arcTailX = new int[arcInstCount];
 		ail.arcTailY = new int[arcInstCount];
 		ail.arcUserBits = new int[arcInstCount];
-        ail.arcVars = new ImmutableVariable[arcInstCount][];
+        ail.arcVars = new Variable[arcInstCount][];
 	}
 
 	/**
@@ -1148,11 +1147,11 @@ public class ReadableDump extends LibraryFiles
 		exportList[curCellNumber] = el;
 		el.exportList = new Export[exportCount];
 		el.exportName = new String[exportCount];
-        el.exportNameDescriptor = new ImmutableTextDescriptor[exportCount];
+        el.exportNameDescriptor = new TextDescriptor[exportCount];
 		el.exportSubNode = new int[exportCount];
 		el.exportSubPort = new String[exportCount];
         el.exportUserBits = new int[exportCount];
-        el.exportVars = new ImmutableVariable[exportCount][];
+        el.exportVars = new Variable[exportCount][];
 	}
 
 	// --------------------------------- NODE INSTANCE PARSING METHODS ---------------------------------
@@ -1540,18 +1539,18 @@ public class ReadableDump extends LibraryFiles
 	private void keywordGetVar()
 		throws IOException
 	{
-        ImmutableVariable[] vars = parseVars();
+        Variable[] vars = parseVars();
         switch (varPos)
         {
             case INVNODEINST:			// keyword applies to nodeinst
                 nodeInstList[curCellNumber].vars[curNodeInstIndex] = vars;
                 for (int i = 0; i < vars.length; i++) {
-                    ImmutableVariable vd = vars[i];
-                    if (vd == null || vd.key != NodeInst.NODE_NAME) continue;
-                    Object value = vd.getValue();
+                    Variable var = vars[i];
+                    if (var == null || var.key != NodeInst.NODE_NAME) continue;
+                    Object value = var.getValue();
                     if (!(value instanceof String)) continue;
-                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)vd.getValue(), vd.descriptor.isDisplay());
-                    nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = vd.descriptor;
+                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)var.getValue(), var.descriptor.isDisplay());
+                    nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = var.descriptor;
                     vars[i] = null;
                 }
                 break;
@@ -1561,12 +1560,12 @@ public class ReadableDump extends LibraryFiles
             case INVARCINST:			// keyword applies to arcinst
                 arcInstList[curCellNumber].arcVars[curArcInstIndex] = vars;
                 for (int i = 0; i < vars.length; i++) {
-                    ImmutableVariable vd = vars[i];
-                    if (vd == null || vd.key != ArcInst.ARC_NAME) continue;
-                    Object value = vd.getValue();
+                    Variable var = vars[i];
+                    if (var == null || var.key != ArcInst.ARC_NAME) continue;
+                    Object value = var.getValue();
                     if (!(value instanceof String)) continue;
-                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)vd.getValue(), vd.descriptor.isDisplay());
-                    arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = vd.descriptor;
+                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)var.getValue(), var.descriptor.isDisplay());
+                    arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = var.descriptor;
                     vars[i] = null;
                 }
                 break;
@@ -1578,9 +1577,9 @@ public class ReadableDump extends LibraryFiles
             	break;
     		case INVLIBRARY:			// keyword applies to library
                 for (int i = 0; i < vars.length; i++) {
-                    ImmutableVariable vd = vars[i];
-                    if (vd == null || vd.key != Library.FONT_ASSOCIATIONS) continue;
-                    Object value = vd.getValue();
+                    Variable var = vars[i];
+                    if (var == null || var.key != Library.FONT_ASSOCIATIONS) continue;
+                    Object value = var.getValue();
                     if (!(value instanceof String[])) continue;
                     setFontNames((String[])value);
                     vars[i] = null;
@@ -1596,13 +1595,13 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get variables on current object (keyword "variables")
 	 */
-	private ImmutableVariable[] parseVars()
+	private Variable[] parseVars()
 		throws IOException
 	{
 		// find out how many variables to read
 		int count = Integer.parseInt(keyWord);
-        if (count <= 0) return ImmutableVariable.NULL_ARRAY;
-        ImmutableVariable[] vars = new ImmutableVariable[count];
+        if (count <= 0) return Variable.NULL_ARRAY;
+        Variable[] vars = new Variable[count];
 		for(int i=0; i<count; i++)
 		{
 			// read the first keyword with the name, type, and descriptor
@@ -1656,7 +1655,7 @@ public class ReadableDump extends LibraryFiles
 				if (slashPos >= 0)
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
-            ImmutableTextDescriptor td = makeDescriptor(td0, td1, type);
+            TextDescriptor td = makeDescriptor(td0, td1, type);
 
 			// get value
 			if (getKeyword())
@@ -1769,7 +1768,7 @@ public class ReadableDump extends LibraryFiles
 			}
             if (value == null) continue;
 
-            vars[i] = ImmutableVariable.newInstance(Variable.newKey(varName), td, value);
+            vars[i] = Variable.newInstance(Variable.newKey(varName), value, td);
 		}
         return vars;
 	}

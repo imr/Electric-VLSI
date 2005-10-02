@@ -42,8 +42,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -2022,9 +2020,11 @@ public class EDIF extends Input
 							varValue = Double.toString(newValue);							
 						}
 					}
-					Variable newVar = curNode.newVar(varName, varValue);
-					if (newVar != null && ve != null)
-						newVar.setDisplay(true);
+                    TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(ve != null);
+                    curNode.newVar(Variable.newKey(varName), varValue, td);
+//					Variable newVar = curNode.newVar(varName, varValue);
+//					if (newVar != null && ve != null)
+//						newVar.setDisplay(true);
 				}
 			}
 			propertiesListHead = null;
@@ -3470,28 +3470,47 @@ public class EDIF extends Input
 					}
 					if (ni != null || ai != null)
 					{
-						Variable var = null;
+                        Variable.Key varKey = Variable.newKey(key);
+                        double relSize = convertTextSize(textHeight);
 						if (ni != null)
 						{
-                            var = ni.newVar(Variable.newKey(key), textString, textVisible);
-//							if (var != null && textVisible) var.setDisplay(true);
+                            TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - ni.getAnchorCenterX();
 							yOff = p0.getY() - ni.getAnchorCenterY();
+                            td = td.withDisplay(textVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+                            ni.newVar(varKey, textString, td);
 						} else
 						{
-                            var = ai.newVar(Variable.newKey(key), textString, textVisible);
-//							if (var != null && textVisible) var.setDisplay(true);
-
+                            TextDescriptor td = TextDescriptor.getArcTextDescriptor();
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
 							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
+                            td = td.withDisplay(textVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+                            ai.newVar(varKey, textString, td);
 						}
-
-						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
-						var.setOff(xOff, yOff);
-						var.setRelSize(convertTextSize(textHeight));
-						var.setPos(textJustification);
+//						Variable var = null;
+//						if (ni != null)
+//						{
+//                            var = ni.newVar(Variable.newKey(key), textString, textVisible);
+////							if (var != null && textVisible) var.setDisplay(true);
+//							// now set the position, relative to the center of the current object
+//							xOff = p0.getX() - ni.getAnchorCenterX();
+//							yOff = p0.getY() - ni.getAnchorCenterY();
+//						} else
+//						{
+//                            var = ai.newVar(Variable.newKey(key), textString, textVisible);
+////							if (var != null && textVisible) var.setDisplay(true);
+//
+//							// now set the position, relative to the center of the current object
+//							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+//							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
+//						}
+//
+//						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
+//						var.setOff(xOff, yOff);
+//						var.setRelSize(convertTextSize(textHeight));
+//						var.setPos(textJustification);
 						
 					} else
 					{
@@ -3773,10 +3792,13 @@ public class EDIF extends Input
 									 * fonts range from 4 to 20 points
 									 */
 
-									ni.setOff(varKey, xOff, yOff);
-									MutableTextDescriptor td = ni.getMutableTextDescriptor(varKey);
-									td.setRelSize(convertTextSize(saveTextHeight));
-									td.setPos(saveTextJustification);
+
+									TextDescriptor td = ni.getTextDescriptor(varKey);
+                                    td = td.withRelSize(convertTextSize(saveTextHeight)).withPos(saveTextJustification).withOff(xOff, yOff);
+//									MutableTextDescriptor td = ni.getMutableTextDescriptor(varKey);
+//									td.setRelSize(convertTextSize(saveTextHeight));
+//									td.setPos(saveTextJustification);
+//									td.setOff(xOff, yOff);
 									ni.setTextDescriptor(varKey, td);
 								}
 							}

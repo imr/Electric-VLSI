@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
@@ -156,12 +157,15 @@ public class LayerInfo extends Info
 			}
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, 3.5), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Stipple Pattern");
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setRelSize(0.5);
-			}
+            
+            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5);
+			ni.newVar(Artwork.ART_MESSAGE, "Stipple Pattern", td);
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Stipple Pattern");
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setRelSize(0.5);
+//			}
 		}
 
 		// create the patch control object

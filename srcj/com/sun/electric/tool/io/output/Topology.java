@@ -907,7 +907,8 @@ public abstract class Topology extends Output
 			for(Iterator it = no.getVariables(); it.hasNext(); )
 			{
 				Variable var = (Variable)it.next();
-				if (!var.isParam()) continue;
+				if (!no.getNodeInst().isParam(var.getKey())) continue;
+//				if (!var.isParam()) continue;
 				paramValues.put(var.getKey(), var);
 			}
 			for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )

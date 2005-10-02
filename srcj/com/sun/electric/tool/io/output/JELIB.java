@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
@@ -50,7 +49,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
@@ -433,7 +431,7 @@ public class JELIB extends Output
 	 *    Xoffset; for X offset
 	 *    Yoffset; for Y offset
 	 */
-	private String describeDescriptor(ImmutableVariable var, TextDescriptor td)
+	private String describeDescriptor(Variable var, TextDescriptor td)
 	{
 		StringBuffer ret = new StringBuffer();
 		boolean display = false;
@@ -578,11 +576,10 @@ public class JELIB extends Output
 		for(Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-            ImmutableVariable v = var.getD();
 //			if (var.isDontSave()) continue;
-			String tdString = describeDescriptor(v, v.descriptor);
-			printWriter.print("|" + convertVariableName(diskName(var)) + "(" + tdString + ")");
-			Object varObj = v.getValueInCurrentThread();
+			String tdString = describeDescriptor(var, var.descriptor);
+			printWriter.print("|" + convertVariableName(diskName(eObj, var)) + "(" + tdString + ")");
+			Object varObj = var.getValueInCurrentThread();
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
 			printWriter.print(pt);

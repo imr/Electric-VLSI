@@ -25,7 +25,6 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableVariable;
 
 /**
  *
@@ -39,24 +38,24 @@ public abstract class ElectricObject_ extends ElectricObject {
     }
     
     /**
-     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
     public ImmutableElectricObject getImmutable() { return immutable; }
     
     /**
-     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * Changes persistent data of this ElectricObject with Variables.
      * @param immutable new persistent data of this ElectricObject.
      */
     protected void setImmutable(ImmutableElectricObject immutable) { this.immutable = immutable; }
     
     /**
-     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
-     * @param vd ImmutableVariable to add.
+     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * @param var Variable to add.
      * @return updated persistent data.
      */
-    protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        immutable = immutable.withVariable_(vd);
+    protected ImmutableElectricObject withVariable(Variable var) {
+        immutable = immutable.withVariable_(var);
         return immutable;
     }
     

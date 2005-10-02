@@ -46,7 +46,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -463,8 +463,7 @@ public class FPGA extends Technology
 				polys[fillPos].setStyle(Poly.Type.TEXTBOX);
 				polys[fillPos].setLayer(tech.componentLayer);
 				polys[fillPos].setString(fn.getName());
-				MutableTextDescriptor td = new MutableTextDescriptor();
-				td.setRelSize(3);
+				TextDescriptor td = TextDescriptor.EMPTY.withRelSize(3);
 				polys[fillPos].setTextDescriptor(td);
 				fillPos++;
 

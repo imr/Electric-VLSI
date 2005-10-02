@@ -510,7 +510,7 @@ public class Output
 		{
 			Variable var = (Variable)it.next();
 			//if (var.isDontSave()) continue;
-			if (nameSpace != null) putNameSpace(diskName(var));
+			if (nameSpace != null) putNameSpace(diskName(eObj, var));
 			gatherFont(var.getTextDescriptor());
 			Object value = var.getObject();
 			if (value == null) continue;
@@ -613,13 +613,14 @@ public class Output
 	/**
 	 * Returns variable disk name. Usually it is variable name.
 	 * Disk name of PortInst variables is key ATTRP_portName_varName.
+     * @param owner owner of the Variable.
 	 * @param var Variable.
 	 * @return disk name of variable.
 	 */
-	String diskName(Variable var)
+	String diskName(ElectricObject owner, Variable var)
 	{
-		if (!(var.getOwner() instanceof PortInst)) return var.getKey().getName();
-		PortInst pi = (PortInst)var.getOwner();
+		if (!(owner instanceof PortInst)) return var.getKey().getName();
+		PortInst pi = (PortInst)owner;
 		String portName = pi.getPortProto().getName();
 		StringBuffer sb = new StringBuffer("ATTRP_");
 		for (int i = 0; i < portName.length(); i++)

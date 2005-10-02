@@ -24,7 +24,6 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -56,9 +55,6 @@ public abstract class ElectricObject // extends Observable implements Observer
 {
 	// ------------------------ private data ------------------------------------
 
-	/** thread-local variables */
-    private Variable[] vars = Variable.NULL_ARRAY;
-
 	// ------------------------ private and protected methods -------------------
 
 	/**
@@ -67,23 +63,23 @@ public abstract class ElectricObject // extends Observable implements Observer
 	protected ElectricObject() {}
 
     /**
-     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
     public abstract ImmutableElectricObject getImmutable();
     
     /**
-     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * Changes persistent data of this ElectricObject with Variables.
      * @param immutable new persistent data of this ElectricObject.
      */
     protected abstract void setImmutable(ImmutableElectricObject immutable);
     
     /**
-     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
-     * @param vd ImmutableVariable to add.
+     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * @param vd Variable to add.
      * @return updated persistent data.
      */
-    protected abstract ImmutableElectricObject withVariable(ImmutableVariable vd);
+    protected abstract ImmutableElectricObject withVariable(Variable var);
     
     /**
      * Updates persistent data of this ElectricObject by removing Variable with specified key.
@@ -145,9 +141,7 @@ public abstract class ElectricObject // extends Observable implements Observer
         if (key == null) return null;
         Variable var;
         synchronized(this) {
-            int varIndex = getImmutable().searchVar(key);
-            if (varIndex < 0) return null;
-            var = vars[varIndex];
+            var = getImmutable().getVar(key);
         }
 		if (var != null) {
             if (type == null) return var;                   // null type means any type
@@ -168,7 +162,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
+	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
 		Variable var = getVar(varKey);
 		if (var == null) return null;
@@ -194,99 +188,16 @@ public abstract class ElectricObject // extends Observable implements Observer
 		return new MutableTextDescriptor(td);
 	}
 
-    private static int debugGetParameterRecurse = 0;
-    /**
-     * Method to return the Variable on this ElectricObject with the given key
-     * that is a parameter.  If the variable is not found on this object, it
-     * is also searched for on the default var owner.
-     * @param key the key of the variable
-     * @return the Variable with that key, that may exist either on this object
-     * or the default owner.  Returns null if none found.
-     */
-    public Variable getParameter(Variable.Key key)
-    {
-        if (debugGetParameterRecurse > 3)
-            ActivityLogger.logException(new Exception("GetParameter recurse error: "+debugGetParameterRecurse));
-        debugGetParameterRecurse++;
-
-        Variable var = getVar(key, null);
-        if (var != null)
-            if (var.isParam()) {
-                debugGetParameterRecurse--;
-                return var;
-            }
-        // look on default var owner
-        ElectricObject defOwner = getVarDefaultOwner();
-        if (defOwner == null) { debugGetParameterRecurse--; return null; }
-        if (defOwner == this) { debugGetParameterRecurse--; return null; }
-
-        Variable var2 = defOwner.getParameter(key);
-        debugGetParameterRecurse--;
-        return var2;
-    }
-
-    private static int debugGetParametersRecurse = 0;
-    /**
-     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
-     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-     * @return an Iterator over all Variables on this ElectricObject.
-     */
-    public Iterator getParameters() {
-        if (debugGetParametersRecurse > 3)
-            ActivityLogger.logException(new Exception("GetParameters recurse error: "+debugGetParametersRecurse));
-        debugGetParametersRecurse++;
-
-        TreeMap keysToVars = new TreeMap();
-        // get all parameters on this object
-        for (Iterator it = getVariables(); it.hasNext(); ) {
-            Variable v = (Variable)it.next();
-            if (!v.isParam()) continue;
-            keysToVars.put(v.getKey(), v);
-        }
-        // look on default var owner
-        ElectricObject defOwner = getVarDefaultOwner();
-        if (defOwner == null) { debugGetParametersRecurse--; return keysToVars.values().iterator(); }
-        if (defOwner == this) { debugGetParametersRecurse--; return keysToVars.values().iterator(); }
-        for (Iterator it = defOwner.getParameters(); it.hasNext(); ) {
-            Variable v = (Variable)it.next();
-            if (keysToVars.get(v.getKey()) == null)
-                keysToVars.put(v.getKey(), v);
-        }
-        debugGetParametersRecurse--;
-        return keysToVars.values().iterator();
-    }
-
-    /**
-     * This method can be overridden by extending objects.
-     * For objects (such as instances) that have instance variables that are
-     * inherited from some Object that has the default variables, this gets
-     * the object that has the default variables. From that object the
-     * default values of the variables can then be found.
-     * @return the object that holds the default variables and values.
-     */
-    public ElectricObject getVarDefaultOwner() {
-        //checkExamine();
-        return this;
-    }
-
-// 	/**
-// 	 * Method to return the number of persistent Variables on this ElectricObject.
-// 	 * A persistent Variable is one that will be saved with the library when written to disk.
-// 	 * @return the number of persistent Variables on this ElectricObject.
-// 	 */
-// 	public int numPersistentVariables()
-// 	{
-//         //checkExamine();
-// 		int numVars = 0;
-// 		for (Iterator it = getVariables(); it.hasNext(); )
-// 		{
-// 			Variable var = (Variable)it.next();
-// 			if (var.isDontSave()) continue;
-// 			numVars++;
-// 		}
-// 		return numVars;
-// 	}
-
+	/**
+	 * Method to return true if the Variable on this ElectricObject with given key is a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+     * @param varKey key to test
+	 * @return true if the Variable with given key is a parameter.
+	 */
+    public boolean isParam(Variable.Key varKey) { return false; }
+    
 	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
@@ -550,9 +461,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 		TextDescriptor td = var.getTextDescriptor();
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
 		{
-			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-			mtd.setOff(0, 0);
-			td = mtd;
+            td = td.withOff(0, 0);
+//			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+//			mtd.setOff(0, 0);
+//			td = mtd;
 		}
 		boolean headerString = false;
 //		Font font = null;
@@ -609,9 +521,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 				if (i == 0)
 				{
 					message = var.getTrueName()+ "[" + (varLength-1) + "]:";
-					MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-					mtd.setUnderline(true);
-					entryTD = mtd;
+                    entryTD = entryTD.withUnderline(true);
+//					MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+//					mtd.setUnderline(true);
+//					entryTD = mtd;
 				} else
 				{
 					message = var.describe(i-1, context, this);
@@ -711,78 +624,46 @@ public abstract class ElectricObject // extends Observable implements Observer
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
         if (value == null) return null;
-        ImmutableTextDescriptor td1 = ImmutableTextDescriptor.newImmutableTextDescriptor(td);
-        ImmutableVariable d = null;
+        Variable var = null;
         try {
-            d = ImmutableVariable.newInstance(key, td1, value);
+            var = Variable.newInstance(key, value, td);
         } catch (IllegalArgumentException e) {
             ActivityLogger.logException(e);
             return null;
         }
-        Variable v = newVar(d);
+        return addVar(var);
 //        setChanged();
 //        notifyObservers(v);
 //        clearChanged();
-        return v;
     }
 
  	/**
-	 * Method to create a Variable on this ElectricObject with the specified persistent data.
-	 * @param d peristent data of this variable.
+	 * Method to add a Variable on this ElectricObject with the specified persistent data.
+	 * @param var Variable to add.
 	 * @return the Variable that has been created.
 	 */
-    public Variable newVar(ImmutableVariable d)
-    {
- 		if (isDeprecatedVariable(d.key))
+     public Variable addVar(Variable var) {
+ 		if (isDeprecatedVariable(var.getKey()))
 		{
-			System.out.println("Deprecated variable " + d.key.getName() + " on " + this);
+			System.out.println("Deprecated variable " + var.getKey() + " on " + this);
 		}
         if (!(this instanceof Cell))
-            d = d.withDescriptor(d.descriptor.withoutParam());
+            var = var.withParam(false);
         
 		checkChanging();
         ImmutableElectricObject oldImmutable;
         ImmutableElectricObject newImmutable;
-        Variable var;
         synchronized(this) {
             oldImmutable = getImmutable();
-            newImmutable = withVariable(d);
-            int varIndex = oldImmutable.searchVar(d.key);
-            if (varIndex >= 0) {
-                var = vars[varIndex];
-                if (var.getD() == d) return var;
-                var.setD(d);
-            } else {
-                varIndex = ~varIndex;
-                Variable[] newVars = new Variable[vars.length + 1];
-                System.arraycopy(vars, 0, newVars, 0, varIndex);
-                var = new Variable(this, d);
-                newVars[varIndex] = var;
-                var.setLinked(true);
-                System.arraycopy(vars, varIndex, newVars, varIndex + 1, vars.length - varIndex);
-                vars = newVars;
-            }
-            assert newImmutable.getVar(varIndex) == d;
+            newImmutable = withVariable(var);
         }
         
         if (newImmutable != oldImmutable) {
             if (isDatabaseObject())
                 Undo.modifyVariables(this, oldImmutable);
-            checkPossibleVariableEffects(d.key);
+            checkPossibleVariableEffects(var.getKey());
         }
 		return var;
-    }
-
-    /**
-	 * Method to update a Variable on this ElectricObject with the specified values.
-	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
-	 * @param name the name of the Variable.
-	 * @param value the object to store in the Variable.
-	 * @return the Variable that has been updated.
-	 */
-	public Variable updateVar(String name, Object value)
-    {
-        return updateVar(Variable.newKey(name), value);
     }
 
 	/**
@@ -795,23 +676,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public Variable updateVar(Variable.Key key, Object value)
 	{
 		Variable var = getVar(key);
-		if (var == null)
-		{
-			return newVar(key, value);
-		}
-
-		// set the variable
-		Variable newVar = newVar(key, value, var.getTextDescriptor());
-		if (newVar == null) return null;
-
-		// restore values
-//		newVar.setTextDescriptor();
-//        newVar.copyFlags(var);
-//		lowLevelModVar(var);
-		return newVar;
+        return var != null ? addVar(var.withValue(value)) : newVar(key, value);
 	}
 
-	/**
+    /**
 	 * Updates the TextDescriptor on this ElectricObject selected by varKey.
 	 * The varKey may be a key of variable on this ElectricObject or one of the
 	 * special keys:
@@ -824,28 +692,12 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
 	 */
-	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
-	{
-     	checkChanging();
-        ImmutableElectricObject oldImmutable = getImmutable();
-        ImmutableVariable vd = oldImmutable.getVar(varKey);
-        if (vd == null) return;
-        
-        ImmutableTextDescriptor newTd = ImmutableTextDescriptor.newImmutableTextDescriptor(td);
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td) {
+        Variable var = getVar(varKey);
+        if (var == null) return;
         if (!(this instanceof Cell))
-            newTd = newTd.withoutParam();
-        ImmutableVariable newVd = vd.withDescriptor(newTd);
-        Variable var = newVar(newVd);
-        assert var.getD() == newVd;
-
-//        // handle change control, constraint, and broadcast
-//        if (isDatabaseObject())
-//            Undo.modifyVariables(this, oldImmutable);
-        
-//        // Handles the observers
-//        setChanged();
-//        notifyObservers(new Object[]{"setTextDescriptor", key, td});
-//        clearChanged();
+            td = td.withParam(false);
+        addVar(var.withTextDescriptor(td));
     }
 
 	/**
@@ -855,15 +707,12 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param varKey key of variable or special key.
 	 * @param xd the X offset of the text in the TextDescriptor.
 	 * @param yd the Y offset of the text in the TextDescriptor.
-	 * @see #setTextDescriptor(java.lang.String,com.sun.electric.database.variable.TextDescriptor)
-	 * @see com.sun.electric.database.variable.Variable#setOff(double,double)
+	 * @see #setTextDescriptor(com.sun.electric.database.variable.Variable.Key,com.sun.electric.database.variable.TextDescriptor)
+	 * @see com.sun.electric.database.variable.Variable#withOff(double,double)
 	 */
-	public synchronized void setOff(Variable.Key varKey, double xd, double yd)
-	{
-		MutableTextDescriptor td = getMutableTextDescriptor(varKey);
-		if (td == null) return;
-		td.setOff(xd, yd);
-		setTextDescriptor(varKey, td);
+	public synchronized void setOff(Variable.Key varKey, double xd, double yd) {
+        TextDescriptor td = getTextDescriptor(varKey);
+        if (td != null) setTextDescriptor(varKey, td.withOff(xd, yd));
 	}
 
 	/**
@@ -936,24 +785,12 @@ public abstract class ElectricObject // extends Observable implements Observer
 	{
 		checkChanging();
         ImmutableElectricObject oldImmutable;
-        Variable oldVar;
+        ImmutableElectricObject newImmutable;
         synchronized(this) {
             oldImmutable = getImmutable();
-            int varIndex = oldImmutable.searchVar(key);
-            if (varIndex < 0) return;
-            ImmutableElectricObject newImmutable = withoutVariable(key);
-            assert newImmutable.getNumVariables() == oldImmutable.getNumVariables() - 1;
-            oldVar = vars[varIndex];
-            oldVar.setLinked(false);
-            if (newImmutable.getNumVariables() > 0) {
-                Variable[] newVars = new Variable[vars.length - 1];
-                System.arraycopy(vars, 0, newVars, 0, varIndex);
-                System.arraycopy(vars, varIndex + 1, newVars, varIndex, newVars.length - varIndex);
-                vars = newVars;
-            } else {
-                vars = Variable.NULL_ARRAY;
-            }
+            newImmutable = withoutVariable(key);
         }
+        if (newImmutable == oldImmutable) return;
 		if (isDatabaseObject())
 			Undo.modifyVariables(this, oldImmutable);
 		// check for side-effects of the change
@@ -962,50 +799,14 @@ public abstract class ElectricObject // extends Observable implements Observer
     
     public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) {
         ImmutableElectricObject oldImmutable = getImmutable();
+        setImmutable(newImmutable);
         int oldLength = oldImmutable.getNumVariables();
         int newLength = newImmutable.getNumVariables();
         
-        // Prepare newVars
-        Variable[] oldVars = this.vars;
-        Variable[] newVars = newLength > 0 ? new Variable[newLength] : Variable.NULL_ARRAY;
-        int n = 0, o = 0;
-        while (n < newLength && o < oldVars.length) {
-            for (int i = 0, iend = Math.min(newLength - n, oldVars.length - o); i < iend; i++) {
-                if (newImmutable.getVar(n) != oldVars[o].getD()) break;
-                newVars[n++] = oldVars[o++];
-            }
-            if (n >= newLength || o >= oldVars.length) break;
-            ImmutableVariable d = newImmutable.getVar(n);
-            int cmp = d.key.compareTo(oldVars[o].getKey());
-            if (cmp == 0) {
-                Variable var = oldVars[o++];
-                var.setD(d);
-                newVars[n++] = var;
-            } else if (cmp > 0) {
-                Variable oldVar = oldVars[o++];
-                oldVar.setLinked(false);
-            } else {
-                Variable newVar = new Variable(this, d);
-                newVar.setLinked(true);
-                newVars[n++] = newVar;
-            }
-        }
-        while (o < oldVars.length) {
-            Variable oldVar = oldVars[o++];
-            oldVar.setLinked(false);
-        }
-        while (n < newVars.length) {
-            Variable newVar = new Variable(this, newImmutable.getVar(n));
-            newVars[n++] = newVar;
-        }
-        // commit new vars
-        setImmutable(newImmutable);
-        this.vars = newVars;
-        
         // Check possible variable effects
-        n = o = 0;
+        int n = 0, o = 0;
         while (n < newLength && o < oldLength) {
-            for (int i = 0, iend = Math.min(newVars.length - n, oldVars.length - o); i < iend; i++, n++, o++) {
+            for (int i = 0, iend = Math.min(newLength - n, oldLength - o); i < iend; i++, n++, o++) {
                 if (newImmutable.getVar(n) != oldImmutable.getVar(o)) break;
             }
             if (n >= newLength || o >= oldLength) break;
@@ -1339,19 +1140,13 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
-	public synchronized Iterator getVariables() {
-        //checkExamine();
-        return ArrayIterator.iterator(vars);
-    }
+	public synchronized Iterator getVariables() { return getImmutable().getVariables(); }
 
 	/**
 	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
-    public synchronized int getNumVariables() {
-        //checkExamine();
-        return vars.length;
-    }
+    public synchronized int getNumVariables() { return getImmutable().getNumVariables(); }
     
 	/**
 	 * Routing to check whether changing of this cell allowed or not.
@@ -1407,8 +1202,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
-//            TextDescriptor td = val.getTextDescriptor();
-            String par = val.isParam() ? "(param)" : "";
+            String par = isParam(key) ? "(param)" : "";
+//            String par = val.isParam() ? "(param)" : "";
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;
@@ -1493,14 +1288,6 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @exception AssertionError if invariants are not valid
 	 */
 	protected void check() {
-        ImmutableElectricObject immutable = getImmutable();
-        immutable.check();
-        assert vars.length == immutable.getNumVariables();
-        if (vars.length == 0) assert vars == Variable.NULL_ARRAY;
-        for (int i = 0; i < vars.length; i++) {
-            Variable var = vars[i];
-            assert var.getOwner() == this;
-            assert var.getD() == immutable.getVar(i);
-        }
+        getImmutable().check(this instanceof Cell);
     }
 }

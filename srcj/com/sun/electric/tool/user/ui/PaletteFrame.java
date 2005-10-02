@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -524,7 +524,7 @@ public class PaletteFrame implements MouseListener
 			if (varName != null)
 			{
 				// text object: add initial text
-				Variable var = newNi.newVar(Variable.newKey(varName), "text", ImmutableTextDescriptor.getAnnotationTextDescriptor());
+				Variable var = newNi.newVar(Variable.newKey(varName), "text", TextDescriptor.getAnnotationTextDescriptor());
 				Highlight h = highlighter.addText(newNi, cell, var, null);
 			} else
 			{
@@ -536,20 +536,20 @@ public class PaletteFrame implements MouseListener
                     if (newNi.getFunction() == PrimitiveNode.Function.PRESIST)
                     {
                         // They will be visible
-                        MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-						td.setOff(1.5, 0);
+                        TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
-							td.setAbsSize((int)(td.getSize().getSize() - 1));
+							td = td.withAbsSize((int)(td.getSize().getSize() - 1));
 						else
-							td.setRelSize(td.getSize().getSize() - 0.5);
+							td = td.withRelSize(td.getSize().getSize() - 0.5);
+						td = td.withOff(1.5, 0);
 						var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
-						td = MutableTextDescriptor.getNodeTextDescriptor();
-						td.setOff(-1.5, 0);
+						td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
-							td.setAbsSize((int)(td.getSize().getSize() - 2));
+							td = td.withAbsSize((int)(td.getSize().getSize() - 2));
 						else
-							td.setRelSize(td.getSize().getSize() - 0.7);
+							td = td.withRelSize(td.getSize().getSize() - 0.7);
+						td = td.withOff(-1.5, 0);
 						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
                     }
 				} else if (np == Schematics.tech.capacitorNode)
@@ -565,17 +565,16 @@ public class PaletteFrame implements MouseListener
 				{
 					if (newNi.isFET())
 					{
-						MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-						td.setOff(0.5, -1);
+						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withOff(0.5, -1);
 						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
 
-						td = MutableTextDescriptor.getNodeTextDescriptor();
-						td.setOff(-0.5, -1);
+						td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
-							td.setAbsSize((int)(td.getSize().getSize() - 2));
+							td = td.withAbsSize((int)(td.getSize().getSize() - 2));
 						else
-							td.setRelSize(td.getSize().getSize() - 0.5);
+							td = td.withRelSize(td.getSize().getSize() - 0.5);
+						td = td.withOff(-0.5, -1);
 						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
 					} else
 					{

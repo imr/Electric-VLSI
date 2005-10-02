@@ -29,7 +29,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -44,7 +43,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -240,7 +238,7 @@ public class JELIB extends LibraryFiles
 				if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
 
 				// add variables in fields 7 and up
-				ImmutableVariable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
+				Variable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
                 realizeVariables(newCell, vars);
 
 				// gather the contents of the cell into a list of Strings
@@ -359,7 +357,7 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logWarning(filePath + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
-				ImmutableVariable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
+				Variable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
                 realizeVariables(lib, vars);
 
 				lib.setVersion(version);
@@ -380,7 +378,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional meaning preferences starting at position 1
-                ImmutableVariable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(tool, vars);
 //				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
@@ -425,7 +423,7 @@ public class JELIB extends LibraryFiles
 				curPrim = null;
 
 				// get additional meaning preferences  starting at position 1
-                ImmutableVariable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(curTech, vars);
 //				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
@@ -866,7 +864,7 @@ public class JELIB extends LibraryFiles
 // 			}
 
 			// parse state information in stateInfo field
-            ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+            TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
             int flags = 0, techBits = 0;
             boolean expanded = false;
             // parse state information in jelibUserBits
@@ -893,7 +891,7 @@ public class JELIB extends LibraryFiles
                         }
                 }
             }
-           ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
+           TextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
@@ -910,7 +908,7 @@ public class JELIB extends LibraryFiles
 			diskName.put(diskNodeName, ni);
 
 			// add variables in fields 10 and up
-			ImmutableVariable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(ni, vars);
 		}
 
@@ -946,7 +944,7 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor in field 1
 			String textDescriptorInfo = (String)pieces.get(1);
-            ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+            TextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 			// parse state information in field 6
             int userBits = Export.parseJelibUserBits((String)pieces.get(numPieces - 1));
             
@@ -961,7 +959,7 @@ public class JELIB extends LibraryFiles
 			}
 
             // add variables in fields 7 and up
-			ImmutableVariable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(pp, vars);
 		}
 
@@ -1085,7 +1083,7 @@ public class JELIB extends LibraryFiles
 
 			// get the ard name text descriptor
 			String nameTextDescriptorInfo = (String)pieces.get(2);
-			ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, -1, nameTextDescriptor,
                     headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), wid, angle, flags);
@@ -1099,7 +1097,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// add variables in fields 13 and up
-			ImmutableVariable[] vars = readVariables(pieces, 13, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(pieces, 13, cc.fileName, cc.lineNumber + line);
             realizeVariables(ai, vars);
 		}
 		cc.filledIn = true;
@@ -1290,9 +1288,9 @@ public class JELIB extends LibraryFiles
 	 * @param position the index in the array of strings where Variable descriptions begin.
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
-     * @return an array of ImmutableVariables. 
+     * @return an array of Variables. 
 	 */
-	private ImmutableVariable[] readVariables(List pieces, int position, String fileName, int lineNumber)
+	private Variable[] readVariables(List pieces, int position, String fileName, int lineNumber)
 	{
         variablesBuf.clear();
 		int total = pieces.size();
@@ -1454,11 +1452,11 @@ public class JELIB extends LibraryFiles
 			}
 
 			// create the variable
-            ImmutableTextDescriptor td = loadTextDescriptor(varBits, true, fileName, lineNumber);
-            ImmutableVariable d = ImmutableVariable.newInstance(varKey, td, obj);
+            TextDescriptor td = loadTextDescriptor(varBits, true, fileName, lineNumber);
+            Variable d = Variable.newInstance(varKey, obj, td);
             variablesBuf.add(d);
 		}
-        return (ImmutableVariable[])variablesBuf.toArray(ImmutableVariable.NULL_ARRAY);
+        return (Variable[])variablesBuf.toArray(Variable.NULL_ARRAY);
 	}
 
 	/**
@@ -1470,10 +1468,10 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
 	 * @return loaded TextDescriptor
 	 */
-	private ImmutableTextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
+	private TextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
 	{
         HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
-        ImmutableTextDescriptor td = (ImmutableTextDescriptor)parsedDescriptors.get(varBits);
+        TextDescriptor td = (TextDescriptor)parsedDescriptors.get(varBits);
         if (td != null) return td;
         
         boolean error = false;
@@ -1670,7 +1668,7 @@ public class JELIB extends LibraryFiles
 			}
 		}
 		mtd.setOff(xoff, yoff);
-		td = ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+		td = TextDescriptor.newTextDescriptor(mtd);
         if (!error) parsedDescriptors.put(varBits, td);
         return td;
 	}

@@ -37,14 +37,12 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.User;
-
-import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -342,10 +340,8 @@ public class Schematics extends Technology
 		//**************************************** NODES ****************************************
 		
 		// this text descriptor is used for all text on nodes
-		MutableTextDescriptor tdBig = new MutableTextDescriptor();
-		tdBig.setRelSize(2);
-		MutableTextDescriptor tdSmall = new MutableTextDescriptor();
-		tdSmall.setRelSize(1);
+		TextDescriptor tdBig = TextDescriptor.EMPTY.withRelSize(2);
+		TextDescriptor tdSmall = TextDescriptor.EMPTY.withRelSize(1);
 
 		/** wire pin */
 		wirePinNode = PrimitiveNode.newInstance("Wire_Pin", this, 0.5, 0.5, null,
@@ -1875,7 +1871,7 @@ public class Schematics extends Technology
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 			portPoly.setStyle(Poly.Type.FILLED);
-			portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor()/*pp.getTextDescriptor()*/);
+			portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor()/*pp.getTextDescriptor()*/);
 			return portPoly;
 		}
 
@@ -2263,26 +2259,36 @@ public class Schematics extends Technology
         if (ni.isFET() || ni.getFunction().isResistor())
         {
             Variable var = ni.getVar(ATTR_LENGTH);
-            if (var == null) {
-                var = ni.newVar(ATTR_LENGTH, length);
-            } else {
-                var = ni.updateVar(var.getKey(), length);
-            }
-            if (var != null) var.setDisplay(true);
+            if (var == null)
+                ni.newDisplayVar(ATTR_LENGTH, length);
+            else
+                ni.addVar(var.withValue(length).withDisplay(true));
+//            if (var == null) {
+//                var = ni.newVar(ATTR_LENGTH, length);
+//            } else {
+//                var = ni.updateVar(var.getKey(), length);
+//            }
+//            if (var != null) var.setDisplay(true);
 
             var = ni.getVar(ATTR_WIDTH);
-            if (var == null) {
-                var = ni.newVar(ATTR_WIDTH, width);
-            } else {
-                var = ni.updateVar(var.getKey(), width);
-            }
-            if (var != null) var.setDisplay(true);
+            if (var == null)
+                ni.newDisplayVar(ATTR_WIDTH, width);
+            else
+                ni.addVar(var.withValue(width).withDisplay(true));
+//            if (var == null) {
+//                var = ni.newVar(ATTR_WIDTH, width);
+//            } else {
+//                var = ni.updateVar(var.getKey(), width);
+//            }
+//            if (var != null) var.setDisplay(true);
         } else {
             Variable var = ni.getVar(ATTR_AREA);
-            if (var != null) {
-                var = ni.updateVar(var.getKey(), width);
-            }
-            if (var != null) var.setDisplay(true);
+            if (var != null)
+                ni.addVar(var.withValue(width).withDisplay(true));
+//            if (var != null) {
+//                var = ni.updateVar(var.getKey(), width);
+//            }
+//            if (var != null) var.setDisplay(true);
         }
     }
 

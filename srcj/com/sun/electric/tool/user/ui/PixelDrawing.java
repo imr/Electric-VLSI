@@ -35,7 +35,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -45,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -284,7 +284,7 @@ public class PixelDrawing
 	/** list of cell expansions. */							private static HashMap expandedCells = null;
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
-	/** TextDescriptor for empty window text. */			private static MutableTextDescriptor noCellTextDescriptor = null;
+	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics textGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -470,9 +470,7 @@ public class PixelDrawing
 		{
 			if (noCellTextDescriptor == null)
 			{
-				noCellTextDescriptor = new MutableTextDescriptor();
-				noCellTextDescriptor.setAbsSize(18);
-				noCellTextDescriptor.setBold(true);
+				noCellTextDescriptor = TextDescriptor.EMPTY.withAbsSize(18).withBold(true);
 			}
 			Rectangle rect = new Rectangle(sz);
 			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, textGraphics, false);
@@ -1151,8 +1149,7 @@ public class PixelDrawing
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
-					portDescript.setColorIndex(descript.getColorIndex());
+					TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME).withColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					String portName = pp.getName();
 					if (portDisplayLevel == 1)

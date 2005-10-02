@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -124,13 +123,13 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
     /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
-	/** The text descriptor of name of ImmutableNodeInst. */		public final ImmutableTextDescriptor nameDescriptor;
+	/** The text descriptor of name of ImmutableNodeInst. */		public final TextDescriptor nameDescriptor;
 	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
 	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
 	/** size of this ImmutableNodeInst . */                         public final double width, height;
 	/** Flag bits for this ImmutableNodeInst. */                    public final int flags;
     /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
-	/** Text descriptor of prototype name. */                       public final ImmutableTextDescriptor protoDescriptor;
+	/** Text descriptor of prototype name. */                       public final TextDescriptor protoDescriptor;
  
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
@@ -146,12 +145,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param flags flag bits for thisImmutableNdoeIsnt.
 	 * @param techBits tech speicfic bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
-     * @param vars array of ImmutableVariables of this ImmutableNodeInst
+     * @param vars array of Variables of this ImmutableNodeInst
 	 */
     ImmutableNodeInst(int nodeId, NodeProtoId protoId,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Name name, int duplicate, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
-            int flags, byte techBits, ImmutableTextDescriptor protoDescriptor, ImmutableVariable[] vars) {
+            int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars) {
         super(vars);
         this.nodeId = nodeId;
         this.protoId = protoId;
@@ -195,9 +194,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-        ImmutableTextDescriptor immutableNameDescriptor = null;
         if (nameDescriptor != null)
-            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
         if (!(width >= 0)) throw new IllegalArgumentException("width");
@@ -215,11 +213,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (height == -0.0) height = +0.0;
         flags &= FLAG_BITS;
         techBits &= NTECHBITS >> NTECHBITSSH;
-        ImmutableTextDescriptor immutableProtoDescriptor = null;
         if (protoDescriptor != null)
-            immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
-		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, immutableNameDescriptor,
-                orient, anchor, width, height, flags, (byte)techBits, immutableProtoDescriptor, ImmutableVariable.NULL_ARRAY);
+            protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
+		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor,
+                orient, anchor, width, height, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY);
     }
 
 //	/**
@@ -259,11 +256,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
 	 */
 	public ImmutableNodeInst withNameDescriptor(TextDescriptor nameDescriptor) {
-        ImmutableTextDescriptor immutableNameDescriptor = null;
         if (nameDescriptor != null)
-            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
-        if (this.nameDescriptor == immutableNameDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, immutableNameDescriptor,
+            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+        if (this.nameDescriptor == nameDescriptor) return this;
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
@@ -359,40 +355,39 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by proto descriptor.
 	 */
 	public ImmutableNodeInst withProtoDescriptor(TextDescriptor protoDescriptor) {
-        ImmutableTextDescriptor immutableProtoDescriptor = null;
         if (protoDescriptor != null)
-            immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
+            protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, immutableProtoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor, getVars());
 	}
 
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by additional ImmutableVariable.
-     * If this ImmutableNideInst has ImmutableVariable with the same key as new, the old variable will not be in new
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by additional Variable.
+     * If this ImmutableNideInst has Variable with the same key as new, the old variable will not be in new
      * ImmutableNodeInst.
-	 * @param var additional ImmutableVariable.
-	 * @return ImmutableNodeInst with additional ImmutableVariable.
+	 * @param var additional Variable.
+	 * @return ImmutableNodeInst with additional Variable.
 	 * @throws NullPointerException if var is null
 	 */
-    public ImmutableNodeInst withVariable(ImmutableVariable var) {
+    public ImmutableNodeInst withVariable(Variable var) {
         if (var.descriptor.isParam())
-            var = var.withDescriptor(var.descriptor.withoutParam());
-        ImmutableVariable[] vars = arrayWithVariable(var);
+            var = var.withParam(false);
+        Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);
     }
     
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by removing ImmutableVariable
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by removing Variable
      * with the specified key. Returns this ImmutableNodeInst if it doesn't contain variable with the specified key.
 	 * @param key Variable Key to remove.
-	 * @return ImmutableNodeInst without ImmutableVariable with the specified key.
+	 * @return ImmutableNodeInst without Variable with the specified key.
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableNodeInst withoutVariable(Variable.Key key) {
-        ImmutableVariable[] vars = arrayWithoutVariable(key);
+        Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);

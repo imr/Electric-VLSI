@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -42,7 +43,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -701,43 +701,71 @@ public class Sue extends Input
 						if (((String)newObject).indexOf('@') >= 0 ||
 							((String)newObject).indexOf("p(") >= 0) makeJava = true;
 					}
-					Variable var = ni.newDisplayVar(Variable.newKey(sueVarName), newObject);
-					if (var != null)
-					{
-//						var.setDisplay(true);
-						if (makeJava) var.setCode(TextDescriptor.Code.JAVA);
-						varIndex++;
-						var.setOff(xpos, ypos);
-						if (halveSize)
-						{
-							if (var.getSize().isAbsolute())
-								var.setAbsSize((int)(var.getSize().getSize() / 2)); else
-									var.setRelSize(var.getSize().getSize() / 2);
-						}
-						if (isParam)
-						{
-							var.setParam(true);
-							var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 
-							// make sure the parameter exists in the cell definition
-							NodeProto np = ni.getProto();
-							if (np instanceof Cell)
-							{
-								Cell cnp = ((Cell)np).contentsView();
-								if (cnp == null) cnp = (Cell)np;
-								var = cnp.getVar(sueVarName);
-								if (var == null)
-								{
-									var = cnp.newVar(sueVarName, newObject);
-									if (var != null)
-									{
-										var.setParam(true);
-										var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
-									}
-								}
-							}
-						}
-					}
+                    Variable.Key varKey = Variable.newKey(sueVarName);
+                    MutableTextDescriptor mtd = MutableTextDescriptor.getNodeTextDescriptor();
+                    if (makeJava) mtd.setCode(TextDescriptor.Code.JAVA);
+                    varIndex++;
+                    mtd.setOff(xpos, ypos);
+                    if (halveSize) {
+                        if (mtd.getSize().isAbsolute())
+                            mtd.setAbsSize((int)(mtd.getSize().getSize() / 2)); else
+                                mtd.setRelSize(mtd.getSize().getSize() / 2);
+                    }
+                    if (isParam) {
+                        mtd.setParam(true);
+                        mtd.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                    }
+					ni.newVar(varKey, newObject, TextDescriptor.newTextDescriptor(mtd));
+                        
+                    // make sure the parameter exists in the cell definition
+                    NodeProto np = ni.getProto();
+                    if (isParam && np instanceof Cell) {
+                        Cell cnp = ((Cell)np).contentsView();
+                        if (cnp == null) cnp = (Cell)np;
+                        Variable contentsVar = cnp.getVar(varKey);
+                        if (contentsVar == null) {
+                            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+                            cnp.newVar(varKey, newObject, td);
+                        }
+                    }
+//					Variable var = ni.newDisplayVar(Variable.newKey(sueVarName), newObject);
+//					if (var != null)
+//					{
+////						var.setDisplay(true);
+//						if (makeJava) var.setCode(TextDescriptor.Code.JAVA);
+//						varIndex++;
+//						var.setOff(xpos, ypos);
+//						if (halveSize)
+//						{
+//							if (var.getSize().isAbsolute())
+//								var.setAbsSize((int)(var.getSize().getSize() / 2)); else
+//									var.setRelSize(var.getSize().getSize() / 2);
+//						}
+//						if (isParam)
+//						{
+//							var.setParam(true);
+//							var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//
+//							// make sure the parameter exists in the cell definition
+//							NodeProto np = ni.getProto();
+//							if (np instanceof Cell)
+//							{
+//								Cell cnp = ((Cell)np).contentsView();
+//								if (cnp == null) cnp = (Cell)np;
+//								var = cnp.getVar(sueVarName);
+//								if (var == null)
+//								{
+//									var = cnp.newVar(sueVarName, newObject);
+//									if (var != null)
+//									{
+//										var.setParam(true);
+//										var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+//									}
+//								}
+//							}
+//						}
+//					}
 				}
 				continue;
 			}

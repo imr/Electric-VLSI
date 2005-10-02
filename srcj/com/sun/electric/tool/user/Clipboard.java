@@ -554,14 +554,13 @@ public class Clipboard
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
-				Variable cellVar = parent.newVar(var.getKey(), var.getObject());
-				if (cellVar != null)
-				{
-					cellVar.setTextDescriptor(var.getTextDescriptor());
-					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
-//					cellVar.setCode(var.getCode());
-//					cellVar.setDisplay(true);
-				}
+                parent.addVar(var.withOff(var.getXOff() + dX, var.getYOff() + dY));
+//				Variable cellVar = parent.newVar(var.getKey(), var.getObject());
+//				if (cellVar != null)
+//				{
+//					cellVar.setTextDescriptor(var.getTextDescriptor());
+//					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
+//				}
 			}
 			return true;
 		}

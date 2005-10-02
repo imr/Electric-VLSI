@@ -39,7 +39,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -497,6 +496,7 @@ public class DebugMenus {
 
 			// now a rotation test
 			Cell rotTestCell = Cell.makeInstance(mainLib, "rotationTest{lay}");
+            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(10);
             for (int iY = 0; iY < 2; iY++) {
                 boolean flipY = iY != 0;
                 for (int iX = 0; iX < 2; iX++) {
@@ -510,8 +510,8 @@ public class DebugMenus {
                         ni.setExpanded();
                         NodeInst nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(x, y - 35), 0, 0, rotTestCell);
                         String message = "Rotated " + (orient == Orientation.IDENT ? "0" : orient.toString());
-                        Variable var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, message);
-                        var.setRelSize(10);
+                        Variable var = nodeLabel.newVar(Artwork.ART_MESSAGE, message,td);
+//                        var.setRelSize(10);
                     }
                 }
             }
@@ -1736,7 +1736,7 @@ public class DebugMenus {
 				quarter++;
 		}
 		System.out.println(doubles.size() + " doubles " + whole + " whole " + quarter + " quarter");
-        System.out.println(descriptors.size() + " descriptors. cacheSize=" + ImmutableTextDescriptor.cacheSize());
+        System.out.println(descriptors.size() + " descriptors. cacheSize=" + TextDescriptor.cacheSize());
 /*
 loco
 A 192665 1657 1657 1657

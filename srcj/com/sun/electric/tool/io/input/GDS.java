@@ -1111,7 +1111,7 @@ public class GDS extends Input
 					default: td.setPos(TextDescriptor.Position.CENT);  break;
 				}
 		}
-		ni.setTextDescriptor(NodeInst.NODE_NAME, td);
+		ni.setTextDescriptor(NodeInst.NODE_NAME, TextDescriptor.newTextDescriptor(td));
 	}
 
 	/**

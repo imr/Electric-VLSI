@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -112,7 +113,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             private TextDescriptor.Unit initialUnits;
             private boolean initialDisplay;
 
-            private VarEntry(Variable var) {
+            private VarEntry(ElectricObject owner, Variable var) {
+                this.owner = owner;
                 this.var = var;
                 if (var == null) return;
 
@@ -123,7 +125,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 dispPos = initialDispPos = var.getDispPart();
                 units = initialUnits = var.getUnit();
                 display = initialDisplay = var.isDisplay();
-                owner = var.getOwner();
             }
 
             private String getName() { return varTrueName; }
@@ -304,15 +305,16 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /**
          * Set this to be the list of variables shown
+         * @param owner ElectricObject which owns Variables 
          * @param variables the list of Variables to show
          */
-        private void setVars(List variables) {
+        private void setVars(ElectricObject owner, List variables) {
             vars.clear();
             varsToDelete.clear();
             // sort by name
             for (Iterator it = variables.iterator(); it.hasNext(); ) {
                 Variable var = (Variable)it.next();                 // do cast here to catch source of non-var in list
-                vars.add(new VarEntry(var));
+                vars.add(new VarEntry(owner, var));
             }
             Collections.sort(vars, new VarEntrySort());
             fireTableDataChanged();
@@ -360,7 +362,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
          * Create a new var with default properties
          */
         public void newVar(ElectricObject owner) {
-            VarEntry ve = new VarEntry(null);
+            VarEntry ve = new VarEntry(owner, null);
             ve.var = null;
             ve.varKey = null;
             ve.varTrueName = getUniqueName("newVar");
@@ -369,7 +371,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             ve.dispPos = TextDescriptor.DispPos.NAMEVALUE;
             ve.units = TextDescriptor.Unit.NONE;
             ve.display = true;
-            ve.owner = owner;
 
             vars.add(ve);
             Collections.sort(vars, new VarEntrySort());
@@ -388,7 +389,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             }
             VarEntry srcVe = (VarEntry)vars.get(row);
 
-            VarEntry ve = new VarEntry(null);
+            VarEntry ve = new VarEntry(srcVe.getOwner(), null);
             ve.var = null;
             ve.varKey = null;
             ve.varTrueName = getUniqueName(srcVe.getName());
@@ -397,7 +398,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             ve.dispPos = srcVe.getDispPos();
             ve.units = srcVe.getUnits();
             ve.display = srcVe.isDisplay();
-            ve.owner = srcVe.getOwner();
 
             vars.add(ve);
             Collections.sort(vars, new VarEntrySort());
@@ -469,7 +469,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     VarEntry ve = (VarEntry)it.next();
                     Variable var = ve.var;
                     if (var == null) continue;
-                    ElectricObject owner = var.getOwner();
+                    ElectricObject owner = ve.getOwner();
                     owner.delVar(var.getKey());
                 }
 
@@ -497,10 +497,13 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
                     if (newVar != null) {
                         // set/update properties
-                        newVar.setCode(ve.getCode());
-                        newVar.setDispPart(ve.getDispPos());
-                        newVar.setUnit(ve.getUnits());
-                        newVar.setDisplay(ve.isDisplay());
+                        TextDescriptor td = newVar.getTextDescriptor();
+                        td = td.withDisplay(ve.isDisplay()).withCode(ve.getCode()).withDispPart(ve.getDispPos()).withUnit(ve.getUnits());
+                        owner.setTextDescriptor(newVar.getKey(), td);
+//                        newVar.setCode(ve.getCode());
+//                        newVar.setDispPart(ve.getDispPos());
+//                        newVar.setUnit(ve.getUnits());
+//                        newVar.setDisplay(ve.isDisplay());
                     }
                 }
                 return true;
@@ -756,7 +759,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             }
             // sort vars by name
             //Collections.sort(vars, new Attributes.VariableNameSort());
-            ((VariableTableModel)getModel()).setVars(vars);
+            ((VariableTableModel)getModel()).setVars(eobj, vars);
         }
         owner = eobj;
     }

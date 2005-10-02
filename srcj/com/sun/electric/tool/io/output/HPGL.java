@@ -40,7 +40,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -268,8 +268,7 @@ public class HPGL extends Output
 						poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
 						poly.transform(subTrans);
 						poly.setStyle(Poly.Type.TEXTBOX);
-						MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
-						td.setAbsSize(24);
+						TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
 						poly.setTextDescriptor(td);
 						poly.setString(ni.getProto().describe(false));
 						layerList.add(poly);

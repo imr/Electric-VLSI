@@ -175,9 +175,9 @@ public class Layout extends Constraints
 	}
 
 	/**
-	 * Method to announce a change of object ImmutableVariables.
-	 * @param obj the ElectricObject on which ImmutableVariables changed.
-	 * @param oldImmutable the old ImmutableVariables.
+	 * Method to announce a change of object Variables.
+	 * @param obj the ElectricObject on which Variables changed.
+	 * @param oldImmutable the old Variables.
 	 */
 	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{

@@ -690,7 +690,7 @@ public class ToolMenu {
 
                 // update wire length
                 NodeInst ni = (NodeInst)map.get(schNet);
-                ni.updateVar("ATTR_L", new Double(length));
+                ni.updateVar(LENetlister.ATTR_L, new Double(length));
                 wiresUpdated++;
                 System.out.println("Updated wire model "+ni.getName()+" on layout network "+proxy.toString()+" to: "+length+" lambda");
             }
@@ -1252,13 +1252,15 @@ public class ToolMenu {
 
         public boolean doIt()
         {
-            Variable var = ni.newDisplayVar(Simulation.M_FACTOR_KEY, new Double(1.0));
-            if (var != null)
-            {
-//                var.setDisplay(true);
-                var.setOff(-1.5, -1);
-                var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-            }
+            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(-1.5, -1);
+            Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0), td);
+//            Variable var = ni.newDisplayVar(Simulation.M_FACTOR_KEY, new Double(1.0));
+//            if (var != null)
+//            {
+////                var.setDisplay(true);
+//                var.setOff(-1.5, -1);
+//                var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//            }
             return true;
         }
     }
@@ -1294,14 +1296,16 @@ public class ToolMenu {
                 System.out.println("This cell already has a template");
                 return false;
             }
-            templateVar = cell.newDisplayVar(templateKey, "*Undefined");
-            if (templateVar != null)
-            {
-//                templateVar.setDisplay(true);
-                templateVar.setInterior(true);
-                templateVar.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for "+cell);
-            }
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            cell.newVar(templateKey, "*Undefined", td);
+//            templateVar = cell.newDisplayVar(templateKey, "*Undefined");
+//            if (templateVar != null)
+//            {
+////                templateVar.setDisplay(true);
+//                templateVar.setInterior(true);
+//                templateVar.setDispPart();
+//                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for "+cell);
+//            }
             return true;
         }
     }

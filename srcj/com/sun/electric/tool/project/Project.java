@@ -41,7 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -911,7 +911,7 @@ public class Project extends Listener
      * @param varName name of variable or special name.
      * @param oldDescriptor old text descriptor.
 	 */
-	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor)
+	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor)
 	{
 		checkObject(obj);
 	}
@@ -956,9 +956,9 @@ public class Project extends Listener
 	}
 
 	/**
-	 * Method to handle a change of object ImmutableVariables.
-	 * @param obj the ElectricObject on which ImmutableVariables changed.
-	 * @param oldImmutable the old ImmutableVariables.
+	 * Method to handle a change of object Variables.
+	 * @param obj the ElectricObject on which Variables changed.
+	 * @param oldImmutable the old Variables.
 	 */
 	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
     {

@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
@@ -291,9 +290,10 @@ public abstract class Geometric extends ElectricObject
 
 			if (this instanceof NodeInst && (offX != 0 || offY != 0))
 			{
-				MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-				mtd.setOff(0, 0);
-				td = mtd;
+                td = td.withOff(0, 0);
+//				MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+//				mtd.setOff(0, 0);
+//				td = mtd;
 			    style = Poly.rotateType(style, this);
 			}
 

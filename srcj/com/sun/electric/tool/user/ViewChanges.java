@@ -153,14 +153,13 @@ public class ViewChanges
 				{
 					Variable var = (Variable)vIt.next();
 					if (!var.isDisplay()) continue;
-					Variable cellVar = destCell.newVar(var.getKey(), var.getObject());
-					if (cellVar != null)
-					{
-						cellVar.setTextDescriptor(var.getTextDescriptor());
-						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
-//						cellVar.setCode(var.getCode());
-//						cellVar.setDisplay(true);
-					}
+                    destCell.addVar(var.withOff(var.getXOff(), var.getYOff() + dY));
+//					Variable cellVar = destCell.newVar(var.getKey(), var.getObject());
+//					if (cellVar != null)
+//					{
+//						cellVar.setTextDescriptor(var.getTextDescriptor());
+//						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
+//					}
 				}
 	
 				// delete the original
@@ -660,28 +659,28 @@ public class ViewChanges
 		Export port = Export.newInstance(np, pi, pp.getName());
 		if (port != null)
 		{
-			MutableTextDescriptor td = port.getMutableTextDescriptor(Export.EXPORT_NAME);
+			TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
 			switch (User.getIconGenExportStyle())
 			{
 				case 0:		// Centered
-					td.setPos(TextDescriptor.Position.CENT);
+					td = td.withPos(TextDescriptor.Position.CENT);
 					break;
 				case 1:		// Inward
 					switch (index)
 					{
-						case 0: td.setPos(TextDescriptor.Position.RIGHT);  break;	// left
-						case 1: td.setPos(TextDescriptor.Position.LEFT);   break;	// right
-						case 2: td.setPos(TextDescriptor.Position.DOWN);   break;	// top
-						case 3: td.setPos(TextDescriptor.Position.UP);     break;	// bottom
+						case 0: td = td.withPos(TextDescriptor.Position.RIGHT);  break;	// left
+						case 1: td = td.withPos(TextDescriptor.Position.LEFT);   break;	// right
+						case 2: td = td.withPos(TextDescriptor.Position.DOWN);   break;	// top
+						case 3: td = td.withPos(TextDescriptor.Position.UP);     break;	// bottom
 					}
 					break;
 				case 2:		// Outward
 					switch (index)
 					{
-						case 0: td.setPos(TextDescriptor.Position.LEFT);   break;	// left
-						case 1: td.setPos(TextDescriptor.Position.RIGHT);  break;	// right
-						case 2: td.setPos(TextDescriptor.Position.UP);     break;	// top
-						case 3: td.setPos(TextDescriptor.Position.DOWN);   break;	// bottom
+						case 0: td = td.withPos(TextDescriptor.Position.LEFT);   break;	// left
+						case 1: td = td.withPos(TextDescriptor.Position.RIGHT);  break;	// right
+						case 2: td = td.withPos(TextDescriptor.Position.UP);     break;	// top
+						case 3: td= td.withPos(TextDescriptor.Position.DOWN);   break;	// bottom
 					}
 					break;
 			}
@@ -883,20 +882,24 @@ public class ViewChanges
 					if (mosNI.isFET())
 					{
 						// set length/width
-						Variable lenVar = schemNI.newDisplayVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()));
-						if (lenVar != null)
-						{
-//							lenVar.setDisplay(true);
-							lenVar.setRelSize(0.5);
-							lenVar.setOff(-0.5, -1);
-						}
-						Variable widVar = schemNI.newDisplayVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()));
-						if (widVar != null)
-						{
-//							widVar.setDisplay(true);
-							widVar.setRelSize(1);
-							widVar.setOff(0.5, -1);
-						}
+                        TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5).withOff(-0.5, -1);
+						schemNI.newVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()), td);
+//						Variable lenVar = schemNI.newDisplayVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()));
+//						if (lenVar != null)
+//						{
+//							lenVar.setRelSize(0.5);
+//							lenVar.setOff(-0.5, -1);
+//						}
+                        td = TextDescriptor.getNodeTextDescriptor().withRelSize(1).withOff(0.5, -1);
+//                        mtd.setRelSize(1);
+//                        mtd.setOff(0.5, -1);
+                        schemNI.newVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()), td);
+//						Variable widVar = schemNI.newDisplayVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()));
+//						if (widVar != null)
+//						{
+//							widVar.setRelSize(1);
+//							widVar.setOff(0.5, -1);
+//						}
 					} else
 					{
 						// set area

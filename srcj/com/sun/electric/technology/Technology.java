@@ -40,9 +40,8 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.change.Undo;
@@ -66,6 +65,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Priority;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -275,7 +275,7 @@ public class Technology implements Comparable
 		private int representation;
 		private TechPoint [] points;
 		private String message;
-		private ImmutableTextDescriptor descriptor;
+		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
 
 		// the meaning of "representation"
@@ -315,7 +315,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
+			descriptor = TextDescriptor.EMPTY;
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
@@ -341,7 +341,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
+			descriptor = TextDescriptor.EMPTY;
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -359,7 +359,7 @@ public class Technology implements Comparable
 			this.portNum = node.getPortNum();
 			this.style = node.getStyle();
 			this.representation = node.getRepresentation();
-            this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
+            this.descriptor = TextDescriptor.EMPTY;
 			layer.getTechnology().addNodeLayer(this);
             TechPoint [] oldPoints = node.getPoints();
 			this.points = new TechPoint[oldPoints.length];
@@ -456,7 +456,7 @@ public class Technology implements Comparable
 		 * @return the text descriptor associated with this list NodeLayer.
 		 * This only makes sense if the style is one of the TEXT types.
 		 */
-		public ImmutableTextDescriptor getDescriptor() { return descriptor; }
+		public TextDescriptor getDescriptor() { return descriptor; }
 
 		/**
 		 * Sets the text descriptor to be drawn by this NodeLayer.
@@ -465,7 +465,7 @@ public class Technology implements Comparable
 		 */
 		public void setDescriptor(TextDescriptor descriptor)
 		{
-			this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor);
+			this.descriptor = descriptor;
 		}
 
 		/**
@@ -2614,7 +2614,7 @@ public class Technology implements Comparable
 				{
 					portPoly.setStyle(Poly.Type.OPENED);
 				}
-				portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor());
+				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
 				return portPoly;
 			}
 		}
@@ -2632,7 +2632,7 @@ public class Technology implements Comparable
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 		portPoly.setStyle(Poly.Type.FILLED);
-		portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor());
+		portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
 		return portPoly;
 	}
 
@@ -3761,9 +3761,10 @@ public class Technology implements Comparable
 
 	    if (varName != null)
 	    {
-		    Variable var = ni.newVar(TECH_TMPVAR, varName, display);
-            var.setOff(0, -6);
-            var.setRelSize(fontSize);
+            ni.newVar(TECH_TMPVAR, varName, TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize).withOff(0, -6));
+//		    Variable var = ni.newVar(TECH_TMPVAR, varName, display);
+//            var.setOff(0, -6);
+//            var.setRelSize(fontSize);
 	    }
 
         return ni;

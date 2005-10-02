@@ -44,9 +44,9 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -762,12 +762,17 @@ public class Spice extends Topology
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
 			{
 				// add in parameters to this cell
-				for(Iterator it = cell.getVariables(); it.hasNext(); )
+				for(Iterator it = cell.getParameters(); it.hasNext(); )
 				{
 					Variable paramVar = (Variable)it.next();
-					if (!paramVar.isParam()) continue;
 					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 				}
+//				for(Iterator it = cell.getVariables(); it.hasNext(); )
+//				{
+//					Variable paramVar = (Variable)it.next();
+//					if (!paramVar.isParam()) continue;
+//					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
+//				}
 			}
             // Writing M factor
             //writeMFactor(cell, infstr);
@@ -942,15 +947,23 @@ public class Spice extends Topology
 				if (!useCDL && Simulation.isSpiceUseCellParameters())
 				{
 					// add in parameters to this instance
-					for(Iterator it = subCell.getVariables(); it.hasNext(); )
+					for(Iterator it = subCell.getParameters(); it.hasNext(); )
 					{
 						Variable paramVar = (Variable)it.next();
-						if (!paramVar.isParam()) continue;
 						Variable instVar = no.getVar(paramVar.getKey());
 						String paramStr = "??";
 						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
+//					for(Iterator it = subCell.getVariables(); it.hasNext(); )
+//					{
+//						Variable paramVar = (Variable)it.next();
+//						if (!paramVar.isParam()) continue;
+//						Variable instVar = no.getVar(paramVar.getKey());
+//						String paramStr = "??";
+//						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
+//						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
+//					}
 				}
                 // Writing MFactor if available.
                 writeMFactor(context, no, infstr);
@@ -1472,7 +1485,8 @@ public class Spice extends Topology
                 for(Iterator it = no.getVariables(); it.hasNext(); )
                 {
                     Variable var = (Variable)it.next();
-                    if (!var.isParam()) continue;
+                    if (!no.getNodeInst().isParam(var.getKey())) continue;
+//                    if (!var.isParam()) continue;
                     paramValues.add(var);
                 }
                 for(Iterator it = paramValues.iterator(); it.hasNext(); )
@@ -1808,6 +1822,8 @@ System.out.println("NETWORK INAMED "+info.netName);
             this.parasiticInfo = parasiticInfo;
         }
         public boolean doIt() {
+            TextDescriptor ctd = TextDescriptor.getPortInstTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            TextDescriptor rtd = TextDescriptor.getArcTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             for (Iterator itx = parasiticInfo.iterator(); itx.hasNext(); ) {
                 SegmentedNets segmentedNets = (SegmentedNets)itx.next();
                 Cell cell = segmentedNets.cell;
@@ -1829,12 +1845,13 @@ System.out.println("NETWORK INAMED "+info.netName);
                     SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
                     PortInst pi = (PortInst)info.joinedPorts.iterator().next();
                     if (info.cap > cell.getTechnology().getMinCapacitance()) {
-                        Variable var = pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF");
-                        if (var != null) {
-                            var.setDisplay(true);
-                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                            capCount++;
-                        }
+                        pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF", ctd);
+//                        Variable var = pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF");
+//                        if (var != null) {
+//                            var.setDisplay(true);
+//                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//                            capCount++;
+//                        }
                     }
                 }
                 // write resistors
@@ -1848,12 +1865,13 @@ System.out.println("NETWORK INAMED "+info.netName);
                     }
                     // change R if new one
                     if (res != null) {
-                        var = ai.newVar(ATTR_R, res);
-                        if (var != null) {
-                            var.setDisplay(true);
-                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                            resCount++;
-                        }
+                        ai.newVar(ATTR_R, res, rtd);
+//                        var = ai.newVar(ATTR_R, res);
+//                        if (var != null) {
+//                            var.setDisplay(true);
+//                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//                            resCount++;
+//                        }
                     }
                 }
                 System.out.println("Back-annotated "+resCount+" R's and "+capCount+" C's in cell "+cell.describe(false));

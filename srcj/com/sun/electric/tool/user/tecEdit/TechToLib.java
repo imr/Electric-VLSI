@@ -759,12 +759,13 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setPos(TextDescriptor.Position.CENT);
-			}
+			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.CENT));
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setPos(TextDescriptor.Position.CENT);
+//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOTLEFT)
@@ -772,12 +773,13 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setPos(TextDescriptor.Position.UPRIGHT);
-			}
+			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.UPRIGHT));
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setPos(TextDescriptor.Position.UPRIGHT);
+//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOTRIGHT)
@@ -785,12 +787,13 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setPos(TextDescriptor.Position.UPLEFT);
-			}
+			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.UPLEFT));
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setPos(TextDescriptor.Position.UPLEFT);
+//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOX)
@@ -798,12 +801,13 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-			if (var != null)
-			{
-//				var.setDisplay(true);
-				var.setPos(TextDescriptor.Position.BOXED);
-			}
+			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.BOXED));
+//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
+//			if (var != null)
+//			{
+////				var.setDisplay(true);
+//				var.setPos(TextDescriptor.Position.BOXED);
+//			}
 			return ni;
 		}
 		return(null);

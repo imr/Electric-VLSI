@@ -40,8 +40,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ElectricObject_;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
@@ -89,7 +87,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	/** Internal flag bits of this Export. */				private int userBits;
 	/** The parent Cell of this Export. */					private final Cell parent;
 	/** Index of this Export in Cell ports. */				private int portIndex;
-	/** The text descriptor of this Export. */				private ImmutableTextDescriptor descriptor;
+	/** The text descriptor of this Export. */				private TextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 
 	// -------------------- protected and private methods --------------
@@ -103,14 +101,14 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	 * @param originalPort the PortInst that is being exported.
      * @param userBits flag bits of this Export.
 	 */
-	private Export(Cell parent, String protoName, ImmutableTextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
+	private Export(Cell parent, String protoName, TextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
 	{
 		// initialize the parent object
 		assert parent == originalPort.getNodeInst().getParent();
         this.exportId = parent.cellId.newExportId();
 		this.parent = parent;
 		this.name = Name.findName(protoName);
-        if (nameTextDescriptor == null) nameTextDescriptor = ImmutableTextDescriptor.getExportTextDescriptor();
+        if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
 		this.descriptor = nameTextDescriptor.withDisplayWithoutParamAndCode();
 		this.originalPort = originalPort;
         this.userBits = userBits & EXPORT_BITS;
@@ -219,7 +217,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
      * @param userBits flag bits of this Export.
 	 * @return created Export or null on error.
 	 */
-    public static Export newInstance(Cell parent, String name, ImmutableTextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
+    public static Export newInstance(Cell parent, String name, TextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
     {
 		// initialize this object
 		if (originalPort == null)
@@ -513,7 +511,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this Export.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
+	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
 		if (varKey == EXPORT_NAME) return descriptor;
 		return super.getTextDescriptor(varKey);
@@ -532,8 +530,8 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	{
         if (varKey == EXPORT_NAME) {
             checkChanging();
-            ImmutableTextDescriptor oldDescriptor = descriptor;
-            descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(td).withDisplayWithoutParamAndCode();
+            TextDescriptor oldDescriptor = descriptor;
+            descriptor = td.withDisplayWithoutParamAndCode();
             Undo.modifyTextDescript(this, varKey.getName(), oldDescriptor);
             return;
         }
@@ -554,10 +552,10 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
      * @return old text descriptor
      * @throws IllegalArgumentException if TextDescriptor with specified name not found on this Export.
 	 */
-	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
+	public TextDescriptor lowLevelSetTextDescriptor(String varName, TextDescriptor td)
 	{
         assert varName.equals(EXPORT_NAME.getName());
-        ImmutableTextDescriptor oldDescriptor = descriptor;
+        TextDescriptor oldDescriptor = descriptor;
 		descriptor = td.withDisplayWithoutParamAndCode();
         return oldDescriptor;
 	}
@@ -581,12 +579,12 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
      * @param originalPort original port for the Export
      * @return Immutable text descriptor with smart text placement
 	 */
-	private static ImmutableTextDescriptor smartPlacement(PortInst originalPort)
+	private static TextDescriptor smartPlacement(PortInst originalPort)
 	{
 		// handle smart text placement relative to attached object
 		int smartVertical = User.getSmartVerticalPlacement();
 		int smartHorizontal = User.getSmartHorizontalPlacement();
-		if (smartVertical == 0 && smartHorizontal == 0) return ImmutableTextDescriptor.getExportTextDescriptor();
+		if (smartVertical == 0 && smartHorizontal == 0) return TextDescriptor.getExportTextDescriptor();
 
 		// figure out location of object relative to environment
 		double dx = 0, dy = 0;
@@ -617,9 +615,11 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 			// place label inside (towards center)
 			dy = 0;
 
-		MutableTextDescriptor td = MutableTextDescriptor.getExportTextDescriptor();
-		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
-		return ImmutableTextDescriptor.newImmutableTextDescriptor(td);
+        TextDescriptor td = TextDescriptor.getExportTextDescriptor();
+        return td.withPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
+//		MutableTextDescriptor td = MutableTextDescriptor.getExportTextDescriptor();
+//		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
+//		return ImmutableTextDescriptor.newTextDescriptor(td);
 	}
     
 	/**

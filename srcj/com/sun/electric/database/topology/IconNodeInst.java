@@ -1,16 +1,9 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-
-import java.awt.geom.Point2D;
-
+import com.sun.electric.database.variable.Variable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -53,13 +46,13 @@ public class IconNodeInst extends NodeInst
     /**
 	 * Method to update a Variable on this ElectricObject with the specified values.
 	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
-	 * @param name the name of the Variable.
+	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been updated.
 	 */
-	public Variable updateVar(String name, Object value) {
-        parent.updateVar(name, value);
-        return updateVar(Variable.newKey(name), value);
+	public Variable updateVar(Variable.Key key, Object value) {
+        parent.updateVar(key, value);
+        return super.updateVar(key, value);
     }
 
     /**

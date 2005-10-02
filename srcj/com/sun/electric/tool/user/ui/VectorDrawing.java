@@ -40,12 +40,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor.Size;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -64,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -517,16 +514,23 @@ public class VectorDrawing
 	 */
 	private boolean isCellParameterized(Cell cell)
 	{
-		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+		for(Iterator vIt = cell.getParameters(); vIt.hasNext(); )
 		{
 			Variable var = (Variable)vIt.next();
-			if (var.isParam())
-			{
-				// this attribute is not a parameter
-				if (var.getKey() == NCCKEY) continue;
-				return true;
-			}
+			// this attribute is not a parameter
+			if (var.getKey() == NCCKEY) continue;
+			return true;
 		}
+//		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+//		{
+//			Variable var = (Variable)vIt.next();
+//			if (var.isParam())
+//			{
+//				// this attribute is not a parameter
+//				if (var.getKey() == NCCKEY) continue;
+//				return true;
+//			}
+//		}
 
 		// look for any Java coded stuff (Logical Effort calls)
 		for(Iterator it = cell.getNodes(); it.hasNext(); )

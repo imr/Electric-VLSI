@@ -275,7 +275,11 @@ public class Highlight
 	 * Method to set the Variable associated with this Highlight object.
 	 * @param var the Variable associated with this Highlight object.
 	 */
-	public void setVar(Variable var) { this.var = var; }
+	public void setVar(Variable var) {
+        if (var != null && var.isLinked(eobj))
+            System.out.println("Unlinked var " + var + " added to highlight");
+        this.var = var;
+    }
 
 	/**
 	 * Method to return the "from point" associated with this Highlight object.
@@ -406,7 +410,7 @@ public class Highlight
                     return (ai.getNameKey() == name);
                 }
             }
-            if (var != null) return var.isLinked();
+            if (var != null) return eobj != null && var.isLinked(eobj);
             if (eobj != null) return eobj.isLinked();
             return false;
         }

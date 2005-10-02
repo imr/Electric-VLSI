@@ -363,33 +363,39 @@ public class SpecialProperties
 			{
 				// update length/width on transistor
 				Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
-				Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, newValue);
-				if (var != null)
-				{
-//					var.setDisplay(true);
-					if (oldWid != null) var.setTextDescriptor(oldWid.getTextDescriptor());
-					var.setCode(newCode);
-				}
+                TextDescriptor wtd = oldWid != null ? oldWid.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
+				ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
+//				Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, newValue);
+//				if (var != null)
+//				{
+////					var.setDisplay(true);
+//					if (oldWid != null) var.setTextDescriptor(oldWid.getTextDescriptor());
+//					var.setCode(newCode);
+//				}
 
 				Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
-				var = ni.newDisplayVar(Schematics.ATTR_LENGTH, newValueLen);
-				if (var != null)
-				{
-//					var.setDisplay(true);
-					if (oldLen != null) var.setTextDescriptor(oldLen.getTextDescriptor());
-					var.setCode(newCodeLen);
-				}
+                TextDescriptor ltd = oldLen != null ? oldLen.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
+				ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
+//				var = ni.newDisplayVar(Schematics.ATTR_LENGTH, newValueLen);
+//				if (var != null)
+//				{
+////					var.setDisplay(true);
+//					if (oldLen != null) var.setTextDescriptor(oldLen.getTextDescriptor());
+//					var.setCode(newCodeLen);
+//				}
 			} else
 			{
 				// update single value on a node
 				Variable oldVar = ni.getVar(key);
-				Variable var = ni.newDisplayVar(key, newValue);
-				if (var != null)
-				{
-//					var.setDisplay(true);
-					if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
-				}
-
+                TextDescriptor td = oldVar != null ? oldVar.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
+				ni.newVar(key, newValue, td);
+//				Variable var = ni.newDisplayVar(key, newValue);
+//				if (var != null)
+//				{
+////					var.setDisplay(true);
+//					if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
+//				}
+//
 				// set techbits if requested
 				if (newBits != -1)
 					ni.setTechSpecific(newBits);

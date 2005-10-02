@@ -699,12 +699,14 @@ public class EditMenu {
 					{
 						case 0:			// make all parameters visible
 							if (var.isDisplay()) continue;
-							var.setDisplay(true);
+                            ni.addVar(var.withDisplay(true));
+//							var.setDisplay(true);
 							changed = true;
 							break;
 						case 1:			// make all parameters invisible
 							if (!var.isDisplay()) continue;
-							var.setDisplay(false);
+                            ni.addVar(var.withDisplay(false));
+//							var.setDisplay(false);
 							changed = true;
 							break;
 						case 2:			// make all parameters have default visiblity
@@ -712,13 +714,15 @@ public class EditMenu {
 							{
 								// prototype wants parameter to be invisible
 								if (!var.isDisplay()) continue;
-								var.setDisplay(false);
+                                ni.addVar(var.withDisplay(false));
+//								var.setDisplay(false);
 								changed = true;
 							} else
 							{
 								// prototype wants parameter to be visible
 								if (var.isDisplay()) continue;
-								var.setDisplay(true);
+                                ni.addVar(var.withDisplay(true));
+//								var.setDisplay(true);
 								changed = true;
 							}
 							break;

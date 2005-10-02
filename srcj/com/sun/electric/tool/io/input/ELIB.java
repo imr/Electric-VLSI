@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -47,7 +46,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -141,7 +140,7 @@ public class ELIB extends LibraryFiles
 	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
 	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
 	/** list of the Names of the ArcInsts in the library */					private String [] arcNameList;
-	/** list of the name descriptors of the ArcInsts in the library */		private ImmutableTextDescriptor [] arcNameDescriptorList;
+	/** list of the name descriptors of the ArcInsts in the library */		private TextDescriptor[] arcNameDescriptorList;
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
@@ -152,7 +151,7 @@ public class ELIB extends LibraryFiles
 	/** list of the tail node of the ArcInsts in the library */				private int [] arcTailNodeList;
 	/** list of the tail port of the ArcInsts in the library */				private int [] arcTailPortList;
 	/** list of the user flags on the ArcInsts in the library */			private int [] arcUserBits;
-	/** list of the variables on the ArcInsts in the library */             private ImmutableVariable [][] arcVariables;
+	/** list of the variables on the ArcInsts in the library */             private Variable [][] arcVariables;
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int exportCount;
@@ -161,9 +160,9 @@ public class ELIB extends LibraryFiles
 	/** list of NodeInsts that are origins of Exports in the library */		private int [] exportSubNodeList;
 	/** list of PortProtos that are origins of Exports in the library */	private int [] exportSubPortList;
 	/** list of Export names in the library */								private String [] exportNameList;
-    /** list of Export name descriptors in the library */                   private ImmutableTextDescriptor [] exportNameDescriptors;
+    /** list of Export name descriptors in the library */                   private TextDescriptor[] exportNameDescriptors;
 	/** list of Export userbits in the library */							private int [] exportUserbits;
-    /** list of variables on Exports in the library */                      private ImmutableVariable [][] exportVariables;
+    /** list of variables on Exports in the library */                      private Variable [][] exportVariables;
 
 	// the geometric information (only used for old format files)
 	/** the number of Geometrics in the file */								private int geomCount;
@@ -358,7 +357,7 @@ public class ELIB extends LibraryFiles
 		arcList = new ArcInst[arcCount];
 		arcTypeList = new ArcProto[arcCount];
 		arcNameList = new String[arcCount];
-        arcNameDescriptorList = new ImmutableTextDescriptor[arcCount];
+        arcNameDescriptorList = new TextDescriptor[arcCount];
 		arcWidthList = new int[arcCount];
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
@@ -369,7 +368,7 @@ public class ELIB extends LibraryFiles
 		arcTailNodeList = new int[arcCount];
 		arcTailPortList = new int[arcCount];
 		arcUserBits = new int[arcCount];
-        arcVariables = new ImmutableVariable[arcCount][];
+        arcVariables = new Variable[arcCount][];
 		for(int i = 0; i < arcCount; i++)
 		{
 			arcHeadNodeList[i] = -1;
@@ -385,9 +384,9 @@ public class ELIB extends LibraryFiles
 		exportSubNodeList = new int[exportCount];
 		exportSubPortList = new int[exportCount];
 		exportNameList = new String[exportCount];
-        exportNameDescriptors = new ImmutableTextDescriptor[exportCount];
+        exportNameDescriptors = new TextDescriptor[exportCount];
 		exportUserbits = new int[exportCount];
-        exportVariables = new ImmutableVariable[exportCount][];
+        exportVariables = new Variable[exportCount][];
 
 		// versions 9 to 11 allocate fake-cell pointers
 		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
@@ -705,11 +704,11 @@ public class ELIB extends LibraryFiles
 		readNameSpace();
 
 		// read the library variables
-        ImmutableVariable[] libVars = readVariables();
+        Variable[] libVars = readVariables();
         for (int i = 0; i < libVars.length; i++) {
-            ImmutableVariable vd = libVars[i];
-            if (vd == null || vd.key != Library.FONT_ASSOCIATIONS) continue;
-            Object value = vd.getValue();
+            Variable var = libVars[i];
+            if (var == null || var.key != Library.FONT_ASSOCIATIONS) continue;
+            Object value = var.getValue();
             if (!(value instanceof String[])) continue;
             setFontNames((String[])value);
             libVars[i] = null;
@@ -720,7 +719,7 @@ public class ELIB extends LibraryFiles
 		for(int i=0; i<toolCount; i++)
 		{
 			Tool tool = toolList[i];
-            ImmutableVariable[] vars = readVariables();
+            Variable[] vars = readVariables();
 			if (tool != null && topLevelLibrary)
                 realizeMeaningPrefs(tool, vars);
 		}
@@ -729,7 +728,7 @@ public class ELIB extends LibraryFiles
 		for(int i=0; i<techCount; i++)
 		{
 			Technology tech = techList[i];
-            ImmutableVariable[] vars = readVariables();
+            Variable[] vars = readVariables();
 			if (tech != null && topLevelLibrary)
                 realizeMeaningPrefs(tech, vars);
 //				getTechList(i);
@@ -2064,14 +2063,14 @@ public class ELIB extends LibraryFiles
 		nodeInstList.userBits[nodeIndex] = userBits;
 
 		// read variable information
-        ImmutableVariable[] vars = readVariables();
+        Variable[] vars = readVariables();
         for (int j = 0; j < vars.length; j++) {
-            ImmutableVariable vd = vars[j];
-            if (vd == null || vd.key != NodeInst.NODE_NAME) continue;
-            Object value = vd.getValue();
+            Variable var = vars[j];
+            if (var == null || var.key != NodeInst.NODE_NAME) continue;
+            Object value = var.getValue();
             if (!(value instanceof String)) continue;
-            nodeInstList.name[nodeIndex] = convertGeomName((String)value, vd.descriptor.isDisplay());
-            nodeInstList.nameTextDescriptor[nodeIndex] = vd.descriptor;
+            nodeInstList.name[nodeIndex] = convertGeomName((String)value, var.descriptor.isDisplay());
+            nodeInstList.nameTextDescriptor[nodeIndex] = var.descriptor;
             vars[j] = null;
         }
         nodeInstList.vars[nodeIndex] = vars;
@@ -2147,14 +2146,14 @@ public class ELIB extends LibraryFiles
 		arcUserBits[arcIndex] = userBits;
 
 		// read variable information
-        ImmutableVariable[] vars = readVariables();
+        Variable[] vars = readVariables();
         for (int i = 0; i < vars.length; i++) {
-            ImmutableVariable vd = vars[i];
-            if (vd == null || vd.key != ArcInst.ARC_NAME) continue;
-            Object value = vd.getValue();
+            Variable var = vars[i];
+            if (var == null || var.key != ArcInst.ARC_NAME) continue;
+            Object value = var.getValue();
             if (!(value instanceof String)) continue;
-            arcNameList[arcIndex] = convertGeomName((String)value, vd.descriptor.isDisplay());
-            arcNameDescriptorList[arcIndex] = vd.descriptor;
+            arcNameList[arcIndex] = convertGeomName((String)value, var.descriptor.isDisplay());
+            arcNameDescriptorList[arcIndex] = var.descriptor;
             vars[i] = null;
         }
         arcVariables[arcIndex] = vars;
@@ -2214,12 +2213,12 @@ public class ELIB extends LibraryFiles
 	 * Method to read a set of variables onto a given object.
 	 * @return the array of variables read.
 	 */
-	private ImmutableVariable[] readVariables()
+	private Variable[] readVariables()
 		throws IOException
 	{
 		int count = readBigInteger();
-        if (count == 0) return ImmutableVariable.NULL_ARRAY;
-        ImmutableVariable[] vars = new ImmutableVariable[count];
+        if (count == 0) return Variable.NULL_ARRAY;
+        Variable[] vars = new Variable[count];
 		for(int i=0; i<count; i++)
 		{
 			short key = readSmallInteger();
@@ -2258,7 +2257,7 @@ public class ELIB extends LibraryFiles
 					}
 				}
 			}
-            ImmutableTextDescriptor td = makeDescriptor(descript0, descript1, newtype);
+            TextDescriptor td = makeDescriptor(descript0, descript1, newtype);
 
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)
@@ -2338,7 +2337,7 @@ public class ELIB extends LibraryFiles
 				System.out.println("Error reading variable " + varNames[key] + " type " + newtype);
 				continue;
 			}
-            vars[i] = ImmutableVariable.newInstance(varKeys[key], td, newAddr);
+            vars[i] = Variable.newInstance(varKeys[key], newAddr, td);
 		}
 		return vars;
 	}

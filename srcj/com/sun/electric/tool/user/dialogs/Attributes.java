@@ -258,14 +258,12 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         Variable var = getSelectedVariable();
         if (var == null) return;
 
-        String varName = var.getKey().getName();
-
         // see if value changed
         String varValue = value.getText().trim();
         if (!varValue.equals(initialValue))
         {
             // generate Job to update value
-            ChangeAttribute job = new ChangeAttribute(varName, selectedObject, getVariableObject(varValue));
+            ChangeAttribute job = new ChangeAttribute(var.getKey(), selectedObject, getVariableObject(varValue));
             initialValue = varValue;
         }
 	}
@@ -629,22 +627,25 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
 
         public boolean doIt() {
+            Variable.Key newKey = Variable.newKey(newName);
             // check if var of this name already exists on object
-            if (owner.getVar(newName) != null) {
+            if (owner.getVar(newKey) != null) {
                 JOptionPane.showMessageDialog(null, "Can't create new attribute "+newName+", already exists",
                         "Invalid Action", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
             // create the attribut
             // e
-            owner.newVar(newName, newValue);
+            Variable var = owner.newVar(newKey, newValue);
             // if created on a cell, set the parameter and inherits properties
-            if (owner instanceof Cell) {
-                Variable var = owner.getVar(newName);
-                if (var == null) return false;
-                var.setParam(true);
-                var.setInherit(true);
-            }
+            if (owner instanceof Cell)
+                owner.addVar(var.withParam(true).withInherit(true));
+//            if (owner instanceof Cell) {
+//                Variable var = owner.getVar(newKey);
+//                if (var == null) return false;
+//                var.setParam(true);
+//                var.setInherit(true);
+//            }
             return true;
         }
     }
@@ -681,14 +682,14 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      */
     private static class ChangeAttribute extends Job
 	{
-        String varName;
+        Variable.Key varKey;
         ElectricObject owner;
         Object newValue;
 
-        protected ChangeAttribute(String varName, ElectricObject owner, Object newValue)
+        protected ChangeAttribute(Variable.Key varKey, ElectricObject owner, Object newValue)
         {
             super("Change Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.varName = varName;
+            this.varKey = varKey;
             this.owner = owner;
             this.newValue = newValue;
             startJob();
@@ -697,16 +698,16 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         public boolean doIt()
         {
             // get Variable by name
-            Variable var = owner.getVar(varName);
+            Variable var = owner.getVar(varKey);
             if (var == null) {
-                System.out.println("Could not update Attribute "+varName+": it does not exist");
+                System.out.println("Could not update Attribute "+varKey+": it does not exist");
                 return false;
             }
 
             // change the Value field if a new Variable is being created or if the value changed
-            var = owner.updateVar(varName, newValue);
+            var = owner.updateVar(varKey, newValue);
             if (var == null) {
-                System.out.println("Error updating Attribute "+varName);
+                System.out.println("Error updating Attribute "+varKey);
                 return false;
             }
 

@@ -27,7 +27,6 @@ import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -38,7 +37,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -204,7 +202,7 @@ public class ArcInst extends Geometric implements Comparable
 		PortInst piT = niT.getOnlyPortInst();
 
 		// create the arc that connects them
-        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, BASENAME, 0, ImmutableTextDescriptor.getArcTextDescriptor(),
+        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, BASENAME, 0, TextDescriptor.getArcTextDescriptor(),
                 niT.getD().nodeId, piT.getPortProto().getId(), xPT,
                 niH.getD().nodeId, piH.getPortProto().getId(), xPH,
                 ap.getDefaultWidth(), 0, 0);
@@ -327,7 +325,7 @@ public class ArcInst extends Geometric implements Comparable
      * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, int duplicate, TextDescriptor nameDescriptor,
         PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
 		// make sure fields are valid
@@ -365,7 +363,7 @@ public class ArcInst extends Geometric implements Comparable
             duplicate = 0;
 		}
         duplicate = parent.fixupArcDuplicate(nameKey, duplicate);
-        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
+        if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
 		if (width < 0)
 			width = protoType.getWidth();
        
@@ -470,24 +468,24 @@ public class ArcInst extends Geometric implements Comparable
     public ImmutableArcInst getD() { return d; }
     
     /**
-     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
     public ImmutableElectricObject getImmutable() { return d; }
     
     /**
-     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * Changes persistent data of this ElectricObject with Variables.
      * @param immutable new persistent data of this ElectricObject.
      */
     protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableArcInst)immutable; }
 
     /**
-     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
-     * @param vd ImmutableVariable to add.
+     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * @param var Variable to add.
      * @return updated persistent data.
      */
-    protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        d = d.withVariable(vd);
+    protected ImmutableElectricObject withVariable(Variable var) {
+        d = d.withVariable(var);
         return d;
     }
     
@@ -999,7 +997,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ArcInst.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
+	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
 		if (varKey == ARC_NAME) return d.nameDescriptor;
 		return super.getTextDescriptor(varKey);

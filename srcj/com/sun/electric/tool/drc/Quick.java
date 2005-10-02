@@ -2213,16 +2213,20 @@ public class Quick
 		cp.cellParameterized = false;
 		cp.treeParameterized = false;
 		cp.netlist = netlist;
-		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
-		{
-			Variable var = (Variable)vIt.next();
-			if (var.isParam())
-			{
-				cp.cellParameterized = true;
-				cp.treeParameterized = true;
-				break;
-			}
-		}
+        if (cell.getParameters().hasNext()) {
+            cp.cellParameterized = true;
+            cp.treeParameterized = true;
+        }
+//		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+//		{
+//			Variable var = (Variable)vIt.next();
+//			if (var.isParam())
+//			{
+//				cp.cellParameterized = true;
+//				cp.treeParameterized = true;
+//				break;
+//			}
+//		}
 		checkProtos.put(cell, cp);
 
 		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )

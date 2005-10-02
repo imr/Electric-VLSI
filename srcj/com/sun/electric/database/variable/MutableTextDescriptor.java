@@ -26,7 +26,7 @@ package com.sun.electric.database.variable;
 /**
  * This class describes how variable text appears.
 */
-public class MutableTextDescriptor extends TextDescriptor
+public class MutableTextDescriptor extends AbstractTextDescriptor
 {
     /** the text descriptor is displayable */   private boolean display;
 	/** the bits of the text descriptor */		private long bits;
@@ -37,7 +37,7 @@ public class MutableTextDescriptor extends TextDescriptor
 	 * The constructor creates copy of anotherTextDescriptor.
 	 * @param descriptor another descriptor.
 	 */
-	public MutableTextDescriptor(TextDescriptor descriptor)
+	public MutableTextDescriptor(AbstractTextDescriptor descriptor)
 	{
         this.display = descriptor.isDisplay();
 		this.bits = descriptor.lowLevelGet();
@@ -128,7 +128,7 @@ public class MutableTextDescriptor extends TextDescriptor
      * Return code type of the TextDescriptor.
      * @return code tyoe
      */
-    public TextDescriptor.Code getCode() { return code; }
+    public Code getCode() { return code; }
 
     private void setField(long mask, int shift, int value)
     {

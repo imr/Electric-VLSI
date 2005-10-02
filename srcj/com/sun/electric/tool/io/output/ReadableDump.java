@@ -534,7 +534,7 @@ public class ReadableDump extends Output
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			writeVar(var, curCell);
+			writeVar(obj, var, curCell);
 		}
 
 		// write variables on PortInsts
@@ -548,7 +548,7 @@ public class ReadableDump extends Output
 				for (Iterator it = pi.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-						writeVar(var, curCell);
+						writeVar(pi, var, curCell);
 				}
 			}
 		}
@@ -570,14 +570,14 @@ public class ReadableDump extends Output
 	 * "curCell" such that any references to objects in a cell must be in
 	 * this cell.
 	 */
-	private void writeVar(Variable var, Cell curCell)
+	private void writeVar(ElectricObject owner, Variable var, Cell curCell)
 	{
 		int type = var.getTextDescriptor().getCFlags();
         
 		Object varObj = var.getObject();
 
 		// special case for "trace" information on NodeInsts
-		if (var.getOwner() instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
+		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
 		{
 			Object [] objList = (Object [])varObj;
 			Point2D [] points = (Point2D [])objList;

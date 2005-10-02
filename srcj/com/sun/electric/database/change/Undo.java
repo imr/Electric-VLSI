@@ -41,7 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
@@ -246,7 +246,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyTextDescript(obj, (String)o1, (ImmutableTextDescriptor)o2);
+					listener.modifyTextDescript(obj, (String)o1, (TextDescriptor)o2);
 				}
 			} else if (type == Type.OTHERCHANGE)
             {
@@ -452,7 +452,7 @@ public class Undo
 			if (type == Type.DESCRIPTORMOD)
 			{
                 String varName = (String)o1;
-                o2 = ((Export)obj).lowLevelSetTextDescriptor(varName, (ImmutableTextDescriptor)o2);
+                o2 = ((Export)obj).lowLevelSetTextDescriptor(varName, (TextDescriptor)o2);
                 return;
 			}
             if (type == Type.OTHERCHANGE)
@@ -1127,7 +1127,7 @@ public class Undo
      * @param varName name of variable or special name.
 	 * @param oldDescriptor the former TextDescriptor.
 	 */
-	public static void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor)
+	public static void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor)
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(obj, Type.DESCRIPTORMOD, varName);
@@ -1261,9 +1261,9 @@ public class Undo
 	}
 
     /*
-	 * Method to store the change of object ImmutableVariables.
-	 * @param obj the ElectricObject on which ImmutableVariables changed.
-	 * @param oldImmutable the old ImmutableVariables.
+	 * Method to store the change of object Variables.
+	 * @param obj the ElectricObject on which Variables changed.
+	 * @param oldImmutable the old Variables.
 	 */
 	public static void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{

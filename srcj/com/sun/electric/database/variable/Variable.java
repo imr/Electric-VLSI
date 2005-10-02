@@ -23,23 +23,33 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.ImmutableVariable;
-import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
+import java.awt.geom.Point2D;
+import java.util.Arrays;
+
 import java.util.HashMap;
 
 
 /**
- * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
+ * The Variable immutable class defines a single attribute-value pair that can be attached to any ElectricObject.
  * <P>
- * This class should be thread-safe.
+ * This immutable class is thread-safe.
  */
 public class Variable
 {
@@ -147,56 +157,150 @@ public class Variable
 
     /** empty array of Variables. */
     public static final Variable[] NULL_ARRAY = {};
+    /** type if value. */
+    private final static byte ARRAY = 1;
+    private final static byte SIMPLE = 0;
+    private final static byte LIBRARY = 2;
+    private final static byte CELL = 4;
+    private final static byte EXPORT = 6;
+    /** Valid type of value. */
+    private static final HashMap/*<Class,Byte>*/ validClasses = new HashMap/*<Class,Byte>*/();
+    static {
+        validClasses.put(String.class, new Byte(SIMPLE));
+        validClasses.put(Double.class, new Byte(SIMPLE));
+        validClasses.put(Float.class, new Byte(SIMPLE));
+        validClasses.put(Long.class, new Byte(SIMPLE));
+        validClasses.put(Integer.class, new Byte(SIMPLE));
+        validClasses.put(Short.class, new Byte(SIMPLE));
+        validClasses.put(Byte.class, new Byte(SIMPLE));
+        validClasses.put(Boolean.class, new Byte(SIMPLE));
+        validClasses.put(EPoint.class, new Byte(SIMPLE));
+        validClasses.put(Tool.class, new Byte(SIMPLE));
+        validClasses.put(Technology.class, new Byte(SIMPLE));
+        validClasses.put(PrimitiveNode.class, new Byte(SIMPLE));
+        validClasses.put(ArcProto.class, new Byte(SIMPLE));
+        validClasses.put(LibId.class, new Byte(LIBRARY));
+        validClasses.put(CellId.class, new Byte(CELL));
+        validClasses.put(ExportId.class, new Byte(EXPORT));
+    }
+
     
-    private final ElectricObject owner;
-    private ImmutableVariable d;
-
-    /** true if var is attached to valid electric object */ private boolean linked;
-
+    /** key of this Variable. */                        public final Key key;
+	/** Value of this Variable. */						private final Object value;
+	/** Text descriptor of this Variable. */            public final TextDescriptor descriptor;
+                                                        private final byte type;
+    
+    /**
+     * Constructor of Variable.
+     * @param key key of this Variable.
+     * @param descriptor text descriptor of this Variable.
+     * @param value value of this Variable.
+     * @param type type of the value
+     */
+    private Variable(Key key, Object value, TextDescriptor descriptor, byte type) {
+        this.key = key;
+        this.value = value;
+        this.descriptor = descriptor;
+        this.type = type;
+        check(true);
+    }
+    
 	/**
-	 * The constructor builds a Variable.
-	 * @param owner the ElectriObject that owns this variable.
-	 * @param d persistent data of this Variable.
+	 * Returns new Variable.
+     * @param key key of this Variable.
+     * @param value value of this Variable.
+     * @param descriptor text descriptor of this Variable.
+	 * @return new Variable object.
+	 * @throws NullPointerException if key, descriptor or value is null.
+     * @throws IllegalArgumentException if value has invalid type
 	 */
-	Variable(ElectricObject owner, ImmutableVariable d)
-	{
-        this.owner = owner;
-        this.d = d;
-	}
-
-	/**
-	 * This function is to compare Variable elements. Initiative CrossLibCopy
- 	 * @param obj Object to compare to
-	 * @param buffer To store comparison messages in case of failure
-	 * @return True if objects represent same PortInst
-	 */
-    public boolean compare(Object obj, StringBuffer buffer)
-	{
-		if (this == obj) return (true);
-
-        // Better if compare classes? but it will crash with obj=null
-        if (obj == null || getClass() != obj.getClass())
-            return (false);
-
-        Variable var = (Variable)obj;
-       	boolean check = var.getTextDescriptor().equals(getTextDescriptor());
-
-		if (!check && buffer != null)
-			buffer.append("No same variables detected in " + var + " and " + this + "\n");
-        return (check);
+    public static Variable newInstance(Variable.Key key, Object value, TextDescriptor descriptor) {
+        if (key == null) throw new NullPointerException("key");
+        if (descriptor == null) throw new NullPointerException("descriptor");
+        byte type;
+        if (value instanceof Object[]) {
+            Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
+            if (typeByte != null) {
+                value = ((Object[])value).clone();
+                type = (byte)(typeByte.byteValue()|ARRAY);
+            } else if (value instanceof Library[]) {
+                Library[] libs = (Library[])value;
+                LibId[] libIds = new LibId[libs.length];
+                for (int i = 0; i < libs.length; i++)
+                    if (libs[i] != null) libIds[i] = libs[i].getId();
+                value = libIds;
+                type = LIBRARY|ARRAY;
+            } else if (value instanceof Cell[]) {
+                Cell[] cells = (Cell[])value;
+                CellId[] cellIds = new CellId[cells.length];
+                for (int i = 0; i < cells.length; i++)
+                    if (cells[i] != null) cellIds[i] = (CellId)cells[i].getId();
+                value = cellIds;
+                type = CELL|ARRAY;
+            } else if (value instanceof Export[]) {
+                Export[] exports = (Export[])value;
+                ExportId[] exportIds = new ExportId[exports.length];
+                for (int i = 0; i < exports.length; i++)
+                    if (exports[i] != null) exportIds[i] = (ExportId)exports[i].getId();
+                value = exportIds;
+                type = EXPORT|ARRAY;
+            } else if (value instanceof Point2D[]) {
+                Point2D[] points = (Point2D[])value;
+                EPoint[] epoints = new EPoint[points.length];
+                for (int i = 0; i < points.length; i++)
+                    if (points[i] != null) epoints[i] = EPoint.snap(points[i]);
+                value = epoints;
+                type = SIMPLE|ARRAY;
+            } else {
+                throw new IllegalArgumentException(value.getClass().toString());
+            }
+        } else {
+            Byte typeByte = (Byte)validClasses.get(value.getClass());
+            if (typeByte != null) {
+                type = typeByte.byteValue();
+            } else if (value instanceof Library) {
+                value = ((Library)value).getId();
+                type = LIBRARY;
+            } else if (value instanceof Cell) {
+                value = ((Cell)value).getId();
+                type = CELL;
+            } else if (value instanceof Export) {
+                value = ((Export)value).getId();
+                type = EXPORT;
+            } else if (value instanceof Point2D) {
+                value = EPoint.snap((Point2D)value);
+                type = SIMPLE;
+            } else {
+                throw new IllegalArgumentException(value.getClass().toString());
+            }
+        }
+        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
+            descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
+        }
+		return new Variable(key, value, descriptor, type);
     }
 
     /**
-     * Returns persistent data of this Variable.
-     * @return persistent data of this Variable.
-     */
-    public ImmutableVariable getD() { return d; }
-    
-    /**
-     * package-private method to modify persistent data of this Variable.
-     * @param d new persistent data of this Variable.
-     */
-    void setD(ImmutableVariable d) { this.d = d; }
+	 * Checks invariant of this Variable.
+     * @param true if paramerer flag is allowed on this Variable
+	 * @throws AssertionError or NullPointerException if invariant is broken.
+	 */
+	public void check(boolean paramAllowed) {
+		assert key != null;
+        assert value != null;
+        if (value instanceof Object[]) {
+            Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
+            assert type == (byte)(typeByte.byteValue()|ARRAY);
+        } else {
+            Byte typeByte = (Byte)validClasses.get(value.getClass());
+            assert type == typeByte.byteValue();
+        }
+        assert descriptor != null;
+        if (descriptor.isCode())
+            assert value instanceof String || value instanceof String[];
+        if (!paramAllowed)
+            assert !descriptor.isParam();
+	}
     
     /**
      * Get the number of entries stored in this Variable.
@@ -205,16 +309,79 @@ public class Variable
      */
     public synchronized int getLength()
 	{
-        int len = d.getValueLength();
+        int len = getValueLength();
         return len >= 0 ? len : 1;
 	}
+    
+    /**
+     * Returns length of value array or -1 if value is scalar.
+     * @return length of value array or -1.
+     */
+    public int getValueLength() { return (type & ARRAY) != 0 ? ((Object[])value).length : -1; }
     
     /**
      * Get the actual object stored in this Variable.
      * @return the object stored in this Variable.
      */
-    public Object getObject() { return d.getValueInCurrentThread(); }
+    public Object getObject() { return getValueInCurrentThread(); }
 
+    /**
+     * Returns thread-independent value of this Variable.
+     * @return thread-independent value of this variable.
+     */
+    public Object getValue() {
+        return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
+    }
+    
+    /**
+     * Returns value of this Variable in current thread.
+     * @return value of this variable in current thread.
+     */
+    public Object getValueInCurrentThread() {
+        switch (type) {
+            case SIMPLE: return value;
+            case LIBRARY: return ((LibId)value).inCurrentThread();
+            case CELL: return ((CellId)value).inCurrentThread();
+            case EXPORT: return ((ExportId)value).inCurrentThread();
+            case SIMPLE|ARRAY: return ((Object[])value).clone();
+            case LIBRARY|ARRAY:
+                LibId[] libIds = (LibId[])value;
+                Library[] libs = new Library[libIds.length];
+                for (int i = 0; i < libIds.length; i++)
+                    if (libIds[i] != null) libs[i] = libIds[i].inCurrentThread();
+                return libs;
+            case CELL|ARRAY:
+                CellId[] cellIds = (CellId[])value;
+                Cell[] cells = new Cell[cellIds.length];
+                for (int i = 0; i < cellIds.length; i++)
+                    if (cellIds[i] != null) cells[i] = (Cell)cellIds[i].inCurrentThread();
+                return cells;
+            case EXPORT|ARRAY:
+                ExportId[] exportIds = (ExportId[])value;
+                Export[] exports = new Export[exportIds.length];
+                for (int i = 0; i < exportIds.length; i++)
+                    if (exportIds[i] != null) exports[i] = (Export)exportIds[i].inCurrentThread();
+                return exports;
+        }
+        throw new AssertionError();
+    }
+
+	/**
+	 * Returns Variable which differs from this Variable by value.
+	 * @param value value of new Variable.
+     * @return Variable which differs from this Variable by value.
+	 * @throws NullPointerException if value is null.
+     * @throws IllegalArgumentException if value has invalid type
+	 */
+    public Variable withValue(Object value) {
+        if (getValue().equals(value)) return this;
+        if ((type & ARRAY) != 0 && value instanceof Object[] &&
+                Arrays.equals((Object[])this.value, (Object[])value) &&
+                this.value.getClass().getComponentType() == value.getClass().getComponentType())
+            return this;
+        return newInstance(this.key, value, this.descriptor);
+    }
+    
     /** 
      * Treat the stored Object as an array of Objects and
      * get the object at index @param index.
@@ -223,45 +390,55 @@ public class Variable
      */
     public synchronized Object getObject(int index)
     {
-        int len = d.getValueLength();
-        return len >= 0 ? d.getValueInCurrentThread(index) : null;
+        int len = getValueLength();
+        return len >= 0 ? getValueInCurrentThread(index) : null;
     }
         
+    /**
+     * Returns thread-independent element of array value of this Variable.
+     * @param specified index of array
+     * @return element of array value.
+     * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
+     */
+    public Object getValue(int index) {
+        if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index); 
+        return ((Object[])value)[index];
+    }
+    
+    /**
+     * Returns element of array value of this Variable in current thread.
+     * @param specified index of array
+     * @return element of array value.
+     * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
+     */
+    public Object getValueInCurrentThread(int index) {
+        switch (type) {
+            case SIMPLE|ARRAY: return ((Object[])value)[index];
+            case LIBRARY|ARRAY:
+                LibId libId = ((LibId[])value)[index];
+                return libId != null ? libId.inCurrentThread() : null;
+            case CELL|ARRAY:
+                CellId cellId = ((CellId[])value)[index];
+                return cellId != null ? cellId.inCurrentThread() : null;
+            case EXPORT|ARRAY:
+                ExportId exportId = ((ExportId[])value)[index];
+                return exportId != null ? exportId.inCurrentThread() : null;
+            default:
+                throw new ArrayIndexOutOfBoundsException(index);
+        }
+    }
 	/**
 	 * Method to return the Variable Key associated with this Variable.
 	 * @return the Variable Key associated with this variable.
 	 */
-	public Key getKey() { return d.key; }
+	public Key getKey() { return key; }
 
     /**
-     * Set if this variable is linked to an ElectricObject
+     * Returns true if variable is linked to a linked owner, false otherwise.
+     * @param owner owner of this variable.
+     * @return true if variable is linked to a linked owner, false otherwise.
      */
-    void setLinked(boolean linked) { this.linked = linked; }
-
-    /**
-     * Returns true if variable is linked to a linked database object, false otherwise.
-     * @return true if variable is linked to a linked database object, false otherwise.
-     */
-    public boolean isLinked() {
-        return (linked && owner.isLinked());
-    }
-
-    /**
-     * Get the Electric object that stores this Variable
-     * @return the Owner of this Variable
-     */
-    public ElectricObject getOwner() { return owner; }
-
-    /**
-     * Returns true if this Variable is completely linked into database.
-	 * This means that its owner ElectricObject is completely linked into database
-	 * and this Variable is in vars list of the owner.
-     */
-	public boolean isActuallyLinked()
-	{
-		ElectricObject owner = getOwner();
-		return owner != null && owner.isLinked() && owner.getVar(d.key) == this;
-	}
+    public boolean isLinked(ElectricObject owner) { return owner.isLinked() && owner.getVar(getKey()) == this; }
 
 	/**
 	 * Method to return a more readable name for this Variable.
@@ -269,13 +446,13 @@ public class Variable
 	 * and uses sensible names such as "Diode Size" instead of "SCHEM_diode".
 	 * @return a more readable name for this Variable.
 	 */
-	public String getReadableName()
+	public String getReadableName(ElectricObject owner)
 	{
 		String trueName = "";
-		String name = d.key.getName();
+		String name = getKey().getName();
 		if (name.startsWith("ATTR_"))
 		{
-			if (isParam())
+			if (owner.isParam(getKey()))
 				trueName +=  "Parameter '" + name.substring(5) + "'"; else
 					trueName +=  "Attribute '" + name.substring(5) + "'";
 		} else
@@ -296,7 +473,7 @@ public class Variable
 	 */
 	public String getFullDescription(ElectricObject eobj)
 	{
-		String trueName = getReadableName();
+		String trueName = getReadableName(eobj);
 		String description = null;
 		if (eobj instanceof Export)
 		{
@@ -368,7 +545,7 @@ public class Variable
 	 */
 	public String getTrueName()
 	{
-		String name = d.key.getName();
+		String name = getKey().getName();
 		if (name.startsWith("ATTR_"))
 			return name.substring(5);
 		if (name.startsWith("ATTRP_"))
@@ -406,9 +583,9 @@ public class Variable
 	 */
 	public String describe(int aindex, VarContext context, Object eobj)
 	{
-		TextDescriptor.Unit units = d.descriptor.getUnit();
+		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
-		TextDescriptor.DispPos dispPos = d.descriptor.getDispPart();
+		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
         if (isCode())
 		{
 			// special case for code: it is a string, the type applies to the result
@@ -439,7 +616,7 @@ public class Variable
 	 */
 	public String getPureValue(int aindex)
 	{
-		TextDescriptor.Unit units = d.descriptor.getUnit();
+		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
         Object thisAddr = getObject();
 		if (thisAddr instanceof Object[])
@@ -515,73 +692,26 @@ public class Variable
 	}
 
 	/**
-	 * Method to return the TextDescriptor on this Variable.
-	 * The TextDescriptor gives information for displaying the Variable.
-	 * @return the TextDescriptor on this Variable.
+	 * This function is to compare Variable elements. Initiative CrossLibCopy
+ 	 * @param obj Object to compare to
+	 * @param buffer To store comparison messages in case of failure
+	 * @return True if objects represent same PortInst
 	 */
-	public ImmutableTextDescriptor getTextDescriptor() { return d.descriptor; }
+    public boolean compare(Object obj, StringBuffer buffer)
+	{
+		if (this == obj) return (true);
 
-	/**
-	 * Method to set the TextDescriptor on this Variable.
-	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param descriptor the new TextDescriptor on this Variable.
-	 */
-	public void setTextDescriptor(TextDescriptor descriptor)
-    {
-        owner.setTextDescriptor(getKey(), descriptor);
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        Variable var = (Variable)obj;
+       	boolean check = var.getTextDescriptor().equals(getTextDescriptor());
+
+		if (!check && buffer != null)
+			buffer.append("No same variables detected in " + var + " and " + this + "\n");
+        return (check);
     }
-
-	/**
-	 * Method to set this Variable to be displayable.
-	 * Displayable Variables are shown with the object.
-	 */
-	public synchronized void setDisplay(boolean state)
-    {
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setDisplay(state);
-		setTextDescriptor(td);
-    }
-
-	/**
-	 * Method to return true if this Variable is displayable.
-	 * @return true if this Variable is displayable.
-	 */
-	public boolean isDisplay() { return d.descriptor.isDisplay(); }
-
-    /**
-     * Determine what code type this variable has, if any
-     * @return the code type
-     */
-    public TextDescriptor.Code getCode() { return d.descriptor.getCode(); }
-
-    /**
-     * Sets the code type of this Variable
-     * @param code the code to set to
-     */
-    public void setCode(TextDescriptor.Code code) {
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setCode(code);
-		setTextDescriptor(td);
-    }
-
-	/**
-	 * Method to return true if this Variable is Java.
-	 * Java Variables contain Java code that is evaluated in order to produce a value.
-	 * @return true if this Variable is Java.
-	 */
-	public boolean isJava() { return d.descriptor.isJava(); }
-
-	/**
-	 * Method to tell whether this Variable is any code.
-	 * @return true if this Variable is any code.
-	 */
-	public boolean isCode() { return d.descriptor.isCode(); }
-
-    /**
-     * Method to return if this is Variable is a User Attribute.
-     * @return true if this Variable is an attribute, false otherwise.
-     */
-    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
 
 	/**
 	 * Returns a printable version of this Variable.
@@ -589,8 +719,75 @@ public class Variable
 	 */
 	public String toString()
 	{
-		return d.key.getName();
+		return key.getName();
 	}
+
+	/**
+	 * Method to return the TextDescriptor on this Variable.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @return the TextDescriptor on this Variable.
+	 */
+	public TextDescriptor getTextDescriptor() { return descriptor; }
+
+	/**
+	 * Returns Variable which differs from this Variable by TextDescriptor.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param descriptor the new TextDescriptor on this Variable.
+     * @return Variable which differs from this Variable by TextDescriptor.
+	 */
+	public Variable withTextDescriptor(TextDescriptor descriptor) {
+        if (this.descriptor == descriptor) return this;
+        if (descriptor.isCode() && !(value instanceof String || value instanceof String[]))
+            descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
+        if (this.descriptor == descriptor) return this;
+        return new Variable(this.key, this.value, descriptor, this.type);
+    }
+    
+	/**
+	 * Returns Variable which differs from this Variable by displayable flag.
+	 * Displayable Variables are shown with the object.
+     * @param state true, if new Variable is displayable.
+	 * @return Variable which differs from this Variable by displayable flag.
+	 */
+	public Variable withDisplay(boolean state) { return withTextDescriptor(getTextDescriptor().withDisplay(state)); }
+
+	/**
+	 * Method to return true if this Variable is displayable.
+	 * @return true if this Variable is displayable.
+	 */
+	public boolean isDisplay() { return descriptor.isDisplay(); }
+
+    /**
+     * Determine what code type this variable has, if any
+     * @return the code type
+     */
+    public TextDescriptor.Code getCode() { return descriptor.getCode(); }
+
+    /**
+     * Returns Variable which differs from this Variable by code.
+     * @param code code of new Variable.
+     * @return Variable which differs from this Variable by code
+     */
+    public Variable withCode(TextDescriptor.Code code) { return withTextDescriptor(getTextDescriptor().withCode(code)); }
+
+	/**
+	 * Method to return true if this Variable is Java.
+	 * Java Variables contain Java code that is evaluated in order to produce a value.
+	 * @return true if this Variable is Java.
+	 */
+	public boolean isJava() { return descriptor.isJava(); }
+
+	/**
+	 * Method to tell whether this Variable is any code.
+	 * @return true if this Variable is any code.
+	 */
+	public boolean isCode() { return descriptor.isCode(); }
+
+    /**
+     * Method to return if this is Variable is a User Attribute.
+     * @return true if this Variable is an attribute, false otherwise.
+     */
+    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
 
 	// TextDescriptor
 
@@ -601,21 +798,17 @@ public class Variable
 	 * Methods in "EGraphics" manipulate color indices.
 	 * @return the color index of the Variables's TextDescriptor.
 	 */
-	public int getColorIndex() { return d.descriptor.getColorIndex(); }
+	public int getColorIndex() { return descriptor.getColorIndex(); }
 
 	/**
-	 * Method to set the color index of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by colorIndex.
 	 * Color indices are more general than colors, because they can handle
 	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * Methods in "EGraphics" manipulate color indices.
-	 * @param colorIndex the color index of the Variable's TextDescriptor.
+	 * @param colorIndex color index of new Variable.
+     * @return Variable which differs from this Variable by colorIndex.
 	 */
-	public void setColorIndex(int colorIndex)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setColorIndex(colorIndex);
-		setTextDescriptor(td);
-	}
+	public Variable withColorIndex(int colorIndex) { return withTextDescriptor(getTextDescriptor().withColorIndex(colorIndex)); }
 
 	/**
 	 * Method to return the text position of the Variable's TextDescriptor.
@@ -623,20 +816,17 @@ public class Variable
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the Variable's TextDescriptor.
 	 */
-	public TextDescriptor.Position getPos() { return d.descriptor.getPos(); }
+	public TextDescriptor.Position getPos() { return descriptor.getPos(); }
 
 	/**
-	 * Method to set the text position of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by position.
 	 * The text position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
-	 * @param p the text position of the Variable's TextDescriptor.
+	 * @param p the text position of new Variable.
+	 * @return Variable which differs from this Variable by position.
+     * @throws NullPointerException if p is null.
 	 */
-	public synchronized void setPos(TextDescriptor.Position p)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setPos(p);
-		setTextDescriptor(td);
-	}
+	public Variable withPos(TextDescriptor.Position p) { return withTextDescriptor(getTextDescriptor().withPos(p)); }
 
 	/**
 	 * Method to return the text size of the text in the Variable's TextDescriptor.
@@ -644,7 +834,7 @@ public class Variable
 	 * or relative text (in quarter units).
 	 * @return the text size of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized TextDescriptor.Size getSize() { return d.descriptor.getSize(); }
+	public synchronized TextDescriptor.Size getSize() { return descriptor.getSize(); }
 
 	/**
 	 * Method to find the true size in points for the Variable's TextDescriptor in a given EditWindow.
@@ -653,150 +843,121 @@ public class Variable
 	 * @param wnd the EditWindow in which drawing will occur.
 	 * @return the point size of the text described by the Variable's TextDescriptor.
 	 */
-	public double getTrueSize(EditWindow_ wnd) { return d.descriptor.getTrueSize(wnd); }
+	public double getTrueSize(EditWindow_ wnd) { return descriptor.getTrueSize(wnd); }
 
 	/**
-	 * Method to set the text size of Variable's TextDescriptor to an absolute size (in points).
+	 * Returns Variable which differs from this Variable by text size.
+     * New size is absolute size (in points).
 	 * The size must be between 1 and 63 points.
-	 * @param s the point size of the Variable's TextDescriptor.
+	 * @param s the point size of new Variable.
+	 * @return Variable which differs from this Variable by text size.
 	 */
-	public synchronized void setAbsSize(int s)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setAbsSize(s);
-		setTextDescriptor(td);
-	}
+	public Variable withAbsSize(int s) { return withTextDescriptor(getTextDescriptor().withAbsSize(s)); }
 
 	/**
-	 * Method to set the text size of the Variable's TextDescriptor to a relative size (in units).
+	 * Returns Variable which differs from this Variable by text size.
+     * New size is a relative size (in units).
 	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
-	 * @param s the unit size of the Variable's TextDescriptor.
+	 * @param s the unit size of new Variable.
+	 * @return Variable which differs from this Variable by text size.
 	 */
-	public synchronized void setRelSize(double s)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setRelSize(s);
-		setTextDescriptor(td);
-	}
+	public Variable withRelSize(double s) { return withTextDescriptor(getTextDescriptor().withRelSize(s)); }
 
 	/**
 	 * Method to return the text font of the Variable's TextDescriptor.
 	 * @return the text font of the Variable's TextDescriptor.
 	 */
-	public int getFace() { return d.descriptor.getFace(); }
+	public int getFace() { return descriptor.getFace(); }
 
 	/**
-	 * Method to set the text font of the Variable's TextDescriptor.
-	 * @param f the text font of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by text font.
+	 * @param f the text font of new Variable.
+	 * @eturn Variable which differs from this Variable by text font.
 	 */
-	public synchronized void setFace(int f)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setFace(f);
-		setTextDescriptor(td);
-	}
+	public Variable withFace(int f) { return withTextDescriptor(getTextDescriptor().withFace(f)); }
 
 	/**
 	 * Method to return the text rotation of the Variable's TextDescriptor.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the Variable's TextDescriptor.
 	 */
-	public TextDescriptor.Rotation getRotation() { return d.descriptor.getRotation(); }
+	public TextDescriptor.Rotation getRotation() { return descriptor.getRotation(); }
 
 	/**
-	 * Method to set the text rotation of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by rotation.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
-	 * @param r the text rotation of the Variable's TextDescriptor.
+	 * @param r the text rotation of new Variable.
+     * @return Variable which differs from this Variable by rotation.
 	 */
-	public synchronized void setRotation(TextDescriptor.Rotation r)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setRotation(r);
-		setTextDescriptor(td);
-	}
+	public Variable withRotation(TextDescriptor.Rotation r) { return withTextDescriptor(getTextDescriptor().withRotation(r)); }
 
 	/**
 	 * Method to return the text display part of the Variable's TextDescriptor.
 	 * @return the text display part of the Variable's TextDescriptor.
 	 */
-	public TextDescriptor.DispPos getDispPart() { return d.descriptor.getDispPart(); }
+	public TextDescriptor.DispPos getDispPart() { return descriptor.getDispPart(); }
 
 	/**
-	 * Method to set the text display part of the Variable's TextDescriptor.
-	 * @param d the text display part of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by dislay part.
+	 * @param d the text display part of new Variable.
+     * @return Variable which differs from this Variable by dislay part.
+     * @throws NullPointerException if dispPos is null
 	 */
-	public synchronized void setDispPart(TextDescriptor.DispPos dispPos)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setDispPart(dispPos);
-		setTextDescriptor(td);
-	}
+	public Variable withDispPart(TextDescriptor.DispPos dispPos) { return withTextDescriptor(getTextDescriptor().withDispPart(dispPos)); }
 
 	/**
 	 * Method to return true if the text in the Variable's TextDescriptor is italic.
 	 * @return true if the text in the Variable's TextDescriptor is italic.
 	 */
-	public boolean isItalic() { return d.descriptor.isItalic(); }
+	public boolean isItalic() { return descriptor.isItalic(); }
 
 	/**
-	 * Method to set the text in the Variabl's TextDescriptor to be italic.
+	 * Returns Variable which differs from this Variable by italic flag.
+     * @param state true if text of new Variable is italic.
+     * @return Variable which differs from this Variable by italic flag.
 	 */
-	public synchronized void setItalic(boolean state)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setItalic(state);
-		setTextDescriptor(td);
-	}
+	public Variable withItalic(boolean state) { return withTextDescriptor(getTextDescriptor().withItalic(state)); }
 
 	/**
 	 * Method to return true if the text in the Variable's TextDescriptor is bold.
 	 * @return true if the text in the Variable's TextDescriptor is bold.
 	 */
-	public boolean isBold() { return d.descriptor.isBold(); }
+	public boolean isBold() { return descriptor.isBold(); }
 
 	/**
-	 * Method to set the text in the TextDescriptor to be bold.
+	 * Returns Variable which differs from this Variable by bold flag.
+     * @param state true if text of new Variable is bold.
+     * @return Variable which differs from this Variable by bold flag.
 	 */
-	public synchronized void setBold(boolean state)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setBold(state);
-		setTextDescriptor(td);
-	}
+	public Variable withBold(boolean state) { return withTextDescriptor(getTextDescriptor().withBold(state)); }
 
 	/**
 	 * Method to return true if the text in the Variable's TextDescriptor is underlined.
 	 * @return true if the text in the Variable's TextDescriptor is underlined.
 	 */
-	public boolean isUnderline() { return d.descriptor.isUnderline(); }
+	public boolean isUnderline() { return descriptor.isUnderline(); }
 
 	/**
-	 * Method to set the text in the Variable's TextDescriptor to be underlined.
+	 * Returns Variable which differs from this Variable by underline flag.
+     * @param state true text of new Variable is underlined.
+     * @return Variable which differs from this Variable by underline flag.
 	 */
-	public synchronized void setUnderline(boolean state)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setUnderline(state);
-		setTextDescriptor(td);
-	}
+	public Variable withUnderline(boolean state) { return withTextDescriptor(getTextDescriptor().withUnderline(state)); }
 
 	/**
 	 * Method to return true if the text in the Variable's TextDescriptor is interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the Variable's TextDescriptor is interior.
 	 */
-	public boolean isInterior() { return d.descriptor.isInterior(); }
+	public boolean isInterior() { return descriptor.isInterior(); }
 
 	/**
-	 * Method to set the text in the Variable's TextDescriptor to be interior.
+	 * Returns Variable which differs from this Variable by interior flag.
 	 * Interior text is not seen at higher levels of the hierarchy.
+     * @param state true if text with new Variable is interior.
+     * @return Variable which differs from this Variable by interior flag.
 	 */
-	public synchronized void setInterior(boolean state)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setInterior(state);
-		setTextDescriptor(td);
-	}
+	public Variable withInterior(boolean state) { return withTextDescriptor(getTextDescriptor().withInterior(state)); }
 
 	/**
 	 * Method to return true if the text in the Variable's TextDescriptor is inheritable.
@@ -806,91 +967,51 @@ public class Variable
 	 * created on that NodeInst.
 	 * @return true if the text in the Variable's TextDescriptor is inheritable.
 	 */
-	public boolean isInherit() { return d.descriptor.isInherit(); }
+	public boolean isInherit() { return descriptor.isInherit(); }
 
 	/**
-	 * Method to set the text in the Variable's TextDescriptor to be inheritable.
+	 * Returns Variable which differs from this Variable by inheritable flag.
 	 * Inheritable variables copy their contents from prototype to instance.
 	 * Only Variables on NodeProto and PortProto objects can be inheritable.
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
 	 * created on that NodeInst.
+     * @param state true if new Variable is inheritable.
+     * @return Variable which differs from this Variable by inheritable flag.
 	 */
-	public synchronized void setInherit(boolean state)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setInherit(state);
-		setTextDescriptor(td);
-	}
+	public Variable withInherit(boolean state) { return withTextDescriptor(getTextDescriptor().withInherit(state)); }
 
 	/**
-	 * Method to return true if the text in the Variable's TextDescriptor is a parameter.
+	 * Returns Variable which deffers from this Variable by parameter flag.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
-	 * Parameters can only exist on NodeInst objects.
-	 * @return true if the text in the Variable's TextDescriptor is a parameter.
+	 * Parameters can only exist on Cell objects.
+     * @param state true if new Variable is parameter.
+     * @return Variable which deffers from this Variable by parameter flag.
 	 */
-	public boolean isParam() {
-        if (d.descriptor.isParam()) return true;
-        // invariant: all attributes on nodeinsts that have a same
-        // named parameter on their content views must be parameters.
-        // It is possible for the user to create a case where an attributee
-        // is not marked as a param even though it should be,
-        // so we check it here
-        if (getOwner() instanceof NodeInst) {
-            NodeInst ni = (NodeInst)getOwner();
-            if (ni.getProto() instanceof Cell) {
-                Cell icon = (Cell)ni.getProto();
-                Cell sch = icon.contentsView();
-                if (sch == null) sch = icon;
-                Variable var = sch.getVar(d.key);
-                if (var != null && var.d.descriptor.isParam()) {
-                    //this.setParam(true);
-                    return true;
-                }
-            }
-            //System.out.println("Var "+key.getName()+" on "+no.getName()+" is not a param");
-        }
-        return false;
-    }
-
-	/**
-	 * Method to set the text in the Variable's TextDescriptor to be a parameter.
-	 * Parameters are those Variables that have values on instances which are
-	 * passed down the hierarchy into the contents.
-	 * Parameters can only exist on NodeInst objects.
-	 */
-	public synchronized void setParam(boolean state)
-	{
-        if (!(getOwner() instanceof Cell)) return;
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setParam(state);
-		setTextDescriptor(td);
-	}
-
+	public Variable withParam(boolean state) { return withTextDescriptor(getTextDescriptor().withParam(state)); }
+    
 	/**
 	 * Method to return the X offset of the text in the Variable's TextDescriptor.
 	 * @return the X offset of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized double getXOff() { return d.descriptor.getXOff(); }
+	public synchronized double getXOff() { return descriptor.getXOff(); }
 
 	/**
 	 * Method to return the Y offset of the text in the Variable's TextDescriptor.
 	 * @return the Y offset of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized double getYOff() { return d.descriptor.getYOff(); }
+	public synchronized double getYOff() { return descriptor.getYOff(); }
 
 	/**
-	 * Method to set the X and Y offsets of the text in the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by
+     * X and Y offsets of the text in the Variable's TextDescriptor.
 	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
-	 * @param xd the X offset of the text in the Variable's TextDescriptor.
-	 * @param yd the Y offset of the text in the Variable's TextDescriptor.
+	 * @param xd the X offset of the text in new Variable's TextDescriptor.
+	 * @param yd the Y offset of the text in new Variable's TextDescriptor.
+     * @return Variable which differs from this Variable by
+     * X and Y offsets of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized void setOff(double xd, double yd)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setOff(xd, yd);
-		setTextDescriptor(td);
-	}
+	public Variable withOff(double xd, double yd) { return withTextDescriptor(getTextDescriptor().withOff(xd, yd)); }
 
 	/**
 	 * Method to return the Unit of the Variable's TextDescriptor.
@@ -899,20 +1020,15 @@ public class Variable
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the Variable's TextDescriptor.
 	 */
-	public TextDescriptor.Unit getUnit() { return d.descriptor.getUnit(); }
+	public TextDescriptor.Unit getUnit() { return descriptor.getUnit(); }
 
 	/**
-	 * Method to set the Unit of the Variable's TextDescriptor.
+	 * Returns Variable which differs from this Variable by unit.
 	 * Unit describe the type of real-world unit to apply to the value.
 	 * For example, if this value is in volts, the Unit tells whether the value
 	 * is volts, millivolts, microvolts, etc.
-	 * @param u the Unit of the Variable's TextDescriptor.
+	 * @param u the Unit of new Variable.
+     * @return Variable which differs from this Variable by unit.
 	 */
-	public synchronized void setUnit(TextDescriptor.Unit u)
-	{
-		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
-		td.setUnit(u);
-		setTextDescriptor(td);
-	}
+	public Variable withUnit(TextDescriptor.Unit u) { return withTextDescriptor(getTextDescriptor().withUnit(u)); }
 }
-

@@ -500,8 +500,7 @@ public class PostScript extends Output
 				poly.setStyle(Poly.Type.TEXTCENT);
 			}
 			poly.setString(string);
-			MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-			td.setRelSize(size * 0.75);
+			TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(size * 0.75);
 			poly.setTextDescriptor(td);
 			writer.psText(poly);
 		}
@@ -576,8 +575,7 @@ public class PostScript extends Output
 					psPoly(poly);
 	
 					poly.setStyle(Poly.Type.TEXTBOX);
-					MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
-					td.setAbsSize(24);
+					TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe(false));
 					psPoly(poly);
@@ -713,8 +711,7 @@ public class PostScript extends Output
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
-					portDescript.setColorIndex(descript.getColorIndex());
+					TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME).withColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					portPoly.setStyle(type);
 					String portName = pp.getName();
