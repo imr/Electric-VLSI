@@ -25,7 +25,6 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.FileType;
