@@ -57,7 +57,7 @@ public class StratDebug extends Strategy {
     // ---------- the tree walking code ---------
 	public LeafList doFor(EquivRecord er) {
 		if (er.isLeaf()) {
-			if (er.isMismatched() && er.getNetObjType()!=Part.Type.PORT) {
+			if (!er.isBalanced() && er.getNetObjType()!=Part.Type.PORT) {
 				globals.status2(er.nameString());
 				List reasons = er.getPartitionReasonsFromRootToMe();
 				for (Iterator it=reasons.iterator(); it.hasNext();) {

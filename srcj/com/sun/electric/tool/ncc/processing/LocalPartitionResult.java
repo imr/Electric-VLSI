@@ -51,13 +51,13 @@ public class LocalPartitionResult {
 
     private void prln(String s) {System.out.println(s);}
 	 
-    private List getNotMatchedEquivRecs(Iterator it) {
-    	List mismatched = new ArrayList();
+    private List getNotBalancedEquivRecs(Iterator it) {
+    	List notBalanced = new ArrayList();
     	while (it.hasNext()) {
     		EquivRecord er = (EquivRecord) it.next();
-        	if (er.isMismatched())  mismatched.add(er);
+        	if (!er.isBalanced())  notBalanced.add(er);
     	}
-    	return mismatched;
+    	return notBalanced;
     }
 
     private void printCircuitContents(List notMatched, List matched, 
@@ -104,9 +104,9 @@ public class LocalPartitionResult {
 	public LocalPartitionResult(NccGlobals globals) {
     	this.globals = globals;
     	badPartRecs = 
-		    getNotMatchedEquivRecs(globals.getPartLeafEquivRecs().getNotMatched());
+		    getNotBalancedEquivRecs(globals.getPartLeafEquivRecs().getNotMatched());
 		badWireRecs = 
-		    getNotMatchedEquivRecs(globals.getWireLeafEquivRecs().getNotMatched());
+		    getNotBalancedEquivRecs(globals.getWireLeafEquivRecs().getNotMatched());
 	}
 
 	/** @return true if no mismatches detected by Local Partitioning */

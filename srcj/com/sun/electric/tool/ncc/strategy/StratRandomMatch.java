@@ -31,20 +31,20 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-/** StratRandomMatch arbitrarily matches the NetObjects that are first in
- * each Circuit. */
+/** StratRandomMatch finds balanced EquivRecords and arbitrarily matches the 
+ * NetObjects that are first in each Circuit. */
 public class StratRandomMatch extends Strategy {
 	private static final Integer CODE_FIRST = new Integer(1);
 	private static final Integer CODE_REST = new Integer(2);
     private StratRandomMatch(NccGlobals globals){super(globals);}
 
-	private EquivRecord findSmallestActive(Iterator frontier) {
+	private EquivRecord findSmallestBalanced(Iterator frontier) {
 		//LeafList frontier = StratFrontier.doYourJob(root, globals);
 		int minSz = Integer.MAX_VALUE;
 		EquivRecord minRec = null;
 		while (frontier.hasNext()) {
 			EquivRecord r = (EquivRecord) frontier.next();
-			if (r.isMismatched())  continue;
+			if (!r.isBalanced())  continue;
 			int sz  = r.maxSize();
 			if (sz<minSz) {
 				minSz = sz;
@@ -56,9 +56,9 @@ public class StratRandomMatch extends Strategy {
 	
 	private EquivRecord findSmallestActive() {
 		EquivRecord w = 
-			findSmallestActive(globals.getWireLeafEquivRecs().getNotMatched());
+			findSmallestBalanced(globals.getWireLeafEquivRecs().getNotMatched());
 		EquivRecord p = 
-			findSmallestActive(globals.getPartLeafEquivRecs().getNotMatched());
+			findSmallestBalanced(globals.getPartLeafEquivRecs().getNotMatched());
 		if (p==null) return w;
 		if (w==null) return p;
 		return p.maxSize()<w.maxSize() ? p : w; 

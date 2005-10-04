@@ -34,11 +34,9 @@ import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-/**
- * StratCount counts and prints a tree's content. StratCount
+/** StratCount counts and prints a tree's content. StratCount
  * implements a doFor method for each level in the EquivRecord tree,
- * keeping counters of what it finds.  
-*/
+ * keeping counters of what it finds. */
 public class StratCount extends Strategy {
 	// ------------------------------ types -----------------------------------
 	/** Object to maintain a statistical datum (an int) for each type of
@@ -100,12 +98,23 @@ public class StratCount extends Strategy {
 		public final int numMatchedWireEquivRecs;
 		public final int numMismatchedPartEquivRecs;
 		public final int numMismatchedWireEquivRecs;
+		public final int numActivePartEquivRecs;
+		public final int numActiveWireEquivRecs;
 		public Counts(int matchPartER, int matchWireER, 
-					  int mismatchPartER, int mismatchWireER) {
+					  int mismatchPartER, int mismatchWireER,
+					  int activePartER, int activeWireER) {
 			numMatchedPartEquivRecs = matchPartER;
 			numMatchedWireEquivRecs = matchWireER;
 			numMismatchedPartEquivRecs = mismatchPartER;
 			numMismatchedWireEquivRecs = mismatchWireER;
+			numActivePartEquivRecs = activePartER;
+			numActiveWireEquivRecs = activeWireER;
+		}
+		public int numNotMatchedPartEquivRecs() {
+			return numMismatchedPartEquivRecs + numActivePartEquivRecs;
+		}
+		public int numNotMatchedWireEquivRecs() {
+			return numMismatchedWireEquivRecs + numActiveWireEquivRecs;
 		}
 	}
 
@@ -222,7 +231,9 @@ public class StratCount extends Strategy {
         return new Counts(numMatchedLeafRecs.get(NetObject.Type.PART),
         		          numMatchedLeafRecs.get(NetObject.Type.WIRE),
 						  numMismatchedLeafRecs.get(NetObject.Type.PART),
-        		          numMismatchedLeafRecs.get(NetObject.Type.WIRE));
+        		          numMismatchedLeafRecs.get(NetObject.Type.WIRE),
+        		          numActiveLeafRecs.get(NetObject.Type.PART),
+        		          numActiveLeafRecs.get(NetObject.Type.WIRE));
     }
 
 	

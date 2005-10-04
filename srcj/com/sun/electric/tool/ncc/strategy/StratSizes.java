@@ -165,7 +165,7 @@ public class StratSizes extends Strategy {
 		Iterator frontier = globals.getPartLeafEquivRecs().getNotMatched();
 		while (frontier.hasNext()) {
 			EquivRecord r = (EquivRecord) frontier.next();
-			if (r.isMismatched())  continue;
+			if (!r.isBalanced())  continue;
 			OutlierRecord farOut = new OutlierRecord(r);
 			if (farOut.deviation()==0) continue;
 			if (furthestOut==null) {

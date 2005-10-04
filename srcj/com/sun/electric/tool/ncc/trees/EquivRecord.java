@@ -43,7 +43,12 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
 
 /** Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.
  * Every EquivRecord is assigned a pseudo random code at birth which it 
- * retains for life. */
+ * retains for life. 
+ * <p>
+ * A Leaf EquivRecord is "balanced" if all Circuits have the same number of 
+ * NetObjects. "Matched" means balanced with each Circuit having one 
+ * NetObject. "Mismatched" means unbalanced with some some Circuit having 
+ * no NetObject. "Active" means not matched and not mismatched. */
 public class EquivRecord {
 	// points toward root 	             
 	private EquivRecord parent;
@@ -162,7 +167,7 @@ public class EquivRecord {
 
 	/** getCode returns the fixed hash code for this object.
 	 * @return the int fixed hash code for this object. */
-	public int getCode(){return randCode;}
+	public int getCode(){return isMismatched()? 0 : randCode;}
 
     public void checkMe(EquivRecord parent) {
     	error(getParent()!=parent, "wrong parent");
@@ -265,20 +270,8 @@ public class EquivRecord {
 	    return false;
 	}
 
-	/** @return true if matched */
-	public boolean isMatched() {
-		for (Iterator it=getCircuits(); it.hasNext();) {
-			Circuit c = (Circuit) it.next();
-			if (c.numNetObjs()!=1) return false;
-		}
-		return true;
-	}
-
-	/** isMismatched indicates whether some Circuits in this
-	 * leaf record differ in population.
-	 * @return true if the circuits differ in population, false
-	 * otherwise */
-	public boolean isMismatched() {
+	/** @return true if all Circuits have same number of NetObjects. */
+	public boolean isBalanced() {
 		boolean first = true;
 		int sz = 0;
 	    for (Iterator it=getCircuits(); it.hasNext();) {
@@ -287,8 +280,30 @@ public class EquivRecord {
 	        	sz = c.numNetObjs();
 	        	first = false;
 	        } else {
-				if (c.numNetObjs()!=sz) return true;
+				if (c.numNetObjs()!=sz) return false;
 	        }
+	    }
+	    return true;
+	}
+
+	/** isMatched is a special case of balanced.
+	 * @return true if every Circuit has one NetObject */
+	public boolean isMatched() {
+		for (Iterator it=getCircuits(); it.hasNext();) {
+			Circuit c = (Circuit) it.next();
+			if (c.numNetObjs()!=1) return false;
+		}
+		return true;
+	}
+
+	/** isMismatched is a special case of unbalanced. 
+	 * @return true if some Circuit has no NetObject */
+	public boolean isMismatched() {
+		// It's impossible for all Circuits to be zero sized so we only
+		// need to find the first zero sized.
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        Circuit c = (Circuit) it.next();
+			if (c.numNetObjs()==0) return true;
 	    }
 	    return false;
 	}

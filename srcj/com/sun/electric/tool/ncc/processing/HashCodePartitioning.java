@@ -36,7 +36,6 @@ import com.sun.electric.tool.ncc.strategy.StratHashParts;
 import com.sun.electric.tool.ncc.strategy.StratHashWires;
 import com.sun.electric.tool.ncc.strategy.StratPortName;
 import com.sun.electric.tool.ncc.strategy.StratRandomMatch;
-import com.sun.electric.tool.ncc.strategy.StratResult;
 import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
@@ -202,10 +201,15 @@ public class HashCodePartitioning {
 		doWork();
 		globals.status2("----- done HashCodePartitioning");
 	}
+	
+	private boolean allPartsWiresMatch() {
+		return globals.getPartLeafEquivRecs().numNotMatched()==0 &&
+		       globals.getWireLeafEquivRecs().numNotMatched()==0;
+	}
 
 	// ------------------------ public methods --------------------------------
 	public static boolean doYourJob(NccGlobals globals) {
-		new HashCodePartitioning(globals);
-		return StratResult.doYourJob(globals);
+		HashCodePartitioning p = new HashCodePartitioning(globals);
+		return p.allPartsWiresMatch();
 	}
 }
