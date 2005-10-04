@@ -271,10 +271,13 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             String foundry = tech.getSelectedFoundry();
 
             boolean validFoundry = !foundry.equals("");
-			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm";
-            if (!validFoundry) message += ")";
-            else // relevant foundry
-                message += ",foundry=" + foundry + ")";
+			if (tech.isScaleRelevant())
+            {
+                message += " (scale=" + tech.getScale() + "nm";
+                if (!validFoundry) message += ")";
+                else // relevant foundry
+                    message += ",foundry=" + foundry + ")";
+            }
              fieldTech.setText(message);
 		}
 
