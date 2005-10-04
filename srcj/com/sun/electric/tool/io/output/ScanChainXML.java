@@ -1105,11 +1105,12 @@ public class ScanChainXML {
         if (possibleChains.size() == 0) return null;
         if (possibleChains.size() > 1) {
             System.out.print("Error! Found more than one chain branching from port set: ");
+            Port p = null;
             for (Iterator it = ports.iterator(); it.hasNext(); ) {
-                Port p = (Port)it.next();
-                System.out.print(p.name+", ");
+                p = (Port)it.next();
+                System.out.print(p.no.getName()+":"+p.name+", ");
             }
-            System.out.println();
+            System.out.println("in cell "+p.no.getParent().describe(false));
         }
         // append only chain, return last instance in chain
         Chain temp = (Chain)possibleChains.get(0);
