@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (10/04/05, GVG) Original fix for enhacement #507 didn't work as expected. So new code should check if
+cells are in goodDRCDate. If cells are there, it means they were touched by the current run.
+
 BUG: (10/04/05, DN) Pattern matching called from "EvalJavaBsh.replace()" allocates too many temporary objects.
 FIX: Cache "replace" results in HashMap.
 
@@ -20,8 +23,7 @@ FIX: In WaveformWindow.findSelectedSignals use findSignalForNetwork after findSi
 BUG: (10/03/05, DN) Assertions in Cell.java and Out of Bounds exceptions (Bug #598).
 FIX: In PortInst.isLinked() check nodeInst.isLinked()
 
-BUG: (10/03/05, GVG) While importing preferences, key bindings might get duplicated.
-This was introduced while fixing Bug #578.
+BUG: (10/03/05, GVG) During preferences, key bindings might get duplicated. This was noticed while fixing Bug #578.
 FIX: Replace List by Set as elements of userMap hash table.
 
 IMP: (10/02/05, RK) NCC: Improvement to hash coding algorithm (Bug# 599)
