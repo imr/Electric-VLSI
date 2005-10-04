@@ -43,7 +43,7 @@ import javax.swing.KeyStroke;
  * to any component.
  * <p><p>
  * The <i>inputMap</i> uses <code>KeyStrokes</code> as it's keys, and stores Objects
- * of type List.  The List contains Strings.
+ * of type Set.  The Set contains Strings and the set will guarantee they are not repetead.
  * <p>
  * Each String is then used as a key into the HashMap <i>actionMap</i> to retrieve
  * a KeyBindings object.  Each key bindings object has a list of actions which can then be
@@ -277,8 +277,8 @@ public class KeyBindingManager {
 
         boolean actionPerformed = false;
         boolean prefixActionPerformed = false;
-        // get list of action strings, iterate over them
-        List keyBindingList = (List)inputMapToUse.get(stroke);
+        // get set of action strings, iterate over them
+        Set keyBindingList = (Set)inputMapToUse.get(stroke);
         if (keyBindingList != null) {
             for (Iterator it = keyBindingList.iterator(); it.hasNext(); ) {
                 String actionDesc = (String)it.next();
@@ -426,8 +426,8 @@ public class KeyBindingManager {
         }
         // remove stroke
         if (inputMapToUse != null) {
-            List list = (List)inputMapToUse.get(k.getStroke());
-            if (list != null) list.remove(actionDesc);
+            Set set = (Set)inputMapToUse.get(k.getStroke());
+            if (set != null) set.remove(actionDesc);
         }
         // remove action
         KeyBindings bindings = (KeyBindings)actionMap.get(actionDesc);
@@ -544,9 +544,9 @@ public class KeyBindingManager {
 
         if (pair.getPrefixStroke() != null) {
             // check if conflicts with any single key Binding
-            List list = (List)inputMap.get(pair.getPrefixStroke());
-            if (list != null) {
-                for (Iterator it = list.iterator(); it.hasNext(); ) {
+            Set set = (Set)inputMap.get(pair.getPrefixStroke());
+            if (set != null) {
+                for (Iterator it = set.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
                     if (str.equals(PrefixAction.actionDesc)) continue;
                     // add to conflicts
@@ -557,9 +557,9 @@ public class KeyBindingManager {
         }
         // find stroke conflicts
         if (inputMapToUse != null) {
-            List list = (List)inputMapToUse.get(pair.getStroke());
-            if (list != null) {
-                for (Iterator it = list.iterator(); it.hasNext(); ) {
+            Set set = (Set)inputMapToUse.get(pair.getStroke());
+            if (set != null) {
+                for (Iterator it = set.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
 
                     if (str.equals(PrefixAction.actionDesc)) {
@@ -570,7 +570,7 @@ public class KeyBindingManager {
                         if (prefixMap != null) {
                             for (Iterator it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
                                 // all existing prefixStroke,stroke combos conflict, so add them all
-                                List prefixList = (List)it2.next(); // this is a list of strings
+                                List prefixList = (List)it2.next(); // this is a set of strings
                                 conflictsStrings.addAll(prefixList);
                             }
                         }
@@ -707,20 +707,20 @@ public class KeyBindingManager {
                 prefixedInputMapMaps.put(prefixStroke, inputMapToUse);
             }
             // add prefix action to primary input map
-            List list = (List)inputMap.get(prefixStroke);
-            if (list == null) {
-                list = new ArrayList();
-                inputMap.put(prefixStroke, list);
+            Set set = (Set)inputMap.get(prefixStroke);
+            if (set == null) {
+                set = new HashSet();
+                inputMap.put(prefixStroke, set);
             }
-            list.add(PrefixAction.actionDesc);
+            set.add(PrefixAction.actionDesc);
         }
         // add stroke to input map to use
-        List list = (List)inputMapToUse.get(stroke);
-        if (list == null) {
-            list = new ArrayList();
-            inputMapToUse.put(stroke, list);
+        Set set = (Set)inputMapToUse.get(stroke);
+        if (set == null) {
+            set = new HashSet();
+            inputMapToUse.put(stroke, set);
         }
-        list.add(actionDesc);
+        set.add(actionDesc);
         // add stroke to KeyBindings
         KeyBindings keys = (KeyBindings)actionMap.get(actionDesc);
         if (keys == null) {

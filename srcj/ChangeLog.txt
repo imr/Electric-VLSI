@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/03/05, GVG) While importing preferences, key bindings might get duplicated.
+This was introduced while fixing Bug #578.
+FIX: Replace List by Set as elements of userMap hash table.
+
 IMP: (10/02/05, RK) NCC: Improvement to hash coding algorithm (Bug# 599)
 
 IMP: (10/02/05, DN) Transactional DB: Variable and TextDescriptor are immutable classes. They have "with*" API.
