@@ -70,7 +70,7 @@ public class Signal
 	public void setSignalName(String signalName)
 	{
 		this.signalName = signalName;
-		sd.nameSignal(this, signalName);
+		sd.nameSignal(this, getFullName());
 	}
 
 	/**

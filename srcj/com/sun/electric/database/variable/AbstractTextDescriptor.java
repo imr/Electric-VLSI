@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TextDescriptor.java
+ * File: AbstractTextDescriptor.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.variable;
+
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.Pref;

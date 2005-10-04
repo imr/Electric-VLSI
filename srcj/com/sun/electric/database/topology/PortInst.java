@@ -432,7 +432,7 @@ public class PortInst extends ElectricObject_
 	{
 		try
 		{
-			return nodeInst != null && nodeInst.getPortInst(getPortIndex()) == this;
+			return nodeInst != null && nodeInst.isLinked() && nodeInst.getPortInst(getPortIndex()) == this;
 		} catch (IndexOutOfBoundsException e)
 		{
 			return false;

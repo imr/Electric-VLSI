@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.User;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,6 +61,7 @@ public class EvalJavaBsh
 
     /** For replacing @variable */					private static final Pattern atPat = Pattern.compile("@(\\w+)");
     /** For replacing @variable */					private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
+    /** Results of replacing */                     private static HashMap/*<String,String>*/ replaceHash = new HashMap/*<String,String>*/();
 
     /** The bean shell interpreter object */        private Object envObject;
     /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
@@ -144,6 +146,8 @@ public class EvalJavaBsh
      * @return replaced expression
      */
     protected static String replace(String expr) {
+        String result = (String)replaceHash.get(expr);
+        if (result != null) return result;
         StringBuffer sb = new StringBuffer();
         Matcher atMat = atPat.matcher(expr);
         while(atMat.find()) {
@@ -151,9 +155,9 @@ public class EvalJavaBsh
         }
         atMat.appendTail(sb);
 
-        expr = sb.toString();
+        result = sb.toString();
         sb = new StringBuffer();
-        Matcher pMat = pPat.matcher(expr);
+        Matcher pMat = pPat.matcher(result);
         while(pMat.find()) {
             if (pMat.group(2).startsWith("ATTR_"))
                 pMat.appendReplacement(sb, pMat.group(0));
@@ -162,7 +166,10 @@ public class EvalJavaBsh
         }
         pMat.appendTail(sb);
 
-        return sb.toString();
+        result = sb.toString();
+        if (result.equals(expr)) result = expr;
+        replaceHash.put(expr, result);
+        return result;
     }
 
     /** Evaluate Object as if it were a String containing java code.

@@ -37,7 +37,8 @@ public class TextDescriptor extends AbstractTextDescriptor
 	/** the color of the text descriptor */		private final int colorIndex;
     /** the code type of the text descriptor */ private final Code code;
     /** cache of all TextDescriptors */         private static final HashMap allDescriptors = new HashMap();
-    /** empty text descriptor */                public static final TextDescriptor EMPTY = newTextDescriptor(new MutableTextDescriptor());
+    /** empty text descriptor. Size is relative 1.0. isDisplay is true. */
+    public static final TextDescriptor EMPTY = newTextDescriptor(new MutableTextDescriptor());
     
     /**
 	 * The constructor creates canonized copy of anotherTextDescriptor.
@@ -390,8 +391,8 @@ public class TextDescriptor extends AbstractTextDescriptor
 	}
 
 	/**
-	 * Method to return a displayable TextDescriptor that is a default for Variables on Exports.
-	 * @return a new TextDescriptor that can be stored in a Variable on a Exports.
+	 * Method to return a displayable TextDescriptor that is a default for Variables on PortInsts.
+	 * @return a new TextDescriptor that can be stored in a Variable on a PortInsts.
 	 */
 	public static TextDescriptor getPortInstTextDescriptor()
 	{

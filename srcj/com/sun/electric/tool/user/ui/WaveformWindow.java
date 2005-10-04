@@ -4377,9 +4377,12 @@ if (wp.signalButtons != null)
 			Signal sSig = sd.findSignalForNetworkQuickly(netName);
 			if (sSig == null)
 			{
-				netName = netName.replace('@', '_');
-				sSig = sd.findSignalForNetworkQuickly(netName);
+				String netNamePatched = netName.replace('@', '_');
+				sSig = sd.findSignalForNetworkQuickly(netNamePatched);
 			}
+            if (sSig == null) {
+                sSig = sd.findSignalForNetwork(netName);
+            }
 			if (sSig != null) found.add(sSig);
 		}
 		return found;

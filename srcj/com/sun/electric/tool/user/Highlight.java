@@ -276,7 +276,7 @@ public class Highlight
 	 * @param var the Variable associated with this Highlight object.
 	 */
 	public void setVar(Variable var) {
-        if (var != null && var.isLinked(eobj))
+        if (var != null && !var.isLinked(eobj))
             System.out.println("Unlinked var " + var + " added to highlight");
         this.var = var;
     }

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ImmutableNodeInst.java
+ * File: ImmutableElectricObject.java
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -211,7 +211,7 @@ public class ImmutableElectricObject {
     
 	/**
 	 * Checks invariant of this ImmutableElectricObject.
-     * @param paramAllowed true if Variables with parameter flag are allowed on thos ImmutableElectricObject
+     * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check(boolean paramAllowed) {

@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/04/05, DN) Pattern matching called from "EvalJavaBsh.replace()" allocates too many temporary objects.
+FIX: Cache "replace" results in HashMap.
+
+BUG: (10/04/05, DN) Message "Unlinked var ART_message added to highlight" when roaming text.
+FIX: In user.Highlight.setVar print message when var is NOT linked.
+
+BUG: (10/04/05,DN) Some regressions fails in progress dialog (Bug #197).
+FIX: In methods of class user.dialogs.Progress insert "if (Main.BATCHMODE) return".
+
+BUG: (10/04/05, DN) Spice (Epic) waveform viewer cross-probing broken again after #583 fix (Bug #580).
+FIX: In WaveformWindow.findSelectedSignals use findSignalForNetwork after findSignalForNetworkQuickly failed.
+     In Signal.setSignalName use getFullName() instead of signalName.
+
+BUG: (10/03/05, DN) Assertions in Cell.java and Out of Bounds exceptions (Bug #598).
+FIX: In PortInst.isLinked() check nodeInst.isLinked()
+
 BUG: (10/03/05, GVG) While importing preferences, key bindings might get duplicated.
 This was introduced while fixing Bug #578.
 FIX: Replace List by Set as elements of userMap hash table.
