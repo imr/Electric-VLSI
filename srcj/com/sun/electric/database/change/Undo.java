@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -445,7 +446,7 @@ public class Undo
 			if (type == Type.VARIABLESMOD)
 			{
 				ImmutableElectricObject oldImmutable = obj.getImmutable();
-				obj.lowLevelModifyVariables((ImmutableElectricObject)o1);
+				((ElectricObject_)obj).lowLevelModifyVariables((ImmutableElectricObject)o1);
                 o1 = oldImmutable;
 				return;
 			}
@@ -1265,7 +1266,7 @@ public class Undo
 	 * @param obj the ElectricObject on which Variables changed.
 	 * @param oldImmutable the old Variables.
 	 */
-	public static void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
+	public static void modifyVariables(ElectricObject_ obj, ImmutableElectricObject oldImmutable)
 	{
 		if (!recordChange()) return;
 		Type type = Type.VARIABLESMOD;

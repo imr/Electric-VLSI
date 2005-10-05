@@ -2262,7 +2262,7 @@ public class Schematics extends Technology
             if (var == null)
                 ni.newDisplayVar(ATTR_LENGTH, length);
             else
-                ni.addVar(var.withValue(length).withDisplay(true));
+                ni.addVar(var.withObject(length).withDisplay(true));
 //            if (var == null) {
 //                var = ni.newVar(ATTR_LENGTH, length);
 //            } else {
@@ -2274,7 +2274,7 @@ public class Schematics extends Technology
             if (var == null)
                 ni.newDisplayVar(ATTR_WIDTH, width);
             else
-                ni.addVar(var.withValue(width).withDisplay(true));
+                ni.addVar(var.withObject(width).withDisplay(true));
 //            if (var == null) {
 //                var = ni.newVar(ATTR_WIDTH, width);
 //            } else {
@@ -2284,7 +2284,7 @@ public class Schematics extends Technology
         } else {
             Variable var = ni.getVar(ATTR_AREA);
             if (var != null)
-                ni.addVar(var.withValue(width).withDisplay(true));
+                ni.addVar(var.withObject(width).withDisplay(true));
 //            if (var != null) {
 //                var = ni.updateVar(var.getKey(), width);
 //            }

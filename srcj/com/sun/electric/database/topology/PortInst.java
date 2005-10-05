@@ -22,14 +22,16 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.topology;
-
+import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject_;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -47,7 +49,7 @@ import java.util.Set;
  * <P>
  * This class is thread-safe.
  */
-public class PortInst extends ElectricObject_
+public class PortInst extends ElectricObject
 {
 	// ------------------------ private data ------------------------
 
@@ -61,6 +63,25 @@ public class PortInst extends ElectricObject_
         this.nodeInst = nodeInst;
     }
 
+    /**
+     * Returns persistent data of this ElectricObject with Variables.
+     * @return persistent data of this ElectricObject.
+     */
+    public ImmutableElectricObject getImmutable() { return nodeInst.getD().getPortInst(portProto.getId()); }
+    
+    /**
+     * Method to add a Variable on this PortInst.
+     * It may add repaired copy of this Variable in some cases.
+     * @param var Variable to add.
+     */
+    public void addVar(Variable var) { nodeInst.addVar(portProto.getId(), var); }
+
+	/**
+	 * Method to delete a Variable from this PortInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key) { nodeInst.delVar(portProto.getId(), key); }
+    
 	// ------------------------ public methods -------------------------
 
 	/**

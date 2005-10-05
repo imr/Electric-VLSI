@@ -185,9 +185,9 @@ public class Variable
     }
 
     
-    /** key of this Variable. */                        public final Key key;
+    /** key of this Variable. */                        private final Key key;
 	/** Value of this Variable. */						private final Object value;
-	/** Text descriptor of this Variable. */            public final TextDescriptor descriptor;
+	/** Text descriptor of this Variable. */            private final TextDescriptor descriptor;
                                                         private final byte type;
     
     /**
@@ -223,34 +223,34 @@ public class Variable
             if (typeByte != null) {
                 value = ((Object[])value).clone();
                 type = (byte)(typeByte.byteValue()|ARRAY);
-            } else if (value instanceof Library[]) {
-                Library[] libs = (Library[])value;
-                LibId[] libIds = new LibId[libs.length];
-                for (int i = 0; i < libs.length; i++)
-                    if (libs[i] != null) libIds[i] = libs[i].getId();
-                value = libIds;
-                type = LIBRARY|ARRAY;
-            } else if (value instanceof Cell[]) {
-                Cell[] cells = (Cell[])value;
-                CellId[] cellIds = new CellId[cells.length];
-                for (int i = 0; i < cells.length; i++)
-                    if (cells[i] != null) cellIds[i] = (CellId)cells[i].getId();
-                value = cellIds;
-                type = CELL|ARRAY;
-            } else if (value instanceof Export[]) {
-                Export[] exports = (Export[])value;
-                ExportId[] exportIds = new ExportId[exports.length];
-                for (int i = 0; i < exports.length; i++)
-                    if (exports[i] != null) exportIds[i] = (ExportId)exports[i].getId();
-                value = exportIds;
-                type = EXPORT|ARRAY;
-            } else if (value instanceof Point2D[]) {
-                Point2D[] points = (Point2D[])value;
-                EPoint[] epoints = new EPoint[points.length];
-                for (int i = 0; i < points.length; i++)
-                    if (points[i] != null) epoints[i] = EPoint.snap(points[i]);
-                value = epoints;
-                type = SIMPLE|ARRAY;
+//            } else if (value instanceof Library[]) {
+//                Library[] libs = (Library[])value;
+//                LibId[] libIds = new LibId[libs.length];
+//                for (int i = 0; i < libs.length; i++)
+//                    if (libs[i] != null) libIds[i] = libs[i].getId();
+//                value = libIds;
+//                type = LIBRARY|ARRAY;
+//            } else if (value instanceof Cell[]) {
+//                Cell[] cells = (Cell[])value;
+//                CellId[] cellIds = new CellId[cells.length];
+//                for (int i = 0; i < cells.length; i++)
+//                    if (cells[i] != null) cellIds[i] = (CellId)cells[i].getId();
+//                value = cellIds;
+//                type = CELL|ARRAY;
+//            } else if (value instanceof Export[]) {
+//                Export[] exports = (Export[])value;
+//                ExportId[] exportIds = new ExportId[exports.length];
+//                for (int i = 0; i < exports.length; i++)
+//                    if (exports[i] != null) exportIds[i] = (ExportId)exports[i].getId();
+//                value = exportIds;
+//                type = EXPORT|ARRAY;
+//            } else if (value instanceof Point2D[]) {
+//                Point2D[] points = (Point2D[])value;
+//                EPoint[] epoints = new EPoint[points.length];
+//                for (int i = 0; i < points.length; i++)
+//                    if (points[i] != null) epoints[i] = EPoint.snap(points[i]);
+//                value = epoints;
+//                type = SIMPLE|ARRAY;
             } else {
                 throw new IllegalArgumentException(value.getClass().toString());
             }
@@ -258,18 +258,18 @@ public class Variable
             Byte typeByte = (Byte)validClasses.get(value.getClass());
             if (typeByte != null) {
                 type = typeByte.byteValue();
-            } else if (value instanceof Library) {
-                value = ((Library)value).getId();
-                type = LIBRARY;
-            } else if (value instanceof Cell) {
-                value = ((Cell)value).getId();
-                type = CELL;
-            } else if (value instanceof Export) {
-                value = ((Export)value).getId();
-                type = EXPORT;
-            } else if (value instanceof Point2D) {
-                value = EPoint.snap((Point2D)value);
-                type = SIMPLE;
+//            } else if (value instanceof Library) {
+//                value = ((Library)value).getId();
+//                type = LIBRARY;
+//            } else if (value instanceof Cell) {
+//                value = ((Cell)value).getId();
+//                type = CELL;
+//            } else if (value instanceof Export) {
+//                value = ((Export)value).getId();
+//                type = EXPORT;
+//            } else if (value instanceof Point2D) {
+//                value = EPoint.snap((Point2D)value);
+//                type = SIMPLE;
             } else {
                 throw new IllegalArgumentException(value.getClass().toString());
             }
@@ -303,41 +303,29 @@ public class Variable
 	}
     
     /**
+     * Returns true if the value is array,
+     * @return true if the value is array,
+     */
+    public boolean isArray() { return (type & ARRAY) != 0; }
+    
+    /**
      * Get the number of entries stored in this Variable.
 	 * For non-arrayed Variables, this is 1.
      * @return the number of entries stored in this Variable.
      */
-    public synchronized int getLength()
-	{
-        int len = getValueLength();
-        return len >= 0 ? len : 1;
-	}
+    public int getLength() { return (type & ARRAY) != 0 ? ((Object[])value).length : 1; }
     
-    /**
-     * Returns length of value array or -1 if value is scalar.
-     * @return length of value array or -1.
-     */
-    public int getValueLength() { return (type & ARRAY) != 0 ? ((Object[])value).length : -1; }
-    
-    /**
-     * Get the actual object stored in this Variable.
-     * @return the object stored in this Variable.
-     */
-    public Object getObject() { return getValueInCurrentThread(); }
-
     /**
      * Returns thread-independent value of this Variable.
      * @return thread-independent value of this variable.
      */
-    public Object getValue() {
-        return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
-    }
-    
+    public Object getObject() { return (type & ARRAY) != 0 ? ((Object[])value).clone() : value; }
+
     /**
      * Returns value of this Variable in current thread.
      * @return value of this variable in current thread.
      */
-    public Object getValueInCurrentThread() {
+    public Object getObjectInCurrentThread() {
         switch (type) {
             case SIMPLE: return value;
             case LIBRARY: return ((LibId)value).inCurrentThread();
@@ -373,8 +361,8 @@ public class Variable
 	 * @throws NullPointerException if value is null.
      * @throws IllegalArgumentException if value has invalid type
 	 */
-    public Variable withValue(Object value) {
-        if (getValue().equals(value)) return this;
+    public Variable withObject(Object value) {
+        if (this.value.equals(value)) return this;
         if ((type & ARRAY) != 0 && value instanceof Object[] &&
                 Arrays.equals((Object[])this.value, (Object[])value) &&
                 this.value.getClass().getComponentType() == value.getClass().getComponentType())
@@ -382,25 +370,13 @@ public class Variable
         return newInstance(this.key, value, this.descriptor);
     }
     
-    /** 
-     * Treat the stored Object as an array of Objects and
-     * get the object at index @param index.
-     * @param index index into the array of objects.
-     * @return the objects stored in this Variable at the index.
-     */
-    public synchronized Object getObject(int index)
-    {
-        int len = getValueLength();
-        return len >= 0 ? getValueInCurrentThread(index) : null;
-    }
-        
     /**
      * Returns thread-independent element of array value of this Variable.
      * @param specified index of array
      * @return element of array value.
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
-    public Object getValue(int index) {
+    public Object getObject(int index) {
         if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index); 
         return ((Object[])value)[index];
     }
@@ -411,7 +387,7 @@ public class Variable
      * @return element of array value.
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
-    public Object getValueInCurrentThread(int index) {
+    public Object getObjectInCurrentThread(int index) {
         switch (type) {
             case SIMPLE|ARRAY: return ((Object[])value)[index];
             case LIBRARY|ARRAY:
@@ -427,6 +403,7 @@ public class Variable
                 throw new ArrayIndexOutOfBoundsException(index);
         }
     }
+    
 	/**
 	 * Method to return the Variable Key associated with this Variable.
 	 * @return the Variable Key associated with this variable.
@@ -583,9 +560,9 @@ public class Variable
 	 */
 	public String describe(int aindex, VarContext context, Object eobj)
 	{
-		TextDescriptor.Unit units = descriptor.getUnit();
+		TextDescriptor.Unit units = getUnit();
 		StringBuffer returnVal = new StringBuffer();
-		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
+		TextDescriptor.DispPos dispPos = getDispPart();
         if (isCode())
 		{
 			// special case for code: it is a string, the type applies to the result
@@ -604,7 +581,7 @@ public class Variable
 		}
         if (dispPos == TextDescriptor.DispPos.NAMEVALUE && (aindex < 0 || getLength() == 1))
 		{
-			return this.getTrueName() + "=" + returnVal.toString();
+			return this.getTrueName() + "=" + returnVal;
 		}
 		return returnVal.toString();
 	}
@@ -616,7 +593,7 @@ public class Variable
 	 */
 	public String getPureValue(int aindex)
 	{
-		TextDescriptor.Unit units = descriptor.getUnit();
+		TextDescriptor.Unit units = getUnit();
 		StringBuffer returnVal = new StringBuffer();
         Object thisAddr = getObject();
 		if (thisAddr instanceof Object[])
@@ -673,10 +650,6 @@ public class Variable
 			return ((Byte)addr).toString();
 		if (addr instanceof String)
 			return (String)addr;
-		if (addr instanceof NodeInst)
-			return ((NodeInst)addr).describe(false);
-		if (addr instanceof ArcInst)
-			return ((ArcInst)addr).describe(false);
         if (addr instanceof Object[]) {
             StringBuffer buf = new StringBuffer();
             buf.append("[");
@@ -834,7 +807,7 @@ public class Variable
 	 * or relative text (in quarter units).
 	 * @return the text size of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized TextDescriptor.Size getSize() { return descriptor.getSize(); }
+	public TextDescriptor.Size getSize() { return descriptor.getSize(); }
 
 	/**
 	 * Method to find the true size in points for the Variable's TextDescriptor in a given EditWindow.
@@ -994,13 +967,13 @@ public class Variable
 	 * Method to return the X offset of the text in the Variable's TextDescriptor.
 	 * @return the X offset of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized double getXOff() { return descriptor.getXOff(); }
+	public double getXOff() { return descriptor.getXOff(); }
 
 	/**
 	 * Method to return the Y offset of the text in the Variable's TextDescriptor.
 	 * @return the Y offset of the text in the Variable's TextDescriptor.
 	 */
-	public synchronized double getYOff() { return descriptor.getYOff(); }
+	public double getYOff() { return descriptor.getYOff(); }
 
 	/**
 	 * Returns Variable which differs from this Variable by

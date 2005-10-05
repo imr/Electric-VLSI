@@ -402,7 +402,7 @@ public class User extends Listener
 	 * @param obj the ElectricObject on which Variables changed.
 	 * @param oldImmutable the old Variables.
 	 */
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {}
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) { redrawObject(obj); }
 
 	/**
 	 * Method to announce that a Library is about to be saved to disk.

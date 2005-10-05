@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
@@ -46,8 +47,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
@@ -488,13 +487,11 @@ public class ReadableDump extends Output
 	private void writeVars(ElectricObject obj, Cell curCell)
 	{
 		// write the number of Variables
-		int count = obj.getNumVariables();
-// 		int count = 0;
-// 		for(Iterator it = obj.getVariables(); it.hasNext(); )
-// 		{
-// 			Variable var = (Variable)it.next();
-// 			if (!var.isDontSave()) count++;
-// 		}
+		int count = 0;
+        for (int i = 0, numVars = obj.getNumVariables(); i < numVars; i++) {
+            Variable var = obj.getImmutable().getVar(i);
+            if (var.getObjectInCurrentThread() != null) count++;
+        }
 		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
@@ -504,7 +501,10 @@ public class ReadableDump extends Output
 			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
-				count += pi.getNumVariables();
+                for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
+                    Variable var = pi.getImmutable().getVar(i);
+                    if (var.getObjectInCurrentThread() != null) count++;
+                }
 			}
 			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
@@ -574,13 +574,13 @@ public class ReadableDump extends Output
 	{
 		int type = var.getTextDescriptor().getCFlags();
         
-		Object varObj = var.getObject();
+		Object varObj = var.getObjectInCurrentThread();
+        if (varObj == null) return;
 
 		// special case for "trace" information on NodeInsts
-		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
+		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof EPoint[])
 		{
-			Object [] objList = (Object [])varObj;
-			Point2D [] points = (Point2D [])objList;
+			EPoint [] points = (EPoint [])varObj;
 			int len = points.length * 2;
 			Float [] newPoints = new Float[len];
 			for(int j=0; j<points.length; j++)

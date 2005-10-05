@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -267,7 +268,7 @@ public class TechToLib
 				// get graphics for this layer
 				Manipulate.setPatch(ni, arcDesc);
 				Cell layerCell = (Cell)layerCells.get(arcLayer);
-				if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell);
+				if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 			}
 			double i = ai.getProto().getWidthOffset() / 2;
@@ -419,7 +420,7 @@ public class TechToLib
 					// get graphics for this layer
 					Manipulate.setPatch(ni, desc);
 					Cell layerCell = (Cell)layerCells.get(nodeLayer);
-					if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell);
+					if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 					ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 
 					// set minimum polygon factor on smallest example
@@ -496,9 +497,11 @@ public class TechToLib
 					}
 					if (validConns.size() > 0)
 					{
-						Cell [] aplist = new Cell[validConns.size()];
-						for(int i=0; i<validConns.size(); i++)
-							aplist[i] = (Cell)validConns.get(i);
+						CellId [] aplist = new CellId[validConns.size()];
+						for(int i=0; i<validConns.size(); i++) {
+                            Cell cell = (Cell)validConns.get(i);
+							aplist[i] = (CellId)cell.getId();
+                        }
 						pNi.newVar(Info.CONNECTION_KEY, aplist);
 					}
 

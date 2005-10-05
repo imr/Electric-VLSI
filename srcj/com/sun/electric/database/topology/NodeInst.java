@@ -40,6 +40,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -873,30 +874,66 @@ public class NodeInst extends Geometric implements Nodable, Comparable
     public ImmutableElectricObject getImmutable() { return d; }
     
     /**
-     * Changes persistent data of this ElectricObject with Variables.
-     * @param immutable new persistent data of this ElectricObject.
-     */
-    protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableNodeInst)immutable; }
-    
-    /**
-     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * Method to add a Variable on this NodeInst.
+     * It may add repaired copy of this Variable in some cases.
      * @param var Variable to add.
-     * @return updated persistent data.
      */
-    protected ImmutableElectricObject withVariable(Variable var) {
+    public void addVar(Variable var) {
+        checkChanging();
+        ImmutableNodeInst oldD = d;
         d = d.withVariable(var);
-        return d;
+        if (d == oldD) return;
+		// check for side-effects of the change
+        checkPossibleVariableEffects(var.getKey());
+        if (parent != null)
+            Undo.modifyNodeInst(this, oldD);
     }
-    
+
     /**
-     * Updates persistent data of this ElectricObject by removing Variable with specified key.
-     * @param key key to remove.
-     * @return updated persistent data.
+     * Package-private method to add a Variable on PortInst of this NodeInst.
+     * It may add repaired copy of this Variable in some cases.
+     * @param portPtotoId PortProtoId of the PortInst.
+     * @param var Variable to add.
      */
-    protected ImmutableElectricObject withoutVariable(Variable.Key key) {
-        d = d.withoutVariable(key);
-        return d;
+    void addVar(PortProtoId portProtoId, Variable var) {
+        checkChanging();
+        ImmutableNodeInst oldD = d;
+        d = d.withPortInst(portProtoId, d.getPortInst(portProtoId).withVariable(var));
+        if (d == oldD) return;
+        if (parent != null)
+            Undo.modifyNodeInst(this, oldD);
     }
+
+	/**
+	 * Method to delete a Variable from this NodeInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+		checkChanging();
+        ImmutableNodeInst oldD = d;
+        d = d.withoutVariable(key);
+        if (d == oldD) return;
+		// check for side-effects of the change
+		checkPossibleVariableEffects(key);
+		if (parent != null)
+			Undo.modifyNodeInst(this, oldD);
+	}
+    
+	/**
+	 * Package-private method to delete a Variable from PortInst of this NodeInst.
+     * @param portPtotoId PortProtoId of the PortInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(PortProtoId portProtoId, Variable.Key key)
+	{
+		checkChanging();
+        ImmutableNodeInst oldD = d;
+        d = d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key));
+        if (d == oldD) return;
+		if (parent != null)
+			Undo.modifyNodeInst(this, oldD);
+	}
     
     /**
 	 * Low-level access method to link the NodeInst into its Cell.

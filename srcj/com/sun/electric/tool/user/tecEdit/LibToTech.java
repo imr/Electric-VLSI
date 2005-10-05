@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -977,14 +978,14 @@ public class LibToTech
 				if (var != null)
 				{
 					// convert "arc-CELL" pointers to indices
-					Cell [] arcCells = (Cell [])var.getObject();
+					CellId [] arcCells = (CellId [])var.getObject();
 					ArcInfo [] connections = new ArcInfo[arcCells.length];
 					nIn.nodePortDetails[i].connections = connections;
 					boolean portChecked = false;
 					for(int j=0; j<arcCells.length; j++)
 					{
 						// find arc that connects
-						Cell arcCell = arcCells[j];
+						Cell arcCell = (Cell)arcCells[j].inCurrentThread();
 						connections[j] = null;
 						if (arcCell != null)
 						{

@@ -3471,6 +3471,7 @@ public class EDIF extends Input
 					if (ni != null || ai != null)
 					{
                         Variable.Key varKey = Variable.newKey(key);
+    					// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
                         double relSize = convertTextSize(textHeight);
 						if (ni != null)
 						{

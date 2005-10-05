@@ -36,6 +36,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -853,23 +854,23 @@ public abstract class LibraryFiles extends Input
             for (int j = 0; j < vars.length; j++) {
                 Variable var = vars[j];
                 if (var == null) continue;
-                if (var.key == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
-                    Object value = var.getValue();
+                if (var.getKey() == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
+                    Object value = var.getObject();
                     if (value instanceof Integer[] || value instanceof Float[]) {
                         // convert outline information, if present
                         Number[] outline = (Number[])value;
                         int newLength = outline.length / 2;
-                        Point2D [] newOutline = new Point2D[newLength];
+                        EPoint [] newOutline = new EPoint[newLength];
                         double lam = outline instanceof Integer[] ? lambda : 1.0;
                         for(int k=0; k<newLength; k++) {
                             double oldX = outline[k*2].doubleValue()/lam;
                             double oldY = outline[k*2+1].doubleValue()/lam;
                             newOutline[k] = new EPoint(oldX, oldY);
                         }
-                        var = var.withValue(newOutline);
+                        var = var.withObject(newOutline);
                     }
                 }
-                if (ni.isDeprecatedVariable(var.key)) continue;
+                if (ni.isDeprecatedVariable(var.getKey())) continue;
                 ni.addVar(var);
             }
         }
@@ -885,7 +886,35 @@ public abstract class LibraryFiles extends Input
         if (vars == null) return;
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
-			if (var == null || eObj.isDeprecatedVariable(var.key)) continue;
+			if (var == null || eObj.isDeprecatedVariable(var.getKey())) continue;
+            String origVarName = var.getKey().toString();
+            if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
+                // the form is "ATTRP_portName_variableName" with "\" escapes
+                StringBuffer portName = new StringBuffer();
+                String varName = null;
+                int len = origVarName.length();
+                for(int j=6; j<len; j++) {
+                    char ch = origVarName.charAt(j);
+                    if (ch == '\\') {
+                        j++;
+                        portName.append(origVarName.charAt(j));
+                        continue;
+                    }
+                    if (ch == '_') {
+                        varName = origVarName.substring(j+1);
+                        break;
+                    }
+                    portName.append(ch);
+                }
+                if (varName != null) {
+                    String thePortName = portName.toString();
+                    PortInst pi = ((NodeInst)eObj).findPortInst(thePortName);
+                    if (pi != null) {
+                        pi.newVar(Variable.newKey(varName), var.getObject(), var.getTextDescriptor());
+                        continue;
+                    }
+                }
+            }
             eObj.addVar(var);
         }
     }
@@ -900,7 +929,7 @@ public abstract class LibraryFiles extends Input
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;
-            Object value = var.getValue();
+            Object value = var.getObject();
             if (!(value instanceof String)) {
                 if (value instanceof Short || value instanceof Byte) 
                     value = new Integer(((Number)value).intValue());
@@ -909,7 +938,7 @@ public abstract class LibraryFiles extends Input
             }
                 
 			// change "meaning option"
-            String varName = var.key.getName();
+            String varName = var.getKey().getName();
 			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName); // What about case-sensitivite search ?
 			if (meaning != null)
 			{

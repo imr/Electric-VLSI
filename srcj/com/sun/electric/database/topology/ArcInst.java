@@ -474,30 +474,33 @@ public class ArcInst extends Geometric implements Comparable
     public ImmutableElectricObject getImmutable() { return d; }
     
     /**
-     * Changes persistent data of this ElectricObject with Variables.
-     * @param immutable new persistent data of this ElectricObject.
-     */
-    protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableArcInst)immutable; }
-
-    /**
-     * Updates persistent data of this ElectricObject by adding specified Variable.
+     * Method to add a Variable on this ArcInst.
+     * It may add repaired copy of this Variable in some cases.
      * @param var Variable to add.
-     * @return updated persistent data.
      */
-    protected ImmutableElectricObject withVariable(Variable var) {
-        d = d.withVariable(var);
-        return d;
+    public void addVar(Variable var) {
+        checkChanging();
+        ImmutableArcInst oldD = d;
+        d = oldD.withVariable(var);
+        if (d == oldD) return;
+        if (parent != null)
+            Undo.modifyArcInst(this, oldD);
     }
-    
-    /**
-     * Updates persistent data of this ElectricObject by removing Variable with specified key.
-     * @param key key to remove.
-     * @return updated persistent data.
-     */
-    protected ImmutableElectricObject withoutVariable(Variable.Key key) {
+
+	/**
+	 * Method to delete a Variable from this ArcInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+		checkChanging();
+        ImmutableArcInst oldD = d;
         d = d.withoutVariable(key);
-        return d;
-    }
+        if (d == oldD) return;
+		if (parent != null)
+			Undo.modifyArcInst(this, oldD);
+	}
+    
 	/**
 	 * Low-level method to link the ArcInst into its Cell.
 	 */

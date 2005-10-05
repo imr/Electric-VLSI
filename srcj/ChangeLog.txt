@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (10/05/05, DN) Transactional DB: PortInst stores its Variables in ImmutableNodeInst.
+
+BUG: (10/05/05, DN) JELIB reader doesn't convert variables on port inst.
+FIX: Move conversion from ELIB to LibraryFiels.
+
 IMP: (10/04/05, RK) Add loco2 and sport to NCC regressions
 
 IMP: (10/04/05, GVG) Original fix for enhacement #507 didn't work as expected. So new code should check if

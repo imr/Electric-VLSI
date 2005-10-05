@@ -24,6 +24,7 @@
 package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
@@ -672,20 +673,20 @@ public class Artwork extends Technology
 			np == openedDashedPolygonNode ||  np == openedThickerPolygonNode ||
 			np == splineNode)
 		{
-			Point2D [] outline = new Point2D[4];
-			outline[0] = new Point2D.Double(-3, -3);
-			outline[1] = new Point2D.Double(-1, 3);
-			outline[2] = new Point2D.Double(1, -3);
-			outline[3] = new Point2D.Double(3, 3);
+			EPoint [] outline = new EPoint[4];
+			outline[0] = new EPoint(-3, -3);
+			outline[1] = new EPoint(-1, 3);
+			outline[2] = new EPoint(1, -3);
+			outline[3] = new EPoint(3, 3);
 			ni.newVar(NodeInst.TRACE, outline);
 		}
 		if (np == closedPolygonNode || np == filledPolygonNode)
 		{
-			Point2D [] outline = new Point2D[4];
-			outline[0] = new Point2D.Double(0, -3);
-			outline[1] = new Point2D.Double(-3, 0);
-			outline[2] = new Point2D.Double(0, 3);
-			outline[3] = new Point2D.Double(3, -3);
+			Point2D [] outline = new EPoint[4];
+			outline[0] = new EPoint(0, -3);
+			outline[1] = new EPoint(-3, 0);
+			outline[2] = new EPoint(0, 3);
+			outline[3] = new EPoint(3, -3);
 			ni.newVar(NodeInst.TRACE, outline);
 		}
 	}

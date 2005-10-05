@@ -707,8 +707,8 @@ public class ELIB extends LibraryFiles
         Variable[] libVars = readVariables();
         for (int i = 0; i < libVars.length; i++) {
             Variable var = libVars[i];
-            if (var == null || var.key != Library.FONT_ASSOCIATIONS) continue;
-            Object value = var.getValue();
+            if (var == null || var.getKey() != Library.FONT_ASSOCIATIONS) continue;
+            Object value = var.getObject();
             if (!(value instanceof String[])) continue;
             setFontNames((String[])value);
             libVars[i] = null;
@@ -1236,65 +1236,65 @@ public class ELIB extends LibraryFiles
 			realizeVariables(pp, exportVariables[i]);
 		}
 
-		// convert "ATTRP_" variables on NodeInsts to be on PortInsts
-		int startNode = firstNodeIndex[cellIndex];
-		int endNode = firstNodeIndex[cellIndex+1];
-		for(int i=startNode; i<endNode; i++)
-		{
-			NodeInst ni = nodeInstList.theNode[i];
-			boolean found = true;
-			while (found)
-			{
-				found = false;
-				for(Iterator it = ni.getVariables(); it.hasNext(); )
-				{
-					Variable origVar = (Variable)it.next();
-					Variable.Key origVarKey = origVar.getKey();
-					String origVarName = origVarKey.getName();
-					if (origVarName.startsWith("ATTRP_"))
-					{
-						// the form is "ATTRP_portName_variableName" with "\" escapes
-						StringBuffer portName = new StringBuffer();
-						String varName = null;
-						int len = origVarName.length();
-						for(int j=6; j<len; j++)
-						{
-							char ch = origVarName.charAt(j);
-							if (ch == '\\')
-							{
-								j++;
-								portName.append(origVarName.charAt(j));
-								continue;
-							}
-							if (ch == '_')
-							{
-								varName = origVarName.substring(j+1);
-								break;
-							}
-							portName.append(ch);
-						}
-						if (varName != null)
-						{
-							String thePortName = portName.toString();
-							PortInst pi = ni.findPortInst(thePortName);
-							if (pi != null)
-							{
-								Variable var = pi.newVar(Variable.newKey(varName), origVar.getObject(), origVar.getTextDescriptor());
-//								if (var != null)
-//								{
-//    								if (origVar.isDisplay()) var.setDisplay(true);
-//									var.setCode(origVar.getCode());
-//									var.setTextDescriptor(origVar.getTextDescriptor());									
-//								}
-								ni.delVar(origVarKey);
-								found = true;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
+//		// convert "ATTRP_" variables on NodeInsts to be on PortInsts
+//		int startNode = firstNodeIndex[cellIndex];
+//		int endNode = firstNodeIndex[cellIndex+1];
+//		for(int i=startNode; i<endNode; i++)
+//		{
+//			NodeInst ni = nodeInstList.theNode[i];
+//			boolean found = true;
+//			while (found)
+//			{
+//				found = false;
+//				for(Iterator it = ni.getVariables(); it.hasNext(); )
+//				{
+//					Variable origVar = (Variable)it.next();
+//					Variable.Key origVarKey = origVar.getKey();
+//					String origVarName = origVarKey.getName();
+//					if (origVarName.startsWith("ATTRP_"))
+//					{
+//						// the form is "ATTRP_portName_variableName" with "\" escapes
+//						StringBuffer portName = new StringBuffer();
+//						String varName = null;
+//						int len = origVarName.length();
+//						for(int j=6; j<len; j++)
+//						{
+//							char ch = origVarName.charAt(j);
+//							if (ch == '\\')
+//							{
+//								j++;
+//								portName.append(origVarName.charAt(j));
+//								continue;
+//							}
+//							if (ch == '_')
+//							{
+//								varName = origVarName.substring(j+1);
+//								break;
+//							}
+//							portName.append(ch);
+//						}
+//						if (varName != null)
+//						{
+//							String thePortName = portName.toString();
+//							PortInst pi = ni.findPortInst(thePortName);
+//							if (pi != null)
+//							{
+//								Variable var = pi.newVar(Variable.newKey(varName), origVar.getObject(), origVar.getTextDescriptor());
+////								if (var != null)
+////								{
+////    								if (origVar.isDisplay()) var.setDisplay(true);
+////									var.setCode(origVar.getCode());
+////									var.setTextDescriptor(origVar.getTextDescriptor());									
+////								}
+//								ni.delVar(origVarKey);
+//								found = true;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 	}
 
 	/**
@@ -2066,11 +2066,11 @@ public class ELIB extends LibraryFiles
         Variable[] vars = readVariables();
         for (int j = 0; j < vars.length; j++) {
             Variable var = vars[j];
-            if (var == null || var.key != NodeInst.NODE_NAME) continue;
-            Object value = var.getValue();
+            if (var == null || var.getKey() != NodeInst.NODE_NAME) continue;
+            Object value = var.getObject();
             if (!(value instanceof String)) continue;
-            nodeInstList.name[nodeIndex] = convertGeomName((String)value, var.descriptor.isDisplay());
-            nodeInstList.nameTextDescriptor[nodeIndex] = var.descriptor;
+            nodeInstList.name[nodeIndex] = convertGeomName((String)value, var.isDisplay());
+            nodeInstList.nameTextDescriptor[nodeIndex] = var.getTextDescriptor();
             vars[j] = null;
         }
         nodeInstList.vars[nodeIndex] = vars;
@@ -2149,11 +2149,11 @@ public class ELIB extends LibraryFiles
         Variable[] vars = readVariables();
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
-            if (var == null || var.key != ArcInst.ARC_NAME) continue;
-            Object value = var.getValue();
+            if (var == null || var.getKey() != ArcInst.ARC_NAME) continue;
+            Object value = var.getObject();
             if (!(value instanceof String)) continue;
-            arcNameList[arcIndex] = convertGeomName((String)value, var.descriptor.isDisplay());
-            arcNameDescriptorList[arcIndex] = var.descriptor;
+            arcNameList[arcIndex] = convertGeomName((String)value, var.isDisplay());
+            arcNameDescriptorList[arcIndex] = var.getTextDescriptor();
             vars[i] = null;
         }
         arcVariables[arcIndex] = vars;

@@ -495,7 +495,7 @@ public class JELIB extends Output
 		// write language
 		if (var != null && td.isCode())
         {
-            Object value = var.getValue();
+            Object value = var.getObject();
             if (value instanceof String || value instanceof String[])
             {
                 TextDescriptor.Code codeType = td.getCode();
@@ -576,10 +576,10 @@ public class JELIB extends Output
 		for(Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-//			if (var.isDontSave()) continue;
-			String tdString = describeDescriptor(var, var.descriptor);
+			Object varObj = var.getObjectInCurrentThread();
+            if (varObj == null) continue;
+			String tdString = describeDescriptor(var, var.getTextDescriptor());
 			printWriter.print("|" + convertVariableName(diskName(eObj, var)) + "(" + tdString + ")");
-			Object varObj = var.getValueInCurrentThread();
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
 			printWriter.print(pt);
@@ -677,7 +677,6 @@ public class JELIB extends Output
 	{
 		if (obj instanceof String        || obj instanceof String [])        return 'S';
         
-		if (obj instanceof ArcInst       || obj instanceof ArcInst [])       return 'S'; // 'A'
 		if (obj instanceof Boolean       || obj instanceof Boolean [])       return 'B';
 		if (obj instanceof Cell          || obj instanceof Cell [])          return 'C';
 		if (obj instanceof Double        || obj instanceof Double [])        return 'D';
@@ -687,7 +686,6 @@ public class JELIB extends Output
 		if (obj instanceof Short         || obj instanceof Short [])         return 'H';
 		if (obj instanceof Integer       || obj instanceof Integer [])       return 'I';
 		if (obj instanceof Library       || obj instanceof Library [])       return 'L';
-		if (obj instanceof NodeInst      || obj instanceof NodeInst [])      return 'S'; // 'N'
 		if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
 		if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
 		if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return 'R';

@@ -24,6 +24,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.io.output;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -759,13 +760,11 @@ public class ELIB extends Output
 		throws IOException
 	{
 		// write the number of Variables
-		int count = obj.getNumVariables();
-// 		int count = 0;
-// 		for(Iterator it = obj.getVariables(); it.hasNext(); )
-// 		{
-// 			Variable var = (Variable)it.next();
-// 			if (!var.isDontSave()) count++;
-// 		}
+		int count = 0;
+        for (int i = 0, numVars = obj.getNumVariables(); i < numVars; i++) {
+            Variable var = obj.getImmutable().getVar(i);
+            if (var.getObjectInCurrentThread() != null) count++;
+        }
 		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
@@ -775,7 +774,10 @@ public class ELIB extends Output
 			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
-				count += pi.getNumVariables();
+                for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
+                    Variable var = pi.getImmutable().getVar(i);
+                    if (var.getObjectInCurrentThread() != null) count++;
+                }
 			}
 			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
@@ -856,11 +858,10 @@ public class ELIB extends Output
 	private void writeVariable(ElectricObject owner, Variable var, double scale)
 		throws IOException
 	{
-//		if (var.isDontSave()) return;
-		writeVariableName(diskName(owner, var));
-
 		// create the "type" field
-		Object varObj = var.getObject();
+		Object varObj = var.getObjectInCurrentThread();
+        if (varObj == null) return;
+		writeVariableName(diskName(owner, var));
 		int type = var.getTextDescriptor().getCFlags();
 		if (varObj instanceof Object[])
 		{
@@ -882,9 +883,9 @@ public class ELIB extends Output
 		}
 
 		// special case for "trace" information on NodeInsts
-		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Point2D[])
+		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof EPoint[])
 		{
-			Point2D [] points = (Point2D [])varObj;
+			EPoint [] points = (EPoint [])varObj;
 			type = var.getTextDescriptor().getCFlags();
 			int len = points.length * 2;
 			type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);

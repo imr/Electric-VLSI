@@ -509,11 +509,10 @@ public class Output
 		for (Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			//if (var.isDontSave()) continue;
+			Object value = var.getObjectInCurrentThread();
+			if (value == null) continue;
 			if (nameSpace != null) putNameSpace(diskName(eObj, var));
 			gatherFont(var.getTextDescriptor());
-			Object value = var.getObject();
-			if (value == null) continue;
 			int length = value instanceof Object[] ? ((Object[])value).length : 1;
 			for (int i = 0; i < length; i++)
 			{

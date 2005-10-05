@@ -68,26 +68,6 @@ public abstract class ElectricObject // extends Observable implements Observer
      */
     public abstract ImmutableElectricObject getImmutable();
     
-    /**
-     * Changes persistent data of this ElectricObject with Variables.
-     * @param immutable new persistent data of this ElectricObject.
-     */
-    protected abstract void setImmutable(ImmutableElectricObject immutable);
-    
-    /**
-     * Updates persistent data of this ElectricObject by adding specified Variable.
-     * @param vd Variable to add.
-     * @return updated persistent data.
-     */
-    protected abstract ImmutableElectricObject withVariable(Variable var);
-    
-    /**
-     * Updates persistent data of this ElectricObject by removing Variable with specified key.
-     * @param key key to remove.
-     * @return updated persistent data.
-     */
-    protected abstract ImmutableElectricObject withoutVariable(Variable.Key key);
-
     // ------------------------ public methods -------------------
 
     /**
@@ -192,7 +172,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Method to return true if the Variable on this ElectricObject with given key is a parameter.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
-	 * Parameters can only exist on NodeInst objects.
+	 * Parameters can only exist on Cell and NodeInst objects.
      * @param varKey key to test
 	 * @return true if the Variable with given key is a parameter.
 	 */
@@ -222,14 +202,6 @@ public abstract class ElectricObject // extends Observable implements Observer
 		return numVars;
 	}
 	
-	/**
-	 * Method to handle special case side-effects of setting variables on this ElectricObject.
-	 * @param key the Variable key that has changed on this ElectricObject.
-	 */
-	public void checkPossibleVariableEffects(Variable.Key key)
-	{
-	}
-
 	/**
 	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
@@ -624,6 +596,9 @@ public abstract class ElectricObject // extends Observable implements Observer
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
         if (value == null) return null;
+ 		if (isDeprecatedVariable(key)) {
+			System.out.println("Deprecated variable " + key + " on " + this);
+		}
         Variable var = null;
         try {
             var = Variable.newInstance(key, value, td);
@@ -631,40 +606,19 @@ public abstract class ElectricObject // extends Observable implements Observer
             ActivityLogger.logException(e);
             return null;
         }
-        return addVar(var);
+        addVar(var);
+        return getVar(key);
 //        setChanged();
 //        notifyObservers(v);
 //        clearChanged();
     }
 
  	/**
-	 * Method to add a Variable on this ElectricObject with the specified persistent data.
+	 * Method to add a Variable on this ElectricObject.
+     * It may add a repaired copy of this Variable in some cases.
 	 * @param var Variable to add.
-	 * @return the Variable that has been created.
 	 */
-     public Variable addVar(Variable var) {
- 		if (isDeprecatedVariable(var.getKey()))
-		{
-			System.out.println("Deprecated variable " + var.getKey() + " on " + this);
-		}
-        if (!(this instanceof Cell))
-            var = var.withParam(false);
-        
-		checkChanging();
-        ImmutableElectricObject oldImmutable;
-        ImmutableElectricObject newImmutable;
-        synchronized(this) {
-            oldImmutable = getImmutable();
-            newImmutable = withVariable(var);
-        }
-        
-        if (newImmutable != oldImmutable) {
-            if (isDatabaseObject())
-                Undo.modifyVariables(this, oldImmutable);
-            checkPossibleVariableEffects(var.getKey());
-        }
-		return var;
-    }
+     public abstract void addVar(Variable var);
 
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
@@ -676,7 +630,9 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public Variable updateVar(Variable.Key key, Object value)
 	{
 		Variable var = getVar(key);
-        return var != null ? addVar(var.withValue(value)) : newVar(key, value);
+        if (var == null) return newVar(key, value);
+        addVar(var.withObject(value));
+        return getVar(key);
 	}
 
     /**
@@ -773,66 +729,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Method to delete a Variable from this ElectricObject.
 	 * @param key the key of the Variable to delete.
 	 */
-	public void delVar(Variable.Key key)
-	{
-        delVarNoObserver(key);
-//        setChanged();
-//        notifyObservers(new Object[]{"delVar", key});
-//        clearChanged();
-	}
-
-    private void delVarNoObserver(Variable.Key key)
-	{
-		checkChanging();
-        ImmutableElectricObject oldImmutable;
-        ImmutableElectricObject newImmutable;
-        synchronized(this) {
-            oldImmutable = getImmutable();
-            newImmutable = withoutVariable(key);
-        }
-        if (newImmutable == oldImmutable) return;
-		if (isDatabaseObject())
-			Undo.modifyVariables(this, oldImmutable);
-		// check for side-effects of the change
-		checkPossibleVariableEffects(key);
-	}
+	public abstract void delVar(Variable.Key key);
     
-    public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) {
-        ImmutableElectricObject oldImmutable = getImmutable();
-        setImmutable(newImmutable);
-        int oldLength = oldImmutable.getNumVariables();
-        int newLength = newImmutable.getNumVariables();
-        
-        // Check possible variable effects
-        int n = 0, o = 0;
-        while (n < newLength && o < oldLength) {
-            for (int i = 0, iend = Math.min(newLength - n, oldLength - o); i < iend; i++, n++, o++) {
-                if (newImmutable.getVar(n) != oldImmutable.getVar(o)) break;
-            }
-            if (n >= newLength || o >= oldLength) break;
-            Variable.Key newKey = newImmutable.getVar(n).key;
-            Variable.Key oldKey = oldImmutable.getVar(o).key;
-            int cmp = newKey.compareTo(oldKey);
-            Variable.Key key;
-            if (cmp == 0) {
-                o++;
-                n++;
-                key = newKey;
-            } else if (cmp > 0) {
-                o++;
-                key = oldKey;
-            } else {
-                n++;
-                key = newKey;
-            }
-            checkPossibleVariableEffects(key);
-        }
-        while (o < oldLength)
-            checkPossibleVariableEffects(oldImmutable.getVar(o++).key);
-        while (n < newLength)
-            checkPossibleVariableEffects(newImmutable.getVar(n++).key);
-    }
-        
 	/**
 	 * Method to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
@@ -1126,7 +1024,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 */
 	public boolean isDeprecatedVariable(Variable.Key key)
 	{
-		String name = key.getName();
+		String name = key.toString();
 		if (name.length() == 0) return true;
 		if (name.length() == 1)
 		{

@@ -25,6 +25,8 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
 
 /**
  *
@@ -43,29 +45,37 @@ public abstract class ElectricObject_ extends ElectricObject {
      */
     public ImmutableElectricObject getImmutable() { return immutable; }
     
-    /**
-     * Changes persistent data of this ElectricObject with Variables.
-     * @param immutable new persistent data of this ElectricObject.
-     */
-    protected void setImmutable(ImmutableElectricObject immutable) { this.immutable = immutable; }
-    
-    /**
-     * Updates persistent data of this ElectricObject by adding specified Variable.
-     * @param var Variable to add.
-     * @return updated persistent data.
-     */
-    protected ImmutableElectricObject withVariable(Variable var) {
+    public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) { this.immutable = immutable; }
+        
+ 	/**
+	 * Method to add a Variable on this ElectricObject.
+     * It may add repaired copy of this Variable in some cases.
+	 * @param var Variable to add.
+	 */
+    public void addVar(Variable var) {
+        if (!(this instanceof Cell))
+            var = var.withParam(false);
+        
+        checkChanging();
+        ImmutableElectricObject oldImmutable = immutable;
         immutable = immutable.withVariable_(var);
-        return immutable;
+        if (immutable == oldImmutable) return;
+        if (isDatabaseObject())
+            Undo.modifyVariables(this, oldImmutable);
     }
-    
-    /**
-     * Updates persistent data of this ElectricObject by removing Variable with specified key.
-     * @param key key to remove.
-     * @return updated persistent data.
-     */
-    protected ImmutableElectricObject withoutVariable(Variable.Key key) {
+
+	/**
+	 * Method to delete a Variable from this NodeInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+		checkChanging();
+        ImmutableElectricObject oldImmutable = immutable;
         immutable = immutable.withoutVariable_(key);
-        return immutable;
-    }
+        if (immutable == oldImmutable) return;
+		if (isDatabaseObject())
+			Undo.modifyVariables(this, oldImmutable);
+	}
+    
 }

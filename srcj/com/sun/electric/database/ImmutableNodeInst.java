@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -40,6 +41,7 @@ import com.sun.electric.technology.technologies.Generic;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
@@ -130,6 +132,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/** Flag bits for this ImmutableNodeInst. */                    public final int flags;
     /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
 	/** Text descriptor of prototype name. */                       public final TextDescriptor protoDescriptor;
+    /** Variables on PortInsts. */                                  private final ImmutablePortInst[] ports;
  
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
@@ -150,7 +153,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     ImmutableNodeInst(int nodeId, NodeProtoId protoId,
             Name name, int duplicate, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
-            int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars) {
+            int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars, ImmutablePortInst[] ports) {
         super(vars);
         this.nodeId = nodeId;
         this.protoId = protoId;
@@ -164,6 +167,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.flags = flags;
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
+        this.ports = ports;
         check();
     }
 
@@ -216,7 +220,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
 		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor,
-                orient, anchor, width, height, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY);
+                orient, anchor, width, height, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY);
     }
 
 //	/**
@@ -247,7 +251,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
 		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -260,7 +264,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -274,7 +278,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
+                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -288,7 +292,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
+                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -309,7 +313,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor, getVars());
+                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -321,7 +325,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
     }
 
 	/**
@@ -346,7 +350,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (this.techBits == techBits) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor, getVars(), this.ports);
     }
     
     /**
@@ -359,7 +363,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor, getVars());
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -371,12 +375,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableNodeInst withVariable(Variable var) {
-        if (var.descriptor.isParam())
-            var = var.withParam(false);
-        Variable[] vars = arrayWithVariable(var);
+        Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
     }
     
 	/**
@@ -390,7 +392,60 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+    }
+    
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by additional Variable on PortInst.
+     * If this ImmutableNideInst has Variable on PortInst with the same key as new, the old variable will not be in new
+     * ImmutableNodeInst.
+     * @param portProtoId PortProtoId of port instance.
+	 * @param var additional Variable.
+	 * @return ImmutableNodeInst with additional Variable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableNodeInst withPortInst(PortProtoId portProtoId, ImmutablePortInst portInst) {
+        if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException("portProtoId");
+        int portChronIndex = portProtoId.getChronIndex();
+        ImmutablePortInst[] newPorts;
+        if (portChronIndex < ports.length) {
+            if (ports[portChronIndex] == portInst) return this;
+            if (portInst == ImmutablePortInst.EMPTY && portChronIndex == ports.length - 1) {
+                int newLength = ports.length -1;
+                while (newLength > 0 && ports[newLength - 1] == ImmutablePortInst.EMPTY)
+                    newLength--;
+                if (newLength > 0) {
+                    newPorts = new ImmutablePortInst[newLength];
+                    System.arraycopy(ports, 0, newPorts, 0, newLength);
+                } else {
+                    newPorts = ImmutablePortInst.NULL_ARRAY;
+                }
+            } else {
+                newPorts = (ImmutablePortInst[])ports.clone();
+                newPorts[portChronIndex] = portInst;
+            }
+        } else {
+            if (portInst == ImmutablePortInst.EMPTY) return this;
+            newPorts = new ImmutablePortInst[portChronIndex + 1];
+            System.arraycopy(ports, 0, newPorts, 0, ports.length);
+            Arrays.fill(newPorts, ports.length, portChronIndex, ImmutablePortInst.EMPTY);
+            newPorts[portChronIndex] = portInst;
+        }
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), newPorts);
+    }
+
+	/**
+	 * Returns ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.
+     * @param portProtoId PortProtoId of port instance.
+	 * @return ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.
+	 * @throws NullPointerException if portProtoId is null.
+     * @throws IlleagalArgumentException if parent of portProtoId is not protoId of this ImmutableNodeInst.
+	 */
+    public ImmutablePortInst getPortInst(PortProtoId portProtoId) {
+        if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException("portProtoId");
+        int portChronIndex = portProtoId.getChronIndex();
+        return portChronIndex < ports.length ? ports[portChronIndex] : ImmutablePortInst.EMPTY;
     }
     
 //    /**
@@ -421,6 +476,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
+        check(false);
 		assert protoId != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
@@ -445,6 +501,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoId == Generic.tech.cellCenterNode) {
             assert orient == Orientation.IDENT && anchor == EPoint.ORIGIN && width == 0 && height == 0;
         }
+        for (int i = 0; i < ports.length; i++) {
+            ImmutablePortInst portInst = ports[i];
+            if (portInst.getNumVariables() != 0)
+                portInst.check();
+            else
+                assert portInst == ImmutablePortInst.EMPTY;
+        }
+        if (ports.length > 0)
+            assert ports[ports.length - 1].getNumVariables() > 0;
 	}
 
     /**

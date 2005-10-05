@@ -34,7 +34,7 @@ import java.util.Iterator;
  */
 public class ImmutableElectricObject {
     
-    public final static ImmutableElectricObject EMPTY = new ImmutableElectricObject(Variable.NULL_ARRAY); 
+    public final static ImmutableElectricObject EMPTY = new ImmutableElectricObject(Variable.NULL_ARRAY);
     
     /** array of variables sorted by their keys. */
     private final Variable[] vars;
@@ -70,7 +70,7 @@ public class ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     Variable[] arrayWithVariable(Variable var) {
-        int varIndex = searchVar(var.key);
+        int varIndex = searchVar(var.getKey());
         int newLength = vars.length;
         if (varIndex < 0) {
             varIndex = ~varIndex;
@@ -89,7 +89,7 @@ public class ImmutableElectricObject {
      * with the specified key. Returns this ImmutableElectricObject if it doesn't contain variable with the specified key.
 	 * @param key Variable Key to remove.
 	 * @return ImmutableElectricObject without Variable with the specified key.
-	 * @throws NullPointerException if var is null
+	 * @throws NullPointerException if key is null
 	 */
     public ImmutableElectricObject withoutVariable_(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
@@ -197,7 +197,7 @@ public class ImmutableElectricObject {
 		while (low <= high) {
 			int mid = (low + high) >> 1; // try in a middle
 			Variable var = vars[mid];
-			int cmp = var.key.compareTo(key);
+			int cmp = var.getKey().compareTo(key);
 
 			if (cmp < 0)
 				low = mid + 1;
@@ -215,14 +215,11 @@ public class ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check(boolean paramAllowed) {
-        if (vars.length == 0)
-            assert vars == Variable.NULL_ARRAY;
-        else {
-            vars[0].check(paramAllowed);
-            for (int i = 1; i < vars.length; i++) {
-                vars[i].check(paramAllowed);
-                assert vars[i - 1].key.compareTo(vars[i].key) < 0;
-            }
+        if (vars.length == 0) return;
+        vars[0].check(paramAllowed);
+        for (int i = 1; i < vars.length; i++) {
+            vars[i].check(paramAllowed);
+            assert vars[i - 1].getKey().compareTo(vars[i].getKey()) < 0;
         }
     }
 }

@@ -1546,11 +1546,11 @@ public class ReadableDump extends LibraryFiles
                 nodeInstList[curCellNumber].vars[curNodeInstIndex] = vars;
                 for (int i = 0; i < vars.length; i++) {
                     Variable var = vars[i];
-                    if (var == null || var.key != NodeInst.NODE_NAME) continue;
-                    Object value = var.getValue();
+                    if (var == null || var.getKey() != NodeInst.NODE_NAME) continue;
+                    Object value = var.getObject();
                     if (!(value instanceof String)) continue;
-                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)var.getValue(), var.descriptor.isDisplay());
-                    nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = var.descriptor;
+                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)value, var.isDisplay());
+                    nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = var.getTextDescriptor();
                     vars[i] = null;
                 }
                 break;
@@ -1561,11 +1561,11 @@ public class ReadableDump extends LibraryFiles
                 arcInstList[curCellNumber].arcVars[curArcInstIndex] = vars;
                 for (int i = 0; i < vars.length; i++) {
                     Variable var = vars[i];
-                    if (var == null || var.key != ArcInst.ARC_NAME) continue;
-                    Object value = var.getValue();
+                    if (var == null || var.getKey() != ArcInst.ARC_NAME) continue;
+                    Object value = var.getObject();
                     if (!(value instanceof String)) continue;
-                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)var.getValue(), var.descriptor.isDisplay());
-                    arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = var.descriptor;
+                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)value, var.isDisplay());
+                    arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = var.getTextDescriptor();
                     vars[i] = null;
                 }
                 break;
@@ -1578,8 +1578,8 @@ public class ReadableDump extends LibraryFiles
     		case INVLIBRARY:			// keyword applies to library
                 for (int i = 0; i < vars.length; i++) {
                     Variable var = vars[i];
-                    if (var == null || var.key != Library.FONT_ASSOCIATIONS) continue;
-                    Object value = var.getValue();
+                    if (var == null || var.getKey() != Library.FONT_ASSOCIATIONS) continue;
+                    Object value = var.getObject();
                     if (!(value instanceof String[])) continue;
                     setFontNames((String[])value);
                     vars[i] = null;
