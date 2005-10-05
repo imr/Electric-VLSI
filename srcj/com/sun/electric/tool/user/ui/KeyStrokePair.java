@@ -104,7 +104,11 @@ public class KeyStrokePair {
     public static String keyStrokeToString(KeyStroke key) {
         if (key == null) return "";
         String mods = KeyEvent.getKeyModifiersText(key.getModifiers());
-        String id = KeyEvent.getKeyText(key.getKeyCode());
+        String id = "";
+        if (key.getKeyCode() == KeyEvent.VK_UNDEFINED ) // not recognized? like >
+            id = String.valueOf(key.getKeyChar());
+        else
+            id = KeyEvent.getKeyText(key.getKeyCode());
         // change key to lower case, unless the shift modifier was pressed
         //if ((key.getModifiers() & InputEvent.SHIFT_DOWN_MASK) == 0) id = id.toLowerCase();
         if (mods.equals("")) return id;

@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
+ 
+BUG: (10/05/05, GVG) KeyBinding explorer tree did't describe properly keybinding like '>' due to keyCode =
+KeyEvent.VK_UNDEFINED (Bug #604).
+FIX: Apply getChar in this case.
 
 BUG: (10/05/05, SMR) Spice output doesn't notice header/trailer files in
      directories that are not where the library came from (Bug #594).
