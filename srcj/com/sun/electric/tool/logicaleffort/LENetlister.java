@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.Job;
 
@@ -83,13 +84,14 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
 
         /** Create a new set of constants from the user's settings */
         public NetlisterConstants() {
-            su = (float)LETool.getGlobalFanout();
-            epsilon = (float)LETool.getConvergenceEpsilon();
-            maxIterations = LETool.getMaxIterations();
-            gateCap = (float)LETool.getGateCapacitance();
-            wireRatio = (float)LETool.getWireRatio();
-            alpha = (float)LETool.getDiffAlpha();
-            keeperRatio = (float)LETool.getKeeperRatio();
+			Technology curTech = Technology.getCurrent();
+            su = (float)curTech.getGlobalFanout();
+            epsilon = (float)curTech.getConvergenceEpsilon();
+            maxIterations = curTech.getMaxIterations();
+            gateCap = (float)curTech.getGateCapacitance();
+            wireRatio = (float)curTech.getWireRatio();
+            alpha = (float)curTech.getDiffAlpha();
+            keeperRatio = (float)curTech.getKeeperRatio();
         }
 
         /** Returns true if the two NetlisterConstants have the same values for all fields */
@@ -149,13 +151,14 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (ni.isIconOfParent()) continue;
             if (!(ni.getProto() instanceof Cell)) continue;
             if (ni.getVar(ATTR_LESETTINGS) != null) {
-                float su = (float)LETool.getGlobalFanout();
-                float epsilon = (float)LETool.getConvergenceEpsilon();
-                int maxIterations = LETool.getMaxIterations();
-                float gateCap = (float)LETool.getGateCapacitance();
-                float wireRatio = (float)LETool.getWireRatio();
-                float alpha = (float)LETool.getDiffAlpha();
-                float keeperRatio = (float)LETool.getKeeperRatio();
+				Technology tech = cell.getTechnology();
+                float su = (float)tech.getGlobalFanout();
+                float epsilon = (float)tech.getConvergenceEpsilon();
+                int maxIterations = tech.getMaxIterations();
+                float gateCap = (float)tech.getGateCapacitance();
+                float wireRatio = (float)tech.getWireRatio();
+                float alpha = (float)tech.getDiffAlpha();
+                float keeperRatio = (float)tech.getKeeperRatio();
                 Variable var;
                 VarContext context = VarContext.globalContext;
                 if ((var = ni.getVar(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);

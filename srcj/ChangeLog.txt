@@ -22,6 +22,12 @@ BUG: (10/04/05, DN) Spice (Epic) waveform viewer cross-probing broken again afte
 FIX: In WaveformWindow.findSelectedSignals use findSignalForNetwork after findSignalForNetworkQuickly failed.
      In Signal.setSignalName use getFullName() instead of signalName.
 
+IMP/MAN: (10/03/05, SMR) Combined the "Layers" and "Colors" preferences into a single panel.
+     Extended the "Artwork look" dialog to include layers and colors.
+
+IMP: (10/03/05, SMR) Modified more "Preferences" panels to have their own technology popup:
+     Routing, Logical Effort.
+
 BUG: (10/03/05, DN) Assertions in Cell.java and Out of Bounds exceptions (Bug #598).
 FIX: In PortInst.isLinked() check nodeInst.isLinked()
 
@@ -38,7 +44,8 @@ FIX: Making DRC options not meaning variables to avoid confusion.
 IMP/MAN: (09/30/05, GVG) Foundry in StatusBar part of technology message. It can't be in
 second row because of hierarchical information. See "IMP/MAN: (09/21/05, GVG) Foundry shown.."
 
-IMP: (09/30/05, SMR) Modified some "Preferences" panels to have their own technology popup.
+IMP: (09/30/05, SMR) Modified some "Preferences" panels to have their own technology popup:
+     CIF, GDS, Antenna Rules, Coverage, New Arcs, New Nodes.
 
 IMP: (09/30/05, SMR) When plotting simulation output, prompt for associated cell allows
      any cell to be chosen (Bug #595).

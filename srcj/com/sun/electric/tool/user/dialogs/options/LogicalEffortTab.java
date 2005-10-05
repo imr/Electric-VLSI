@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
@@ -63,9 +64,8 @@ public class LogicalEffortTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Logical Effort"; }
 
-	private JList leArcList;
-	private DefaultListModel leArcListModel;
-	private HashMap leArcOptions;
+	private HashMap fanOut, convergence, maxIterations, gateCapacitance, wireCapRatio, diffToGateCapRatio, keeperSizeRatio;
+	private boolean changingLE;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -74,35 +74,105 @@ public class LogicalEffortTab extends PreferencePanel
 	public void init()
 	{
 		leUseLocalSettings.setSelected(LETool.isUseLocalSettings());
-		leDisplayIntermediateCaps.setSelected(LETool.isShowIntermediateCapacitances());
-		leHighlightComponents.setSelected(LETool.isHighlightComponents());
-		leGlobalFanOut.setText(TextUtils.formatDouble(LETool.getGlobalFanout()));
-		leConvergence.setText(TextUtils.formatDouble(LETool.getConvergenceEpsilon()));
-		leMaxIterations.setText(Integer.toString(LETool.getMaxIterations()));
-		leGateCapacitance.setText(TextUtils.formatDouble(LETool.getGateCapacitance()));
-		leDefaultWireCapRatio.setText(TextUtils.formatDouble(LETool.getWireRatio()));
-		leDiffToGateCapRatio.setText(TextUtils.formatDouble(LETool.getDiffAlpha()));
-		leKeeperSizeRatio.setText(TextUtils.formatDouble(LETool.getKeeperRatio()));
 
-		// make an empty list for the layer names
-		leArcOptions = new HashMap();
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		fanOut = new HashMap();
+		convergence = new HashMap();
+		maxIterations = new HashMap();
+		gateCapacitance = new HashMap();
+		wireCapRatio = new HashMap();
+		diffToGateCapRatio = new HashMap();
+		keeperSizeRatio = new HashMap();
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			ArcProto arc = (ArcProto)it.next();
-			leArcOptions.put(arc, Pref.makeDoublePref(null, null, LETool.getLETool().prefs.getDouble(arc.toString(), 0.0)));
+			Technology tech = (Technology)it.next();
+			leTechnology.addItem(tech.getTechName());
+			fanOut.put(tech, new Double(tech.getGlobalFanout()));
+			convergence.put(tech, new Double(tech.getConvergenceEpsilon()));
+			maxIterations.put(tech, new Integer(tech.getMaxIterations()));
+			gateCapacitance.put(tech, new Double(tech.getGateCapacitance()));
+			wireCapRatio.put(tech, new Double(tech.getWireRatio()));
+			diffToGateCapRatio.put(tech, new Double(tech.getDiffAlpha()));
+			keeperSizeRatio.put(tech, new Double(tech.getKeeperRatio()));
 		}
-		leArcListModel = new DefaultListModel();
-		leArcList = new JList(leArcListModel);
-		leArcList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		leArc.setViewportView(leArcList);
-		leArcList.addMouseListener(new MouseAdapter()
+		leTechnology.addActionListener(new ActionListener()
 		{
-			public void mouseClicked(MouseEvent evt) { leArcListClick(evt); }
+			public void actionPerformed(ActionEvent evt) { showArcsInTechnology(); }
 		});
-		showArcsInTechnology(leArcListModel);
-		leArcList.setSelectedIndex(0);
-		leArcListClick(null);
-		leWireRatio.getDocument().addDocumentListener(new ArcDocumentListener(leArcOptions, leArcList, leArcListModel, curTech));
+		leTechnology.setSelectedItem(Technology.getCurrent().getTechName());
+
+		changingLE = false;
+		leGlobalFanOut.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leConvergence.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leMaxIterations.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leGateCapacitance.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leDefaultWireCapRatio.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leDiffToGateCapRatio.getDocument().addDocumentListener(new LEDocumentListener(this));
+		leKeeperSizeRatio.getDocument().addDocumentListener(new LEDocumentListener(this));
+	}
+
+	/**
+	 * Method called when the user types a new layer name into the edit field.
+	 */
+	private void leInfoChanged()
+	{
+		if (changingLE) return;
+
+		String techName = (String)leTechnology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+
+		double dVal = TextUtils.atof(leGlobalFanOut.getText());
+		fanOut.put(tech, new Double(dVal));
+		dVal = TextUtils.atof(leConvergence.getText());
+		convergence.put(tech, new Double(dVal));
+		int iVal = TextUtils.atoi(leMaxIterations.getText());
+		maxIterations.put(tech, new Integer(iVal));
+		dVal = TextUtils.atof(leGateCapacitance.getText());
+		gateCapacitance.put(tech, new Double(dVal));
+		dVal = TextUtils.atof(leDefaultWireCapRatio.getText());
+		wireCapRatio.put(tech, new Double(dVal));
+		dVal = TextUtils.atof(leDiffToGateCapRatio.getText());
+		diffToGateCapRatio.put(tech, new Double(dVal));
+		dVal = TextUtils.atof(leKeeperSizeRatio.getText());
+		keeperSizeRatio.put(tech, new Double(dVal));
+	}
+
+	/**
+	 * Class to handle special changes to changes to a Logical Effort setting.
+	 */
+	private static class LEDocumentListener implements DocumentListener
+	{
+		private LogicalEffortTab dialog;
+
+		LEDocumentListener(LogicalEffortTab dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.leInfoChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.leInfoChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.leInfoChanged(); }
+	}
+
+	private void showArcsInTechnology()
+	{
+		String techName = (String)leTechnology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+
+		changingLE = true;
+		Double dVal = (Double)fanOut.get(tech);
+		leGlobalFanOut.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		dVal = (Double)convergence.get(tech);
+		leConvergence.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		Integer iVal = (Integer)maxIterations.get(tech);
+		leMaxIterations.setText(Integer.toString(iVal.intValue()));
+		dVal = (Double)gateCapacitance.get(tech);
+		leGateCapacitance.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		dVal = (Double)wireCapRatio.get(tech);
+		leDefaultWireCapRatio.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		dVal = (Double)diffToGateCapRatio.get(tech);
+		leDiffToGateCapRatio.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		dVal = (Double)keeperSizeRatio.get(tech);
+		leKeeperSizeRatio.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		changingLE = false;
 	}
 
 	/**
@@ -114,110 +184,30 @@ public class LogicalEffortTab extends PreferencePanel
         boolean nowBoolean = leUseLocalSettings.isSelected();
 		if (LETool.isUseLocalSettings() != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
 
-		nowBoolean = leDisplayIntermediateCaps.isSelected();
-		if (LETool.isShowIntermediateCapacitances() != nowBoolean) LETool.setShowIntermediateCapacitances(nowBoolean);
-
-		nowBoolean = leHighlightComponents.isSelected();
-		if (LETool.isHighlightComponents() != nowBoolean) LETool.setHighlightComponents(nowBoolean);
-
-		double nowDouble = TextUtils.atof(leGlobalFanOut.getText());
-		if (LETool.getGlobalFanout() != nowDouble) LETool.setGlobalFanout(nowDouble);
-
-		nowDouble = TextUtils.atof(leConvergence.getText());
-		if (LETool.getConvergenceEpsilon() != nowDouble) LETool.setConvergenceEpsilon(nowDouble);
-
-		int nowInt = TextUtils.atoi(leMaxIterations.getText());
-		if (LETool.getMaxIterations() != nowInt) LETool.setMaxIterations(nowInt);
-
-		nowDouble = TextUtils.atof(leGateCapacitance.getText());
-		if (LETool.getGateCapacitance() != nowDouble) LETool.setGateCapacitance(nowDouble);
-
-		nowDouble = TextUtils.atof(leDefaultWireCapRatio.getText());
-		if (LETool.getWireRatio() != nowDouble) LETool.setWireRatio(nowDouble);
-
-		nowDouble = TextUtils.atof(leDiffToGateCapRatio.getText());
-		if (LETool.getDiffAlpha() != nowDouble) LETool.setDiffAlpha(nowDouble);
-
-		nowDouble = TextUtils.atof(leKeeperSizeRatio.getText());
-		if (LETool.getKeeperRatio() != nowDouble) LETool.setKeeperRatio(nowDouble);
-
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			ArcProto arc = (ArcProto)it.next();
-			Pref pref = (Pref)leArcOptions.get(arc);
-			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
-                LETool.getLETool().prefs.putDouble(arc.toString(), pref.getDouble());
-		}
-	}
+			Technology tech = (Technology)it.next();
 
-	private void leArcListClick(MouseEvent evt)
-	{
-		String arcName = (String)leArcList.getSelectedValue();
-		int firstSpace = arcName.indexOf(' ');
-		if (firstSpace > 0) arcName = arcName.substring(0, firstSpace);
-		ArcProto arc = curTech.findArcProto(arcName);
-		Pref pref = (Pref)leArcOptions.get(arc);
-		if (pref == null) return;
-		leWireRatio.setText(TextUtils.formatDouble(pref.getDouble()));
-	}
+			Double dVal = (Double)fanOut.get(tech);
+			if (tech.getGlobalFanout() != dVal.doubleValue()) tech.setGlobalFanout(dVal.doubleValue());
 
-	/**
-	 * Class to handle special changes to per-arc logical effort.
-	 */
-	private static class ArcDocumentListener implements DocumentListener
-	{
-		HashMap optionMap;
-		JList list;
-		DefaultListModel model;
-		Technology tech;
+			dVal = (Double)convergence.get(tech);
+			if (tech.getConvergenceEpsilon() != dVal.doubleValue()) tech.setConvergenceEpsilon(dVal.doubleValue());
 
-		ArcDocumentListener(HashMap optionMap, JList list, DefaultListModel model, Technology tech)
-		{
-			this.optionMap = optionMap;
-			this.list = list;
-			this.model = model;
-			this.tech = tech;
-		}
+			Integer iVal = (Integer)maxIterations.get(tech);
+			if (tech.getMaxIterations() != iVal.intValue()) tech.setMaxIterations(iVal.intValue());
 
-		private void change(DocumentEvent e)
-		{
-			// get the currently selected layer
-			String arcName = (String)list.getSelectedValue();
-			int firstSpace = arcName.indexOf(' ');
-			if (firstSpace > 0) arcName = arcName.substring(0, firstSpace);
-			ArcProto arc = tech.findArcProto(arcName);
-			Pref pref = (Pref)optionMap.get(arc);
-			if (pref == null) return;
+			dVal = (Double)gateCapacitance.get(tech);
+			if (tech.getGateCapacitance() != dVal.doubleValue()) tech.setGateCapacitance(dVal.doubleValue());
 
-			// get the typed value
-			Document doc = e.getDocument();
-			int len = doc.getLength();
-			String text;
-			try
-			{
-				text = doc.getText(0, len);
-			} catch (BadLocationException ex) { return; }
-			double v = TextUtils.atof(text);
+			dVal = (Double)wireCapRatio.get(tech);
+			if (tech.getWireRatio() != dVal.doubleValue()) tech.setWireRatio(dVal.doubleValue());
 
-			// update the option
-			pref.setDouble(v);
-			int index = list.getSelectedIndex();
-			String newLine = arc.getName() + " (" + v + ")";
-			model.setElementAt(newLine, index);
-		}
+			dVal = (Double)diffToGateCapRatio.get(tech);
+			if (tech.getDiffAlpha() != dVal.doubleValue()) tech.setDiffAlpha(dVal.doubleValue());
 
-		public void changedUpdate(DocumentEvent e) { change(e); }
-		public void insertUpdate(DocumentEvent e) { change(e); }
-		public void removeUpdate(DocumentEvent e) { change(e); }
-	}
-
-	private void showArcsInTechnology(DefaultListModel model)
-	{
-		model.clear();
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
-		{
-			ArcProto arc = (ArcProto)it.next();
-			model.addElement(arc.getName() + " (" + ((Pref)leArcOptions.get(arc)).getDouble() + ")");
+			dVal = (Double)keeperSizeRatio.get(tech);
+			if (tech.getKeeperRatio() != dVal.doubleValue()) tech.setKeeperRatio(dVal.doubleValue());
 		}
 	}
 
@@ -230,10 +220,7 @@ public class LogicalEffortTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         logicalEffort = new javax.swing.JPanel();
-        leArc = new javax.swing.JScrollPane();
         jLabel4 = new javax.swing.JLabel();
-        leDisplayIntermediateCaps = new javax.swing.JCheckBox();
-        jLabel5 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
@@ -241,7 +228,6 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel23 = new javax.swing.JLabel();
         jLabel25 = new javax.swing.JLabel();
         leUseLocalSettings = new javax.swing.JCheckBox();
-        leHighlightComponents = new javax.swing.JCheckBox();
         leGlobalFanOut = new javax.swing.JTextField();
         leConvergence = new javax.swing.JTextField();
         leMaxIterations = new javax.swing.JTextField();
@@ -249,8 +235,8 @@ public class LogicalEffortTab extends PreferencePanel
         leDefaultWireCapRatio = new javax.swing.JTextField();
         leDiffToGateCapRatio = new javax.swing.JTextField();
         leKeeperSizeRatio = new javax.swing.JTextField();
-        leWireRatio = new javax.swing.JTextField();
-        jLabel24 = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        leTechnology = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -264,51 +250,18 @@ public class LogicalEffortTab extends PreferencePanel
 
         logicalEffort.setLayout(new java.awt.GridBagLayout());
 
-        leArc.setMinimumSize(new java.awt.Dimension(100, 100));
-        leArc.setPreferredSize(new java.awt.Dimension(100, 100));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        logicalEffort.add(leArc, gridBagConstraints);
-
         jLabel4.setText("Global Fan-Out (step-up):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel4, gridBagConstraints);
 
-        leDisplayIntermediateCaps.setText("Display intermediate capacitances");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        logicalEffort.add(leDisplayIntermediateCaps, gridBagConstraints);
-
-        jLabel5.setText("Wire ratio for each layer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        logicalEffort.add(jLabel5, gridBagConstraints);
-
         jLabel14.setText("Convergence epsilon:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel14, gridBagConstraints);
@@ -316,8 +269,7 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel15.setText("Maximum number of iterations:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel15, gridBagConstraints);
@@ -325,8 +277,7 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel20.setText("Gate capacitance (fF/Lambda):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel20, gridBagConstraints);
@@ -334,8 +285,7 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel22.setText("Default wire cap ratio (Cwire / Cgate):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel22, gridBagConstraints);
@@ -343,8 +293,7 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel23.setText("Diffusion to gate cap ratio (alpha) :");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel23, gridBagConstraints);
@@ -352,97 +301,89 @@ public class LogicalEffortTab extends PreferencePanel
         jLabel25.setText("Keeper size ratio (keeper size / driver size):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel25, gridBagConstraints);
 
         leUseLocalSettings.setText("Use Local (cell) LE Settings");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leUseLocalSettings, gridBagConstraints);
 
-        leHighlightComponents.setText("Highlight components");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        logicalEffort.add(leHighlightComponents, gridBagConstraints);
-
         leGlobalFanOut.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leGlobalFanOut, gridBagConstraints);
 
         leConvergence.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leConvergence, gridBagConstraints);
 
         leMaxIterations.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leMaxIterations, gridBagConstraints);
 
         leGateCapacitance.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leGateCapacitance, gridBagConstraints);
 
         leDefaultWireCapRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leDefaultWireCapRatio, gridBagConstraints);
 
         leDiffToGateCapRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leDiffToGateCapRatio, gridBagConstraints);
 
         leKeeperSizeRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leKeeperSizeRatio, gridBagConstraints);
 
-        leWireRatio.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        logicalEffort.add(leWireRatio, gridBagConstraints);
-
-        jLabel24.setText("New Value:");
+        jLabel1.setText("For Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        logicalEffort.add(jLabel24, gridBagConstraints);
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        logicalEffort.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        logicalEffort.add(leTechnology, gridBagConstraints);
 
         getContentPane().add(logicalEffort, new java.awt.GridBagConstraints());
 
@@ -457,27 +398,23 @@ public class LogicalEffortTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JScrollPane leArc;
     private javax.swing.JTextField leConvergence;
     private javax.swing.JTextField leDefaultWireCapRatio;
     private javax.swing.JTextField leDiffToGateCapRatio;
-    private javax.swing.JCheckBox leDisplayIntermediateCaps;
     private javax.swing.JTextField leGateCapacitance;
     private javax.swing.JTextField leGlobalFanOut;
-    private javax.swing.JCheckBox leHighlightComponents;
     private javax.swing.JTextField leKeeperSizeRatio;
     private javax.swing.JTextField leMaxIterations;
+    private javax.swing.JComboBox leTechnology;
     private javax.swing.JCheckBox leUseLocalSettings;
-    private javax.swing.JTextField leWireRatio;
     private javax.swing.JPanel logicalEffort;
     // End of variables declaration//GEN-END:variables
 

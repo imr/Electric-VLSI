@@ -30,7 +30,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
-import com.sun.electric.tool.user.dialogs.options.ColorsTab;
 import com.sun.electric.tool.user.dialogs.options.CompactionTab;
 import com.sun.electric.tool.user.dialogs.options.CopyrightTab;
 import com.sun.electric.tool.user.dialogs.options.CoverageTab;
@@ -189,9 +188,9 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(lt);
 		displaySet.add(new DefaultMutableTreeNode(lt.getName()));
 
-		ColorsTab ct = new ColorsTab(parent, modal);
-		optionPanes.add(ct);
-		displaySet.add(new DefaultMutableTreeNode(ct.getName()));
+//		ColorsTab ct = new ColorsTab(parent, modal);
+//		optionPanes.add(ct);
+//		displaySet.add(new DefaultMutableTreeNode(ct.getName()));
 
 		TextTab txtt = new TextTab(parent, modal);
 		optionPanes.add(txtt);

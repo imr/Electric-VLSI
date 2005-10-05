@@ -646,14 +646,14 @@ public class LETool extends Listener {
 
 	/****************************** OPTIONS ******************************/
 
-	// preferences; default values are for the TSMC 180nm technology
-    private static double DEFAULT_GLOBALFANOUT = 4.7;
-    private static double DEFAULT_EPSILON      = 0.001;
-    private static int    DEFAULT_MAXITER      = 30;
-    private static double DEFAULT_GATECAP      = 0.4;
-    private static double DEFAULT_WIRERATIO    = 0.16;
-    private static double DEFAULT_DIFFALPHA    = 0.7;
-    private static double DEFAULT_KEEPERRATIO  = 0.1;
+//	// preferences; default values are for the TSMC 180nm technology
+//    private static double DEFAULT_GLOBALFANOUT = 4.7;
+//    private static double DEFAULT_EPSILON      = 0.001;
+//    private static int    DEFAULT_MAXITER      = 30;
+//    private static double DEFAULT_GATECAP      = 0.4;
+//    private static double DEFAULT_WIRERATIO    = 0.16;
+//    private static double DEFAULT_DIFFALPHA    = 0.7;
+//    private static double DEFAULT_KEEPERRATIO  = 0.1;
 
 	private static Pref cacheUseLocalSettings = Pref.makeBooleanPref("UseLocalSettings", LETool.tool.prefs, true);
 	/**
@@ -668,121 +668,121 @@ public class LETool extends Listener {
 	 */
 	public static void setUseLocalSettings(boolean on) { cacheUseLocalSettings.setBoolean(on); }
 
-	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
-	/**
-	 * Method to tell whether to highlight components in Logical Effort.
-	 * The default is false.
-	 * @return true to highlight components in Logical Effort
-	 */
-	public static boolean isHighlightComponents() { return cacheHighlightComponents.getBoolean(); }
-	/**
-	 * Method to set whether to highlight components in Logical Effort
-	 * @param on whether to highlight components in Logical Effort
-	 */
-	public static void setHighlightComponents(boolean on) { cacheHighlightComponents.setBoolean(on); }
+//	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
+//	/**
+//	 * Method to tell whether to highlight components in Logical Effort.
+//	 * The default is false.
+//	 * @return true to highlight components in Logical Effort
+//	 */
+//	public static boolean isHighlightComponents() { return cacheHighlightComponents.getBoolean(); }
+//	/**
+//	 * Method to set whether to highlight components in Logical Effort
+//	 * @param on whether to highlight components in Logical Effort
+//	 */
+//	public static void setHighlightComponents(boolean on) { cacheHighlightComponents.setBoolean(on); }
 
-	private static Pref cacheShowIntermediateCapacitances = Pref.makeBooleanPref("ShowIntermediateCapacitances", LETool.tool.prefs, false);
-	/**
-	 * Method to tell whether to highlight intermediate capacitances in Logical Effort.
-	 * The default is false.
-	 * @return true to highlight intermediate capacitances in Logical Effort
-	 */
-	public static boolean isShowIntermediateCapacitances() { return cacheShowIntermediateCapacitances.getBoolean(); }
-	/**
-	 * Method to set whether to highlight intermediate capacitances in Logical Effort
-	 * @param on whether to highlight intermediate capacitances in Logical Effort
-	 */
-	public static void setShowIntermediateCapacitances(boolean on) { cacheShowIntermediateCapacitances.setBoolean(on); }
+//	private static Pref cacheShowIntermediateCapacitances = Pref.makeBooleanPref("ShowIntermediateCapacitances", LETool.tool.prefs, false);
+//	/**
+//	 * Method to tell whether to highlight intermediate capacitances in Logical Effort.
+//	 * The default is false.
+//	 * @return true to highlight intermediate capacitances in Logical Effort
+//	 */
+//	public static boolean isShowIntermediateCapacitances() { return cacheShowIntermediateCapacitances.getBoolean(); }
+//	/**
+//	 * Method to set whether to highlight intermediate capacitances in Logical Effort
+//	 * @param on whether to highlight intermediate capacitances in Logical Effort
+//	 */
+//	public static void setShowIntermediateCapacitances(boolean on) { cacheShowIntermediateCapacitances.setBoolean(on); }
 
-	private static Pref cacheGlobalFanout = Pref.makeDoublePref("GlobalFanout", LETool.tool.prefs, DEFAULT_GLOBALFANOUT);
-	/**
-	 * Method to get the Global Fanout for Logical Effort.
-	 * The default is DEFAULT_GLOBALFANOUT.
-	 * @return the Global Fanout for Logical Effort.
-	 */
-	public static double getGlobalFanout() { return cacheGlobalFanout.getDouble(); }
-	/**
-	 * Method to set the Global Fanout for Logical Effort.
-	 * @param fo the Global Fanout for Logical Effort.
-	 */
-	public static void setGlobalFanout(double fo) { cacheGlobalFanout.setDouble(fo); }
+//	private static Pref cacheGlobalFanout = Pref.makeDoublePref("GlobalFanout", LETool.tool.prefs, DEFAULT_GLOBALFANOUT);
+//	/**
+//	 * Method to get the Global Fanout for Logical Effort.
+//	 * The default is DEFAULT_GLOBALFANOUT.
+//	 * @return the Global Fanout for Logical Effort.
+//	 */
+//	public static double getGlobalFanout() { return cacheGlobalFanout.getDouble(); }
+//	/**
+//	 * Method to set the Global Fanout for Logical Effort.
+//	 * @param fo the Global Fanout for Logical Effort.
+//	 */
+//	public static void setGlobalFanout(double fo) { cacheGlobalFanout.setDouble(fo); }
 
-	private static Pref cacheConvergenceEpsilon = Pref.makeDoublePref("Epsilon", LETool.tool.prefs, DEFAULT_EPSILON);
-	/**
-	 * Method to get the Convergence Epsilon value for Logical Effort.
-	 * The default is DEFAULT_EPSILON.
-	 * @return the Convergence Epsilon value for Logical Effort.
-	 */
-	public static double getConvergenceEpsilon() { return cacheConvergenceEpsilon.getDouble(); }
-	/**
-	 * Method to set the Convergence Epsilon value for Logical Effort.
-	 * @param ep the Convergence Epsilon value for Logical Effort.
-	 */
-	public static void setConvergenceEpsilon(double ep) { cacheConvergenceEpsilon.setDouble(ep); }
+//	private static Pref cacheConvergenceEpsilon = Pref.makeDoublePref("Epsilon", LETool.tool.prefs, DEFAULT_EPSILON);
+//	/**
+//	 * Method to get the Convergence Epsilon value for Logical Effort.
+//	 * The default is DEFAULT_EPSILON.
+//	 * @return the Convergence Epsilon value for Logical Effort.
+//	 */
+//	public static double getConvergenceEpsilon() { return cacheConvergenceEpsilon.getDouble(); }
+//	/**
+//	 * Method to set the Convergence Epsilon value for Logical Effort.
+//	 * @param ep the Convergence Epsilon value for Logical Effort.
+//	 */
+//	public static void setConvergenceEpsilon(double ep) { cacheConvergenceEpsilon.setDouble(ep); }
 
-	private static Pref cacheMaxIterations = Pref.makeIntPref("MaxIterations", LETool.tool.prefs, DEFAULT_MAXITER);
-	/**
-	 * Method to get the maximum number of iterations for Logical Effort.
-	 * The default is DEFAULT_MAXITER.
-	 * @return the maximum number of iterations for Logical Effort.
-	 */
-	public static int getMaxIterations() { return cacheMaxIterations.getInt(); }
-	/**
-	 * Method to set the maximum number of iterations for Logical Effort.
-	 * @param it the maximum number of iterations for Logical Effort.
-	 */
-	public static void setMaxIterations(int it) { cacheMaxIterations.setInt(it); }
+//	private static Pref cacheMaxIterations = Pref.makeIntPref("MaxIterations", LETool.tool.prefs, DEFAULT_MAXITER);
+//	/**
+//	 * Method to get the maximum number of iterations for Logical Effort.
+//	 * The default is DEFAULT_MAXITER.
+//	 * @return the maximum number of iterations for Logical Effort.
+//	 */
+//	public static int getMaxIterations() { return cacheMaxIterations.getInt(); }
+//	/**
+//	 * Method to set the maximum number of iterations for Logical Effort.
+//	 * @param it the maximum number of iterations for Logical Effort.
+//	 */
+//	public static void setMaxIterations(int it) { cacheMaxIterations.setInt(it); }
 
-	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
-	/**
-	 * Method to get the Gate Capacitance for Logical Effort.
-	 * The default is DEFAULT_GATECAP.
-	 * @return the Gate Capacitance for Logical Effort.
-	 */
-	public static double getGateCapacitance() { return cacheGateCapacitance.getDouble(); }
-	/**
-	 * Method to set the Gate Capacitance for Logical Effort.
-	 * @param gc the Gate Capacitance for Logical Effort.
-	 */
-	public static void setGateCapacitance(double gc) { cacheGateCapacitance.setDouble(gc); }
+//	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
+//	/**
+//	 * Method to get the Gate Capacitance for Logical Effort.
+//	 * The default is DEFAULT_GATECAP.
+//	 * @return the Gate Capacitance for Logical Effort.
+//	 */
+//	public static double getGateCapacitance() { return cacheGateCapacitance.getDouble(); }
+//	/**
+//	 * Method to set the Gate Capacitance for Logical Effort.
+//	 * @param gc the Gate Capacitance for Logical Effort.
+//	 */
+//	public static void setGateCapacitance(double gc) { cacheGateCapacitance.setDouble(gc); }
 
-	private static Pref cacheWireRatio = Pref.makeDoublePref("WireRatio", LETool.tool.prefs, DEFAULT_WIRERATIO);
-	/**
-	 * Method to get the wire capacitance ratio for Logical Effort.
-	 * The default is DEFAULT_WIRERATIO.
-	 * @return the wire capacitance ratio for Logical Effort.
-	 */
-	public static double getWireRatio() { return cacheWireRatio.getDouble(); }
-	/**
-	 * Method to set the wire capacitance ratio for Logical Effort.
-	 * @param wr the wire capacitance ratio for Logical Effort.
-	 */
-	public static void setWireRatio(double wr) { cacheWireRatio.setDouble(wr); }
+//	private static Pref cacheWireRatio = Pref.makeDoublePref("WireRatio", LETool.tool.prefs, DEFAULT_WIRERATIO);
+//	/**
+//	 * Method to get the wire capacitance ratio for Logical Effort.
+//	 * The default is DEFAULT_WIRERATIO.
+//	 * @return the wire capacitance ratio for Logical Effort.
+//	 */
+//	public static double getWireRatio() { return cacheWireRatio.getDouble(); }
+//	/**
+//	 * Method to set the wire capacitance ratio for Logical Effort.
+//	 * @param wr the wire capacitance ratio for Logical Effort.
+//	 */
+//	public static void setWireRatio(double wr) { cacheWireRatio.setDouble(wr); }
 
-	private static Pref cacheDiffAlpha = Pref.makeDoublePref("DiffusionAlpha", LETool.tool.prefs, DEFAULT_DIFFALPHA);
-	/**
-	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
-	 * The default is DEFAULT_DIFFALPHA.
-	 * @return the diffusion to gate capacitance ratio for Logical Effort.
-	 */
-	public static double getDiffAlpha() { return cacheDiffAlpha.getDouble(); }
-	/**
-	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
-	 * @param da the diffusion to gate capacitance ratio for Logical Effort.
-	 */
-	public static void setDiffAlpha(double da) { cacheDiffAlpha.setDouble(da); }
+//	private static Pref cacheDiffAlpha = Pref.makeDoublePref("DiffusionAlpha", LETool.tool.prefs, DEFAULT_DIFFALPHA);
+//	/**
+//	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
+//	 * The default is DEFAULT_DIFFALPHA.
+//	 * @return the diffusion to gate capacitance ratio for Logical Effort.
+//	 */
+//	public static double getDiffAlpha() { return cacheDiffAlpha.getDouble(); }
+//	/**
+//	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
+//	 * @param da the diffusion to gate capacitance ratio for Logical Effort.
+//	 */
+//	public static void setDiffAlpha(double da) { cacheDiffAlpha.setDouble(da); }
 
-	private static Pref cacheKeeperRatio = Pref.makeDoublePref("KeeperRatio", LETool.tool.prefs, DEFAULT_KEEPERRATIO);
-	/**
-	 * Method to get the keeper size ratio for Logical Effort.
-	 * The default is DEFAULT_KEEPERRATIO.
-	 * @return the keeper size ratio for Logical Effort.
-	 */
-	public static double getKeeperRatio() { return cacheKeeperRatio.getDouble(); }
-	/**
-	 * Method to set the keeper size ratio for Logical Effort.
-	 * @param kr the keeper size ratio for Logical Effort.
-	 */
-	public static void setKeeperRatio(double kr) { cacheKeeperRatio.setDouble(kr); }
+//	private static Pref cacheKeeperRatio = Pref.makeDoublePref("KeeperRatio", LETool.tool.prefs, DEFAULT_KEEPERRATIO);
+//	/**
+//	 * Method to get the keeper size ratio for Logical Effort.
+//	 * The default is DEFAULT_KEEPERRATIO.
+//	 * @return the keeper size ratio for Logical Effort.
+//	 */
+//	public static double getKeeperRatio() { return cacheKeeperRatio.getDouble(); }
+//	/**
+//	 * Method to set the keeper size ratio for Logical Effort.
+//	 * @param kr the keeper size ratio for Logical Effort.
+//	 */
+//	public static void setKeeperRatio(double kr) { cacheKeeperRatio.setDouble(kr); }
 
 }

@@ -60,6 +60,7 @@ import com.sun.electric.technology.technologies.PCB;
 import com.sun.electric.technology.technologies.RCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.nMOS;
+import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -562,8 +563,23 @@ public class Technology implements Comparable
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
     /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
     /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
+	/** Logical effort global fanout preference. */			private Pref cacheGlobalFanout;
+	/** Logical effort convergence (epsilon) preference. */	private Pref cacheConvergenceEpsilon;
+	/** Logical effort maximum iterations preference. */	private Pref cacheMaxIterations;
+	/** Logical effort gate capacitance preference. */		private Pref cacheGateCapacitance;
+	/** Logical effort wire ratio preference. */			private Pref cacheWireRatio;
+	/** Logical effort diff alpha preference. */			private Pref cacheDiffAlpha;
+	/** Logical effort keeper ratio preference. */			private Pref cacheKeeperRatio;
 
-    /** To group elements for the component menu */         protected Object[][] nodeGroups;
+	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
+	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
+	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
+	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
+	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
+	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
+	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
+
+	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
@@ -2807,6 +2823,169 @@ public class Technology implements Comparable
 	{
 		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, minResistance);
 		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, minCapacitance);
+	}
+	
+	
+
+
+	private Pref getLEPref(String what, Pref pref, double factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref(what + "IN" + getTechName(), prefs, factory);
+			pref.attachToObject(this, "Tools/Logical Effort tab", getTechShortName() + " " + what);
+		}
+		return pref;
+	}
+
+	private Pref getLEPref(String what, Pref pref, int factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeIntPref(what + "IN" + getTechName(), prefs, factory);
+			pref.attachToObject(this, "Tools/Logical Effort tab", getTechShortName() + " " + what);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to get the Global Fanout for Logical Effort.
+	 * The default is DEFAULT_GLOBALFANOUT.
+	 * @return the Global Fanout for Logical Effort.
+	 */
+	public double getGlobalFanout()
+	{
+		cacheGlobalFanout = getLEPref("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		return cacheGlobalFanout.getDouble();
+	}
+	/**
+	 * Method to set the Global Fanout for Logical Effort.
+	 * @param fo the Global Fanout for Logical Effort.
+	 */
+	public void setGlobalFanout(double fo)
+	{
+		cacheGlobalFanout = getLEPref("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		cacheGlobalFanout.setDouble(fo);
+	}
+
+	/**
+	 * Method to get the Convergence Epsilon value for Logical Effort.
+	 * The default is DEFAULT_EPSILON.
+	 * @return the Convergence Epsilon value for Logical Effort.
+	 */
+	public double getConvergenceEpsilon()
+	{
+		cacheConvergenceEpsilon = getLEPref("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		return cacheConvergenceEpsilon.getDouble();
+	}
+	/**
+	 * Method to set the Convergence Epsilon value for Logical Effort.
+	 * @param ep the Convergence Epsilon value for Logical Effort.
+	 */
+	public void setConvergenceEpsilon(double ep)
+	{
+		cacheConvergenceEpsilon = getLEPref("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		cacheConvergenceEpsilon.setDouble(ep);
+	}
+
+	/**
+	 * Method to get the maximum number of iterations for Logical Effort.
+	 * The default is DEFAULT_MAXITER.
+	 * @return the maximum number of iterations for Logical Effort.
+	 */
+	public int getMaxIterations()
+	{
+		cacheMaxIterations = getLEPref("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		return cacheMaxIterations.getInt();
+	}
+	/**
+	 * Method to set the maximum number of iterations for Logical Effort.
+	 * @param it the maximum number of iterations for Logical Effort.
+	 */
+	public void setMaxIterations(int it)
+	{
+		cacheMaxIterations = getLEPref("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		cacheMaxIterations.setInt(it);
+	}
+
+	/**
+	 * Method to get the Gate Capacitance for Logical Effort.
+	 * The default is DEFAULT_GATECAP.
+	 * @return the Gate Capacitance for Logical Effort.
+	 */
+	public double getGateCapacitance()
+	{
+		cacheGateCapacitance = getLEPref("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		return cacheGateCapacitance.getDouble();
+	}
+	/**
+	 * Method to set the Gate Capacitance for Logical Effort.
+	 * @param gc the Gate Capacitance for Logical Effort.
+	 */
+	public void setGateCapacitance(double gc)
+	{
+		cacheGateCapacitance = getLEPref("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		cacheGateCapacitance.setDouble(gc);
+	}
+
+	/**
+	 * Method to get the wire capacitance ratio for Logical Effort.
+	 * The default is DEFAULT_WIRERATIO.
+	 * @return the wire capacitance ratio for Logical Effort.
+	 */
+	public double getWireRatio()
+	{
+		cacheWireRatio = getLEPref("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		return cacheWireRatio.getDouble();
+	}
+	/**
+	 * Method to set the wire capacitance ratio for Logical Effort.
+	 * @param wr the wire capacitance ratio for Logical Effort.
+	 */
+	public void setWireRatio(double wr)
+	{
+		cacheWireRatio = getLEPref("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		cacheWireRatio.setDouble(wr);
+	}
+
+	/**
+	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
+	 * The default is DEFAULT_DIFFALPHA.
+	 * @return the diffusion to gate capacitance ratio for Logical Effort.
+	 */
+	public double getDiffAlpha()
+	{
+		cacheDiffAlpha = getLEPref("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		return cacheDiffAlpha.getDouble();
+	}
+	/**
+	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
+	 * @param da the diffusion to gate capacitance ratio for Logical Effort.
+	 */
+	public void setDiffAlpha(double da)
+	{
+		cacheDiffAlpha = getLEPref("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		cacheDiffAlpha.setDouble(da);
+	}
+
+	/**
+	 * Method to get the keeper size ratio for Logical Effort.
+	 * The default is DEFAULT_KEEPERRATIO.
+	 * @return the keeper size ratio for Logical Effort.
+	 */
+	public double getKeeperRatio()
+	{
+		cacheKeeperRatio = getLEPref("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+		return cacheKeeperRatio.getDouble();
+	}
+	/**
+	 * Method to set the keeper size ratio for Logical Effort.
+	 * @param kr the keeper size ratio for Logical Effort.
+	 */
+	public void setKeeperRatio(double kr)
+	{
+		cacheKeeperRatio = getLEPref("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+		cacheKeeperRatio.setDouble(kr);
 	}
 
 	/**

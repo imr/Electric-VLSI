@@ -27,16 +27,29 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import javax.swing.JPanel;
+import java.awt.image.BufferedImage;
+
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.colorchooser.ColorSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -61,11 +74,10 @@ public class ColorPatternPanel extends JPanel
 		public int transparentLayer;
 		public int red, green, blue;
 		public double opacity;
+		public boolean justColor;
 
 		/**
-		 * Constructor for class to edit an EGraphics object manage in a dialog panel.
-		 * @param graphics to EGraphics to manage.
-		 * It will be modified by the dialog.
+		 * Constructor to load a color described by an EGraphics object.
 		 */
 		public Info(EGraphics graphics)
 		{
@@ -83,6 +95,19 @@ public class ColorPatternPanel extends JPanel
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
 			opacity = graphics.getOpacity();
+			justColor = false;
+		}
+
+		/**
+		 * Constructor for class to load a pure color.
+		 * Used for special colors (like background, etc.)
+		 */
+		public Info(int color)
+		{
+			red = (color >> 16) & 0xFF;
+			green = (color >> 8) & 0xFF;
+			blue = color & 0xFF;
+			justColor = true;
 		}
 
 		/**
@@ -91,14 +116,14 @@ public class ColorPatternPanel extends JPanel
 		 */
 		public boolean updateGraphics()
 		{
+			if (justColor) return false;
+
 			boolean changed = false;
 
 			int [] origPattern = graphics.getPattern();
 			for(int i=0; i<16; i++) if (pattern[i] != origPattern[i]) changed = true;
 			if (changed)
-			{
 				graphics.setPattern(pattern);
-			}
 
 			// check the pattern and outline factors
 			if (useStippleDisplay != graphics.isPatternedOnDisplay())
@@ -146,10 +171,14 @@ public class ColorPatternPanel extends JPanel
 
 	}
 
-	private JPanel patternView, patternIcon;
+	private PatternView patternView;
+	private PatternChoices patternIcon;
 	private Info currentLI;
 	private boolean dataChanging = false;
 	private boolean showPrinter;
+	private Color [] colorMap;
+	private JColorChooser colorChooser;
+	private MyPreviewPanel colorPreviewPanel;
 
     /**
      * Create a Panel for editing color and pattern information.
@@ -159,11 +188,6 @@ public class ColorPatternPanel extends JPanel
         initComponents();
 
         this.showPrinter = showPrinter;
-
-		int [] colors = EGraphics.getTransparentColorIndices();
-		transparentLayer.addItem("Not Transparent");
-		for(int i=0; i<colors.length; i++)
-			transparentLayer.addItem(EGraphics.getColorIndexName(colors[i]));
 
 		useStipplePatternDisplay.addActionListener(new ActionListener()
 		{
@@ -175,37 +199,40 @@ public class ColorPatternPanel extends JPanel
 		});
 		transparentLayer.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+			public void actionPerformed(ActionEvent evt) { transparentLayerChanged(); }
 		});
-		pick.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { colorPick(); }
-		});
-		layerRed.getDocument().addDocumentListener(new LayerColorDocumentListener());
-		layerGreen.getDocument().addDocumentListener(new LayerColorDocumentListener());
-		layerBlue.getDocument().addDocumentListener(new LayerColorDocumentListener());
+		transparentLayer.addItem("NOT TRANSPARENT");
+		int [] transLayers = EGraphics.getTransparentColorIndices();
+		for(int i=0; i<transLayers.length; i++)
+			transparentLayer.addItem(EGraphics.getColorIndexName(transLayers[i]));
 
-		patternView = new PatternView(this);
-		patternView.setMaximumSize(new java.awt.Dimension(257, 257));
-		patternView.setMinimumSize(new java.awt.Dimension(257, 257));
-		patternView.setPreferredSize(new java.awt.Dimension(257, 257));
-		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+		patternView = new PatternView(currentLI, useStipplePatternDisplay, useOutlinePatternDisplay);
+		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
 		gbc.gridwidth = 8;   gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
-		appearance.add(patternView, gbc);
+		gbc.insets = new Insets(0, 4, 4, 4);
+		pattern.add(patternView, gbc);
 
 		patternIcon = new PatternChoices();
-		patternIcon.setMaximumSize(new java.awt.Dimension(352, 16));
-		patternIcon.setMinimumSize(new java.awt.Dimension(352, 16));
-		patternIcon.setPreferredSize(new java.awt.Dimension(352, 16));
-		gbc = new java.awt.GridBagConstraints();
+		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 3;
 		gbc.gridwidth = 8;   gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(0, 4, 2, 4);
-		appearance.add(patternIcon, gbc);
- 
- 		if (showPrinter)
+		gbc.insets = new Insets(0, 4, 2, 4);
+		pattern.add(patternIcon, gbc);
+
+		colorChooser = new JColorChooser();
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 1;
+		gbc.gridwidth = 2;
+		color.add(colorChooser, gbc);
+		colorChooser.getSelectionModel().addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent e) { colorChanged(); }
+		});
+		colorPreviewPanel = new MyPreviewPanel(this);
+		colorChooser.setPreviewPanel(colorPreviewPanel);
+
+		if (showPrinter)
  		{
 			useOutlinePatternPrinter.addActionListener(new ActionListener()
 			{
@@ -219,13 +246,89 @@ public class ColorPatternPanel extends JPanel
  		} else
  		{
 			remove(forPrinter);
- 		}
-   }
+		}
+	}
 
     /**
-     * Method to return current Info instance.
+     * Class to provide an alternative preview panel for JColorChooser.
      */
-    public Info getInfo() {return currentLI;}
+    public class MyPreviewPanel extends JButton
+    {
+		private static final int XSIZE = 288;
+		private static final int YSIZE = 48;
+		private ColorPatternPanel dia;
+        Color curColor = Color.BLACK;
+    
+        public MyPreviewPanel(ColorPatternPanel dia)
+		{
+			this.dia = dia;
+            setPreferredSize(new Dimension(XSIZE, YSIZE+8));
+        }
+
+		public void setPreviewColor(Color color)
+		{
+			curColor = color;
+		}
+
+        public void paint(Graphics g)
+		{
+			// clear background
+            g.setColor(new Color(User.getColorBackground()));
+			g.fillRect(0, 0, getWidth(), getHeight());
+
+			if (dia.useStipplePatternDisplay.isSelected())
+			{
+				// stippled: construct an image
+				BufferedImage im = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+				for(int y=0; y<16; y++)
+				{
+					int line = currentLI.pattern[y];
+					for(int x=0; x<16; x++)
+					{
+						if ((line & (1<<(15-x))) != 0) im.setRGB(x, y, curColor.getRGB()); else
+							im.setRGB(x, y, User.getColorBackground());
+					}
+				}
+
+				// draw the image to fill the preview
+				for(int y=0; y<YSIZE; y+=16)
+					for(int x=0; x<XSIZE; x+=16)
+						g.drawImage(im, x, y, null, null);
+
+				// draw an outline if requested
+				if (dia.useOutlinePatternDisplay.isSelected())
+				{
+					g.setColor(curColor);
+					g.drawLine(0, 0, XSIZE-1, 0);
+					g.drawLine(XSIZE-1, 0, XSIZE-1, YSIZE-1);
+					g.drawLine(XSIZE-1, YSIZE-1, 0, YSIZE-1);
+					g.drawLine(0, YSIZE-1, 0, 0);
+				}
+			} else
+			{
+				// not stippled, just fill it
+				g.setColor(curColor);
+				g.fillRect(0, 0, XSIZE, YSIZE);
+			}
+        }
+    }
+
+	/**
+	 * Method to update the panel to reflect the given color map.
+	 * @param map the color map to be used.
+	 */
+	public void setColorMap(Color [] map)
+	{
+		colorMap = map;
+		int curTrans = transparentLayer.getSelectedIndex();
+		int [] transLayers = EGraphics.getTransparentColorIndices();
+		transparentLayer.removeAllItems();
+		transparentLayer.addItem("NOT TRANSPARENT");
+		int maxTrans = Math.min(transLayers.length, map.length);
+		for(int i=0; i<maxTrans; i++)
+			transparentLayer.addItem(EGraphics.getColorIndexName(transLayers[i]));
+		transparentLayer.setSelectedIndex(curTrans);
+	}
 
 	/**
 	 * Method to update the panel to reflect the given Info.
@@ -235,6 +338,22 @@ public class ColorPatternPanel extends JPanel
 	public void setColorPattern(Info li)
 	{
 		currentLI = li;
+		if (li.justColor)
+		{
+			useStipplePatternDisplay.setEnabled(false);
+			useOutlinePatternDisplay.setEnabled(false);
+			useStipplePatternPrinter.setEnabled(false);
+			useOutlinePatternPrinter.setEnabled(false);
+			transparentLayer.setEnabled(false);
+		} else
+		{
+			useStipplePatternDisplay.setEnabled(true);
+			useOutlinePatternDisplay.setEnabled(true);
+			useStipplePatternPrinter.setEnabled(true);
+			useOutlinePatternPrinter.setEnabled(true);
+			transparentLayer.setEnabled(true);
+		}
+		patternView.setLayerInfo(li);
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		useOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
@@ -247,42 +366,41 @@ public class ColorPatternPanel extends JPanel
 			opacity.setText(TextUtils.formatDouble(li.opacity));
 		}
 		transparentLayer.setSelectedIndex(li.transparentLayer);
-		layerRed.setText(Integer.toString(li.red));
-		layerGreen.setText(Integer.toString(li.green));
-		layerBlue.setText(Integer.toString(li.blue));
-		if (li.transparentLayer == 0)
-		{
-			// a pure color
-			pick.setEnabled(true);
-			layerRedLabel.setEnabled(true);
-			layerRed.setEnabled(true);
-			layerGreenLabel.setEnabled(true);
-			layerGreen.setEnabled(true);
-			layerBlueLabel.setEnabled(true);
-			layerBlue.setEnabled(true);
-		} else
-		{
-			// a transparent color
-			layerRedLabel.setEnabled(false);
-			layerRed.setEnabled(false);
-			layerGreenLabel.setEnabled(false);
-			layerGreen.setEnabled(false);
-			layerBlueLabel.setEnabled(false);
-			layerBlue.setEnabled(false);
-			pick.setEnabled(false);
-		}
+		colorChooser.setColor(new Color(li.red, li.green, li.blue));
 		patternView.repaint();
+		colorPreviewPanel.repaint();
 		dataChanging = false;
 	}
 
-	private void colorPick()
+	/**
+	 * Method called when the color picker selects a new color.
+	 */
+	private void colorChanged()
 	{
-		Color newColor = JColorChooser.showDialog(this, "Pick color", new Color(currentLI.red, currentLI.green, currentLI.blue));
-		if (newColor == null) return;
-		currentLI.red = newColor.getRed();
-		currentLI.green = newColor.getGreen();
-		currentLI.blue = newColor.getBlue();
-		setColorPattern(currentLI);
+		Color col = colorChooser.getColor();
+		currentLI.red = col.getRed();
+		currentLI.green = col.getGreen();
+		currentLI.blue = col.getBlue();
+		layerInfoChanged();
+		colorPreviewPanel.setPreviewColor(col);
+	}
+
+	private void transparentLayerChanged()
+	{
+		if (currentLI == null) return;
+		currentLI.transparentLayer = transparentLayer.getSelectedIndex();
+		if (currentLI.transparentLayer > 0 && colorMap != null)
+		{
+			if (currentLI.transparentLayer > colorMap.length)
+			{
+				transparentLayer.setSelectedIndex(0);
+				return;
+			}
+			currentLI.red = colorMap[currentLI.transparentLayer-1].getRed();
+			currentLI.green = colorMap[currentLI.transparentLayer-1].getGreen();
+			currentLI.blue = colorMap[currentLI.transparentLayer-1].getBlue();
+			layerInfoChanged();
+		}
 	}
 
 	private void layerInfoChanged()
@@ -300,17 +418,12 @@ public class ColorPatternPanel extends JPanel
 		}
 		currentLI.transparentLayer = transparentLayer.getSelectedIndex();
 		boolean colorsEnabled = currentLI.transparentLayer == 0;
-		pick.setEnabled(colorsEnabled);
-		layerRedLabel.setEnabled(colorsEnabled);
-		layerRed.setEnabled(colorsEnabled);
-		layerGreenLabel.setEnabled(colorsEnabled);
-		layerGreen.setEnabled(colorsEnabled);
-		layerBlueLabel.setEnabled(colorsEnabled);
-		layerBlue.setEnabled(colorsEnabled);
-		currentLI.red = TextUtils.atoi(layerRed.getText());
-		currentLI.green = TextUtils.atoi(layerGreen.getText());
-		currentLI.blue = TextUtils.atoi(layerBlue.getText());
 		currentLI.opacity = TextUtils.atof(opacity.getText());
+		Color newColor = new Color(currentLI.red, currentLI.green, currentLI.blue);
+		colorChooser.setColor(newColor);
+		if (currentLI.transparentLayer != 0)
+			colorMap[currentLI.transparentLayer-1] = newColor;
+		colorPreviewPanel.repaint();
 	}
 
 	/**
@@ -328,15 +441,26 @@ public class ColorPatternPanel extends JPanel
 	private class PatternView extends JPanel
 		implements MouseMotionListener, MouseListener
 	{
-		private boolean newState;
-		private ColorPatternPanel cpp;
+		private static final int PATSIZE = 14;
 
-		PatternView(ColorPatternPanel cpp)
+		private boolean newState;
+		private JCheckBox stipple, outline;
+		private Info lInfo;
+
+		PatternView(Info lInfo, JCheckBox stipple, JCheckBox outline)
 		{
-			this.cpp = cpp;
+			this.lInfo = lInfo;
+			this.stipple = stipple;
+			this.outline = outline;
 			addMouseListener(this);
 			addMouseMotionListener(this);
+			int totSize = PATSIZE*16+1;
+			setMaximumSize(new Dimension(totSize, totSize));
+			setMinimumSize(new Dimension(totSize, totSize));
+			setPreferredSize(new Dimension(totSize, totSize));
 		}
+
+		public void setLayerInfo(Info lInfo) { this.lInfo = lInfo; }
 
 		/**
 		 * Method to repaint this PatternView.
@@ -347,21 +471,23 @@ public class ColorPatternPanel extends JPanel
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, dim.width, dim.height);
 			g.setColor(Color.GRAY);
-			for(int i=0; i<=256; i += 16)
+			int upper = PATSIZE * 16;
+			for(int i=0; i<=upper; i += PATSIZE)
 			{
-				g.drawLine(i, 0, i, 256);
-				g.drawLine(0, i, 256, i);
+				g.drawLine(i, 0, i, upper);
+				g.drawLine(0, i, upper, i);
 			}
 
 			g.setColor(Color.BLACK);
+			if (lInfo.justColor) return;
 			for(int y=0; y<16; y++)
 			{
-				int bits = currentLI.pattern[y];
+				int bits = lInfo.pattern[y];
 				for(int x=0; x<16; x++)
 				{
 					if ((bits & (1<<(15-x))) != 0)
 					{
-						g.fillRect(x*16+1, y*16+1, 15, 15);
+						g.fillRect(x*PATSIZE+1, y*PATSIZE+1, PATSIZE-1, PATSIZE-1);
 					}
 				}
 			}
@@ -370,9 +496,10 @@ public class ColorPatternPanel extends JPanel
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
-			int xIndex = evt.getX() / 16;
-			int yIndex = evt.getY() / 16;
-			int curWord = currentLI.pattern[yIndex];
+			if (lInfo.justColor) return;
+			int xIndex = evt.getX() / PATSIZE;
+			int yIndex = evt.getY() / PATSIZE;
+			int curWord = lInfo.pattern[yIndex];
 			newState = (curWord & (1<<(15-xIndex))) == 0;
 			mouseDragged(evt);
 		}
@@ -385,9 +512,10 @@ public class ColorPatternPanel extends JPanel
 		public void mouseMoved(MouseEvent evt) {}
 		public void mouseDragged(MouseEvent evt)
 		{
-			int xIndex = evt.getX() / 16;
-			int yIndex = evt.getY() / 16;
-			int curWord = currentLI.pattern[yIndex];
+			if (lInfo.justColor) return;
+			int xIndex = evt.getX() / PATSIZE;
+			int yIndex = evt.getY() / PATSIZE;
+			int curWord = lInfo.pattern[yIndex];
 			if ((curWord & (1<<(15-xIndex))) != 0)
 			{
 				if (newState) return;
@@ -397,13 +525,14 @@ public class ColorPatternPanel extends JPanel
 				if (!newState) return;
 				curWord |= 1<<(15-xIndex);
 			}
-			currentLI.pattern[yIndex] = curWord;
+			lInfo.pattern[yIndex] = curWord;
 
 			// fake a check in the stipple use
-			cpp.useStipplePatternDisplay.setSelected(true);
-			cpp.useOutlinePatternDisplay.setEnabled(true);
-			cpp.currentLI.useStippleDisplay = true;
+			stipple.setSelected(true);
+			outline.setEnabled(true);
+			lInfo.useStippleDisplay = true;
 			repaint();
+			colorPreviewPanel.repaint();
 		}
 	}
 
@@ -787,9 +916,15 @@ public class ColorPatternPanel extends JPanel
 	private class PatternChoices extends JPanel
 		implements MouseListener
 	{
+		private static final int NUMROWS = 2;
+		int numPatterns = preDefinedPatterns.length / 16;
+
 		PatternChoices()
 		{
 			addMouseListener(this);
+			setMaximumSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
+			setMinimumSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
+			setPreferredSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
 		}
 
 		/**
@@ -804,7 +939,12 @@ public class ColorPatternPanel extends JPanel
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
-			int iconIndex = evt.getX() / 16;
+			if (currentLI.justColor) return;
+			int xEntry = evt.getX() / 17;
+			if (xEntry >= numPatterns/NUMROWS) xEntry = numPatterns/NUMROWS-1;
+			int yEntry = evt.getY() / 17;
+			if (yEntry >= NUMROWS) yEntry = NUMROWS-1;
+			int iconIndex = xEntry + 11*yEntry;
 			for(int i=0; i<16; i++)
 			{
 				currentLI.pattern[i] = preDefinedPatterns[iconIndex*16+i];
@@ -816,6 +956,7 @@ public class ColorPatternPanel extends JPanel
 			currentLI.useStippleDisplay = true;
 
 			patternView.repaint();
+			colorPreviewPanel.repaint();
 		}
 		public void mouseReleased(MouseEvent evt) {}
 		public void mouseClicked(MouseEvent evt) {}
@@ -828,228 +969,163 @@ public class ColorPatternPanel extends JPanel
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        forDisplay = new javax.swing.JPanel();
-        jLabel40 = new javax.swing.JLabel();
-        transparentLayer = new javax.swing.JComboBox();
-        useStipplePatternDisplay = new javax.swing.JCheckBox();
-        useOutlinePatternDisplay = new javax.swing.JCheckBox();
         forPrinter = new javax.swing.JPanel();
         useStipplePatternPrinter = new javax.swing.JCheckBox();
         useOutlinePatternPrinter = new javax.swing.JCheckBox();
         opacityLabel = new javax.swing.JLabel();
         opacity = new javax.swing.JTextField();
-        opacityExplanation = new javax.swing.JLabel();
-        appearance = new javax.swing.JPanel();
-        layerGreenLabel = new javax.swing.JLabel();
-        layerBlueLabel = new javax.swing.JLabel();
-        layerGreen = new javax.swing.JTextField();
-        layerRed = new javax.swing.JTextField();
-        layerRedLabel = new javax.swing.JLabel();
-        layerBlue = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        pattern = new javax.swing.JPanel();
         jLabel50 = new javax.swing.JLabel();
-        pick = new javax.swing.JButton();
+        useStipplePatternDisplay = new javax.swing.JCheckBox();
+        useOutlinePatternDisplay = new javax.swing.JCheckBox();
+        color = new javax.swing.JPanel();
+        jLabel40 = new javax.swing.JLabel();
+        transparentLayer = new javax.swing.JComboBox();
 
         setLayout(new java.awt.GridBagLayout());
 
-        forDisplay.setLayout(new java.awt.GridBagLayout());
-
-        forDisplay.setBorder(new javax.swing.border.TitledBorder("When Displayed"));
-        jLabel40.setText("Transparent layer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        forDisplay.add(jLabel40, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        forDisplay.add(transparentLayer, gridBagConstraints);
-
-        useStipplePatternDisplay.setText("Use Stipple Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        forDisplay.add(useStipplePatternDisplay, gridBagConstraints);
-
-        useOutlinePatternDisplay.setText("Outline Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        forDisplay.add(useOutlinePatternDisplay, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        add(forDisplay, gridBagConstraints);
-
         forPrinter.setLayout(new java.awt.GridBagLayout());
 
-        forPrinter.setBorder(new javax.swing.border.TitledBorder("When Printed"));
+        forPrinter.setBorder(new javax.swing.border.TitledBorder("For Printing"));
         useStipplePatternPrinter.setText("Use Stipple Pattern");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         forPrinter.add(useStipplePatternPrinter, gridBagConstraints);
 
         useOutlinePatternPrinter.setText("Outline Pattern");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         forPrinter.add(useOutlinePatternPrinter, gridBagConstraints);
 
         opacityLabel.setText("Opacity:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         forPrinter.add(opacityLabel, gridBagConstraints);
 
         opacity.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         forPrinter.add(opacity, gridBagConstraints);
 
-        opacityExplanation.setText("(0 is Transparent; 1 is Opaque)");
+        jLabel1.setText("0: Transparent");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        forPrinter.add(opacityExplanation, gridBagConstraints);
+        forPrinter.add(jLabel1, gridBagConstraints);
+
+        jLabel2.setText("1: Opaque");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        forPrinter.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(forPrinter, gridBagConstraints);
 
-        appearance.setLayout(new java.awt.GridBagLayout());
+        pattern.setLayout(new java.awt.GridBagLayout());
 
-        appearance.setBorder(new javax.swing.border.TitledBorder("Color and Pattern"));
-        layerGreenLabel.setText("Green:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerGreenLabel, gridBagConstraints);
-
-        layerBlueLabel.setText("Blue:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerBlueLabel, gridBagConstraints);
-
-        layerGreen.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerGreen, gridBagConstraints);
-
-        layerRed.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerRed, gridBagConstraints);
-
-        layerRedLabel.setText("Red:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerRedLabel, gridBagConstraints);
-
-        layerBlue.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(layerBlue, gridBagConstraints);
-
-        jLabel50.setText("Click on a pattern below  to use it above::");
+        pattern.setBorder(new javax.swing.border.TitledBorder("Pattern"));
+        jLabel50.setText("Click on a pattern below to use it above");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        appearance.add(jLabel50, gridBagConstraints);
+        pattern.add(jLabel50, gridBagConstraints);
 
-        pick.setText("Pick");
+        useStipplePatternDisplay.setText("Use Stipple Pattern");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        pattern.add(useStipplePatternDisplay, gridBagConstraints);
+
+        useOutlinePatternDisplay.setText("Outline Pattern");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        pattern.add(useOutlinePatternDisplay, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
-        appearance.add(pick, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.weightx = 1.0;
+        add(pattern, gridBagConstraints);
+
+        color.setLayout(new java.awt.GridBagLayout());
+
+        color.setBorder(new javax.swing.border.TitledBorder("Color"));
+        jLabel40.setText("Transparency:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        color.add(jLabel40, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        color.add(transparentLayer, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        add(appearance, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        add(color, gridBagConstraints);
 
-    }//GEN-END:initComponents
+    }
+    // </editor-fold>//GEN-END:initComponents
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel appearance;
-    private javax.swing.JPanel forDisplay;
+    private javax.swing.JPanel color;
     private javax.swing.JPanel forPrinter;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel40;
     private javax.swing.JLabel jLabel50;
-    private javax.swing.JTextField layerBlue;
-    private javax.swing.JLabel layerBlueLabel;
-    private javax.swing.JTextField layerGreen;
-    private javax.swing.JLabel layerGreenLabel;
-    private javax.swing.JTextField layerRed;
-    private javax.swing.JLabel layerRedLabel;
     private javax.swing.JTextField opacity;
-    private javax.swing.JLabel opacityExplanation;
     private javax.swing.JLabel opacityLabel;
-    private javax.swing.JButton pick;
+    private javax.swing.JPanel pattern;
     private javax.swing.JComboBox transparentLayer;
     private javax.swing.JCheckBox useOutlinePatternDisplay;
     private javax.swing.JCheckBox useOutlinePatternPrinter;
