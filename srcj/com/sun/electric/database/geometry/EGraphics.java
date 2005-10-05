@@ -275,6 +275,44 @@ public class EGraphics extends Observable
 		patternMap.put(layer, patternPref);
 	}
 
+	/**
+	 * Method to recache the graphics information from the preferences.
+	 * Called after new preferences have been imported.
+	 */
+	public void recachePrefs()
+	{
+		Technology tech = layer.getTechnology();
+		if (tech == null) return;
+
+		Pref usePatternDisplayPref = (Pref)usePatternDisplayMap.get(layer);
+		displayPatterned = usePatternDisplayPref.getBoolean();
+
+		Pref outlinePatternDisplayPref = (Pref)outlinePatternDisplayMap.get(layer);
+		displayOutlined = outlinePatternDisplayPref.getBoolean();
+
+		Pref usePatternPrinterPref = (Pref)usePatternPrinterMap.get(layer);
+		printPatterned = usePatternPrinterPref.getBoolean();
+
+		Pref outlinePatternPrinterPref = (Pref)outlinePatternPrinterMap.get(layer);
+		printOutlined = outlinePatternPrinterPref.getBoolean();
+
+		Pref transparentLayerPref = (Pref)transparentLayerMap.get(layer);
+		transparentLayer = transparentLayerPref.getInt();
+
+		Pref opacityPref = (Pref)opacityMap.get(layer);
+		opacity = opacityPref.getDouble();
+		
+		Pref colorPref = (Pref)colorMap.get(layer);
+		int color = colorPref.getInt();
+		red = (color >> 16) & 0xFF;
+		green = (color >> 8) & 0xFF;
+		blue = color & 0xFF;
+
+		Pref patternPref = (Pref)patternMap.get(layer);
+		String pat = patternPref.getString();
+		parsePatString(pat, pattern);
+	}
+
 	private String makePatString(int [] pattern)
 	{
 		StringBuffer sb = new StringBuffer();

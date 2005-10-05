@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/05/05, SMR) Spice output doesn't notice header/trailer files in
+     directories that are not where the library came from (Bug #594).
+FIX: In "Spice.writeHeader()" and "Spice.writeTrailer()", use current output file's directory.
+
+IMP: (10/05/05, SMR) New command in SDI mode: "Window / Remember Location of Display"
+     saves initial window location.
+
+BUG: (10/05/05, SMR) Zooming-out (with Shift key) while editing down-in-place fails (Bug #492).
+FIX: In ZoomAndPanListener.mouseReleased(), transform coordinates when down-in-place.
+
+BUG: (10/05/05, SMR) Outline edit mode places new points in strange locations (Bug #154).
+FIX: In OutlineListener.mousePressed(), take new point from cursor.
+
+BUG: (10/05/05, SMR) Importing preferences doesn't update layer appearance (Bug #601).
+FIX: Must recache all EGraphics information after importing preferences.
+
 IMP: (10/05/05, DN) Transactional DB: PortInst stores its Variables in ImmutableNodeInst.
 
 BUG: (10/05/05, DN) JELIB reader doesn't convert variables on port inst.
@@ -20,7 +36,7 @@ FIX: Cache "replace" results in HashMap.
 BUG: (10/04/05, DN) Message "Unlinked var ART_message added to highlight" when roaming text.
 FIX: In user.Highlight.setVar print message when var is NOT linked.
 
-BUG: (10/04/05,DN) Some regressions fails in progress dialog (Bug #197).
+BUG: (10/04/05, DN) Some regressions fails in progress dialog (Bug #197).
 FIX: In methods of class user.dialogs.Progress insert "if (Main.BATCHMODE) return".
 
 BUG: (10/04/05, DN) Spice (Epic) waveform viewer cross-probing broken again after #583 fix (Bug #580).
@@ -28,7 +44,7 @@ FIX: In WaveformWindow.findSelectedSignals use findSignalForNetwork after findSi
      In Signal.setSignalName use getFullName() instead of signalName.
 
 IMP/MAN: (10/03/05, SMR) Combined the "Layers" and "Colors" preferences into a single panel.
-     Extended the "Artwork look" dialog to include layers and colors.
+     Extended the "Artwork Appearance" dialog to include layers and colors.
 
 IMP: (10/03/05, SMR) Modified more "Preferences" panels to have their own technology popup:
      Routing, Logical Effort.

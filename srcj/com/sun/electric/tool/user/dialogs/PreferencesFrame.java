@@ -24,6 +24,8 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
@@ -71,7 +73,9 @@ import com.sun.electric.tool.user.dialogs.options.UnitsTab;
 import com.sun.electric.tool.user.dialogs.options.VerilogTab;
 import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.help.ManualViewer;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -486,7 +490,26 @@ public class PreferencesFrame extends EDialog
 	{
 		Pref.importPrefs();
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-        top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+        top.getTheMenuBar().restoreSavedBindings(false); // trying to cache again
+
+		// recache all layers and their graphics
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = (Layer)lIt.next();
+				layer.getGraphics().recachePrefs();
+			}
+		}
+
+		// close dialog now because all values are cached badly
+		closeDialog(null);
+
+		// redraw everything
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+		if (wf != null) wf.loadComponentMenuForTechnology();
+		EditWindow.repaintAllContents();
 	}
 
 	private void loadOptionPanel()

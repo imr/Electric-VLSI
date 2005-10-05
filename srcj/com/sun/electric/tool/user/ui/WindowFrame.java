@@ -323,7 +323,7 @@ public class WindowFrame extends Observable
 		{
 			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
 			jf.setSize(frameSize);
-			jf.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
+			jf.setLocation(windowOffset+WINDOW_OFFSET+User.getDefaultWindowXPos(), windowOffset+User.getDefaultWindowYPos());
 		}
 		return frameSize;
 	}        

@@ -53,7 +53,7 @@ import javax.swing.event.ChangeListener;
  */
 public class LayersTab extends PreferencePanel
 {
-	private static HashMap layerMap;
+	private HashMap layerMap;
 	private HashMap transAndSpecialMap;
 	private HashMap colorMapMap;
 	private ColorPatternPanel colorAndPatternPanel;

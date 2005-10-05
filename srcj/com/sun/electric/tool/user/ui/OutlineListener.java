@@ -176,32 +176,9 @@ public class OutlineListener
 					if (i == point)
 					{
 						// found the selected point, make the insertion
-						if (i+1 >= origPoints.length)
-						{
-							// insertion point at the end: figure out what to do
-							if (outlineNode.traceWraps())
-							{
-								// outline wraps: make this between here and first point
-								newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[0].getX()) / 2,
-									outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[0].getY()) / 2);
-								EditWindow.gridAlign(newPoints[j]);
-								j++;
-							} else
-							{
-								// outline does not wrap: make new one be relative to previous one
-								newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX()*2 + origPoints[i-1].getX(),
-									outlineNode.getAnchorCenterY() + origPoints[i].getY()*2 + origPoints[i-1].getY());
-								EditWindow.gridAlign(newPoints[j]);
-								j++;
-							}
-						} else
-						{
-							// there is a "next" point, make this one between here and there
-							newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[i+1].getX()) / 2,
-								outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[i+1].getY()) / 2);
-							EditWindow.gridAlign(newPoints[j]);
-							j++;
-						}
+						newPoints[j] = wnd.screenToDatabase(x, y);
+						EditWindow.gridAlign(newPoints[j]);
+						j++;
 					}
 				}
 				trans.transform(newPoints, 0, newPoints, 0, newPoints.length);

@@ -1769,6 +1769,32 @@ public class User extends Listener
 	 */
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
+	private static Pref cacheDefaultWindowXPos = Pref.makeIntPref("DefaultWindowXPos", tool.prefs, 0);
+	/**
+	 * Method to tell the default X position of top-level windows.
+	 * The default is "0" (on the left).
+	 * @return the default X position of top-level windows.
+	 */
+	public static int getDefaultWindowXPos() { return cacheDefaultWindowXPos.getInt(); }
+	/**
+	 * Method to set the default X position of top-level windows.
+	 * @param x the default X position of top-level windows.
+	 */
+	public static void setDefaultWindowXPos(int x) { cacheDefaultWindowXPos.setInt(x); }
+
+	private static Pref cacheDefaultWindowYPos = Pref.makeIntPref("DefaultWindowYPos", tool.prefs, 0);
+	/**
+	 * Method to tell the default Y position of top-level windows.
+	 * The default is "0" (on the left).
+	 * @return the default Y position of top-level windows.
+	 */
+	public static int getDefaultWindowYPos() { return cacheDefaultWindowYPos.getInt(); }
+	/**
+	 * Method to set the default Y position of top-level windows.
+	 * @param y the default Y position of top-level windows.
+	 */
+	public static void setDefaultWindowYPos(int y) { cacheDefaultWindowYPos.setInt(y); }
+
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", tool.prefs, true);
 	/**
 	 * Method to tell whether to play a "click" sound when an arc is created.

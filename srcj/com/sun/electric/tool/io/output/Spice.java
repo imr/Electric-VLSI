@@ -2090,7 +2090,7 @@ System.out.println("NETWORK INAMED "+info.netName);
 			if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String headerPath = TextUtils.getFilePath(TextUtils.makeURLToFile(filePath));
                 String ext = headerFile.substring(SPICE_EXTENSION_PREFIX.length());
                 if (ext.startsWith(".")) ext = ext.substring(1);
 				String filePart = cell.getName() + "." + ext;
@@ -2147,7 +2147,7 @@ System.out.println("NETWORK INAMED "+info.netName);
 			if (trailerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String trailerpath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String trailerpath = TextUtils.getFilePath(TextUtils.makeURLToFile(filePath));
 				String filePart = cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				String fileName = trailerpath + filePart;
 				File test = new File(fileName);

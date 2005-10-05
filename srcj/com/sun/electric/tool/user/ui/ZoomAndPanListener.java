@@ -189,6 +189,8 @@ public class ZoomAndPanListener
 			{
 				wnd.setScale(wnd.getScale() * 0.5);
 				Point2D offset = new Point2D.Double((minSelX+maxSelX)/2, (minSelY+maxSelY)/2);
+				if (wnd.isInPlaceEdit())
+					wnd.getInPlaceTransformOut().transform(offset, offset);
 				wnd.setOffset(offset);
 				wnd.repaintContents(null, false);
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);

@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -65,7 +66,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: A       I K  N PQ      XY 
+		// mnemonic keys available: A       I K    PQ      XY 
         MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
@@ -141,16 +142,17 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
                 curWF.finished(); }});
 
-        if (!TopLevel.isMDIMode()) {
-            windowMenu.addSeparator();
-            m = windowMenu.addMenuItem("Move to Ot_her Display", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
-            if (getAllGraphicsDevices().length < 2) {
-                // only 1 screen, disable menu
-                m.setEnabled(false);
-            }
-        }
-
+		if (!TopLevel.isMDIMode()) {
+			windowMenu.addSeparator();
+			m = windowMenu.addMenuItem("Move to Ot_her Display", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
+			if (getAllGraphicsDevices().length < 2) {
+				// only 1 screen, disable menu
+				m.setEnabled(false);
+			}
+			windowMenu.addMenuItem("Remember Locatio_n of Display", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { rememberDisplayLocation(); } });
+		}
         windowMenu.addSeparator();
 
         // mnemonic keys available: A CDEFGHIJKLMNOPQ STUV XYZ
@@ -641,6 +643,19 @@ public class WindowMenu {
         if (i == (gs.length - 1)) i = 0; else i++;      // go to next device
 
         curWF.moveEditWindow(gs[i].getDefaultConfiguration());
+    }
+
+	public static void rememberDisplayLocation()
+    {
+        // this only works in SDI mode
+        if (TopLevel.isMDIMode()) return;
+
+        // find current screen
+        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+		TopLevel tl = curWF.getFrame();
+		Point pt = tl.getLocation();
+		User.setDefaultWindowXPos(pt.x);
+		User.setDefaultWindowYPos(pt.y);
     }
 
 }
