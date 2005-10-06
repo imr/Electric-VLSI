@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -300,18 +301,18 @@ public class CellLists extends EDialog
 		}
 	}
 
-	/**
-	 * Class for counting instances.
-	 * It is basically a modifiable Integer.
-	 */
-	private static class InstanceCount
-	{
-		private int count;
-
-		InstanceCount() { count = 0; }
-		public void increment() { count++; }
-		public int getCount() { return count; }
-	}
+//	/**
+//	 * Class for counting instances.
+//	 * It is basically a modifiable Integer.
+//	 */
+//	private static class InstanceCount
+//	{
+//		private int count;
+//
+//		InstanceCount() { count = 0; }
+//		public void increment() { count++; }
+//		public int getCount() { return count; }
+//	}
 
 	/**
 	 * This method implements the command to list (recursively) the nodes in this Cell.
@@ -330,7 +331,7 @@ public class CellLists extends EDialog
 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
 			{
 				NodeProto np = (NodeProto)nIt.next();
-				nodeCount.put(np, new InstanceCount());
+				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -339,7 +340,7 @@ public class CellLists extends EDialog
 			for(Iterator nIt = lib.getCells(); nIt.hasNext(); )
 			{
 				NodeProto np = (NodeProto)nIt.next();
-				nodeCount.put(np, new InstanceCount());
+				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
 
@@ -355,14 +356,14 @@ public class CellLists extends EDialog
 			for(Iterator nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
 				NodeProto np = (NodeProto)nIt.next();
-				InstanceCount count = (InstanceCount)nodeCount.get(np);
-				if (count.getCount() == 0) continue;
+				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
+				if (count.intValue() == 0) continue;
 				if (curtech != printtech)
 				{
 					System.out.println(curtech.getTechName() + " technology:");
 					printtech = curtech;
 				}
-				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + np.describe(true) + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
 			}
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -372,14 +373,14 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				InstanceCount count = (InstanceCount)nodeCount.get(cell);
-				if (count.getCount() == 0) continue;
+				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				if (count.intValue() == 0) continue;
 				if (lib != printlib)
 				{
 					System.out.println(lib + ":");
 					printlib = lib;
 				}
-				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe(true) + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + cell.describe(true) + " nodes");
 			}
 		}
 	}
@@ -394,7 +395,7 @@ public class CellLists extends EDialog
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
-			InstanceCount count = (InstanceCount)nodeCount.get(np);
+			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
 			if (count != null) count.increment();
 
 			if (!(np instanceof Cell)) continue;
@@ -425,7 +426,7 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				nodeCount.put(cell, new InstanceCount());
+				nodeCount.put(cell, new GenMath.MutableInteger(0));
 			}
 		}
 
@@ -435,7 +436,7 @@ public class CellLists extends EDialog
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
-			InstanceCount count = (InstanceCount)nodeCount.get(np);
+			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
 			if (count != null) count.increment();
 		}
 
@@ -447,12 +448,12 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				InstanceCount count = (InstanceCount)nodeCount.get(cell);
-				if (count == null || count.getCount() == 0) continue;
+				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				if (count == null || count.intValue() == 0) continue;
 				if (first)
 					System.out.println("Instances appearing in " + curCell);
 				first = false;
-				String line = "   " + count.getCount() + " instances of " + cell + " at";
+				String line = "   " + count.intValue() + " instances of " + cell + " at";
 				for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
@@ -476,13 +477,6 @@ public class CellLists extends EDialog
 
 		HashMap nodeCount = new HashMap();
 
-		// stop now if this cell has no instances
-		if (!curCell.getInstancesOf().hasNext())
-		{
-			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
-			return;
-		}
-
 		// set counters on every cell in every library
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -490,20 +484,48 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				nodeCount.put(cell, new InstanceCount());
+				nodeCount.put(cell, new GenMath.MutableInteger(0));
 			}
 		}
 
 		// count the number of instances in this cell
+		boolean found = false;
 		for(Iterator nIt = curCell.getInstancesOf(); nIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nIt.next();
 			Cell cell = ni.getParent();
-			InstanceCount count = (InstanceCount)nodeCount.get(cell);
-			if (count != null) count.increment();
+			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+			if (count != null)
+			{
+				count.increment();
+				found = true;
+			}
+		}
+
+		// count the number of instances in this cell's icon
+		Cell iconCell = curCell.iconView();
+		if (iconCell != null)
+		{
+			for(Iterator nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				if (ni.isIconOfParent()) continue;
+				Cell cell = ni.getParent();
+				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				if (count != null)
+				{
+					count.increment();
+					found = true;
+				}
+			}
 		}
 
 		// show the results
+		if (!found)
+		{
+			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
+			return;
+		}
 		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -511,9 +533,9 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				InstanceCount count = (InstanceCount)nodeCount.get(cell);
-				if (count == null || count.getCount() == 0) continue;
-				System.out.println("  " + count.getCount() + " instances in " + cell);
+				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				if (count == null || count.intValue() == 0) continue;
+				System.out.println("  " + count.intValue() + " instances in " + cell);
 			}
 		}
 	}

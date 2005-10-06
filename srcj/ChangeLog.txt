@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/06/05, SMR) List Cell Usage doesn't handle icons (Bug #618).
+FIX: In CellUsage.java, consider icon cells, too.
+
 BUG: (10/06/05, SMR) Colors are not updated after importing preferences.
 FIX: Added recaching to EGraphics, delayed background caching to PixelDrawing.
 
