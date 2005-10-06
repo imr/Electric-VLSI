@@ -26,12 +26,13 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.io.IOTool;
 
-import java.awt.print.Printable;
-import java.awt.print.PageFormat;
-import java.awt.image.ImageObserver;
-import java.awt.image.BufferedImage;
-import java.awt.Image;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
 
 /**
  * Class to define a printer interface.
@@ -44,7 +45,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 	private PageFormat pageFormat;
 	private int desiredDPI = IOTool.getPrintResolution();
 
-	public ElectricPrinter (WindowContent context, PageFormat pageFormat)
+	public ElectricPrinter(WindowContent context, PageFormat pageFormat)
 	{
 		this.context = context;
 		this.pageFormat = pageFormat;
@@ -57,7 +58,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 	public int getDesiredDPI() {return desiredDPI;}
 
 	public int print(Graphics g, PageFormat pf, int page)
-		throws java.awt.print.PrinterException
+		throws PrinterException
 	{
 		if (page != 0) return Printable.NO_SUCH_PAGE;
 

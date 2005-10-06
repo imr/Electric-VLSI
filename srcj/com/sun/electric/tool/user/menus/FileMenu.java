@@ -950,6 +950,7 @@ public class FileMenu {
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
+	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
@@ -984,25 +985,8 @@ public class FileMenu {
 
 			// resize the window if this is a WaveformWindow
 			Dimension oldSize = null;
-
-			// create the "ElectricPrinter" object
-			ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
-	 		if (pageFormat == null)
-			{
-				pageFormat = pj.defaultPage();
-				pageFormat.setOrientation(PageFormat.LANDSCAPE);
-	            pageFormat = pj.validatePage(pageFormat);
-			}
-
 			if (wf.getContent() instanceof WaveformWindow)
 			{
-//			    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
-//		 		if (pageFormat == null)
-//				{
-//					pageFormat = pj.defaultPage();
-//					pageFormat.setOrientation(PageFormat.LANDSCAPE);
-//		            pageFormat = pj.validatePage(pageFormat);
-//				}
 				int iw = (int)pageFormat.getImageableWidth();
 				int ih = (int)pageFormat.getImageableHeight();
 				oldSize = overall.getSize();

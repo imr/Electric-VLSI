@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/06/05, SMR) Printing schematics and layout is wrong.
+FIX: In EditWindow.paint() and EditWindow.repaintContents(), ignore windows with no frame.
+
 IMP: (10/06/05, DN) In many places generic type parameters are added for static type-checking.
      runAll4.sh script is added to regressions of main branch by Java 1.4 .
 

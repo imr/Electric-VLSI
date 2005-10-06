@@ -1020,6 +1020,7 @@ public class EditWindow extends JPanel
 	public void paint(Graphics g)
 	{
 		// to enable keys to be received
+		if (wf == null) return;
 		if (wf == WindowFrame.getCurrentWindowFrame())
 			requestFocusInWindow();
 
@@ -1034,12 +1035,11 @@ public class EditWindow extends JPanel
 		}
 
 		// stop now if rendering and the repaint came too soon
-//		if (runningNow != null && !intermediateRefresh)
+//		if (runningNow != null)
 //		{
 //System.out.println("SCREEN FLASH!!!!!!!!!!!!!!!");
 //			return;
 //		}
-//
 //		intermediateRefresh = false;
 
 		// show the image
@@ -1225,6 +1225,7 @@ public class EditWindow extends JPanel
 	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate)
 	{
 		// start rendering thread
+		if (wf == null) return;
 		if (offscreen == null) return;
 
 		// do the redraw in a separate thread
