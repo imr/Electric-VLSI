@@ -898,7 +898,7 @@ public class User extends Listener
 	/**
 	 * Method to return the default spacing of grid dots in the X direction.
 	 * The default is 1.
-	 * @return true the default spacing of grid dots in the X direction.
+	 * @return the default spacing of grid dots in the X direction.
 	 */
 	public static double getDefGridXSpacing() { return cacheDefGridXSpacing.getDouble(); }
 	/**
@@ -911,7 +911,7 @@ public class User extends Listener
 	/**
 	 * Method to return the default spacing of grid dots in the Y direction.
 	 * The default is 1.
-	 * @return true the default spacing of grid dots in the Y direction.
+	 * @return the default spacing of grid dots in the Y direction.
 	 */
 	public static double getDefGridYSpacing() { return cacheDefGridYSpacing.getDouble(); }
 	/**
@@ -924,7 +924,7 @@ public class User extends Listener
 	/**
 	 * Method to return the default frequency of bold grid dots in the X direction.
 	 * The default is 10.
-	 * @return true the default frequency of bold grid dots in the X direction.
+	 * @return the default frequency of bold grid dots in the X direction.
 	 */
 	public static int getDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getInt(); }
 	/**
@@ -937,7 +937,7 @@ public class User extends Listener
 	/**
 	 * Method to return the default frequency of bold grid dots in the Y direction.
 	 * The default is 10.
-	 * @return true the default frequency of bold grid dots in the Y direction.
+	 * @return the default frequency of bold grid dots in the Y direction.
 	 */
 	public static int getDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getInt(); }
 	/**
@@ -950,7 +950,7 @@ public class User extends Listener
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is 1, meaning that placement and movement should land on whole grid units.
-	 * @return true the default alignment of objects to the grid.
+	 * @return the default alignment of objects to the grid.
 	 */
 	public static double getAlignmentToGrid() { return cacheAlignmentToGrid.getDouble(); }
 	/**
@@ -958,6 +958,21 @@ public class User extends Listener
 	 * @param dist the default alignment of objects to the grid.
 	 */
 	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
+
+	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);
+	/**
+	 * Method to return true if grid axes are shown.
+	 * Grid axes are solid lines passing through the origin.
+	 * The default is false.
+	 * @return true if grid axes are shown.
+	 */
+	public static boolean isGridAxesShown() { return cacheShowGridAxes.getBoolean(); }
+	/**
+	 * Method to set if grid axes are shown.
+	 * Grid axes are solid lines passing through the origin.
+	 * @param s true if grid axes are shown.
+	 */
+	public static void setGridAxesShown(boolean s) { cacheShowGridAxes.setBoolean(s); }
 
 	/****************************** TEXT PREFERENCES ******************************/
 
