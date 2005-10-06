@@ -315,8 +315,6 @@ public class PixelDrawing
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
 		numBytesPerRow = (sz.width + 7) / 8;
-		backgroundColor = User.getColorBackground() & 0xFFFFFF;
-		backgroundValue = backgroundColor | 0xFF000000;
 		patternedOpaqueLayers = new HashMap();
 		renderedWindow = true;
 
@@ -343,8 +341,6 @@ public class PixelDrawing
 		total = sz.height * sz.width;
         opaqueData = new int[total];
 		numBytesPerRow = (sz.width + 7) / 8;
-		backgroundColor = User.getColorBackground() & 0xFFFFFF;
-		backgroundValue = backgroundColor | 0xFF000000;
 		patternedOpaqueLayers = new HashMap();
         
 		curTech = null;
@@ -431,6 +427,8 @@ public class PixelDrawing
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
+		backgroundColor = User.getColorBackground() & 0xFFFFFF;
+		backgroundValue = backgroundColor | 0xFF000000;
 		
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
