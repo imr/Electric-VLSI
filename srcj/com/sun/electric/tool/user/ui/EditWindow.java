@@ -1493,6 +1493,7 @@ public class EditWindow extends JPanel
 	{
 		private Graphics g;
 		private EditWindow wnd;
+		private Color lineColor, textColor;
 
 		/**
 		 * Constructor for cell frame rendering.
@@ -1505,14 +1506,8 @@ public class EditWindow extends JPanel
 			super(cell, wnd.pageNumber);
 			this.g = g;
 			this.wnd = wnd;
-		}
-
-		/**
-		 * Method to initialize the drawing of a frame.
-		 */
-		public void renderInit()
-		{
-			g.setColor(Color.BLACK);
+			lineColor = new Color(User.getColorInstanceOutline());
+			textColor = new Color(User.getColorText());
 		}
 
 		/**
@@ -1522,6 +1517,7 @@ public class EditWindow extends JPanel
 		 */
 		public void showFrameLine(Point2D from, Point2D to)
 		{
+			g.setColor(lineColor);
 			Point f = wnd.databaseToScreen(from);
 			Point t = wnd.databaseToScreen(to);
 			g.drawLine(f.x, f.y, t.x, t.y);
@@ -1544,6 +1540,7 @@ public class EditWindow extends JPanel
 			// get the font
 			Font font = new Font(User.getDefaultFont(), Font.PLAIN, initialHeight);
 			g.setFont(font);
+			g.setColor(textColor);
 			FontRenderContext frc = new FontRenderContext(null, true, true);
 
 			// convert the message to glyphs

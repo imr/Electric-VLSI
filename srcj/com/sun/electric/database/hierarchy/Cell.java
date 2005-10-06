@@ -1282,12 +1282,6 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
 		}
 
 		/**
-		 * Method to initialize the drawing of a frame.
-		 * This method is overridden by subclasses that know how to do the function.
-		 */
-		public void renderInit() {}
-
-		/**
 		 * Method to draw a line in a frame.
 		 * This method is overridden by subclasses that know how to do the function.
 		 * @param from the starting point of the line (in database units).

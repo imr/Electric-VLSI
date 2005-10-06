@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/06/05, SMR) Cell frames are not visible when the background is black (Bug #615).
+FIX: Use proper color, not black.
+
 BUG: (10/06/05, SMR) Printing schematics and layout is wrong.
 FIX: In EditWindow.paint() and EditWindow.repaintContents(), ignore windows with no frame.
 
