@@ -73,7 +73,7 @@ public final class CellId implements NodeProtoId
     private volatile int numArcIds = 0;
     
     /** List of CellIds created so far. */
-    private static final ArrayList/*<CellId>*/ cellIds = new ArrayList/*<CellId>*/();
+    private static final ArrayList<CellId> cellIds = new ArrayList<CellId>();
     /** Empty CellUsage array for initialization. */
     private static final CellUsage[] NULL_CELL_USAGE_ARRAY = {};
     /** Empty hash for initialization. */

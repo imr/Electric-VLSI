@@ -47,7 +47,7 @@ import java.util.StringTokenizer;
  *  7.04.1
  *  8.00
  */
-public class Version implements Comparable
+public class Version implements Comparable<Version>
 {
 	/**
 	 * This is the current version of Electric
@@ -255,8 +255,9 @@ public class Version implements Comparable
      * @param o the object to be compared.
      * @return the result of comparison.
      */
-    public int compareTo(Object o) {
-		Version v = (Version)o;
+/*5*/public int compareTo(Version v) {
+//4*/public int compareTo(Object o) {
+//4*/	Version v = (Version)o;
 
 		if (major < v.major) return -1;
 		if (major > v.major) return 1;

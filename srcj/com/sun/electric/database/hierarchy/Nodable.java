@@ -88,7 +88,7 @@ public interface Nodable
 	 * Method to return an iterator over all Variables on this Nodable.
 	 * @return an iterator over all Variables on this Nodable.
 	 */
-	public Iterator getVariables();
+	public Iterator<Variable> getVariables();
 
     /**
      * Method to return the Variable on this ElectricObject with the given key
@@ -105,7 +105,7 @@ public interface Nodable
      * This may also include any parameters on the defaultVarOwner object that are not on this object.
      * @return an Iterator over all Variables on this ElectricObject.
      */
-    public Iterator getParameters();
+    public Iterator<Variable> getParameters();
 
     /**
      * Method to create a Variable on this ElectricObject with the specified values.

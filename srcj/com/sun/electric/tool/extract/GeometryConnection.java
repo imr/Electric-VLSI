@@ -140,7 +140,7 @@ public class GeometryConnection
 
             if (cell == geomA.getParent()) return true; // skip first one.
 
-            Set nets = null;
+            Set<Network> nets = null;
 
             for(Iterator it = cell.searchIterator(geomBBnd); it.hasNext(); )
             {

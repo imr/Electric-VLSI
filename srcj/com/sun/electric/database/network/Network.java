@@ -138,12 +138,12 @@ public class Network {
     public int getNetIndex() { return netIndex; }
     
     /** A net can have multiple names. Return alphabetized list of names. */
-    public Iterator getNames() {
+    public Iterator<String> getNames() {
         return ArrayIterator.iterator(names);
     }
     
     /** A net can have multiple names. Return alphabetized list of names. */
-    public Iterator getExportedNames() {
+    public Iterator<String> getExportedNames() {
         return ArrayIterator.iterator(names, 0, exportedNamesCount);
     }
     
@@ -172,7 +172,7 @@ public class Network {
      * @exportedNames Collection for exported names.
      * @unexportedNames Collection for unexported names.
      */
-    public void fillNames(Collection exportedNames, Collection unexportedNames) {
+    public void fillNames(Collection<String> exportedNames, Collection<String> unexportedNames) {
         for (int i = 0; i < names.length; i++) {
             String name = names[i];
             (i < exportedNamesCount ? exportedNames : unexportedNames).add(name);
@@ -182,11 +182,11 @@ public class Network {
     /** Get iterator over all PortInsts on Network.  Note that the
      * PortFilter class is useful for filtering out frequently excluded
      * PortInsts.  */
-    public Iterator getPorts() {
-        ArrayList ports = new ArrayList();
-        for (Iterator it = getParent().getNodes(); it.hasNext(); ) {
+    public Iterator<PortInst> getPorts() {
+        ArrayList<PortInst> ports = new ArrayList<PortInst>();
+        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
-            for (Iterator pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
                 PortInst pi = (PortInst)pit.next();
                 if (netlist.getNetwork(pi) == this)
                     ports.add(pi);
@@ -196,9 +196,9 @@ public class Network {
     }
     
     /** Get iterator over all Exports on Network */
-    public Iterator getExports() {
-        ArrayList exports = new ArrayList();
-        for (Iterator it = getParent().getPorts(); it.hasNext();) {
+    public Iterator<Export> getExports() {
+        ArrayList<Export> exports = new ArrayList<Export>();
+        for (Iterator<Export> it = getParent().getExports(); it.hasNext();) {
             Export e = (Export) it.next();
             int busWidth = netlist.getBusWidth(e);
             for (int i = 0; i < busWidth; i++) {
@@ -212,9 +212,9 @@ public class Network {
     }
     
     /** Get iterator over all ArcInsts on Network */
-    public Iterator getArcs() {
-        ArrayList arcs = new ArrayList();
-        for (Iterator it = getParent().getArcs(); it.hasNext();) {
+    public Iterator<ArcInst> getArcs() {
+        ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
+        for (Iterator<ArcInst> it = getParent().getArcs(); it.hasNext();) {
             ArcInst ai = (ArcInst) it.next();
             int busWidth = netlist.getBusWidth(ai);
             for (int i = 0; i < busWidth; i++) {
@@ -245,7 +245,7 @@ public class Network {
      * @return a String describing this Network.
      */
     public String describe(boolean withQuotes) {
-        Iterator it = getNames();
+        Iterator<String> it = getNames();
         String name = (String)it.next();
         while (it.hasNext())
             name += "/" + (String)it.next();

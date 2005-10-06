@@ -121,7 +121,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private JPanel changePanel;
 	private int [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
-	private List highlightList;
+	private List<Highlight> highlightList;
 //	private int numNodes, numArcs, numExports, numTexts;
 	List nodeList, arcList, exportList, textList;
 
@@ -229,7 +229,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		highlightList = new ArrayList();
+		highlightList = new ArrayList<Highlight>();
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -266,7 +266,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		// copy the selected objects to a private list and sort it
 		highlightList.clear();
         if (wnd != null) {
-            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
                 highlightList.add(it.next());
             }
@@ -627,12 +627,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
 	}
 
-	private static class SortMultipleHighlights implements Comparator
+	private static class SortMultipleHighlights implements Comparator<Highlight>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Highlight h1, Highlight h2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Highlight h1 = (Highlight)o1;
-			Highlight h2 = (Highlight)o2;
+//4*/		Highlight h1 = (Highlight)o1;
+//4*/		Highlight h2 = (Highlight)o2;
 
 			// if the types are different, order by types
 			if (h1.getType() != h2.getType())
@@ -1269,7 +1270,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void removeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeActionPerformed
 	{//GEN-HEADEREND:event_removeActionPerformed
 		int [] items = list.getSelectedIndices();
-		List newList = new ArrayList();
+		List<Highlight> newList = new ArrayList<Highlight>();
 		for(int i=0; i<highlightList.size(); i++)
 		{
 			int j = 0;
@@ -1294,7 +1295,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed
 	{//GEN-HEADEREND:event_removeOthersActionPerformed
 		int [] items = list.getSelectedIndices();
-		List newList = new ArrayList();
+		List<Highlight> newList = new ArrayList<Highlight>();
 		for(int i=0; i<highlightList.size(); i++)
 		{
 			int j = 0;

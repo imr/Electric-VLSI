@@ -122,7 +122,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		private final String name;
 		private final int index;
 		private final Poly.Type pt;
-	    private static final List positions = new ArrayList();
+	    private static final List<Position> positions = new ArrayList<Position>();
 
 		private Position(String name, int index, Poly.Type pt)
 		{
@@ -189,7 +189,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public static Position getPosition(Poly.Type type)
 		{
-			for(Iterator it = positions.iterator(); it.hasNext(); )
+			for(Iterator<Position> it = positions.iterator(); it.hasNext(); )
 			{
 				Position pos = (Position)it.next();
 				if (type == pos.pt) return pos;
@@ -213,7 +213,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /**
          * Get an iterator over all Positions
          */
-        public static Iterator getPositions() { return Collections.unmodifiableList(positions).iterator(); }
+        public static Iterator<Position> getPositions() { return Collections.unmodifiableList(positions).iterator(); }
 
 		/**
 		 * Returns a printable version of this Position.
@@ -281,7 +281,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	{
 		private final String name;
 		private final int index;
-		private static final List positions = new ArrayList();
+		private static final List<DispPos> positions = new ArrayList<DispPos>();
 
 		private DispPos(String name, int index)
 		{
@@ -315,7 +315,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * @return the DispPos at a given index.
 		 */
 		public static DispPos getShowStylesAt(int index) {
-            for (Iterator it = positions.iterator(); it.hasNext(); ) {
+            for (Iterator<DispPos> it = positions.iterator(); it.hasNext(); ) {
                 DispPos d = (DispPos)it.next();
                 if (d.index == index) return d;
             }
@@ -326,7 +326,7 @@ abstract class AbstractTextDescriptor implements Serializable
          * Get an iterator over all show styles.
          * @return an iterator over the list of show styles
          */
-        public static Iterator getShowStyles() { return Collections.unmodifiableList(positions).iterator(); }
+        public static Iterator<DispPos> getShowStyles() { return Collections.unmodifiableList(positions).iterator(); }
 
 		/**
 		 * Returns a printable version of this DispPos.
@@ -454,7 +454,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		private final int angle;
 		private final int index;
 		private final String name;
-		private static final List rotations = new ArrayList();
+		private static final List<Rotation> rotations = new ArrayList<Rotation>();
 
 		private Rotation(int angle, int index, String name)
 		{
@@ -490,7 +490,7 @@ abstract class AbstractTextDescriptor implements Serializable
          * @return a Rotation for the given angle, or null if non exists.
          */
         public static Rotation getRotation(int angle) {
-            for (Iterator it = rotations.iterator(); it.hasNext(); ) {
+            for (Iterator<Rotation> it = rotations.iterator(); it.hasNext(); ) {
                 Rotation rot = (Rotation)it.next();
                 if (rot.getAngle() == angle) return rot;
             }
@@ -514,7 +514,7 @@ abstract class AbstractTextDescriptor implements Serializable
          * Get an iterator over all rotations
          * @return an iterator over all rotations
          */
-        public static Iterator getRotations() { return Collections.unmodifiableList(rotations).iterator(); }
+        public static Iterator<Rotation> getRotations() { return Collections.unmodifiableList(rotations).iterator(); }
 
 		/**
 		 * Returns a printable version of this Rotation.
@@ -540,7 +540,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	{
 		private final String name;
 		private final int index;
-		private static final List units = new ArrayList();
+		private static final List<Unit> units = new ArrayList<Unit>();
 
 		private Unit(String name, int index)
 		{
@@ -580,7 +580,7 @@ abstract class AbstractTextDescriptor implements Serializable
          * Get an iterator over all units.
          * @return an iterator over the list of unit types.
          */
-        public static Iterator getUnits() { return Collections.unmodifiableList(units).iterator(); }
+        public static Iterator<Unit> getUnits() { return Collections.unmodifiableList(units).iterator(); }
 
 		/**
 		 * Returns a printable version of this Unit.
@@ -606,8 +606,8 @@ abstract class AbstractTextDescriptor implements Serializable
 		private String fontName;
 		private int index;
 		private static int indexCount = 0;
-		private static final HashMap fontMap = new HashMap();
-		private static final List fontList = new ArrayList();
+		private static final HashMap<String,ActiveFont> fontMap = new HashMap<String,ActiveFont>();
+		private static final List<ActiveFont> fontList = new ArrayList<ActiveFont>();
 
 		private ActiveFont(String fontName)
 		{
@@ -683,7 +683,7 @@ abstract class AbstractTextDescriptor implements Serializable
     public static class Code {
         private final String name;
         private final int cFlags;
-        private static final ArrayList allCodes = new ArrayList();
+        private static final ArrayList<Code> allCodes = new ArrayList<Code>();
 
         private Code(String name, int cFlags) {
             this.name = name;
@@ -707,7 +707,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /**
          * Method to get an iterator over all Code types.
          */
-        public static Iterator getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
+        public static Iterator<Code> getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
 
 		/**
 		 * Method to convert a bits value to a Code object.

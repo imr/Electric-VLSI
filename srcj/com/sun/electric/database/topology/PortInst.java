@@ -119,10 +119,10 @@ public class PortInst extends ElectricObject
 	 * that connect to this PortInst
 	 * @return an iterator over associated Connections
 	 */
-	public Iterator getConnections() {
-		List connections = new ArrayList();
+	public Iterator<Connection> getConnections() {
+		List<Connection> connections = new ArrayList<Connection>();
 		// get connections on NodeInst
-		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
+		for (Iterator<Connection> it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
 			Connection c = (Connection)it.next();
 			if (c.getPortInst() != this) break;
 			connections.add(c);
@@ -135,10 +135,10 @@ public class PortInst extends ElectricObject
 	 * that connect to this PortInst
 	 * @return an iterator over associated Exports
 	 */
-	public Iterator getExports() {
-		List exports = new ArrayList();
+	public Iterator<Export> getExports() {
+		List<Export> exports = new ArrayList<Export>();
 		// get exports on NodeInst
-		for (Iterator it = nodeInst.getExports(); it.hasNext(); ) {
+		for (Iterator<Export> it = nodeInst.getExports(); it.hasNext(); ) {
 			Export e = (Export)it.next();
 			if (e.getOriginalPort() == this)
 				exports.add(e);
@@ -160,7 +160,7 @@ public class PortInst extends ElectricObject
 		if (!pn.isArcsShrink() && !canShrink) return;
 
         byte shrink = checkShortening(canShrink);
-		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
+		for (Iterator<Connection> it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
 			Connection con = (Connection)it.next();
 			if (con.getPortInst() != this) break;
 			con.setEndShrink(shrink);
@@ -181,7 +181,7 @@ public class PortInst extends ElectricObject
         int ang1 = -1;
 
 		// gather the angles of the nodes/arcs
-		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
+		for (Iterator<Connection> it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
 			Connection con = (Connection)it.next();
 			if (con.getPortInst() != this) break;
 			ArcInst ai = con.getArc();
@@ -245,7 +245,7 @@ public class PortInst extends ElectricObject
 //	{
 //		// gather the angles of the nodes/arcs
 //		int total = 0, off90 = 0;
-//		for(Iterator it = getConnections(); it.hasNext(); )
+//		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 //		{
 //			Connection con = (Connection)it.next();
 //			ArcInst ai = con.getArc();
@@ -294,7 +294,7 @@ public class PortInst extends ElectricObject
 	 */
 	public void disconnect()
 	{
-		for (Iterator it = getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			delVar(var.getKey());
@@ -303,7 +303,7 @@ public class PortInst extends ElectricObject
 		
 		// kill the arcs attached to the connections to this port instance.
 		// This will also remove the connections themselves
-		for (Iterator it = getConnections(); it.hasNext(); )
+		for (Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -312,7 +312,7 @@ public class PortInst extends ElectricObject
 		}
 
 		// remove connected exports
-		for (Iterator it = getExports(); it.hasNext(); )
+		for (Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			Export export = (Export)it.next();
 			export.kill();
@@ -405,12 +405,12 @@ public class PortInst extends ElectricObject
             return (false);
 
         PortInst no = (PortInst)obj;
-        Set noCheckAgain = new HashSet();
-		for (Iterator it = getConnections(); it.hasNext(); )
+        Set<Connection> noCheckAgain = new HashSet<Connection>();
+		for (Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
 			Connection c = (Connection)it.next();
 			boolean found = false;
-			for (Iterator noIt = no.getConnections(); noIt.hasNext(); )
+			for (Iterator<Connection> noIt = no.getConnections(); noIt.hasNext(); )
 			{
 				Connection noC = (Connection)noIt  .next();
 				if (noCheckAgain.contains(noC)) continue;

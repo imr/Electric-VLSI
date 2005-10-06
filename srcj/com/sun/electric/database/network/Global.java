@@ -45,7 +45,7 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Map Name -> Global. */					private static Map globalsByName = new HashMap();
+	/** Map Name -> Global. */					private static Map<Name,Global> globalsByName = new HashMap<Name,Global>();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
 	/** global signal power. */					public static final Global power = newGlobal("vdd");
@@ -102,13 +102,13 @@ public class Global
 	/**
 	 * A Global.Set defines a set of Global signals.
 	 */
-	public static class Set implements Comparable {
+	public static class Set implements Comparable<Set> {
 
 		/** bitmap which defines set. */			private PortCharacteristic[] elemMap;
 		/** map localInd->globalInd. */				private Global[] elems;
 		/** map globalInd->localInd. */				private int[] indexOf;
 
-		/** Map Set->Set of all Global.Sets. */		private static Map allSets = new TreeMap();
+		/** Map Set->Set of all Global.Sets. */		private static Map<Set,Set> allSets = new TreeMap<Set,Set>();
 		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new PortCharacteristic[0]);
 		/** A private set for search in allSets. */	public static final Global.Set empty = newSet(new PortCharacteristic[0]);
 
@@ -223,10 +223,10 @@ public class Global
 		 * @throws ClassCastException if the specified object's type prevents it
 		 *         from being compared to this Object.
 		 */
-		public int compareTo(Object o)
-		{
-			return compareTo((Global.Set)o);
-		}
+//4*/	public int compareTo(Object o)
+//4*/	{
+//4*/		return compareTo((Global.Set)o);
+//4*/	}
 
 		/**
 		 * Returns a printable version of this GlobalSet.
@@ -251,7 +251,7 @@ public class Global
 		 * @param gs iterator with globals
 		 * @return Set with removed globals.
 		 */
-		public Global.Set remove(Iterator/*<Global>*/ gs) {
+		public Global.Set remove(Iterator<Global> gs) {
 			Buf buf = new Buf(this);
 			for (;gs.hasNext(); ) {
 				Global g = (Global)gs.next();

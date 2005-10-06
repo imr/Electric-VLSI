@@ -1388,7 +1388,7 @@ public class ArcInst extends Geometric implements Comparable
     /**
 	 * Method to check and repair data structure errors in this ArcInst.
 	 */
-	public int checkAndRepair(boolean repair, List list, ErrorLogger errorLogger)
+	public int checkAndRepair(boolean repair, List<Geometric> list, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
         ArcProto ap = getProto();
@@ -1636,7 +1636,7 @@ public class ArcInst extends Geometric implements Comparable
 
         // Remove noCheckList if equals is implemented
         // Sort them out by a key so comparison won't be O(n2)
-        List noCheckAgain = new ArrayList();
+        List<Poly> noCheckAgain = new ArrayList<Poly>();
         for (int i = 0; i < polyList.length; i++)
         {
             boolean found = false;

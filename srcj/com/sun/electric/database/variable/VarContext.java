@@ -97,7 +97,7 @@ public class VarContext
 			}
 		}
 
-	    private final Map cache = new HashMap();
+	    private final Map<EvalPair,Object> cache = new HashMap<EvalPair,Object>();
 
 		public synchronized boolean containsKey(Variable var, Object info) {
 			return cache.containsKey(new EvalPair(var, info));
@@ -318,8 +318,8 @@ public class VarContext
      * @return a new VarContext
      */
     public VarContext removeParentContext(int levels) {
-        Stack ports = new Stack();
-        Stack nodes = new Stack();
+        Stack<PortInst> ports = new Stack<PortInst>();
+        Stack<Nodable> nodes = new Stack<Nodable>();
         VarContext acontext = this;
         while (acontext != VarContext.globalContext) {
             ports.push(acontext.getPortInst());

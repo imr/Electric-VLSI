@@ -24,6 +24,8 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -169,9 +171,9 @@ class RTNode
 			{
 				System.out.println("Internal error: " + cell + " cannot find " + geom + " in R-Tree...Rebuilding R-Tree");
 				cell.setRTree(makeTopLevel());
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 					linkGeom(cell, (Geometric)it.next());
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					linkGeom(cell, (Geometric)it.next());
 				return;
 			}
@@ -707,7 +709,7 @@ class RTNode
 	 * }
 	 * </PRE>
 	 */
-	static class Search implements Iterator
+	static class Search implements Iterator<Geometric>
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;
 
@@ -775,7 +777,8 @@ class RTNode
 			return nextObj != null;
 		}
 
-		public Object next()
+/*5*/	public Geometric next()
+//4*/	public Object next()
 		{
 			if (nextObj != null)
 			{

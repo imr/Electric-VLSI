@@ -60,7 +60,7 @@ public class PortCharacteristic
 	private final int order;
 	private static int ordering = 0;
 
-	private static HashMap characteristicList = new HashMap();
+	private static HashMap<Integer,PortCharacteristic> characteristicList = new HashMap<Integer,PortCharacteristic>();
 
 	private PortCharacteristic(String shortName, String fullName, String name, int bits)
 	{
@@ -163,19 +163,20 @@ public class PortCharacteristic
 	 */
 	public static List getOrderedCharacteristics()
 	{
-		List orderedList = new ArrayList();
-		for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
+		List<PortCharacteristic> orderedList = new ArrayList<PortCharacteristic>();
+		for(Iterator<PortCharacteristic> it = characteristicList.values().iterator(); it.hasNext(); )
 			orderedList.add(it.next());
 		Collections.sort(orderedList, new CharacteristicOrder());
 		return orderedList;
 	}
 
-	static class CharacteristicOrder implements Comparator
+	static class CharacteristicOrder implements Comparator<PortCharacteristic>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(PortCharacteristic c1, PortCharacteristic c2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			PortCharacteristic c1 = (PortCharacteristic)o1;
-			PortCharacteristic c2 = (PortCharacteristic)o2;
+//4*/		PortCharacteristic c1 = (PortCharacteristic)o1;
+//4*/		PortCharacteristic c2 = (PortCharacteristic)o2;
 			return c1.order - c2.order;
 		}
 	}

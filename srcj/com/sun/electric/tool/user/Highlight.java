@@ -929,7 +929,7 @@ public class Highlight
 					}
                     int busWidth = pp.getNameKey().busWidth();
 
-                    HashSet markObj = new HashSet();
+                    HashSet<Geometric> markObj = new HashSet<Geometric>();
                     for(Iterator it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = (ArcInst)it.next();

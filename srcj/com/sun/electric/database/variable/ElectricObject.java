@@ -188,7 +188,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	{
         //checkExamine();
 		int numVars = 0;
-		for (Iterator it = getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDisplay())
@@ -217,7 +217,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		int numAddedVariables = 0;
         double cX = rect.getCenterX();
         double cY = rect.getCenterY();
-		for (Iterator it = getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
@@ -368,7 +368,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public Rectangle2D getTextBounds(EditWindow_ wnd)
 	{
 		Rectangle2D bounds = null;
-		for(Iterator vIt = getVariables(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = getVariables(); vIt.hasNext(); )
 		{
 			Variable var = (Variable)vIt.next();
 			if (!var.isDisplay()) continue;
@@ -399,7 +399,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		if (this instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)this;
-			for(Iterator it = ni.getExports(); it.hasNext(); )
+			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				Poly poly = pp.computeTextPoly(wnd, null, null);
@@ -738,7 +738,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-        Iterator it = other.getVariables();
+        Iterator<Variable> it = other.getVariables();
         synchronized(this) {
             while(it.hasNext())
             {
@@ -820,7 +820,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		char separateChar = '_';
 
 		// break the string into a list of ArrayName objects
-		List names = new ArrayList();
+		List<ArrayName> names = new ArrayList<ArrayName>();
 		boolean inBracket = false;
 		int len = name.length();
 		int startOfBase = 0;
@@ -849,7 +849,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			}
 		}
 
-		for(Iterator it = names.iterator(); it.hasNext(); )
+		for(Iterator<ArrayName> it = names.iterator(); it.hasNext(); )
 		{
 			ArrayName an = (ArrayName)it.next();
 
@@ -1004,7 +1004,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		}
 		StringBuffer result = new StringBuffer();
 		boolean first = true;
-		for(Iterator it = names.iterator(); it.hasNext(); )
+		for(Iterator<ArrayName> it = names.iterator(); it.hasNext(); )
 		{
 			if (first) first = false; else
 				result.append(",");
@@ -1038,7 +1038,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
-	public synchronized Iterator getVariables() { return getImmutable().getVariables(); }
+	public synchronized Iterator<Variable> getVariables() { return getImmutable().getVariables(); }
 
 	/**
 	 * Method to return the number of Variables on this ElectricObject.
@@ -1093,7 +1093,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	{
         checkExamine();
 		boolean firstvar = true;
-		for(Iterator it = getVariables(); it.hasNext() ;)
+		for(Iterator<Variable> it = getVariables(); it.hasNext() ;)
 		{
             Variable val = (Variable)it.next();
             Variable.Key key = val.getKey();

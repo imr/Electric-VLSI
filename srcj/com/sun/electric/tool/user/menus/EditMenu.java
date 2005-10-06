@@ -1018,8 +1018,8 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		java.util.List newHighList = new ArrayList();
-		for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+		List<Highlight> newHighList = new ArrayList<Highlight>();
+		for(Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)

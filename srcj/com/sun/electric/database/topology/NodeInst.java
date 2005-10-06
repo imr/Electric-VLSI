@@ -126,7 +126,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
-	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList connections = new ArrayList(2);
+	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList<Connection> connections = new ArrayList<Connection>(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
 	/** True, if this NodeInst is wiped. */                 private boolean wiped;
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
@@ -319,7 +319,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (protoType == Generic.tech.cellCenterNode)
 		{
 			// only 1 cell-center is allowed: check for others
-			for(Iterator it = parent.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
 			{
 				NodeInst oNi = (NodeInst)it.next();
 				if (oNi.getProto() == Generic.tech.cellCenterNode)
@@ -463,7 +463,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         Undo.modifyNodeInst(this, oldD);
         
 //        // change the coordinates of every arc end connected to this
-//        for(Iterator it = getConnections(); it.hasNext(); ) {
+//        for(Iterator<Connection> it = getConnections(); it.hasNext(); ) {
 //            Connection con = (Connection)it.next();
 //            if (con.getPortInst().getNodeInst() == this) {
 //                Point2D oldLocation = con.getLocation();
@@ -578,7 +578,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// see if the old arcs can connect to ports
 		double arcDx = 0, arcDy = 0;
 		int arcCount = 0;
-		for(Iterator it = getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 
@@ -620,7 +620,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// see if the old exports have the same connections
-		for(Iterator it = getExports(); it.hasNext(); )
+		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 
@@ -646,10 +646,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// now replace all of the arcs
-		List arcList = new ArrayList();
-		for(Iterator it = getConnections(); it.hasNext(); )
+		List<Connection> arcList = new ArrayList<Connection>();
+		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 			arcList.add(it.next());
-		for(Iterator it = arcList.iterator(); it.hasNext(); )
+		for(Iterator<Connection> it = arcList.iterator(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			int index = 0;
@@ -737,7 +737,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				{
 					// other end not exported, see if all arcs can be adjusted
 					boolean adjustable = true;
-					for(Iterator oIt = adjustThisNode.getConnections(); oIt.hasNext(); )
+					for(Iterator<Connection> oIt = adjustThisNode.getConnections(); oIt.hasNext(); )
 					{
 						Connection otherCon = (Connection)oIt.next();
 						ArcInst otherArc = otherCon.getArc();
@@ -831,12 +831,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// now replace all of the exports
-		List exportList = new ArrayList();
-		for(Iterator it = getExports(); it.hasNext(); )
+		List<Export> exportList = new ArrayList<Export>();
+		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			exportList.add(it.next());
 		}
-		for(Iterator it = exportList.iterator(); it.hasNext(); )
+		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			int index = 0;
@@ -1205,7 +1205,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (User.isTextVisibilityOnExport())
 		{
 			numExports = getNumExports();
-			for(Iterator it = getExports(); it.hasNext(); )
+			for(Iterator<Export> it = getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				numExportVariables += pp.numDisplayableVariables(false);
@@ -1248,7 +1248,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (numExports > 0)
 		{
 			AffineTransform unTrans = rotateIn();
-			for(Iterator it = getExports(); it.hasNext(); )
+			for(Iterator<Export> it = getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				polys[start] = pp.getNamePoly();
@@ -1321,10 +1321,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * This may also include any parameters on the defaultVarOwner object that are not on this object.
      * @return an Iterator over all Variables on this NodeInst.
      */
-    public Iterator getParameters() {
-        TreeMap keysToVars = new TreeMap();
+    public Iterator<Variable> getParameters() {
+        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
         // get all parameters on this object
-        for (Iterator it = getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
             Variable v = (Variable)it.next();
             if (!isParam(v.getKey())) continue;
             keysToVars.put(v.getKey(), v);
@@ -1332,7 +1332,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         // look on default var owner
         Cell defOwner = getVarDefaultOwner();
         if (defOwner != null) {
-            for (Iterator it = defOwner.getParameters(); it.hasNext(); ) {
+            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
                 Variable v = (Variable)it.next();
                 if (keysToVars.get(v.getKey()) == null)
                     keysToVars.put(v.getKey(), v);
@@ -1386,7 +1386,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		int numVarsOnNode = super.numDisplayableVariables(multipleStrings);
 
-		for(Iterator it = getPortInsts(); it.hasNext(); )
+		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
 			PortInst pi = (PortInst)it.next();
 			numVarsOnNode += pi.numDisplayableVariables(multipleStrings);
@@ -1407,7 +1407,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		int numAddedVariables = super.addDisplayableVariables(rect, polys, start, wnd, multipleStrings);
 
-		for(Iterator it = getPortInsts(); it.hasNext(); )
+		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
 			PortInst pi = (PortInst)it.next();
 			int justAdded = pi.addDisplayableVariables(rect, polys, start+numAddedVariables, wnd, multipleStrings);
@@ -1834,7 +1834,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return an Iterator for all PortInsts on this NodeInst.
 	 * @return an Iterator for all PortInsts on this NodeInst.
 	 */
-	public Iterator getPortInsts() { return ArrayIterator.iterator(portInsts); }
+	public Iterator<PortInst> getPortInsts() { return ArrayIterator.iterator(portInsts); }
 
 	/**
 	 * Method to return the number of PortInsts on this NodeInst.
@@ -1953,8 +1953,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		portInsts[portIndex] = pi;
         
         // Move connections as well
-        ArrayList/*<Connection>*/ savedConnections = new ArrayList/*<Connection>*/();
-        for (Iterator it = connections.iterator(); it.hasNext(); ) {
+        ArrayList<Connection> savedConnections = new ArrayList<Connection>();
+        for (Iterator<Connection> it = connections.iterator(); it.hasNext(); ) {
             Connection con = (Connection)it.next();
             if (con.getPortInst() == pi) {
                 savedConnections.add(con);
@@ -2029,7 +2029,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
-	public Iterator getExports() { return ArrayIterator.iterator(exports); }
+	public Iterator<Export> getExports() { return ArrayIterator.iterator(exports); }
 
 	/**
 	 * Method to return the number of Exports on this NodeInst.
@@ -2051,7 +2051,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int total1 = ni1.getProto().getNumPorts();
 		PortAssociation [] portInfo1 = new PortAssociation[total1];
 		int k = 0;
-		for(Iterator it1 = ni1.getPortInsts(); it1.hasNext(); )
+		for(Iterator<PortInst> it1 = ni1.getPortInsts(); it1.hasNext(); )
 		{
 			PortInst pi1 = (PortInst)it1.next();
 			portInfo1[k] = new PortAssociation();
@@ -2066,7 +2066,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int total2 = ni2.getProto().getNumPorts();
 		PortAssociation [] portInfo2 = new PortAssociation[total2];
 		k = 0;
-		for(Iterator it2 = ni2.getPortInsts(); it2.hasNext(); )
+		for(Iterator<PortInst> it2 = ni2.getPortInsts(); it2.hasNext(); )
 		{
 			PortInst pi2 = (PortInst)it2.next();
 			portInfo2[k] = new PortAssociation();
@@ -2165,7 +2165,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		NodeProto np = getProto();
 		if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe())
 		{
-			for(Iterator it = getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
@@ -2207,7 +2207,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int j = 0;
 		ArcInst [] reconAr = new ArcInst[2];
 		Point2D [] delta = new Point2D.Double[2];
-		for(Iterator it = getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			if (j >= 2) { j = 0;   break; }
@@ -2309,7 +2309,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return an Iterator over all Connections on this NodeInst.
 	 * @return an Iterator over all Connections on this NodeInst.
 	 */
-	public Iterator getConnections()
+	public Iterator<Connection> getConnections()
 	{
 		return connections.iterator();
 	}
@@ -2319,7 +2319,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @param portIndex port index to start iterator from/
 	 * @return an Iterator over Connections on this NodeInst since portIndex.
 	 */
-    Iterator getConnections(int portIndex) {
+    Iterator<Connection> getConnections(int portIndex) {
         return connections.listIterator(searchConnections(portIndex));
     }
     
@@ -2510,7 +2510,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// invisible: look for offset text
-		for(Iterator it = getExports(); it.hasNext(); )
+		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
@@ -2522,7 +2522,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 		}
 
-		for(Iterator it = getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDisplay() && (var.getXOff() != 0 || var.getYOff() != 0))
@@ -2892,7 +2892,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/**
 	 * Method to check and repair data structure errors in this NodeInst.
 	 */
-	public int checkAndRepair(boolean repair, List list, ErrorLogger errorLogger)
+	public int checkAndRepair(boolean repair, List<Geometric> list, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
 //		int warningCount = 0;
@@ -2978,7 +2978,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (protoType instanceof Cell)
 		{
 			int foundUsage = 0;
-			for (Iterator it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
+			for (Iterator<CellUsage> it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
 			{
 				CellUsage u = (CellUsage)it.next();
 				if (u.parentId == parent.getId()) foundUsage++;
@@ -3271,7 +3271,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         // Has to be another way more eficient
         // Remove noCheckList if equals is implemented
         // Sort them out by a key so comparison won't be O(n2)
-        List noCheckAgain = new ArrayList();
+        List<Object> noCheckAgain = new ArrayList<Object>();
         for (int i = 0; i < polyList.length; i++)
         {
             boolean found = false;
@@ -3298,12 +3298,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         // Not sure if this comparison is necessary
         // @TODO simply these calls by a generic function or template
         noCheckAgain.clear();
-        for (Iterator it = getPortInsts(); it.hasNext(); )
+        for (Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
         {
             boolean found = false;
             PortInst port = (PortInst)it.next();
 
-            for (Iterator i = no.getPortInsts(); i.hasNext();)
+            for (Iterator<PortInst> i = no.getPortInsts(); i.hasNext();)
             {
                 PortInst p = (PortInst)i.next();
 
@@ -3327,12 +3327,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
         // Comparing Exports
         noCheckAgain.clear();
-		for(Iterator it = getExports(); it.hasNext(); )
+		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			Export export = (Export)it.next();
             boolean found = false;
 
-            for (Iterator i = no.getExports(); i.hasNext();)
+            for (Iterator<Export> i = no.getExports(); i.hasNext();)
             {
                 Export p = (Export)i.next();
 
@@ -3355,12 +3355,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
         noCheckAgain.clear();
-		for(Iterator it = getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
             boolean found = false;
 
-            for (Iterator i = no.getVariables(); i.hasNext();)
+            for (Iterator<Variable> i = no.getVariables(); i.hasNext();)
             {
                 Variable p = (Variable)i.next();
 

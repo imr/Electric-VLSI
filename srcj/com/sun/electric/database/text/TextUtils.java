@@ -1263,7 +1263,7 @@ public class TextUtils
      * A comparator object for sorting Strings that may have numbers in them.
      * Created once because it is used often.
      */
-    public static final Comparator STRING_NUMBER_ORDER = new Comparator() {
+    public static final Comparator<String> STRING_NUMBER_ORDER = new Comparator<String>() {
         /**
          * Method to compare two names and give a sort order.
          * The comparison considers numbers in numeric order so that the
@@ -1304,9 +1304,10 @@ public class TextUtils
          * @param o2 the second string.
          * @return 0 if they are equal, nonzero according to order.
          */
-        public int compare(Object o1, Object o2) {
-            String name1 = (String)o1;
-            String name2 = (String)o2;
+/*5*/   public int compare(String name1, String name2) {        
+//4*/   public int compare(Object o1, Object o2) {
+//4*/       String name1 = (String)o1;
+//4*/       String name2 = (String)o2;
             int len1 = name1.length();
             int len2 = name2.length();
             int extent = Math.min(len1, len2);
@@ -1430,15 +1431,16 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Cells by their view order.
 	 */
-	public static class CellsByView implements Comparator
+	public static class CellsByView implements Comparator<Cell>
 	{
 		/**
 		 * Method to sort Cells by their view order.
 		 */
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
+/*5*/	public int compare(Cell c1, Cell c2)
+//4*/   public int compare(Object o1, Object o2)
+        {
+//4*/		Cell c1 = (Cell)o1;
+//4*/		Cell c2 = (Cell)o2;
 			View v1 = c1.getView();
 			View v2 = c2.getView();
 			return v1.getOrder() - v2.getOrder();
@@ -1448,15 +1450,16 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Cells by their version number.
 	 */
-	public static class CellsByVersion implements Comparator
+	public static class CellsByVersion implements Comparator<Cell>
 	{
 		/**
 		 * Method to sort Cells by their version number.
 		 */
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Cell c1, Cell c2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
+//4*/		Cell c1 = (Cell)o1;
+//4*/		Cell c2 = (Cell)o2;
 			return c2.getVersion() - c1.getVersion();
 		}
 	}
@@ -1464,15 +1467,16 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Cells by their date.
 	 */
-	public static class CellsByDate implements Comparator/*<Cell>*/
+	public static class CellsByDate implements Comparator<Cell>
 	{
 		/**
 		 * Method to sort Cells by their date.
 		 */
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Cell c1, Cell c2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
+//4*/   	Cell c1 = (Cell)o1;
+//4*/		Cell c2 = (Cell)o2;
 			Date r1 = c1.getRevisionDate();
 			Date r2 = c2.getRevisionDate();
 			return r1.compareTo(r2);
@@ -1482,15 +1486,16 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Preferences by their name.
 	 */
-	public static class PrefsByName implements Comparator
+	public static class PrefsByName implements Comparator<Pref>
 	{
 		/**
 		 * Method to sort Preferences by their name.
 		 */
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Pref p1, Pref p2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Pref p1 = (Pref)o1;
-			Pref p2 = (Pref)o2;
+//4*/		Pref p1 = (Pref)o1;
+//4*/		Pref p2 = (Pref)o2;
 			String s1 = p1.getPrefName();
 			String s2 = p2.getPrefName();
 			return s1.compareToIgnoreCase(s2);
@@ -1500,15 +1505,16 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Networks by their name.
 	 */
-    public static class NetworksByName implements Comparator
+    public static class NetworksByName implements Comparator<Network>
     {
 		/**
 		 * Method to sort Networks by their name.
 		 */
-        public int compare(Object o1, Object o2)
+/*5*/   public int compare(Network n1, Network n2)
+//4*/   public int compare(Object o1, Object o2)
         {
-            Network n1 = (Network)o1;
-            Network n2 = (Network)o2;
+//4*/       Network n1 = (Network)o1;
+//4*/       Network n2 = (Network)o2;
             String s1 = n1.describe(false);
             String s2 = n2.describe(false);
             return s1.compareToIgnoreCase(s2);

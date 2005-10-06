@@ -61,11 +61,11 @@ public class EvalJavaBsh
 
     /** For replacing @variable */					private static final Pattern atPat = Pattern.compile("@(\\w+)");
     /** For replacing @variable */					private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
-    /** Results of replacing */                     private static HashMap/*<String,String>*/ replaceHash = new HashMap/*<String,String>*/();
+    /** Results of replacing */                     private static HashMap<String,String> replaceHash = new HashMap<String,String>();
 
     /** The bean shell interpreter object */        private Object envObject;
-    /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
-    /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
+    /** Context stack for recursive eval calls */   private Stack<VarContext> contextStack = new Stack<VarContext>();
+    /** Info stack for recursive eval calls */      private Stack<Object> infoStack = new Stack<Object>();
 
     /** the singleton object of this class. */		public static final EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
 

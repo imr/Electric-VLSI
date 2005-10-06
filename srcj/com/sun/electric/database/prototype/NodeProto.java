@@ -108,7 +108,7 @@ public interface NodeProto
 	 * Method to return an iterator over all PortProtos of this NodeProto.
 	 * @return an iterator over all PortProtos of this NodeProto.
 	 */
-	public Iterator getPorts();
+	public Iterator<PortProto> getPorts();
 
 	/**
 	 * Method to return the number of PortProtos on this NodeProto.

@@ -131,7 +131,7 @@ public class ImmutableElectricObject {
 	 * Method to return an Iterator over all Variables on this ImmutableElectricObject.
 	 * @return an Iterator over all Variables on this ImmutableElectricObject.
 	 */
-	public Iterator getVariables() { return ArrayIterator.iterator(vars); }
+	public Iterator<Variable> getVariables() { return ArrayIterator.iterator(vars); }
 
 	/**
 	 * Method to return an array of all Variables on this ImmutableElectricObject.

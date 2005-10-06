@@ -46,9 +46,9 @@ import java.util.Map;
 public class DumpHeap {
     
     private int[] objHash = new int[1];
-    private ArrayList objs = (new ArrayList());
+    private ArrayList<Object> objs = (new ArrayList<Object>());
     { objs.add(null); }
-    private HashMap classes = new HashMap();
+    private HashMap<Class,ClassDescriptor> classes = new HashMap<Class,ClassDescriptor>();
     
     private DumpHeap() {}
     
@@ -308,8 +308,8 @@ public class DumpHeap {
         
         private ClassDescriptor(Class cls) {
             this.cls = cls;
-            ArrayList fieldList = new ArrayList();
-            ArrayList staticFieldList = new ArrayList();
+            ArrayList<Field> fieldList = new ArrayList<Field>();
+            ArrayList<Field> staticFieldList = new ArrayList<Field>();
             Class superCls = cls.getSuperclass();
             if (superCls != null)
                 fieldList.addAll(Arrays.asList(classDescriptorOf(superCls).fields));

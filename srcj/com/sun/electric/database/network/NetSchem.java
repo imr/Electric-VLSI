@@ -60,7 +60,7 @@ class NetSchem extends NetCell {
 		Cell mainSchematics = cellGroup.getMainSchematics();
 		NetSchem mainSchem = null;
 		if (mainSchematics != null) mainSchem = (NetSchem)NetworkTool.getNetCell(mainSchematics);
-		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
+		for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext();) {
 			Cell cell = (Cell)it.next();
 			if (cell.isIcon()) {
 				NetSchem icon = (NetSchem)NetworkTool.getNetCell(cell);
@@ -278,14 +278,14 @@ class NetSchem extends NetCell {
 		 * Method to return an iterator over all Variables on this Nodable.
 		 * @return an iterator over all Variables on this Nodable.
 		 */
-		public Iterator getVariables()
+		public Iterator<Variable> getVariables()
 		{
 			if (shared == null)
 				return nodeInst.getVariables();
-			List allVariables = new ArrayList();
+			List<Variable> allVariables = new ArrayList<Variable>();
 			for (int i = 0; i < shared.length; i++)
 			{
-				for(Iterator it = shared[i].nodeInst.getVariables(); it.hasNext(); )
+				for(Iterator<Variable> it = shared[i].nodeInst.getVariables(); it.hasNext(); )
 					allVariables.add(it.next());
 			}
 			return allVariables.iterator();
@@ -296,13 +296,13 @@ class NetSchem extends NetCell {
          * This may also include any parameters on the defaultVarOwner object that are not on this object.
          * @return an Iterator over all Variables on this ElectricObject.
          */
-        public Iterator getParameters() {
+        public Iterator<Variable> getParameters() {
             if (shared == null)
                 return nodeInst.getParameters();
-            HashMap allParameters = new HashMap();
+            HashMap<Variable.Key,Variable> allParameters = new HashMap<Variable.Key,Variable>();
             for (int i = 0; i < shared.length; i++)
             {
-                for(Iterator it = shared[i].nodeInst.getParameters(); it.hasNext(); ) {
+                for(Iterator<Variable> it = shared[i].nodeInst.getParameters(); it.hasNext(); ) {
                     Variable v = (Variable)it.next();
                     Variable var = (Variable)allParameters.get(v.getKey());
                     if (var == null) {
@@ -349,8 +349,8 @@ class NetSchem extends NetCell {
 	/** Node offsets. */											int[] nodeOffsets;
 	/** Node offsets. */											int[] drawnOffsets;
 	/** Node offsets. */											Proxy[] nodeProxies;
-	/** Proxies with global rebindes. */							Map/*<Proxy,Set<Global>>*/ proxyExcludeGlobals;
-	/** Map from names to proxies. Contains non-temporary names. */	Map name2proxy = new HashMap();
+	/** Proxies with global rebindes. */							Map<Proxy,Set<Global>> proxyExcludeGlobals;
+	/** Map from names to proxies. Contains non-temporary names. */	Map<Name,Proxy> name2proxy = new HashMap<Name,Proxy>();
 	/** */															Global.Set globals = Global.Set.empty;
 	/** */															int[] portOffsets = new int[1];
 	/** */															int netNamesOffset;
@@ -444,10 +444,10 @@ class NetSchem extends NetCell {
 	/**
 	 * Get an iterator over all of the Nodables of this Cell.
 	 */
-	Iterator getNodables()
+	Iterator<Nodable> getNodables()
 	{
-		ArrayList nodables = new ArrayList();
-		for (Iterator it = cell.getNodes(); it.hasNext();) {
+		ArrayList<Nodable> nodables = new ArrayList<Nodable>();
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
 			if (nodeOffsets[ni.getNodeIndex()] < 0) continue;
 			nodables.add(ni);
@@ -458,7 +458,7 @@ class NetSchem extends NetCell {
 			if (proxy.isShared()) continue;
 			nodables.add(proxy);
 		}
-		for (Iterator it = name2proxy.values().iterator(); it.hasNext();) {
+		for (Iterator<Proxy> it = name2proxy.values().iterator(); it.hasNext();) {
 			Proxy proxy = (Proxy)it.next();
 			if (proxy.isShared())
 				nodables.add(proxy);
@@ -583,7 +583,7 @@ class NetSchem extends NetCell {
 	{
 		super.invalidateUsagesOf(strong);
 		if (cell.isIcon()) return;
-		for (Iterator it = cell.getCellGroup().getCells(); it.hasNext();) {
+		for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext();) {
 			Cell c = (Cell)it.next();
 			if (!c.isIcon()) continue;
 			NetSchem icon = (NetSchem)NetworkTool.getNetCell(c);
@@ -597,7 +597,7 @@ class NetSchem extends NetCell {
 		int numNodes = cell.getNumNodes();
 		Global.Buf globalBuf = new Global.Buf();
 		int nodeProxiesOffset = 0;
-		Map/*<NodeInst,Set<Global>>*/ nodeInstExcludeGlobal = null;
+		Map<NodeInst,Set<Global>> nodeInstExcludeGlobal = null;
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
@@ -629,7 +629,7 @@ class NetSchem extends NetCell {
 
 					// Check for rebinding globals
 					int numPortInsts = np.getNumPorts();
-					Set/*<Global>*/ gb = null;
+					Set<Global> gb = null;
 					for (int j = 0; j < numPortInsts; j++) {
 						PortInst pi = ni.getPortInst(j);
 						int piOffset = getPortInstOffset(pi);
@@ -639,7 +639,7 @@ class NetSchem extends NetCell {
 						if (portIndex < 0) continue;
 						Export e = (Export)sch.cell.getPort(portIndex);
 						if (!e.isGlobalPartition()) continue;
-						if (gb == null) gb = new HashSet/*<Global>*/();
+						if (gb == null) gb = new HashSet<Global>();
 						for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
 							int q = sch.equivPortsF[sch.portOffsets[portIndex] + k];
 							for (int l = 0; l < sch.globals.size(); l++) {
@@ -653,7 +653,7 @@ class NetSchem extends NetCell {
 					if (gb != null) {
 						// remember excluded globals for this NodeInst
 						if (nodeInstExcludeGlobal == null)
-							nodeInstExcludeGlobal = new HashMap/*<NodeInst,Set<Global>>*/();
+							nodeInstExcludeGlobal = new HashMap<NodeInst,Set<Global>>();
 						nodeInstExcludeGlobal.put(ni, gb);
 						// fix Set of globals
 						gs = gs.remove(gb.iterator());
@@ -737,9 +737,9 @@ class NetSchem extends NetCell {
 			Cell iconCell = (Cell)ni.getProto();
 			NetSchem netSchem = NetworkTool.getNetCell(iconCell).getSchem();
 			if (ni.isIconOfParent()) netSchem = null;
-			Set/*<Global>*/ gs = null; // exclude set of globals
+			Set<Global> gs = null; // exclude set of globals
 			if (netSchem != null && nodeInstExcludeGlobal != null)
-				gs = (Set)nodeInstExcludeGlobal.get(ni);
+				gs = (Set<Global>)nodeInstExcludeGlobal.get(ni);
 			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
 				Proxy proxy = null;
 				if (netSchem != null) {
@@ -779,10 +779,10 @@ class NetSchem extends NetCell {
 					}
 					if (gs != null) {
 						if (proxyExcludeGlobals == null)
-							proxyExcludeGlobals = new HashMap/*<Proxy,Set<Global>>*/();
-						Set/*<Global>*/ gs0 = (Set)proxyExcludeGlobals.get(proxy);
+							proxyExcludeGlobals = new HashMap<Proxy,Set<Global>>();
+						Set<Global> gs0 = (Set<Global>)proxyExcludeGlobals.get(proxy);
 						if (gs0 != null) {
-							gs = new HashSet/*<Global>*/(gs);
+							gs = new HashSet<Global>(gs);
 							gs.addAll(gs0);
 						}
 						proxyExcludeGlobals.put(proxy, gs);
@@ -1057,7 +1057,7 @@ class NetSchem extends NetCell {
 	private void connectWireCon (NodeInst ni) {
 		ArcInst ai1 = null;
 		ArcInst ai2 = null;
-		for (Iterator it = ni.getConnections(); it.hasNext();) {
+		for (Iterator<Connection> it = ni.getConnections(); it.hasNext();) {
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
 			if (ai1 == null) {
@@ -1140,14 +1140,14 @@ class NetSchem extends NetCell {
 			netlistF.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
 			netlistT.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
 		}
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
+		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
 			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
 			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
 		}
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
+		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < exportedNetNameCount) continue;
@@ -1184,7 +1184,7 @@ class NetSchem extends NetCell {
 		}
 
 		// add temporary names to unconnected ports
-		for (Iterator it = getNodables(); it.hasNext();) {
+		for (Iterator<Nodable> it = getNodables(); it.hasNext();) {
 			Nodable no = (Nodable)it.next();
 			NodeProto np = no.getProto();
 			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
@@ -1249,7 +1249,7 @@ class NetSchem extends NetCell {
 				Network network = netlist.networks[l];
 				if (network == null) continue;
 				String s = "";
-				for (Iterator sit = network.getNames(); sit.hasNext(); )
+				for (Iterator<String> sit = network.getNames(); sit.hasNext(); )
 				{
 					String n = (String)sit.next();
 					s += "/"+ n;
@@ -1276,7 +1276,7 @@ class NetSchem extends NetCell {
 						System.out.println("\tDrawn " + k + " [" + j + "]");
 					}
 				}
-				for (Iterator it = netNames.values().iterator(); it.hasNext();) {
+				for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext();) {
 					NetName nn = (NetName)it.next();
 					if (netlist.nm_net[netlist.netMap[netNamesOffset + nn.index]] != l) continue;
 					System.out.println("\tNetName " + nn.name);
@@ -1333,7 +1333,7 @@ class NetSchem extends NetCell {
 		localConnections();
 
 //        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
-//        for (Iterator it = getNodables(); it.hasNext(); ) {
+//        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
 //            Nodable no = (Nodable)it.next();
 //            if (!(no.getProto() instanceof Cell)) continue;
 //            Cell subCell = (Cell)no.getProto();

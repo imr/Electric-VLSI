@@ -46,7 +46,7 @@ public class DatabaseChangeEvent {
      */
     public boolean objectChanged(ElectricObject eObj)
     {
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
             Undo.Change change = (Undo.Change)it.next();
             if (change.getObject() == eObj) {
                 return true;
@@ -61,7 +61,7 @@ public class DatabaseChangeEvent {
      * @return true if cell explorer tree was changed.
      */
     public boolean cellTreeChanged() {
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
             Undo.Change change = (Undo.Change)it.next();
             if (change.getType() == Undo.Type.LIBRARYKILL ||
                     change.getType() == Undo.Type.LIBRARYNEW ||

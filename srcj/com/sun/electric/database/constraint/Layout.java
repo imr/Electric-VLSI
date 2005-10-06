@@ -59,9 +59,9 @@ public class Layout extends Constraints
 	static final boolean DEBUG = false;
 
     /** Shadow Cell info */
-    private static final ArrayList/*<LayoutCell>*/ cellInfos = new ArrayList/*<LayoutCell>*/();
+    private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
     /** Map which contains temporary rigidity of ArcInsts. */ 
-    private static final HashMap/*<ArcInst,Boolean>*/ tempRigid = new HashMap/*<ArcInst,Boolean>*/();
+    private static final HashMap<ArcInst,Boolean> tempRigid = new HashMap<ArcInst,Boolean>();
     
 	private Layout() {}
 
@@ -92,10 +92,10 @@ public class Layout extends Constraints
 		// force every cell to remember its current bounds
         wasChangesQuiet = false;
         cellInfos.clear();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
                 newCellInfo(cell);
@@ -111,15 +111,15 @@ public class Layout extends Constraints
 	{
         if (DEBUG) {
             System.out.println("Temporary rigid:");
-            for (Iterator it = tempRigid.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry e = (Map.Entry)it.next();
+            for (Iterator<Map.Entry<ArcInst,Boolean>> it = tempRigid.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<ArcInst,Boolean> e = (Map.Entry<ArcInst,Boolean>)it.next();
                 System.out.println("\t" + e.getKey() + " --> " + e.getValue());
             }
         }
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
                 if (wasChangesQuiet) {

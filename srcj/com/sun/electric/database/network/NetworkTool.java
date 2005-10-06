@@ -141,20 +141,20 @@ public class NetworkTool extends Listener
 	static private void reload()
 	{
 		int maxCell = 1;
-		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
+		for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); )
 		{
 			Library lib = (Library)lit.next();
-			for (Iterator cit = lib.getCells(); cit.hasNext(); )
+			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell c = (Cell)cit.next();
 				while (c.getCellIndex() >= maxCell) maxCell *= 2;
 			}
 		}
 		cells = new NetCell[maxCell];
-		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
+		for (Iterator <Library>lit = Library.getLibraries(); lit.hasNext(); )
 		{
 			Library lib = (Library)lit.next();
-			for (Iterator cit = lib.getCells(); cit.hasNext(); )
+			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell c = (Cell)cit.next();
 				if (getNetCell(c) != null) continue;
@@ -197,10 +197,10 @@ public class NetworkTool extends Listener
 			reload();
 		}
         int ncell = 0;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
-            for(Iterator cit = lib.getCells(); cit.hasNext(); )
+            for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
             {
                 Cell cell = (Cell)cit.next();
                 ncell++;
@@ -316,12 +316,12 @@ public class NetworkTool extends Listener
      * @param nets a set into which all found networks will be added.
      * @return set the set of found networks.
      */
-    public static Set getNetworksOnPort(PortInst pi, Netlist netlist, Set nets)
+    public static Set<Network> getNetworksOnPort(PortInst pi, Netlist netlist, Set<Network> nets)
     {
         boolean added = false;
-        if (nets == null) nets = new HashSet();
+        if (nets == null) nets = new HashSet<Network>();
 
-        for(Iterator aIt = pi.getConnections(); aIt.hasNext(); )
+        for(Iterator<Connection> aIt = pi.getConnections(); aIt.hasNext(); )
         {
             Connection con = (Connection)aIt.next();
             ArcInst ai = con.getArc();
@@ -351,9 +351,9 @@ public class NetworkTool extends Listener
      * @param nets a set into which all found networks will be added.
      * @return set the set of found networks.
      */
-    public static Set getNetworks(Geometric geom, Netlist netlist, Set nets)
+    public static Set<Network> getNetworks(Geometric geom, Netlist netlist, Set<Network> nets)
     {
-        if (nets == null) nets = new HashSet();
+        if (nets == null) nets = new HashSet<Network>();
         else nets.clear();
 
         if (geom instanceof ArcInst)
@@ -361,7 +361,7 @@ public class NetworkTool extends Listener
         else
         {
             NodeInst ni = (NodeInst)geom;
-            for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+            for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
             {
                 PortInst pi = (PortInst)pIt.next();
                 nets = getNetworksOnPort(pi, netlist, nets);

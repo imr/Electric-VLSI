@@ -36,7 +36,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	/** the bits of the text descriptor */		private final long bits;
 	/** the color of the text descriptor */		private final int colorIndex;
     /** the code type of the text descriptor */ private final Code code;
-    /** cache of all TextDescriptors */         private static final HashMap allDescriptors = new HashMap();
+    /** cache of all TextDescriptors */         private static final HashMap<TextDescriptor,TextDescriptor> allDescriptors = new HashMap<TextDescriptor,TextDescriptor>();
     /** empty text descriptor. Size is relative 1.0. isDisplay is true. */
     public static final TextDescriptor EMPTY = newTextDescriptor(new MutableTextDescriptor());
     

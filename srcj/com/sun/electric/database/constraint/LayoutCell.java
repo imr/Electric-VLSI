@@ -77,9 +77,9 @@ class LayoutCell {
     private static final Integer AI_FLEX = new Integer(1);
     
     private Cell cell;
-    private HashMap/*<Export,PortInst>*/ oldExports;
-    private HashMap/*<ArcInst,Object>*/ oldArcs;
-    private LinkedHashMap/*<NodeInst,ImmutableNodeInst>*/ oldNodes = new LinkedHashMap/*<NodeInst,ImmutableNodeInst>*/();
+    private HashMap<Export,PortInst> oldExports;
+    private HashMap<ArcInst,ImmutableArcInst> oldArcs;
+    private LinkedHashMap<NodeInst,ImmutableNodeInst> oldNodes = new LinkedHashMap<NodeInst,ImmutableNodeInst>();
     
     
     /** True if this Cell needs to be computed. */
@@ -89,10 +89,10 @@ class LayoutCell {
     /** True if this Cell is computed by Layout constraint system. */
     private boolean computed;
 
-    /** Map from ArcInst to its change clock */
-    private HashMap/*<Geometric,Integer>*/ changeClock;
+//    /** Map from ArcInst to its change clock */
+//    private HashMap<Geometric,Integer> changeClock;
     /** Set of nodes already moved not to move twice. */
-    private HashSet/*<NodeInst>*/ movedNodes;
+    private HashSet<NodeInst> movedNodes;
     
     LayoutCell(Cell cell) {
         this.cell = cell;
@@ -104,14 +104,14 @@ class LayoutCell {
     void compute() {
         if (computed) return;
         computed = true;
-        for (Iterator it = cell.getUsagesIn(); it.hasNext(); ) {
+        for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext(); ) {
             CellUsage u = (CellUsage)it.next();
             Layout.getCellInfo(u.getProto()).compute();
         }
         if (modified || exportsModified) {
             doCompute();
             if (exportsModified) {
-                for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
+                for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); ) {
                     CellUsage u = (CellUsage)it.next();
                     Layout.getCellInfo(u.getParent()).modified = true;
                 }
@@ -121,7 +121,7 @@ class LayoutCell {
         
         // Release unnecessary memory
         oldArcs = null;
-        changeClock = null;
+//        changeClock = null;
         movedNodes = null;
     }
     
@@ -129,11 +129,11 @@ class LayoutCell {
      * Compute this Cell.
      **/
     private void doCompute() {
-        changeClock = new HashMap/*<Geometric,Integer>*/();
-        movedNodes = new HashSet/*<NodeInst>*/();
+//        changeClock = new HashMap<Geometric,Integer>();
+        movedNodes = new HashSet<NodeInst>();
         
-        LinkedHashSet/*<NodeInst>*/ modifiedInsts = new LinkedHashSet/*<NodeInst>*/();
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+        LinkedHashSet<NodeInst> modifiedInsts = new LinkedHashSet<NodeInst>();
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             boolean portsModified;
             if (ni.getProto() instanceof Cell) {
@@ -149,8 +149,8 @@ class LayoutCell {
             }
         }
         if (oldNodes != null) {
-            for (Iterator it = oldNodes.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry e = (Map.Entry)it.next();
+            for (Iterator<Map.Entry<NodeInst,ImmutableNodeInst>> it = oldNodes.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<NodeInst,ImmutableNodeInst> e = (Map.Entry<NodeInst,ImmutableNodeInst>)it.next();
                 NodeInst ni = (NodeInst)e.getKey();
                 ImmutableNodeInst d = (ImmutableNodeInst)e.getValue();
                 if (d != null) {
@@ -160,7 +160,7 @@ class LayoutCell {
                 }
             }
         }
-        for (Iterator it = modifiedInsts.iterator(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = modifiedInsts.iterator(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getNumExports() != 0)
                 exportsModified = true;
@@ -227,8 +227,8 @@ class LayoutCell {
 		if (getOldD(ni) == null) return;
 
 		// build a list of the arcs with both ends on this nodeinst
-		List interiorArcs = new ArrayList();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		List<ArcInst> interiorArcs = new ArrayList<ArcInst>();
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -242,7 +242,7 @@ class LayoutCell {
 		}
 
 		// look for arcs with both ends on this nodeinst
-		for(Iterator it = interiorArcs.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = interiorArcs.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (!ai.isLinked()) continue;
@@ -280,8 +280,8 @@ class LayoutCell {
 	private void modRigid(NodeInst ni, Orientation dOrient)
 	{
 		// build a list of the rigid arcs on this nodeinst
-		List/*<Connection>*/ rigidArcs = new ArrayList/*<Connection>*/();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		List<Connection> rigidArcs = new ArrayList<Connection>();
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -299,8 +299,8 @@ class LayoutCell {
 		if (rigidArcs.size() == 0) return;
 
 		// look for rigid arcs on this nodeinst
-        HashSet/*<ArcInst>*/ rigidModified = new HashSet/*<ArcInst>*/();
-		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
+        HashSet<ArcInst> rigidModified = new HashSet<ArcInst>();
+		for(Iterator<Connection> it = rigidArcs.iterator(); it.hasNext(); )
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
@@ -387,7 +387,7 @@ class LayoutCell {
 		}
 
 		// re-scan rigid arcs and recursively modify arcs on other nodes
-		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
+		for(Iterator<Connection> it = rigidArcs.iterator(); it.hasNext(); )
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
@@ -414,8 +414,8 @@ class LayoutCell {
 	private void modFlex(NodeInst ni, Orientation dOrient)
 	{
 		// build a list of the flexible arcs on this nodeinst
-		List/*<Connection>*/ flexArcs = new ArrayList/*<Connection>*/();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		List<Connection> flexArcs = new ArrayList<Connection>();
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -433,7 +433,7 @@ class LayoutCell {
 		if (flexArcs.size() == 0) return;
 
 		// look at all of the flexible arcs on this nodeinst
-		for(Iterator it = flexArcs.iterator(); it.hasNext(); )
+		for(Iterator<Connection> it = flexArcs.iterator(); it.hasNext(); )
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
@@ -641,7 +641,7 @@ class LayoutCell {
 		// look for longest other arc on "ono" to determine proper end position
 		double bestDist = Double.MIN_VALUE;
 		ArcInst bestAI = null;
-		for(Iterator it = ono.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = ono.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst oai = con.getArc();
@@ -925,17 +925,17 @@ class LayoutCell {
 
     /*-- Change clock stuff --*/
     private void setChangeClock(Geometric geom, Integer typ) {
-        if (typ != null)
-            changeClock.put(geom, typ);
-        else
-            changeClock.remove(geom);
+//        if (typ != null)
+//            changeClock.put(geom, typ);
+//        else
+//            changeClock.remove(geom);
     }
-    
-    private int getChangeClock(Geometric geom) {
-        Integer i = (Integer)changeClock.get(geom);
-        return i != null ? i.intValue() : Integer.MIN_VALUE;
-    }
-    
+//    
+//    private int getChangeClock(Geometric geom) {
+//        Integer i = (Integer)changeClock.get(geom);
+//        return i != null ? i.intValue() : Integer.MIN_VALUE;
+//    }
+  
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
@@ -954,7 +954,7 @@ class LayoutCell {
 	 */
 	void modifyArcInst(ArcInst ai, ImmutableArcInst oldD) {
         modified = true;
-        if (oldArcs == null) oldArcs = new HashMap/*<ArcInst,Object>*/();
+        if (oldArcs == null) oldArcs = new HashMap<ArcInst,ImmutableArcInst>();
         if (!oldArcs.containsKey(ai))
             oldArcs.put(ai, oldD);
     }
@@ -966,7 +966,7 @@ class LayoutCell {
 	 */
 	void modifyExport(Export pp, PortInst oldPi) {
         exportsModified = true;
-        if (oldExports == null) oldExports = new HashMap/*<Export,PortInst>*/();
+        if (oldExports == null) oldExports = new HashMap<Export,PortInst>();
         if (!oldExports.containsKey(pp))
             oldExports.put(pp, oldPi);
     }
@@ -977,16 +977,16 @@ class LayoutCell {
 	 */
 	void newObject(ElectricObject obj) {
         if (obj instanceof Export) {
-            if (oldExports == null) oldExports = new HashMap/*<Export,PortInst>*/();
+            if (oldExports == null) oldExports = new HashMap<Export,PortInst>();
             assert !oldExports.containsKey(obj);
-            oldExports.put(obj, null);
+            oldExports.put((Export)obj, null);
         } else if (obj instanceof NodeInst) {
             assert !oldNodes.containsKey(obj);
-            oldNodes.put(obj, null);
+            oldNodes.put((NodeInst)obj, null);
         } else if (obj instanceof ArcInst) {
-            if (oldArcs == null) oldArcs = new HashMap/*<ArcInst,Object>*/();
+            if (oldArcs == null) oldArcs = new HashMap<ArcInst,ImmutableArcInst>();
             assert !oldArcs.containsKey(obj);
-            oldArcs.put(obj, null);
+            oldArcs.put((ArcInst)obj, null);
         }
     }
 

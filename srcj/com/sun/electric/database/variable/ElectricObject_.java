@@ -45,7 +45,7 @@ public abstract class ElectricObject_ extends ElectricObject {
      */
     public ImmutableElectricObject getImmutable() { return immutable; }
     
-    public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) { this.immutable = immutable; }
+    public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) { this.immutable = newImmutable; }
         
  	/**
 	 * Method to add a Variable on this ElectricObject.

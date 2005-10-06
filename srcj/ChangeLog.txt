@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (10/06/05, DN) In many places generic type parameters are added for static type-checking.
+     runAll4.sh script is added to regressions of main branch by Java 1.4 .
+
 IMP: (10/05/05, SMR) Title box now defaults the designer name to the current user (Bug #609).
 
 IMP: (10/05/05, GVG) Extra dialog for bug 588 to avoid exception message.

@@ -98,7 +98,7 @@ class NetCell
     /** */                                                          int numExportedDrawns;
 	/** */															int numConnectedDrawns;
 
-	/** A map from Name to NetName. */								Map netNames = new HashMap();
+	/** A map from Name to NetName. */								Map<Name,NetName> netNames = new HashMap<Name,NetName>();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
@@ -139,7 +139,7 @@ class NetCell
 	void invalidateUsagesOf(boolean strong)
 	{
 //		System.out.println("NetSchem.invalidateUsagesOf " + cell + " " + strong);
-		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
+		for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext();) {
 			CellUsage u = (CellUsage)it.next();
             Cell parent = u.getParent();
 			if (cell.isIconOf(parent)) continue;
@@ -156,7 +156,7 @@ class NetCell
 	/**
 	 * Get an iterator over all of the Nodables of this Cell.
 	 */
-	Iterator getNodables() { return cell.getNodes(); }
+	Iterator<Nodable> getNodables() { return cell.getNodables(); }
 
 	/**
 	 * Get a set of global signal in this Cell and its descendants.
@@ -222,7 +222,7 @@ class NetCell
 	}
 
 	private void checkLayoutCell() {
-        HashMap/*<NodeProto,ArrayList<NodeInst>>*/ strangeNodes = null; 
+        HashMap<NodeProto,ArrayList<NodeInst>> strangeNodes = null; 
 		for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			if (ni.getNameKey().isBus()) {
@@ -237,19 +237,19 @@ class NetCell
                 np == Generic.tech.universalPinNode ||
                 np instanceof PrimitiveNode && np.getTechnology() == Schematics.tech) {
                 if (strangeNodes == null)
-                    strangeNodes = new HashMap/*<NodeProto,ArrayList<NodeInst>>*/();
-                ArrayList/*<NodeInst>*/ nodesOfType = (ArrayList/*<NodeInst>*/)strangeNodes.get(np);
+                    strangeNodes = new HashMap<NodeProto,ArrayList<NodeInst>>();
+                ArrayList<NodeInst> nodesOfType = (ArrayList<NodeInst>)strangeNodes.get(np);
                 if (nodesOfType == null) {
-                    nodesOfType = new ArrayList/*<NodeInst>*/();
+                    nodesOfType = new ArrayList<NodeInst>();
                     strangeNodes.put(np, nodesOfType);
                 }
                 nodesOfType.add(ni);
             }
 		}
         if (strangeNodes == null) return;
-        for (Iterator/*<NodeProto>*/ it = strangeNodes.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator<NodeProto> it = strangeNodes.keySet().iterator(); it.hasNext(); ) {
             NodeProto np = (NodeProto)it.next();
-            ArrayList/*<NodeInst>*/ nodesOfType = (ArrayList/*<NodeInst>*/)strangeNodes.get(np);
+            ArrayList<NodeInst> nodesOfType = (ArrayList<NodeInst>)strangeNodes.get(np);
             String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
                     " " + np.describe(true) + " nodes";
             System.out.println(msg);
@@ -421,7 +421,7 @@ class NetCell
 			numDrawns++;
 		}
 		numConnectedDrawns = numDrawns;
-        HashMap/*<NodeProto,ArrayList<NodeInst>>*/ unconnectedPins = null; 
+        HashMap<NodeProto,ArrayList<NodeInst>> unconnectedPins = null; 
 		for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
@@ -446,10 +446,10 @@ class NetCell
 				if (np.getFunction() == PrimitiveNode.Function.PIN && !cell.isIcon() &&
                         cell.getTechnology() != GEM.tech && cell.getTechnology() != EFIDO.tech) {
                     if (unconnectedPins == null)
-                        unconnectedPins = new HashMap/*<NodeProto,ArrayList<NodeInst>>*/();
-                    ArrayList/*<NodeInst>*/ pinsOfType = (ArrayList/*<NodeInst>*/)unconnectedPins.get(np);
+                        unconnectedPins = new HashMap<NodeProto,ArrayList<NodeInst>>();
+                    ArrayList<NodeInst> pinsOfType = (ArrayList<NodeInst>)unconnectedPins.get(np);
                     if (pinsOfType == null) {
-                        pinsOfType = new ArrayList/*<NodeInst>*/();
+                        pinsOfType = new ArrayList<NodeInst>();
                         unconnectedPins.put(np, pinsOfType);
                     }
                     pinsOfType.add(ni);
@@ -459,9 +459,9 @@ class NetCell
 			}
 		}
         if (unconnectedPins != null) {
-            for (Iterator/*<NodeProto>*/ it = unconnectedPins.keySet().iterator(); it.hasNext(); ) {
+            for (Iterator<NodeProto> it = unconnectedPins.keySet().iterator(); it.hasNext(); ) {
                 NodeProto np = (NodeProto)it.next();
-                ArrayList/*<NodeInst>*/ pinsOfType = (ArrayList/*<NodeInst>*/)unconnectedPins.get(np);
+                ArrayList<NodeInst> pinsOfType = (ArrayList<NodeInst>)unconnectedPins.get(np);
                 String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
                 System.out.println(msg);
                 ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);
@@ -511,18 +511,18 @@ class NetCell
 	}
 
 	void initNetnames() {
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); ) {
+		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); ) {
 			NetName nn = (NetName)it.next();
 			nn.name = null;
 			nn.index = -1;
 		}
 		netNameCount = 0;
-		for (Iterator it = cell.getPorts(); it.hasNext();) {
+		for (Iterator<Export> it = cell.getExports(); it.hasNext();) {
 			Export e = (Export) it.next();
 			addNetNames(e.getNameKey());
 		}
 		exportedNetNameCount = netNameCount;
-		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
 			ArcInst ai = (ArcInst) it.next();
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
@@ -534,7 +534,7 @@ class NetCell
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
 		}
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); ) {
+		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); ) {
 			NetName nn = (NetName)it.next();
 			if (nn.name == null)
 				it.remove();
@@ -565,7 +565,7 @@ class NetCell
 
 	private void internalConnections()
 	{
-		for (Iterator it = cell.getNodes(); it.hasNext();) {
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
@@ -630,16 +630,16 @@ class NetCell
 		// debug info
 		System.out.println("BuildNetworkList "+this);
 		int i = 0;
-		for (Iterator nit = getNetworks(); nit.hasNext(); )
+		for (Iterator<Network> nit = getNetworks(); nit.hasNext(); )
 		{
 			Network network = (Network)nit.next();
 			String s = "";
-			for (Iterator sit = network.getNames(); sit.hasNext(); )
+			for (Iterator<String> sit = network.getNames(); sit.hasNext(); )
 			{
 				String n = (String)sit.next();
 				s += "/"+ n;
 			}
-			for (Iterator pit = network.getPorts(); pit.hasNext(); )
+			for (Iterator<PortInst> pit = network.getPorts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
 				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getName();
@@ -715,7 +715,7 @@ class NetCell
 		String s = "\t";
 		Export[] ports = new Export[cell.getNumPorts()];
 		int i = 0;
-		for (Iterator it = cell.getPorts(); it.hasNext(); i++)
+		for (Iterator<Export> it = cell.getExports(); it.hasNext(); i++)
 			ports[i] = (Export)it.next();
 		for (i = 0; i < equivPorts.length; i++)
 		{
@@ -746,7 +746,7 @@ class NetCell
         NetworkTool.errorLogger.clearLogs(cell);
 
 		// redo descendents
-		for (Iterator it = cell.getUsagesIn(); it.hasNext();)
+		for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext();)
 		{
 			CellUsage u = (CellUsage) it.next();
             Cell subCell = u.getProto();
@@ -784,7 +784,7 @@ class NetCell
 		/* Set index of NodeInsts */
 		checkLayoutCell();
 //        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
-//        for (Iterator it = getNodables(); it.hasNext(); ) {
+//        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
 //            Nodable no = (Nodable)it.next();
 //            if (!(no.getProto() instanceof Cell)) continue;
 //            Cell subCell = (Cell)no.getProto();

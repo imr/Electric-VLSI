@@ -96,14 +96,14 @@ public final class HierarchyEnumerator {
 	public static class NetNameProxy extends NameProxy {
 		private Network net;
 		public String leafName() {
-			Iterator it = net.getNames();
+			Iterator<String> it = net.getNames();
 			if (it.hasNext()) {
 				return (String) it.next();
 			} else {
 				return "netIndex"+net.getNetIndex();
 			}
 		}
-		public Iterator leafNames() {return net.getNames();}
+		public Iterator<String> leafNames() {return net.getNames();}
 		public NetNameProxy(VarContext context, String sep, Network net) {
 			super(context, sep);
 			this.net = net;
@@ -195,7 +195,7 @@ public final class HierarchyEnumerator {
        	Cell ammeterIcon = spiceParts==null ? null :
         	                            spiceParts.findNodeProto("Ammeter{ic}");
 
-        for (Iterator it = netlist.getNodables(); it.hasNext();) {
+        for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext();) {
 			Nodable ni = (Nodable)it.next();
 			NodeProto np = ni.getProto();
 			if (np instanceof Cell && !((Cell)np).isIcon()) {
@@ -359,7 +359,7 @@ public final class HierarchyEnumerator {
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
 
-		for (Iterator it = netlist.getNodables(); it.hasNext();) {
+		for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext();) {
 			Nodable ni = (Nodable)it.next();
 
 			instCnt++;
@@ -848,7 +848,7 @@ public final class HierarchyEnumerator {
             boolean found = false;
             Export export = null;
             int i = 0;
-            for (Iterator it = cell.getPorts(); it.hasNext(); ) {
+            for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
                 export = (Export)it.next();
                 for (i=0; i<export.getNameKey().busWidth(); i++) {
                     Network net = netlist.getNetwork(export, i);
@@ -979,7 +979,7 @@ public final class HierarchyEnumerator {
         
     /** Recursive method used to traverse down hierarchy */
     private static void hierCellsRecurse(Cell cell, HashMap uniqueCells) {
-        for (Iterator uit = cell.getUsagesIn(); uit.hasNext();) {
+        for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();) {
             CellUsage u = (CellUsage) uit.next();
             Cell subCell = u.getProto();
             if (subCell.isIcon()) continue;
@@ -1007,7 +1007,7 @@ public final class HierarchyEnumerator {
         boolean found = false;
         NodeInst ni = childNodable.getNodeInst();
         // find port and index on nodable that is connected to parentNet
-        for (Iterator it = ni.getPortInsts(); it.hasNext(); ) {
+        for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); ) {
             PortInst pi = (PortInst)it.next();
             pp = pi.getPortProto();
             for (i=0; i<pp.getNameKey().busWidth(); i++) {
@@ -1048,7 +1048,7 @@ public final class HierarchyEnumerator {
                                                 Network visitorNet)
     {
         boolean found = false;
-        for (Iterator it = net.getExports(); !found && it.hasNext();)
+        for (Iterator<Export> it = net.getExports(); !found && it.hasNext();)
         {
             Export exp = (Export)it.next();
             Network tmpNet = info.getNetlist().getNetwork(exp, 0);

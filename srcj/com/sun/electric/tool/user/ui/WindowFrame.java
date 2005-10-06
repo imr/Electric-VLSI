@@ -88,7 +88,7 @@ public class WindowFrame extends Observable
     /** true if this window is finished */              private boolean finished = false;
 
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
-	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
+	/** the list of all windows on the screen */		private static List<WindowFrame> windowList = new ArrayList<WindowFrame>();
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
 
 	/** current mouse listener */						public static MouseListener curMouseListener = ClickZoomWireListener.theOne;
@@ -1054,8 +1054,8 @@ public class WindowFrame extends Observable
 	 * Method to return an Iterator over all WindowFrames.
 	 * @return an Iterator over all WindowFrames.
 	 */
-	public static Iterator getWindows() {
-        ArrayList listCopy = new ArrayList();
+	public static Iterator<WindowFrame> getWindows() {
+        ArrayList<WindowFrame> listCopy = new ArrayList<WindowFrame>();
         synchronized(windowList) {
             listCopy.addAll(windowList);
         }

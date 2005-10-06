@@ -70,7 +70,7 @@ import java.util.List;
  */
 public abstract class InteractiveRouter extends Router {
 
-    /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
+    /** for highlighting the start of the route */  private List<Highlight> startRouteHighlights = new ArrayList<Highlight>();
     /** if start has been called */                 private boolean started;
     /** EditWindow we are routing in */             private EditWindow wnd;
 
@@ -101,7 +101,7 @@ public abstract class InteractiveRouter extends Router {
         this.wnd = wnd;
         // copy current highlights
         startRouteHighlights.clear();
-        for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
+        for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             startRouteHighlights.add(h);
         }

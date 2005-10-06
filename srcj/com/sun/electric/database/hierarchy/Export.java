@@ -255,7 +255,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 		checkChanging();
 
 		// disconnect arcs end exports from PortInsts of this Export
-		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			PortInst pi = ni.findPortInstFromProto(this);
@@ -302,7 +302,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();
         if ((iconCell != null) && (iconCell != cell)) {
-            for (Iterator it = iconCell.getPorts(); it.hasNext(); ) {
+            for (Iterator<Export> it = iconCell.getExports(); it.hasNext(); ) {
                 Export pp = (Export)it.next();
                 if (pp.getName().equals(oldName.toString())) {
                     pp.rename(newName);
@@ -361,7 +361,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	 * @param oldPortInsts collection which contains portInsts of this Export for Undo or null.
 	 * @return true on error.
 	 */
-	public boolean lowLevelLink(Collection oldPortInsts)
+	public boolean lowLevelLink(Collection<PortInst> oldPortInsts)
 	{
 		assert parent.isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
@@ -374,7 +374,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	 * Low-level access method to unlink this Export from its cell.
 	 * @return collection of deleted PortInsts of this Export.
 	 */
-	public Collection lowLevelUnlink()
+	public Collection<PortInst> lowLevelUnlink()
 	{
 		assert isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
@@ -590,7 +590,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 		double dx = 0, dy = 0;
 		NodeInst ni = originalPort.getNodeInst();
 		Rectangle2D nodeBounds = ni.getBounds();
-		for(Iterator it = originalPort.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = originalPort.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -965,13 +965,13 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	public boolean doesntConnect(PrimitivePort newPP)
 	{
 		// check every instance of this node
-		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
 			// make sure all arcs on this port can connect
             PortInst pi = ni.findPortInstFromProto(this);
-			for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
+			for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();
 //			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
@@ -987,7 +987,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 			}
 
 			// make sure all further exports are still valid
-			for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 			{
 				Export oPP = (Export)eIt.next();
 				if (oPP.getOriginalPort().getPortProto() != this) continue;
@@ -1044,11 +1044,11 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
 	private void recursivelyChangeAllPorts()
 	{
 		// look at all instances of the cell that had port motion
-		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			// see if an instance reexports the port
-			for(Iterator pIt = ni.getExports(); pIt.hasNext(); )
+			for(Iterator<Export> pIt = ni.getExports(); pIt.hasNext(); )
 			{
 				Export upPP = (Export)pIt.next();
 				if (upPP.getOriginalPort().getPortProto() != this) continue;

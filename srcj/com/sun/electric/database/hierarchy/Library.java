@@ -81,15 +81,15 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** version of Electric which wrote the library. */		private Version version;
-	/** list of Cells in this library */					final TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
+	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
-    /** list of referenced libs */                          private final List/*<Library>*/ referencedLibs = new ArrayList/*<Library>*/();
+    /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
     /** preferences for this library */                     Preferences prefs;
 
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
-	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
-	/** map of libraries sorted by name */                  private static final TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
+	/** list of linked libraries indexed by libId. */       private static final ArrayList<Library> linkedLibs = new ArrayList<Library>();
+	/** map of libraries sorted by name */                  private static final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -195,7 +195,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 		{
 			// find another library
 			/*for(Library lib: libraries)*/
-			for (Iterator it = libraries.values().iterator(); it.hasNext(); )
+			for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
 				if (lib == curLib) continue;
@@ -224,14 +224,14 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
 		/*for(Library lib: libraries)*/
-		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
+		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib == this) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					if (ni.getProto() instanceof Cell)
@@ -279,7 +279,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	public void erase()
 	{
 		// remove all cells in the library
-        for (Iterator it = getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             c.kill();
         }
@@ -337,7 +337,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
             if (referencedLibs.contains(lib)) return null;          // already a referenced lib, is ok
         }
         // check recursively if there is a circular dependency
-        List libDependencies = new ArrayList();
+        List<Library> libDependencies = new ArrayList<Library>();
         if (lib.isReferencedLib(this, libDependencies)) {
             // there is a dependency
 
@@ -346,15 +346,15 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
             d.startLib = lib;
             d.finalRefLib = this;
             Library startLib = lib;
-            for (Iterator itLib = libDependencies.iterator(); itLib.hasNext(); ) {
+            for (Iterator<Library> itLib = libDependencies.iterator(); itLib.hasNext(); ) {
 
                 // startLib references refLib. Find out why
                 Library refLib = (Library)itLib.next();
                 boolean found = false;
                 // find a cell instance that creates dependency
-                for (Iterator itCell = startLib.getCells(); itCell.hasNext(); ) {
+                for (Iterator<Cell> itCell = startLib.getCells(); itCell.hasNext(); ) {
                     Cell c = (Cell)itCell.next();
-                    for (Iterator it = c.getNodes(); it.hasNext(); ) {
+                    for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
                         NodeInst ni = (NodeInst)it.next();
                         NodeProto np = ni.getProto();
                         if (np instanceof Cell) {
@@ -395,9 +395,9 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 //            assert(referencedLibs.contains(lib));
         }
         boolean refFound = false;
-        for (Iterator itCell = getCells(); itCell.hasNext(); ) {
+        for (Iterator<Cell> itCell = getCells(); itCell.hasNext(); ) {
             Cell c = (Cell)itCell.next();
-            for (Iterator it = c.getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
                 NodeProto np = ni.getProto();
                 if (np instanceof Cell) {
@@ -438,8 +438,8 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
      * @param lib the lib to check if it is a referenced lib
      * @return true if it is through any number of references, false otherwise
      */
-    private boolean isReferencedLib(Library lib, List libDepedencies) {
-        List reflibsCopy = new ArrayList();
+    private boolean isReferencedLib(Library lib, List<Library> libDepedencies) {
+        List<Library> reflibsCopy = new ArrayList<Library>();
         synchronized(referencedLibs) {
             if (referencedLibs.contains(lib)) {
                 libDepedencies.add(lib);
@@ -447,7 +447,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
             }
             reflibsCopy.addAll(referencedLibs);
         }
-        for (Iterator it = reflibsCopy.iterator(); it.hasNext(); ) {
+        for (Iterator<Library> it = reflibsCopy.iterator(); it.hasNext(); ) {
             Library reflib = (Library)it.next();
 
             // if reflib already in dependency list, ignore
@@ -463,18 +463,18 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
     }
 
     static class LibraryDependency {
-        private List dependencies;
+        private List<Cell> dependencies;
         private Library startLib;
         private Library finalRefLib;
 
         private LibraryDependency() {
-            dependencies = new ArrayList();
+            dependencies = new ArrayList<Cell>();
         }
 
         public String toString() {
             StringBuffer buf = new StringBuffer();
             buf.append(startLib + " depends on " + finalRefLib + " through the following references:\n");
-            for (Iterator it = dependencies.iterator(); it.hasNext(); ) {
+            for (Iterator<Cell> it = dependencies.iterator(); it.hasNext(); ) {
                 Cell libCell = (Cell)it.next();
                 Cell instance = (Cell)it.next();
                 buf.append("   " + libCell.libDescribe() + " instantiates " + instance.libDescribe() + "\n");
@@ -524,7 +524,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
         System.out.print("Checking " + this);
         if (repair) System.out.print(" for repair");
 
-		for(Iterator it = getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			errorCount += cell.checkAndRepair(repair, errorLogger);
@@ -555,10 +555,10 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 		assert libName != null;
 		assert libName.length() > 0;
 		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
-		HashSet cellGroups = new HashSet();
+		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
 		String protoName = null;
 		Cell.CellGroup cellGroup = null;
-		for(Iterator it = cells.entrySet().iterator(); it.hasNext(); )
+		for(Iterator<Map.Entry<CellName,Cell>> it = cells.entrySet().iterator(); it.hasNext(); )
 		{
 			Map.Entry e = (Map.Entry)it.next();
 			CellName cn = (CellName)e.getKey();
@@ -575,7 +575,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 			assert cell.getCellGroup() == cellGroup : cell;
 			cell.check();
 		}
-		for (Iterator it = cellGroups.iterator(); it.hasNext(); )
+		for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); )
 		{
 			cellGroup = (Cell.CellGroup)it.next();
 			cellGroup.check();
@@ -595,8 +595,8 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 			//long startTime = System.currentTimeMillis();
             CellId.checkInvariants();
             
-			TreeSet libNames = new TreeSet(String.CASE_INSENSITIVE_ORDER);
-			for (Iterator it = libraries.entrySet().iterator(); it.hasNext(); )
+			TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+			for (Iterator<Map.Entry<String,Library>> it = libraries.entrySet().iterator(); it.hasNext(); )
 			{
 				Map.Entry e = (Map.Entry)it.next();
 				String libName = (String)e.getKey();
@@ -686,7 +686,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
      */
     private void clearCellChanges()
     {
-		for (Iterator it = cells.values().iterator(); it.hasNext();)
+		for (Iterator<Cell> it = cells.values().iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
             c.clearModified();
@@ -778,22 +778,22 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 */
 	public static Set findReferenceInCell(Library elib)
 	{
-		TreeSet list = new TreeSet();
+		TreeSet<Cell> set = new TreeSet<Cell>();
 
 		/*for (Library l: libraries)*/
-		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
+		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library l = (Library)it.next();
 			// skip itself
 			if (l == elib) continue;
 
-			for (Iterator cIt = l.cells.values().iterator(); cIt.hasNext(); )
+			for (Iterator<Cell> cIt = l.cells.values().iterator(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell) cIt.next();
-				cell.findReferenceInCell(elib, list);
+				cell.findReferenceInCell(elib, set);
 			}
 		}
-		return list;
+		return set;
 	}
 	/**
 	 * Method to find a Library with the specified name.
@@ -808,7 +808,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 		if (lib != null) return lib;
 
 		/*for (Library l: libraries)*/
-		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
+		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library l = (Library)it.next();
 			if (l.getName().equalsIgnoreCase(libName))
@@ -821,10 +821,10 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static Iterator/*<Library>*/ getLibraries()
+	public static Iterator<Library> getLibraries()
 	{
         synchronized(libraries) {
-			ArrayList/*<Library>*/ librariesCopy = new ArrayList/*<Library>*/(libraries.values());
+			ArrayList<Library> librariesCopy = new ArrayList<Library>(libraries.values());
 			return librariesCopy.iterator();
         }
 	}
@@ -842,12 +842,12 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 * Method to return an iterator over all visible libraries.
 	 * @return an iterator over all visible libraries.
 	 */
-	public static List/*<Library>*/ getVisibleLibraries()
+	public static List<Library> getVisibleLibraries()
 	{
         synchronized(libraries) {
-			ArrayList/*<Library>*/ visibleLibraries = new ArrayList/*<Library>*/();
+			ArrayList<Library> visibleLibraries = new ArrayList<Library>();
 			/*for (Library lib: libraries)*/
-			for (Iterator it = libraries.values().iterator(); it.hasNext(); )
+			for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
 				if (!lib.isHidden()) visibleLibraries.add(lib);
@@ -911,7 +911,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
         prefs.put("LIB", libName);
         curCellPref = null;
         setCurCell(curCell);
-        for (Iterator it = getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
             Cell cell = (Cell)it.next();
             cell.expandStatusChanged();
         }
@@ -1022,9 +1022,9 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
     public static boolean saveExpandStatus(boolean quitCommand) {
         boolean okQuit = true;
         try {
-            for (Iterator lit = getLibraries(); lit.hasNext(); ) {
+            for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
                 Library lib = (Library)lit.next();
-                for (Iterator it = lib.getCells(); it.hasNext(); ) {
+                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
                     Cell cell = (Cell)it.next();
                     cell.saveExpandStatus();
                 }
@@ -1045,13 +1045,11 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
                         "Check user preferences setup.",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
-//            ActivityLogger.logException(e);
         }
         return (okQuit);
     }
 
-    
-	/**
+    /**
 	 * Method to find the Cell with the given name in this Library.
 	 * @param name the name of the desired Cell.
 	 * @return the Cell with the given name in this Library.
@@ -1065,7 +1063,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 		if (cell != null) return cell;
 
 		Cell onlyWithName = null;
-		for (Iterator it = cells.values().iterator(); it.hasNext();)
+		for (Iterator<Cell> it = cells.values().iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
 			if (!n.getName().equalsIgnoreCase(c.getName())) continue;
@@ -1088,10 +1086,10 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 * Method to return an Iterator over all Cells in this Library.
 	 * @return an Iterator over all Cells in this Library.
 	 */
-	public Iterator getCells()
+	public Iterator<Cell> getCells()
 	{
         synchronized(cells) {
-			ArrayList cellsCopy = new ArrayList(cells.values());
+			ArrayList<Cell> cellsCopy = new ArrayList<Cell>(cells.values());
 			return cellsCopy.iterator();
         }
 	}
@@ -1101,7 +1099,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 * @param cn starting CellName
 	 * @return an Iterator over all Cells in this Library after given CellName.
 	 */
-	Iterator getCellsTail(CellName cn)
+	Iterator<Cell> getCellsTail(CellName cn)
 	{
 		return cells.tailMap(cn).values().iterator();
 	}

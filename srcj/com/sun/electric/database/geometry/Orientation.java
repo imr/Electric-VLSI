@@ -56,7 +56,7 @@ public class Orientation {
 	private final Orientation inverse;
 	private final AffineTransform trans;
 
-	private static final HashMap map = new HashMap();
+	private static final HashMap<Integer,Orientation> map = new HashMap<Integer,Orientation>();
 	private static final Orientation[] map45;
 
 	private static final int OCTANT      = 0x07;

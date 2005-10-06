@@ -29,6 +29,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -130,7 +131,7 @@ public abstract class Job implements ActionListener, Runnable {
 	private static class DatabaseChangesThread extends Thread
 	{
         // Job Management
-        /** all jobs */                             private static ArrayList allJobs = new ArrayList();
+        /** all jobs */                             private static ArrayList<Job> allJobs = new ArrayList<Job>();
         /** number of started jobs */               private static int numStarted = 0;
         /** number of examine jobs */               private static int numExamine = 0;
 
@@ -319,9 +320,9 @@ public abstract class Job implements ActionListener, Runnable {
         }
 
         /** get all jobs iterator */
-        public synchronized Iterator getAllJobs() {
-            List jobsList = new ArrayList();
-            for (Iterator it = allJobs.iterator(); it.hasNext() ;) {
+        public synchronized Iterator<Job> getAllJobs() {
+            List<Job> jobsList = new ArrayList<Job>();
+            for (Iterator<Job> it = allJobs.iterator(); it.hasNext() ;) {
                 jobsList.add(it.next());
             }
             return jobsList.iterator();
@@ -362,7 +363,7 @@ public abstract class Job implements ActionListener, Runnable {
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
     /** progress */                             private String progress = null;
-    /** list of saved Highlights */             private List savedHighlights;
+    /** list of saved Highlights */             private List<Highlight> savedHighlights;
     /** saved Highlight offset */               private Point2D savedHighlightsOffset;
     /** Thread job will run in (null for new thread) */
                                                 private Thread thread;
@@ -392,7 +393,7 @@ public abstract class Job implements ActionListener, Runnable {
         started = finished = aborted = scheduledToAbort = false;
         myNode = null;
         thread = null;
-        savedHighlights = new ArrayList();
+        savedHighlights = new ArrayList<Highlight>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
 	}
@@ -571,7 +572,7 @@ public abstract class Job implements ActionListener, Runnable {
         Highlighter highlighter = wnd.getHighlighter();
         if (highlighter == null) return;
 
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+        for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
             savedHighlights.add(it.next());
         }
         savedHighlightsOffset = highlighter.getHighlightOffset();
@@ -792,7 +793,7 @@ public abstract class Job implements ActionListener, Runnable {
     }
 
     private static class SwingExamineJob extends Job {
-        /** Map of Runnables to waiting Jobs */         private static final Map waitingJobs = new HashMap();
+        /** Map of Runnables to waiting Jobs */         private static final Map<Object,Job> waitingJobs = new HashMap<Object,Job>();
         /** The runnable to run in the Swing thread */  private Runnable task;
         /** the singular key */                         private Object singularKey;
 

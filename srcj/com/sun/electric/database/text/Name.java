@@ -43,7 +43,7 @@ import java.util.Map;
  * string doesn't contain '[', ']', ',', ':'.
  * Bus names are expanded into a list of subnames.
  */
-public class Name implements Comparable
+public class Name implements Comparable<Name>
 {
 	/** the original name */	private final String ns;
 	/** the canonic name */     private final Name canonic;
@@ -52,7 +52,7 @@ public class Name implements Comparable
 	/** numerical suffix */     private final int numSuffix;
 	/** the flags */			private int flags;
 	
-	/** Map String -> Name */	private static Map allNames = new HashMap();
+	/** Map String -> Name */	private static Map<String,Name> allNames = new HashMap<String,Name>();
 
 	/**
 	 * Method to return the name object for this string.
@@ -115,10 +115,7 @@ public class Name implements Comparable
      * @throws ClassCastException if the specified object's type prevents it
      *         from being compared to this Object.
      */
-    public int compareTo(Object o)
-	{
-		return compareTo((Name)o);
-	}
+//4*/public int compareTo(Object o) { return compareTo((Name)o); }
 
 	/**
      * Compares this <code>Name</code> to another <code>Name</code>,
@@ -350,7 +347,7 @@ public class Name implements Comparable
 	 */
 	private void makeListSubNames()
 	{
-		List subs = new ArrayList();
+		List<Name> subs = new ArrayList<Name>();
 		for (int beg = 0; beg <= ns.length(); )
 		{
 			int end = beg;
@@ -375,7 +372,7 @@ public class Name implements Comparable
 	 */
 	private void makeBracketSubNames()
 	{
-		List subs = new ArrayList();
+		List<Name> subs = new ArrayList<Name>();
 		for (int beg = 1; beg < ns.length(); )
 		{
 			int end = ns.indexOf(',', beg);
@@ -404,7 +401,7 @@ public class Name implements Comparable
 		setSubnames(subs);
 	}
 
-	private void setSubnames(List subs)
+	private void setSubnames(List<Name> subs)
 	{
 		subnames = new Name[subs.size()];
 		subs.toArray(subnames);

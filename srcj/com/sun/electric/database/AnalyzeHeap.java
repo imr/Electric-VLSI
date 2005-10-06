@@ -24,7 +24,13 @@
 
 package com.sun.electric.database;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -36,7 +42,7 @@ import java.util.List;
  */
 public class AnalyzeHeap {
     
-    ArrayList objs = new ArrayList();
+    ArrayList<MyObject> objs = new ArrayList<MyObject>();
     
     private AnalyzeHeap() {}
      
@@ -62,8 +68,8 @@ public class AnalyzeHeap {
         objs.clear();
         while (objs.size() <= numObjs)
             objs.add(null);
-        ArrayList staticFields = new ArrayList();
-        ArrayList fields = new ArrayList();
+        ArrayList<String> staticFields = new ArrayList<String>();
+        ArrayList<String> fields = new ArrayList<String>();
         for (;;) {
             int h = in.readInt();
             if (h == 0) break;
@@ -140,17 +146,17 @@ public class AnalyzeHeap {
         }
     }
     
-    private void garbageCollect(MyObject obj, HashSet visited) {
+    private void garbageCollect(MyObject obj, HashSet<MyObject> visited) {
         if (obj == null || visited.contains(obj)) return;
         visited.add(obj);
-        for (Iterator it = obj.linksFrom.iterator(); it.hasNext(); ) {
+        for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
             Link l = (Link)it.next();
             garbageCollect(l.to, visited);
         }
     }
     
     private void garbageCollect() {
-        HashSet visited = new HashSet();
+        HashSet<MyObject> visited = new HashSet<MyObject>();
         for (int h = 1; h < objs.size(); h++) {
             MyObject obj = (MyObject)objs.get(h);
             if (obj instanceof MyClass)
@@ -164,7 +170,7 @@ public class AnalyzeHeap {
                 objs.set(h, null);
                 collected++;
             }
-            for (Iterator it = obj.linksTo.iterator(); it.hasNext(); ) {
+            for (Iterator<Link> it = obj.linksTo.iterator(); it.hasNext(); ) {
                 Link l = (Link)it.next();
                 if (l.from != null && !visited.contains(l.from))
                     it.remove();
@@ -205,13 +211,13 @@ public class AnalyzeHeap {
     }
     
     private int stepPath(boolean doMaps, boolean verbose) {
-        HashSet named = new HashSet();
+        HashSet<MyObject> named = new HashSet<MyObject>();
         for (int h = 1; h < objs.size(); h++) {
             MyObject obj = (MyObject)objs.get(h);
             if (obj == null || obj.pathLink == null) continue;
             if (named.contains(obj)) continue;
             boolean doAll = doMaps || obj.cls.mode != MyClass.MAP && obj.cls.mode != MyClass.ARRAY;
-            for (Iterator it = obj.linksFrom.iterator(); it.hasNext(); ) {
+            for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
                 Link l = (Link)it.next();
                 if (l.to == null || l.to.pathLink != null) continue;
                 boolean single = l.to.isSingleOwned();
@@ -245,13 +251,13 @@ public class AnalyzeHeap {
                 MyObject obj = (MyObject)objs.get(h);
                 if (obj == null) continue;
                 out.println(obj.toString());
-                for (Iterator it = obj.linksFrom.iterator(); it.hasNext(); ) {
+                for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
                     Link l = (Link)it.next();
                     if (l.to == null) continue;
                     out.println("\t" + l.field.name + "\t" + (l.to != null ? l.to.toString() : "null"));
                 }
                 out.println("\t-");
-                for (Iterator it = obj.linksTo.iterator(); it.hasNext(); ) {
+                for (Iterator<Link> it = obj.linksTo.iterator(); it.hasNext(); ) {
                     Link l = (Link)it.next();
                     if (l == obj.pathLink) continue;
                     out.println("\t" + (l.from != null ? l.from.path() + "." : "") + l.field.name);
@@ -269,8 +275,8 @@ class MyObject {
     MyClass cls;
     int id;
     Link pathLink;
-    ArrayList linksFrom = new ArrayList();
-    ArrayList linksTo = new ArrayList(1);
+    ArrayList<Link> linksFrom = new ArrayList<Link>();
+    ArrayList<Link> linksTo = new ArrayList<Link>(1);
     
     void setClass(MyClass cls) {
         this.cls = cls;
@@ -353,8 +359,8 @@ class MyField {
     int mode;
     String name;
     
-    static final ArrayList elems = new ArrayList();
-    static final ArrayList keys = new ArrayList();
+    static final ArrayList<MyField> elems = new ArrayList<MyField>();
+    static final ArrayList<MyField> keys = new ArrayList<MyField>();
     
     MyField(int index, int mode, String name) {
         this.index = index;

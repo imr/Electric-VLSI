@@ -29,23 +29,21 @@ import java.util.NoSuchElementException;
 /**
  * An iterator over an array.
  */
-public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
-	private final Object/*E*/[] array;
+public class ArrayIterator<E> implements Iterator<E> {
+/*5*/private final E[] array;
+//4*/private final Object[] array;
     private final int limit;
 	private int cursor;
 
-	/**
-	 * Null iterator which has no elements.
-	 */
-	public static final ArrayIterator/*<E>*/ NULL_ITERATOR = new ArrayIterator/*<E>*/(new Object/*E*/[0]);
-
-	private ArrayIterator/*E*/(Object/*E*/[] array) {
+/*5*/private ArrayIterator(E[] array) {
+//4*/private ArrayIterator(Object[] array) {
         this.array = array;
         limit = array.length;
         cursor = 0;
     }
 
-    private ArrayIterator/*E*/(Object/*E*/[] array, int start, int limit)
+/*5*/private ArrayIterator(E[] array, int start, int limit)
+//4*/private ArrayIterator(Object[] array, int start, int limit)
 	{
 		this.array = array;
         this.limit = limit;
@@ -57,9 +55,12 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 * @param array array with elements or null.
 	 * @return iterator over elements of the array or NULL_ITERATOR.
 	 */
-	public static Iterator iterator(Object/*E*/[] array)
+/*5*/public static <E> Iterator<E> iterator(E[] array)
+//4*/public static Iterator iterator(Object[] array)
 	{
-		return array != null && array.length > 0 ? new ArrayIterator(array) : NULL_ITERATOR;
+		if (array != null && array.length > 0) return new ArrayIterator<E>(array);
+        Iterator<E> emptyIterator = emptyIterator();
+        return emptyIterator;
 	}
 
 	/**
@@ -67,20 +68,24 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 * @param array array with elements or null.
      * @param start start index of the range.
      * @param limit limit of the range
-	 * @return iterator over range of elements of the array or NULL_ITERATOR.
+	 * @return iterator over range of elements of the array or EMPTY_ITERATOR.
      * @throws IndexOutOfBoundsException if start or limit are not correct
 	 */
-	public static Iterator iterator(Object/*E*/[] array, int start, int limit)
+/*5*/public static <E> Iterator<E> iterator(E[] array, int start, int limit)
+//4*/public static Iterator iterator(Object[] array, int start, int limit)
 	{
         if (array != null) {
             if (start >= 0 && limit <= array.length) {
-                if (start < limit)
-                    return new ArrayIterator(array, start, limit);
-                else if (start == limit)
-                    return NULL_ITERATOR;
+                if (start < limit) {
+                    return new ArrayIterator<E>(array, start, limit);
+                } else if (start == limit) {
+                    Iterator<E> emptyIterator = emptyIterator();
+                    return emptyIterator;
+                }
             }
         } else if (start == 0 && limit == 0) {
-            return NULL_ITERATOR;
+            Iterator<E> emptyIterator = emptyIterator();
+            return emptyIterator;
         }
         throw new IndexOutOfBoundsException();
 	}
@@ -105,11 +110,13 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 * @return the next element in the iteration.
 	 * @exception NoSuchElementException iteration has no more elements.
 	 */
-	public Object/*E*/ next()
+/*5*/public E next()
+//4*/public Object next()
 	{
         if (cursor >= limit)
 			throw new NoSuchElementException();
-		Object/*E*/ next = array[cursor];
+/*5*/	E next = array[cursor];
+//4*/	Object next = array[cursor];
 		cursor++;
 		return next;
     }
@@ -123,5 +130,39 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
     public void remove()
     {
 		throw new UnsupportedOperationException();
+    }
+    
+	/**
+	 * Null iterator which has no elements.
+	 */
+    private static class EmptyIterator extends ArrayIterator<Object> {
+        EmptyIterator() { super(new Object[0]); }
+    }
+    
+
+    /**
+     * The empty iterator (immutable).
+     *
+     * @see #emptyIterator()
+     */
+	public static final EmptyIterator EMPTY_ITERATOR = new EmptyIterator();
+    
+    /**
+     * Returns the empty iterator (immutable).
+     * Unlike the like-named field, this method is parameterized.
+     *
+     * <p>This example illustrates the type-safe way to obtain an empty set:
+     * <pre>
+     *     Iterator&lt;String&gt; s = ArrayIterator.emptyIterator();
+     * </pre>
+     * Implementation note:  Implementations of this method need not
+     * create a separate <tt>Iterator</tt> object for each call.   Using this
+     * method is likely to have comparable cost to using the like-named
+     * field.  (Unlike this method, the field does not provide type safety.)
+     *
+     * @see #EMPTY_ITERATOR
+     */
+    public static final <E> Iterator<E> emptyIterator() {
+        return (Iterator<E>) EMPTY_ITERATOR;
     }
 }

@@ -77,7 +77,7 @@ public class Highlighter implements DatabaseChangeListener {
     private static Highlighter currentHighlighter = null;
 
     /** Screen offset for display of highlighting. */			private int highOffX; private int highOffY;
-    /** the highlighted objects. */								private List highlightList;
+    /** the highlighted objects. */								private List<Highlight> highlightList;
     /** the stack of highlights. */								private List highlightStack;
     /** true if highlights have changed recently */             private boolean changed;
     /** List of HighlightListeners */                           private List highlightListeners;
@@ -97,7 +97,7 @@ public class Highlighter implements DatabaseChangeListener {
      */
     public Highlighter(int type, WindowFrame wf) {
         highOffX = highOffY = 0;
-        highlightList = new ArrayList();
+        highlightList = new ArrayList<Highlight>();
         highlightStack = new ArrayList();
         highlightListeners = new ArrayList();
         changed = false;
@@ -643,8 +643,8 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to return a list that is a copy of the list of current highlights.
 	 * @return an list of highlights
 	 */
-	public synchronized List getHighlights() {
-        ArrayList highlightsCopy = new ArrayList(highlightList);
+	public synchronized List<Highlight> getHighlights() {
+        ArrayList<Highlight> highlightsCopy = new ArrayList<Highlight>(highlightList);
         return highlightsCopy;
     }
 
@@ -652,10 +652,10 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public synchronized void setHighlightList(List newHighlights)
+	public synchronized void setHighlightList(List<Highlight> newHighlights)
 	{
         clear();
-		for(Iterator it = newHighlights.iterator(); it.hasNext(); )
+		for(Iterator<Highlight> it = newHighlights.iterator(); it.hasNext(); )
 		{
 			highlightList.add(it.next());
 		}
@@ -720,7 +720,7 @@ public class Highlighter implements DatabaseChangeListener {
 			WaveformWindow ww = (WaveformWindow)wf.getContent();
 			return ww.getHighlightedNetworks();
 		}
-		Set nets = new HashSet();
+		Set<Network> nets = new HashSet<Network>();
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell != null)
 		{
@@ -1410,11 +1410,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
-	public List findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
+	public List<Highlight> findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
 		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
-		List list = new ArrayList();
+		List<Highlight> list = new ArrayList<Highlight>();
 		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
 
 		// this is the distance from an object that is necessary for a "direct hit"

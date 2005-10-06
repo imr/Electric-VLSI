@@ -204,8 +204,8 @@ public class Pref
 	private   Object      cachedObj;
 	private   Object      factoryObj;
 
-	private static List allPrefs = new ArrayList();
-	private static Map meaningVariablesThatChanged;
+	private static List<Pref> allPrefs = new ArrayList<Pref>();
+	private static Map<Meaning,Object> meaningVariablesThatChanged;
 
 	/**
 	 * The constructor for the Pref.
@@ -788,7 +788,7 @@ public class Pref
 	 */
 	public static List getMeaningVariables(Object ownerObj)
 	{
-		ArrayList prefs = new ArrayList();
+		ArrayList<Pref> prefs = new ArrayList<Pref>();
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
@@ -833,7 +833,7 @@ public class Pref
 	 */
 	public static void initMeaningVariableGathering()
 	{
-		meaningVariablesThatChanged = new HashMap();
+		meaningVariablesThatChanged = new HashMap<Meaning,Object>();
 	}
 
 	/**
@@ -860,7 +860,7 @@ public class Pref
 			if (pref.meaning == null) continue;
 			pref.meaning.marked = false;
 		}
-		List meaningsToReconcile = new ArrayList();
+		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
 		for(Iterator it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
 		{
 			Map.Entry entry = (Map.Entry)it.next();

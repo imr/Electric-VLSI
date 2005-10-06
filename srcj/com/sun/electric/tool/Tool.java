@@ -60,7 +60,7 @@ public class Tool implements Comparable
 
 	// the static list of all tools
 	private static LinkedHashMap tools = new LinkedHashMap();
-	private static List listeners = new ArrayList();
+	private static List<Listener> listeners = new ArrayList<Listener>();
 	private static int toolNumber = 0;
 
 	/** Preferences for this Tool */                        public Preferences prefs;
@@ -94,7 +94,7 @@ public class Tool implements Comparable
 		{
 			Object o = it.next();
 			if (o instanceof Listener && ((Listener)o).isOn())
-				listeners.add(o);
+				listeners.add((Listener)o);
 		}
 	}
 
@@ -154,7 +154,7 @@ public class Tool implements Comparable
 	 * which are on.
 	 * @return an Iterator over all of the Listeners in Electric which are on
 	 */
-	public static Iterator getListeners()
+	public static Iterator<Listener> getListeners()
 	{
 		return listeners.iterator();
 	}

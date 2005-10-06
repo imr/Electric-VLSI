@@ -56,7 +56,7 @@ public class Variable
 	/**
 	 * The Key class caches Variable names.
 	 */
-	public final static class Key implements Comparable
+	public final static class Key implements Comparable<Key>
 	{
 		private final String name;
 		
@@ -90,9 +90,10 @@ public class Variable
 		 * @param obj the other Variable Key.
 		 * @return a comparison between the Variable Keys.
 		 */
-		public int compareTo(Object obj)
+/*5*/	public int compareTo(Key that)
+//4*/	public int compareTo(Object obj)
 		{
-			Key that = (Key)obj;
+//4*/			Key that = (Key)obj;
 			return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
 		}
         
@@ -103,8 +104,8 @@ public class Variable
         public String toString() { return name; }
 	}
 
-	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
-	/** all variable keys addressed by lower case name */	private static final HashMap varCanonicKeys = new HashMap();
+	/** a list of all variable keys */						private static final HashMap<String,Key> varKeys = new HashMap<String,Key>();
+	/** all variable keys addressed by lower case name */	private static final HashMap<String,Key> varCanonicKeys = new HashMap<String,Key>();
 
 	/**
 	 * Method to return the Key object for a given Variable name.
@@ -164,7 +165,7 @@ public class Variable
     private final static byte CELL = 4;
     private final static byte EXPORT = 6;
     /** Valid type of value. */
-    private static final HashMap/*<Class,Byte>*/ validClasses = new HashMap/*<Class,Byte>*/();
+    private static final HashMap<Class,Byte> validClasses = new HashMap<Class,Byte>();
     static {
         validClasses.put(String.class, new Byte(SIMPLE));
         validClasses.put(Double.class, new Byte(SIMPLE));

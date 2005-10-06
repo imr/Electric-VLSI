@@ -47,6 +47,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -166,7 +167,7 @@ public class Undo
 			if (firstchange)
 			{
 				// broadcast a start-batch on the first change
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.startBatch(listener, undoRedo);
@@ -175,7 +176,7 @@ public class Undo
 			if (type == Type.NODEINSTNEW || type == Type.ARCINSTNEW || type == Type.EXPORTNEW ||
 				type == Type.CELLNEW || type == Type.OBJECTNEW)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.newObject(obj);
@@ -183,68 +184,68 @@ public class Undo
 			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL ||
 				type == Type.CELLKILL || type == Type.OBJECTKILL)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.killObject(obj);
 				}
 			} else if (type == Type.EXPORTKILL) {
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.killExport((Export)obj, (Collection)o1);
 				}
 			} else if (type == Type.OBJECTRENAME) {
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.renameObject(obj, o1);
 				}
 			} else if (type == Type.OBJECTREDRAW)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.redrawObject(obj);
 				}
 			} else if (type == Type.NODEINSTMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyNodeInst((NodeInst)obj, (ImmutableNodeInst)o1);
 				}
 			} else if (type == Type.ARCINSTMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyArcInst((ArcInst)obj, (ImmutableArcInst)o1);
 				}
 			} else if (type == Type.EXPORTMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyExport((Export)obj, (PortInst)o1);
 				}
 			} else if (type == Type.CELLGROUPMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyCellGroup((Cell)obj, (Cell.CellGroup)o1);
 				}
 			} else if (type == Type.VARIABLESMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyVariables(obj, (ImmutableElectricObject)o1);
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyTextDescript(obj, (String)o1, (TextDescriptor)o2);
@@ -328,7 +329,8 @@ public class Undo
 			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
-				pp.lowLevelLink((Collection)o1);
+                Collection<PortInst> portInsts = (Collection<PortInst>)o1;
+				pp.lowLevelLink(portInsts);
 				type = Type.EXPORTNEW;
 				o1 = null;
 				if (Main.getDebug()) ((Cell)pp.getParent()).checkInvariants();
@@ -513,7 +515,7 @@ public class Undo
 				{
 					lib = cell.getLibrary();
 					// also mark libraries that reference this cell as dirty
-					for (Iterator it = cell.getUsagesOf(); it.hasNext(); )
+					for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); )
 					{
 						CellUsage u = (CellUsage)it.next();
 						Cell parent = u.getParent();
@@ -678,15 +680,15 @@ public class Undo
 	 */
 	public static class ChangeBatch
 	{
-		private List changes;
+		private List<Change> changes;
 		private int batchNumber;
 //		private boolean done;
 //		private Tool tool;
 		private String activity;
 		private Cell upCell;
-		private List startingHighlights = null;				// highlights before changes made
+		private List<Highlight> startingHighlights = null;				// highlights before changes made
 		private Point2D startHighlightsOffset = null;		// highlights offset before changes made
-		private List preUndoHighlights = null;				// highlights before undo of changes done
+		private List<Highlight> preUndoHighlights = null;				// highlights before undo of changes done
 		private Point2D preUndoHighlightsOffset = null;		// highlights offset before undo of changes done
 
 		private ChangeBatch() {}
@@ -697,7 +699,7 @@ public class Undo
 		 * Method to return an iterator over all changes in this ChangeBatch.
 		 * @return an iterator over all changes in this ChangeBatch.
 		 */
-		public Iterator getChanges() { return changes.iterator(); }
+		public Iterator<Change> getChanges() { return changes.iterator(); }
 
 		/**
 		 * Method to return the number of this ChangeBatch.
@@ -772,12 +774,12 @@ public class Undo
 	private static ChangeBatch currentBatch = null;
 	private static int maximumBatches = User.getMaxUndoHistory();
 	private static int overallBatchNumber = 0;
-	private static List doneList = new ArrayList();
-	private static List undoneList = new ArrayList();
-	private static HashSet changedCells = new HashSet();
+	private static List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
+	private static List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
+	private static HashSet<Cell> changedCells = new HashSet<Cell>();
 
-	/** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
-	/** List of all PropertyChangeListeners */          private static List propertyChangeListeners = new ArrayList();
+	/** List of all DatabaseChangeListeners */          private static List<DatabaseChangeListener> changeListeners = new ArrayList<DatabaseChangeListener>();
+	/** List of all PropertyChangeListeners */          private static List<PropertyChangeListener> propertyChangeListeners = new ArrayList<PropertyChangeListener>();
 
 	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
@@ -791,7 +793,7 @@ public class Undo
 	 * @param cell root of up-tree or null for whole database lock
 	 */
 	public static void startChanges(Tool tool, String activity, Cell cell,
-                                    List startingHighlights, Point2D startingHighlightsOffset)
+                                    List<Highlight> startingHighlights, Point2D startingHighlightsOffset)
 	{
 		// close any open batch of changes
 		endChanges();
@@ -804,7 +806,7 @@ public class Undo
 
 		// allocate a new change batch
 		currentBatch = new ChangeBatch();
-		currentBatch.changes = new ArrayList();
+		currentBatch.changes = new ArrayList<Change>();
 		currentBatch.batchNumber = ++overallBatchNumber;
 //		currentBatch.done = true;
 //		currentBatch.tool = tool;
@@ -826,7 +828,7 @@ public class Undo
 		// start the batch of changes
 		Constraints.getCurrent().startBatch(tool, false);
 
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
 			listener.startBatch(tool, false);
@@ -852,7 +854,7 @@ public class Undo
 		// changes made: apply final constraints to this batch of changes
 		Constraints.getCurrent().endBatch();
 
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
@@ -866,7 +868,7 @@ public class Undo
 	 * Method to return an iterator on cells that have changed in the current batch.
 	 * @return an Interator over the changed cells.
 	 */
-	public static Iterator getChangedCells()
+	public static Iterator<Cell> getChangedCells()
 	{
 		return changedCells.iterator();
 	}
@@ -905,7 +907,7 @@ public class Undo
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
 	{
 		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
-		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
+		for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
 		{
 			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
 			SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
@@ -930,7 +932,7 @@ public class Undo
 
 	private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue)
 	{
-		for (Iterator it = propertyChangeListeners.iterator(); it.hasNext(); )
+		for (Iterator<PropertyChangeListener> it = propertyChangeListeners.iterator(); it.hasNext(); )
 		{
 			PropertyChangeListener l = (PropertyChangeListener)it.next();
 			PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
@@ -1331,7 +1333,7 @@ public class Undo
 	public static ChangeBatch undoABatch()
 	{
 		// save highlights for redo
-		List savedHighlights = new ArrayList();
+		List<Highlight> savedHighlights = new ArrayList<Highlight>();
 		Point2D offset = new Point2D.Double(0, 0);
 		// for now, just save from the current window
 		EditWindow wnd = EditWindow.getCurrent();
@@ -1339,7 +1341,7 @@ public class Undo
 		if (wnd != null)
 		{
 			highlighter = wnd.getHighlighter();
-			for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+			for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
 			{
 				savedHighlights.add(it.next());
 			}
@@ -1383,7 +1385,7 @@ public class Undo
 
 		// broadcast the end-batch
         refreshCellBounds();
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
@@ -1392,8 +1394,8 @@ public class Undo
 
 		// restore highlights (must be done after all other tools have
 		// responded to changes)
-		List highlights = new ArrayList();
-		for (Iterator it = batch.startingHighlights.iterator(); it.hasNext(); )
+		List<Highlight> highlights = new ArrayList<Highlight>();
+		for (Iterator<Highlight> it = batch.startingHighlights.iterator(); it.hasNext(); )
 		{
 			highlights.add(it.next());
 		}
@@ -1458,7 +1460,7 @@ public class Undo
 
 		// broadcast the end-batch
         refreshCellBounds();
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
@@ -1466,8 +1468,8 @@ public class Undo
 		fireEndChangeBatch(batch);
 
 		// set highlights to what they were before undo
-		List highlights = new ArrayList();
-		for (Iterator it = batch.preUndoHighlights.iterator(); it.hasNext(); )
+		List<Highlight> highlights = new ArrayList<Highlight>();
+		for (Iterator<Highlight> it = batch.preUndoHighlights.iterator(); it.hasNext(); )
 		{
 			highlights.add(it.next());
 		}
@@ -1489,9 +1491,9 @@ public class Undo
      * because constraint system is disabled.
      */
     private static void refreshCellBounds() {
-        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
-            for (Iterator cIt = lib.getCells(); cIt.hasNext(); ) {
+            for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
                 Cell cell = (Cell)cIt.next();
                 cell.getBounds();
             }

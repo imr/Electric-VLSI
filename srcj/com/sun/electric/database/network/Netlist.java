@@ -202,8 +202,8 @@ public class Netlist
 		NetCell netCell = NetworkTool.getNetCell(parent);
 		if (netCell == null) return null;
 //        Netlist netlist = NetworkTool.getUserNetlist(parent);
-        for (Iterator it = netCell.getNodables(); it.hasNext(); ) {
-//        for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
+        for (Iterator<Nodable> it = netCell.getNodables(); it.hasNext(); ) {
+//        for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
             if (no.contains(ni, arrayIndex)) return no;
         }
@@ -215,7 +215,7 @@ public class Netlist
 	 * <p> Warning: before getNodables() is called, Networks must be
 	 * build by calling Cell.rebuildNetworks()
 	 */
-	public Iterator getNodables() {
+	public Iterator<Nodable> getNodables() {
 		checkForModification();
 		return netCell.getNodables();
 	}
@@ -273,7 +273,7 @@ public class Netlist
 	/**
 	 * Get an iterator over all of the Networks of this Netlist.
 	 */
-	public Iterator getNetworks() {
+	public Iterator<Network> getNetworks() {
 		checkForModification();
 		return Arrays.asList(networks).iterator();
 	}

@@ -55,9 +55,9 @@ public class View implements Comparable/*<View>*/
 	/** ordering for this view */							private final int order;
 	/** flag bits for the view */							private final int type;
 
-	/** a set of all views in existence */					private static TreeSet/*<View>*/ views = new TreeSet/*<View>*/();
-	/** unmodifiable set of all views in existence */		private static Set/*<View>*/ unmodifiableViews = Collections.unmodifiableSet(views);
-	/** a list of views by short and long names */			private static HashMap/*<String,View>*/ viewNames = new HashMap/*<String,View>*/();
+	/** a set of all views in existence */					private static TreeSet<View> views = new TreeSet<View>();
+	/** unmodifiable set of all views in existence */		private static Set<View> unmodifiableViews = Collections.unmodifiableSet(views);
+	/** a list of views by short and long names */			private static HashMap<String,View> viewNames = new HashMap<String,View>();
 	/** the index for new Views. */							private static int overallOrder = 16;
 
 	// -------------------------- public data -----------------------------
@@ -339,7 +339,7 @@ public class View implements Comparable/*<View>*/
 	 * Method to return an iterator over the views.
 	 * @return an iterator over the views.
 	 */
-	public static Iterator/*<View>*/ getViews() { return unmodifiableViews.iterator(); }
+	public static Iterator<View> getViews() { return unmodifiableViews.iterator(); }
 
 	/**
 	 * Method to return the number of views.
@@ -352,20 +352,20 @@ public class View implements Comparable/*<View>*/
 	 * The list excludes hidden libraries (i.e. the clipboard).
 	 * @return a List of all libraries, sorted by name.
 	 */
-	public static List/*<View>*/ getOrderedViews()
+	public static List<View> getOrderedViews()
 	{
-		List/*<View>*/ sortedList = new ArrayList/*<View>*/(views);
+		List<View> sortedList = new ArrayList<View>(views);
 		Collections.sort(sortedList, new ViewByOrder());
 		return sortedList;
 	}
 
-	private static class ViewByOrder implements Comparator/*<View>*/
+	private static class ViewByOrder implements Comparator<View>
 	{
-		/*public int compare(View v1, View v2)*/
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(View v1, View v2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			View v1 = (View)o1;
-			View v2 = (View)o2;
+//4*/		View v1 = (View)o1;
+//4*/		View v2 = (View)o2;
 			return v1.getOrder() - v2.getOrder();
 		}
 	}

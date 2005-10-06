@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -866,8 +867,8 @@ public class MimicStitch
 			if (allRoutes.size() == 0) continue;
 
 			// save what is highlighted
-			List saveHighlights = new ArrayList();
-			for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+			List<Highlight> saveHighlights = new ArrayList<Highlight>();
+			for(Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
 				saveHighlights.add(it.next());
 
 			// show the wires to be created
@@ -909,14 +910,14 @@ public class MimicStitch
 	{
 		private int count;
 		private List allRoutes;
-		private List saveHighlights;
+		private List<Highlight> saveHighlights;
 		private Highlighter highlighter;
 		private int nextSituationNumber;
 		private List possibleArcs;
 		private Cell cell;
 		private double prefX, prefY;
 
-		private MimicDialog(Frame parent, int count, List allRoutes, List saveHighlights, Highlighter highlighter, int nextSituationNumber,
+		private MimicDialog(Frame parent, int count, List allRoutes, List<Highlight> saveHighlights, Highlighter highlighter, int nextSituationNumber,
 			List possibleArcs, Cell cell, double prefX, double prefY)
 		{
 			super(parent, false);

@@ -3086,7 +3086,7 @@ public class EditWindow extends JPanel
         /** context */                  private VarContext context;
         /** offset */                   private Point2D offset;
         /** scale */                    private double scale;
-        /** highlights */               private List highlights;
+        /** highlights */               private List<Highlight> highlights;
         /** highlight offset*/          private Point2D highlightOffset;
         public Cell getCell() { return cell; }
         public VarContext getContext() { return context; }
@@ -3206,7 +3206,7 @@ public class EditWindow extends JPanel
 
         current.offset = new Point2D.Double(offx, offy);
         current.scale = scale;
-        current.highlights = new ArrayList();
+        current.highlights = new ArrayList<Highlight>();
         current.highlights.clear();
         for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
@@ -3249,7 +3249,7 @@ public class EditWindow extends JPanel
             history.cell = null;
             history.context = VarContext.globalContext;
             history.offset = new Point2D.Double(0,0);
-            history.highlights = new ArrayList();
+            history.highlights = new ArrayList<Highlight>();
             history.highlightOffset = new Point2D.Double(0,0);
         }
 
