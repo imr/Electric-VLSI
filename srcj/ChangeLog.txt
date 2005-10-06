@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/06/05, SMR) New "Layers" tab doesn't always show the preview.
+FIX: Made the preview be separate from the color chooser.
+
 BUG: (10/06/05, SMR) Cell frames are not visible when the background is black (Bug #615).
 FIX: Use proper color, not black.
 

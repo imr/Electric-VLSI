@@ -229,8 +229,14 @@ public class ColorPatternPanel extends JPanel
 		{
 			public void stateChanged(ChangeEvent e) { colorChanged(); }
 		});
+		colorChooser.setPreviewPanel(new JPanel());
+
 		colorPreviewPanel = new MyPreviewPanel(this);
-		colorChooser.setPreviewPanel(colorPreviewPanel);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 2;
+		gbc.gridwidth = 2;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		color.add(colorPreviewPanel, gbc);
 
 		if (showPrinter)
 		{
