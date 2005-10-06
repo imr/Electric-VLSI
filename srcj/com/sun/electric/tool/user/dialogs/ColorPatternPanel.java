@@ -1,26 +1,26 @@
 /* -*- tab-width: 4 -*-
- *
- * Electric(tm) VLSI Design System
- *
- * File: ColorPatternPanel.java
- *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
- *
- * Electric(tm) is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Electric(tm) is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Electric(tm); see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, Mass 02111-1307, USA.
- */
+*
+* Electric(tm) VLSI Design System
+*
+* File: ColorPatternPanel.java
+*
+* Copyright (c) 2004 Sun Microsystems and Static Free Software
+*
+* Electric(tm) is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* Electric(tm) is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Electric(tm); see the file COPYING.  If not, write to
+* the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+* Boston, Mass 02111-1307, USA.
+*/
 
 package com.sun.electric.tool.user.dialogs;
 
@@ -54,10 +54,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * A Panel to display color and pattern information.
- * Used in the "Layers" tab of the "Edit Options" dialog.
- * Used in the "Artwork Look" dialog.
- */
+* A Panel to display color and pattern information.
+* Used in the "Layers" tab of the "Edit Options" dialog.
+* Used in the "Artwork Look" dialog.
+*/
 public class ColorPatternPanel extends JPanel
 {
 	/**
@@ -149,7 +149,7 @@ public class ColorPatternPanel extends JPanel
 
 			// check the color values
 			int color = (red << 16) | (green << 8) | blue;
-            Color colorObj = null;
+			Color colorObj = null;
 			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
 			{
 				colorObj = new Color(color);
@@ -180,14 +180,14 @@ public class ColorPatternPanel extends JPanel
 	private JColorChooser colorChooser;
 	private MyPreviewPanel colorPreviewPanel;
 
-    /**
-     * Create a Panel for editing color and pattern information.
-     */
-    public ColorPatternPanel(boolean showPrinter)
+	/**
+	 * Create a Panel for editing color and pattern information.
+	 */
+	public ColorPatternPanel(boolean showPrinter)
 	{
-        initComponents();
+		initComponents();
 
-        this.showPrinter = showPrinter;
+		this.showPrinter = showPrinter;
 
 		useStipplePatternDisplay.addActionListener(new ActionListener()
 		{
@@ -233,7 +233,7 @@ public class ColorPatternPanel extends JPanel
 		colorChooser.setPreviewPanel(colorPreviewPanel);
 
 		if (showPrinter)
- 		{
+		{
 			useOutlinePatternPrinter.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
@@ -243,37 +243,38 @@ public class ColorPatternPanel extends JPanel
 				public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
 			});
 			opacity.getDocument().addDocumentListener(new LayerColorDocumentListener());
- 		} else
- 		{
+		} else
+		{
 			remove(forPrinter);
 		}
 	}
 
-    /**
-     * Class to provide an alternative preview panel for JColorChooser.
-     */
-    public class MyPreviewPanel extends JButton
-    {
+	/**
+	 * Class to provide an alternative preview panel for JColorChooser.
+	 */
+	public class MyPreviewPanel extends JButton
+	{
 		private static final int XSIZE = 288;
 		private static final int YSIZE = 48;
+		private static final int BORDER = 10;
 		private ColorPatternPanel dia;
-        Color curColor = Color.BLACK;
-    
-        public MyPreviewPanel(ColorPatternPanel dia)
+		Color curColor = Color.BLACK;
+   
+		public MyPreviewPanel(ColorPatternPanel dia)
 		{
 			this.dia = dia;
-            setPreferredSize(new Dimension(XSIZE, YSIZE+8));
-        }
+			setPreferredSize(new Dimension(XSIZE+BORDER*2, YSIZE+BORDER*2));
+		}
 
 		public void setPreviewColor(Color color)
 		{
 			curColor = color;
 		}
 
-        public void paint(Graphics g)
+		public void paint(Graphics g)
 		{
 			// clear background
-            g.setColor(new Color(User.getColorBackground()));
+			g.setColor(new Color(User.getColorBackground()));
 			g.fillRect(0, 0, getWidth(), getHeight());
 
 			if (dia.useStipplePatternDisplay.isSelected())
@@ -293,25 +294,25 @@ public class ColorPatternPanel extends JPanel
 				// draw the image to fill the preview
 				for(int y=0; y<YSIZE; y+=16)
 					for(int x=0; x<XSIZE; x+=16)
-						g.drawImage(im, x, y, null, null);
+						g.drawImage(im, x+BORDER, y+BORDER, null, null);
 
 				// draw an outline if requested
 				if (dia.useOutlinePatternDisplay.isSelected())
 				{
 					g.setColor(curColor);
-					g.drawLine(0, 0, XSIZE-1, 0);
-					g.drawLine(XSIZE-1, 0, XSIZE-1, YSIZE-1);
-					g.drawLine(XSIZE-1, YSIZE-1, 0, YSIZE-1);
-					g.drawLine(0, YSIZE-1, 0, 0);
+					g.drawLine(BORDER, BORDER, XSIZE+BORDER-1, BORDER);
+					g.drawLine(XSIZE+BORDER-1, BORDER, XSIZE+BORDER-1, YSIZE+BORDER-1);
+					g.drawLine(XSIZE+BORDER-1, YSIZE+BORDER-1, BORDER, YSIZE+BORDER-1);
+					g.drawLine(BORDER, YSIZE+BORDER-1, BORDER, BORDER);
 				}
 			} else
 			{
 				// not stippled, just fill it
 				g.setColor(curColor);
-				g.fillRect(0, 0, XSIZE, YSIZE);
+				g.fillRect(BORDER, BORDER, XSIZE, YSIZE);
 			}
-        }
-    }
+	   }
+   }
 
 	/**
 	 * Method to update the panel to reflect the given color map.
@@ -964,173 +965,173 @@ public class ColorPatternPanel extends JPanel
 		public void mouseExited(MouseEvent evt) {}
 	}
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
+   /** This method is called from within the constructor to
+    * initialize the form.
+    * WARNING: Do NOT modify this code. The content of this method is
+    * always regenerated by the Form Editor.
+    */
+   // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+   private void initComponents() {
+       java.awt.GridBagConstraints gridBagConstraints;
 
-        forPrinter = new javax.swing.JPanel();
-        useStipplePatternPrinter = new javax.swing.JCheckBox();
-        useOutlinePatternPrinter = new javax.swing.JCheckBox();
-        opacityLabel = new javax.swing.JLabel();
-        opacity = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        pattern = new javax.swing.JPanel();
-        jLabel50 = new javax.swing.JLabel();
-        useStipplePatternDisplay = new javax.swing.JCheckBox();
-        useOutlinePatternDisplay = new javax.swing.JCheckBox();
-        color = new javax.swing.JPanel();
-        jLabel40 = new javax.swing.JLabel();
-        transparentLayer = new javax.swing.JComboBox();
+       forPrinter = new javax.swing.JPanel();
+       useStipplePatternPrinter = new javax.swing.JCheckBox();
+       useOutlinePatternPrinter = new javax.swing.JCheckBox();
+       opacityLabel = new javax.swing.JLabel();
+       opacity = new javax.swing.JTextField();
+       jLabel1 = new javax.swing.JLabel();
+       jLabel2 = new javax.swing.JLabel();
+       pattern = new javax.swing.JPanel();
+       jLabel50 = new javax.swing.JLabel();
+       useStipplePatternDisplay = new javax.swing.JCheckBox();
+       useOutlinePatternDisplay = new javax.swing.JCheckBox();
+       color = new javax.swing.JPanel();
+       jLabel40 = new javax.swing.JLabel();
+       transparentLayer = new javax.swing.JComboBox();
 
-        setLayout(new java.awt.GridBagLayout());
+       setLayout(new java.awt.GridBagLayout());
 
-        forPrinter.setLayout(new java.awt.GridBagLayout());
+       forPrinter.setLayout(new java.awt.GridBagLayout());
 
-        forPrinter.setBorder(new javax.swing.border.TitledBorder("For Printing"));
-        useStipplePatternPrinter.setText("Use Stipple Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        forPrinter.add(useStipplePatternPrinter, gridBagConstraints);
+       forPrinter.setBorder(new javax.swing.border.TitledBorder("For Printing"));
+       useStipplePatternPrinter.setText("Use Stipple Pattern");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 0;
+       gridBagConstraints.gridy = 2;
+       gridBagConstraints.gridwidth = 2;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       forPrinter.add(useStipplePatternPrinter, gridBagConstraints);
 
-        useOutlinePatternPrinter.setText("Outline Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        forPrinter.add(useOutlinePatternPrinter, gridBagConstraints);
+       useOutlinePatternPrinter.setText("Outline Pattern");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 2;
+       gridBagConstraints.gridy = 2;
+       gridBagConstraints.gridwidth = 2;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       forPrinter.add(useOutlinePatternPrinter, gridBagConstraints);
 
-        opacityLabel.setText("Opacity:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        forPrinter.add(opacityLabel, gridBagConstraints);
+       opacityLabel.setText("Opacity:");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 0;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.gridheight = 2;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       forPrinter.add(opacityLabel, gridBagConstraints);
 
-        opacity.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        forPrinter.add(opacity, gridBagConstraints);
+       opacity.setColumns(6);
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 1;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.gridheight = 2;
+       gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       forPrinter.add(opacity, gridBagConstraints);
 
-        jLabel1.setText("0: Transparent");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        forPrinter.add(jLabel1, gridBagConstraints);
+       jLabel1.setText("0: Transparent");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 2;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       forPrinter.add(jLabel1, gridBagConstraints);
 
-        jLabel2.setText("1: Opaque");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        forPrinter.add(jLabel2, gridBagConstraints);
+       jLabel2.setText("1: Opaque");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 2;
+       gridBagConstraints.gridy = 1;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       forPrinter.add(jLabel2, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        add(forPrinter, gridBagConstraints);
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 1;
+       gridBagConstraints.gridy = 1;
+       gridBagConstraints.gridwidth = 2;
+       gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+       gridBagConstraints.weightx = 1.0;
+       add(forPrinter, gridBagConstraints);
 
-        pattern.setLayout(new java.awt.GridBagLayout());
+       pattern.setLayout(new java.awt.GridBagLayout());
 
-        pattern.setBorder(new javax.swing.border.TitledBorder("Pattern"));
-        jLabel50.setText("Click on a pattern below to use it above");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        pattern.add(jLabel50, gridBagConstraints);
+       pattern.setBorder(new javax.swing.border.TitledBorder("Pattern"));
+       jLabel50.setText("Click on a pattern below to use it above");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 0;
+       gridBagConstraints.gridy = 2;
+       gridBagConstraints.gridwidth = 7;
+       gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+       pattern.add(jLabel50, gridBagConstraints);
 
-        useStipplePatternDisplay.setText("Use Stipple Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        pattern.add(useStipplePatternDisplay, gridBagConstraints);
+       useStipplePatternDisplay.setText("Use Stipple Pattern");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 1;
+       gridBagConstraints.gridy = 4;
+       gridBagConstraints.gridwidth = 3;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       pattern.add(useStipplePatternDisplay, gridBagConstraints);
 
-        useOutlinePatternDisplay.setText("Outline Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        pattern.add(useOutlinePatternDisplay, gridBagConstraints);
+       useOutlinePatternDisplay.setText("Outline Pattern");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 4;
+       gridBagConstraints.gridy = 4;
+       gridBagConstraints.gridwidth = 3;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       pattern.add(useOutlinePatternDisplay, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.weightx = 1.0;
-        add(pattern, gridBagConstraints);
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 1;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+       gridBagConstraints.weightx = 1.0;
+       add(pattern, gridBagConstraints);
 
-        color.setLayout(new java.awt.GridBagLayout());
+       color.setLayout(new java.awt.GridBagLayout());
 
-        color.setBorder(new javax.swing.border.TitledBorder("Color"));
-        jLabel40.setText("Transparency:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        color.add(jLabel40, gridBagConstraints);
+       color.setBorder(new javax.swing.border.TitledBorder("Color"));
+       jLabel40.setText("Transparency:");
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 0;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       color.add(jLabel40, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        color.add(transparentLayer, gridBagConstraints);
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 1;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+       gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+       color.add(transparentLayer, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        add(color, gridBagConstraints);
+       gridBagConstraints = new java.awt.GridBagConstraints();
+       gridBagConstraints.gridx = 0;
+       gridBagConstraints.gridy = 0;
+       gridBagConstraints.gridheight = 2;
+       gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+       gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+       add(color, gridBagConstraints);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
-    
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel color;
-    private javax.swing.JPanel forPrinter;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel40;
-    private javax.swing.JLabel jLabel50;
-    private javax.swing.JTextField opacity;
-    private javax.swing.JLabel opacityLabel;
-    private javax.swing.JPanel pattern;
-    private javax.swing.JComboBox transparentLayer;
-    private javax.swing.JCheckBox useOutlinePatternDisplay;
-    private javax.swing.JCheckBox useOutlinePatternPrinter;
-    private javax.swing.JCheckBox useStipplePatternDisplay;
-    private javax.swing.JCheckBox useStipplePatternPrinter;
-    // End of variables declaration//GEN-END:variables
-    
+   }
+   // </editor-fold>//GEN-END:initComponents
+   
+   
+   // Variables declaration - do not modify//GEN-BEGIN:variables
+   private javax.swing.JPanel color;
+   private javax.swing.JPanel forPrinter;
+   private javax.swing.JLabel jLabel1;
+   private javax.swing.JLabel jLabel2;
+   private javax.swing.JLabel jLabel40;
+   private javax.swing.JLabel jLabel50;
+   private javax.swing.JTextField opacity;
+   private javax.swing.JLabel opacityLabel;
+   private javax.swing.JPanel pattern;
+   private javax.swing.JComboBox transparentLayer;
+   private javax.swing.JCheckBox useOutlinePatternDisplay;
+   private javax.swing.JCheckBox useOutlinePatternPrinter;
+   private javax.swing.JCheckBox useStipplePatternDisplay;
+   private javax.swing.JCheckBox useStipplePatternPrinter;
+   // End of variables declaration//GEN-END:variables
+   
 }
