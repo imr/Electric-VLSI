@@ -2131,6 +2131,7 @@ public class CircuitChanges
 		protected GraphCells(Cell top)
 		{
 			super("Graph Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.top = top;
 			startJob();
 		}
 

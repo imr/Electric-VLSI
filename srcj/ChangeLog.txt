@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/05/05, SMR) Graphical cell lists always show the entire library,
+     never from current cell (Bug #614).
+FIX: In CircuitChanges.GraphCells constructor, save "top" parameter.
+
 BUG: (10/06/05, SMR) List Cell Usage doesn't handle icons (Bug #618).
 FIX: In CellUsage.java, consider icon cells, too.
 
