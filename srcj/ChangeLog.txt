@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.04a: *********************************
+************************* Version 8.04b: *********************************
 
 BUG: (10/06/05, DN) Epic waveform viewer exception while reading incomplete out file (Bug #619)
 FIX: In EpicOut.EpicReader.readBug set "bufL = 0" on EOF.
@@ -30,6 +30,8 @@ FIX: In EditWindow.paint() and EditWindow.repaintContents(), ignore windows with
 
 IMP: (10/06/05, DN) In many places generic type parameters are added for static type-checking.
      runAll4.sh script is added to regressions of main branch by Java 1.4 .
+
+************************* Version 8.04a: *********************************
 
 IMP: (10/05/05, SMR) Title box now defaults the designer name to the current user (Bug #609).
 
