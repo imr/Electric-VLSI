@@ -1106,6 +1106,11 @@ public class CellProperties extends EDialog
 				{
 					cell.newVar(User.FRAME_SIZE, pcv.frameSize.getString());
 				}
+				if (pcv.frameSize.getString().length() != 0)
+				{
+					if (pcv.designerName.getString().length() == 0)
+						pcv.designerName.setString(System.getProperty("user.name"));
+				}
 				if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
 				{
 					cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
