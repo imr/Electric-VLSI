@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.prefs.BackingStoreException;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
@@ -1072,7 +1073,14 @@ public class FileMenu {
 
         public boolean doIt()
         {
-            Library.saveExpandStatus(true);
+            try {
+                Library.saveExpandStatus();
+            } catch (BackingStoreException e) {
+                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			            "Cannot save cell expand status. Do you still want to quit?", "Cell Status Error",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (response != JOptionPane.YES_OPTION) return false;
+            }
             ActivityLogger.finished();
             System.exit(0);
             return true;

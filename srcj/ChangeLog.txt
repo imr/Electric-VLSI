@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/06/05, DN) Epic waveform viewer exception while reading incomplete out file (Bug #619)
+FIX: In EpicOut.EpicReader.readBug set "bufL = 0" on EOF.
+
 IMP: (10/06/05, SMR) Grid preferences now offers option to show axes through origin (Bug #616).
 
 BUG: (10/06/05, SMR) Graphical cell lists always show the entire library,

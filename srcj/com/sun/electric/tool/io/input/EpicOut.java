@@ -151,7 +151,7 @@ public class EpicOut extends Simulate {
         sd.timeResolution = reader.timeResolution;
         sd.voltageResolution = reader.voltageResolution;
         sd.currentResolution = reader.currentResolution;
-        ArrayList/*<EpicAnalogSignal>*/ signals = new ArrayList/*<EpicAnalogSignal>*/();
+        ArrayList<EpicAnalogSignal> signals = new ArrayList<EpicAnalogSignal>();
         for (int i = 0; i < reader.signals.size(); i++) {
             EpicSignal s = (EpicSignal)reader.signals.get(i);
             if (s == null) continue;
@@ -205,13 +205,13 @@ class EpicReader {
     byte[] buf = new byte[65536];
     int bufL;
     int bufP;
-//    StringBuilder builder = new StringBuilder();
-    StringBuffer builder = new StringBuffer();
+/*5*/StringBuilder builder = new StringBuilder();
+//4*/StringBuffer builder = new StringBuffer();
     Pattern whiteSpace = Pattern.compile("[ \t]+");
     
     int timesC = 0;
     int eventsC = 0;
-    ArrayList/*<EpicSignal>*/ signals = new ArrayList/*<EpicSignal>*/();
+    ArrayList<EpicSignal> signals = new ArrayList<EpicSignal>();
     int numSignals = 0;
     double timeResolution;
     double voltageResolution;
@@ -239,8 +239,8 @@ class EpicReader {
 		try
 		{
 			urlCon = fileURL.openConnection();
-//            urlCon.setConnectTimeout(10000);
-//            urlCon.setReadTimeout(1000);
+/*5*/       urlCon.setConnectTimeout(10000);
+/*5*/       urlCon.setReadTimeout(1000);
             String contentLength = urlCon.getHeaderField("content-length");
             fileLength = -1;
             try {
@@ -264,6 +264,7 @@ class EpicReader {
                 if (parseNumLineFast()) continue;
                 bufP = startLine;
                 String line = getLine();
+                assert bufP <= bufL;
                 if (line == null) break;
                 parseNumLine(line);
             }
@@ -343,15 +344,14 @@ class EpicReader {
     }
     
     private boolean parseNumLineFast() {
-        if (bufP + 20 >= bufL) return false;
+        final int MAX_DIGITS = 9;
+        if (bufP + (MAX_DIGITS*2 + 4) >= bufL) return false;
         int ch = buf[bufP++];
         if (ch < '0' || ch > '9') return false;
         int num1 = ch - '0';
-        for (int lim = bufP + 9; bufP < lim; ) {
-            ch = buf[bufP++];
-            if (ch < '0' || ch > '9') break;
+        ch = buf[bufP++];
+        for (int lim = bufP + (MAX_DIGITS - 1); '0' <= ch && ch <= '9' && bufP < lim; ch = buf[bufP++])
             num1 = num1*10 + (ch - '0');
-        }
         boolean twoNumbers = false;
         int num2 = 0;
         if (ch == ' ') {
@@ -363,11 +363,9 @@ class EpicReader {
             }
             if (ch < '0' || ch > '9') return false;
             num2 = ch - '0';
-            for (int lim = bufP + 9; bufP < lim; ) {
-                ch = buf[bufP++];
-                if (ch < '0' || ch > '9') break;
+            ch = buf[bufP++];
+            for (int lim = bufP + (MAX_DIGITS - 1); '0' <= ch && ch <= '9' && bufP < lim; ch = buf[bufP++])
                 num2 = num2*10 + (ch - '0');
-            }
             if (sign) num2 = -num2;
             twoNumbers = true;
         }
@@ -430,7 +428,10 @@ class EpicReader {
         assert bufP == bufL;
         bufP = bufL = 0;
         bufL = inputStream.read(buf, 0, buf.length);
-        if (bufL <= 0) return true;
+        if (bufL <= 0) {
+            bufL = 0;
+            return true;
+        }
         byteCount += bufL;
         showProgress(fileLength != 0 ? byteCount/(double)fileLength : 0);
         return false;
