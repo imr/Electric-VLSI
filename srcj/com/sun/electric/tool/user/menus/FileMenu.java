@@ -1088,7 +1088,7 @@ public class FileMenu {
 
         public boolean doIt()
         {
-            Library.saveExpandStatus();
+            Library.saveExpandStatus(true);
             ActivityLogger.finished();
             System.exit(0);
             return true;

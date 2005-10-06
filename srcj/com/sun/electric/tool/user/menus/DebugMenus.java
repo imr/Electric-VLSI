@@ -290,7 +290,7 @@ public class DebugMenus {
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Save expanded status", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Library.saveExpandStatus(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Library.saveExpandStatus(false); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,

@@ -1016,8 +1016,11 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 
     /**
      * Method to save isExpanded status of NodeInsts in this Library to Preferences.
+     * @param quitCommand
+     * @return
      */
-    public static void saveExpandStatus() {
+    public static boolean saveExpandStatus(boolean quitCommand) {
+        boolean okQuit = true;
         try {
             for (Iterator lit = getLibraries(); lit.hasNext(); ) {
                 Library lib = (Library)lit.next();
@@ -1028,9 +1031,25 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
                 lib.prefs.flush();
             }
         } catch (BackingStoreException e) {
-            ActivityLogger.logException(e);
+            if (quitCommand)
+            {
+                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                        "Cannot save cell expand status. Do you still want to quit?");
+
+                if (response == JOptionPane.YES_OPTION) okQuit = false;
+            }
+            else
+            {
+                okQuit = false;
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot save cell expand status." +
+                        "Check user preferences setup.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+//            ActivityLogger.logException(e);
         }
+        return (okQuit);
     }
+
     
 	/**
 	 * Method to find the Cell with the given name in this Library.
