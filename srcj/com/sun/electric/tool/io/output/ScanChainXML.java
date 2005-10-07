@@ -186,9 +186,9 @@ public class ScanChainXML {
     private SubChain endChain;
 
     // for tracing one subchain
-    private String oneChainStartExport = null;
-    private String oneChainName = null;
-    private ExPort startExport = null;
+    private List chainStartExports = null;          // list of strings
+    private List chainNames = null;                 // list of strings
+    private List chainStartExPorts = null;          // list of ExPorts
 
     // ------------------------ Constructors ------------------------------
 
@@ -269,6 +269,9 @@ public class ScanChainXML {
      * @param cellName the name of the cell
      */
     public void addCellToFlatten(String libName, String cellName) {
+        System.out.println("Warning: addCellToFlatten() optimization is no longer supported.");
+        return;
+/*
         Library lib = Library.findLibrary(libName);
         if (lib == null) {
             System.out.println("Did not find library "+libName+" for flattening cell "+cellName);
@@ -280,6 +283,7 @@ public class ScanChainXML {
             return;
         }
         cellsToFlatten.put(cell, cell);
+*/
     }
 
     /**
@@ -331,8 +335,13 @@ public class ScanChainXML {
      * @param chainName
      */
     public void startFromExport(String exportName, String chainName) {
-        this.oneChainStartExport = exportName;
-        this.oneChainName = chainName;
+        if (chainStartExports == null) {
+            chainStartExports = new ArrayList();
+            chainNames = new ArrayList();
+            chainStartExPorts = new ArrayList();
+        }
+        chainStartExports.add(exportName);
+        chainNames.add(chainName);
     }
 
     /**
@@ -374,13 +383,15 @@ public class ScanChainXML {
         }
 
         Stack startNode = null;
-        if (oneChainStartExport != null && oneChainName != null) {
-            startExport = getExPort(cell, oneChainStartExport);
-            if (startExport == null) {
-                System.out.println("Cannot find export "+oneChainStartExport+" in cell "+cell.describe(false));
-                return;
+        if (chainStartExports != null) {
+            for (int i=0; i<chainStartExports.size(); i++) {
+                ExPort startExport = getExPort(cell, (String)chainStartExports.get(i));
+                if (startExport == null) {
+                    System.out.println("Cannot find export "+(String)chainStartExports.get(i)+" in cell "+cell.describe(false));
+                    continue;
+                }
+                chainStartExPorts.add(startExport);
             }
-            System.out.println("Tracing sub-chain "+oneChainName+" from export "+oneChainStartExport);
             if (jtagController == null)
                 jtagController = new JtagController("", 8);
         } else {
@@ -460,12 +471,17 @@ public class ScanChainXML {
                 }
                 chains.add(chain);
             }
-        } else if (startExport != null) {
-            Chain chain = new Chain(oneChainName, 0, -1);
-            appendChain(chain, getOtherPorts(startExport));
-            int found = chain.numScanElements();
-            System.out.println("Info: completed successfully: chain "+oneChainName+" had "+found+" scan chain elements");
-            chains.add(chain);
+        } else if (chainStartExPorts != null) {
+            for (int i=0; i<chainStartExPorts.size(); i++) {
+                ExPort startExport = (ExPort)chainStartExPorts.get(i);
+                String name = (String)chainNames.get(i);
+                Chain chain = new Chain(name, 0, -1);
+                System.out.println("Tracing sub-chain "+name+" from export "+startExport);
+                appendChain(chain, getOtherPorts(startExport));
+                int found = chain.numScanElements();
+                System.out.println("Info: completed successfully: chain "+name+" had "+found+" scan chain elements");
+                chains.add(chain);
+            }
         } else {
             System.out.println("No starting point, aborting.");
             return;
@@ -737,7 +753,7 @@ public class ScanChainXML {
         private ExPort outExport;
 
         private Entity(Cell cell) {
-            super(cell.getName(), -1);
+            super(cell.getLibrary().getName()+"_"+cell.getName(), -1);
             this.cell = cell;
         }
 
