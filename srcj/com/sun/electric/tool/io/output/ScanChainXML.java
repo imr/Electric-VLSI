@@ -1286,7 +1286,10 @@ public class ScanChainXML {
                 }
             }
         }
-        if (port == null) return null;
+        if (port == null) {
+            System.out.println("Error: no other ports connected to export "+inport.ex.getName()+" (make sure the export is on an off-page node).");
+            return null;
+        }
         return getOtherPorts(port);
     }
 
