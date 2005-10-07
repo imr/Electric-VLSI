@@ -199,11 +199,11 @@ public class FPGA extends Technology
 	{
 		private String keyword;
 		private int    lineNumber;
-		private List   values;
+		private List<Object> values;
 
 		LispTree()
 		{
-			values = new ArrayList();
+			values = new ArrayList<Object>();
 		}
 
 		void add(Object obj) { values.add(obj); }
@@ -372,7 +372,7 @@ public class FPGA extends Technology
 							for(int j=0; j<fn.numPorts(); j++)
 							{
 								if (fn.portList[j].con != i) continue;
-								for(Iterator it = ni.getConnections(); it.hasNext(); )
+								for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 								{
 									Connection con = (Connection)it.next();
 									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
@@ -489,7 +489,7 @@ public class FPGA extends Technology
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer> onlyTheseLayers)
 	{
 		boolean active = true;
 		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
@@ -535,7 +535,7 @@ public class FPGA extends Technology
 			// follow down into cell
 			VarContext down = curContext.push(ni);
 			NodeInst subni = ((Export)pp).getOriginalPort().getNodeInst();
-			for(Iterator it = subni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = subni.getConnections(); it.hasNext(); )
 			{
 				Connection nextCon = (Connection)it.next();
 				ArcInst oAi = nextCon.getArc();
@@ -573,7 +573,7 @@ public class FPGA extends Technology
 			Network net = nl.getNetwork(ni, pp, 0);
 			if (net != null)
 			{
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection nextCon = (Connection)it.next();
 					ArcInst oAi = nextCon.getArc();
@@ -590,13 +590,13 @@ public class FPGA extends Technology
 				if (higher != null && higher.getNodable() != null)
 				{
 					NodeInst oNi = (NodeInst)higher.getNodable();
-					for (Iterator it = ni.getExports(); it.hasNext(); )
+					for (Iterator<Export> it = ni.getExports(); it.hasNext(); )
 					{
 						Export opp = (Export)it.next();
 						Network oNet = nl.getNetwork(opp, 0);
 						if (oNet != net) continue;
 
-						for(Iterator uIt = oNi.getConnections(); uIt.hasNext(); )
+						for(Iterator<Connection> uIt = oNi.getConnections(); uIt.hasNext(); )
 						{
 							Connection nextCon = (Connection)uIt.next();
 							ArcInst oAi = nextCon.getArc();
@@ -2231,7 +2231,7 @@ public class FPGA extends Technology
 						// find component and port
 						NodeInst niFound = null;
 						String name = scanLT.getLeaf(pos+1);
-						for(Iterator it = cell.getNodes(); it.hasNext(); )
+						for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)it.next();
 							if (ni.getName().equalsIgnoreCase(name))
@@ -2274,7 +2274,7 @@ public class FPGA extends Technology
 
 						// find pin at this point
 						NodeInst niFound = null;
-						for(Iterator it = cell.searchIterator(search); it.hasNext(); )
+						for(Iterator<Geometric> it = cell.searchIterator(search); it.hasNext(); )
 						{
 							Geometric geom = (Geometric)it.next();
 							if (!(geom instanceof NodeInst)) continue;

@@ -1415,7 +1415,7 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Objects by their string name.
 	 */
-    public static class ObjectsByToString implements Comparator
+    public static class ObjectsByToString implements Comparator<Object>
     {
 		/**
 		 * Method to sort Objects by their string name.

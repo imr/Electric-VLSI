@@ -44,14 +44,14 @@ class MacOSXInterface extends ApplicationAdapter
 {
 	private static MacOSXInterface adapter = null;
 	private static Application application = null;
-    private static List argsList; // references to args list to add the file that triggers the opening
+    private static List<String> argsList; // references to args list to add the file that triggers the opening
     protected Job initJob;
 
 	/**
 	 * Method to initialize the Mac OS/X interface.
 	 * @param list the arguments to the application.
 	 */
-	private MacOSXInterface(List list)
+	private MacOSXInterface(List<String> list)
     {
         argsList = list;
     }
@@ -106,7 +106,7 @@ class MacOSXInterface extends ApplicationAdapter
         else
         {
             // Handle the rest of double-clicks on files.
-            List list = new ArrayList(1);
+            List<String> list = new ArrayList<String>(1);
             list.add(filename);
             Main.openCommandLineLibs(list);
         }
@@ -120,7 +120,7 @@ class MacOSXInterface extends ApplicationAdapter
 	 * Method to initialize the Macintosh OS X environment.
 	 * @param argsList the arguments to the application.
 	 */
-	public static void registerMacOSXApplication(List argsList)
+	public static void registerMacOSXApplication(List<String> argsList)
 	{
 		// tell it to use the system menubar
 		System.setProperty("com.apple.macos.useScreenMenuBar", "true");

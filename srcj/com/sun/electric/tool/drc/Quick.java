@@ -57,6 +57,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+import java.awt.Shape;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -4639,7 +4640,7 @@ public class Quick
 
         private void addElement(Poly poly, Layer layer, boolean isNode)
         {
-            Object obj = null;
+            Shape obj = null;
             if (mode == GeometryHandler.ALGO_QTREE)
                 obj = new PolyQTree.PolyNode(poly.getBounds2D());
             else
@@ -4832,7 +4833,7 @@ public class Quick
         private void addElement(GeometryHandler mainMerge, GeometryHandler otherTypeMerge, Poly poly,
                                 Layer layer, boolean isNode)
         {
-            Object obj = null;
+            Shape obj = null;
             if (mode == GeometryHandler.ALGO_QTREE)
                 obj = new PolyQTree.PolyNode(poly.getBounds2D());
             else

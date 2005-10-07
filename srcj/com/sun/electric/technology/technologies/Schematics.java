@@ -37,12 +37,21 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeSize;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
+
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1426,7 +1435,7 @@ public class Schematics extends Technology
 		{
 			// bus pins get bigger in "T" configurations, disappear when alone and exported
 			int busCon = 0, nonBusCon = 0;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				if (con.getArc().getProto() == bus_arc) busCon++; else
@@ -1444,10 +1453,10 @@ public class Schematics extends Technology
 					NodeInst upni = (NodeInst)no;
 					if (upni.getProto() == ni.getParent() && wnd != null && upni.getParent() == wnd.getCell())
 					{
-						for(Iterator it = ni.getExports(); it.hasNext(); )
+						for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 						{
 							Export pp = (Export)it.next();
-							for(Iterator pIt = upni.getConnections(); pIt.hasNext(); )
+							for(Iterator<Connection> pIt = upni.getConnections(); pIt.hasNext(); )
 							{
 								Connection con = (Connection)pIt.next();
 								if (con.getPortInst().getPortProto() != pp) continue;
@@ -1706,19 +1715,19 @@ public class Schematics extends Technology
 		if (extraBlobs)
 		{
 			// make a list of extra blobs that need to be drawn
-			List extraBlobList = null;
-			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			List<PortInst> extraBlobList = null;
+			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				int arcs = 0;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					if (con.getPortInst() == pi) arcs++;
 				}
 				if (arcs > 1)
 				{
-					if (extraBlobList == null) extraBlobList = new ArrayList();
+					if (extraBlobList == null) extraBlobList = new ArrayList<PortInst>();
 					extraBlobList.add(pi);
 				}
 			}
@@ -1730,7 +1739,7 @@ public class Schematics extends Technology
 				int fill = 0;
 				for(int i=0; i<primLayers.length; i++)
 					blobLayers[fill++] = primLayers[i];
-				for(Iterator it = extraBlobList.iterator(); it.hasNext(); )
+				for(Iterator<PortInst> it = extraBlobList.iterator(); it.hasNext(); )
 				{
 					PortInst pi = (PortInst)it.next();
 					PrimitivePort pp = (PrimitivePort)pi.getPortProto();
@@ -1791,7 +1800,7 @@ public class Schematics extends Technology
 
 					// determine total number of arcs already on this port
 					int total = 0;
-					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
 						if (con.getPortInst() == pi) total++;
@@ -1829,7 +1838,7 @@ public class Schematics extends Technology
 
 						// check for duplication
 						boolean found = false;
-						for(Iterator it = ni.getConnections(); it.hasNext(); )
+						for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 						{
 							Connection con = (Connection)it.next();
 							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
@@ -1944,7 +1953,7 @@ public class Schematics extends Technology
 
 	private PrimitivePort getIndexedPort(int index, PrimitiveNode np)
 	{
-		for(Iterator it = np.getPorts(); it.hasNext(); )
+		for(Iterator<PrimitivePort> it = np.getPrimitivePorts(); it.hasNext(); )
 		{
 			PrimitivePort pp = (PrimitivePort)it.next();
 			if (index == 0) return pp;
@@ -2308,14 +2317,14 @@ public class Schematics extends Technology
 		if (schemTech != null) return schemTech;
 
 		// look at all circuitry and see which technologies are in use
-		HashMap usedTechnologies = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		HashMap<Technology,DBMath.MutableInteger> usedTechnologies = new HashMap<Technology,DBMath.MutableInteger>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			usedTechnologies.put(it.next(), new DBMath.MutableInteger(0));
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				Technology tech = cell.getTechnology();
@@ -2326,7 +2335,7 @@ public class Schematics extends Technology
 		}
 
 		// ignore nonlayout technologies
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
@@ -2337,7 +2346,7 @@ public class Schematics extends Technology
 		// figure out the most popular technology
 		int bestAmount = -1;
 		Technology bestTech = null;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
@@ -2380,7 +2389,7 @@ public class Schematics extends Technology
 	 */
 	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
 
-	private static HashMap primPrefs = new HashMap();
+	private static HashMap<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
 	private static Pref getPrefForPrimitive(PrimitiveNode np)
 	{
 		Pref pref = (Pref)primPrefs.get(np);

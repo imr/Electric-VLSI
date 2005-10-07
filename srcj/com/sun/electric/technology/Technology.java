@@ -115,7 +115,7 @@ import java.util.prefs.Preferences;
  * </UL>
  * @author Steven M. Rubin
  */
-public class Technology implements Comparable
+public class Technology implements Comparable<Technology>
 {
     /**
 	 * Defines a single layer of a ArcProto.
@@ -530,7 +530,7 @@ public class Technology implements Comparable
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
 	/** preferences for all technologies */					private static Preferences prefs = null;
-	/** static list of all Technologies in Electric */		private static TreeMap technologies = new TreeMap();
+	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -545,19 +545,19 @@ public class Technology implements Comparable
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
-	/** list of layers in this technology */				private List layers;
+	/** list of layers in this technology */				private List<Layer> layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
-	/** list of primitive nodes in this technology */		private LinkedHashMap nodes = new LinkedHashMap();
+	/** list of primitive nodes in this technology */		private LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
-	/** list of arcs in this technology */					private LinkedHashMap arcs = new LinkedHashMap();
-	/** list of NodeLayers in this Technology. */			private List nodeLayers;
+	/** list of arcs in this technology */					private LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+	/** list of NodeLayers in this Technology. */			private List<NodeLayer> nodeLayers;
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
 	/** scale for this Technology. */						private Pref prefScale;
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private Pref prefFoundry;
-    /** static list of all Manufacturers in Electric */     protected List foundries;
+    /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
@@ -593,8 +593,8 @@ public class Technology implements Comparable
 	protected Technology(String techName)
 	{
 		this.techName = techName;
-		this.layers = new ArrayList();
-		this.nodeLayers = new ArrayList();
+		this.layers = new ArrayList<Layer>();
+		this.nodeLayers = new ArrayList<NodeLayer>();
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
@@ -606,7 +606,7 @@ public class Technology implements Comparable
 		technologies.put(techName, this);
 
         // Initialize foundries
-        foundries = new ArrayList();
+        foundries = new ArrayList<Foundry>();
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -695,13 +695,13 @@ public class Technology implements Comparable
 		init();
 
 		// setup mapping from pseudo-layers to real layers
-		for(Iterator it = this.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			int extras = layer.getFunctionExtras();
 			if ((extras & Layer.Function.PSEUDO) == 0) continue;
 			Layer.Function fun = layer.getFunction();
-			for(Iterator oIt = this.getLayers(); oIt.hasNext(); )
+			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
 			{
 				Layer oLayer = (Layer)oIt.next();
 				int oExtras = oLayer.getFunctionExtras();
@@ -728,8 +728,8 @@ public class Technology implements Comparable
 	public void init()
 	{
 		// remember the arc widths as specified by previous defaults
-		HashMap arcWidths = new HashMap();
-		for(Iterator it = getArcs(); it.hasNext(); )
+		HashMap<ArcProto,Double> arcWidths = new HashMap<ArcProto,Double>();
+		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			double width = ap.getDefaultWidth();
@@ -737,8 +737,8 @@ public class Technology implements Comparable
 		}
 
 		// remember the node sizes as specified by previous defaults
-		HashMap nodeSizes = new HashMap();
-		for(Iterator it = getNodes(); it.hasNext(); )
+		HashMap<PrimitiveNode,Point2D.Double> nodeSizes = new HashMap<PrimitiveNode,Point2D.Double>();
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			double width = np.getDefWidth();
@@ -750,7 +750,7 @@ public class Technology implements Comparable
 		setState();
 
 		// now restore arc width defaults if they are wider than what is set
-		for(Iterator it = getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			Double origWidth = (Double)arcWidths.get(ap);
@@ -760,7 +760,7 @@ public class Technology implements Comparable
 		}
 
 		// now restore node size defaults if they are larger than what is set
-		for(Iterator it = getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			Point2D size = (Point2D)nodeSizes.get(np);
@@ -812,7 +812,7 @@ public class Technology implements Comparable
 		Technology tech = (Technology) technologies.get(name);
 		if (tech != null) return tech;
 
-		for (Iterator it = getTechnologies(); it.hasNext(); )
+		for (Iterator<Technology> it = getTechnologies(); it.hasNext(); )
 		{
 			Technology t = (Technology) it.next();
 			if (t.techName.equalsIgnoreCase(name))
@@ -825,7 +825,7 @@ public class Technology implements Comparable
 	 * Get an iterator over all of the Technologies.
 	 * @return an iterator over all of the Technologies.
 	 */
-	public static Iterator getTechnologies()
+	public static Iterator<Technology> getTechnologies()
 	{
 		return technologies.values().iterator();
 	}
@@ -857,7 +857,7 @@ public class Technology implements Comparable
 	 * Returns an Iterator on the Layers in this Technology.
 	 * @return an Iterator on the Layers in this Technology.
 	 */
-	public Iterator getLayers()
+	public Iterator<Layer> getLayers()
 	{
 		return layers.iterator();
 	}
@@ -888,7 +888,7 @@ public class Technology implements Comparable
 	 */
 	public Layer findLayer(String layerName)
 	{
-		for(Iterator it = getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
@@ -920,7 +920,7 @@ public class Technology implements Comparable
         // Checking if node is found
         // Be careful because iterator might change over time?
         int count = 0;
-        for (Iterator it = getNodes(); it.hasNext(); count++)
+        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); count++)
         {
             PrimitiveNode pn = (PrimitiveNode)it.next();
             if (pn.getName().equalsIgnoreCase(name))
@@ -945,7 +945,7 @@ public class Technology implements Comparable
 	 */
 	public Layer findLayerFromFunction(Layer.Function fun)
 	{
-		for(Iterator it = this.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
 			Layer lay = (Layer)it.next();
 			Layer.Function lFun = lay.getFunction();
@@ -982,11 +982,11 @@ public class Technology implements Comparable
 	 * The list is sorted by depth (from bottom to top).
 	 * @return a sorted list of Layers in this Technology.
 	 */
-	public List getLayersSortedByHeight()
+	public List<Layer> getLayersSortedByHeight()
 	{
 		// determine order of overlappable layers in current technology
-		List layerList = new ArrayList();
-		for(Iterator it = getLayers(); it.hasNext(); )
+		List<Layer> layerList = new ArrayList<Layer>();
+		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
 			layerList.add(it.next());
 		}
@@ -994,12 +994,13 @@ public class Technology implements Comparable
 		return(layerList);
 	}
 
-	private static class LayerHeight implements Comparator
+	private static class LayerHeight implements Comparator<Layer>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Layer l1, Layer l2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Layer l1 = (Layer)o1;
-			Layer l2 = (Layer)o2;
+//4*/		Layer l1 = (Layer)o1;
+//4*/		Layer l2 = (Layer)o2;
 			int h1 = l1.getFunction().getHeight();
 			int h2 = l2.getFunction().getHeight();
 			return h1 - h2;
@@ -1027,7 +1028,7 @@ public class Technology implements Comparable
 		ArcProto primArc = (ArcProto)arcs.get(name);
 		if (primArc != null) return primArc;
 
-		for (Iterator it = getArcs(); it.hasNext(); )
+		for (Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto) it.next();
 			if (ap.getName().equalsIgnoreCase(name))
@@ -1040,7 +1041,7 @@ public class Technology implements Comparable
 	 * Returns an Iterator on the ArcProto objects in this technology.
 	 * @return an Iterator on the ArcProto objects in this technology.
 	 */
-	public Iterator getArcs()
+	public Iterator<ArcProto> getArcs()
 	{
 		return arcs.values().iterator();
 	}
@@ -1130,7 +1131,7 @@ public class Technology implements Comparable
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer> onlyTheseLayers)
 	{
 		// get information about the arc
 		ArcProto ap = ai.getProto();
@@ -1139,7 +1140,7 @@ public class Technology implements Comparable
 
 		if (onlyTheseLayers != null)
 		{
-			List layerArray = new ArrayList();
+			List<ArcLayer> layerArray = new ArrayList<ArcLayer>();
 
 			for (int i = 0; i < primLayers.length; i++)
 			{
@@ -1313,15 +1314,15 @@ public class Technology implements Comparable
 	 * Method to return a sorted list of nodes in the technology
 	 * @return a list with all nodes sorted
 	 */
-	public List getNodesSortedByName()
+	public List<PrimitiveNode> getNodesSortedByName()
 	{
-		TreeMap sortedMap = new TreeMap(TextUtils.STRING_NUMBER_ORDER);
-		for(Iterator it = getNodes(); it.hasNext(); )
+		TreeMap<String,PrimitiveNode> sortedMap = new TreeMap<String,PrimitiveNode>(TextUtils.STRING_NUMBER_ORDER);
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pn = (PrimitiveNode)it.next();
 			sortedMap.put(pn.getName(), pn);
 		}
-		return new ArrayList(sortedMap.values());
+		return new ArrayList<PrimitiveNode>(sortedMap.values());
 	}
 
 	/**
@@ -1335,7 +1336,7 @@ public class Technology implements Comparable
 		PrimitiveNode primNode = (PrimitiveNode)nodes.get(name);
 		if (primNode != null) return primNode;
 
-		for (Iterator it = getNodes(); it.hasNext(); )
+		for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pn = (PrimitiveNode) it.next();
 			if (pn.getName().equalsIgnoreCase(name))
@@ -1348,7 +1349,7 @@ public class Technology implements Comparable
 	 * Returns an Iterator on the PrimitiveNode objects in this technology.
 	 * @return an Iterator on the PrimitiveNode objects in this technology.
 	 */
-	public Iterator getNodes()
+	public Iterator<PrimitiveNode> getNodes()
 	{
 		return nodes.values().iterator();
 	}
@@ -1378,7 +1379,7 @@ public class Technology implements Comparable
      * Returns an Iterator on the Technology.NodeLayer objects in this technology.
      * @return an Iterator on the Technology.NodeLayer objects in this technology.
      */
-	public Iterator getNodeLayers()
+	public Iterator<NodeLayer> getNodeLayers()
 	{
 		return nodeLayers.iterator();
 	}
@@ -1397,7 +1398,7 @@ public class Technology implements Comparable
 	 */
 	public PrimitiveNode.Function getPrimitiveFunction(PrimitiveNode pn, int techBits) { return pn.getFunction(); }
 
-    private static final List diffLayers = new ArrayList(2);
+    private static final List<Layer.Function> diffLayers = new ArrayList<Layer.Function>(2);
 
     static {
 	    diffLayers.add(Layer.Function.DIFFP);
@@ -1699,7 +1700,7 @@ public class Technology implements Comparable
 
 		if (onlyTheseLayers != null)
 		{
-			List layerArray = new ArrayList();
+			List<NodeLayer> layerArray = new ArrayList<NodeLayer>();
 
 			for (int i = 0; i < primLayers.length; i++)
 			{
@@ -1847,7 +1848,7 @@ public class Technology implements Comparable
 
 		// determine the number of negating bubbles
 		int numNegatingBubbles = 0;
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			if (con.isNegated()) numNegatingBubbles++;
@@ -1939,7 +1940,7 @@ public class Technology implements Comparable
 		if (numNegatingBubbles > 0)
 		{
 			double bubbleRadius = Schematics.getNegatingBubbleSize() / 2;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				if (!con.isNegated()) continue;
@@ -2439,7 +2440,7 @@ public class Technology implements Comparable
 
 			// determine which port is being described
 			int which = 0;
-			for(Iterator it = theProto.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = theProto.getPorts(); it.hasNext(); )
 			{
 				PortProto lpp = (PortProto)it.next();
 				if (lpp == pp) break;
@@ -3093,7 +3094,7 @@ public class Technology implements Comparable
 	 */
 	public void setTechName(String techName)
 	{
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech == this) continue;
@@ -3284,7 +3285,7 @@ public class Technology implements Comparable
 	 * Get an iterator over all of the Manufacturers.
 	 * @return an iterator over all of the Manufacturers.
 	 */
-	public Iterator getFactories()
+	public Iterator<Foundry> getFactories()
 	{
 		return foundries.iterator();
 	}
@@ -3544,7 +3545,7 @@ public class Technology implements Comparable
 
 		// count the number of technologies
 		int maxTech = 0;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.getIndex() > maxTech) maxTech = tech.getIndex();
@@ -3574,7 +3575,7 @@ public class Technology implements Comparable
 			}
 		} else
 		{
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -3601,7 +3602,7 @@ public class Technology implements Comparable
 			}
 		} else
 		{
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
@@ -3612,7 +3613,7 @@ public class Technology implements Comparable
 		// find a concensus
 		int best = 0;         Technology bestTech = null;
 		int bestLayout = 0;   Technology bestLayoutTech = null;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 
@@ -3718,9 +3719,10 @@ public class Technology implements Comparable
      * @param obj the other Technology.
      * @return a comparison between the Technologies.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(Technology that)
+//4*/public int compareTo(Object obj)
 	{
-		Technology that = (Technology)obj;
+//4*/	Technology that = (Technology)obj;
 		return TextUtils.STRING_NUMBER_ORDER.compare(techName, that.techName);
 	}
 
@@ -3821,7 +3823,7 @@ public class Technology implements Comparable
 		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
 
 		int index = 0;
-		for(Iterator it = getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np == nty) break;
@@ -3871,7 +3873,7 @@ public class Technology implements Comparable
     {
         // Check if some metal layers are not used
         if (nodeGroups == null) return null;
-        List list = new ArrayList(nodeGroups.length);
+        List <Object>list = new ArrayList<Object>(nodeGroups.length);
         for (int i = 0; i < nodeGroups.length; i++)
         {
             Object[] objs = nodeGroups[i];
@@ -4065,7 +4067,7 @@ public class Technology implements Comparable
         private void checkLibrary(Library lib)
         {
             System.out.println("Resetting sizes in " + lib);
-            for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+            for(Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
             {
                 Cell cell = (Cell)itCell.next();
                 if (cell.getView() != View.LAYOUT) continue;
@@ -4083,13 +4085,13 @@ public class Technology implements Comparable
             }
             else
             {
-                for(Iterator it = Library.getLibraries(); it.hasNext(); )
+                for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
                 {
                     Library lib = (Library)it.next();
 
                     checkLibrary(lib);
 //                    System.out.println("Resetting sizes in " + lib);
-//                    for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+//                    for(Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
 //                    {
 //                        Cell cell = (Cell)itCell.next();
 //                        if (cell.getView() != View.LAYOUT) continue;

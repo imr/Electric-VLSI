@@ -40,7 +40,7 @@ import java.awt.Color;
  * It contains a list of ArcProto types that it
  * accepts connections from.
  */
-public class PrimitivePort implements PortProtoId, PortProto, Comparable
+public class PrimitivePort implements PortProtoId, PortProto, Comparable<PrimitivePort>
 {
 	// ---------------------------- private data --------------------------
 	private Name name; // The name of this PrimitivePort.
@@ -389,9 +389,10 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable
      * @param obj the other PrimitivePort.
      * @return a comparison between the PrimitivePorts.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(PrimitivePort that)
+//4*/public int compareTo(Object obj)
 	{
-		PrimitivePort that = (PrimitivePort)obj;
+//4*/	PrimitivePort that = (PrimitivePort)obj;
 		if (this.parent != that.parent)
 		{
 			int cmp = this.parent.compareTo(that.parent);

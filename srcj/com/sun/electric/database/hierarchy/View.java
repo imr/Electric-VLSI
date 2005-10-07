@@ -43,7 +43,7 @@ import java.util.TreeSet;
  * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
-public class View implements Comparable/*<View>*/
+public class View implements Comparable<View>
 {
 	// -------------------------- private data -----------------------------
 
@@ -375,9 +375,10 @@ public class View implements Comparable/*<View>*/
      * @param   o   the View to be compared.
      * @return	the result of comparison.
      */
-    public int compareTo(Object o/*View that*/)
+/*5*/public int compareTo(View that)
+//4*/public int compareTo(Object o)
 	{
-		View that = (View)o;
+//4*/	View that = (View)o;
 		return TextUtils.STRING_NUMBER_ORDER.compare(getAbbreviation(), that.getAbbreviation());
     }
 

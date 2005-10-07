@@ -66,9 +66,9 @@ public class Layer
 		private int level;
 		private final int height;
 		private final int extraBits;
-		private static HashMap metalLayers = new HashMap();
-		private static HashMap polyLayers = new HashMap();
-		private static List allFunctions = new ArrayList();
+		private static HashMap<Integer,Function> metalLayers = new HashMap<Integer,Function>();
+		private static HashMap<Integer,Function> polyLayers = new HashMap<Integer,Function>();
+		private static List<Function> allFunctions = new ArrayList<Function>();
 		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, PSEUDO, NONELEC, CONMETAL, CONPOLY, CONDIFF, INTRANS, THICK};
 
 		private Function(String name, String constantName, int metalLevel, int polyLevel, int height, int extraBits)
@@ -114,7 +114,7 @@ public class Layer
 		 * Method to return a list of all Layer Functions.
 		 * @return a list of all Layer Functions.
 		 */
-		public static List getFunctions() { return allFunctions; }
+		public static List<Function> getFunctions() { return allFunctions; }
 
 		/**
 		 * Method to return an array of the Layer Function "extra bits".
@@ -381,7 +381,7 @@ public class Layer
 	/**
 	 * Comparator class for sorting Layers by their name.
 	 */
-	private static class LayerSort implements Comparator
+	private static class LayerSort implements Comparator<Layer>
 	{
 		/**
 		 * Method to compare two layers by their name.
@@ -389,7 +389,8 @@ public class Layer
 		 * @param l2 another layer.
 		 * @return an integer indicating their sorting order.
 		 */
-        private static int compareStatic(Layer l1, Layer l2)
+/*5*/   public int compare(Layer l1, Layer l2)
+//4*/   private static int compareStatic(Layer l1, Layer l2)
         {
 			String s1 = l1.getName();
 			String s2 = l2.getName();;
@@ -399,10 +400,10 @@ public class Layer
 		/**
 		 * Method to sort Layers by their name.
 		 */
-		public int compare(Object o1, Object o2)
-		{
-			return compareStatic((Layer)o1, (Layer)o2);
-		}
+//4*/	public int compare(Object o1, Object o2)
+//4*/	{
+//4*/		return compareStatic((Layer)o1, (Layer)o2);
+//4*/	}
 	}
 
 	private String name;
@@ -422,20 +423,20 @@ public class Layer
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
-	private static HashMap cifLayerPrefs = new HashMap();
-	private static HashMap gdsLayerPrefs = new HashMap();
-	private static HashMap dxfLayerPrefs = new HashMap();
-	private static HashMap skillLayerPrefs = new HashMap();
-	private static HashMap resistanceParasiticPrefs = new HashMap();
-	private static HashMap capacitanceParasiticPrefs = new HashMap();
-	private static HashMap edgeCapacitanceParasiticPrefs = new HashMap();
-    private static final HashMap layerVisibilityPrefs = new HashMap();
+	private static HashMap<String,Pref> cifLayerPrefs = new HashMap<String,Pref>();
+	private static HashMap<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
+	private static HashMap<String,Pref> dxfLayerPrefs = new HashMap<String,Pref>();
+	private static HashMap<String,Pref> skillLayerPrefs = new HashMap<String,Pref>();
+	private static HashMap<Layer,Pref> resistanceParasiticPrefs = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> capacitanceParasiticPrefs = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> edgeCapacitanceParasiticPrefs = new HashMap<Layer,Pref>();
+    private static final HashMap<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
 
     // 3D options
-	private static final HashMap layer3DThicknessPrefs = new HashMap();
-	private static final HashMap layer3DDistancePrefs = new HashMap();
+	private static final HashMap<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
+	private static final HashMap<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
 
-    private static final HashMap areaCoveragePrefs = new HashMap();  // Used by area coverage tool
+    private static final HashMap<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -614,7 +615,7 @@ public class Layer
 	 */
 	public void setDimmed(boolean dimmed) { this.dimmed = dimmed; }
 
-	private Pref getLayerPref(String what, HashMap map, String factory)
+	private Pref getLayerPref(String what, HashMap<String,Pref> map, String factory)
 	{
         String techName = tech.getTechName();
         String key = name + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
@@ -630,7 +631,7 @@ public class Layer
 		return pref;
 	}
 
-	private Pref getParasiticPref(String what, HashMap map, double factory)
+	private Pref getParasiticPref(String what, HashMap<Layer,Pref> map, double factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
@@ -649,7 +650,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the boolean Pref object for this Layer/purpose.
 	 */
-    public Pref getBooleanPref(String what, HashMap map, boolean factory)
+    public Pref getBooleanPref(String what, HashMap<Layer,Pref> map, boolean factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
@@ -667,7 +668,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the double-precision Pref object for this Layer/purpose.
 	 */
-	public Pref getDoublePref(String what, HashMap map, double factory)
+	public Pref getDoublePref(String what, HashMap<Layer,Pref> map, double factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
@@ -685,7 +686,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the integer Pref object for this Layer/purpose.
 	 */
-	public Pref getIntegerPref(String what, HashMap map, int factory)
+	public Pref getIntegerPref(String what, HashMap<Layer,Pref> map, int factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)

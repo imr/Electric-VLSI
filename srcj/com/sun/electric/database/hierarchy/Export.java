@@ -66,7 +66,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
-public class Export extends ElectricObject_ implements PortProto, Comparable
+public class Export extends ElectricObject_ implements PortProto, Comparable<Export>
 {
 	/** Special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
 
@@ -657,9 +657,10 @@ public class Export extends ElectricObject_ implements PortProto, Comparable
      * @param obj the other Export.
      * @return a comparison between the Exports.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(Export that)
+//4*/public int compareTo(Object obj)
 	{
-		Export that = (Export)obj;
+//4*/	Export that = (Export)obj;
 		if (parent != that.parent)
 		{
 			int cmp = parent.compareTo(that.parent);

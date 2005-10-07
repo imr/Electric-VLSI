@@ -63,7 +63,7 @@ public class NetPBucket implements ExtractedPBucket
         transistorsList.add(transBucket);
     }
 
-    public void modifyResistance(Object layer, Object poly, String[] subNets, boolean add)
+    public void modifyResistance(Layer layer, Poly poly, String[] subNets, boolean add)
     {
         if (add)
             resGeom.add(layer, poly, false);
@@ -99,7 +99,7 @@ public class NetPBucket implements ExtractedPBucket
      * @param layer
      * @param poly
      */
-    public void addCapacitance(Object layer, Object poly)
+    public void addCapacitance(Layer layer, Poly poly)
     {
         capMerge.add(layer, poly, true);
     }

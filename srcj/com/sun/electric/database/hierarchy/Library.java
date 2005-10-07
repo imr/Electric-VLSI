@@ -62,7 +62,7 @@ import javax.swing.JOptionPane;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject_ implements Comparable/*<Library>*/
+public class Library extends ElectricObject_ implements Comparable<Library>
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
@@ -776,7 +776,7 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 	 * @param elib to search for
 	 * @return list of cells refering to elements in this library
 	 */
-	public static Set findReferenceInCell(Library elib)
+	public static Set<Cell> findReferenceInCell(Library elib)
 	{
 		TreeSet<Cell> set = new TreeSet<Cell>();
 
@@ -961,9 +961,10 @@ public class Library extends ElectricObject_ implements Comparable/*<Library>*/
      * @param   o   the Library to be compared.
      * @return	the result of comparison.
      */
-    public int compareTo(Object o/*Library that*/)
+/*5*/public int compareTo(Library that)
+//4*/public int compareTo(Object o)
 	{
-		Library that = (Library)o;
+//4*/	Library that = (Library)o;
 		return TextUtils.STRING_NUMBER_ORDER.compare(libName, that.libName);
     }
 

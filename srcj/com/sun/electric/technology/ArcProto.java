@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
  * <P>
  * The basic ArcProto has a name, default width, function, Layers that describes it graphically and more.
  */
-public class ArcProto implements Comparable
+public class ArcProto implements Comparable<ArcProto>
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of an ArcProto.
@@ -56,9 +56,9 @@ public class ArcProto implements Comparable
 		private final String name;
 		private final String constantName;
 		private int level;
-		private static HashMap metalLayers = new HashMap();
-		private static HashMap polyLayers = new HashMap();
-		private static List allFunctions = new ArrayList();
+		private static HashMap<Integer,Function> metalLayers = new HashMap<Integer,Function>();
+		private static HashMap<Integer,Function> polyLayers = new HashMap<Integer,Function>();
+		private static List<Function> allFunctions = new ArrayList<Function>();
 
 		private Function(String name, String constantName, int metalLevel, int polyLevel)
 		{
@@ -205,15 +205,14 @@ public class ArcProto implements Comparable
 
 	// ----------------------- private data -------------------------------
 
-	/** Pref map for arc width. */								private static HashMap defaultWidthPrefs = new HashMap();
-	/** Pref map for arc angle increment. */					private static HashMap defaultAnglePrefs = new HashMap();
-	/** Pref map for arc rigidity. */							private static HashMap defaultRigidPrefs = new HashMap();
-	/** Pref map for arc fixed angle. */						private static HashMap defaultFixedAnglePrefs = new HashMap();
-	/** Pref map for arc slidable. */							private static HashMap defaultSlidablePrefs = new HashMap();
-	/** Pref map for arc end extension. */						private static HashMap defaultExtendedPrefs = new HashMap();
-//	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
-	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
-
+	/** Pref map for arc width. */								private static HashMap<ArcProto,Pref> defaultWidthPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc angle increment. */					private static HashMap<ArcProto,Pref> defaultAnglePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc rigidity. */							private static HashMap<ArcProto,Pref> defaultRigidPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc fixed angle. */						private static HashMap<ArcProto,Pref> defaultFixedAnglePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc slidable. */							private static HashMap<ArcProto,Pref> defaultSlidablePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc end extension. */						private static HashMap<ArcProto,Pref> defaultExtendedPrefs = new HashMap<ArcProto,Pref>();
+//	/** Pref map for arc negation. */							private static HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 	/** The name of this ArcProto. */							protected String protoName;
 	/** The technology in which this ArcProto resides. */		protected Technology tech;
 	/** The offset from width to reported/displayed width. */	protected double widthOffset;
@@ -413,7 +412,7 @@ public class ArcProto implements Comparable
 	 */
 	//public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
 
-	private Pref getArcProtoBitPref(String what, HashMap map, boolean factory)
+	private Pref getArcProtoBitPref(String what, HashMap<ArcProto,Pref> map, boolean factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
@@ -737,7 +736,7 @@ public class ArcProto implements Comparable
 		return pref.getInt();
 	}
 
-	HashMap arcPinPrefs = new HashMap();
+	HashMap<ArcProto,Pref> arcPinPrefs = new HashMap<ArcProto,Pref>();
 
 	private Pref getArcPinPref()
 	{
@@ -791,7 +790,7 @@ public class ArcProto implements Comparable
 	public PrimitiveNode findPinProto()
 	{
 		// search for an appropriate pin
-		Iterator it = tech.getNodes();
+		Iterator<PrimitiveNode> it = tech.getNodes();
 		while (it.hasNext())
 		{
 			PrimitiveNode pn = (PrimitiveNode) it.next();
@@ -838,7 +837,7 @@ public class ArcProto implements Comparable
 	 * Method to return an iterator over the layers in this ArcProto.
 	 * @return an iterator over the layers in this ArcProto.
 	 */
-	public Iterator layerIterator()
+	public Iterator<Layer> layerIterator()
 	{
 		return new LayerIterator(layers);
 	}
@@ -846,7 +845,7 @@ public class ArcProto implements Comparable
 	/** 
 	 * Iterator for Layers on this ArcProto
 	 */ 
-	private static class LayerIterator implements Iterator 
+	private static class LayerIterator implements Iterator<Layer> 
 	{ 
 		Technology.ArcLayer [] array; 
 		int pos; 
@@ -862,7 +861,8 @@ public class ArcProto implements Comparable
 			return pos < array.length; 
 		} 
 
-		public Object next() throws NoSuchElementException 
+/*5*/	public Layer next() throws NoSuchElementException 
+//4*/	public Object next() throws NoSuchElementException 
 		{ 
 			if (pos >= array.length) 
 				throw new NoSuchElementException(); 
@@ -932,9 +932,10 @@ public class ArcProto implements Comparable
      * @param obj the other ArcProto.
      * @return a comparison between the ArcProto.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(ArcProto that)
+//4*/public int compareTo(Object obj)
 	{
-		ArcProto that = (ArcProto)obj;
+//4*/	ArcProto that = (ArcProto)obj;
 		if (this.tech != that.tech)
 		{
 			int cmp = this.tech.compareTo(that.tech);

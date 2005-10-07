@@ -175,11 +175,11 @@ public class DRCTemplate
 	/**
 	 * Method for spacing rules in single layers.
 	 */
-    public static List makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[])
+    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[])
 	{
 		// Clone same rule for different layers
 		int length = arrayL.length;
-		List list = new ArrayList(length);
+		List<DRCTemplate> list = new ArrayList<DRCTemplate>(length);
 		for (int i = 0; i < length; i++)
 		{
 			String layer = arrayL[i];
@@ -193,9 +193,9 @@ public class DRCTemplate
      *  Create same rules for different foundries. In this case, primitive nodes are involved
      *  Matrix contains triple pair: layer1, layer2, primitiveNode
      */
-    public static List makeRuleTemplates(String[] names, int[] when, int type, double value, String matrix[][])
+    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, int type, double value, String matrix[][])
 	{
-        List list = new ArrayList(names.length * matrix.length);
+        List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length * matrix.length);
 
         for (int i = 0; i < names.length; i++)
         {
@@ -212,9 +212,9 @@ public class DRCTemplate
     /**
      * For same rules but with different names depending on the foundry
      */
-    public static List makeRuleTemplates(String[] names, int[] when, int type, double maxW, double value, String arrayL[][])
+    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, int type, double maxW, double value, String arrayL[][])
 	{
-        List list = new ArrayList(names.length);
+        List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length);
 
         for (int i = 0; i < names.length; i++)
         {
@@ -226,11 +226,11 @@ public class DRCTemplate
 	/**
 	 * For multi cuts as well.
 	 */
-    public static List makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[][], int multiCut)
+    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[][], int multiCut)
 	{
 		// Clone same rule for different layers
 		int l = arrayL.length;
-		List list = new ArrayList(l);
+		List<DRCTemplate> list = new ArrayList<DRCTemplate>(l);
 		for (int i = 0; i < l; i++)
 		{
 			String []layers = arrayL[i];
@@ -245,11 +245,11 @@ public class DRCTemplate
     /**
      * For primitive node rules.
      */
-	public static List makeRuleTemplates(String name, int when, int type, double value, String arrayL[])
+	public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double value, String arrayL[])
 	{
 		// Clone same rule for different layers
 		int length = arrayL.length;
-		List list = new ArrayList(length);
+		List<DRCTemplate> list = new ArrayList<DRCTemplate>(length);
 		for (int i = 0; i < length; i++)
 		{
 			String primitiveNode = arrayL[i];
@@ -262,12 +262,15 @@ public class DRCTemplate
     /**
      * Auxiliar class to sort areas in array
      */
-    public static class DRCTemplateSort implements Comparator
+    public static class DRCTemplateSort implements Comparator<DRCTemplate>
     {
-        public int compare(Object o1, Object o2)
+/*5*/   public int compare(DRCTemplate d1, DRCTemplate d2)
+//4*/   public int compare(Object o1, Object o2)
         {
-            double bb1 = ((DRCTemplate)o1).value1;
-            double bb2 = ((DRCTemplate)o2).value1;
+/*5*/       double bb1 = d1.value1;
+/*5*/       double bb2 = d2.value1;
+//4*/       double bb1 = ((DRCTemplate)o1).value1;
+//4*/       double bb2 = ((DRCTemplate)o2).value1;
 
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;

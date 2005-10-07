@@ -109,7 +109,7 @@ import javax.swing.JOptionPane;
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
-public class Cell extends ElectricObject_ implements NodeProto, Comparable
+public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 {
 	// ------------------------- private classes -----------------------------
 
@@ -4200,9 +4200,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
      * @param obj the other Cell.
      * @return a comparison between the Cells.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(Cell that)
+//4*/public int compareTo(Object obj)
 	{
-		Cell that = (Cell)obj;
+//4*/	Cell that = (Cell)obj;
 		if (this.lib != that.lib)
 		{
 			int cmp = this.lib.compareTo(that.lib);

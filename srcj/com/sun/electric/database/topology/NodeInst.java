@@ -82,7 +82,7 @@ import java.util.TreeMap;
  * <P>
  * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
-public class NodeInst extends Geometric implements Nodable, Comparable
+public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 {
 	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
 	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
@@ -2554,9 +2554,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @param obj the other NodeInst.
      * @return a comparison between the NodeInsts.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(NodeInst that)
+//4*/public int compareTo(Object obj)
 	{
-		NodeInst that = (NodeInst)obj;
+//4*/	NodeInst that = (NodeInst)obj;
 		int cmp;
 		if (this.parent != that.parent)
 		{

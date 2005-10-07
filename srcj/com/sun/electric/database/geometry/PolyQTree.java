@@ -25,6 +25,7 @@
 
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.technology.Layer;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -176,7 +177,7 @@ public class PolyQTree extends GeometryHandler
 	 * Class to define a node in a Quad Tree of polygons.
 	 */
 	public static class PolyNode extends Area
-	        implements Comparable, PolyNodeMerge
+	        implements Comparable<PolyNode>, PolyNodeMerge
 	{
 		private byte original;
 
@@ -192,9 +193,10 @@ public class PolyQTree extends GeometryHandler
 		 * @return Returns a negative integer, zero, or a positive integer as the
 		 * first object has smaller than, equal to, or greater area than the second.
 		 */
-		public int compareTo(Object o1)
+/*5*/	public int compareTo(PolyNode n1)
+//4*/	public int compareTo(Object o1)
 		{
-            PolyNode n1 = (PolyNode)o1;
+//4*/       PolyNode n1 = (PolyNode)o1;
 			return ((int)(getArea() - n1.getArea()));
 		}
 

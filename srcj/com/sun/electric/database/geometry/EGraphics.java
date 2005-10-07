@@ -53,14 +53,14 @@ public class EGraphics extends Observable
 	/** stipple pattern to draw */							private int [] pattern;
 	/** 3D appearance */                                    private Object appearance3D;
 
-	private static HashMap usePatternDisplayMap = new HashMap();
-	private static HashMap outlinePatternPrinterMap = new HashMap();
-	private static HashMap usePatternPrinterMap = new HashMap();
-	private static HashMap outlinePatternDisplayMap = new HashMap();
-	private static HashMap transparentLayerMap = new HashMap();
-	private static HashMap opacityMap = new HashMap();
-	private static HashMap colorMap = new HashMap();
-	private static HashMap patternMap = new HashMap();
+	private static HashMap<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> outlinePatternPrinterMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> usePatternPrinterMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> outlinePatternDisplayMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> transparentLayerMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> opacityMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> colorMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> patternMap = new HashMap<Layer,Pref>();
 
 	/**
 	 * There are 3 ways to encode color in an integer.

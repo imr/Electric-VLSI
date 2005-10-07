@@ -1504,10 +1504,10 @@ public class PolyBase implements Shape, PolyNodeMerge
      * sorted by area.
      * @return the List of loops.
      */
-    public List getSortedLoops()
+    public List<PolyBase> getSortedLoops()
     {
-        Collection set = getPointsInArea(new Area(this), layer, true, false, null);
-        List list = new ArrayList(set);
+        Collection<PolyBase> set = getPointsInArea(new Area(this), layer, true, false, null);
+        List<PolyBase> list = new ArrayList<PolyBase>(set);
         Collections.sort(list, AREA_COMPARATOR);
         return (list);
     }
@@ -1521,11 +1521,12 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * first object has smaller than, equal to, or greater area than the second.
      * @throws ClassCastException if the arguments' types are not PolyBase.
      */
-    private static Comparator AREA_COMPARATOR = new Comparator() {
-		public int compare(Object o1, Object o2)
+    private static Comparator<PolyBase> AREA_COMPARATOR = new Comparator<PolyBase>() {
+/*5*/	public int compare(PolyBase p1, PolyBase p2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			PolyBase p1 = (PolyBase)o1;
-			PolyBase p2 = (PolyBase)o2;
+//4*/		PolyBase p1 = (PolyBase)o1;
+//4*/		PolyBase p2 = (PolyBase)o2;
 			double diff = p1.getArea() - p2.getArea();
 			if (diff < 0.0) return -1;
 			if (diff > 0.0) return 1;
@@ -1541,16 +1542,16 @@ public class PolyBase implements Shape, PolyNodeMerge
      * @param includeLastPoint true to include the last point.
      * @return List of PolyBase elements.
      */
-	public static List getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List polyList)
+	public static List<PolyBase> getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List<PolyBase> polyList)
 	{
 		if (area == null) return null;
 
-        if (polyList == null) polyList = new ArrayList();
+        if (polyList == null) polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
-		List pointList = new ArrayList();
+		List<Point2D> pointList = new ArrayList<Point2D>();
 		Point2D lastMoveTo = null;
 		boolean isSingular = area.isSingular();
-		List toDelete = new ArrayList();
+		List<PolyBase> toDelete = new ArrayList<PolyBase>();
 
 		// Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
@@ -1561,7 +1562,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				if (includeLastPoint && lastMoveTo != null) pointList.add(lastMoveTo);
 				Point2D [] points = new Point2D[pointList.size()];
 				int i = 0;
-				for(Iterator it = pointList.iterator(); it.hasNext(); )
+				for(Iterator<Point2D> it = pointList.iterator(); it.hasNext(); )
 					points[i++] = (Point2D)it.next();
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
@@ -1570,7 +1571,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				toDelete.clear();
 				if (!simple && !isSingular)
 				{
-					Iterator it = polyList.iterator();
+					Iterator<PolyBase> it = polyList.iterator();
 					while (it.hasNext())
 					{
 						PolyBase pn = (PolyBase)it.next();
@@ -1931,7 +1932,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     	// initialize list of relevant points
     	double xc = points[0].getX();   double yc = points[0].getY();
     	double xp = points[1].getX();   double yp = points[1].getY();
-    	List curveList = new ArrayList();
+    	List<AngleList> curveList = new ArrayList<AngleList>();
      	if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
     	{
     		// include arc endpoints
@@ -2070,7 +2071,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 
     	// now examine each segment and add it, if it is in the window
     	double radius = points[0].distance(points[1]);
-    	List newIn = new ArrayList();
+    	List<Point2D.Double> newIn = new ArrayList<Point2D.Double>();
     	for(int i=1; i<curveList.size(); i++)
     	{
     		int prev = i-1;
@@ -2097,12 +2098,13 @@ public class PolyBase implements Shape, PolyNodeMerge
     /**
      * Helper class for doing curve clipping.
      */
-	private static class AngleListDescending implements Comparator
+	private static class AngleListDescending implements Comparator<AngleList>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(AngleList c1, AngleList c2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			AngleList c1 = (AngleList)o1;
-			AngleList c2 = (AngleList)o2;
+//4*/		AngleList c1 = (AngleList)o1;
+//4*/		AngleList c2 = (AngleList)o2;
 			double diff = c2.angle - c1.angle;
 			if (diff < 0.0) return -1;
 			if (diff > 0.0) return 1;

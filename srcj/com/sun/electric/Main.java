@@ -101,7 +101,7 @@ public final class Main
 	public static void main(String[] args)
 	{
 		// convert args to array list
-        List argsList = new ArrayList();
+        List<String> argsList = new ArrayList<String>();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
 		// -v (short version)
@@ -322,7 +322,7 @@ public final class Main
      */
     public static void openCommandLineLibs(List argsList)
     {
-        List fileURLs = new ArrayList();
+        List<URL> fileURLs = new ArrayList<URL>();
         for (int i=0; i<argsList.size(); i++) {
             String arg = (String)argsList.get(i);
             if (arg.startsWith("-")) {

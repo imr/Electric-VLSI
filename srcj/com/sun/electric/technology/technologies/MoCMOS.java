@@ -2936,12 +2936,12 @@ public class MoCMOS extends Technology
         nodeGroups = new Object[maxY][3];
         int count = 0;
         String[] shortNames = {"p", "n"};
-        List tmp;
+        List<NodeInst> tmp;
 
         // Transistor nodes first
         for (int i = 0; i < transistorNodes.length; i++)
         {
-            tmp = new ArrayList(2);
+            tmp = new ArrayList<NodeInst>(2);
             String tmpVar = shortNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
@@ -2962,7 +2962,7 @@ public class MoCMOS extends Technology
         for (int i = 0; i < rpoResistorNodes.length; i++)
         {
             String tmpVar = shortNames[i]+"R";
-            tmp = new ArrayList(1);
+            tmp = new ArrayList<NodeInst>(1);
             tmp.add(makeNodeInst(rpoResistorNodes[i], rpoResistorNodes[i].getFunction(), 0, true, tmpVar, 10));
             nodeGroups[i][0] = tmp;
         }
@@ -3140,7 +3140,7 @@ public class MoCMOS extends Technology
      */
     public void resetDefaultValues(Cell cell)
     {
-//        for (Iterator itNod = cell.getNodes(); itNod.hasNext(); )
+//        for (Iterator<NodeInst> itNod = cell.getNodes(); itNod.hasNext(); )
 //        {
 //            NodeInst ni = (NodeInst)itNod.next();
 //
@@ -3159,7 +3159,7 @@ public class MoCMOS extends Technology
 //                    PortInst pi = ni.getPortInst(1);
 //                    List list = new ArrayList(2);
 //                    // Not sure how many connections are so fix angles to all
-//                    for (Iterator it = pi.getConnections(); it.hasNext();)
+//                    for (Iterator<Connection> it = pi.getConnections(); it.hasNext();)
 //                    {
 //                        Connection c = (Connection)it.next();
 //                        c.getArc().setFixedAngle(true);
@@ -3167,7 +3167,7 @@ public class MoCMOS extends Technology
 //                    }
 //                    pi = ni.getPortInst(3);
 //                    // Not sure how many connections are so fix angles to all
-//                    for (Iterator it = pi.getConnections(); it.hasNext();)
+//                    for (Iterator<Connection> it = pi.getConnections(); it.hasNext();)
 //                    {
 //                        Connection c = (Connection)it.next();
 //                        c.getArc().setFixedAngle(true);
@@ -3183,7 +3183,7 @@ public class MoCMOS extends Technology
 //            }
 //        }
 
-        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
+        for(Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
         {
             ArcInst ai = (ArcInst)itArc.next();
             boolean found = false;
@@ -3428,7 +3428,7 @@ public class MoCMOS extends Technology
             throw new Error("Error: onw cut should be the only value");
 		Technology.NodeLayer [] newNodeLayers = layers;
 
-        List list = new ArrayList(layers.length);
+        List<NodeLayer> list = new ArrayList<NodeLayer>(layers.length);
         Technology.NodeLayer cutTemplate = null;
         // Copy layers that are not poly cuts
         for (int i = 0; i < layers.length; i++)
@@ -4025,7 +4025,7 @@ public class MoCMOS extends Technology
 
 		// include differences in minimum node sizes
 		int j = 0;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
@@ -4091,7 +4091,7 @@ public class MoCMOS extends Technology
 
 		// update per-node information
 		int j = 0;
-		for(Iterator it = getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			np.setMinSize(newRules.minNodeSize[j*2].doubleValue(), newRules.minNodeSize[j*2+1].doubleValue(),

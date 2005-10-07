@@ -362,9 +362,9 @@ public class FileMenu {
 	 */
 	public static class ReadInitialELIBs extends Job
     {
-        List fileURLs;
+        List<URL> fileURLs;
 
-        public ReadInitialELIBs(List fileURLs) {
+        public ReadInitialELIBs(List<URL> fileURLs) {
             super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileURLs = fileURLs;
             startJob();
@@ -378,7 +378,7 @@ public class FileMenu {
 
             // try to open initial libraries
             boolean success = false;
-            for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
+            for (Iterator<URL> it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
                 FileType defType = null;
                 String fileName = file.getFile();
@@ -481,7 +481,7 @@ public class FileMenu {
         public CreateCellWindow(Cell cell) { this.cell = cell; }
         public void run() {
             // check if edit window open with null cell, use that one if exists
-            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
             {
                 WindowFrame wf = (WindowFrame)it.next();
                 WindowContent content = wf.getContent();
@@ -525,11 +525,11 @@ public class FileMenu {
 
     public static void closeLibraryCommand(Library lib)
     {
-	    Set found = Library.findReferenceInCell(lib);
+	    Set<Cell> found = Library.findReferenceInCell(lib);
 
 		// if all references are from the clipboard, request that the clipboard be cleared, too
 		boolean clearClipboard = false, nonClipboard = false;
-	    for (Iterator i = found.iterator(); i.hasNext();)
+	    for (Iterator<Cell> i = found.iterator(); i.hasNext();)
 	    {
 		   Cell cell = (Cell)i.next();
 		   if (cell.getLibrary().isHidden()) clearClipboard = true; else
@@ -542,7 +542,7 @@ public class FileMenu {
 		    System.out.println("Cannot close " + lib + ":");
 		    System.out.print("\t Cells ");
 
-		    for (Iterator i = found.iterator(); i.hasNext();)
+		    for (Iterator<Cell> i = found.iterator(); i.hasNext();)
 		    {
 			   Cell cell = (Cell)i.next();
 			   System.out.print("'" + cell.getName() + "'(" + cell.getLibrary().getName() + ") ");
@@ -629,7 +629,7 @@ public class FileMenu {
             if (fileName == null) return false;
             type = getLibraryFormat(fileName, type);
             // mark for saving, all libraries that depend on this
-            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
                 Library oLib = (Library)it.next();
                 if (oLib.isHidden()) continue;
@@ -722,8 +722,8 @@ public class FileMenu {
 
     public static void saveAllLibrariesCommand(FileType type, boolean compatibleWith6, boolean forceToType)
     {
-		HashMap libsToSave = new HashMap();
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		HashMap<Library,FileType> libsToSave = new HashMap<Library,FileType>();
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
@@ -733,7 +733,7 @@ public class FileMenu {
 			libsToSave.put(lib, type);
         }
 		boolean justSkip = false;
-		for(Iterator it = libsToSave.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = libsToSave.keySet().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			type = (FileType)libsToSave.get(lib);
@@ -761,7 +761,7 @@ public class FileMenu {
                 null, formats, FileType.DEFAULTLIB);
         if (format == null) return; // cancel operation
         FileType outType = (FileType)format;
-        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
@@ -1102,7 +1102,7 @@ public class FileMenu {
     {
 		boolean checkedInvariants = false;
         boolean saveCancelled = false;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (desiredLib != null && desiredLib != lib) continue;
@@ -1215,7 +1215,7 @@ public class FileMenu {
     public static void forceQuit() {
         // check if libraries need to be saved
         boolean dirty = false;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
@@ -1256,7 +1256,7 @@ public class FileMenu {
      */
     public static boolean forceSave(boolean confirm) {
         boolean dirty = false;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
@@ -1290,7 +1290,7 @@ public class FileMenu {
         // set libraries to save to panic dir
         boolean retValue = true;
         FileType type = FileType.DEFAULTLIB;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;

@@ -74,7 +74,7 @@ import java.util.ArrayList;
  * <P>
  * <CENTER><IMG SRC="doc-files/ArcInst-4.gif"></CENTER>
  */
-public class ArcInst extends Geometric implements Comparable
+public class ArcInst extends Geometric implements Comparable<ArcInst>
 {
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 0;
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
@@ -1058,9 +1058,10 @@ public class ArcInst extends Geometric implements Comparable
      * @param obj the other ArcInst.
      * @return a comparison between the ArcInsts.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(ArcInst that)
+//4*/public int compareTo(Object obj)
 	{
-		ArcInst that = (ArcInst)obj;
+//4*/	ArcInst that = (ArcInst)obj;
 		int cmp;
 		if (this.parent != that.parent)
 		{

@@ -122,14 +122,14 @@ public class MOSRules implements DRCRules {
 		this.tech = tech;
 		layerNames = new String[numLayers];
 		int j = 0;
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			layerNames[j++] = layer.getName();
 		}
 		nodeNames = new String[numNodes];
 		j = 0;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			nodeNames[j++] = np.getName();
@@ -190,7 +190,7 @@ public class MOSRules implements DRCRules {
         cutNodeSize = new Double[numNodes];
 		cutNodeSizeRules = new String[numNodes];
 		j = 0;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			minNodeSize[j*2] = new Double(np.getMinWidth());
@@ -526,9 +526,9 @@ public class MOSRules implements DRCRules {
      * @param techMode to choose a foundry (ignore here).
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
-    public List getSpacingRules(int index, int type, int techMode)
+    public List<DRCTemplate> getSpacingRules(int index, int type, int techMode)
     {
-        List list = new ArrayList(2);
+        List<DRCTemplate> list = new ArrayList<DRCTemplate>(2);
 
 		// SMR changed the four lines listed below...widelimit should appear in the SPACINGW rule, not the SPACING rule
         switch (type)
@@ -794,7 +794,7 @@ public class MOSRules implements DRCRules {
 				PrimitiveNode np = tech.findNodeProto(nodeName);
 				if (np == null) break;
 				int index = 0;
-				for(Iterator it = tech.getNodes(); it.hasNext(); )
+				for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode oNp = (PrimitiveNode)it.next();
 					if (oNp == np) break;

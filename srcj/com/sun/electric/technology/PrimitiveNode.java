@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
+public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<PrimitiveNode>
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -57,7 +57,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 		private final String shortName;
 		private final Name basename;
 		private final String constantName;
-		private static List allFunctions = new ArrayList();
+		private static List<Function> allFunctions = new ArrayList<Function>();
 
 		private Function(String name, String shortName, String constantName)
 		{
@@ -485,8 +485,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
-	/** Pref map for node width. */					private static HashMap defaultWidthPrefs = new HashMap();
-	/** Pref map for node height. */				private static HashMap defaultHeightPrefs = new HashMap();
+	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultWidthPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultHeightPrefs = new HashMap<PrimitiveNode,Pref>();
 
 	// ------------------ private and protected methods ----------------------
 
@@ -653,7 +653,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	 * Method to return an iterator over the layers in this PrimitiveNode.
 	 * @return an iterator over the layers in this PrimitiveNode.
 	 */
-	public Iterator layerIterator()
+	public Iterator<Layer> layerIterator()
 	{
 		return new NodeLayerIterator(layers);
 	}
@@ -661,7 +661,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	/** 
 	 * Iterator for Layers on this NodeProto
 	 */ 
-	private static class NodeLayerIterator implements Iterator 
+	private static class NodeLayerIterator implements Iterator<Layer> 
 	{ 
 		Technology.NodeLayer [] array; 
 		int pos; 
@@ -677,7 +677,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 			return pos < array.length; 
 		} 
 
-		public Object next() throws NoSuchElementException 
+/*5*/	public Layer next() throws NoSuchElementException 
+//4*/	public Object next() throws NoSuchElementException 
 		{ 
 			if (pos >= array.length) 
 				throw new NoSuchElementException(); 
@@ -939,7 +940,16 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	 * Method to return an iterator over all PortProtos of this NodeProto.
 	 * @return an iterator over all PortProtos of this NodeProto.
 	 */
-	public Iterator getPorts()
+	public Iterator<PortProto> getPorts()
+	{
+		return ArrayIterator.iterator((PortProto[])primPorts);
+	}
+
+	/**
+	 * Method to return an iterator over all PrimitivePorts of this PrimitiveNode.
+	 * @return an iterator over all PrimitvePorts of this NodeProto.
+	 */
+	public Iterator<PrimitivePort> getPrimitivePorts()
 	{
 		return ArrayIterator.iterator(primPorts);
 	}
@@ -1393,9 +1403,10 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
      * @param obj the other PrimitiveNode.
      * @return a comparison between the PrimitiveNodes.
      */
-	public int compareTo(Object obj)
+/*5*/public int compareTo(PrimitiveNode that)
+//4*/public int compareTo(Object obj)
 	{
-		PrimitiveNode that = (PrimitiveNode)obj;
+//4*/	PrimitiveNode that = (PrimitiveNode)obj;
 		if (this.tech != that.tech)
 		{
 			int cmp = this.tech.compareTo(that.tech);

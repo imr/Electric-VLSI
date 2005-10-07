@@ -44,6 +44,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.ui.EditWindow;
+import java.awt.Shape;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -577,7 +578,7 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						// Only interested in well/select
-						Object newElem = poly;
+						Shape newElem = poly;
 
                         if (qTreeAlgo)
                             newElem = new PolyQTree.PolyNode(poly);
@@ -643,7 +644,7 @@ public class ERCWellCheck
 
                         if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
 						poly.transform(trans);
-						Object newElem = poly;
+						Shape newElem = poly;
 
 						if (qTreeAlgo)
                             newElem = new PolyQTree.PolyNode(poly);
