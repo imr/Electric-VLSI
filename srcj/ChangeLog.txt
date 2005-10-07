@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/07/05, GVG) Cadence Preferences XML under SunAsync menu. It will allow you to backup previous configuration.
+
+IMP: (10/07/05, GVG) Disconnect resizing of arcs when you switch from Mosis->TSMC until better solution is found.
+
 BUG: (10/07/05, SMR) Pure layer nodes of well or select are not drawn (Bug #622).
 FIX: In VectorDrawing, do not ignore well/select layers from pure-layer nodes.
 

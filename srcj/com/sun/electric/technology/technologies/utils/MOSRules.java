@@ -72,6 +72,7 @@ public class MOSRules implements DRCRules {
 	/** minimim node size rules */								public String [] minNodeSizeRules;
     /** cut size in the technology */				            public Double [] cutNodeSize;
 	/** cut size rules */								        public String [] cutNodeSizeRules;
+    /** poly overhang/surround along gate **/                   public double transPolyOverhang;
 	/** number of rules stored */                               private int      numberOfRules;
 	/** DEFAULT null rule */                                private final static int MOSNORULE = -1;
 
@@ -201,6 +202,15 @@ public class MOSRules implements DRCRules {
 			j++;
 		}
 	}
+
+    /**
+     * Method to return overhang of poly in transistors along the gate
+     * @return
+     */
+    public double getPolyOverhang()
+    {
+        return transPolyOverhang;
+    }
 
     /**
      * Method to determine if given node is not allowed by foundry.

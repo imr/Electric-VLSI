@@ -3063,6 +3063,26 @@ public class MoCMOS extends Technology
                 transistorActiveTLayers[i].getBottomEdge().setAdder(-10.1);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10.1, 10.1));
             }
+            //Scalable transistors
+            for (int i = 0; i < 2; i++)
+            {
+                // polysilicon
+                node = scalableTransistorNodes[i].getLayers()[5];
+                node.getTopEdge().setAdder(-12.1); node.getBottomEdge().setAdder(12.1);
+                node.getLeftEdge().setAdder(4); node.getRightEdge().setAdder(-4.8);
+                // select
+                node = scalableTransistorNodes[i].getLayers()[7];
+                node.getLeftEdge().setAdder(3.4); node.getRightEdge().setAdder(-3.4);
+                // first cut
+                node = scalableTransistorNodes[i].getLayers()[8];
+                node.getTopEdge().setAdder(7.4); node.getBottomEdge().setAdder(9.6);
+                node.getLeftEdge().setAdder(7.4); node.getRightEdge().setAdder(9.6);
+                // second cut
+                node = scalableTransistorNodes[i].getLayers()[9];
+                node.getTopEdge().setAdder(-7.4); node.getBottomEdge().setAdder(-9.6);
+                node.getLeftEdge().setAdder(7.4); node.getRightEdge().setAdder(9.6);
+                scalableTransistorNodes[i].setSizeOffset(new SizeOffset(7, 7, 12, 12));
+            }
             // Channel length 1.8
             poly1_arc.setDefaultWidth(1.8);
             poly1Pin_node.setDefSize(1.8, 1.8);
@@ -3126,6 +3146,26 @@ public class MoCMOS extends Technology
                 transistorActiveTLayers[i].getTopEdge().setAdder(-7); transistorActiveTLayers[i].getBottomEdge().setAdder(-10);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10, 10));
             }
+            //Scalable transistors
+            for (int i = 0; i < 2; i++)
+            {
+                // polysilicon
+                node = scalableTransistorNodes[i].getLayers()[5];
+                node.getTopEdge().setAdder(-12); node.getBottomEdge().setAdder(12);
+                node.getLeftEdge().setAdder(5); node.getRightEdge().setAdder(-5);
+                // select
+                node = scalableTransistorNodes[i].getLayers()[7];
+                node.getLeftEdge().setAdder(4); node.getRightEdge().setAdder(-4);
+                // first cut
+                node = scalableTransistorNodes[i].getLayers()[8];
+                node.getTopEdge().setAdder(7.5); node.getBottomEdge().setAdder(9.5);
+                node.getLeftEdge().setAdder(7.5); node.getRightEdge().setAdder(9.5);
+                // second cut
+                node = scalableTransistorNodes[i].getLayers()[9];
+                node.getTopEdge().setAdder(-9.5); node.getBottomEdge().setAdder(-7.5);
+                node.getLeftEdge().setAdder(7.5); node.getRightEdge().setAdder(9.5);
+                scalableTransistorNodes[i].setSizeOffset(new SizeOffset(7, 7, 12.1, 12.1));
+            }
             // Channel length 2
             poly1_arc.setDefaultWidth(2.0);
             poly1Pin_node.setDefSize(2, 2);
@@ -3183,50 +3223,72 @@ public class MoCMOS extends Technology
 //            }
 //        }
 
-        for(Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
-        {
-            ArcInst ai = (ArcInst)itArc.next();
-            boolean found = false;
-            double maxLen = -Double.MIN_VALUE;
-            // Guessing arc thickness based on connections
-            // Default doesn't work in existing cells
-            // Valid for poly layers and M6 only!
-            // Metal 6 because the min M6 changed in Mosis
-
-            if (!(ai.getProto().getFunction().isPoly() /*||
-                  ai.getProto().getFunction() == ArcProto.Function.METAL6)*/)) continue;
-            for(int i=0; i<2; i++)
-            {
-                Connection thisCon = ai.getConnection(i);
-                NodeInst ni = thisCon.getPortInst().getNodeInst();
-                // covers transistors and resistors
-                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
-                if (size != null)
-                {
-                    // only if the arc is along the gate
-                    boolean sameOrientation = DBMath.areEquals(ai.getAngle(), ni.getOrient().getAngle());
-                    double length = size.getDoubleLength();
-                    if (sameOrientation && !DBMath.areEquals(length, ai.getWidth()))
-//                    if (DBMath.isGreaterThan(length, maxLen))
-                    {
-                        maxLen = length;
-                        found = true;
-                        ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
-                        break;
-                    }
-                }
-            }
+//        for(Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
+//        {
+//            ArcInst ai = (ArcInst)itArc.next();
+//            boolean found = false;
+//            double maxLen = -Double.MIN_VALUE;
+//            // Guessing arc thickness based on connections
+//            // Default doesn't work in existing cells
+//            // Valid for poly layers and M6 only!
+//            // Metal 6 because the min M6 changed in Mosis
+//
+//            if (!(ai.getProto().getFunction().isPoly() /*||
+//                  ai.getProto().getFunction() == ArcProto.Function.METAL6)*/)) continue;
+//            for(int i=0; i<2; i++)
+//            {
+//                Connection thisCon = ai.getConnection(i);
+//                NodeInst ni = thisCon.getPortInst().getNodeInst();
+//                // covers transistors and resistors
+//                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+//                if (size != null)
+//                {
+//                    // only if the arc is along the gate
+//                    boolean sameOrientation = DBMath.areEquals(ai.getAngle(), ni.getOrient().getAngle());
+//                    double length = size.getDoubleLength();
+//                    if (sameOrientation && !DBMath.areEquals(length, ai.getWidth()))
+////                    if (DBMath.isGreaterThan(length, maxLen))
+//                    {
+//                        maxLen = length;
+//                        found = true;
+//                        ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+//                        break;
+//                    }
+//                }
+//            }
 //            // No transistor or resistor found
 //            if (!found)
 //            {
-//                maxLen = ai.getProto().getDefaultWidth();
-//                found = (!DBMath.areEquals(ai.getWidth(), maxLen)); // default must be applied
+//                Connection thisCon = ai.getConnection(i);
+//                NodeInst ni = thisCon.getPortInst().getNodeInst();
+//                // covers transistors and resistors
+//                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+//                if (size != null)
+//                {
+//                    // only if the arc is along the gate
+//                    boolean sameOrientation = DBMath.areEquals(ai.getAngle(), ni.getOrient().getAngle());
+//                    double length = size.getDoubleLength();
+//                    if (sameOrientation && !DBMath.areEquals(length, ai.getWidth()))
+////                    if (DBMath.isGreaterThan(length, maxLen))
+//                    {
+//                        maxLen = length;
+//                        found = true;
+//                        ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+//                        break;
+//                    }
+//                }
 //            }
-//            if (found)
-//            {
-//                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
-//            }
-        }
+////            // No transistor or resistor found
+////            if (!found)
+////            {
+////                maxLen = ai.getProto().getDefaultWidth();
+////                found = (!DBMath.areEquals(ai.getWidth(), maxLen)); // default must be applied
+////            }
+////            if (found)
+////            {
+////                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+////            }
+//        }
     }
 
 	/******************** SUPPORT METHODS ********************/
@@ -3538,7 +3600,7 @@ public class MoCMOS extends Technology
 			}
 		}
 		double actInset = (nodeWid-activeWid) / 2;
-		double polyInset = actInset - 2;
+		double polyInset = actInset - cachedRules.getPolyOverhang();
 		double actContInset = 7 + extraInset;
 
 		// contacts must be 5 wide at a minimum
@@ -3865,6 +3927,7 @@ public class MoCMOS extends Technology
 						break;
 					case DRCTemplate.TRAPOLY:
 						setTransistorPolyOverhang(distance);
+                        rules.transPolyOverhang = distance;
 						break;
 					case DRCTemplate.TRAACTIVE:
 						setTransistorActiveOverhang(distance);

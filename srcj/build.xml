@@ -36,7 +36,7 @@
     <!-- Use -DJMF=true to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
-	    source="1.4" fork="true" memoryMaximumSize="256m">
+	    fork="true" memoryMaximumSize="256m">
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>

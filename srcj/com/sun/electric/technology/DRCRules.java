@@ -45,6 +45,7 @@ public interface DRCRules
     public void setMinValue(Layer layer, String name, double value, int type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
     public boolean isForbiddenNode(int nodeIndex, int type, int techMode);
+    public double getPolyOverhang();
     /********************* For UI ***********************************/
     DRCTemplate getMinNodeSize(int index, int when);
     String[] getNodesWithRules();

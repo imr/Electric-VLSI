@@ -1250,7 +1250,7 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 	}
 

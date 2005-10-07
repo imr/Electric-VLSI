@@ -4066,14 +4066,14 @@ public class Technology implements Comparable<Technology>
 
         private void checkLibrary(Library lib)
         {
-            System.out.println("Resetting sizes in " + lib);
-            for(Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
-            {
-                Cell cell = (Cell)itCell.next();
-                if (cell.getView() != View.LAYOUT) continue;
-
-                cell.getTechnology().resetDefaultValues(cell);
-            }
+//            System.out.println("Resetting sizes in " + lib);
+//            for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+//            {
+//                Cell cell = (Cell)itCell.next();
+//                if (cell.getView() != View.LAYOUT) continue;
+//
+//                cell.getTechnology().resetDefaultValues(cell);
+//            }
         }
 
         public boolean doIt()
@@ -4090,14 +4090,6 @@ public class Technology implements Comparable<Technology>
                     Library lib = (Library)it.next();
 
                     checkLibrary(lib);
-//                    System.out.println("Resetting sizes in " + lib);
-//                    for(Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
-//                    {
-//                        Cell cell = (Cell)itCell.next();
-//                        if (cell.getView() != View.LAYOUT) continue;
-//
-//                        cell.getTechnology().resetDefaultValues(cell);
-//                    }
                 }
             }
             Undo.changesQuiet(false);
