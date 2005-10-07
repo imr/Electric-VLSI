@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/07/05, SMR) Parasitics preferences now have technology popup.
+
+BUG: (10/07/05, SMR) Component menu has wrong background color (Bug #620).
+FIX: Moved initialization of background color in PixelDrawing.java.
+
 BUG: (10/06/05, DN) Epic waveform viewer exception while reading incomplete out file (Bug #619)
 FIX: In EpicOut.EpicReader.readBug set "bufL = 0" on EOF.
 

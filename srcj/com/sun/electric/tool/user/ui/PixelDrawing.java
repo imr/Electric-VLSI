@@ -427,8 +427,6 @@ public class PixelDrawing
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
-		backgroundColor = User.getColorBackground() & 0xFFFFFF;
-		backgroundValue = backgroundColor | 0xFF000000;
 		
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
@@ -539,6 +537,8 @@ public class PixelDrawing
 	{
 		// pickup new technology if it changed
 		initForTechnology();
+		backgroundColor = User.getColorBackground() & 0xFFFFFF;
+		backgroundValue = backgroundColor | 0xFF000000;
 
 		// erase the transparent bitmaps
 		for(int i=0; i<numLayerBitMaps; i++)
