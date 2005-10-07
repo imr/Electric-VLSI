@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/07/05, SMR) Pure layer nodes of well or select are not drawn (Bug #622).
+FIX: In VectorDrawing, do not ignore well/select layers from pure-layer nodes.
+
 IMP: (10/07/05, SMR) Parasitics preferences now have technology popup.
 
 BUG: (10/07/05, SMR) Component menu has wrong background color (Bug #620).

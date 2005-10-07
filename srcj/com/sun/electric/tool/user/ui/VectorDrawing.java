@@ -1246,7 +1246,7 @@ public class VectorDrawing
 		int numPolys = cell.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
 		cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
-		drawPolys(polys, DBMath.MATID, vc, true, VectorText.TEXTTYPECELL);
+		drawPolys(polys, DBMath.MATID, vc, true, VectorText.TEXTTYPECELL, false);
 
 		// icon cells should not get greeked because of their contents
 		if (cell.getView() == View.ICON) vc.maxFeatureSize = 0;
@@ -1312,7 +1312,7 @@ public class VectorDrawing
 			Poly [] polys = new Poly[numPolys];
 			Rectangle2D rect = ni.getUntransformedBounds();
 			ni.addDisplayableVariables(rect, polys, 0, wnd, true);
-			drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE);
+			drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
 		} else
 		{
 			// primitive: save it
@@ -1321,7 +1321,8 @@ public class VectorDrawing
 			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
 			Technology tech = prim.getTechnology();
 			Poly [] polys = tech.getShapeOfNode(ni, wnd, context, false, false, null);
-			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType);
+			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
+			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType, pureLayer);
 		}
 
 		// draw any exports from the node
@@ -1344,7 +1345,7 @@ public class VectorDrawing
 			{
 				Poly [] polys = new Poly[numPolys];
 				e.addDisplayableVariables(rect, polys, 0, wnd, true);
-				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT);
+				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT, false);
 			}
 		}
 	}
@@ -1370,7 +1371,7 @@ public class VectorDrawing
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		Poly [] polys = tech.getShapeOfArc(ai, wnd);
-		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC);
+		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC, false);
 	}
 
 	/**
@@ -1421,8 +1422,9 @@ public class VectorDrawing
 	 * @param trans the transformation to apply to each polygon.
 	 * @param vc the cached cell in which to place the polygons.
 	 * @param hideOnLowLevel true if the polygons should be marked such that they are not visible on lower levels of hierarchy.
+	 * @param pureLayer true if these polygons come from a pure layer node.
 	 */
-	private void drawPolys(Poly[] polys, AffineTransform trans, VectorCell vc, boolean hideOnLowLevel, int textType)
+	private void drawPolys(Poly[] polys, AffineTransform trans, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer)
 	{
 		if (polys == null) return;
 		for(int i = 0; i < polys.length; i++)
@@ -1435,7 +1437,7 @@ public class VectorDrawing
 			poly.transform(trans);
 
 			// render the polygon
-			renderPoly(poly, vc, hideOnLowLevel, textType);
+			renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
 		}
 	}
 
@@ -1444,8 +1446,9 @@ public class VectorDrawing
 	 * @param poly the polygon to cache.
 	 * @param vc the cached cell in which to place the polygon.
 	 * @param hideOnLowLevel true if the polygon should be marked such that it is not visible on lower levels of hierarchy.
+	 * @param pureLayer true if the polygon comes from a pure layer node.
 	 */
-	private void renderPoly(Poly poly, VectorCell vc, boolean hideOnLowLevel, int textType)
+	private void renderPoly(Poly poly, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer)
 	{
 		// now draw it
 		Point2D [] points = poly.getPoints();
@@ -1468,7 +1471,7 @@ public class VectorDrawing
 				if (layer != null)
 				{
 					Layer.Function fun = layer.getFunction();
-					if (fun.isImplant() || fun.isSubstrate())
+					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))
 					{
 						float dX = hX - lX;
 						float dY = hY - lY;
