@@ -1073,11 +1073,16 @@ public class FileMenu {
 
         public boolean doIt()
         {
-            if (Library.saveExpandStatus(true))
-            {
-                ActivityLogger.finished();
-                System.exit(0);
-            };
+            try {
+                Library.saveExpandStatus();
+            } catch (BackingStoreException e) {
+                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			            "Cannot save cell expand status. Do you still want to quit?", "Cell Status Error",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (response != JOptionPane.YES_OPTION) return false;
+            }
+            ActivityLogger.finished();
+            System.exit(0);
             return true;
         }
     }
