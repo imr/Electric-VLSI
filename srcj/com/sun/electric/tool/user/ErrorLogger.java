@@ -528,7 +528,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
         // add the ErrorLog into the global list
         allErrors.add(el);
-        currentLogNumber = allErrors.size()-1;
+//        currentLogNumber = allErrors.size()-1;
 
         if (persistent) WindowFrame.wantToRedoErrorTree();
         return el;

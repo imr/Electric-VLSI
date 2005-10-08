@@ -50,6 +50,8 @@ IMP: (10/06/05, DN) In many places generic type parameters are added for static 
 
 ************************* Version 8.04a: *********************************
 
+BUG: (10/05/05, GVG) Navigation with < and > fixed in ErrorLogger (Bug #624).
+
 IMP: (10/05/05, SMR) Title box now defaults the designer name to the current user (Bug #609).
 
 IMP: (10/05/05, GVG) Extra dialog for bug 588 to avoid exception message.
