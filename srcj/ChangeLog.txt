@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/07/05, GVG) Cut spacing in 1xN and MxN poly contacts was not 2.5 and 2.8 respectively (Bug #624)
+FIX: Split of cut DRC rules into CUTSPA and CUTSPA2D as it is done in TSMC90.
+
+BUG: (10/07/05, GVG) Fix CUTSUR to 1.4 for well contacts in TSM180.
+
 IMP: (10/07/05, GVG) Cadence Preferences XML under SunAsync menu. It will allow you to backup previous configuration.
 
 IMP: (10/07/05, GVG) Disconnect resizing of arcs when you switch from Mosis->TSMC until better solution is found.
