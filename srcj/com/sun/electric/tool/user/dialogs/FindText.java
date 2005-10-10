@@ -25,40 +25,16 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
-import java.awt.Insets;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 import java.util.prefs.Preferences;
-import javax.swing.JDialog;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Insets;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JSeparator;
 
 
 /**
