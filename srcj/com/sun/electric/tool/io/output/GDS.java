@@ -531,7 +531,7 @@ public class GDS extends Geometry
 		// all zeroes
 		for (int i=0; i<DSIZE; i++) emptyBuffer[i] = 0;
 
-		Technology tech = Technology.getCurrent();
+		Technology tech = topCell.getTechnology();
 		scaleFactor = tech.getScale();
 		layerNumbers = new HashMap();
         nameRemapping = new HashMap();
