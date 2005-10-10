@@ -831,6 +831,7 @@ public class Spice extends Topology
 			if (niProto instanceof Cell)
 			{
 				Cell subCell = (Cell)niProto;
+
 				// look for a SPICE template on the prototype
 				Variable varTemplate = subCell.getVar(preferedEngineTemplateKey);
 				if (varTemplate == null)
@@ -1741,14 +1742,14 @@ public class Spice extends Topology
             if (!useParasitics || (isPowerGround(pi) &&
                     !Simulation.isParasiticsExtractPowerGround())) {
                 CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
-System.out.println("NETWORK NAMED "+cs.getName());
+//System.out.println("NETWORK NAMED "+cs.getName());
                 return cs.getName();
             }
             NetInfo info = (NetInfo)segmentedNets.get(pi);
             if (info == null) {
                 info = putSegment(pi, 0);
             }
-System.out.println("NETWORK INAMED "+info.netName);
+//System.out.println("NETWORK INAMED "+info.netName);
             return info.netName;
         }
         private void addArcRes(ArcInst ai, double res) {

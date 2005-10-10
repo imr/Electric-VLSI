@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/10/05, SMR) Spice output fails to instantiate subcells that are replaced by a model file (Bug #637).
+FIX: In Topology.Visitor.enterCell(), cache cell information even if being ignored.
+
 BUG: (10/10/05, SMR) Cell-center nodes are not visible in black-background colors (Bug #627).
 FIX: The commands to switch color schemes now change the Generic layer colors.
 

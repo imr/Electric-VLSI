@@ -810,7 +810,7 @@ public class Artwork extends Technology
 				if (len == 17)
 				{
 					// the last entry specifies the outline texture
-					int outlineIndex = pat[16];
+					int outlineIndex = pat[16].intValue();
 					graphics.setOutlined(EGraphics.Outline.findOutline(outlineIndex));
 					len = 16;
 				}
