@@ -102,22 +102,22 @@ public class FPGA extends Technology
 
 		/** Wire layer */
 		wireLayer = Layer.newInstance(this, "Wire",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0,1,true,
+			new EGraphics(false, false, null, 0, 255,0,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Component layer */
 		componentLayer = Layer.newInstance(this, "Component",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,1,true,
+			new EGraphics(false, false, null, 0, 0,0,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Pip layer */
 		pipLayer = Layer.newInstance(this, "Pip",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,0,1,true,
+			new EGraphics(false, false, null, 0, 0,255,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Repeater layer */
 		repeaterLayer = Layer.newInstance(this, "Repeater",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,255,1,true,
+			new EGraphics(false, false, null, 0, 0,0,255,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		// The layer functions

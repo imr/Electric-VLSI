@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/09/05, SMR) Added different outline patterns to textured layers (Bug #617).
+     Affects "Artwork Appearance" and "Layers" preferences.
+     Updated technology editor to handle it.
+
 BUG: (10/07/05, GVG) Cut spacing in 1xN and MxN poly contacts was not 2.5 and 2.8 respectively (Bug #624)
 FIX: Split of cut DRC rules into CUTSPA and CUTSPA2D as it is done in TSMC90.
 

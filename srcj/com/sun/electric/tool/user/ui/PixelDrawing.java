@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.Color;
@@ -286,11 +287,11 @@ public class PixelDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	private static EGraphics textGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
+	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics instanceGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
+	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 1.0,true,
+	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     private int clipLX, clipHX, clipLY, clipHY;
@@ -2050,16 +2051,23 @@ public class PixelDrawing
 					}
 				}
 			}
-			if (desc.isOutlinedOnDisplay())
+			EGraphics.Outline o = desc.getOutlined();
+			if (o != EGraphics.Outline.NOPAT)
 			{
-				Point p1 = new Point(lX, lY);
-				Point p2 = new Point(lX, hY);
-				Point p3 = new Point(hX, hY);
-				Point p4 = new Point(hX, lY);
-				drawLine(p1, p2, layerBitMap, desc, 0, dimmed);
-				drawLine(p2, p3, layerBitMap, desc, 0, dimmed);
-				drawLine(p3, p4, layerBitMap, desc, 0, dimmed);
-				drawLine(p4, p1, layerBitMap, desc, 0, dimmed);
+				drawPatLine(lX, lY, lX, hY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawPatLine(lX, hY, hX, hY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawPatLine(hX, hY, hX, lY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawPatLine(hX, lY, lX, lY, layerBitMap, col, o.getPattern(), o.getLen());
+				if (o.getThickness() != 1)
+				{
+					for(int i=1; i<o.getThickness(); i++)
+					{
+						drawPatLine(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
+						drawPatLine(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
+						drawPatLine(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
+						drawPatLine(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
+					}
+				}
 			}
 		}
 	}
@@ -2109,10 +2117,10 @@ public class PixelDrawing
 		// now draw with the proper line type
 		switch (texture)
 		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);       break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0x88);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0xE7);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);       break;
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);          break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0x88, 8);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0xE7, 8);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);          break;
 		}
 	}
 
@@ -2127,10 +2135,10 @@ public class PixelDrawing
 		// now draw with the proper line type
 		switch (texture)
 		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);       break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0x88);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0xE7);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);       break;
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0x88, 8);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0xE7, 8);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
 		}
 	}
 
@@ -2296,7 +2304,7 @@ public class PixelDrawing
         }
     }
 
-	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern)
+	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
 	{
 		// initialize counter for line style
 		int i = 0;
@@ -2330,7 +2338,8 @@ public class PixelDrawing
 				{
 					y += yincr;   d += incr2;
 				}
-				if (i == 7) i = 0; else i++;
+				i++;
+				if (i == len) i = 0;
 				if ((pattern & (1 << i)) == 0) continue;
 				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
@@ -2361,7 +2370,8 @@ public class PixelDrawing
 				{
 					x += xincr;   d += incr2;
 				}
-				if (i == 7) i = 0; else i++;
+				i++;
+				if (i == len) i = 0;
 				if ((pattern & (1 << i)) == 0) continue;
 				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
@@ -2369,7 +2379,7 @@ public class PixelDrawing
 		}
 	}
 
-    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern) {
+    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern, int len) {
         patLines++;
         // initialize the Bresenham algorithm
         int dx = Math.abs(x2-x1);
@@ -2612,10 +2622,6 @@ public class PixelDrawing
 		}
 		for(int i=0; i<points.length; i++)
 		{
-			// draw the edge lines to make the polygon clean
-			if (pattern != null && desc.isOutlinedOnDisplay())
-				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, col);
-
 			// compute the direction of this edge
 			int j = polySegs[i].ty - polySegs[i].fy;
 			if (j > 0) polySegs[i].direction = 1; else
@@ -2784,13 +2790,31 @@ public class PixelDrawing
 		}
 
 		// if outlined pattern, draw the outline
-		if (pattern != null && desc.isOutlinedOnDisplay())
+		if (pattern != null)
 		{
-			for(int i=0; i<points.length; i++)
+			EGraphics.Outline o = desc.getOutlined();
+			if (o != EGraphics.Outline.NOPAT)
 			{
-				int last = i-1;
-				if (last < 0) last = points.length - 1;
-				drawLine(points[last], points[i], layerBitMap, desc, 0, dimmed);
+				for(int i=0; i<points.length; i++)
+				{
+					int last = i-1;
+					if (last < 0) last = points.length - 1;
+					int fX = points[last].x;   int fY = points[last].y;
+					int tX = points[i].x;      int tY = points[i].y;
+					drawPatLine(fX, fY, tX, tY, layerBitMap, col, o.getPattern(), o.getLen());
+					if (o.getThickness() != 1)
+					{
+						int ang = GenMath.figureAngle(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY));
+						double sin = DBMath.sin(ang+900);
+						double cos = DBMath.cos(ang+900);
+						for(int t=1; t<o.getThickness(); t++)
+						{
+							int dX = (int)(cos*t + 0.5);
+							int dY = (int)(sin*t + 0.5);
+							drawPatLine(fX+dX, fY+dY, tX+dX, tY+dY, layerBitMap, col, o.getPattern(), o.getLen());
+						}
+					}
+				}
 			}
 		}
 	}
@@ -3657,7 +3681,7 @@ public class PixelDrawing
 			if (desc.isPatternedOnDisplay())
 			{
 				pattern = desc.getPattern();
-				if (desc.isOutlinedOnDisplay())
+				if (desc.getOutlined() != EGraphics.Outline.NOPAT)
 				{
 					drawCircle(center, edge, layerBitMap, desc, dimmed);			
 				}

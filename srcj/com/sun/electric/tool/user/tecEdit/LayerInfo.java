@@ -26,6 +26,7 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -82,7 +83,7 @@ public class LayerInfo extends Info
 	LayerInfo()
 	{
 		name = "";
-		desc = new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0, 0, 0, 1, false, new int[16]);
+		desc = new EGraphics(false, true, null, 0, 0, 0, 0, 1, false, new int[16]);
 		fun = Layer.Function.UNKNOWN;
 		cif = "";
 		gds = "";
@@ -174,7 +175,6 @@ public class LayerInfo extends Info
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -14), 0, 0, np);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Clear Pattern");
-//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCLEAR));
 		}
 		if (patInvertNode == null)
@@ -182,7 +182,6 @@ public class LayerInfo extends Info
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -16), 0, 0, np);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Invert Pattern");
-//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATINVERT));
 		}
 		if (patCopyNode == null)
@@ -190,7 +189,6 @@ public class LayerInfo extends Info
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -18), 0, 0, np);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Copy Pattern");
-//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCOPY));
 		}
 		if (patPasteNode == null)
@@ -198,7 +196,6 @@ public class LayerInfo extends Info
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -20), 0, 0, np);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Paste Pattern");
-//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATPASTE));
 		}
 
@@ -333,14 +330,18 @@ public class LayerInfo extends Info
 					{
 						li.desc.setPatternedOnDisplay(true);
 						li.desc.setPatternedOnPrinter(true);
-						li.desc.setOutlinedOnDisplay(false);
-						li.desc.setOutlinedOnPrinter(false);
+						li.desc.setOutlined(EGraphics.Outline.NOPAT);
 					} else if (str.equalsIgnoreCase("patterned/outlined"))
 					{
 						li.desc.setPatternedOnDisplay(true);
 						li.desc.setPatternedOnPrinter(true);
-						li.desc.setOutlinedOnDisplay(true);
-						li.desc.setOutlinedOnPrinter(true);
+						li.desc.setOutlined(EGraphics.Outline.PAT_S);
+					} else if (TextUtils.canonicString(str).startsWith("patterned/outline="))
+					{
+						li.desc.setPatternedOnDisplay(true);
+						li.desc.setPatternedOnPrinter(true);
+						EGraphics.Outline out = EGraphics.Outline.findOutline(str.substring(18));
+						li.desc.setOutlined(out);
 					}
 					break;
 				case LAYERCIF:

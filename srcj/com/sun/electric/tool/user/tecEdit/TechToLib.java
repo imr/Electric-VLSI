@@ -275,8 +275,7 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(-20 - wid*2.5 - i, -5), wid*5, wid, aNp);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));
-			ni.newVar(Info.LAYER_KEY, null);
-			ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
 			arcTotal++;
 
 			// compact it accordingly
@@ -441,8 +440,7 @@ public class TechToLib
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, pos[e], xsc[e], ysc[e], nNp);
 				if (ni == null) return null;
 				ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
-				ni.newVar(Info.LAYER_KEY, null);
-				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+				ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
 
 				// create a grab node (only in main example)
 //				if (e == 0)

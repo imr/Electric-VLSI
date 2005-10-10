@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -2629,23 +2630,19 @@ public class LibToTech
 			buffWriter.print("\t\t/** " + lList[i].name + " layer */");
 			buffWriter.println("\t\tLayer " + lList[i].javaName + "_lay = Layer.newInstance(this, \"" + lList[i].name + "\",");
 			buffWriter.print("\t\t\tnew EGraphics(");
-			if (lList[i].desc.isPatternedOnDisplay())
-			{
-				if (lList[i].desc.isOutlinedOnDisplay()) buffWriter.print("EGraphics.OUTLINEPAT"); else
-					buffWriter.print("EGraphics.PATTERNED");
-			} else
-			{
-				buffWriter.print("EGraphics.SOLID");
-			}
+			if (lList[i].desc.isPatternedOnDisplay()) buffWriter.print("true"); else
+				buffWriter.print("false");
 			buffWriter.print(", ");
-			if (lList[i].desc.isPatternedOnPrinter())
-			{
-				if (lList[i].desc.isOutlinedOnPrinter()) buffWriter.print("EGraphics.OUTLINEPAT"); else
-					buffWriter.print("EGraphics.PATTERNED");
-			} else
-			{
-				buffWriter.print("EGraphics.SOLID");
-			}
+
+			if (lList[i].desc.isPatternedOnPrinter()) buffWriter.print("true"); else
+				buffWriter.print("false");
+			buffWriter.print(", ");
+
+			EGraphics.Outline o = lList[i].desc.getOutlined();
+			if (o == EGraphics.Outline.NOPAT) buffWriter.print("null"); else
+				buffWriter.print("EGraphics.Outline." + o.getConstName());
+			buffWriter.print(", ");
+
 			String transparent = "0";
 			if (lList[i].desc.getTransparentLayer() > 0)
 				transparent = "EGraphics.TRANSPARENT_" + lList[i].desc.getTransparentLayer();
@@ -2655,7 +2652,7 @@ public class LibToTech
 			if (red < 0 || red > 255) red = 0;
 			if (green < 0 || green > 255) green = 0;
 			if (blue < 0 || blue > 255) blue = 0;
-			buffWriter.println(", " + transparent + ", " + red + "," + green + "," + blue + ", 0.8,true,");
+			buffWriter.println(transparent + ", " + red + "," + green + "," + blue + ", 0.8,true,");
 
 			boolean hasPattern = false;
 			int [] pattern = lList[i].desc.getPattern();

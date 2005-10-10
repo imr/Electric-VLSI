@@ -74,37 +74,37 @@ public class GEM extends Technology
 
 		/** E layer */
 		E_lay = Layer.newInstance(this, "Element",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** GA layer */
 		Layer GA_lay = Layer.newInstance(this, "General-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,255, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,0,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** TA layer */
 		Layer TA_lay = Layer.newInstance(this, "Temporal-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** CA layer */
 		Layer CA_lay = Layer.newInstance(this, "Causal-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PA layer */
 		Layer PA_lay = Layer.newInstance(this, "Prereq-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,190,6, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,190,6, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** NA layer */
 		Layer NA_lay = Layer.newInstance(this, "Nondet-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,255,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** FA layer */
 		Layer FA_lay = Layer.newInstance(this, "Fork-arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 186,0,255, 0.8,true,
+			new EGraphics(false, false, null, 0, 186,0,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

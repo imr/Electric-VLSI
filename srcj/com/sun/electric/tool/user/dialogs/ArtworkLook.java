@@ -55,7 +55,7 @@ public class ArtworkLook extends EDialog
 	 */
 	public static void showArtworkLookDialog()
 	{
-		// see if there is a piece of artwork selected]
+		// see if there is a piece of artwork selected
         EditWindow wnd = EditWindow.getCurrent();
 		List objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		List artworkObjects = new ArrayList();
@@ -112,7 +112,7 @@ public class ArtworkLook extends EDialog
 		EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
 		if (graphics == null)
 		{
-			graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
+			graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
 		}

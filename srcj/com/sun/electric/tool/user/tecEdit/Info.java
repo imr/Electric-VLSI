@@ -26,6 +26,7 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.ArcProto;
@@ -202,16 +203,11 @@ public class Info
 					str = "Style: ";
 					if (desc.isPatternedOnDisplay())
 					{
-						if (desc.isOutlinedOnDisplay())
-						{
-							str += "patterned/outlined";
-						} else
-						{
-							str += "patterned";
-						}
+						EGraphics.Outline o = desc.getOutlined();
+						str += "Patterned/Outline=" + o.getName();
 					} else
 					{
-						str += "solid";
+						str += "Solid";
 					}
 					break;
 				case LAYERCIF:

@@ -261,13 +261,13 @@ public class Schematics extends Technology
 
 		/** arc layer */
 		arc_lay = Layer.newInstance(this, "Arc",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,255,0.8,true,
+			new EGraphics(false, false, null, 0, 0,0,255,0.8,true,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
 //		bus_lay = Layer.newInstance(this, "Bus",
-//			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
 //			new int[] { 0x2222,   //   X   X   X   X 
 //				0x0000,   //                 
 //				0x8888,   // X   X   X   X   
@@ -285,7 +285,7 @@ public class Schematics extends Technology
 //				0x8888,   // X   X   X   X   
 //				0x0000}));//     
 		bus_lay = Layer.newInstance(this, "Bus",            
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,255,0, 0.8,true,
+			new EGraphics(true, true, null, 0, 0,255,0, 0.8,true,
 			new int[] { 0xAAAA,   // X X X X X X X X 
 						0x5555,   //  X X X X X X X X
 						0xAAAA,   // X X X X X X X X 
@@ -305,13 +305,13 @@ public class Schematics extends Technology
 
 		/** node layer */
 		node_lay = Layer.newInstance(this, "Node",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,0,0, 0.8,true,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		text_lay = Layer.newInstance(this, "Text",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 

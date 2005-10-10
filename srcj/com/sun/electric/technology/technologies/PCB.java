@@ -66,117 +66,117 @@ public class PCB extends Technology
 
 		/** S layer */
 		Layer S_lay = Layer.newInstance(this, "Signal1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 0,255,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 0,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S0 layer */
 		Layer S0_lay = Layer.newInstance(this, "Signal2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 0,0,255, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 0,0,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S1 layer */
 		Layer S1_lay = Layer.newInstance(this, "Signal3",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 255,255,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 255,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S2 layer */
 		Layer S2_lay = Layer.newInstance(this, "Signal4",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 116,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 116,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S3 layer */
 		Layer S3_lay = Layer.newInstance(this, "Signal5",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S4 layer */
 		Layer S4_lay = Layer.newInstance(this, "Signal6",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,255,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S5 layer */
 		Layer S5_lay = Layer.newInstance(this, "Signal7",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,190,6, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,190,6, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** S6 layer */
 		Layer S6_lay = Layer.newInstance(this, "Signal8",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,255, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,255,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Power1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 0,255,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 0,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "Power2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 0,0,255, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 0,0,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P1 layer */
 		Layer P1_lay = Layer.newInstance(this, "Power3",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 255,255,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 255,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P2 layer */
 		Layer P2_lay = Layer.newInstance(this, "Power4",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 116,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 116,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P3 layer */
 		Layer P3_lay = Layer.newInstance(this, "Power5",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P4 layer */
 		Layer P4_lay = Layer.newInstance(this, "Power6",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,255,0, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,255,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P5 layer */
 		Layer P5_lay = Layer.newInstance(this, "Power7",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,190,6, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,190,6, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P6 layer */
 		Layer P6_lay = Layer.newInstance(this, "Power8",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,255, 0.8,true,
+			new EGraphics(false, false, null, 0, 0,255,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "TopSilk",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 230,230,230, 0.8,true,
+			new EGraphics(false, false, null, 0, 230,230,230, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** B layer */
 		Layer B_lay = Layer.newInstance(this, "BottomSilk",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100, 0.8,true,
+			new EGraphics(false, false, null, 0, 100,100,100, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** T0 layer */
 		Layer T0_lay = Layer.newInstance(this, "TopSolder",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 175,255,175, 0.8,true,
+			new EGraphics(false, false, null, 0, 175,255,175, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** B0 layer */
 		Layer B0_lay = Layer.newInstance(this, "BottomSolder",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 89,159,85, 0.8,true,
+			new EGraphics(false, false, null, 0, 89,159,85, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Drill",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 2,15,159, 0.8,true,
+			new EGraphics(false, false, null, 0, 2,15,159, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** D0 layer */
 		Layer D0_lay = Layer.newInstance(this, "DrillNonPlated",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 150,150,255, 0.8,true,
+			new EGraphics(false, false, null, 0, 150,150,255, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** D1 layer */
 		Layer D1_lay = Layer.newInstance(this, "Drawing",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,150,150, 0.8,true,
+			new EGraphics(false, false, null, 0, 255,150,150, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

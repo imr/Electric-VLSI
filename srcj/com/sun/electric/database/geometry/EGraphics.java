@@ -28,12 +28,18 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Observable;
 import java.lang.reflect.Method;
+
+import javax.swing.ImageIcon;
 
 /**
  * Class to define the appearance of a piece of geometry.
@@ -41,11 +47,138 @@ import java.lang.reflect.Method;
 public class EGraphics extends Observable
         implements Cloneable
 {
+	/**
+	 * Class to define the type of outline around a stipple pattern.
+	 */
+	public static class Outline
+	{
+		private static final int SAMPLEWID = 60;
+		private static final int SAMPLEHEI = 11;
+
+		private String name;
+		private String constName;
+		private int pattern, len;
+		private int thickness;
+		private int index;
+		private boolean solid;
+		private ImageIcon sample;
+
+		private static List allOutlines = new ArrayList();
+		private static HashMap outlineByIndex = new HashMap();
+		private static HashMap outlineByName = new HashMap();
+
+		private Outline(String name, String constName, int pattern, int len, int thickness, int index)
+		{
+			this.name = name;
+			this.constName = constName;
+			this.pattern = pattern;
+			this.len = len;
+			this.thickness = thickness;
+			this.index = index;
+			this.solid = (pattern == -1);
+			allOutlines.add(this);
+			outlineByIndex.put(new Integer(index), this);
+			outlineByName.put(name, this);
+
+			// construct a sample of this outline texture
+			BufferedImage bi = new BufferedImage(SAMPLEWID+SAMPLEHEI, SAMPLEHEI, BufferedImage.TYPE_INT_RGB);
+			int startX = SAMPLEHEI / 2;
+			int startY = (SAMPLEHEI-thickness) / 2;
+			for(int y=0; y<SAMPLEHEI; y++)
+				for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
+					bi.setRGB(x, y, 0xFFFFFF);
+			for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
+			{
+				bi.setRGB(x, 0, 0);
+				bi.setRGB(x, SAMPLEHEI-1, 0);
+			}
+			for(int y=0; y<SAMPLEHEI; y++)
+			{
+				bi.setRGB(0, y, 0);
+				bi.setRGB(SAMPLEWID+SAMPLEHEI-1, y, 0);
+			}
+			for(int y=0; y<thickness; y++)
+			{
+				int patPos = 0;
+				for(int x=0; x<SAMPLEWID; x++)
+				{
+					if ((pattern & (1<<patPos)) != 0) bi.setRGB(x+startX, y+startY, 0); else
+						bi.setRGB(x+startX, y+startY, 0xFFFFFF);
+					patPos++;
+					if (patPos >= len) patPos = 0;
+				}
+			}
+			sample = new ImageIcon(bi);
+		}
+
+		public String getName() { return name; }
+
+		public String getConstName() { return constName; }
+
+		public int getIndex() { return index; }
+
+		public boolean isSolidPattern() { return solid; }
+
+		public int getPattern() { return pattern; }
+
+		public int getLen() { return len; }
+
+		public int getThickness() { return thickness; }
+
+		public ImageIcon getSample() { return sample; }
+
+		public static Outline findOutline(int index)
+		{
+			Outline o = (Outline)outlineByIndex.get(new Integer(index));
+			return o;
+		}
+
+		public static Outline findOutline(String name)
+		{
+			Outline o = (Outline)outlineByName.get(name);
+			return o;
+		}
+
+		public static List getOutlines() { return allOutlines; }
+
+		public String toString() { return name; }
+
+		/** Draw stipple pattern with no outline. */
+		public final static Outline NOPAT      = new Outline("None", "NOPAT", 0, 32, 1, 0);
+		/** Draw stipple pattern with solid outline. */
+		public final static Outline PAT_S      = new Outline("Solid", "PAT_S", -1, 32, 1, 1);
+		/** Draw stipple pattern with solid thick outline. */
+		public final static Outline PAT_T1     = new Outline("Solid-Thick", "PAT_T1", -1, 32, 3, 2);
+		/** Draw stipple pattern with solid thicker outline. */
+		public final static Outline PAT_T2     = new Outline("Solid-Thicker", "PAT_T2", -1, 32, 5, 3);
+		/** Draw stipple pattern with close dotted outline. */
+		public final static Outline PAT_DO1    = new Outline("Dotted-Close", "PAT_DO1", 0x55, 8, 1, 4);
+		/** Draw stipple pattern with far dotted outline. */
+		public final static Outline PAT_DO2    = new Outline("Dotted-Far", "PAT_DO2", 0x11, 8, 1, 5);
+		/** Draw stipple pattern with short dashed outline. */
+		public final static Outline PAT_DA1    = new Outline("Dashed-Short", "PAT_DA1", 0x33, 8, 1, 6);
+		/** Draw stipple pattern with long dashed outline. */
+		public final static Outline PAT_DA2    = new Outline("Dashed-Long", "PAT_DA2", 0xF, 6, 1, 7);
+		/** Draw stipple pattern with short dotted-dashed outline. */
+		public final static Outline PAT_DD1    = new Outline("Dotted-Dashed-Short", "PAT_DD1", 0x39, 8, 1, 8);
+		/** Draw stipple pattern with long dotted-dashed outline. */
+		public final static Outline PAT_DD2    = new Outline("Dotted-Dashed-Long", "PAT_DD2", 0xF3, 10, 1, 9);
+		/** Draw stipple pattern with close dotted thick outline. */
+		public final static Outline PAT_DO1_T1 = new Outline("Dotted-Close-Thick", "PAT_DO1_T1", 0xF, 6, 3, 10);
+		/** Draw stipple pattern with far dotted thick outline. */
+		public final static Outline PAT_DO2_T1 = new Outline("Dotted-Far-Thick", "PAT_DO2_T1", 0xF, 8, 3, 11);
+		/** Draw stipple pattern with dashed thick outline. */
+		public final static Outline PAT_DA1_T1 = new Outline("Dashed-Thick", "PAT_DA1_T1", 0x1FFFF, 19, 3, 12);
+		/** Draw stipple pattern with close dotted thicker outline. */
+		public final static Outline PAT_DO1_T2 = new Outline("Dotted-Close-Thicker", "PAT_DO1_T2", 0x1F, 8, 5, 13);
+		/** Draw stipple pattern with far dotted thicker outline. */
+		public final static Outline PAT_DO2_T2 = new Outline("Dotted-Far-Thicker", "PAT_DO2_T2", 0x7F, 9, 5, 14);
+	}
+
 	/** the Layer associated with this graphics. */			private Layer layer;
 	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
-	/** display: true to outline patterns */				private boolean displayOutlined;
 	/** printer: true to use patterns; false for solid */	private boolean printPatterned;
-	/** printer: true to outline patterns */				private boolean printOutlined;
+	/** the outline pattern */								private Outline patternOutline;
 	/** transparent layer to use (0 for none) */			private int transparentLayer;
 	/** color to use */										private int red, green, blue;
 	/** opacity (0 to 1) of color */						private double opacity;
@@ -54,9 +187,8 @@ public class EGraphics extends Observable
 	/** 3D appearance */                                    private Object appearance3D;
 
 	private static HashMap<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> outlinePatternPrinterMap = new HashMap<Layer,Pref>();
 	private static HashMap<Layer,Pref> usePatternPrinterMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> outlinePatternDisplayMap = new HashMap<Layer,Pref>();
+	private static HashMap<Layer,Pref> outlinePatternMap = new HashMap<Layer,Pref>();
 	private static HashMap<Layer,Pref> transparentLayerMap = new HashMap<Layer,Pref>();
 	private static HashMap<Layer,Pref> opacityMap = new HashMap<Layer,Pref>();
 	private static HashMap<Layer,Pref> colorMap = new HashMap<Layer,Pref>();
@@ -119,44 +251,38 @@ public class EGraphics extends Observable
 	/** Describes transparent layer 12. */					public final static int LAYERT12 = 020000;
 
 	// Constants used in technologies and in creating an EGraphics
-	/** defines the 1st transparent layer. */				public static final int TRANSPARENT_1 = 1;
-	/** defines the 2nd transparent layer. */				public static final int TRANSPARENT_2 = 2;
-	/** defines the 3rd transparent layer. */				public static final int TRANSPARENT_3 = 3;
-	/** defines the 4th transparent layer. */				public static final int TRANSPARENT_4 = 4;
-	/** defines the 5th transparent layer. */				public static final int TRANSPARENT_5 = 5;
-	/** defines the 6th transparent layer. */				public static final int TRANSPARENT_6 = 6;
-	/** defines the 7th transparent layer. */				public static final int TRANSPARENT_7 = 7;
-	/** defines the 8th transparent layer. */				public static final int TRANSPARENT_8 = 8;
-	/** defines the 9th transparent layer. */				public static final int TRANSPARENT_9 = 9;
+	/** defines the 1st transparent layer. */				public static final int TRANSPARENT_1  =  1;
+	/** defines the 2nd transparent layer. */				public static final int TRANSPARENT_2  =  2;
+	/** defines the 3rd transparent layer. */				public static final int TRANSPARENT_3  =  3;
+	/** defines the 4th transparent layer. */				public static final int TRANSPARENT_4  =  4;
+	/** defines the 5th transparent layer. */				public static final int TRANSPARENT_5  =  5;
+	/** defines the 6th transparent layer. */				public static final int TRANSPARENT_6  =  6;
+	/** defines the 7th transparent layer. */				public static final int TRANSPARENT_7  =  7;
+	/** defines the 8th transparent layer. */				public static final int TRANSPARENT_8  =  8;
+	/** defines the 9th transparent layer. */				public static final int TRANSPARENT_9  =  9;
 	/** defines the 10th transparent layer. */				public static final int TRANSPARENT_10 = 10;
 	/** defines the 11th transparent layer. */				public static final int TRANSPARENT_11 = 11;
 	/** defines the 12th transparent layer. */				public static final int TRANSPARENT_12 = 12;
 
-	// drawing styles
-	/** Draw as a solid fill. */							public final static int SOLID      = 0;
-	/** Draw as a stipple pattern. */						public final static int PATTERNED  = 1;
-	/** Draw as a stipple pattern with an outline. */		public final static int OUTLINEPAT = 2;
-
 	/**
 	 * Method to create a graphics object.
-	 * @param displayMethod the way to show this EGraphics on a display (SOLID, PATTERNED, or OUTLINEPAT).
-	 @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, or OUTLINEPAT).
-	 @param transparentLayer the transparent layer number (0 for none).
-	 @param red the red component of this EGraphics.
-	 @param green the green component of this EGraphics.
-	 @param blue the blue component of this EGraphics.
-	 @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
-	 @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
-	 @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
+	 * @param displayMethod the way to show this EGraphics on a display (SOLID, PATTERNED, OUTLINEPAT).
+	 * @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, OUTLINEPAT).
+	 * @param transparentLayer the transparent layer number (0 for none).
+	 * @param red the red component of this EGraphics.
+	 * @param green the green component of this EGraphics.
+	 * @param blue the blue component of this EGraphics.
+	 * @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
+	 * @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
+	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
 	 */
-	public EGraphics(int displayMethod, int printMethod, int transparentLayer,
-		int red, int green, int blue, double opacity, boolean foreground, int[] pattern)
+	public EGraphics(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
+		int transparentLayer, int red, int green, int blue, double opacity, boolean foreground, int[] pattern)
 	{
 		this.layer = null;
-		this.displayPatterned = (displayMethod != SOLID);
-		this.displayOutlined = (displayMethod == OUTLINEPAT);
-		this.printPatterned = (printMethod != SOLID);
-		this.printOutlined = (printMethod == OUTLINEPAT);
+		this.displayPatterned = displayPatterned;
+		this.printPatterned = printPatterned;
+		this.patternOutline = (outlineWhenPatterned != null) ? outlineWhenPatterned : Outline.NOPAT;
 		this.transparentLayer = transparentLayer;
 		this.red = red;
 		this.green = green;
@@ -186,9 +312,8 @@ public class EGraphics extends Observable
 	{
 		this.layer = null;
 		this.displayPatterned = g.isPatternedOnDisplay();
-		this.displayOutlined = g.isOutlinedOnDisplay();
 		this.printPatterned = g.isPatternedOnPrinter();
-		this.printOutlined = g.isOutlinedOnPrinter();
+		this.patternOutline = g.getOutlined();
 		this.transparentLayer = g.getTransparentLayer();
 		Color gColor = g.getColor();
 		this.red = gColor.getRed();
@@ -234,20 +359,15 @@ public class EGraphics extends Observable
 		displayPatterned = usePatternDisplayPref.getBoolean();
 		usePatternDisplayMap.put(layer, usePatternDisplayPref);
 
-		Pref outlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
-			Technology.getTechnologyPreferences(), displayOutlined);
-		displayOutlined = outlinePatternDisplayPref.getBoolean();
-		outlinePatternDisplayMap.put(layer, outlinePatternDisplayPref);
-
 		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
 			Technology.getTechnologyPreferences(), printPatterned);
 		printPatterned = usePatternPrinterPref.getBoolean();
 		usePatternPrinterMap.put(layer, usePatternPrinterPref);
 
-		Pref outlinePatternPrinterPref = Pref.makeBooleanPref("OutlinePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
-			Technology.getTechnologyPreferences(), printOutlined);
-		printOutlined = outlinePatternPrinterPref.getBoolean();
-		outlinePatternPrinterMap.put(layer, outlinePatternPrinterPref);
+		Pref outlinePatternDisplayPref = Pref.makeIntPref("OutlinePatternFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), patternOutline.index);
+		patternOutline = Outline.findOutline(outlinePatternDisplayPref.getInt());
+		outlinePatternMap.put(layer, outlinePatternDisplayPref);
 
 		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layer.getName() + "In" + tech.getTechName(),
 			Technology.getTechnologyPreferences(), transparentLayer);
@@ -287,14 +407,11 @@ public class EGraphics extends Observable
 		Pref usePatternDisplayPref = (Pref)usePatternDisplayMap.get(layer);
 		displayPatterned = usePatternDisplayPref.getBoolean();
 
-		Pref outlinePatternDisplayPref = (Pref)outlinePatternDisplayMap.get(layer);
-		displayOutlined = outlinePatternDisplayPref.getBoolean();
-
 		Pref usePatternPrinterPref = (Pref)usePatternPrinterMap.get(layer);
 		printPatterned = usePatternPrinterPref.getBoolean();
 
-		Pref outlinePatternPrinterPref = (Pref)outlinePatternPrinterMap.get(layer);
-		printOutlined = outlinePatternPrinterPref.getBoolean();
+		Pref outlinePatternDisplayPref = (Pref)outlinePatternMap.get(layer);
+		patternOutline = Outline.findOutline(outlinePatternDisplayPref.getInt());
 
 		Pref transparentLayerPref = (Pref)transparentLayerMap.get(layer);
 		transparentLayer = transparentLayerPref.getInt();
@@ -360,29 +477,6 @@ public class EGraphics extends Observable
 	}
 
 	/**
-	 * Method to tell whether this pattern has an outline around it on the display.
-	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
-	 * @return true to dan outline around this pattern (on the display).
-	 */
-	public boolean isOutlinedOnDisplay() { return displayOutlined; }
-
-	/**
-	 * Method to set whether this pattern has an outline around it on the display.
-	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
-	 * @param o true to draw this pattern with an outline around it.
-	 */
-	public void setOutlinedOnDisplay(boolean o)
-	{
-		displayOutlined = o;
-
-		if (layer != null)
-		{
-			Pref pref = (Pref)outlinePatternDisplayMap.get(layer);
-			if (pref != null) pref.setBoolean(o);
-		}
-	}
-
-	/**
 	 * Method describes how this EGraphics appears on a printer.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @return true to draw this EGraphics patterned on a printer.
@@ -408,25 +502,26 @@ public class EGraphics extends Observable
 	}
 
 	/**
-	 * Method to tell whether this pattern has an outline around it.
+	 * Method to tell the type of outline pattern.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
-	 * @return true to dan outline around this pattern (on the printer).
+	 * @return the type of outline pattern.
 	 */
-	public boolean isOutlinedOnPrinter() { return printOutlined; }
+	public Outline getOutlined() { return patternOutline; }
 
 	/**
-	 * Method to set whether this pattern has an outline around it on a printer.
+	 * Method to set whether this pattern has an outline around it.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
-	 * @param o true to draw this pattern with an outline around it on a printer.
+	 * @param o the outline pattern.
 	 */
-	public void setOutlinedOnPrinter(boolean o)
+	public void setOutlined(Outline o)
 	{
-		printOutlined = o;
+		if (o == null) o = Outline.NOPAT;
+		patternOutline = o;
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)outlinePatternPrinterMap.get(layer);
-			if (pref != null) pref.setBoolean(o);
+			Pref pref = (Pref)outlinePatternMap.get(layer);
+			if (pref != null) pref.setInt(o.index);
 		}
 	}
 

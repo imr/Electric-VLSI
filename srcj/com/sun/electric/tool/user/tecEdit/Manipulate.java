@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -235,7 +236,9 @@ public class Manipulate
 					NodeInst ni = (NodeInst)nIt.next();
 					Variable var = ni.getVar(Info.LAYER_KEY);
 					if (var == null) continue;
-					if ((Cell)var.getObject() == np)
+					CellId cID = (CellId)var.getObject();
+					Cell varCell = (Cell)cID.inCurrentThread();
+					if (varCell == np)
 					{
 						if (warning != null) warning.append(","); else
 						{
@@ -430,7 +433,7 @@ public class Manipulate
 			Cell cell = Library.getCurrent().findNodeProto(layerNames[0]);
 			if (cell != null)
 			{
-				newNi.newVar(Info.LAYER_KEY, cell);
+				newNi.newVar(Info.LAYER_KEY, cell.getId());
 				LayerInfo li = LayerInfo.parseCell(cell);
 				if (li != null)
 					setPatch(newNi, li.desc);
@@ -994,14 +997,15 @@ public class Manipulate
 	{
 		Variable var = ni.getVar(Info.LAYER_KEY);
 		if (var == null) return null;
-		Cell np = (Cell)var.getObject();
-		if (np != null)
+		CellId cID = (CellId)var.getObject();
+		Cell cell = (Cell)cID.inCurrentThread();
+		if (cell != null)
 		{
 			// validate the reference
 			for(Iterator it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 			{
-				Cell oNp = (Cell)it.next();
-				if (oNp == np) return np;
+				Cell oCell = (Cell)it.next();
+				if (oCell == cell) return cell;
 			}
 		}
 		return null;
@@ -1259,10 +1263,15 @@ public class Manipulate
 	private static void modLayerStyle(EditWindow wnd, NodeInst ni)
 	{
 		String initialStyleName = Info.getValueOnNode(ni);
-		String [] styleNames = new String[3];
+		List outlines = EGraphics.Outline.getOutlines();
+		String [] styleNames = new String[outlines.size()+1];
 		styleNames[0] = "Solid";
-		styleNames[1] = "Patterned";
-		styleNames[2] = "Patterned/Outlined";
+		int i = 1;
+		for(Iterator it = outlines.iterator(); it.hasNext(); )
+		{
+			EGraphics.Outline o = (EGraphics.Outline)it.next();
+			styleNames[i++] = "Patterned/Outline=" + o.getName();
+		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer Drawing Style",
 			"New drawing style for this layer:", initialStyleName, styleNames);
 		if (choice == null) return;
@@ -1550,7 +1559,12 @@ public class Manipulate
 		options[layerCells.length+1] = "CLEAR-MINIMUM-SIZE";
 		String initial = options[0];
 		Variable curLay = ni.getVar(Info.LAYER_KEY);
-		if (curLay != null) initial = ((Cell)curLay.getObject()).getName().substring(6);
+		if (curLay != null)
+		{
+			CellId cID = (CellId)curLay.getObject();
+			Cell cell = (Cell)cID.inCurrentThread();
+			initial = cell.getName().substring(6);
+		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
 		if (choice == null) return;
 
@@ -1610,7 +1624,7 @@ public class Manipulate
 					LayerInfo li = LayerInfo.parseCell(layerCells[i]);
 					if (li == null) return true;
 					setPatch(ni, li.desc);
-					ni.newVar(Info.LAYER_KEY, layerCells[i]);
+					ni.newVar(Info.LAYER_KEY, layerCells[i].getId());
 				}
 			}
 			System.out.println("Cannot find layer primitive " + choice);
@@ -1636,9 +1650,9 @@ public class Manipulate
 		Variable var = ni.getVar(Info.CONNECTION_KEY);
 		if (var != null)
 		{
-			Cell [] connects = (Cell [])var.getObject();
+			CellId [] connects = (CellId [])var.getObject();
 			for(int i=0; i<connects.length; i++)
-				connectSet.add(connects[i]);
+				connectSet.add(connects[i].inCurrentThread());
 		}
 
 		// build an array of arc connections
@@ -1942,7 +1956,9 @@ public class Manipulate
 					if (getOptionOnNode(cNi) != Info.LAYERPATCH) continue;
 					Variable varLay = cNi.getVar(Info.LAYER_KEY);
 					if (varLay == null) continue;
-					if ((Cell)varLay.getObject() != cell) continue;
+					CellId cID = (CellId)varLay.getObject();
+					Cell varCell = (Cell)cID.inCurrentThread();
+					if (varCell != cell) continue;
 					setPatch(cNi, li.desc);
 				}
 			}
@@ -1962,17 +1978,10 @@ public class Manipulate
 		if (desc.isPatternedOnDisplay())
 		{
 			int [] raster = desc.getPattern();
-			if (desc.isOutlinedOnDisplay())
-			{
-				Short [] pattern = new Short[16];
-				for(int i=0; i<16; i++) pattern[i] = new Short((short)raster[i]);
-				ni.newVar(Artwork.ART_PATTERN, pattern);
-			} else
-			{
-				Integer [] pattern = new Integer[16];
-				for(int i=0; i<16; i++) pattern[i] = new Integer(raster[i]);
-				ni.newVar(Artwork.ART_PATTERN, pattern);
-			}
+			Integer [] pattern = new Integer[17];
+			for(int i=0; i<16; i++) pattern[i] = new Integer(raster[i]);
+			pattern[16] = desc.getOutlined().getIndex();
+			ni.newVar(Artwork.ART_PATTERN, pattern);
 		} else
 		{
 			if (ni.getVar(Artwork.ART_PATTERN) != null)
@@ -2321,7 +2330,7 @@ public class Manipulate
 			layerStyles[i+1] = "?";
 			if (gra.isPatternedOnDisplay())
 			{
-				if (gra.isOutlinedOnDisplay()) layerStyles[i+1] = "pat/outl"; else
+				if (gra.getOutlined() != EGraphics.Outline.NOPAT) layerStyles[i+1] = "pat/outl"; else
 					layerStyles[i+1] = "pat";
 			} else
 			{

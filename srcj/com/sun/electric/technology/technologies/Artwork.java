@@ -26,6 +26,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
@@ -107,7 +108,7 @@ public class Artwork extends Technology
 
 		/** Graphics layer */
 		G_lay = Layer.newInstance(this, "Graphics",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
+			new EGraphics(false, false, null, 0, 0,0,0,0.8,true,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
@@ -777,7 +778,7 @@ public class Artwork extends Technology
 		if (colorVar == null && patternVar == null) return null;
 
 		// make a fake layer with graphics
-		EGraphics graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
+		EGraphics graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
 
@@ -792,19 +793,27 @@ public class Artwork extends Technology
 		if (patternVar != null)
 		{
 			int len = patternVar.getLength();
-			if (len != 8 && len != 16)
+			if (len != 8 && len != 16 && len != 17)
 			{
-				System.out.println("'ART_pattern' must be a 8 or 16-entries long");
+				System.out.println("'ART_pattern' length is incorrect");
 				return null;
 			}
 
 			graphics.setPatternedOnDisplay(true);
 			graphics.setPatternedOnPrinter(true);
+			graphics.setOutlined(null);
 			int [] pattern = graphics.getPattern();
 			Object obj = patternVar.getObject();
 			if (obj instanceof Integer[])
 			{
 				Integer [] pat = (Integer [])obj;
+				if (len == 17)
+				{
+					// the last entry specifies the outline texture
+					int outlineIndex = pat[16];
+					graphics.setOutlined(EGraphics.Outline.findOutline(outlineIndex));
+					len = 16;
+				}
 				for(int i=0; i<len; i++)
 					pattern[i] = pat[i].intValue();
 			} else if (obj instanceof Short[])
@@ -812,8 +821,7 @@ public class Artwork extends Technology
 				Short [] pat = (Short [])obj;
 				for(int i=0; i<len; i++)
 					pattern[i] = pat[i].shortValue();
-				graphics.setOutlinedOnDisplay(true);
-				graphics.setOutlinedOnPrinter(true);
+				graphics.setOutlined(EGraphics.Outline.PAT_S);
 			}
 			if (len == 8)
 			{
@@ -851,20 +859,13 @@ public class Artwork extends Technology
 		// set the stipple pattern if specified
 		if (graphics.isPatternedOnDisplay())
 		{
+			// set the pattern
 			int [] pattern = graphics.getPattern();
-			if (graphics.isOutlinedOnDisplay())
-			{
-				Short [] pat = new Short[16];
-				for(int i=0; i<16; i++)
-					pat[i] = new Short((short)pattern[i]);
-				eObj.newVar(ART_PATTERN, pat);
-			} else
-			{
-				Integer [] pat = new Integer[16];
-				for(int i=0; i<16; i++)
-					pat[i] = new Integer(pattern[i]);
-				eObj.newVar(ART_PATTERN, pat);
-			}
+			Integer [] pat = new Integer[17];
+			for(int i=0; i<16; i++)
+				pat[i] = new Integer(pattern[i]);
+			pat[16] = graphics.getOutlined().getIndex();
+			eObj.newVar(ART_PATTERN, pat);
 		} else
 		{
 			if (patternVar != null) eObj.delVar(ART_PATTERN);
