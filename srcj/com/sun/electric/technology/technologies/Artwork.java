@@ -864,7 +864,7 @@ public class Artwork extends Technology
 			Integer [] pat = new Integer[17];
 			for(int i=0; i<16; i++)
 				pat[i] = new Integer(pattern[i]);
-			pat[16] = graphics.getOutlined().getIndex();
+			pat[16] = new Integer(graphics.getOutlined().getIndex());
 			eObj.newVar(ART_PATTERN, pat);
 		} else
 		{

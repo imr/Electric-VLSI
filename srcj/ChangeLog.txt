@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/10/05, SMR) Cell-center nodes are not visible in black-background colors (Bug #627).
+FIX: The commands to switch color schemes now change the Generic layer colors.
+
+BUG: (10/10/05, SMR) When editing "down in place", scroll bars and arrow keys are wrong (Bug #634).
+FIX: Scroll bars fixed in EditWindow.setScrollPositionUnsafe, bottomScrollChanged, and rightScrollChanged.
+     Arrow keys fixed in ClickZoomWireListener.moveSelected.
+
 IMP/MAN: (10/09/05, SMR) Added different outline patterns to textured layers (Bug #617).
      Affects "Artwork Appearance" and "Layers" preferences.
      Updated technology editor to handle it.

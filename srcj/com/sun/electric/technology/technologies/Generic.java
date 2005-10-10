@@ -48,6 +48,7 @@ public class Generic extends Technology
 {
 	/** the Generic Technology object. */	public static final Generic tech = new Generic();
 	/** the Universal Layer. */				public Layer universal_lay;
+	/** the Glyph Layer. */					public Layer glyph_lay;
 	/** the DRC exclusion Layer. */			public Layer drc_lay;
 	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;
 	/** the Invisible Pin node. */			public PrimitiveNode invisiblePinNode;
@@ -90,7 +91,7 @@ public class Generic extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
-		Layer glyph_lay = Layer.newInstance(this, "Glyph",
+		glyph_lay = Layer.newInstance(this, "Glyph",
 			new EGraphics(false, true, null, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 

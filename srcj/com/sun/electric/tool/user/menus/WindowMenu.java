@@ -42,6 +42,7 @@ import java.lang.reflect.Method;
 
 import javax.swing.KeyStroke;
 
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -537,15 +538,6 @@ public class WindowMenu {
     	}
     }
 
-//    /**
-//     * This method implements the command to control Layer visibility.
-//     */
-//    public static void layerVisibilityCommand()
-//    {
-//		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
-//		dialog.setVisible(true);
-//    }
-
     /**
      * This method implements the command to set default colors.
      */
@@ -560,6 +552,11 @@ public class WindowMenu {
 		User.setColorWaveformBackground(Color.BLACK.getRGB());
 		User.setColorWaveformForeground(Color.WHITE.getRGB());
 		User.setColorWaveformStimuli(Color.RED.getRGB());
+
+		// change the colors in the "Generic" technology
+		Generic.tech.universal_lay.getGraphics().setColor(Color.BLACK);
+		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
+
         EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
@@ -583,6 +580,10 @@ public class WindowMenu {
 		User.setColorWaveformForeground(Color.WHITE.getRGB());
 		User.setColorWaveformStimuli(Color.RED.getRGB());
 
+		// change the colors in the "Generic" technology
+		Generic.tech.universal_lay.getGraphics().setColor(Color.WHITE);
+		Generic.tech.glyph_lay.getGraphics().setColor(Color.WHITE);
+
 		EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
@@ -605,6 +606,11 @@ public class WindowMenu {
 		User.setColorWaveformBackground(Color.WHITE.getRGB());
 		User.setColorWaveformForeground(Color.BLACK.getRGB());
 		User.setColorWaveformStimuli(Color.RED.getRGB());
+
+		// change the colors in the "Generic" technology
+		Generic.tech.universal_lay.getGraphics().setColor(Color.BLACK);
+		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
+
         EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {

@@ -2437,6 +2437,7 @@ public class EditWindow extends JPanel
         if (cell == null) return;
 
         Rectangle2D cellBounds = cell.getBounds();
+		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
 
         // get bounds of cell including what is on-screen
@@ -2481,7 +2482,7 @@ public class EditWindow extends JPanel
         double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
+//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
 		double oX = dbPt.getX();   double oY = dbPt.getY();
 
 		if (!bottomScrollBar.getValueIsAdjusting())
@@ -2515,22 +2516,20 @@ public class EditWindow extends JPanel
         if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
-		//double oX = dbPt.getX();
+//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
         double oY = dbPt.getY();
 
 		double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
+		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
         double newoffx = val+0.5*width;           // new offset
         //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
         //double delta = newoffx - offx;
-        //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
-        //System.out.println("will ignore delta offset of "+ignoreDelta);
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(newoffx, oY);
-        if (inPlaceDisplay) outofCell.transform(offset, offset);
+//        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
         repaintContents(null, false);
     }
@@ -2541,23 +2540,21 @@ public class EditWindow extends JPanel
         if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
+//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
 		double oX = dbPt.getX();
-        //double oY = dbPt.getY();
 
         double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
+		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
         double newoffy = -(val+0.5*height);
         // annoying cause +y is down in java
         //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
         //double delta = newoffy - offy;
-        //System.out.println("Old offy="+offy+", new offy="+newoffy+", deltay="+(newoffy-offy));
-        //System.out.println("will ignore delta offset of "+ignoreDelta);
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(oX, newoffy);
-        if (inPlaceDisplay) outofCell.transform(offset, offset);
+//        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
         repaintContents(null, false);
     }

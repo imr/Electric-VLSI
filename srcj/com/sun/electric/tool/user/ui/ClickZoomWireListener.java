@@ -47,6 +47,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -1094,6 +1095,19 @@ public class ClickZoomWireListener
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
 		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
 		highlighter.setHighlightOffset(0, 0);
+		if (wnd.isInPlaceEdit())
+		{
+			Point2D delta = new Point2D.Double(dX, dY);
+			AffineTransform trans = (AffineTransform)wnd.getInPlaceTransformIn();
+	        double m00 = trans.getScaleX();
+	        double m01 = trans.getShearX();
+	        double m10 = trans.getShearY();
+	        double m11 = trans.getScaleY();
+			AffineTransform justRot = new AffineTransform(m00, m10, m01, m11, 0, 0);
+			justRot.transform(delta, delta);
+			dX = delta.getX();
+			dY = delta.getY();
+		}
 		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents(null, false);
 	}
