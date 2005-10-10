@@ -51,11 +51,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Collections;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 
@@ -509,12 +510,16 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	private void findTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_findTextActionPerformed
 	{//GEN-HEADEREND:event_findTextActionPerformed
 		String search = searchText.getText();
+        int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+		Pattern p = Pattern.compile(search, flags);
 		list.clearSelection();
 		List selected = new ArrayList();
 		for(int i = 0; i < model.getSize(); i++)
 		{
 			String thisLine = (String)model.getElementAt(i);
-			if (thisLine.matches(search))
+		    Matcher m = p.matcher(thisLine);
+            if (m.find())
+//			if (thisLine.matches(search))
 				selected.add(new Integer(i));
 		}
 		if (selected.size() > 0)

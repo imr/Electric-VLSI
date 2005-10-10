@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/10/05, GVG) Find doesn't work with simple regular expressions (bug #636).
+FIX: SelectObject dialog now uses Pattern/Match classes for the regular expression because
+String.matches doesn't seem to work.
+
 BUG: (10/10/05, SMR) Spice output fails to instantiate subcells that are replaced by a model file (Bug #637).
 FIX: In Topology.Visitor.enterCell(), cache cell information even if being ignored.
 
