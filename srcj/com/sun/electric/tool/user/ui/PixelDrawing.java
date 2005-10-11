@@ -2882,21 +2882,6 @@ public class PixelDrawing
 					if (size >= MINIMUMTEXTSIZE) break;
 					greekScale *= 2;
 				}
-//				// text too small: make it "greek"
-//				int sizeIndent = (size+1) / 4;
-//				int fakeWidth = (int)(len * dSize * 0.75);
-//				Point pt = getTextCorner(fakeWidth, size, style, rect, rotation);
-//
-//				// do clipping
-//				int lX = pt.x;   int hX = lX + fakeWidth;
-//				int lY = pt.y + sizeIndent;   int hY = lY;
-//				if (lX < 0) lX = 0;
-//				if (hX >= sz.width) hX = sz.width-1;
-//				if (lY < 0) lY = 0;
-//				if (hY >= sz.height) hY = sz.height-1;
-//
-//				drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
-//				return;
 			}
 			italic = descript.isItalic();
 			bold = descript.isBold();
@@ -3033,12 +3018,12 @@ public class PixelDrawing
 				}
 				break;
 			case 1:			// 90 degrees counterclockwise
-				if (atX-rasHeight < 0) sx = rasHeight-atX; else sx = 0;
-				if (atX >= sz.height) ex = sz.height - atX; else
+				if (atX < 0) sx = -atX; else sx = 0;
+				if (atX >= sz.width) ex = sz.width - atX; else
 					ex = rasHeight;
 				for(int y=0; y<rasWidth; y++)
 				{
-					int trueY = atY + y;
+					int trueY = atY - y;
 					if (trueY < 0 || trueY >= sz.height) continue;
 
 					// setup pointers for filling this row
@@ -3049,7 +3034,7 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int alpha = samples[x * rasWidth + (rasWidth-y-1)] & 0xFF;
+						int alpha = samples[x * rasWidth + y] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3122,8 +3107,8 @@ public class PixelDrawing
 				}
 				break;
 			case 3:			// 90 degrees clockwise
-				if (atX-rasHeight < 0) sx = rasHeight-atX; else sx = 0;
-				if (atX >= sz.height) ex = sz.height - atX; else
+				if (atX < 0) sx = -atX; else sx = 0;
+				if (atX >= sz.width) ex = sz.width - atX; else
 					ex = rasHeight;
 				for(int y=0; y<rasWidth; y++)
 				{
@@ -3137,8 +3122,8 @@ public class PixelDrawing
 						row = layerBitMap[trueY];
 					for(int x=sx; x<ex; x++)
 					{
-						int trueX = atX + x;
-						int alpha = samples[(rasHeight-x-1) * rasWidth + y] & 0xFF;
+						int trueX = atX - x;
+						int alpha = samples[x * rasWidth + y] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3320,14 +3305,14 @@ public class PixelDrawing
 			{
 				case 1:
 					offX = offY;
-					offY = saveOffX;
+					offY = -saveOffX;
 					break;
 				case 2:
 					offX = -offX;
 					offY = -offY;
 					break;
 				case 3:
-					offX = offY;
+					offX = -offY;
 					offY = saveOffX;
 					break;
 			}

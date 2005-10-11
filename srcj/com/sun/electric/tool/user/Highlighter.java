@@ -27,7 +27,9 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -43,6 +45,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1153,6 +1156,16 @@ public class Highlighter implements DatabaseChangeListener {
             bounds = poly.getBounds2D();
             style = poly.getStyle();
             style = Poly.rotateType(style, eObj);
+			TextDescriptor td = poly.getTextDescriptor();
+			if (td != null)
+			{
+				int rotation = td.getRotation().getIndex();
+				if (rotation != 0)
+				{
+					int angle = style.getTextAngle();
+					style = Poly.Type.getTextTypeFromAngle((angle+900*rotation) % 3600);
+				}
+			}
             if (style == Poly.Type.TEXTBOX && (eObj instanceof Geometric))
             {
                 bounds = ((Geometric)eObj).getBounds();

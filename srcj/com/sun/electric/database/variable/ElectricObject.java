@@ -297,7 +297,6 @@ public abstract class ElectricObject // extends Observable implements Observer
 			} else if (this instanceof Cell)
 			{
 				Cell cell = (Cell)this;
-//				Rectangle2D bounds = cell.getBounds();
 				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
 				if (polys.length > 0) poly = polys[0];
 			}
@@ -439,7 +438,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		double offX = var.getXOff();
 		double offY = var.getYOff();
 		int varLength = var.getLength();
-		double height = 0;
+		double lineOffX = 0, lineOffY = 0;
 		Poly.Type style = var.getPos().getPolyType();
 		TextDescriptor td = var.getTextDescriptor();
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
@@ -450,22 +449,25 @@ public abstract class ElectricObject // extends Observable implements Observer
 //			td = mtd;
 		}
 		boolean headerString = false;
-//		Font font = null;
 		double fontHeight = 1;
 		double scale = 1;
 		if (wnd != null)
 		{
 			fontHeight = wnd.getFontHeight(td);
-//			font = wnd.getFont(td);
 			scale = wnd.getScale();
 		}
+		fontHeight *= User.getGlobalTextScale();
 		if (varLength > 1)
 		{
 			// compute text height
-			height = fontHeight / scale;
-//			if (font == null) height = 1 / scale; else
-//				height = font.getSize2D() / scale;
-			scale *= User.getGlobalTextScale();
+			double lineDist = fontHeight / scale;
+			switch (td.getRotation().getIndex())
+			{
+				case 0: lineOffY = lineDist;    break;		// 0 degrees rotation
+				case 1: lineOffX = -lineDist;   break;		// 90 degrees rotation
+				case 2: lineOffY = -lineDist;   break;		// 180 degrees rotation
+				case 3: lineOffX = lineDist;    break;		// 270 degrees rotation
+			}
 			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
 				headerString = true;
@@ -475,29 +477,39 @@ public abstract class ElectricObject // extends Observable implements Observer
 			{
 				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
 					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY += height * (varLength-1) / 2;
+				{
+					cX += lineOffX * (varLength-1) / 2;
+					cY += lineOffY * (varLength-1) / 2;
+				}
 				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
-					cY += height * (varLength-1);
-//				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-//					cY -= height*2;
+				{
+					cX += lineOffX * (varLength-1);
+					cY += lineOffY * (varLength-1);
+				}
 			} else
 			{
 				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
 					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY -= height * (varLength-1) / 2;
+				{
+					cX -= lineOffX * (varLength-1) / 2;
+					cY -= lineOffY * (varLength-1) / 2;
+				}
 				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-					cY -= height * (varLength-1);
+				{
+					cX -= lineOffX * (varLength-1);
+					cY -= lineOffY * (varLength-1);
+				}
 				varLength = 1;
 				headerString = false;
 			}
 		}
 
+		VarContext context = null;
+		if (wnd != null) context = wnd.getVarContext();
 		Poly [] polys = new Poly[varLength];
 		for(int i=0; i<varLength; i++)
 		{
 			String message = null;
-			VarContext context = null;
-			if (wnd != null) context = wnd.getVarContext();
 			TextDescriptor entryTD = td;
 			if (varLength > 1 && headerString)
 			{
@@ -525,29 +537,17 @@ public abstract class ElectricObject // extends Observable implements Observer
 				pointList = Poly.makePoints(bounds);
 			} else
 			{
-//				if (font == null)
-//				{
-//					// text too small: make it "greek"
-//					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / scale;
-//					pointList = new Point2D.Double[2];
-//					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
-//					pointList[1] = new Point2D.Double(cX+offX+fakeWidth/2, cY+offY);
-//				} else
-				{
-					pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-				}
+				pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			}
 			polys[i] = new Poly(pointList);
-//			if (font == null) polys[i].setStyle(Poly.Type.OPENED); else
-			{
-				polys[i].setString(message);
-				polys[i].setStyle(style);
-				polys[i].setTextDescriptor(entryTD);
-			}
+			polys[i].setString(message);
+			polys[i].setStyle(style);
+			polys[i].setTextDescriptor(entryTD);
 			polys[i].setVariable(var);
 			polys[i].setLayer(null);
-			cY -= height;
+			cX -= lineOffX;
+			cY -= lineOffY;
 		}
 		return polys;
 	}

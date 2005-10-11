@@ -1980,7 +1980,7 @@ public class Manipulate
 			int [] raster = desc.getPattern();
 			Integer [] pattern = new Integer[17];
 			for(int i=0; i<16; i++) pattern[i] = new Integer(raster[i]);
-			pattern[16] = desc.getOutlined().getIndex();
+			pattern[16] = new Integer(desc.getOutlined().getIndex());
 			ni.newVar(Artwork.ART_PATTERN, pattern);
 		} else
 		{

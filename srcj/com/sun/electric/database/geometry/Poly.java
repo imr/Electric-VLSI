@@ -288,7 +288,7 @@ public class Poly extends PolyBase {
 		{
 			case 1:		// rotate 90 counterclockwise
 				double saveWidth = width;
-				width = height;
+				width = -height;
 				height = saveWidth;
 				break;
 			case 2:		// rotate 180
@@ -297,7 +297,7 @@ public class Poly extends PolyBase {
 				break;
 			case 3:		// rotate 90 clockwise
 				double saveHeight = height;
-				height = width;
+				height = -width;
 				width = saveHeight;
 				break;
 		}
@@ -364,7 +364,7 @@ public class Poly extends PolyBase {
 			switch (rotation)
 			{
 				case 1:
-					offX = offY;
+					offX = -offY;
 					offY = saveOffX;
 					break;
 				case 2:
@@ -373,7 +373,7 @@ public class Poly extends PolyBase {
 					break;
 				case 3:
 					offX = offY;
-					offY = saveOffX;
+					offY = -saveOffX;
 					break;
 			}
 		}
