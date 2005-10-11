@@ -364,10 +364,15 @@ public class EGraphics extends Observable
 		printPatterned = usePatternPrinterPref.getBoolean();
 		usePatternPrinterMap.put(layer, usePatternPrinterPref);
 
-		Pref outlinePatternDisplayPref = Pref.makeIntPref("OutlinePatternFor" + layer.getName() + "In" + tech.getTechName(),
-			Technology.getTechnologyPreferences(), patternOutline.index);
-		patternOutline = Outline.findOutline(outlinePatternDisplayPref.getInt());
-		outlinePatternMap.put(layer, outlinePatternDisplayPref);
+		// read any previous outline information and apply it
+		Pref oldOutlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), false);
+		if (oldOutlinePatternDisplayPref.getBoolean()) patternOutline = Outline.PAT_S;
+
+		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layer.getName() + "In" + tech.getTechName(),
+				Technology.getTechnologyPreferences(), patternOutline.index);
+		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
+		outlinePatternMap.put(layer, outlinePatternPref);
 
 		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layer.getName() + "In" + tech.getTechName(),
 			Technology.getTechnologyPreferences(), transparentLayer);
@@ -410,8 +415,8 @@ public class EGraphics extends Observable
 		Pref usePatternPrinterPref = (Pref)usePatternPrinterMap.get(layer);
 		printPatterned = usePatternPrinterPref.getBoolean();
 
-		Pref outlinePatternDisplayPref = (Pref)outlinePatternMap.get(layer);
-		patternOutline = Outline.findOutline(outlinePatternDisplayPref.getInt());
+		Pref outlinePatternPref = (Pref)outlinePatternMap.get(layer);
+		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
 
 		Pref transparentLayerPref = (Pref)transparentLayerMap.get(layer);
 		transparentLayer = transparentLayerPref.getInt();
