@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -555,18 +556,23 @@ public class PadGenerator
         angle = 0;
 
         // first, try to create cell
-        if (view == null)
+		CellName n = CellName.parseName(name);
+		if (n != null && n.getView() == null)
 		{
-			name = name + "{lay}";
-		} else
-		{
-            if (view == View.ICON) {
-                // create a schematic, place icons of pads in it
-                name = name + "{sch}";
-            } else {
-                name = name + "{" + view.getAbbreviation() + "}";
-            }
-        }
+			// no view in cell name, append appropriately
+	        if (view == null)
+			{
+				name = name + "{lay}";
+			} else
+			{
+	            if (view == View.ICON) {
+	                // create a schematic, place icons of pads in it
+	                name = name + "{sch}";
+	            } else {
+	                name = name + "{" + view.getAbbreviation() + "}";
+	            }
+	        }
+		}
 
         Cell framecell = Cell.makeInstance(Library.getCurrent(), name);
         if (framecell == null) {
