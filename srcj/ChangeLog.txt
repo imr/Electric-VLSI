@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/10/05, DN) Alignment of text in cross-library copy (Bug #632).
+FIX: In CrossLibCopy.showCells use "CellName.compareTo" instead of STRING_NUMBER_COMPARE. 
+
 BUG: (10/10/05, GVG) Correcting poly pin centers. They should be a point, not a rectangle.
 FIX: Changing offset in primitive.
 
