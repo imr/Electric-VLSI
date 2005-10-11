@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/10/05, GVG) Correcting poly pin centers. They should be a point, not a rectangle.
+
 BUG: (10/10/05, GVG) Find doesn't work with simple regular expressions (bug #636).
 FIX: SelectObject dialog now uses Pattern/Match classes for the regular expression because
 String.matches doesn't seem to work.

@@ -3100,6 +3100,9 @@ public class MoCMOS extends Technology
             // Channel length 1.8
             poly1_arc.setDefaultWidth(1.8);
             poly1Pin_node.setDefSize(1.8, 1.8);
+            PrimitivePort polyPort = (PrimitivePort)poly1Pin_node.getPort(0);
+            polyPort.getLeft().setAdder(0.9); polyPort.getBottom().setAdder(0.9);
+            polyPort.getRight().setAdder(-0.9); polyPort.getTop().setAdder(-0.9);
             // Metal 6 arc width 4.4
             metalArcs[5].setDefaultWidth(5);
         }
