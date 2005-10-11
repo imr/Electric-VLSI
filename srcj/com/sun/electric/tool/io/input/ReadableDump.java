@@ -352,7 +352,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ markCellForNodes, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> markCellForNodes, String scaledCellName, double scale)
 	{
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
@@ -618,7 +618,7 @@ public class ReadableDump extends LibraryFiles
 				System.out.println("Cell " + cell.describe(true) + ", " + ap + " tail at (" +
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
-            ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, ail.arcNameDescriptor[j],
+            ArcInst ai = ArcInst.newInstance(cell, ap, name, ail.arcNameDescriptor[j],
                     headPortInst, tailPortInst, headPt, tailPt, width,
                     ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;

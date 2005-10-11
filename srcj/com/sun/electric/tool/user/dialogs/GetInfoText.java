@@ -148,13 +148,14 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 							NodeInst ni1 = (NodeInst)geom;
 							description = "Name of " + ni1.getProto();
 							varKey = NodeInst.NODE_NAME;
+                            initialText = ni1.getName();
 						} else
 						{
 							ArcInst ai = (ArcInst)geom;
 							description = "Name of " + ai.getProto();
 							varKey = ArcInst.ARC_NAME;
+                            initialText = ai.getName();
 						}
-						initialText = geom.getName();
 					}
 				} else if (owner instanceof NodeInst)
 				{
@@ -633,13 +634,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 					cti.shownText.setVar(newVar);
             } else
             {
-                if (cti.shownText.getName() != null)
-                {
-                    if (cti.owner != null)
-                    {
-                        // change name of NodeInst or ArcInst
-                        ((Geometric)cti.owner).setName(newText[0]);
-                    }
+                if (cti.owner instanceof NodeInst) {
+                    if (cti.shownText.getName() != null)
+                        ((NodeInst)cti.owner).setName(newText[0]);
+                } else if (cti.owner instanceof ArcInst) {
+                    if (cti.shownText.getName() != null)
+                        ((ArcInst)cti.owner).setName(newText[0]);
                 } else if (cti.owner instanceof Export)
                 {
                 	Export pp = (Export)cti.owner;

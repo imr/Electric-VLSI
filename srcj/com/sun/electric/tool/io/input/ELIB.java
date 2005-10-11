@@ -129,7 +129,7 @@ public class ELIB extends LibraryFiles
 	/** X center each cell of the library */								private int [] cellXOff;
 	/** Y center each cell of the library */								private int [] cellYOff;
 	/** true if this x-lib cell ref is satisfied */							private boolean [] xLibRefSatisfied;
-	/** mapping view indices to views */									private HashMap viewMapping;
+	/** mapping view indices to views */									private HashMap<Integer,View> viewMapping;
 
 	// the NodeInsts in the library
 	/** the number of NodeInsts in the library */							private int nodeCount;
@@ -266,7 +266,7 @@ public class ELIB extends LibraryFiles
 		rotationMirrorBits = version.compareTo(Version.parseVersion("7.01")) >= 0;
 
 		// get the newly created views (version 9 and later)
-		viewMapping = new HashMap();
+		viewMapping = new HashMap<Integer,View>();
 		viewMapping.put(new Integer(-1), View.UNKNOWN);
 		viewMapping.put(new Integer(-2), View.LAYOUT);
 		viewMapping.put(new Integer(-3), View.SCHEMATIC);
@@ -774,7 +774,7 @@ public class ELIB extends LibraryFiles
 
 		// read the cells
 		exportIndex = 0;
-		HashMap nextInCellGroup = new HashMap();
+		HashMap<Cell,Cell> nextInCellGroup = new HashMap<Cell,Cell>();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
@@ -788,7 +788,7 @@ public class ELIB extends LibraryFiles
 
 		// collect the cells by common protoName and by "nextInCellGroup" relation
 		TransitiveRelation transitive = new TransitiveRelation();
-		HashMap/*<String,String>*/ protoNames = new HashMap();
+		HashMap<String,String> protoNames = new HashMap<String,String>();
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
@@ -944,7 +944,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
@@ -1392,7 +1392,7 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-            ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, arcNameDescriptorList[i], headPortInst, tailPortInst,
+            ArcInst ai = ArcInst.newInstance(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
                     new EPoint(headX, headY), new EPoint(tailX, tailY), width,
                     ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;
@@ -1412,7 +1412,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to build a NodeInst.
 	 */
-    private Cell scaleCell(int i, double lambda, Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag) {
+    private Cell scaleCell(int i, double lambda, Cell cell, HashSet<Cell> recursiveSetupFlag) {
         Cell subCell = (Cell)nodeInstList.protoType[i];
         Rectangle2D bounds = subCell.getBounds();
         double width = (nodeInstList.highX[i] - nodeInstList.lowX[i]) / lambda;
@@ -1596,7 +1596,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to read a cell.  returns true upon error
 	 */
-	private boolean readNodeProto(Cell cell, int cellIndex, HashMap nextInCellGroup)
+	private boolean readNodeProto(Cell cell, int cellIndex, HashMap<Cell,Cell> nextInCellGroup)
 		throws IOException
 	{
 		// read the cell name

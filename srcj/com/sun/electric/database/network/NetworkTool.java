@@ -425,12 +425,14 @@ public class NetworkTool extends Listener
 
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
+		if (ni.getNameKey() != oD.name)	getNetCell(ni.getParent()).setNetworksDirty();
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
 	}
 
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
+		if (ai.getNameKey() != oD.name)	getNetCell(ai.getParent()).setNetworksDirty();
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
 	}

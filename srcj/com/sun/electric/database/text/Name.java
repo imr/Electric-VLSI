@@ -33,13 +33,13 @@ import java.util.Map;
 /**
  * A Name is a text-parsing object for port, node and arc names.
  * These names can use bus notation:<BR>
- * <CENTER>name = itemname { ',' itemname }</CENTER>
+ * <CENTER>name = username | temname</CENTER>
+ * <CENTER>username = itemname { ',' itemname }</CENTER>
  * <CENTER>itemname = simplename { '[' index ']' }</CENTER>
  * <CENTER>index = indexitem { ',' indexitem ']' }</CENTER>
- * <CENTER>indexitem = simplename | number ':' number</CENTER><BR>
- * <CENTER>simplename = basename [ numericalSuffix ]</CENTER><BR>
- * <CENTER>basename = string</CENTER><BR>
- * <CENTER>numericalSuffix = number</CENTER><BR>
+ * <CENTER>indexitem = simplename | number [':' number]</CENTER><BR>
+ * <CENTER>tempname = simplename '@' number </CENTER><BR>
+ * <CENTER>simplename = string</CENTER><BR>
  * string doesn't contain '[', ']', ',', ':'.
  * Bus names are expanded into a list of subnames.
  */
@@ -193,15 +193,15 @@ public class Name implements Comparable<Name>
 	public final int busWidth() { return subnames == null ? 1 : subnames.length; }
 
 	/**
-	 * Returns basename of simple Name.
-	 * Returns null if not simple Name.
+	 * Returns basename of temporary Name.
+	 * Returns null if not temporary Name.
 	 * @return base of name.
 	 */
 	public final Name getBasename() { return basename; }
 
 	/**
-	 * Returns numerical suffix of simple Name.
-	 * Returns zero if numerical suffix is absent or name is not simple.
+	 * Returns numerical suffix of temporary Name.
+	 * Returns -1 if not temporary name.
 	 * @return numerical suffix.
 	 */
 	public final int getNumSuffix() { return numSuffix; }
@@ -215,7 +215,8 @@ public class Name implements Comparable<Name>
 	public final Name findSuffixed(int i)
 	{
 		if (i < 0 || basename == null) return null;
-		return findName(basename.toString()+i);
+        String basenameString = basename.ns.substring(0, basename.ns.length() - 1);
+		return findName(basenameString + i);
 	}
 
 	// ------------------ protected and private methods -----------------------
@@ -269,39 +270,14 @@ public class Name implements Comparable<Name>
 		return buf.toString();
 	}
 
-//	/**
-//	 * Returns the trimmed string for given string.
-//	 * @param ns given string
-//	 * @return trimmed string.
-//	 */
-//	private static String trimPlusMinus(String ns)
-//	{
-//		int len = ns.length();
-//		int newLen = 0;
-//		for (int i = 0; i < len; i++)
-//		{
-//			char ch = ns.charAt(i);
-//			if (ch != '+' && ch != '-') newLen++;
-//		}
-//		if (newLen == len) return ns;
-//
-//		StringBuffer buf = new StringBuffer(newLen);
-//		for (int i = 0; i < len; i++)
-//		{
-//			char ch = ns.charAt(i);
-//			if (ch != '+' && ch != '-') buf.append(ns.charAt(i));
-//		}
-//		return buf.toString();
-//	}
-
 	/**
 	 * Constructs a <CODE>Name</CODE> (cannot be called).
 	 */
 	private Name(String ns)
 	{
 		this.ns = ns;
-        int suffix = 0;
-        Name base = this;
+        int suffix = -1;
+        Name base = null;
 		String canonic = TextUtils.canonicString(ns);
 		this.canonic = (ns.equals(canonic) ? this : findTrimmedName(canonic));
 		try
@@ -311,16 +287,17 @@ public class Name implements Comparable<Name>
 		{
 			flags = ERROR;
 		}
-		if ((flags & SIMPLE) != 0)
+		if ((flags & ERROR) == 0 && (flags & TEMP) != 0)
 		{
 			int l = ns.length();
 			while (l > 0 && TextUtils.isDigit(ns.charAt(l-1))) l--;
-			if (l == ns.length())
+			if (l == ns.length()-1 && ns.charAt(ns.length() - 1) == '0')
 			{
                 base = this;
+                suffix = 0;
 			} else {
-				base = findTrimmedName(ns.substring(0,l));
-				suffix = TextUtils.atoi(ns.substring(l));
+				base = findTrimmedName(ns.substring(0,l)+'0');
+				suffix = Integer.parseInt(ns.substring(l));
 			}
 		}
         this.numSuffix = suffix;
@@ -483,7 +460,19 @@ public class Name implements Comparable<Name>
 					if (i == 0 || ns.charAt(i-1) == ',') flags |= HAS_EMPTIES;
 					wasBrackets = false;
 				} else if (wasBrackets) throw new NumberFormatException("Wrong character after brackets");
-				if (c == '@') flags |= TEMP;
+				if (c == '@') {
+                    for (int j = i + 1; j < ns.length(); j++) {
+                        char cj = ns.charAt(j);
+                        if (cj < '0' || cj > '9')
+                            throw new NumberFormatException("Wrong number suffix in temporary name");
+                    }
+                    if (i == ns.length() - 1 || ns.charAt(i + 1) == '0' && i != ns.length() - 2)
+                        throw new NumberFormatException("Wrong temporary name");
+                    if ((flags & SIMPLE) == 0) throw new NumberFormatException("list of temporary names");
+                    Integer.parseInt(ns.substring(i + 1)); // throws exception on bad number
+                    assert flags == SIMPLE;
+                    return SIMPLE|TEMP;
+                }
 				continue;
 			}
 			if (c == '[') throw new NumberFormatException("nested bracket '[' in name");
@@ -521,7 +510,6 @@ public class Name implements Comparable<Name>
 			}
 			if (c == '@') throw new NumberFormatException("'@' in brackets");
 		}
-		if ((flags & TEMP) != 0 && (flags & LIST) != 0) throw new NumberFormatException("list of temporary names");
 		if (bracket != -1) throw new NumberFormatException("Unclosed bracket");
 		return flags;
 	}

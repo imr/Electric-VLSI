@@ -739,7 +739,7 @@ public class ELIB extends Output
 		}
 		writeBigInteger(nameSpace.size());
 		short keyIndex = 0;
-		for(Iterator it = nameSpace.keySet().iterator(); it.hasNext(); )
+		for(Iterator<String> it = nameSpace.keySet().iterator(); it.hasNext(); )
 			writeString((String)it.next());
 	}
 

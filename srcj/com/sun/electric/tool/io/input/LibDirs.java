@@ -54,8 +54,8 @@ import java.util.*;
 public class LibDirs {
 
     /** Default LibDirs file name */                        private static String libDirsFile = "LIBDIRS";
-    /** List of library directories from LibDirs file*/     private static ArrayList dirs = new ArrayList();
-    /** List of libDirsFiles read (prevent recursion) */    private static ArrayList libDirsFiles = new ArrayList();
+    /** List of library directories from LibDirs file*/     private static ArrayList<String> dirs = new ArrayList<String>();
+    /** List of libDirsFiles read (prevent recursion) */    private static ArrayList<String> libDirsFiles = new ArrayList<String>();
 
     /** Creates a new instance of LibDirs */
     LibDirs() {
@@ -64,8 +64,8 @@ public class LibDirs {
     /** return list of Lib Dirs 
      * @return ArrayList of lib dirs
      */
-    public static synchronized Iterator getLibDirs() {
-        ArrayList list = new ArrayList(dirs);
+    public static synchronized Iterator<String> getLibDirs() {
+        ArrayList<String> list = new ArrayList<String>(dirs);
         return list.iterator();
     }
 
@@ -162,11 +162,11 @@ public class LibDirs {
     public static class LibDirFileSystemView extends FileSystemView {
 
         private final FileSystemView osView;        // at run time java determines an OS-specific view
-        private final HashMap libFiles;             // key: absolute path; value: File
+        private final HashMap<String,File> libFiles;             // key: absolute path; value: File
 
         public LibDirFileSystemView(FileSystemView osView) {
             this.osView = osView;
-            libFiles = new HashMap();
+            libFiles = new HashMap<String,File>();
         }
 
         public File createFileObject(File dir, String filename) { return osView.createFileObject(dir, filename); }
@@ -188,10 +188,10 @@ public class LibDirs {
                 return usual;
             }
             // amalgamate all of the files
-            ArrayList alllibfiles = new ArrayList();
+            ArrayList<File> alllibfiles = new ArrayList<File>();
             if (usual.length != 0) alllibfiles.addAll(Arrays.asList(usual));
 
-            for (Iterator it = LibDirs.getLibDirs(); it.hasNext(); ) {
+            for (Iterator<String> it = LibDirs.getLibDirs(); it.hasNext(); ) {
                 String str = (String)it.next();
                 File libdir = new File(str);
                 if (!libdir.exists()) continue;

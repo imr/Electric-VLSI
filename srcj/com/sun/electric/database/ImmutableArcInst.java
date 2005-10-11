@@ -187,13 +187,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      public static final Flag HARD_SELECT = new Flag(HARDSELECTA);
 
     /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
-    /** bits used in database */                            public static final int DATABASE_FLAGS = COMMON_BITS | /*AANGLE |*/ BODYARROW |
+    /** bits used in database */                            private static final int DATABASE_FLAGS = COMMON_BITS | /*AANGLE |*/ BODYARROW |
             ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
+
+	/** prefix for autonameing. */                          public static final Name BASENAME = Name.findName("net@0");
 
     /** id of this ArcInst in parent. */                            public final int arcId;
 	/** Arc prototype. */                                           public final ArcProto protoType;
 	/** name of this ImmutableArcInst. */							public final Name name;
-    /** duplicate index of this ImmutableArcInst in the Cell */     public final int duplicate;
 	/** The text descriptor of name of ImmutableArcInst. */         public final TextDescriptor nameDescriptor;
     
 	/** NodeId on tail end of this ImmutableArcInst. */             public final int tailNodeId;
@@ -214,7 +215,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param arcId id of this ArcInst in parent.
      * @param protoType arc prototype.
      * @param name name of this ImmutableArcInst.
-     * @param duplicate duplicate index of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
      * @param tailPortProtoId PortProtoId on tail end of this ImmutableArcInst.
@@ -228,8 +228,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param flags flag bits of this ImmutableArcInst.
      * @param vars array of Variables of this ImmutableArcInst
      */
-    ImmutableArcInst(int arcId, ArcProto protoType,
-            Name name, int duplicate, TextDescriptor nameDescriptor,
+     ImmutableArcInst(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             double width, double length, short angle, int flags, Variable[] vars) {
@@ -237,7 +236,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.arcId = arcId;
         this.protoType = protoType;
         this.name = name;
-        this.duplicate = duplicate;
         this.nameDescriptor = nameDescriptor;
         this.tailNodeId = tailNodeId;
         this.tailPortId = tailPortId;
@@ -257,7 +255,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param arcId id of this ArcInst in parent.
      * @param protoType arc prototype.
      * @param name name of this ImmutableArcInst.
-     * @param duplicate duplicate index of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
      * @param tailPortProtoId PortProtoId on tail end of this ImmutableArcInst.
@@ -270,17 +267,15 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param userBits flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
      * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
-     * @throws IllegalArgumentException if name is not valid duplicate, or width is bad.
+     * @throws IllegalArgumentException if name is not valid, or width is bad.
      */
-    public static ImmutableArcInst newInstance(int arcId, ArcProto protoType,
-            Name name, int duplicate, TextDescriptor nameDescriptor,
+    public static ImmutableArcInst newInstance(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             double width, int angle, int flags) {
 		if (protoType == null) throw new NullPointerException("protoType");
 		if (name == null) throw new NullPointerException("name");
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
-        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (!(width >= 0)) throw new IllegalArgumentException("width");
@@ -293,7 +288,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
-		return new ImmutableArcInst(arcId, protoType, name, duplicate, nameDescriptor,
+		return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
                 width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, Variable.NULL_ARRAY);
@@ -302,17 +297,15 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/**
 	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by name and duplicate.
 	 * @param name node name key.
-     * @param duplicate duplicate of the name
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name and duplicate.
 	 * @throws NullPointerException if name is null
-     * @throws IllegalArgumentException if name is not valid or duplicate is negative.
+     * @throws IllegalArgumentException if name is not valid.
 	 */
-	public ImmutableArcInst withName(Name name, int duplicate) {
-		if (this.name.equals(name) && this.duplicate == duplicate) return this;
+	public ImmutableArcInst withName(Name name) {
+		if (this.name.equals(name)) return this;
 		if (name == null) throw new NullPointerException("name");
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
-        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-		return new ImmutableArcInst(this.arcId, this.protoType, name, duplicate, this.nameDescriptor,
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
+		return new ImmutableArcInst(this.arcId, this.protoType, name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, getVars());
@@ -327,7 +320,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, getVars());
@@ -344,7 +337,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (this.tailLocation.equals(tailLocation) && this.headLocation.equals(headLocation)) return this;
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
                 this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags, getVars());
@@ -361,7 +354,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         width = DBMath.round(width);
         if (width == -0.0) width = +0.0;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 width, this.length, this.angle, this.flags, getVars());
@@ -378,7 +371,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         angle %= 3600;
         if (angle < 0) angle += 3600;
 		if (this.angle == angle) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, (short)angle, this.flags, getVars());
@@ -392,7 +385,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public ImmutableArcInst withFlags(int flags) {
         flags &= DATABASE_FLAGS;
 		if (this.flags == flags) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, flags, getVars());
@@ -419,7 +412,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, vars);
@@ -435,7 +428,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, vars);
@@ -462,8 +455,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		assert protoType != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
-        assert !(name.isTempname() && name.isBus());
-        assert duplicate >= 0;
+        if (name.isTempname())
+            assert name.getBasename() == BASENAME && !name.isBus();
         if (nameDescriptor != null)
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert tailPortId != null;

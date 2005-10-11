@@ -789,7 +789,7 @@ public class Pref
 	 * @param ownerObj owner object, or null
 	 * @return a list of "meaning" option
 	 */
-	public static List getMeaningVariables(Object ownerObj)
+	public static List<Pref> getMeaningVariables(Object ownerObj)
 	{
 		ArrayList<Pref> prefs = new ArrayList<Pref>();
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )

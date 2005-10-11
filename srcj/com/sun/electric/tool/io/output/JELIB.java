@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -52,6 +53,7 @@ import com.sun.electric.tool.Tool;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,6 +64,8 @@ import java.util.List;
  */
 public class JELIB extends Output
 {
+    private HashMap<Cell,String> cellNames = new HashMap<Cell,String>();
+    
 	JELIB()
 	{
 	}
@@ -101,7 +105,7 @@ public class JELIB extends Output
 
 		// write view information
 		boolean viewHeaderPrinted = false;
-		for(Iterator/*<View>*/ it = View.getViews(); it.hasNext(); )
+		for(Iterator<View> it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
 			if (!objInfo.containsKey(view)) continue;
@@ -116,7 +120,7 @@ public class JELIB extends Output
 
 		// write external library information
 		boolean libraryHeaderPrinted = false;
-		for (Iterator/*<Library>*/ it = Library.getLibraries(); it.hasNext(); )
+		for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library eLib = (Library)it.next();
 			if (eLib == lib || !objInfo.containsKey(eLib)) continue;
@@ -136,7 +140,7 @@ public class JELIB extends Output
 			}
 			printWriter.println();
 			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
-			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = eLib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				if (!objInfo.containsKey(cell)) continue;
@@ -148,8 +152,8 @@ public class JELIB extends Output
 					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
 					"|" + cell.getCreationDate().getTime() +
 					"|" + cell.getRevisionDate().getTime());
-				objInfo.put(cell, getFullCellName(cell));
-				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
+                cellNames.put(cell, getFullCellName(cell));
+				for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
 				{
 					Export export = (Export)eIt.next();
 					//if (!externalObjs.contains(export)) continue;
@@ -164,7 +168,7 @@ public class JELIB extends Output
 
 		// write tool information
 		boolean toolHeaderPrinted = false;
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (Pref.getMeaningVariables(tool).size() == 0) continue;
@@ -180,7 +184,7 @@ public class JELIB extends Output
 
 		// write technology information
 		boolean technologyHeaderPrinted = false;
-		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech))	continue;
@@ -193,20 +197,20 @@ public class JELIB extends Output
 			printWriter.print("T" + convertString(tech.getTechName()));
 			printlnMeaningPrefs(tech);
 
-// 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+// 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
 // 				PrimitiveNode pn = (PrimitiveNode)nIt.next();
 // 				if (!externalObjs.contains(pn)) continue;
 
 // 				printWriter.println("D" + convertString(pn.getName()));
-// 				for(Iterator pIt = pn.getPorts(); pIt.hasNext(); )
+// 				for(Iterator<PrimitivePort> pIt = pn.getPorts(); pIt.hasNext(); )
 // 				{
 // 					PrimitivePort pp = (PrimitivePort)pIt.next();
 // 					if (!externalObjs.contains(pp)) continue;
 // 					printWriter.println("P" + convertString(pp.getName()));
 // 				}
 // 			}
-// 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+// 			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 // 			{
 // 				ArcProto ap = (ArcProto)aIt.next();
 // 				if (!externalObjs.contains(ap)) continue;
@@ -215,17 +219,17 @@ public class JELIB extends Output
 		}
 
 		// gather groups and put cell names into objInfo
-		LinkedHashSet groups = new LinkedHashSet();
-		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
+		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
 			if (!groups.contains(cell.getCellGroup()))
 				groups.add(cell.getCellGroup());
-			objInfo.put(cell, convertString(cell.getCellName().toString()));
+			cellNames.put(cell, convertString(cell.getCellName().toString()));
 		}
 
 		// write the cells of the database
-		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
 
@@ -245,15 +249,18 @@ public class JELIB extends Output
 			printWriter.print("|" + cellBits.toString());
 			printlnVars(cell, cell);
 
+            String[] nodeNames = new String[cell.getNumNodes()];
 			// write the nodes in this cell (sorted by node name)
 			// write the nodes in this cell
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+            Name prevNodeName = null;
+            int duplicate = 0;
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
 				if (np instanceof Cell)
 				{
-					printWriter.print("I" + objInfo.get(np));
+					printWriter.print("I" + cellNames.get(np));
 				} else {
 					PrimitiveNode prim = (PrimitiveNode)np;
 					if (cell.getTechnology() == prim.getTechnology())
@@ -261,8 +268,17 @@ public class JELIB extends Output
 					else
 						printWriter.print("N" + convertString(prim.getFullName()));
 				}
-				String diskNodeName = getGeomName(ni);
-				objInfo.put(ni, diskNodeName);
+                Name nodeName = ni.getNameKey();
+                String diskNodeName;
+                if (nodeName != prevNodeName) {
+                    prevNodeName = nodeName;
+                    duplicate = 0;
+                    diskNodeName = convertString(ni.getName());
+                } else {
+                    duplicate++;
+                    diskNodeName = "\"" + convertQuotedString(ni.getName()) + "\"" + duplicate;
+                }
+                nodeNames[ni.getNodeIndex()] = diskNodeName;
 				printWriter.print("|" + diskNodeName + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
@@ -300,7 +316,7 @@ public class JELIB extends Output
 			}
 
 			// write the arcs in this cell
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
@@ -308,8 +324,8 @@ public class JELIB extends Output
 					printWriter.print("A" + convertString(ap.getName()));
 				else
 					printWriter.print("A" + convertString(ap.getFullName()));
-				printWriter.print("|" + getGeomName(ai) + "|");
-				//printWriter.print("|" + convertString(ai.getName()) + "|");
+				//printWriter.print("|" + getGeomName(ai) + "|");
+				printWriter.print("|" + convertString(ai.getName()) + "|");
 				if (!ai.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME)));
 				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
@@ -331,7 +347,7 @@ public class JELIB extends Output
 //				for(int e=0; e<2; e++)
 				{
 					NodeInst ni = ai.getPortInst(e).getNodeInst();
-					printWriter.print("|" + objInfo.get(ni) + "|");
+					printWriter.print("|" + nodeNames[ni.getNodeIndex()] + "|");
 					PortProto pp = ai.getPortInst(e).getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
@@ -342,7 +358,7 @@ public class JELIB extends Output
 			}
 
 			// write the exports in this cell
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				printWriter.print("E" + convertString(pp.getName()));
@@ -351,7 +367,7 @@ public class JELIB extends Output
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();
 				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + objInfo.get(subNI) + "|");
+				printWriter.print("|" + nodeNames[subNI.getNodeIndex()] + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
 				printWriter.print("|" + pp.getCharacteristic().getShortName());
@@ -368,7 +384,7 @@ public class JELIB extends Output
 		// write groups in alphabetical order
 		printWriter.println();
 		printWriter.println("# Groups:");
-		for(Iterator it = groups.iterator(); it.hasNext(); )
+		for(Iterator<Cell.CellGroup> it = groups.iterator(); it.hasNext(); )
 		{
 			Cell.CellGroup group = (Cell.CellGroup)it.next();
 			printWriter.print("G");
@@ -380,13 +396,13 @@ public class JELIB extends Output
 				printWriter.print(convertString(main.getCellName().toString()));
 			}
 
-			for(Iterator cIt = group.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = group.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				if (cell == main) continue;
 
 				printWriter.print("|");
-				printWriter.print((String)objInfo.get(cell));
+				printWriter.print((String)cellNames.get(cell));
 			}
 			printWriter.println();
 		}
@@ -396,15 +412,6 @@ public class JELIB extends Output
 		lib.setFromDisk();
 		System.out.println(filePath + " written");
 		return false;
-	}
-
-	private String getGeomName(Geometric geom)
-	{
-		int duplicate = geom.getDuplicate();
-		if (duplicate == 0)
-			return convertString(geom.getName());
-		else
-			return "\"" + convertQuotedString(geom.getName()) + "\"" + duplicate;
 	}
 
 	/**
@@ -555,7 +562,7 @@ public class JELIB extends Output
 		if (eObj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)eObj;
-			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				if (pi.getNumVariables() != 0)
@@ -573,7 +580,7 @@ public class JELIB extends Output
 	private void printVars(ElectricObject eObj, Cell curCell)
 	{
 		// write the variables
-		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			Object varObj = var.getObjectInCurrentThread();
@@ -591,8 +598,8 @@ public class JELIB extends Output
 	 */
 	private void printlnMeaningPrefs(Object obj)
 	{
-		List prefs = Pref.getMeaningVariables(obj);
-		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		List<Pref> prefs = Pref.getMeaningVariables(obj);
+		for(Iterator<Pref> it = prefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			Object value = pref.getValue();

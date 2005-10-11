@@ -408,23 +408,7 @@ public class Undo
 			}
 			if (type == Type.OBJECTRENAME)
 			{
-				if (obj instanceof NodeInst)
-				{
-					NodeInst ni = (NodeInst)obj;
-					Name oldName = (Name)o1;
-					int oldDuplicate = i1;
-					o1 = ni.getNameKey();
-					i1 = ni.getDuplicate();
-					ni.lowLevelRename(oldName, oldDuplicate);
-				} else if (obj instanceof ArcInst)
-				{
-					ArcInst ai = (ArcInst)obj;
-					Name oldName = (Name)o1;
-					int oldDuplicate = i1;
-					o1 = ai.getNameKey();
-					i1 = ai.getDuplicate();
-					ai.lowLevelRename(oldName, oldDuplicate);
-				} else if (obj instanceof Cell)
+                 if (obj instanceof Cell)
 				{
 					Cell cell = (Cell)obj;
 					CellName oldName = (CellName)o1;
@@ -727,7 +711,7 @@ public class Undo
 				{
 					nodeInst++;
 				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD ||
-					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof NodeInst)
+					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof ArcInst)
 				{
 					arcInst++;
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
@@ -1221,25 +1205,6 @@ public class Undo
 		Type type = Type.OBJECTRENAME;
 		Change ch = newChange(obj, type, oldName);
 		if (ch == null) return;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().renameObject(obj, oldName);
-	}
-
-	/**
-	 * Method to store the renaming of an Geometric in the change-control system.
-	 * @param obj the Geometric that was renamed.
-	 * @param oldName the former name of the Geometric.
-	 * @param oldDuplicate the former duplicate index of the Geometric.
-	 */
-	public static void renameGeometric(Geometric obj, Object oldName, int oldDuplicate)
-	{
-		if (!recordChange()) return;
-		Type type = Type.OBJECTRENAME;
-		Change ch = newChange(obj, type, oldName);
-		if (ch == null) return;
-		ch.i1 = oldDuplicate;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);

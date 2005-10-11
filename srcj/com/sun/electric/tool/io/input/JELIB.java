@@ -653,7 +653,7 @@ public class JELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		if (scaledCellName != null) return;
 		CellContents cc = (CellContents)allCells.get(cell);
@@ -700,7 +700,6 @@ public class JELIB extends LibraryFiles
 			String protoName = unQuote((String)pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
 			String diskNodeName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
-            int duplicate = 0;
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -709,7 +708,6 @@ public class JELIB extends LibraryFiles
 				{
 					nodeName = nodeName.substring(1, lastQuote);
 					if (revision >= 1) nodeName = unQuote(nodeName);
-                    duplicate = TextUtils.atoi(nodeName, lastQuote + 1);
 				}
 			}
 			String nameTextDescriptorInfo = (String)pieces.get(2);
@@ -895,7 +893,7 @@ public class JELIB extends LibraryFiles
 
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
-			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
+			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, nameTextDescriptor,
                     new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor);
 			if (ni == null)
 			{
@@ -1085,7 +1083,7 @@ public class JELIB extends LibraryFiles
 			String nameTextDescriptorInfo = (String)pieces.get(2);
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
-            ArcInst ai = ArcInst.newInstance(cell, ap, arcName, -1, nameTextDescriptor,
+            ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
                     headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), wid, angle, flags);
 			if (ai == null)
 			{

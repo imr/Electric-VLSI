@@ -82,7 +82,7 @@ public abstract class LibraryFiles extends Input
 	/** lambda value for each cell of the library */						protected double [] cellLambda;
 	/** total number of cells in all read libraries */						protected static int totalCells;
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
-	/** a List of scaled Cells that got created */							protected List scaledCells;
+	/** a List of scaled Cells that got created */							protected List<Cell> scaledCells;
 	/** Number of errors in this LibraryFile */								protected int errorCount;
 	/** the Electric version in the library file. */						protected Version version;
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
@@ -90,9 +90,12 @@ public abstract class LibraryFiles extends Input
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
-    /** buffer for reading Variables. */                                    ArrayList/*<Variable>*/ variablesBuf = new ArrayList/*<Variable>*/();
+    /** buffer for reading Variables. */                                    ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
+	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
+	protected static final boolean VERBOSE = false;
+	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
 
     static class NodeInstList
 	{
@@ -133,11 +136,6 @@ public abstract class LibraryFiles extends Input
             vars = new Variable[nodeCount][];
         }
 	};
-
-	/** collection of libraries and their input objects. */					private static List libsBeingRead;
-	protected static final boolean VERBOSE = false;
-	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
-
 
 	LibraryFiles() {}
 
@@ -283,7 +281,7 @@ public abstract class LibraryFiles extends Input
 
 	public static void initializeLibraryInput()
 	{
-		libsBeingRead = new ArrayList();
+		libsBeingRead = new ArrayList<LibraryFiles>();
 	}
 
 	public boolean readInputLibrary()
@@ -292,12 +290,12 @@ public abstract class LibraryFiles extends Input
         assert(!libsBeingRead.contains(this));
         libsBeingRead.add(this);
 		//libsBeingRead.put(lib, this);
-		scaledCells = new ArrayList();
+		scaledCells = new ArrayList<Cell>();
 
 		return readLib();
 	}
 
-	protected void scanNodesForRecursion(Cell cell, HashSet/*<Cell>*/ markCellForNodes, NodeProto [] nil, int start, int end)
+	protected void scanNodesForRecursion(Cell cell, HashSet<Cell> markCellForNodes, NodeProto [] nil, int start, int end)
 	{
 		// scan the nodes in this cell and recurse
 		for(int j=start; j<end; j++)
@@ -517,10 +515,10 @@ public abstract class LibraryFiles extends Input
 		URL firstURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
         boolean exists = TextUtils.URLExists(firstURL, errmsg);
         if (exists) return firstURL;
-        HashMap searchedURLs = new HashMap();
+        HashMap<String,String> searchedURLs = new HashMap<String,String>();
 
         // try secondary library file locations
-        for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
+        for (Iterator<String> libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
         {
 			URL url = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
             exists = TextUtils.URLExists(url, errmsg);
@@ -567,8 +565,8 @@ public abstract class LibraryFiles extends Input
 		progress.setProgress(0);
 
 		// Compute technology of new cells
-		Set uncomputedCells = new HashSet();
-		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		Set<Cell> uncomputedCells = new HashSet<Cell>();
+		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -579,7 +577,7 @@ public abstract class LibraryFiles extends Input
 				uncomputedCells.add(cell);
 			}
 		}
-		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -593,8 +591,8 @@ public abstract class LibraryFiles extends Input
 
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
-		HashSet/*<Cell>*/ markCellForNodes = new HashSet/*<Cell>*/();
-		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		HashSet<Cell> markCellForNodes = new HashSet<Cell>();
+		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			totalCells += reader.nodeProtoCount;
@@ -615,7 +613,7 @@ public abstract class LibraryFiles extends Input
 		for(int i=0; i<20; i++)
 		{
 			boolean unchanged = true;
-			for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+			for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 			{
 				LibraryFiles reader = (LibraryFiles)it.next();
 				for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -635,7 +633,7 @@ public abstract class LibraryFiles extends Input
 			System.out.println("Finished computing scale factors");
 
 		// recursively create the cell contents
-		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -649,7 +647,7 @@ public abstract class LibraryFiles extends Input
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;
-		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			if (reader.scaledCells != null && reader.scaledCells.size() != 0)
@@ -661,7 +659,7 @@ public abstract class LibraryFiles extends Input
 				}
 				StringBuffer sb = new StringBuffer();
 				sb.append("   Library " + reader.lib.getName() + ":");
-				for(Iterator sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
+				for(Iterator<Cell> sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
 				{
 					Cell cell = (Cell)sIt.next();
 					sb.append(" " + cell.noLibDescribe());
@@ -674,10 +672,10 @@ public abstract class LibraryFiles extends Input
 //		convertOldLibraries();
 
 		// broadcast the library-read to all listeners
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
-			for(Iterator lIt = libsBeingRead.iterator(); lIt.hasNext(); )
+			for(Iterator<LibraryFiles> lIt = libsBeingRead.iterator(); lIt.hasNext(); )
 			{
 				LibraryFiles reader = (LibraryFiles)lIt.next();
 				listener.readLibrary(reader.lib);
@@ -695,7 +693,7 @@ public abstract class LibraryFiles extends Input
 // 	}
 
 	protected LibraryFiles getReaderForLib(Library lib) {
-        for (Iterator it = libsBeingRead.iterator(); it.hasNext(); ) {
+        for (Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); ) {
             LibraryFiles reader = (LibraryFiles)it.next();
             if (reader.lib == lib) return reader;
         }
@@ -844,7 +842,7 @@ public abstract class LibraryFiles extends Input
             
         int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
         int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
-		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
+		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
                 center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
@@ -1059,5 +1057,5 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	abstract void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale);
+	abstract void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale);
 }

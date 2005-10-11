@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -377,8 +378,9 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
 	/** A map from Name to Integer maximal numeric suffix */        private final HashMap<Name,MaxSuffix> maxSuffix = new HashMap<Name,MaxSuffix>();
+    /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
 	/** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
-	/** A map from temporary Name keys to Geometric. */				private final HashMap<Name,Geometric> tempNames = new HashMap<Name,Geometric>();
+	/** A map from temporary Name keys to NodeInst. */				private final HashMap<Name,NodeInst> tempNodeNames = new HashMap<Name,NodeInst>();
 	/** The bounds of the Cell. */									private final Rectangle2D cellBounds = new Rectangle2D.Double();
 	/** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
@@ -904,7 +906,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 
 		// prepare basename for autonaming
 		String protoName = cellName.getName();
-		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
+		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+"@0").getBasename();
 		if (basename == null)
 			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
 	}
@@ -1726,7 +1728,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 */
 	public void addNodeName(NodeInst ni)
 	{
-		int nodeIndex = searchNode(ni.getName(), ni.getDuplicate());
+		int nodeIndex = searchNode(ni.getName(), ni.getD().nodeId);
 		assert nodeIndex < 0;
 		nodeIndex = - nodeIndex - 1;
 		nodes.add(nodeIndex, ni);
@@ -1735,50 +1737,58 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			NodeInst n = (NodeInst)nodes.get(nodeIndex);
 			n.setNodeIndex(nodeIndex);
 		}
-		addTempName(ni);
+        
+        // add temporary name
+		Name name = ni.getNameKey();
+		if (!name.isTempname()) return;
+		tempNodeNames.put(name.canonic(), ni);
+
+		Name basename = name.getBasename();
+		if (basename != null && basename != name)
+		{
+			basename = basename.canonic(); 
+			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+			if (ms == null)
+			{
+				ms = new MaxSuffix();
+				maxSuffix.put(basename, ms);
+			}
+			int numSuffix = name.getNumSuffix();
+			if (numSuffix > ms.v)
+			{
+				ms.v = numSuffix;
+			}
+		}
 	}
 
 	/**
-	 * Method to find duplicate index for name, so that (name,duplicate) pair is unique a Cell.
-	 * @param name the name of NodeInst.
-	 * @param duplicate recommended duplicate index, or -1
-	 * @return unique diplicate index for this node.
+	 * Method check if NodeInst with specified temporary name key exists in a cell.
+	 * @param name specified temorary name key.
 	 */
-	public int fixupNodeDuplicate(Name name, int duplicate)
+	public boolean hasTempNodeName(Name name)
 	{
-        String nameString = name.toString();
-		int nodeIndex = 0;
-		if (duplicate >= 0)
-		{
-			nodeIndex = searchNode(nameString, duplicate);
-			if (nodeIndex >= 0)
-			{
-				duplicate = -1;
-			}
-		}
-		if (duplicate < 0)
-		{
-			nodeIndex = searchNode(nameString, Integer.MAX_VALUE);
-			if (nodeIndex < 0)
-			{
-				duplicate = 0;
-				if (nodeIndex != -1)
-				{
-					NodeInst n = (NodeInst)nodes.get(- nodeIndex - 2);
-					if (n.getName().equals(nameString))
-						duplicate = n.getDuplicate() + 1;
-				}
-			} else
-			{
-				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
-				// Scan all possible duplicates starting from zero.
-				for (duplicate = 0; (nodeIndex = searchNode(nameString, duplicate)) >= 0; duplicate++) ;
-			}
-		}
-		assert nodeIndex < 0;
-		return duplicate;
+		return tempNodeNames.containsKey(name);
 	}
 
+	/**
+	 * Method to return unique autoname for NodeInst in this cell.
+	 * @param basename base name of autoname
+	 * @return autoname
+	 */
+	public Name getNodeAutoname(Name basename)
+	{
+		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
+		if (ms == null)
+		{
+			ms = new MaxSuffix();
+			maxSuffix.put(basename.canonic(), ms);
+			return basename.findSuffixed(0);
+		} else 
+		{
+			ms.v++;
+			return basename.findSuffixed(ms.v);
+		}
+	}
 
 	/**
 	 * Method to remove an NodeInst from the cell.
@@ -1818,14 +1828,17 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			n.setNodeIndex(i);
 		}
 		ni.setNodeIndex(-1);
-		removeTempName(ni);
+        
+        // remove temporary name
+		if (!ni.isUsernamed())
+            tempNodeNames.remove(ni.getNameKey().canonic());
 	}
 
     /**
-     * Searches the nodes for the specified (name,duplicate) pair using the binary
+     * Searches the nodes for the specified (name,nodeId) pair using the binary
      * search algorithm.
      * @param name the name to be searched.
-	 * @param duplicate the duplicate index to be searched.
+	 * @param nodeId the nodeId index to be searched.
      * @return index of the search name, if it is contained in the nodes;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
@@ -1835,7 +1848,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the NodeInst is found.
      */
-	private int searchNode(String name, int duplicate)
+	private int searchNode(String name, int nodeId)
 	{
         int low = 0;
         int high = nodes.size()-1;
@@ -1843,7 +1856,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		while (low <= high) {
 			NodeInst ni = (NodeInst)nodes.get(pick);
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), name);
-			if (cmp == 0) cmp = ni.getDuplicate() - duplicate;
+			if (cmp == 0) cmp = ni.getD().nodeId - nodeId;
 
 			if (cmp < 0)
 				low = pick + 1;
@@ -1938,7 +1951,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 */
 	public void addArc(ArcInst ai)
 	{
-		int arcIndex = searchArc(ai.getName(), ai.getDuplicate());
+		int arcIndex = searchArc(ai.getName(), ai.getD().arcId);
 		assert arcIndex < 0;
 		arcIndex = - arcIndex - 1;
 		arcs.add(arcIndex, ai);
@@ -1947,48 +1960,36 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			ArcInst a = (ArcInst)arcs.get(arcIndex);
 			a.setArcIndex(arcIndex);
 		}
-		addTempName(ai);
+        
+        // update maximal arc name suffux temporary name
+		if (ai.isUsernamed()) return;
+		Name name = ai.getNameKey();
+        assert name.getBasename() == ImmutableArcInst.BASENAME;
+        maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
 	}
 
 	/**
-	 * Method to find duplicate index for name, so that (name,duplicate) pair is unique a Cell.
-	 * @param name the name of NodeInst.
-	 * @param duplicate recommended duplicate index, or -1
-	 * @return unique diplicate index for this node.
+	 * Method to return unique autoname for ArcInst in this cell.
+	 * @param basename base name of autoname
+	 * @return autoname
 	 */
-	public int fixupArcDuplicate(Name name, int duplicate)
+	public Name getArcAutoname()
 	{
-        String nameString = name.toString();
-		int arcIndex = 0;
-		if (duplicate >= 0)
-		{
-			arcIndex = searchArc(nameString, duplicate);
-			if (arcIndex >= 0)
-			{
-				duplicate = -1;
-			}
-		}
-		if (duplicate < 0)
-		{
-			arcIndex = searchArc(nameString, Integer.MAX_VALUE);
-			if (arcIndex < 0)
-			{
-				duplicate = 0;
-				if (arcIndex != -1)
-				{
-					ArcInst ai = (ArcInst)arcs.get(- arcIndex - 2);
-					if (ai.getName().equals(nameString))
-						duplicate = ai.getDuplicate() + 1;
-				}
-			} else
-			{
-				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
-				// Scan all possible duplicates starting from zero.
-				for (duplicate = 0; (arcIndex = searchArc(nameString, duplicate)) >= 0; duplicate++) ;
-			}
-		}
-		assert arcIndex < 0;
-		return duplicate;
+        if (maxArcSuffix < Integer.MAX_VALUE)
+            return ImmutableArcInst.BASENAME.findSuffixed(++maxArcSuffix);
+        for (int i = 0;; i++) {
+            Name name = ImmutableArcInst.BASENAME.findSuffixed(i);
+            if (!hasTempArcName(name)) return name;
+        }
+	}
+
+	/**
+	 * Method check if ArcInst with specified temporary name key exists in a cell.
+	 * @param name specified temorary name key.
+	 */
+	public boolean hasTempArcName(Name name)
+	{
+		return name.isTempname() && findArc(name.toString()) != null;
 	}
 
 	/**
@@ -2008,14 +2009,13 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			a.setArcIndex(i);
 		}
 		ai.setArcIndex(-1);
-		removeTempName(ai);
 	}
 
     /**
-     * Searches the arcs for the specified (name,duplicate) pair using the binary
+     * Searches the arcs for the specified (name,arcId) using the binary
      * search algorithm.
      * @param name the name to be searched.
-	 * @param duplicate the duplicate index to be searched.
+	 * @param arcId the arcId index to be searched.
      * @return index of the search name, if it is contained in the arcs;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
@@ -2025,7 +2025,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the ArcInst is found.
      */
-	private int searchArc(String name, int duplicate)
+	private int searchArc(String name, int arcId)
 	{
 		int low = 0;
 		int high = arcs.size()-1;
@@ -2034,7 +2034,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			int mid = (low + high) >> 1;
 			ArcInst ai = (ArcInst)arcs.get(mid);
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
-			if (cmp == 0) cmp = ai.getDuplicate() - duplicate;
+			if (cmp == 0) cmp = ai.getD().arcId - arcId;
 
 			if (cmp < 0)
 				low = mid + 1;
@@ -2583,74 +2583,6 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	public Name getBasename() { return basename; }
 
 	/**
-	 * Method to return unique autoname in this cell.
-	 * @param basename base name of autoname
-	 * @return autoname
-	 */
-	public Name getAutoname(Name basename)
-	{
-		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
-		if (ms == null)
-		{
-			ms = new MaxSuffix();
-			maxSuffix.put(basename.canonic(), ms);
-			return basename.findSuffixed(0);
-		} else 
-		{
-			ms.v++;
-			return basename.findSuffixed(ms.v);
-		}
-	}
-
-	/**
-	 * Method to add a new temporary name of Geometric.
-	 * @param geom the Geometric to be added to the cell.
-	 */
-	public void addTempName(Geometric geom)
-	{
-		Name name = geom.getNameKey();
-		if (!name.isTempname()) return;
-		tempNames.put(name.canonic(), geom);
-
-		Name basename = name.getBasename();
-		if (basename != null && basename != name)
-		{
-			basename = basename.canonic(); 
-			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
-			if (ms == null)
-			{
-				ms = new MaxSuffix();
-				maxSuffix.put(basename, ms);
-			}
-			int numSuffix = name.getNumSuffix();
-			if (numSuffix > ms.v)
-			{
-				ms.v = numSuffix;
-			}
-		}
-	}
-
-	/**
-	 * Method to remove temporary name of Geometric.
-	 * @param geom the Geometric to be removed from the cell.
-	 */
-	public void removeTempName(Geometric geom)
-	{
-		Name name = geom.getNameKey();
-		if (!name.isTempname()) return;
-		tempNames.remove(name.canonic());
-	}
-
-	/**
-	 * Method check if Geometric with specified temporary name key exists in a cell.
-	 * @param name specified temorary name key.
-	 */
-	public boolean hasTempName(Name name)
-	{
-		return tempNames.get(name) != null;
-	}
-
-	/**
 	 * Method to determine the index value which, when appended to a given string,
 	 * will generate a unique name in this Cell.
 	 * @param prefix the start of the string.
@@ -2745,8 +2677,8 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		{
 			if (name.isTempname())
 			{
-				Geometric geom = (Geometric)tempNames.get(name);
-				return geom == null || exclude == geom;
+				NodeInst ni = (NodeInst)tempNodeNames.get(name);
+				return ni == null || exclude == ni;
 			}
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 			{
@@ -2761,8 +2693,8 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		{
 			if (name.isTempname())
 			{
-				Geometric geom = (Geometric)tempNames.get(name);
-				return geom == null || exclude == geom;
+                ArcInst ai = findArc(name.toString());
+				return ai == null || exclude == ai;
 			}
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 			{
@@ -3651,7 +3583,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
             if (!(ni.getProto() instanceof Cell)) continue;
             boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
             if (cellPrefs != null) {
-                String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
+                String nodeName = "E" + ni.getName();
                 expanded = cellPrefs.getBoolean(nodeName, expanded);
             }
             ni.setExpanded(expanded);
@@ -3712,7 +3644,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
                 if (!(ni.getProto() instanceof Cell)) continue;
                 boolean defaultExpanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
                 if (ni.isExpanded() != defaultExpanded) {
-                    String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
+                    String nodeName = "E" + ni.getName();
                     cellPrefs.putBoolean(nodeName, ni.isExpanded());
                 }
             }
@@ -3821,7 +3753,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
 				assert cmp <= 0;
 				if (cmp == 0)
-					assert prevAi.getDuplicate() < ai.getDuplicate();
+					assert prevAi.getD().arcId < ai.getD().arcId;
 			}
 			ai.check();
 //			assert !connections.contains(ai.getHead()) : ai;
@@ -3843,7 +3775,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName());
 				assert cmp <= 0;
 				if (cmp == 0)
-					assert prevNi.getDuplicate() < ni.getDuplicate();
+					assert prevNi.getD().nodeId < ni.getD().nodeId;
 			}
             if (ni.getProto() instanceof Cell) {
                 CellUsage u = cellId.getUsageIn(((Cell)ni.getProto()).cellId);

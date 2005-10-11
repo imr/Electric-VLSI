@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
@@ -123,116 +125,6 @@ public abstract class Geometric extends ElectricObject
 	public Cell getParent() { return parent; }
 
 	/**
-	 * Method to return the name of this Geometric.
-	 * @return the name of this Geometric, null if there is no name.
-	 */
-	public String getName()
-	{
-		Name name = getNameKey();
-		return name != null ? name.toString() : null;
-	}
-
-	/**
-	 * Method to return the name key of this Geometric.
-	 * @return the name key of this Geometric, null if there is no name.
-	 */
-	public abstract Name getNameKey();
-
-	/**
-	 * Method to return the duplicate index of this Geometric.
-	 * @return the duplicate index of this Geometric.
-	 */
-	public abstract int getDuplicate();
-
-	/**
-	 * Method to rename this Geometric.
-	 * This Geometric must be linked to database.
-	 * @param name new name of this geometric.
-	 * @return true on error
-	 */
-	public boolean setName(String name)
-	{
-		assert isLinked();
-		Name key = null;
-		if (name != null && name.length() > 0)
-		{
-			if (name.equals(getName())) return false;
-			key = Name.findName(name);
-		} else
-		{
-			if (!isUsernamed()) return false;
-			key = parent.getAutoname(getBasename());
-		}
-		if (checkNameKey(key, parent, this instanceof NodeInst)) return true;
-		if (parent.hasTempName(key) && !name.equalsIgnoreCase(getName()))
-		{
-			System.out.println(parent + " already has Geometric with temporary name \""+name+"\"");
-			return true;
-		}
-		Name oldName = getNameKey();
-		int oldDuplicate = getDuplicate();
-		lowLevelRename(key, -1);
-		Undo.renameGeometric(this, oldName, oldDuplicate);
-		return false;
-	}
-
-	/**
-	 * Method to check the new name key of an Geometric.
-	 * @param name new name key of this geometric.
-     * @param parent parent Cell used for error message
-     * @param isNode true if the Geometric is NodeInst
-	 * @return true on error.
-	 */
-	protected static boolean checkNameKey(Name name, Cell parent, boolean isNode)
-	{
-		if (!name.isValid())
-		{
-			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to " +
-				(isNode ? "node" : "arc") + " :" + Name.checkName(name.toString()));
-			return true;
-		}
-		if (name.isTempname() && name.isBus())
-		{
-			System.out.println(parent + ": Temporary name \""+name+"\" can't be bus");
-			return true;
-		}
-		if (name.hasEmptySubnames())
-		{
-			if (name.isBus())
-				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to " +
-					(isNode ? "node" : "arc"));
-			else
-				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to " +
-					(isNode ? "node" : "arc"));
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Low-level access method to change name of this Geometric.
-	 * @param name new name of this Geometric.
-	 * @param duplicate new duplicate number of this Geometric or negative value.
-	 */
-	public abstract void lowLevelRename(Name name, int duplicate);
-
-	/**
-	 * Abstract method gives prefix for autonaming.
-	 * @return true if this Geometric is linked to parent Cell.
-	 */
-	public abstract Name getBasename();
-
-	/**
-	 * Retruns true if this Geometric was named by user.
-	 * @return true if this Geometric was named by user.
-	 */		
-	public boolean isUsernamed()
-	{
-		Name name = getNameKey();
-		return name != null && !name.isTempname();
-	}
-
-	/**
 	 * Method to return the bounds of this Geometric.
 	 * @return the bounds of this Geometric.
 	 */
@@ -255,68 +147,6 @@ public abstract class Geometric extends ElectricObject
 	 * @return the center coordinate of this Geometric.
 	 */
 	public Point2D getTrueCenter() { return new Point2D.Double(getTrueCenterX(), getTrueCenterY()); }
-
-	/**
-	 * Method to return the number of displayable Variables on this ElectricObject.
-	 * A displayable Variable is one that will be shown with its object.
-	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
-	 * @return the number of displayable Variables on this ElectricObject.
-	 */
-	public int numDisplayableVariables(boolean multipleStrings)
-	{
-		return super.numDisplayableVariables(multipleStrings) + (isUsernamed()?1:0);
-	}
-
-	/**
-	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
-	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
-	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
-	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
-	 * @return the number of Variables that were added.
-	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
-	{
-		int numVars = 0;
-		if (isUsernamed())
-		{
-			double cX = rect.getCenterX();
-			double cY = rect.getCenterY();
-			Variable.Key varKey = this instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
-			TextDescriptor td = getTextDescriptor(varKey);
-			double offX = td.getXOff();
-			double offY = td.getYOff();
-			TextDescriptor.Position pos = td.getPos();
-			Poly.Type style = pos.getPolyType();
-
-			if (this instanceof NodeInst && (offX != 0 || offY != 0))
-			{
-                td = td.withOff(0, 0);
-//				MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-//				mtd.setOff(0, 0);
-//				td = mtd;
-			    style = Poly.rotateType(style, this);
-			}
-
-			Point2D [] pointList = null;
-			if (style == Poly.Type.TEXTBOX)
-			{
-				pointList = Poly.makePoints(rect);
-			} else
-			{
-				pointList = new Point2D.Double[1];
-				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-			}
-			polys[start] = new Poly(pointList);
-			polys[start].setStyle(style);
-			polys[start].setString(getName());
-			polys[start].setTextDescriptor(td);
-			polys[start].setLayer(null);
-			//polys[start].setVariable(var); ???
-			polys[start].setName(getNameKey());
-			numVars = 1;
-		}
-		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;
-	}
 
     /**
      * Method to tell whether the objects at geometry modules "geom1" and "geom2"

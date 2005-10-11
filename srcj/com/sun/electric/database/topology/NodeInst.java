@@ -233,10 +233,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
-        ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(),
-                Name.findName("@"), 0, TextDescriptor.getNodeTextDescriptor(),
-                orient, EPoint.ORIGIN, width, height,
-                0,  0, TextDescriptor.getInstanceTextDescriptor());
+        ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
+                orient, EPoint.ORIGIN, width, height, 0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(d, null);
 	}
 
@@ -271,7 +269,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
                                        Cell parent, Orientation orient, String name, int techBits)
 	{
-        return newInstance(parent, protoType, name, -1, null, center, width, height, orient, 0, techBits, null);
+        return newInstance(parent, protoType, name, null, center, width, height, orient, 0, techBits, null);
 	}
 
 	/**
@@ -279,7 +277,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param name name of new NodeInst
-	 * @param duplicate duplicate index of this NodeInst
      * @param nameDescriptor TextDescriptor of name of this NodeInst
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst (can't be negative).
@@ -291,7 +288,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
-                                       String name, int duplicate, TextDescriptor nameDescriptor,
+                                       String name, TextDescriptor nameDescriptor,
                                        Point2D center, double width, double height, Orientation orient,
                                        int flags, int techBits, TextDescriptor protoDescriptor)
 	{
@@ -334,7 +331,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 
         Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent, true))
+		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent))
 		{
             Name baseName;
             if (protoType instanceof Cell) {
@@ -343,19 +340,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 PrimitiveNode np = (PrimitiveNode)protoType;
                 baseName = np.getTechnology().getPrimitiveFunction(np, techBits).getBasename();
             }
-            nameKey = parent.getAutoname(baseName);
-			duplicate = 0;
+            nameKey = parent.getNodeAutoname(baseName);
 		}
-        duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
         CellId parentId = (CellId)parent.getId();
         
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
         if (protoDescriptor == null) protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
         
-        ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(),
-                nameKey, duplicate, nameDescriptor,
-                orient, anchor, width, height,
-                flags, techBits, protoDescriptor);
+        ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(), nameKey, nameDescriptor,
+                orient, anchor, width, height, flags, techBits, protoDescriptor);
         
 		NodeInst ni = new NodeInst(d, parent);
 
@@ -971,22 +964,28 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public void lowLevelModify(ImmutableNodeInst d)
 	{
-		// remove from the R-Tree structure
-		if (parent != null)
-			parent.unLinkNode(this);
-
-		// make the change
-        this.d = d;
+        if (parent != null) {
+            // remove from the R-Tree structure
+            parent.unLinkNode(this);
+            boolean renamed = this.d.name != d.name;
+            if (renamed)
+                parent.removeNodeName(this);
             
-		// fill in the Geometric fields
-		redoGeometric();
-
-		// link back into the R-Tree
-		if (parent != null)
-		{
-			parent.linkNode(this);
-			parent.setDirty();
-		}
+            // make the change
+            this.d = d;
+            if (renamed)
+                parent.addNodeName(this);
+            
+            // fill in the Geometric fields
+            redoGeometric();
+            
+            // link back into the R-Tree
+            parent.linkNode(this);
+            parent.setDirty();
+       } else {
+            this.d = d;
+    		redoGeometric();
+        }
 	}
 
 	/**
@@ -1385,6 +1384,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
 		int numVarsOnNode = super.numDisplayableVariables(multipleStrings);
+        if (isUsernamed()) numVarsOnNode++;
 
 		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
@@ -1405,7 +1405,42 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
 	{
-		int numAddedVariables = super.addDisplayableVariables(rect, polys, start, wnd, multipleStrings);
+        int numAddedVariables = 0;
+		if (isUsernamed())
+		{
+			double cX = rect.getCenterX();
+			double cY = rect.getCenterY();
+			TextDescriptor td = d.nameDescriptor;
+			double offX = td.getXOff();
+			double offY = td.getYOff();
+			TextDescriptor.Position pos = td.getPos();
+			Poly.Type style = pos.getPolyType();
+
+			if (offX != 0 || offY != 0)
+			{
+                td = td.withOff(0, 0);
+			    style = Poly.rotateType(style, this);
+			}
+
+			Point2D [] pointList = null;
+			if (style == Poly.Type.TEXTBOX)
+			{
+				pointList = Poly.makePoints(rect);
+			} else
+			{
+				pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			}
+			polys[start] = new Poly(pointList);
+			polys[start].setStyle(style);
+			polys[start].setString(getNameKey().toString());
+			polys[start].setTextDescriptor(td);
+			polys[start].setLayer(null);
+			//polys[start].setVariable(var); ???
+			polys[start].setName(getNameKey());
+			numAddedVariables = 1;
+		}
+		numAddedVariables += super.addDisplayableVariables(rect, polys, start + numAddedVariables, wnd, multipleStrings);
 
 		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
@@ -2355,32 +2390,82 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /****************************** TEXT ******************************/
 
 	/**
+	 * Method to return the name of this NodeInst.
+	 * @return the name of this NodeInst.
+	 */
+	public String getName() { return d.name.toString(); }
+
+	/**
+	 * Retruns true if this NodeInst was named by user.
+	 * @return true if this NodeInst was named by user.
+	 */		
+	public boolean isUsernamed() { return !d.name.isTempname();	}
+
+	/**
 	 * Method to return the name key of this NodeInst.
 	 * @return the name key of this NodeInst, null if there is no name.
 	 */
-	public Name getNameKey()
-	{
-		return d.name;
-	}
+	public Name getNameKey() { return d.name; }
 
 	/**
-	 * Low-level access method to change name of this NodeInst.
+	 * Method to rename this NodeInst.
+	 * This NodeInst must be linked to database.
 	 * @param name new name of this NodeInst.
-	 * @param duplicate new duplicate number of this NodeInst or negative value.
+	 * @return true on error
 	 */
-	public void lowLevelRename(Name name, int duplicate)
+	public boolean setName(String name)
 	{
-		parent.removeNodeName(this);
-        d = d.withName(name, parent.fixupNodeDuplicate(name, duplicate));
-		parent.addNodeName(this);
-		parent.checkInvariants();
+		assert isLinked();
+		Name key = null;
+		if (name != null && name.length() > 0)
+		{
+			if (name.equals(getName())) return false;
+			key = Name.findName(name);
+		} else
+		{
+			if (!isUsernamed()) return false;
+			key = parent.getNodeAutoname(getBasename());
+		}
+		if (checkNameKey(key, parent)) return true;
+		if (parent.hasTempNodeName(key) && !name.equalsIgnoreCase(getName()))
+		{
+			System.out.println(parent + " already has NodeInst with temporary name \""+name+"\"");
+			return true;
+		}
+        ImmutableNodeInst oldD = d;
+        lowLevelModify(d.withName(key));
+        Undo.modifyNodeInst(this, oldD);
+		return false;
 	}
 
 	/**
-	 * Method to return the duplicate index of this NodeInst.
-	 * @return the duplicate index of this NodeInst.
+	 * Method to check the new name key of a NodeInst.
+	 * @param name new name key of this NodeInst.
+     * @param parent parent Cell used for error message
+	 * @return true on error.
 	 */
-	public int getDuplicate() { return d.duplicate; }
+	protected static boolean checkNameKey(Name name, Cell parent)
+	{
+		if (!name.isValid())
+		{
+			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to node" + " :" + Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.isTempname() && name.isBus())
+		{
+			System.out.println(parent + ": Temporary name \""+name+"\" can't be bus");
+			return true;
+		}
+		if (name.hasEmptySubnames())
+		{
+			if (name.isBus())
+				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to node");
+			else
+				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to node");
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Returns the TextDescriptor on this NodeInst selected by variable key.
@@ -2566,7 +2651,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 		cmp = this.getName().compareTo(that.getName());
 		if (cmp != 0) return cmp;
-		return this.d.duplicate - that.d.duplicate;
+		return this.d.nodeId - that.d.nodeId;
 	}
 
 	/**
@@ -2974,7 +3059,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         super.check();
 		assert d.name != null;
-		assert d.duplicate >= 0;
 
 		if (protoType instanceof Cell)
 		{

@@ -100,12 +100,13 @@ public class Output
         return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype));
     }
 
-    static class OrderedConnections implements Comparator
+    static class OrderedConnections implements Comparator<Connection>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Connection c1, Connection c2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Connection c1 = (Connection)o1;
-			Connection c2 = (Connection)o2;
+//4*/		Connection c1 = (Connection)o1;
+//4*/		Connection c2 = (Connection)o2;
 			int i1 = c1.getPortInst().getPortProto().getPortIndex();
 			int i2 = c2.getPortInst().getPortProto().getPortIndex();
 			int cmp = i1 - i2;
@@ -116,12 +117,13 @@ public class Output
 		}
 	}
 
-	static class OrderedExports implements Comparator
+	static class OrderedExports implements Comparator<Export>
 	{
-		public int compare(Object o1, Object o2)
+/*5*/	public int compare(Export e1, Export e2)
+//4*/	public int compare(Object o1, Object o2)
 		{
-			Export e1 = (Export)o1;
-			Export e2 = (Export)o2;
+//4*/		Export e1 = (Export)o1;
+//4*/		Export e2 = (Export)o2;
 			int i1 = e1.getOriginalPort().getPortProto().getPortIndex();
 			int i2 = e2.getOriginalPort().getPortProto().getPortIndex();
 			int cmp = i1 - i2;
@@ -136,9 +138,9 @@ public class Output
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
-	/** Map of referenced objects for library files */	HashMap objInfo;
+	/** Map of referenced objects for library files */	HashMap<Object,Integer> objInfo;
 	/** Maps memory face index to disk face index */	int[] faceMap;
-	/** Name space of variable names */					TreeMap/*<String,Integer>*/ nameSpace;
+	/** Name space of variable names */					TreeMap<String,Short> nameSpace;
 
 	public Output()
 	{
@@ -179,9 +181,9 @@ public class Output
 		Output out;
 
         // scan for Dummy Cells, warn user that they still exist
-        List dummyCells = new ArrayList();
+        List<String> dummyCells = new ArrayList<String>();
         dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
-        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             if (c.getVar(LibraryFiles.IO_DUMMY_OBJECT) != null) {
                 dummyCells.add("   "+c.noLibDescribe());
@@ -200,7 +202,7 @@ public class Output
 //		Pref.installMeaningVariables();
 		
 		// make sure that this library save is announced
-		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
 			listener.writeLibrary(lib);
@@ -208,14 +210,14 @@ public class Output
 
 		// make sure all technologies with irrelevant scale information have the same scale value
 		double largestScale = 0;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.isScaleRelevant()) continue;
 			if (tech == Generic.tech) continue;
 			if (tech.getScale() > largestScale) largestScale = tech.getScale();
 		}
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.isScaleRelevant()) continue;
@@ -422,14 +424,14 @@ public class Output
 	 */
 	void gatherReferencedObjects(Library lib, boolean needVars)
 	{
-		objInfo = new HashMap();
-		nameSpace = needVars ? new TreeMap/*<String,Integer>*/(TextUtils.STRING_NUMBER_ORDER) : null;
-		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		objInfo = new HashMap<Object,Integer>();
+		nameSpace = needVars ? new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER) : null;
+		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
 			gatherCell(cell);
 
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getName() == null)
@@ -443,7 +445,7 @@ public class Output
 					gatherObj(np);
 					gatherObj(((PrimitiveNode)np).getTechnology());
 				}
-				for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)pIt.next();
 					gatherVariables(pi);
@@ -456,7 +458,7 @@ public class Output
 				}
 			}
 
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
@@ -468,7 +470,7 @@ public class Output
 				if (needVars) gatherFont(ai.getTextDescriptor(ArcInst.ARC_NAME));
 			}
 
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				//gatherObj(e.getOriginalPort().getPortProto());
@@ -480,10 +482,10 @@ public class Output
 		}
 		gatherVariables(lib);
 
-		for (Iterator it = Tool.getTools(); it.hasNext(); )
+		for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 			gatherMeaningPrefs(it.next());
 
-		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			gatherMeaningPrefs(it.next());
 
 		if (needVars)
@@ -492,9 +494,9 @@ public class Output
 			putNameSpace(NodeInst.NODE_NAME.getName());
 			putNameSpace(ArcInst.ARC_NAME.getName());
 			short varIndex = 0;
-			for (Iterator it = nameSpace.entrySet().iterator(); it.hasNext(); )
+			for (Iterator<Map.Entry<String,Short>> it = nameSpace.entrySet().iterator(); it.hasNext(); )
 			{
-				Map.Entry e = (Map.Entry)it.next();
+				Map.Entry<String,Short> e = (Map.Entry<String,Short>)it.next();
 				e.setValue(new Short(varIndex++));
 			}
 		}
@@ -506,7 +508,7 @@ public class Output
 	 */
 	private void gatherVariables(ElectricObject eObj)
 	{
-		for (Iterator it = eObj.getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			Object value = var.getObjectInCurrentThread();
@@ -551,7 +553,7 @@ public class Output
 	 */
 	private void gatherMeaningPrefs(Object obj)
 	{
-		for(Iterator it = Pref.getMeaningVariables(obj).iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = Pref.getMeaningVariables(obj).iterator(); it.hasNext(); )
 		{
 			gatherObj(obj);
 			Pref pref = (Pref)it.next();
@@ -645,7 +647,7 @@ public class Output
 	{
 		int maxIndices = TextDescriptor.ActiveFont.getMaxIndex();
 		faceMap = new int[maxIndices + 1];
-		TreeMap/*<String,TextDescriptor.ActiveFont>*/ sortedFonts = new TreeMap/*<String,TextDescriptor.ActiveFont>*/();
+		TreeMap<String,TextDescriptor.ActiveFont> sortedFonts = new TreeMap<String,TextDescriptor.ActiveFont>();
 		for (int i = 1; i <= maxIndices; i++)
 		{
 			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i);
@@ -655,7 +657,7 @@ public class Output
 		if (sortedFonts.size() == 0) return null;
 		String[] fontAssociation = new String[sortedFonts.size()];
 		int face = 0;
-		for (Iterator it = sortedFonts.values().iterator(); it.hasNext(); )
+		for (Iterator<TextDescriptor.ActiveFont> it = sortedFonts.values().iterator(); it.hasNext(); )
 		{
 			TextDescriptor.ActiveFont af = (TextDescriptor.ActiveFont)it.next();
 			face++;

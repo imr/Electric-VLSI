@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
@@ -64,7 +65,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 			this.name = name;
 			this.shortName = shortName;
 			this.constantName = constantName;
-			this.basename = Name.findName(shortName+'@').getBasename();
+			this.basename = Name.findName(TextUtils.canonicString(shortName)+"@0").getBasename();
 			allFunctions.add(this);
 		}
 

@@ -381,10 +381,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 				Rectangle2D.union(bounds, polyBound, bounds);
 		}
 
-		if (this instanceof Geometric)
+		if (this instanceof ArcInst)
 		{
-			Geometric geom = (Geometric)this;
-			Name name = geom.getNameKey();
+			ArcInst ai = (ArcInst)this;
+			Name name = ai.getNameKey();
 			if (!name.isTempname())
 			{
 				Poly poly = computeTextPoly(wnd, null, name);
@@ -399,6 +399,17 @@ public abstract class ElectricObject // extends Observable implements Observer
 		if (this instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)this;
+			Name name = ni.getNameKey();
+			if (!name.isTempname())
+			{
+				Poly poly = computeTextPoly(wnd, null, name);
+				if (poly != null)
+				{
+					Rectangle2D polyBound = poly.getBounds2D();
+					if (bounds == null) bounds = polyBound; else
+						Rectangle2D.union(bounds, polyBound, bounds);
+				}
+			}
 			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();

@@ -87,10 +87,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	// -------------------------- private data ----------------------------------
 
-	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
-
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
-	/** name of this ArcInst. */						private Name name;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
@@ -202,7 +199,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		PortInst piT = niT.getOnlyPortInst();
 
 		// create the arc that connects them
-        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, BASENAME, 0, TextDescriptor.getArcTextDescriptor(),
+        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, ImmutableArcInst.BASENAME, TextDescriptor.getArcTextDescriptor(),
                 niT.getD().nodeId, piT.getPortProto().getId(), xPT,
                 niH.getD().nodeId, piH.getPortProto().getId(), xPH,
                 ap.getDefaultWidth(), 0, 0);
@@ -305,7 +302,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
         
-        return newInstance(parent, type, name, -1, null, head, tail, headP, tailP, width, defAngle, flags);
+        return newInstance(parent, type, name, null, head, tail, headP, tailP, width, defAngle, flags);
 	}
 
 	/**
@@ -314,7 +311,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param parent the parent Cell of this ArcInst
 	 * @param protoType the ArcProto of this ArcInst.
 	 * @param name the name of this ArcInst
-	 * @param duplicate duplicate index of this ArcInst
      * @param nameDescriptor text descriptor of name of this ArcInst
 	 * @param headPort the head end PortInst.
 	 * @param tailPort the tail end PortInst.
@@ -325,7 +321,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, int duplicate, TextDescriptor nameDescriptor,
+	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
         PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
 		// make sure fields are valid
@@ -357,18 +353,16 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		}
 
         Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent, true))
+		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, ArcInst.class, null)) || checkNameKey(nameKey, parent))
 		{
-            nameKey = parent.getAutoname(BASENAME);
-            duplicate = 0;
+            nameKey = parent.getArcAutoname();
 		}
-        duplicate = parent.fixupArcDuplicate(nameKey, duplicate);
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
 		if (width < 0)
 			width = protoType.getWidth();
        
         CellId parentId = (CellId)parent.getId();
-        ImmutableArcInst d = ImmutableArcInst.newInstance(parentId.newArcId(), protoType, nameKey, duplicate, nameDescriptor,
+        ImmutableArcInst d = ImmutableArcInst.newInstance(parentId.newArcId(), protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 width, angle, flags);
@@ -556,9 +550,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
 		// first remove from the R-Tree structure
 		parent.unLinkArc(this);
+        boolean renamed = this.d.name != d.name;
+        if (renamed)
+            parent.removeArc(this);
 
 		// now make the change
         this.d = d;
+        if (renamed)
+            parent.addArc(this);
 		updateGeometric();
 
 		// update end shrinkage information
@@ -783,6 +782,57 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return polys;
 	}
 
+	/**
+	 * Method to return the number of displayable Variables on this ArcInst.
+	 * A displayable Variable is one that will be shown with its object.
+	 * @return the number of displayable Variables on this ArcInst.
+	 */
+	public int numDisplayableVariables(boolean multipleStrings)
+	{
+		return super.numDisplayableVariables(multipleStrings) + (isUsernamed()?1:0);
+	}
+
+	/**
+	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
+	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
+	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+	 * @return the number of Variables that were added.
+	 */
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
+	{
+		int numVars = 0;
+		if (isUsernamed())
+		{
+			double cX = rect.getCenterX();
+			double cY = rect.getCenterY();
+			TextDescriptor td = d.nameDescriptor;
+			double offX = td.getXOff();
+			double offY = td.getYOff();
+			TextDescriptor.Position pos = td.getPos();
+			Poly.Type style = pos.getPolyType();
+
+			Point2D [] pointList = null;
+			if (style == Poly.Type.TEXTBOX)
+			{
+				pointList = Poly.makePoints(rect);
+			} else
+			{
+				pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			}
+			polys[start] = new Poly(pointList);
+			polys[start].setStyle(style);
+			polys[start].setString(getNameKey().toString());
+			polys[start].setTextDescriptor(td);
+			polys[start].setLayer(null);
+			//polys[start].setVariable(var); ???
+			polys[start].setName(getNameKey());
+			numVars = 1;
+		}
+		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;
+	}
+
 	private static int [] extendFactor = {0,
 		11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
 		 1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
@@ -961,34 +1011,81 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     /****************************** TEXT ******************************/
 
 	/**
+	 * Method to return the name of this ArcInst.
+	 * @return the name of this ArcInst.
+	 */
+	public String getName()	{ return d.name.toString(); }
+
+	/**
+	 * Retruns true if this ArcInst was named by user.
+	 * @return true if this ArcInst was named by user.
+	 */		
+	public boolean isUsernamed() { return !d.name.isTempname();	}
+
+	/**
 	 * Method to return the name key of this ArcInst.
 	 * @return the name key of this ArcInst, null if there is no name.
 	 */
-	public Name getNameKey()
+	public Name getNameKey() { return d.name; }
+
+	/**
+	 * Method to rename this ArcInst.
+	 * This ArcInst must be linked to database.
+	 * @param name new name of this geometric.
+	 * @return true on error
+	 */
+	public boolean setName(String name)
 	{
-		return d.name;
+		assert isLinked();
+		if (name.equals(getName())) return false;
+		Name key;
+		if (name != null && name.length() > 0)
+		{
+			key = Name.findName(name);
+		} else
+		{
+			if (!isUsernamed()) return false;
+			key = parent.getArcAutoname();
+		}
+		if (checkNameKey(key, parent)) return true;
+        ImmutableArcInst oldD = d;
+        lowLevelModify(d.withName(key));
+        Undo.modifyArcInst(this, oldD);
+		return false;
 	}
 
 	/**
-	 * Low-level access method to change name of this ArcInst.
-	 * @param name new name of this ArcInst.
-	 * @param duplicate new duplicate number of this ArcInst or negative value.
+	 * Method to check the new name key of an ArcInst.
+	 * @param name new name key of this ArcInst.
+     * @param parent parent Cell used for error message
+	 * @return true on error.
 	 */
-	public void lowLevelRename(Name name, int duplicate)
+	protected static boolean checkNameKey(Name name, Cell parent)
 	{
-		parent.removeArc(this);
-        d = d.withName(name, parent.fixupArcDuplicate(name, duplicate));
-		parent.addArc(this);
-		parent.checkInvariants();
-	}
-
-	/**
-	 * Method to return the duplicate index of this ArcInst.
-	 * @return the duplicate index of this ArcInst.
-	 */
-	public int getDuplicate()
-	{
-		return d.duplicate;
+		if (!name.isValid())
+		{
+			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to arc" + " :" + Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.isTempname() && name.getBasename() != ImmutableArcInst.BASENAME)
+		{
+			System.out.println(parent + ": Temporary arc name \""+name+"\" must have prefix net@");
+			return true;
+		}
+		if (name.hasEmptySubnames())
+		{
+			if (name.isBus())
+				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to arc");
+			else
+				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to arc");
+			return true;
+		}
+		if (parent.hasTempArcName(name))
+		{
+			System.out.println(parent + " already has ArcInst with temporary name \""+name+"\"");
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -1070,7 +1167,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		}
 		cmp = this.getName().compareTo(that.getName());
 		if (cmp != 0) return cmp;
-		return this.d.duplicate - that.d.duplicate;
+		return this.d.arcId - that.d.arcId;
 	}
 
 	/**
@@ -1461,7 +1558,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
         super.check();
 		assert d.name != null;
-		assert d.duplicate >= 0;
 
 		assert headEnd.getArc() == this;
 		assert tailEnd.getArc() == this;
@@ -1495,12 +1591,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return false;
 		}
 	}
-
-	/**
-	 * Returns the basename for autonaming.
-	 * @return the basename for autonaming.
-	 */
-	public Name getBasename() { return BASENAME; }
 
 	/**
 	 * Method to return the prototype of this ArcInst.

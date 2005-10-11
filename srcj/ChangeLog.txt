@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/11/05, DN) Simplification of NodeInst and ArcInst ("duplicate" removed, "arcId/nodeId" is used instead).
+
 BUG: (10/10/05, DN) Alignment of text in cross-library copy (Bug #632).
 FIX: In CrossLibCopy.showCells use "CellName.compareTo" instead of STRING_NUMBER_COMPARE. 
 

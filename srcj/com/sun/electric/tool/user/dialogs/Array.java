@@ -633,8 +633,8 @@ public class Array extends EDialog
 		private void setNewName(Geometric geom, int x, int y)
 		{
 			String objName = "";
-			Name geomNameKey = geom.getNameKey();
-			String geomName = geom.getName();
+			Name geomNameKey = geom instanceof NodeInst ? ((NodeInst)geom).getNameKey() : ((ArcInst)geom).getNameKey();
+			String geomName = geomNameKey.toString();
 			if (geomNameKey.isTempname()) geomName = null;
 			if (geomName != null)
 			{
@@ -644,13 +644,14 @@ public class Array extends EDialog
 			String totalName = objName + x + "-" + y;
 			if (Math.abs(lastXRepeat) <= 1 || Math.abs(lastYRepeat) <= 1)
 				totalName = objName + (x+y);
-			geom.setName(totalName);
-
-			if (geom instanceof NodeInst && ((NodeInst)geom).getProto() instanceof Cell)
-			{
+            if (geom instanceof NodeInst) {
 				NodeInst ni = (NodeInst)geom;
-				ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
-			}
+                ni.setName(totalName);
+                if (ni.getProto() instanceof Cell)
+                    ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
+            } else {
+                ((ArcInst)geom).setName(totalName);
+            }
 		}
 	}
 

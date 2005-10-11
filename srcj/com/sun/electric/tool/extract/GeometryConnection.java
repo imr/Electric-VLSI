@@ -145,7 +145,7 @@ public class GeometryConnection
             for(Iterator it = cell.searchIterator(geomBBnd); it.hasNext(); )
             {
                 Geometric nGeom = (Geometric)it.next();
-                System.out.println("Node " + nGeom.getName());
+                System.out.println(nGeom.toString());
 
                 // Only valid for arc-nodeinst pair
                 if (Geometric.objectsTouch(nGeom, geomB))

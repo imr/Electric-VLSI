@@ -124,7 +124,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
-    /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
 	/** The text descriptor of name of ImmutableNodeInst. */		public final TextDescriptor nameDescriptor;
 	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
 	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
@@ -139,7 +138,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param nodeId id of this NodeInst in parent.
 	 * @param protoId the NodeProtoId of which this is an instance.
 	 * @param name name of new ImmutableNodeInst.
-	 * @param duplicate duplicate index of this ImmutableNodeInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
@@ -150,15 +148,13 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
      * @param vars array of Variables of this ImmutableNodeInst
 	 */
-    ImmutableNodeInst(int nodeId, NodeProtoId protoId,
-            Name name, int duplicate, TextDescriptor nameDescriptor,
+     ImmutableNodeInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars, ImmutablePortInst[] ports) {
         super(vars);
         this.nodeId = nodeId;
         this.protoId = protoId;
         this.name = name;
-        this.duplicate = duplicate;
         this.nameDescriptor = nameDescriptor;
         this.orient = orient;
         this.anchor = anchor;
@@ -176,7 +172,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param nodeId id of this NodeInst in parent.
 	 * @param protoId the NodeProtoId of which this is an instance.
 	 * @param name name of new ImmutableNodeInst.
-	 * @param duplicate duplicate index of this ImmutableNodeInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
@@ -187,17 +182,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
 	 * @return new ImmutableNodeInst object.
 	 * @throws NullPointerException if protoId, name, orient or anchor is null.
-     * @throws IllegalArgumentException if duplicate, or size is bad.
+     * @throws IllegalArgumentException if size is bad.
 	 */
-    public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId,
-            Name name, int duplicate, TextDescriptor nameDescriptor,
+    public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int flags, int techBits, TextDescriptor protoDescriptor) {
 		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
-        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (orient == null) throw new NullPointerException("orient");
@@ -219,7 +212,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
-		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor,
+		return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
                 orient, anchor, width, height, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY);
     }
 
@@ -239,18 +232,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
 	 * @param name node name key.
-     * @param duplicate duplicate of the name
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
 	 * @throws NullPointerException if name is null
-     * @throws IllegalArgumentException if duplicate is negative.
 	 */
-	public ImmutableNodeInst withName(Name name, int duplicate) {
-		if (this.name.equals(name) && this.duplicate == duplicate) return this;
+	public ImmutableNodeInst withName(Name name) {
+		if (this.name.equals(name)) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
-        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
@@ -263,7 +253,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
@@ -277,7 +267,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (this.orient == orient) return this;
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
@@ -291,7 +281,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (this.anchor.equals(anchor)) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
@@ -312,7 +302,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
@@ -324,7 +314,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withFlags(int flags) {
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
     }
 
@@ -349,7 +339,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public ImmutableNodeInst withTechSpecific(int techBits) {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (this.techBits == techBits) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor, getVars(), this.ports);
     }
     
@@ -362,7 +352,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor, getVars(), this.ports);
 	}
 
@@ -377,7 +367,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
     }
     
@@ -391,7 +381,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
     }
     
@@ -431,7 +421,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             Arrays.fill(newPorts, ports.length, portChronIndex, ImmutablePortInst.EMPTY);
             newPorts[portChronIndex] = portInst;
         }
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), newPorts);
     }
 
@@ -482,7 +472,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert name.isValid() && !name.hasEmptySubnames();
         assert !(name.isTempname() && name.isBus());
         assert !name.hasDuplicates();
-        assert duplicate >= 0;
         if (nameDescriptor != null)
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert orient != null;

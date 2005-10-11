@@ -2136,13 +2136,18 @@ public class EditWindow extends JPanel
 					Export pp = (Export)sic.object;
 					pp.rename(newString);
 					Undo.redrawObject(pp.getOriginalPort().getNodeInst());				
-				} else
+				} else if (sic.object instanceof NodeInst)
 				{
-					// node or arc name
-					Geometric geom = (Geometric)sic.object;
-					geom.setName(newString);
-					Undo.redrawObject(geom);				
-				}
+					// node name
+					NodeInst ni = (NodeInst)sic.object;
+					ni.setName(newString);
+//					Undo.redrawObject(ni);				
+				} else {
+					// arc name
+					ArcInst ai = (ArcInst)sic.object;
+					ai.setName(newString);
+//					Undo.redrawObject(ai);				
+                }
 			} else
 			{
 				// text on a variable
