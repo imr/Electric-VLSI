@@ -304,15 +304,19 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				{
 					NodeInst ni = (NodeInst)eobj;
 					nodeList.add(ni);
-					SizeOffset so = ni.getSizeOffset();
-			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
 					xPositionLow = Math.min(xPositionLow, ni.getAnchorCenterX());
 					xPositionHigh = Math.max(xPositionHigh, ni.getAnchorCenterX());
 					yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
 					yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
 
+					SizeOffset so = ni.getSizeOffset();
+			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
+					{
+						double swap = xVal;   xVal = yVal;   yVal = swap;
+					}
 					xSizeLow = Math.min(xSizeLow, xVal);
 					xSizeHigh = Math.max(xSizeHigh, xVal);
 					ySizeLow = Math.min(ySizeLow, yVal);
@@ -766,8 +770,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						double [] dYS = new double[numNodes];
 						double newXPosition = TextUtils.atof(xPos);
 						double newYPosition = TextUtils.atof(yPos);
-						double newXSize = TextUtils.atof(xSize);
-						double newYSize = TextUtils.atof(ySize);
 						int i = 0;
 						for(Iterator it = dialog.nodeList.iterator(); it.hasNext(); )
 						{
@@ -778,14 +780,20 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 								dXP[i] = newXPosition - ni.getAnchorCenterX();
 							if (yPos.equals("")) dYP[i] = 0; else
 								dYP[i] = newYPosition - ni.getAnchorCenterY();
-							if (xSize.equals("")) dXS[i] = 0; else
+							String newXSize = xSize;
+							String newYSize = ySize;
+					        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
 							{
-								double trueXSize = newXSize + so.getHighXOffset() + so.getLowXOffset();
+								String swap = newXSize;   newXSize = newYSize;   newYSize = swap;
+							}
+							if (newXSize.equals("")) dXS[i] = 0; else
+							{
+								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
 								dXS[i] = trueXSize - ni.getXSize();
 							}
-							if (ySize.equals("")) dYS[i] = 0; else
+							if (newYSize.equals("")) dYS[i] = 0; else
 							{
-								double trueYSize = newYSize + so.getHighYOffset() + so.getLowYOffset();
+								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
 								dYS[i] = trueYSize - ni.getYSize();
 							}
 							i++;
@@ -800,14 +808,20 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
 							if (xPos.length() > 0) dX = TextUtils.atof(xPos) - ni.getAnchorCenterX();
 							if (yPos.length() > 0) dY = TextUtils.atof(yPos) - ni.getAnchorCenterY();
-							if (xSize.length() > 0)
+							String newXSize = xSize;
+							String newYSize = ySize;
+					        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
 							{
-								double trueXSize = TextUtils.atof(xSize) + so.getHighXOffset() + so.getLowXOffset();
+								String swap = newXSize;   newXSize = newYSize;   newYSize = swap;
+							}
+							if (newXSize.length() > 0)
+							{
+								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
 								dXS = trueXSize - ni.getXSize();
 							}
-							if (ySize.length() > 0)
+							if (newYSize.length() > 0)
 							{
-								double trueYSize = TextUtils.atof(ySize) + so.getHighYOffset() + so.getLowYOffset();
+								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
 								dYS = trueYSize - ni.getYSize();
 							}
 							int dRot = 0;

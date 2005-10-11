@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/11/05, SMR) Multi-object properties doesn't understand rotated transistors (Bug #626).
+FIX: Rotated transistors are handled properly.
+
 BUG: (10/11/05, SMR) Non-centered text on rotated nodes doesn't select properly (Bug #536).
 FIX: In Highlighter.findAllInArea(), transform text area after precisely defining it.
 
