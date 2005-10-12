@@ -25,7 +25,9 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -39,6 +41,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -439,6 +442,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		double offY = var.getYOff();
 		int varLength = var.getLength();
 		double lineOffX = 0, lineOffY = 0;
+		AffineTransform trans = null;
 		Poly.Type style = var.getPos().getPolyType();
 		TextDescriptor td = var.getTextDescriptor();
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
@@ -461,12 +465,25 @@ public abstract class ElectricObject // extends Observable implements Observer
 		{
 			// compute text height
 			double lineDist = fontHeight / scale;
-			switch (td.getRotation().getIndex())
+			int rotQuadrant = td.getRotation().getIndex();
+			switch (rotQuadrant)
 			{
 				case 0: lineOffY = lineDist;    break;		// 0 degrees rotation
 				case 1: lineOffX = -lineDist;   break;		// 90 degrees rotation
 				case 2: lineOffY = -lineDist;   break;		// 180 degrees rotation
 				case 3: lineOffX = lineDist;    break;		// 270 degrees rotation
+			}
+
+			// multiline text on rotated nodes must compensate for node rotation
+			Poly.Type rotStyle = style;
+			if (this instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)this;
+				trans = ni.rotateIn();
+				int origAngle = style.getTextAngle();
+				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
+				int angle = (origAngle - ni.getAngle() + 3600) % 3600;
+				style = Poly.Type.getTextTypeFromAngle(angle);
 			}
 			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
@@ -475,26 +492,26 @@ public abstract class ElectricObject // extends Observable implements Observer
 			}
 			if (multipleStrings)
 			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+				if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX ||
+					rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT)
 				{
 					cX += lineOffX * (varLength-1) / 2;
 					cY += lineOffY * (varLength-1) / 2;
 				}
-				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+				if (rotStyle == Poly.Type.TEXTBOT || rotStyle == Poly.Type.TEXTBOTLEFT || rotStyle == Poly.Type.TEXTBOTRIGHT)
 				{
 					cX += lineOffX * (varLength-1);
 					cY += lineOffY * (varLength-1);
 				}
 			} else
 			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+				if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX ||
+					rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT)
 				{
 					cX -= lineOffX * (varLength-1) / 2;
 					cY -= lineOffY * (varLength-1) / 2;
 				}
-				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+				if (rotStyle == Poly.Type.TEXTTOP || rotStyle == Poly.Type.TEXTTOPLEFT || rotStyle == Poly.Type.TEXTTOPRIGHT)
 				{
 					cX -= lineOffX * (varLength-1);
 					cY -= lineOffY * (varLength-1);
@@ -539,6 +556,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 			{
 				pointList = new Point2D.Double[1];
 				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+				if (trans != null)
+					trans.transform(pointList[0], pointList[0]);
 			}
 			polys[i] = new Poly(pointList);
 			polys[i].setString(message);

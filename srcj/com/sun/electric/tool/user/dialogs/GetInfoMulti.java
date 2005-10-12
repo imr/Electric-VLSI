@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
@@ -122,7 +123,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private int [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
 	private List<Highlight> highlightList;
-//	private int numNodes, numArcs, numExports, numTexts;
 	List nodeList, arcList, exportList, textList;
 
     private EditWindow wnd;
@@ -189,8 +189,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	public void highlightChanged(Highlighter which)
 	{
         if (!isVisible()) return;
+		Dimension oldDim = listPane.getSize();
 		loadMultiInfo();
-//		pack();
+		listPane.setPreferredSize(oldDim);
+		pack();
 	}
 
     /**
