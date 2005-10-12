@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/12/05, SMR) "Artwork Appearance" now called "Artwork Color and Pattern".
+     The dialog is modeless.  Instead of having color popups in the node and arc
+     Properties dialogs, there is a "Color and Patterns" button.
+
 BUG: (10/12/05, GVG) Unnecessary resize of GetMultiInfo (bug #641)
 FIX: Remove lock in GetInfoMulti.highlightChanged().
 
