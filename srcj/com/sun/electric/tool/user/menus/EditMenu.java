@@ -366,7 +366,7 @@ public class EditMenu {
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
-		specialSubMenu.addMenuItem("_Artwork Appearance...", null,
+		specialSubMenu.addMenuItem("_Artwork Color and Pattern...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
 
 		specialSubMenu.addSeparator();

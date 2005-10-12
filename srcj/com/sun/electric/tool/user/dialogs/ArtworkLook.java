@@ -32,6 +32,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -48,17 +50,40 @@ import javax.swing.JPanel;
 /**
  * Class to handle the "Artwork Look" dialog.
  */
-public class ArtworkLook extends EDialog
+public class ArtworkLook extends EDialog implements HighlightListener
 {
+	private ColorPatternPanel.Info li;
+	private List artworkObjects;
+	private ColorPatternPanel colorPatternPanel;
+	private EditWindow wnd;
+	private static ArtworkLook dialog;
+
 	/**
 	 * Method to display a dialog for controlling the appearance of selected artwork primitives.
 	 */
 	public static void showArtworkLookDialog()
 	{
 		// see if there is a piece of artwork selected
-        EditWindow wnd = EditWindow.getCurrent();
-		List objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		List artObjects = findSelectedArt();
+		if (artObjects.size() == 0)
+		{
+			System.out.println("Selected object must be from the Artwork technology");
+			return;
+		}
+
+		// show the dialog
+		if (dialog == null)
+			dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artObjects);
+	}
+
+	private static List findSelectedArt()
+	{
 		List artworkObjects = new ArrayList();
+
+		// find all pieces of artwork selected
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return artworkObjects;
+		List objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		for(Iterator it = objects.iterator(); it.hasNext(); )
 		{
 			ElectricObject eObj = (ElectricObject)it.next();
@@ -78,46 +103,25 @@ public class ArtworkLook extends EDialog
 				if (ai.getProto().getTechnology() == Artwork.tech) artworkObjects.add(ai);
 			}
 		}
-		if (artworkObjects.size() == 0)
-		{
-			System.out.println("Selected object must be from the Artwork technology");
-			return;
-		}
-
-		// show the dialog
-		ArtworkLook dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artworkObjects);
+		return artworkObjects;
 	}
 
-	private ColorPatternPanel.Info li;
-	private List artworkObjects;
-
 	/** Creates new form ArtworkLook */
-	public ArtworkLook(Frame parent, List artworkObjects)
+	public ArtworkLook(Frame parent, List artObjects)
 	{
-		super(parent, true);
+		super(parent, false);
 		initComponents();
-		this.artworkObjects = artworkObjects;
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
 		// make the color/pattern panel
-		ColorPatternPanel colorPatternPanel = new ColorPatternPanel(false);
+		colorPatternPanel = new ColorPatternPanel(false);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
-		gbc.gridwidth = 2;  gbc.gridheight = 1;
+		gbc.gridwidth = 3;  gbc.gridheight = 1;
 		gbc.weightx = 1;    gbc.weighty = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		getContentPane().add(colorPatternPanel, gbc);
 		pack();
-
-		EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
-		if (graphics == null)
-		{
-			graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
-				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
-		}
-		li = new ColorPatternPanel.Info(graphics);
-		colorPatternPanel.setColorPattern(li);
 
 		Technology tech = Technology.getCurrent();
 		Color [] map = new Color[tech.getNumTransparentLayers()];
@@ -125,14 +129,64 @@ public class ArtworkLook extends EDialog
 		for(int i=0; i<map.length; i++)
 			map[i] = fullMap[1<<i];
 		colorPatternPanel.setColorMap(map);
+
+		showArtworkObjects(artObjects);
 		finishInitialization();
 		setVisible(true);
 	}
 
 	protected void escapePressed() { cancel(null); }
 
+	private void showArtworkObjects(List artObjects)
+	{
+		artworkObjects = artObjects;
+        EditWindow curWnd = EditWindow.getCurrent();
+        if (curWnd != null && wnd != curWnd)
+		{
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
+
+		if (artworkObjects.size() == 0) li = null; else
+		{
+			EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
+			if (graphics == null)
+			{
+				graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
+					new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+						0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
+			}
+			li = new ColorPatternPanel.Info(graphics);
+		}
+		colorPatternPanel.setColorPattern(li);
+	}
+
+	/**
+	 * Reloads the dialog when Highlights change
+	 */
+	public void highlightChanged(Highlighter which)
+	{
+		if (!isVisible()) return;
+		List artObjects = findSelectedArt();
+		showArtworkObjects(artObjects);
+	}
+
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus)
+	{
+		if (!isVisible()) return;
+		List artObjects = findSelectedArt();
+		showArtworkObjects(artObjects);
+	}
+
 	private void applyDialog()
 	{
+		if (li == null) return;
 		if (li.updateGraphics())
 		{
 			new ApplyChanges(this);
@@ -176,10 +230,11 @@ public class ArtworkLook extends EDialog
 
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
+        apply = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Appearance of Artwork");
+        setTitle("Artwork Color and Pattern");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -200,7 +255,7 @@ public class ArtworkLook extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
@@ -215,15 +270,34 @@ public class ArtworkLook extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
+        apply.setText("Apply");
+        apply.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                applyActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(apply, gridBagConstraints);
+
         pack();
     }
     // </editor-fold>//GEN-END:initComponents
+
+    private void applyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyActionPerformed
+		applyDialog();
+    }//GEN-LAST:event_applyActionPerformed
 
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
 	{//GEN-HEADEREND:event_cancel
@@ -241,9 +315,11 @@ public class ArtworkLook extends EDialog
 	{
 		setVisible(false);
 		dispose();
+		dialog = null;
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton apply;
     private javax.swing.JButton cancel;
     private javax.swing.JButton ok;
     // End of variables declaration//GEN-END:variables

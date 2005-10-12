@@ -280,6 +280,7 @@ public class ColorPatternPanel extends JPanel
 			// clear background
 			g.setColor(new Color(User.getColorBackground()));
 			g.fillRect(0, 0, getWidth(), getHeight());
+			if (currentLI == null) return;
 
 			if (dia.useStipplePatternDisplay.isSelected())
 			{
@@ -381,6 +382,17 @@ public class ColorPatternPanel extends JPanel
 	public void setColorPattern(Info li)
 	{
 		currentLI = li;
+		patternView.setLayerInfo(li);
+		if (li == null)
+		{
+			useStipplePatternDisplay.setEnabled(false);
+			outlinePattern.setEnabled(false);
+			useStipplePatternPrinter.setEnabled(false);
+			transparentLayer.setEnabled(false);
+			colorChooser.setEnabled(false);
+			return;
+		}
+		colorChooser.setEnabled(true);
 		if (li.justColor)
 		{
 			useStipplePatternDisplay.setEnabled(false);
@@ -394,7 +406,6 @@ public class ColorPatternPanel extends JPanel
 			useStipplePatternPrinter.setEnabled(true);
 			transparentLayer.setEnabled(true);
 		}
-		patternView.setLayerInfo(li);
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		outlinePattern.setSelectedItem(li.outlinePatternDisplay.getSample());
@@ -416,6 +427,7 @@ public class ColorPatternPanel extends JPanel
 	 */
 	private void colorChanged()
 	{
+		if (currentLI == null) return;
 		Color col = colorChooser.getColor();
 		currentLI.red = col.getRed();
 		currentLI.green = col.getGreen();
@@ -535,7 +547,7 @@ public class ColorPatternPanel extends JPanel
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
-			if (lInfo.justColor) return;
+			if (lInfo == null || lInfo.justColor) return;
 			int xIndex = evt.getX() / PATSIZE;
 			int yIndex = evt.getY() / PATSIZE;
 			int curWord = lInfo.pattern[yIndex];
@@ -551,7 +563,7 @@ public class ColorPatternPanel extends JPanel
 		public void mouseMoved(MouseEvent evt) {}
 		public void mouseDragged(MouseEvent evt)
 		{
-			if (lInfo.justColor) return;
+			if (lInfo == null || lInfo.justColor) return;
 			int xIndex = evt.getX() / PATSIZE;
 			int yIndex = evt.getY() / PATSIZE;
 			int curWord = lInfo.pattern[yIndex];
@@ -978,7 +990,7 @@ public class ColorPatternPanel extends JPanel
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
-			if (currentLI.justColor) return;
+			if (currentLI == null || currentLI.justColor) return;
 			int xEntry = evt.getX() / 17;
 			if (xEntry >= numPatterns/NUMROWS) xEntry = numPatterns/NUMROWS-1;
 			int yEntry = evt.getY() / 17;

@@ -1155,15 +1155,18 @@ public class Highlighter implements DatabaseChangeListener {
             }
             bounds = poly.getBounds2D();
             style = poly.getStyle();
-            style = Poly.rotateType(style, eObj);
-			TextDescriptor td = poly.getTextDescriptor();
-			if (td != null)
+			if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
 			{
-				int rotation = td.getRotation().getIndex();
-				if (rotation != 0)
+	            style = Poly.rotateType(style, eObj);
+				TextDescriptor td = poly.getTextDescriptor();
+				if (td != null)
 				{
-					int angle = style.getTextAngle();
-					style = Poly.Type.getTextTypeFromAngle((angle+900*rotation) % 3600);
+					int rotation = td.getRotation().getIndex();
+					if (rotation != 0)
+					{
+						int angle = style.getTextAngle();
+						style = Poly.Type.getTextTypeFromAngle((angle+900*rotation) % 3600);
+					}
 				}
 			}
             if (style == Poly.Type.TEXTBOX && (eObj instanceof Geometric))

@@ -155,6 +155,10 @@ public class LayersTab extends PreferencePanel
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
 
+		// report the map for the technology
+		Color [] map = (Color [])colorMapMap.get(tech);
+		colorAndPatternPanel.setColorMap(map);
+
 		layerName.removeAllItems();
 
 		// add all layers in the technology
@@ -175,9 +179,6 @@ public class LayersTab extends PreferencePanel
 			layerName.addItem(name);
 		}
 
-		// report the map for the technology
-		Color [] map = (Color [])colorMapMap.get(tech);
-		colorAndPatternPanel.setColorMap(map);
 		layerSelected();
 	}
 
