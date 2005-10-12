@@ -41,14 +41,11 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
 
 
@@ -280,6 +277,20 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             }
              fieldTech.setText(message);
 		}
+
+        // Determing if size and tech labels should appear
+        FontMetrics fm = this.getGraphics().getFontMetrics(fieldSelected.getFont());
+        int a = SwingUtilities.computeStringWidth(fm, fieldSelected.getText());
+        Rectangle rectSel = fieldSelected.getBounds();
+        Rectangle rectSize = fieldSize.getBounds();
+        boolean visibleSize = (rectSel.getMinX() + a) < rectSize.getMinX();
+//        if (!visibleSize) fieldSize.setText("");
+        fieldSize.setVisible(visibleSize);
+        Rectangle rectTech = fieldTech.getBounds();
+        boolean visibleTech = (rectSel.getMinX() + a) < (rectTech.getMinX());
+//        boolean visibleTech = (rectSel.getMinX() + a) < (rectSize.getMaxX() + rectTech.getMinX());
+        fieldTech.setVisible(visibleTech);
+//        if (!visibleTech) fieldTech.setText("");
 
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);

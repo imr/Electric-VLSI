@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/12/05, GVG) Unnecessary resize of GetMultiInfo (bug #641)
+FIX: Remove lock in GetInfoMulti.highlightChanged().
+
+IMP: (10/11/05, GVG) Size and Tech labels in StatusBar disappear if window is not big enough (Bug #628).
+
 IMP/MAN: (10/11/05, SMR) Pad Frame generator now handles view types properly (Bug #621).
      Also, pad frame generator has a "views" command to specify views to generate.
 

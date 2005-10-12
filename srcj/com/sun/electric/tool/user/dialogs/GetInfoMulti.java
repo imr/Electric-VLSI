@@ -190,7 +190,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	{
         if (!isVisible()) return;
 		loadMultiInfo();
-		pack();
+//		pack();
 	}
 
     /**
@@ -403,7 +403,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				int change = currentChangeTypes[c];
 				JPanel onePanel = new JPanel();
 				onePanel.setLayout(new GridBagLayout());
-				GridBagConstraints gbc;   JLabel lab;
+//				GridBagConstraints gbc;   JLabel lab;
 	            String msg = null;
 				switch (change)
 				{
