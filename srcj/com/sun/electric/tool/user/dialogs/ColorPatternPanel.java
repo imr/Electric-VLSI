@@ -411,7 +411,8 @@ public class ColorPatternPanel extends JPanel
 		}
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
-		outlinePattern.setSelectedItem(li.outlinePatternDisplay.getSample());
+		if (li.outlinePatternDisplay != null) // special cases such text don't have outlinePattern
+            outlinePattern.setSelectedItem(li.outlinePatternDisplay.getSample());
 		outlinePattern.setEnabled(li.useStippleDisplay);
 		if (showPrinter)
 		{
