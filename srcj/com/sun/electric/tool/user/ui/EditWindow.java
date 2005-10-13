@@ -163,6 +163,8 @@ public class EditWindow extends JPanel
     /** Highlighter for this window */                      private Highlighter highlighter;
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
 
+    /** navigate through saved views */                     private EditWindowViewBrowser viewBrowser;
+
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** list of window changes (synchronized) */			private static List windowChangeRequests = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
@@ -199,6 +201,7 @@ public class EditWindow extends JPanel
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
+        viewBrowser = new EditWindowViewBrowser(this);
 
 		sz = new Dimension(500, 500);
 		szHalfWidth = sz.width / 2;
@@ -867,6 +870,7 @@ public class EditWindow extends JPanel
 		highlighter.finished();
         mouseOverHighlighter.clear();
         mouseOverHighlighter.finished();
+        viewBrowser.clear();
 
 		setWindowTitle();
 		if (wf != null)
@@ -2536,6 +2540,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(newoffx, oY);
 //        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
+        getSavedViewBrowser().updateCurrentView();
         repaintContents(null, false);
     }
 
@@ -2561,6 +2566,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(oX, newoffy);
 //        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
+        getSavedViewBrowser().updateCurrentView();
         repaintContents(null, false);
     }
 
@@ -2585,6 +2591,7 @@ public class EditWindow extends JPanel
 		}
 		setScreenBounds(bounds);
 		setScrollPosition();
+        getSavedViewBrowser().saveCurrentView();
 		repaintContents(null, false);
 	}
 
@@ -2660,6 +2667,7 @@ public class EditWindow extends JPanel
                 return;
             }
         }
+        getSavedViewBrowser().saveCurrentView();
 		repaint();
 	}
 
@@ -2667,6 +2675,7 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale / 2);
+        getSavedViewBrowser().saveCurrentView();
 		repaintContents(null, false);
 	}
 
@@ -2674,6 +2683,7 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale * 2);
+        getSavedViewBrowser().saveCurrentView();
 		repaintContents(null, false);
 	}
 
@@ -2683,6 +2693,12 @@ public class EditWindow extends JPanel
 		Rectangle2D bounds = highlighter.getHighlightedArea(this);
 		focusScreen(bounds);
 	}
+
+    /**
+     * Get the Saved View Browser for this Edit Window
+     */
+    public EditWindowViewBrowser getSavedViewBrowser() { return viewBrowser; }
+
 
     // ************************************* HIERARCHY TRAVERSAL *************************************
 
@@ -3585,6 +3601,7 @@ public class EditWindow extends JPanel
 		        new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
 		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 		setOffset(newOffset);
+        getSavedViewBrowser().updateCurrentView();
 		repaintContents(null, false);
 	}
 }

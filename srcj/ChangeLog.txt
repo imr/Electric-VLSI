@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/13/05, JKG) Added Window Menu items to go back/forward between saved views of EditWindow.
+
 BUG: (10/12/05, GVG) Cadence preferences can't be imported on Mac OS X (Sun menu) (Bug #643)
 FIX: Change InputStream(String) by InputStream(URL) so Cadence file available in electric.jar can be open.
 

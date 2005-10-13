@@ -47,14 +47,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.SavedViews;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.MessagesWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.ui.*;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
@@ -119,8 +112,12 @@ public class WindowMenu {
         centerSubMenu.addMenuItem("_Cursor", KeyStroke.getKeyStroke('5', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
 
-        windowMenu.addMenuItem("Saved _Views...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
+        //windowMenu.addMenuItem("Saved _Views...", null,
+        //    new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
+        windowMenu.addMenuItem("Go To Previous View", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { goToPreviousSavedView(); } });
+        windowMenu.addMenuItem("Go To Next View", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { goToNextSavedView(); } });
 
         windowMenu.addSeparator();
 
@@ -664,4 +661,23 @@ public class WindowMenu {
 		User.setDefaultWindowYPos(pt.y);
     }
 
+    /**
+     * Go to the previous saved view for the current Edit Window
+     */
+    public static void goToPreviousSavedView() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        EditWindowViewBrowser browser = wnd.getSavedViewBrowser();
+        browser.goBack();
+    }
+
+    /**
+     * Go to the previous saved view for the current Edit Window
+     */
+    public static void goToNextSavedView() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        EditWindowViewBrowser browser = wnd.getSavedViewBrowser();
+        browser.goForward();
+    }
 }

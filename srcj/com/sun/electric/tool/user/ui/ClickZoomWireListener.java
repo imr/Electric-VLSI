@@ -666,6 +666,7 @@ public class ClickZoomWireListener
 	                double scale = wnd.getScale();
 	                wnd.setScale(scale * 2);
 	                wnd.clearDoingAreaDrag();
+                    wnd.getSavedViewBrowser().saveCurrentView();
 	                wnd.repaintContents(null, false);
 	            }
 	            if (modeRight == Mode.zoomOut) {
@@ -674,6 +675,7 @@ public class ClickZoomWireListener
 	                wnd.setScale(scale / 2);
                     wnd.setOffset(dbMouse);
 	                wnd.clearDoingAreaDrag();
+                    wnd.getSavedViewBrowser().saveCurrentView();
 	                wnd.repaintContents(null, false);
 	            }
 	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot) {
@@ -713,6 +715,7 @@ public class ClickZoomWireListener
 	                        double scale = wnd.getScale();
 	                        wnd.setScale(scale / 2);
 	                        wnd.clearDoingAreaDrag();
+                            wnd.getSavedViewBrowser().saveCurrentView();
 	                        wnd.repaintContents(null, false);
 	                    } else {
 	                        wnd.focusScreen(bounds);
