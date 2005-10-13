@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+FIX: (10/13/05, JKG) Fixed Pad frame generator (bug #621), Updated manual
+
 BUG: (10/13/05, GVG) Exception in ColorPatternPanel when li.outlinePatternDisplay was null (eg SPECIAL:TEXT) (Bug #644)
 FIX: Skip setting of outlinePatternDisplay in that case.
 
