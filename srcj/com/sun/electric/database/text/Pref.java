@@ -32,9 +32,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +42,8 @@ import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
+import java.net.URLConnection;
+import java.net.URL;
 
 /**
  * This class manages options.
@@ -232,11 +232,20 @@ public class Pref
     public static void importPrefs(String fileName)
     {
         if (fileName == null) return;
+
+        // import preferences
+        importPrefs(TextUtils.makeURLToFile(fileName));
+    }
+
+    public static void importPrefs(URL fileURL)
+    {
+        if (fileURL == null) return;
+
         // import preferences
         try
 		{
-			FileInputStream inputStream = new FileInputStream(fileName);
-
+            URLConnection urlCon = fileURL.openConnection();
+			InputStream inputStream = urlCon.getInputStream();
 			System.out.println("Importing preferences...");
 
 			// reset all preferences to factory values
@@ -310,13 +319,14 @@ public class Pref
 		} catch (IOException e)
 		{
 			System.out.println("Error reading preferences file");
+            e.printStackTrace();
 			return;
 		}
 
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
         top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
 
-		System.out.println("...preferences imported from " + fileName);
+		System.out.println("...preferences imported from " + fileURL.getFile());
 	}
 
 	/**

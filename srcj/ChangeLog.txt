@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/12/05, GVG) Cadence preferences can't be imported on Mac OS X (Sun menu) (Bug #643)
+FIX: Change InputStream(String) by InputStream(URL) so Cadence file available in electric.jar can be open.
+
 BUG: (10/12/05, SMR) Unnecessary resize of GetMultiInfo (bug #641)
 FIX: Preserve size of scroll area in GetInfoMulti.highlightChanged().
 
