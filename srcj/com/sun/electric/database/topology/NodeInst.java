@@ -27,6 +27,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -918,11 +919,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param portPtotoId PortProtoId of the PortInst.
 	 * @param key the key of the Variable to delete.
 	 */
-	public void delVar(PortProtoId portProtoId, Variable.Key key)
+	void delVar(PortProtoId portProtoId, Variable.Key key)
 	{
 		checkChanging();
         ImmutableNodeInst oldD = d;
         d = d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key));
+        if (d == oldD) return;
+		if (parent != null)
+			Undo.modifyNodeInst(this, oldD);
+	}
+    
+	/**
+	 * Package-private method to delete all Variables from PortInst of this NodeInst.
+     * @param portPtotoId PortProtoId of the PortInst.
+	 */
+	void delVars(PortProtoId portProtoId)
+	{
+		checkChanging();
+        ImmutableNodeInst oldD = d;
+        d = d.withPortInst(portProtoId, ImmutablePortInst.EMPTY);
         if (d == oldD) return;
 		if (parent != null)
 			Undo.modifyNodeInst(this, oldD);
@@ -2006,9 +2021,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/**
 	 * Method to delete a PortInst from this NodeInst.
 	 * @param pp the prototype of the PortInst to remove.
-	 * @return deleted PortInst
 	 */
-	public PortInst removePortInst(PortProto pp)
+	public void removePortInst(PortProto pp)
 	{
 		int portIndex = pp.getPortIndex();
 		PortInst pi = portInsts[portIndex];
@@ -2016,7 +2030,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
 		System.arraycopy(portInsts, portIndex + 1, newPortInsts, portIndex, newPortInsts.length - portIndex);
 		portInsts = newPortInsts;
-		return pi;
 	}
 
     /** 

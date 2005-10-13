@@ -181,19 +181,13 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.newObject(obj);
 				}
-			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL ||
+			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
 				type == Type.CELLKILL || type == Type.OBJECTKILL)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.killObject(obj);
-				}
-			} else if (type == Type.EXPORTKILL) {
-				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.killExport((Export)obj, (Collection)o1);
 				}
 			} else if (type == Type.OBJECTRENAME) {
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
@@ -322,17 +316,15 @@ public class Undo
 			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
-				o1 = pp.lowLevelUnlink();
+				pp.lowLevelUnlink();
 				type = Type.EXPORTKILL;
 				return;
 			}
 			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
-                Collection<PortInst> portInsts = (Collection<PortInst>)o1;
-				pp.lowLevelLink(portInsts);
+				pp.lowLevelLink();
 				type = Type.EXPORTNEW;
-				o1 = null;
 				if (Main.getDebug()) ((Cell)pp.getParent()).checkInvariants();
 				return;
 			}
@@ -993,7 +985,7 @@ public class Undo
 	 * <LI>ARCINSTKILL takes nothing.
 	 * <LI>ARCINSTMOD takes o1=oldD.
 	 * <LI>EXPORTNEW takes nothing.
-	 * <LI>EXPORTKILL takes o1=oldPortInsts.
+	 * <LI>EXPORTKILL takes nothing.
 	 * <LI>EXPORTMOD takes o1=oldPortInst.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
@@ -1168,6 +1160,7 @@ public class Undo
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
+        else if (obj instanceof Export) type = Type.EXPORTKILL;
 		else if (obj instanceof Library) type = Type.LIBRARYKILL;
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
@@ -1175,23 +1168,6 @@ public class Undo
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
 		Constraints.getCurrent().killObject(obj);
-	}
-
-	/**
-	 * Method to store the deletion of an Export in the change-control system.
-	 * @param pp the Export that was deleted.
-	 * @param oldPortInsts a collection of deleted PortInsts of the Export.
-	 */
-	public static void killExport(Export pp, Collection oldPortInsts)
-	{
-		if (!recordChange()) return;
-		Type type = Type.EXPORTKILL;
-		Change ch = newChange(pp, type, oldPortInsts);
-		if (ch == null) return;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().killExport(pp, oldPortInsts);
 	}
 
 	/**

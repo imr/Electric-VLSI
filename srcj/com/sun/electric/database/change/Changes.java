@@ -126,13 +126,6 @@ public interface Changes
 	void killObject(ElectricObject obj);
 
 	/**
-	 * Method to announce the deletion of an Export.
-	 * @param pp the Export that was just deleted.
-	 * @param oldPortInsts the PortInsts that were on that Export (?).
-	 */
-	void killExport(Export pp, Collection oldPortInsts);
-
-	/**
 	 * Method to announce the renaming of an ElectricObject.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of that ElectricObject.

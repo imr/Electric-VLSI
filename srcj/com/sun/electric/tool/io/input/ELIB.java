@@ -483,7 +483,7 @@ public class ELIB extends LibraryFiles
 			if (tech == null)
 			{
 				// cannot figure it out: just pick the first technology
-				Iterator it = Technology.getTechnologies();
+				Iterator<Technology> it = Technology.getTechnologies();
 				tech = (Technology) it.next();
 				techError[techIndex] = name;
 			} else techError[techIndex] = null;
@@ -509,7 +509,7 @@ public class ELIB extends LibraryFiles
 					boolean advise = true;
 
 					// look for substring name match at start of name
-					for(Iterator it = tech.getNodes(); it.hasNext();)
+					for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
 					{
 						PrimitiveNode opnp = (PrimitiveNode) it.next();
 						String primName = opnp.getName();
@@ -523,7 +523,7 @@ public class ELIB extends LibraryFiles
 					// look for substring match at end of name
 					if (pnp == null)
 					{
-						for(Iterator it = tech.getNodes(); it.hasNext();)
+						for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
 						{
 							PrimitiveNode opnp = (PrimitiveNode) it.next();
 							String primName = opnp.getName();
@@ -545,7 +545,7 @@ public class ELIB extends LibraryFiles
 					// give up and use first primitive in this technology
 					if (pnp == null)
 					{
-						Iterator it = tech.getNodes();
+						Iterator<PrimitiveNode> it = tech.getNodes();
 						pnp = (PrimitiveNode) it.next();
 					}
 
@@ -577,7 +577,7 @@ public class ELIB extends LibraryFiles
 
 					if (pp == null)
 					{
-						Iterator it = pnp.getPorts();
+						Iterator<PrimitivePort> it = pnp.getPrimitivePorts();
 						if (it.hasNext())
 						{
 							pp = (PrimitivePort)it.next();
@@ -615,7 +615,7 @@ public class ELIB extends LibraryFiles
 				}
 				if (ap == null)
 				{
-					Iterator it = tech.getArcs();
+					Iterator<ArcProto> it = tech.getArcs();
 					ap = (ArcProto) it.next();
 					String errorMessage;
 					if (techError[techIndex] != null)
@@ -693,7 +693,7 @@ public class ELIB extends LibraryFiles
 				}
 			}
 		}
-		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (techScale[tech.getIndex()] > 0.0) continue;
@@ -787,7 +787,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// collect the cells by common protoName and by "nextInCellGroup" relation
-		TransitiveRelation transitive = new TransitiveRelation();
+		TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
 		HashMap<String,String> protoNames = new HashMap<String,String>();
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
@@ -814,11 +814,11 @@ public class ELIB extends LibraryFiles
 		}
 
 		// join the cell groups
-		for (Iterator/*<Set<Object>>*/ git = transitive.getSetsOfRelatives(); git.hasNext();)
+		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
 		{
-			Set/*<Object>*/ group = (Set)git.next();
+			Set<Object> group = (Set<Object>)git.next();
 			Cell firstCell = null;
-			for (Iterator it = group.iterator(); it.hasNext();)
+			for (Iterator<Object> it = group.iterator(); it.hasNext();)
 			{
 				Object o = it.next();
 				if (!(o instanceof Cell)) continue;
@@ -926,7 +926,7 @@ public class ELIB extends LibraryFiles
 		}
 
         // warn if any dummy cells were read in
-        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             if (c.getVar(IO_DUMMY_OBJECT) != null) {
                 System.out.println("WARNING: "+lib+" contains DUMMY cell "+c.noLibDescribe());
@@ -1246,7 +1246,7 @@ public class ELIB extends LibraryFiles
 //			while (found)
 //			{
 //				found = false;
-//				for(Iterator it = ni.getVariables(); it.hasNext(); )
+//				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 //				{
 //					Variable origVar = (Variable)it.next();
 //					Variable.Key origVarKey = origVar.getKey();
@@ -1480,7 +1480,7 @@ public class ELIB extends LibraryFiles
                 pi = null;
             } else {
                 // name not found, see if any ports exist at location that we can connect to
-                for (Iterator it = node.getPortInsts(); it.hasNext(); ) {
+                for (Iterator<PortInst> it = node.getPortInsts(); it.hasNext(); ) {
                     pi = (PortInst)it.next();
                     Poly portLocation = pi.getPoly();
                     if (portLocation.contains(x, y)) {
@@ -1640,7 +1640,11 @@ public class ELIB extends LibraryFiles
 			// versions 8 and earlier read a cell name
 			theProtoName = readString();
 		}
-		cell.lowLevelPopulate(theProtoName);
+		if (cell.lowLevelPopulate(theProtoName)) {
+            System.out.println("Strange cell name " + theProtoName + " in library " + lib);
+            cell.lowLevelPopulate("?????????????????");
+        }
+        assert cell.getCellName() != null;
 
 		// ignore the cell bounding box
 		int lowX = readBigInteger();
@@ -1868,7 +1872,7 @@ public class ELIB extends LibraryFiles
 
 					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getName() +
 						" is missing export '" + localPortNames[j] + "'");
-// 					for (Iterator it = c.getPorts(); it.hasNext(); )
+// 					for (Iterator<PortProto> it = c.getPorts(); it.hasNext(); )
 // 					{
 // 						PortProto ppo = (PortProto)it.next();
 // 						System.out.println("\t"+ppo.getName());

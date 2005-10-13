@@ -39,14 +39,15 @@ import java.util.Set;
  * and Fred is related to Paul then TransitiveRelation returns
  * {Tom, Sally, John} and {Fred, Paul}.
  */
-public class TransitiveRelation {
-	private Map objToRelated = new HashMap();
-	public void theseAreRelated(Object o1, Object o2) {
-		Set s1 = (Set) objToRelated.get(o1);
-		Set s2 = (Set) objToRelated.get(o2);
+public class TransitiveRelation<T> {
+	private Map<T,HashSet<T>> objToRelated = new HashMap<T,HashSet<T>>();
+/*5*/public void theseAreRelated(T o1, T o2) {
+//4*/public void theseAreRelated(Object o1, Object o2) {
+		HashSet<T> s1 = (HashSet<T>) objToRelated.get(o1);
+		HashSet<T> s2 = (HashSet<T>) objToRelated.get(o2);
 		if (s1==null && s2==null) {
 			// no sets
-			Set related = new HashSet();
+			HashSet<T> related = new HashSet<T>();
 			related.add(o1); related.add(o2);
 			objToRelated.put(o1, related);
 			objToRelated.put(o2, related);
@@ -64,19 +65,19 @@ public class TransitiveRelation {
 			if (s1.size()>s2.size()) {
 				// merge s2 into s1
 				s1.addAll(s2);
-				for (Iterator it=s2.iterator(); it.hasNext();) 
+				for (Iterator<T> it=s2.iterator(); it.hasNext();) 
 					objToRelated.put(it.next(), s1);					
 			} else {
 				// merge s1 into s2
 				s2.addAll(s1);
-				for (Iterator it=s1.iterator(); it.hasNext();) 
+				for (Iterator<T> it=s1.iterator(); it.hasNext();) 
 					objToRelated.put(it.next(), s2);					
 			}
 		}
 	}
 	/** Return an Iterator over Sets of related Objects. */
-	public Iterator getSetsOfRelatives() {
-		Set s = new HashSet();
+	public Iterator<Set<T>> getSetsOfRelatives() {
+		Set<Set<T>> s = new HashSet<Set<T>>();
 		s.addAll(objToRelated.values());
 		return s.iterator();
 	}

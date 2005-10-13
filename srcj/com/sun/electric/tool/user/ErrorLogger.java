@@ -120,19 +120,19 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /**
      * Create a Log of a single message.
      */
-    public static class MessageLog implements Comparable {
+    public static class MessageLog implements Comparable<MessageLog> {
         private String message;
         private int    sortKey;
         private int    index;
         private Cell    logCell;                // cell associated with log (not really used)
-        private List   highlights;
+        private List<ErrorHighlight>   highlights;
 
         private MessageLog(String message, Cell cell, int sortKey) {
             this.message = message;
             this.sortKey = sortKey;
             this.logCell = cell;
             index = 0;
-            highlights = new ArrayList();
+            highlights = new ArrayList<ErrorHighlight>();
         }
 
 	    /**
@@ -142,9 +142,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 		 * @return Returns a negative integer, zero, or a positive integer as the
 		 * first message has smaller than, equal to, or greater than the second lexicographically
 		 */
-	    public int compareTo(Object o1)
+/*5*/    public int compareTo(MessageLog log1)
+//4*/    public int compareTo(Object o1)
 	    {
-		    MessageLog log1 = (MessageLog)o1;
+//4*/	    MessageLog log1 = (MessageLog)o1;
 		    return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
 	    }
 
@@ -240,7 +241,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public int getNumGeoms()
         {
             int total = 0;
-            for(Iterator it = highlights.iterator(); it.hasNext(); )
+            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
                 if (eh.type == ERRORTYPEGEOM) total++;
@@ -256,7 +257,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public ErrorHighlight getErrorGeom(int index)
         {
             int total = 0;
-            for(Iterator it = highlights.iterator(); it.hasNext(); )
+            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
                 if (eh.type != ERRORTYPEGEOM) continue;
@@ -272,7 +273,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             boolean eh1found = false;
 	        boolean eh2found = false;
 
-	        for(Iterator it = highlights.iterator(); it.hasNext(); )
+	        for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
                 if (eh.type != ERRORTYPEGEOM) continue;
@@ -299,7 +300,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             if (!logCell.isLinked()) return false;
             // check validity of highlights
             boolean allValid = true;
-            for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+            for (Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); ) {
                 ErrorHighlight erh = (ErrorHighlight)it.next();
                 if (!erh.isValid()) { allValid = false; break; }
             }
@@ -317,7 +318,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             if (gPair != null)
             {
                 Geometric geom1 = null, geom2 = null;
-                for(Iterator it = highlights.iterator(); it.hasNext(); )
+                for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
                 {
                     ErrorHighlight eh = (ErrorHighlight)it.next();
                     if (eh.type == ERRORTYPEGEOM)
@@ -339,7 +340,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                 EditWindow wnd = null;
 
                 // first show the geometry associated with this error
-                for(Iterator it = highlights.iterator(); it.hasNext(); )
+                for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
                 {
                     ErrorHighlight eh = (ErrorHighlight)it.next();
 
@@ -354,7 +355,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
                         // make sure it is shown
                         boolean found = false;
-                        for(Iterator it2 = WindowFrame.getWindows(); it2.hasNext(); )
+                        for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
                         {
                             WindowFrame wf = (WindowFrame)it2.next();
                             WindowContent content = wf.getContent();
@@ -444,18 +445,18 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     }
 
     /** Current Logger */               private static ErrorLogger currentLogger;
-    /** List of all loggers */          private static List allLoggers = new ArrayList();
+    /** List of all loggers */          private static List<ErrorLogger> allLoggers = new ArrayList<ErrorLogger>();
 
 	private boolean alreadyExplained;
     private int errorLimit;
-    private List allErrors;
-	private List allWarnings;
+    private List<MessageLog> allErrors;
+	private List<MessageLog> allWarnings;
     private int currentLogNumber;
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
     private boolean persistent; // cannot be deleted
-    private HashMap sortKeysToGroupNames; // association of sortKeys to GroupNames
+    private HashMap<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
 
     private ErrorLogger() {}
 
@@ -480,8 +481,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public static ErrorLogger newInstance(String system, boolean persistent)
     {
         ErrorLogger logger = new ErrorLogger();
-        logger.allErrors = new ArrayList();
-	    logger.allWarnings = new ArrayList();
+        logger.allErrors = new ArrayList<MessageLog>();
+	    logger.allWarnings = new ArrayList<MessageLog>();
         logger.limitExceeded = false;
         logger.currentLogNumber = -1;
         logger.errorSystem = system;
@@ -524,7 +525,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         MessageLog el = new MessageLog(message, cell, sortKey);
 
         // store information about the error
-        el.highlights = new ArrayList();
+        el.highlights = new ArrayList<ErrorHighlight>();
 
         // add the ErrorLog into the global list
         allErrors.add(el);
@@ -560,7 +561,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         MessageLog el = new WarningLog(message, cell, sortKey);
 
         // store information about the error
-        el.highlights = new ArrayList();
+        el.highlights = new ArrayList<ErrorHighlight>();
 
         // add the ErrorLog into the global list
         allWarnings.add(el);
@@ -611,17 +612,17 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * @param cell the cell for which errors will be removed
      */
     public synchronized void clearLogs(Cell cell) {
-       ArrayList trimmedLogs = new ArrayList();
+       ArrayList<MessageLog> trimmedLogs = new ArrayList<MessageLog>();
         // Errors
-        for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+        for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
             if (log.logCell != cell) trimmedLogs.add(log);
         }
         allErrors = trimmedLogs;
 
-	    trimmedLogs = new ArrayList();
+	    trimmedLogs = new ArrayList<MessageLog>();
         // Warnings
-        for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+        for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
             if (log.logCell != cell) trimmedLogs.add(log);
         }
@@ -667,12 +668,12 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 			return;
 		}
 
-	    for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+	    for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
 		    buffWriter.println(log.getMessage());
         }
         // Warnings
-        for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+        for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
 		    buffWriter.println(log.getMessage());
         }
@@ -694,7 +695,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      */
     public void setGroupName(int sortKey, String groupName) {
         if (sortKeysToGroupNames == null) {
-            sortKeysToGroupNames = new HashMap();
+            sortKeysToGroupNames = new HashMap<Integer,String>();
         }
         sortKeysToGroupNames.put(new Integer(sortKey), groupName);
     }
@@ -706,12 +707,12 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     {
         // enumerate the errors
         int errs = 0;
-        for(Iterator it = allErrors.iterator(); it.hasNext(); )
+        for(Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); )
         {
             MessageLog el = (MessageLog)it.next();
             el.index = ++errs;
         }
-	    for(Iterator it = allWarnings.iterator(); it.hasNext(); )
+	    for(Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); )
         {
             MessageLog el = (MessageLog)it.next();
             el.index = ++errs;
@@ -781,12 +782,13 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	    Collections.sort(allWarnings, new ErrorLogOrder());
     }
 
-    private static class ErrorLogOrder implements Comparator
+    private static class ErrorLogOrder implements Comparator<MessageLog>
     {
-        public int compare(Object o1, Object o2)
+/*5*/   public int compare(MessageLog el1, MessageLog el2)
+//4*/   public int compare(Object o1, Object o2)
         {
-            MessageLog el1 = (MessageLog)o1;
-            MessageLog el2 = (MessageLog)o2;
+//4*/       MessageLog el1 = (MessageLog)o1;
+//4*/       MessageLog el2 = (MessageLog)o2;
 	        int sortedKey = el1.sortKey - el2.sortKey;
 	        if (sortedKey == 0) // Identical, compare lexicographically
 	            sortedKey = el1.compareTo(el2);
@@ -899,12 +901,12 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * Method to list all logged errors and warnings.
      * @return an Iterator over all of the "ErrorLog" objects.
      */
-    private synchronized Iterator getLogs() {
-        List copy = new ArrayList();
-        for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+    private synchronized Iterator<MessageLog> getLogs() {
+        List<MessageLog> copy = new ArrayList<MessageLog>();
+        for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
-	    for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+	    for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
         return copy.iterator();
@@ -929,11 +931,11 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
     public static void deleteAllLoggers()
     {
-        ArrayList loggersCopy = new ArrayList();
+        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
         synchronized(allLoggers) {
             loggersCopy.addAll(allLoggers);
         }
-        for (Iterator eit = loggersCopy.iterator(); eit.hasNext(); )
+        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); )
         {
             ErrorLogger log = (ErrorLogger)eit.next();
             log.delete();
@@ -943,17 +945,17 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public static DefaultMutableTreeNode getExplorerTree()
     {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
-        ArrayList loggersCopy = new ArrayList();
+        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
         synchronized(allLoggers) {
             loggersCopy.addAll(allLoggers);
         }
-        for (Iterator eit = loggersCopy.iterator(); eit.hasNext(); ) {
+        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); ) {
             ErrorLogger logger = (ErrorLogger)eit.next();
             if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
             DefaultMutableTreeNode groupNode = loggerNode;
             int currentSortKey = -1;
-            for (Iterator it = logger.getLogs(); it.hasNext();)
+            for (Iterator<MessageLog> it = logger.getLogs(); it.hasNext();)
             {
                 MessageLog el = (MessageLog)it.next();
                 // by default, groupNode is entire loggerNode
@@ -1008,7 +1010,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public void databaseChanged(DatabaseChangeEvent e) {
         // check if any errors need to be deleted
         boolean changed = false;
-        for (Iterator it = getLogs(); it.hasNext(); ) {
+        for (Iterator<MessageLog> it = getLogs(); it.hasNext(); ) {
             MessageLog err = (MessageLog)it.next();
             if (!err.isValid()) {
                 deleteLog(err);
@@ -1022,7 +1024,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 //     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
 //         // check if any errors need to be deleted
 //         boolean changed = false;
-//         for (Iterator it = getLogs(); it.hasNext(); ) {
+//         for (Iterator<MessageLog> it = getLogs(); it.hasNext(); ) {
 //             MessageLog err = (MessageLog)it.next();
 //             if (!err.isValid()) {
 //                 deleteLog(err);

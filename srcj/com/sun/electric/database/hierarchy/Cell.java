@@ -37,6 +37,7 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
@@ -72,7 +73,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -375,11 +375,13 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
+    /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
 	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
 	/** A map from Name to Integer maximal numeric suffix */        private final HashMap<Name,MaxSuffix> maxSuffix = new HashMap<Name,MaxSuffix>();
     /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
-	/** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
+    /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
+    /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
 	/** A map from temporary Name keys to NodeInst. */				private final HashMap<Name,NodeInst> tempNodeNames = new HashMap<Name,NodeInst>();
 	/** The bounds of the Cell. */									private final Rectangle2D cellBounds = new Rectangle2D.Double();
 	/** Whether the bounds need to be recomputed.
@@ -1599,6 +1601,20 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		return (NodeInst)nodes.get(nodeIndex);
 	}
 
+	/**
+	 * Method to return the PortInst by nodeId and PortProtoId.
+	 * @param nodeId specified NodeId.
+     * @param portProtoId
+	 * @return the PortInst at specified position..
+	 */
+    public PortInst getPortInst(int nodeId, PortProtoId portProtoId) {
+        NodeInst ni = chronNodes.get(nodeId);
+        assert ni.getD().protoId == portProtoId.getParentId();
+        NodeProto np = ni.getProto();
+        PortProto pp = np.getPort(portProtoId);
+        return ni.getPortInst(pp.getPortIndex());
+    }
+    
     /**
      * Method to return an Iterator over all CellUsage objects in this Cell.
      * @return an Iterator over all CellUsage objects in this Cell.
@@ -1708,6 +1724,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		}
 
 		addNodeName(ni);
+        int nodeId = ni.getD().nodeId;
+        while (chronNodes.size() <= nodeId) chronNodes.add(null);
+        assert chronNodes.get(nodeId) == null;
+        chronNodes.set(nodeId, ni);
         
         // count usage
         if (protoType instanceof Cell) {
@@ -1811,6 +1831,9 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         }
 
 		removeNodeName(ni);
+        int nodeId = ni.getD().nodeId;
+        assert chronNodes.get(nodeId) == ni;
+        chronNodes.set(nodeId, null);
 	}
 
 	/**
@@ -1960,6 +1983,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			ArcInst a = (ArcInst)arcs.get(arcIndex);
 			a.setArcIndex(arcIndex);
 		}
+        int arcId = ai.getD().arcId;
+        while (chronArcs.size() <= arcId) chronArcs.add(null);
+        assert chronArcs.get(arcId) == null;
+        chronArcs.set(arcId, ai);
         
         // update maximal arc name suffux temporary name
 		if (ai.isUsernamed()) return;
@@ -2009,6 +2036,9 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			a.setArcIndex(i);
 		}
 		ai.setArcIndex(-1);
+        int arcId = ai.getD().arcId;
+        assert chronArcs.get(arcId) == ai;
+        chronArcs.set(arcId, null);
 	}
 
     /**
@@ -2074,7 +2104,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 * @param export the PortProto to add to this NodeProto.
 	 * @param oldPortInsts a collection of PortInsts to Undo or null.
 	 */
-	void addExport(Export export, Collection<PortInst> oldPortInsts)
+	 void addExport(Export export)
 	{
 		checkChanging();
 		int portIndex = - searchExport(export.getName()) - 1;
@@ -2102,30 +2132,18 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		exports = newExports;
 
 		// create a PortInst for every instance of this node
-		if (oldPortInsts != null)
-		{
-			for(Iterator<PortInst> it = oldPortInsts.iterator(); it.hasNext(); )
-			{
-				PortInst pi = (PortInst)it.next();
-				pi.getNodeInst().linkPortInst(pi);
-			}
-		} else
-		{
-			for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.addPortInst(export);
-                assert ni.getNumPortInsts() == exports.length;
-			}
-		}
+        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            ni.addPortInst(export);
+            assert ni.getNumPortInsts() == exports.length;
+        }
 	}
 
 	/**
 	 * Removes an Export from this Cell.
 	 * @param export the Export to remove from this Cell.
-	 * @return collection of deleted PortInsts of the Export.
 	 */
-	Collection<PortInst> removeExport(Export export)
+	void removeExport(Export export)
 	{
 		checkChanging();
 		int portIndex = export.getPortIndex();
@@ -2141,16 +2159,14 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		exports = newExports;
         chronExports[export.getId().getChronIndex()] = null;
 
-		Collection<PortInst> portInsts = new ArrayList<PortInst>();
 		// remove the PortInst from every instance of this node
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			portInsts.add(ni.removePortInst(export));
+			ni.removePortInst(export);
 		}
 
 		export.setPortIndex(-1);
-		return portInsts;
 	}
 
 	/**
@@ -2161,7 +2177,6 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	{
 		Export export = exports[oldPortIndex];
 		int newPortIndex = - searchExport(newName) - 1;
-		System.out.println("Move " + export + " " + oldPortIndex + " " + newPortIndex);
 		if (newPortIndex < 0) return;
 		if (newPortIndex > oldPortIndex)
 			newPortIndex--;
@@ -2265,6 +2280,16 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 * @return the PortProto at specified position..
 	 */
 	public PortProto getPort(int portIndex) { return exports[portIndex]; }
+
+	/**
+	 * Method to return the PortProto by thread-independent PortProtoId.
+	 * @param portProtoId thread-independent PortProtoId.
+	 * @return the PortProto.
+	 */
+	public PortProto getPort(PortProtoId portProtoId) {
+        if (portProtoId.getParentId() != cellId) throw new IllegalArgumentException();
+        return chronExports[portProtoId.getChronIndex()];
+    }
 
 	/**
 	 * Method to return the Export at specified chronological index.
@@ -3747,6 +3772,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		{
 			ArcInst ai = (ArcInst)arcs.get(i);
 			assert ai.getParent() == this;
+            assert chronArcs.get(ai.getD().arcId) == ai;
 			assert ai.getArcIndex() == i;
 			if (prevAi != null)
 			{
@@ -3762,13 +3788,19 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 //			connections.add(ai.getTail());
 			prevAi = ai;
 		}
-		// now make sure that all nodes reference them
+        int countArcs = 0;
+        for (int i = 0; i < chronArcs.size(); i++)
+            if (chronArcs.get(i) != null) countArcs++;
+        assert countArcs == arcs.size();
+
+        // now make sure that all nodes reference them
 		NodeInst prevNi = null;
         int[] usages = new int[cellId.numUsagesIn()];
 		for(int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst)nodes.get(i);
 			assert ni.getParent() == this;
+            assert chronNodes.get(ni.getD().nodeId) == ni;
 			assert ni.getNodeIndex() == i;
 			if (prevNi != null)
 			{
@@ -3792,6 +3824,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			}
 			prevNi = ni;
 		}
+        int countNodes = 0;
+        for (int i = 0; i < chronNodes.size(); i++)
+            if (chronNodes.get(i) != null) countNodes++;
+        assert countNodes == nodes.size();
 //		// finally check to see if there are any left in the hash table
 //		assert connections.isEmpty();
 

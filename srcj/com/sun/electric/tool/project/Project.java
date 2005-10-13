@@ -935,17 +935,6 @@ public class Project extends Listener
 	}
 
 	/**
-	 * Method to handle the deletion of an Export.
-	 * @param pp the Export that was just deleted.
-	 * @param oldPortInsts the PortInsts that were on that Export (?).
-	 */
-	public void killExport(Export pp, Collection oldPortInsts)
-	{
-		if (ignoreChanges) return;
-		queueCheck((Cell)pp.getParent());
-	}
-
-	/**
 	 * Method to handle the renaming of an ElectricObject.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of that ElectricObject.

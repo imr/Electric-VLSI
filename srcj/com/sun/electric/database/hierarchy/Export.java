@@ -234,7 +234,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 		}
         
         Export e = new Export(parent, name, nameTextDescriptor, originalPort, userBits);
-		if (e.lowLevelLink(null)) return null;
+		if (e.lowLevelLink()) return null;
         
 		// handle change control, constraint, and broadcast
 		Undo.newObject(e);
@@ -262,10 +262,10 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 			pi.disconnect();
 		}
 		
-		Collection oldPortInsts = lowLevelUnlink();
+		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		Undo.killExport(this, oldPortInsts);
+		Undo.killObject(this);
 	}
 
 	/**
@@ -358,15 +358,14 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 
 	/**
 	 * Low-level access method to link this Export into its cell.
-	 * @param oldPortInsts collection which contains portInsts of this Export for Undo or null.
 	 * @return true on error.
 	 */
-	public boolean lowLevelLink(Collection<PortInst> oldPortInsts)
+	public boolean lowLevelLink()
 	{
 		assert parent.isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
-		parent.addExport(this, oldPortInsts);
+		parent.addExport(this);
 		return false;
 	}
 
@@ -374,12 +373,12 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * Low-level access method to unlink this Export from its cell.
 	 * @return collection of deleted PortInsts of this Export.
 	 */
-	public Collection<PortInst> lowLevelUnlink()
+	public void lowLevelUnlink()
 	{
 		assert isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
-		return parent.removeExport(this);
+		parent.removeExport(this);
 	}
 
 	/**

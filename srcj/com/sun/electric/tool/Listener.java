@@ -118,12 +118,6 @@ public class Listener extends Tool implements Changes
 	 */
 	public void killObject(ElectricObject obj) {}
 	/**
-	 * Method to handle the deletion of an Export.
-	 * @param pp the Export that was just deleted.
-	 * @param oldPortInsts the PortInsts that were on that Export (?).
-	 */
-	public void killExport(Export pp, Collection oldPortInsts) {}
-	/**
 	 * Method to handle the renaming of an ElectricObject.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of that ElectricObject.

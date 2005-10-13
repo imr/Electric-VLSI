@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
@@ -973,6 +974,19 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	{
 		return primPorts[portIndex];
 	}
+
+	/**
+	 * Method to return the PortProto by thread-independent PortProtoId.
+	 * @param portProtoId thread-independent PortProtoId.
+	 * @return the PortProto.
+     * @throws IllagalArgumentException if portProtoId is not from this NodeProto.
+	 */
+	public PortProto getPort(PortProtoId portProtoId) {
+        if (portProtoId.getParentId() != this) throw new IllegalArgumentException();
+        PrimitivePort pp = (PrimitivePort)portProtoId;
+        assert primPorts[pp.getPortIndex()] == pp;
+        return pp;
+    }
 
 	/**
 	 * Method to return the PrimitivePort on this PrimitiveNode that can connect to an arc of the specified type.

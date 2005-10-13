@@ -323,8 +323,10 @@ public class Pref
 			return;
 		}
 
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-        top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+        if (!Main.BATCHMODE) {
+            TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+            top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+        }
 
 		System.out.println("...preferences imported from " + fileURL.getFile());
 	}

@@ -124,6 +124,13 @@ public interface NodeProto
 	public PortProto getPort(int portIndex);
 
 	/**
+	 * Method to return the PortProto by thread-independent PortProtoId.
+	 * @param portProtoId thread-independent PortProtoId.
+	 * @return the PortProto.
+	 */
+	public PortProto getPort(PortProtoId portProtoId);
+
+	/**
 	 * Method to describe this NodeProto as a string.
 	 * PrimitiveNodes may prepend their Technology name if it is
 	 * not the current technology (for example, "mocmos:N-Transistor").

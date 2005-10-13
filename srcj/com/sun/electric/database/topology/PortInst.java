@@ -294,11 +294,7 @@ public class PortInst extends ElectricObject
 	 */
 	public void disconnect()
 	{
-		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			delVar(var.getKey());
-		}
+        nodeInst.delVars(portProto.getId());
 		assert getNumVariables() == 0;
 		
 		// kill the arcs attached to the connections to this port instance.

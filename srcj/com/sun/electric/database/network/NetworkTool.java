@@ -493,20 +493,13 @@ public class NetworkTool extends Listener
 			setCell(cell, null);
 			if (cell.isIcon() || cell.isSchematic())
 				NetSchem.updateCellGroup(cell.getCellGroup());
-		} else {
+		} else if (obj instanceof Export) {
+            exportsChanged(cell);
+        } else {
 			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
 		System.out.println("NetworkTool.killObject("+obj+")");
-	}
-
-	public void killExport(Export pp, Collection oldPortInsts)
-	{
-		invalidate();
-		Cell cell = (Cell)pp.getParent();
-		exportsChanged(cell);
-		if (!debug) return;
-		System.out.println("NetworkTool.killExport("+pp+","+oldPortInsts.size()+")");
 	}
 
 	public void renameObject(ElectricObject obj, Object oldName)
