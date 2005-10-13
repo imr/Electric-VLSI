@@ -150,6 +150,8 @@ public class PadGenerator
         NodeInst ni;
         List associations;
         List exportAssociations;
+        Double locx;
+        Double locy;
     }
 
 	private static class Rotation {
@@ -441,6 +443,8 @@ public class PadGenerator
         pad.ni = null;
         pad.associations = new ArrayList();
         pad.exportAssociations = new ArrayList();
+        pad.locx = null;
+        pad.locy = null;
         if (!str.hasMoreTokens()) {
             err("Cell name missing");
             return false;
@@ -486,6 +490,20 @@ public class PadGenerator
                     }
                 } else if (lhs.equals("name")) {
                     pad.exportsname = rhs;
+                } else if (lhs.equals("x")) {
+                    try {
+                        pad.locx = new Double(rhs);
+                    } catch (NumberFormatException e) {
+                        System.out.println(e.getMessage());
+                        pad.locx = null;
+                    }
+                } else if (lhs.equals("y")) {
+                    try {
+                        pad.locy = new Double(rhs);
+                    } catch (NumberFormatException e) {
+                        System.out.println(e.getMessage());
+                        pad.locy = null;
+                    }
                 } else {
                     // port association
                     PortAssociate pa = new PortAssociate();
@@ -542,7 +560,7 @@ public class PadGenerator
 
     private void createPadFrames() {
         if (views.size() == 0) {
-            createPadFrame(padframename, null);
+            createPadFrame(padframename, View.LAYOUT);
         } else {
             for (Iterator it = views.iterator(); it.hasNext();) {
                 View view = (View) it.next();
@@ -557,7 +575,7 @@ public class PadGenerator
 
         // first, try to create cell
 		CellName n = CellName.parseName(name);
-		if (n != null && n.getView() == null)
+		if (n != null && (n.getView() == null || n.getView() == View.UNKNOWN))
 		{
 			// no view in cell name, append appropriately
 	        if (view == null)
@@ -644,6 +662,8 @@ public class PadGenerator
 
             int gapx = 0, gapy = 0;
             double centerX = 0, centerY = 0;
+            if (pad.locx != null) centerX = pad.locx.doubleValue();
+            if (pad.locy != null) centerY = pad.locy.doubleValue();
             if (lastni != null)
 			{
                 // get info on last nodeinst created
