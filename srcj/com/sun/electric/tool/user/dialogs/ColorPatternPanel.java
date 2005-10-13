@@ -369,9 +369,12 @@ public class ColorPatternPanel extends JPanel
 		transparentLayer.removeAllItems();
 		transparentLayer.addItem("NOT TRANSPARENT");
 		int maxTrans = Math.min(transLayers.length, map.length);
-		for(int i=0; i<maxTrans; i++)
-			transparentLayer.addItem(EGraphics.getColorIndexName(transLayers[i]));
-		transparentLayer.setSelectedIndex(curTrans);
+        if (maxTrans > 0)  // zero for generic at least
+        {
+            for(int i=0; i<maxTrans; i++)
+                transparentLayer.addItem(EGraphics.getColorIndexName(transLayers[i]));
+            transparentLayer.setSelectedIndex(curTrans);
+        }
 	}
 
 	/**
