@@ -277,6 +277,8 @@ public class LENetlister2 extends LENetlister {
             CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
             if (cachedCell == null) {
                 cachedCell = new CachedCell(info.getCell(), info.getNetlist());
+                if (netlister.cellMap.containsKey(info.getCell()))
+                    System.out.println("Possible hash map conflict in netlister.cellMap!");
                 netlister.cellMap.put(info.getCell(), cachedCell);
                 if (DEBUG_FIRSTPASS) System.out.println(" === entering "+info.getCell());
                 return true;
@@ -310,6 +312,8 @@ public class LENetlister2 extends LENetlister {
             // if no lenodable, recurse
             if (leno == null) return true;
             cachedCell.add(ni, leno);
+            if (netlister.nodablesDefinitions.containsKey(ni))
+                System.out.println("Possible hash map conflict in netlister.nodablesDefinitions!");
             netlister.nodablesDefinitions.put(ni, leno);
             return false;
         }
@@ -389,6 +393,15 @@ public class LENetlister2 extends LENetlister {
                 LENetwork net = (LENetwork)getNetwork(globalID, info);
                 if (net == null) continue;
                 net.add(subnet);
+                if (DEBUG) {
+                    if (net.getName().equals("vdd")) continue;
+                    if (net.getName().equals("gnd")) continue;
+                    System.out.println("  Added to global net "+net.getName() +" "+subnet.getName()+" from "+info.getCell().describe(false));
+                    System.out.println("     subcell="+info.getCell().describe(false)+" subnet="+subnet.getName()+": ");
+                    subnet.print();
+                    System.out.println("     result: global net="+net.getName()+": ");
+                    net.print();
+                }
             }
             //for (Iterator it = cachedCell.getAllCachedNodables().iterator(); it.hasNext(); ) {
             //   allLENodables.add(it.next());

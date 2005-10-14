@@ -66,7 +66,7 @@ public class LENodable {
     // --------- instance fields ------------
     protected VarContext context;
     protected LENetwork outputNetwork;        // global network
-    protected float mfactor;
+    private float mfactor = 1f;
     protected float su;
     protected float leX;
     protected int parallelGroup;
@@ -88,6 +88,8 @@ public class LENodable {
         this.suVar = suVar;
         this.parallelGroupVar = parallelGroupVar;
         this.context = VarContext.globalContext;
+        this.mfactor = 1f;
+        this.leX = 0f;
     }
 
     protected LENodable copy() {
@@ -124,6 +126,8 @@ public class LENodable {
 
     /** Get the pins */
     protected List getPins() { return pins; }
+
+    float getMfactor() { return mfactor; }
 
     /** Return true if this is a sizeable gate */
     protected boolean isLeGate() {
@@ -323,7 +327,8 @@ public class LENodable {
         StringBuffer buf = new StringBuffer(indent);
         buf.append(getType().toString());
         buf.append(": Size="+TextUtils.formatDouble(leX, 2));
-        buf.append(" M="+TextUtils.formatDouble(mfactor, 2));
+        //buf.append(" M="+TextUtils.formatDouble(mfactor, 2));
+        buf.append(" M="+mfactor);
         buf.append(" tPG="+parallelGroup);
         buf.append(" "+getName());
         return buf.toString();

@@ -67,7 +67,7 @@ public class LENetwork {
         for (Iterator it = pins.iterator(); it.hasNext();) {
             LEPin pin = (LEPin)it.next();
             LENodable leno = pin.getInstance();
-            out.println(header+"  "+leno.getName());
+            out.println(header+"  "+leno.printOneLine(""));
         }
         for (Iterator it = networks.iterator(); it.hasNext(); ) {
             LENetwork net = (LENetwork)it.next();

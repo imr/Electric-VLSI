@@ -224,7 +224,7 @@ public class LESizer2 {
                         LEPin pin = (LEPin)it.next();
                         LENodable loopLeno = pin.getInstance();
 
-                        float load = loopLeno.leX * pin.getLE() * loopLeno.mfactor;
+                        float load = loopLeno.leX * pin.getLE() * loopLeno.getMfactor();
                         if (pin.getDir() == LEPin.Dir.OUTPUT) load *= alpha;
                         totalcap += load;
                         // check to see if gate is only driving itself
@@ -254,7 +254,7 @@ public class LESizer2 {
                         newX = totalcap / leno.su / drivers.size();
                     }
                     // also take into account mfactor of driver
-                    newX = newX / (float)leno.mfactor;
+                    newX = newX / (float)leno.getMfactor();
                 }
 
                 // determine change in size

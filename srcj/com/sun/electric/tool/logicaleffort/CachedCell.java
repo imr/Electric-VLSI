@@ -68,6 +68,8 @@ public class CachedCell {
             for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
                 Network jnet = (Network)it.next();
                 LENetwork net = new LENetwork(jnet.describe(false));
+                if (localNetworks.containsKey(jnet))
+                    System.out.println("Possible hashmap conflict in localNetworks!");
                 localNetworks.put(jnet, net);
             }
         }
@@ -104,6 +106,8 @@ public class CachedCell {
             net.add(pin);
         }
 
+        if (lenodables.containsKey(no))
+            System.out.println("Possible hash map conflict in lenodables!");
         lenodables.put(no, leno);
         //allCachedNodables.add(leno);
     }
@@ -122,6 +126,8 @@ public class CachedCell {
         ceno.no = no;
         ceno.subCell = subCell;
         ceno.mfactorVar = LETool.getMFactor(no);
+        if (cellnodables.containsKey(no))
+            System.out.println("Possible hash map conflict in cellnodables!");
         cellnodables.put(no, ceno);
         if (subCell.isContainsSizableGates()) {
             containsSizableGates = true;
@@ -152,7 +158,15 @@ public class CachedCell {
                 localNetworks.put(localJNet, net);
             }
             net.add(subLENet);
-            //System.out.println("  Added to "+net.getName() +" in "+cell.describe()+": "+subLENet.getName()+" from "+subCell.cell.describe());
+            if (DEBUG) {
+                if (!net.getName().equals("vdd") && !net.getName().equals("gnd")) {
+                    System.out.println("  Added to "+net.getName() +" in "+cell.describe(false)+": "+subLENet.getName()+" from "+subCell.cell.describe(false));
+                    System.out.println("     subcell="+subCell.cell.describe(false)+" subnet="+subLENet.getName()+": ");
+                    subLENet.print();
+                    System.out.println("     result: localcell="+cell.describe(false)+" localnet="+net.getName()+": ");
+                    net.print();
+                }
+            }
         }
     }
 
@@ -176,7 +190,7 @@ public class CachedCell {
         for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             boolean b = leno.setOnlyContext(context, null, mfactor, 0, constants);
-            if (DEBUG) System.out.println("  gate "+context.getInstPath(".")+"."+leno.getName()+" cached: "+b);
+            if (DEBUG) System.out.println("  gate "+leno.getName()+" cached: "+b+", leX="+leno.leX+", ID="+leno.hashCode());
             if (!b) return false;
         }
         // check cached cell instances
@@ -225,6 +239,8 @@ public class CachedCell {
             cenoCopy.no = ceno.no;
             cenoCopy.mfactorVar = ceno.mfactorVar;
             cenoCopy.subCell = ceno.subCell.copy();
+            if (copy.cellnodables.containsKey(no))
+                System.out.println("Possible hash map conflict in copy.cellnodables!");
             copy.cellnodables.put(no, cenoCopy);
             // build table of original subnets to copied subnets, so we
             // can update subnet links when we copy local networks
@@ -249,6 +265,8 @@ public class CachedCell {
                 LENetwork copySubNet = (LENetwork)origSubNetsToCopySubNets.get(subnet);
                 netCopy.add(copySubNet);
             }
+            if (copy.localNetworks.containsKey(jnet))
+                System.out.println("Possible hashmap conflict in copy.localNetworks!");
             copy.localNetworks.put(jnet, netCopy);
         }
         // copy all lenodables: this sets pins of local networks.
