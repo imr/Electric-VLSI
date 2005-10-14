@@ -1305,7 +1305,7 @@ public class VectorDrawing
 			VectorSubCell vsc = new VectorSubCell(ni, ctrShift, outlinePoly.getPoints());
 			vc.subCells.add(vsc);
 
-			showCellPorts(ni, vc, vsc);
+			showCellPorts(ni, vc, vsc, localTrans);
 
 			// draw any displayable variables on the instance
 			int numPolys = ni.numDisplayableVariables(true);
@@ -1380,8 +1380,9 @@ public class VectorDrawing
 	 * @param col the color to use.
 	 * @param vc the cached cell in which to place the information.
 	 * @param vsc the cached subcell reference that defines the NodeInst.
+	 * @param localTrans the transformation of the port locations.
 	 */
-	private void showCellPorts(NodeInst ni, VectorCell vc, VectorSubCell vsc)
+	private void showCellPorts(NodeInst ni, VectorCell vc, VectorSubCell vsc, AffineTransform localTrans)
 	{
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
@@ -1398,6 +1399,9 @@ public class VectorDrawing
 			PortInst pi = exp.getOriginalPort();
 			shownPorts[pi.getPortIndex()] = true;
 		}
+
+		// because "getShapeOfPort" includes the local rotation, it must be undone
+		AffineTransform thisTrans = ni.rotateIn();
 		for(int i = 0; i < numPorts; i++)
 		{
 			if (shownPorts[i]) continue;
@@ -1405,6 +1409,11 @@ public class VectorDrawing
 
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
+
+			// undo local rotation and add total transformation instead
+			portPoly.transform(thisTrans);
+			portPoly.transform(localTrans);
+
 			TextDescriptor descript = portPoly.getTextDescriptor();
 			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
 			portDescript.setColorIndex(descript.getColorIndex());

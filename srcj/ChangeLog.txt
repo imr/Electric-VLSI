@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/14/05, SMR) Ports on subcells are not drawn properly (Bug #647).
+FIX: In VectorDrawing.showCellPorts(), caches proper port locations.
+
 BUG: (10/14/05, SMR) Changing layer visibility is slow (Bug #649).
 FIX: Do not write visibility changes to preferences until exiting program.
 
