@@ -324,6 +324,8 @@ public class MoCMOS extends Technology
         new DRCTemplate("OD.C.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  4.3,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
         new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-P-Well-Con"),
+        new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSPA,    null,             null,            2.8,"Metal-1-P-Well-Con"),
+        new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSPA2D,    null,             null,            2.8,"Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
@@ -338,6 +340,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("OD.C.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       4.3,  "Metal-1-N-Well-Con"),
         new DRCTemplate("6.2",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"),
         new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-N-Well-Con"),
+        new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSPA,    null,             null,            2.8,"Metal-1-N-Well-Con"),
+        new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSPA2D,    null,             null,            2.8,"Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
@@ -361,9 +365,9 @@ public class MoCMOS extends Technology
         new DRCTemplate("6.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.CUTSPA2D,    null,             null,            3,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     3,  null),
         // TSMC
-		new DRCTemplate("CO.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.5,  "Metal-1-P-Active-Con"),
+		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-P-Active-Con"), // Decide to put CO.S.2 to avoid misaligments
 		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA2D,    null,             null,            2.8,  "Metal-1-P-Active-Con"),
-        new DRCTemplate("CO.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.5,  "Metal-1-N-Active-Con"),
+        new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-N-Active-Con"),
         new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA2D,    null,             null,            2.8,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     2.8,  null),
 
@@ -3025,7 +3029,7 @@ public class MoCMOS extends Technology
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
 //                node = metalActiveContactNodes[i].getLayers()[3]; // Select
 //                node.setPoints(Technology.TechPoint.makeIndented(3.4)); // so it is 2.6 with respect to active
-                metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.5, 2.8}); // 0.25 CO.S.1, 0.28 CO.S.2
+                metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8}); // 0.25 CO.S.1, 0.28 CO.S.2
             }
 
             // Well contacts
@@ -3035,7 +3039,7 @@ public class MoCMOS extends Technology
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
 //                node = metalWellContactNodes[i].getLayers()[2]; // Well 3 is not guarantee during construction!
 //                node.setPoints(Technology.TechPoint.makeIndented(3));
-                metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.5, 2.8});
+                metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
                  // to have 4.3 between well and active NP.E.4
             }
 
