@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/14/05, SMR) Importing preferences doesn't update component menu (Bug #645).
+FIX: In PreferencesFrame.importActionPerformed(), update all component menus.
+
 BUG: (10/14/05, SMR) New database doesn't allow variables to be Point2D (Bug #648).
 FIX: Converted to EPoint in ViewChanges.makeIconForCell(), AnnularRing.MakeAnnulus.doIt(),
      PadGenerator.createPadFrame(), CIF.nodesPoly(), Connectivity.convertAllGeometry(),

@@ -507,9 +507,12 @@ public class PreferencesFrame extends EDialog
 		closeDialog(null);
 
 		// redraw everything
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-		if (wf != null) wf.loadComponentMenuForTechnology();
 		EditWindow.repaintAllContents();
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+        	WindowFrame wf = (WindowFrame)it.next();
+        	wf.loadComponentMenuForTechnology();
+        }
 	}
 
 	private void loadOptionPanel()
