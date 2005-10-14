@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/14/05, SMR) Changing layer visibility is slow (Bug #649).
+FIX: Do not write visibility changes to preferences until exiting program.
+
 IMP/MAN: (10/14/04, SMR) The "New Nodes" and "New Arcs" preferences are now just called
      "Nodes" and "Arcs".  In the "Nodes" preferences is "Disallowing changes to complex nodes"
      which prevents changes to instances or transistor/contacts.

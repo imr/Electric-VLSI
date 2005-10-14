@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1081,7 +1082,11 @@ public class FileMenu {
                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (response != JOptionPane.YES_OPTION) return false;
             }
-            ActivityLogger.finished();
+
+			// save changes to layer visibility
+			Layer.preserveVisibility();
+
+			ActivityLogger.finished();
             System.exit(0);
             return true;
         }

@@ -23,11 +23,13 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.Resources;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -419,7 +421,8 @@ public class Layer
 	private double thickness, distance, areaCoverage;
 	private double resistance, capacitance, edgeCapacitance;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
-	/** true if this layer is invisible */									private boolean visible;
+	/** true if this layer is visible */									private boolean visible;
+	/** true if this layer's visibity has been initialized */				private boolean visibilityInitialized;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
@@ -445,6 +448,7 @@ public class Layer
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
 		this.visible = true;
+		visibilityInitialized = false;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
         this.areaCoverage = 10; // 10% as default
@@ -592,14 +596,52 @@ public class Layer
     public boolean isVisible()
     {
     	if (tech == null) return true;
-    	return getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean();
+		if (!visibilityInitialized)
+		{
+			visible = getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean();
+			visibilityInitialized = true;
+		}
+		return visible;
     }
 
 	/**
 	 * Method to set whether this Layer is visible.
-	 * @param visible true if this Layer is to be visible.
+	 * For efficiency, this method does not update preferences, but only changes
+	 * the field variable.
+	 * Changes to visibility are saved to Preferences at exit (with "preserveVisibility()").
+	 * @param newVis true if this Layer is to be visible.
 	 */
-    public void setVisible(boolean visible) { getBooleanPref("Visibility", layerVisibilityPrefs, visible).setBoolean(visible); }
+    public void setVisible(boolean newVis)
+	{
+		if (!visibilityInitialized)
+		{
+			visible = getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean();
+			visibilityInitialized = true;
+		}
+		visible = newVis;
+	}
+
+	/**
+	 * Method called when the program exits to preserve any changes to the layer visibility.
+	 */
+	public static void preserveVisibility()
+	{
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = (Layer)lIt.next();
+				Pref visPref = layer.getBooleanPref("Visibility", layerVisibilityPrefs, layer.visible);
+				boolean savedVis = visPref.getBoolean();
+				if (savedVis != layer.visible)
+				{
+					visPref.setBoolean(layer.visible);
+			        if (Main.getDebug()) System.err.println("Save visibility of " + layer.getName());
+				}
+			}
+		}
+	}
 
 	/**
 	 * Method to tell whether this Layer is dimmed.
