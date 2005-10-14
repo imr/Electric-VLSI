@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/14/04, SMR) The "New Nodes" and "New Arcs" preferences are now just called
+     "Nodes" and "Arcs".  In the "Nodes" preferences is "Disallowing changes to complex nodes"
+     which prevents changes to instances or transistor/contacts.
+
 FIX: (10/13/05, JKG) Fixed Pad frame generator (bug #621), Updated manual
 
 BUG: (10/13/05, GVG) Exception in ColorPatternPanel when li.outlinePatternDisplay was null (eg SPECIAL:TEXT) (Bug #644)

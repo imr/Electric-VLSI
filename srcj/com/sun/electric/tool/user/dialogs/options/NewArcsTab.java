@@ -57,7 +57,7 @@ public class NewArcsTab extends PreferencePanel
 	public JPanel getPanel() { return newArc; }
 
 	/** return the name of this preferences tab. */
-	public String getName() { return "New Arcs"; }
+	public String getName() { return "Arcs"; }
 
 	private static class PrimArcInfo
 	{
@@ -337,7 +337,7 @@ public class NewArcsTab extends PreferencePanel
 
         jPanel8.setLayout(new java.awt.GridBagLayout());
 
-        jPanel8.setBorder(new javax.swing.border.TitledBorder("For Types Of Arcs"));
+        jPanel8.setBorder(new javax.swing.border.TitledBorder("For New Arcs"));
         jPanel8.setDoubleBuffered(false);
         arcWidthLabel.setText("Default width:");
         gridBagConstraints = new java.awt.GridBagConstraints();

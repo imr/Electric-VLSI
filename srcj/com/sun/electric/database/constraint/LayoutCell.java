@@ -346,10 +346,18 @@ class LayoutCell {
 					if (ono.getProto() instanceof Cell)
 					{
 						if (ono.getParent().isInstancesLocked()) locked = true;
+						if (User.isDisallowModificationComplexNodes()) locked = true;
 					} else
 					{
 						if (User.isDisallowModificationLockedPrims() &&
 							((PrimitiveNode)ono.getProto()).isLockedPrim()) locked = true;
+						if (User.isDisallowModificationComplexNodes())
+						{
+							PrimitiveNode.Function fun = ono.getFunction();
+							if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+								fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
+									locked = true;
+						}
 					}
 				}
 			}

@@ -56,7 +56,7 @@ public class NewNodesTab extends PreferencePanel
 	public JPanel getPanel() { return newNode; }
 
 	/** return the name of this preferences tab. */
-	public String getName() { return "New Nodes"; }
+	public String getName() { return "Nodes"; }
 
 	private static class PrimNodeInfo
 	{
@@ -100,6 +100,7 @@ public class NewNodesTab extends PreferencePanel
 		nodePlaceCellCenter.setSelected(User.isPlaceCellCenter());
 
 		// set checkboxes for "all nodes" area
+		nodeDisallowModificationComplexNodes.setSelected(User.isDisallowModificationComplexNodes());
 		nodeDisallowModificationLockedPrims.setSelected(User.isDisallowModificationLockedPrims());
 		nodeMoveAfterDuplicate.setSelected(User.isMoveAfterDuplicate());
 		nodeDupArrayCopyExports.setSelected(User.isDupCopiesExports());
@@ -214,6 +215,10 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isPlaceCellCenter())
 			User.setPlaceCellCenter(currBoolean);
 
+		currBoolean = nodeDisallowModificationComplexNodes.isSelected();
+		if (currBoolean != User.isDisallowModificationComplexNodes())
+			User.setDisallowModificationComplexNodes(currBoolean);
+
 		currBoolean = nodeDisallowModificationLockedPrims.isSelected();
 		if (currBoolean != User.isDisallowModificationLockedPrims())
 			User.setDisallowModificationLockedPrims(currBoolean);
@@ -260,6 +265,7 @@ public class NewNodesTab extends PreferencePanel
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
         nodeDupArrayCopyExports = new javax.swing.JCheckBox();
         nodeExtractCopyExports = new javax.swing.JCheckBox();
+        nodeDisallowModificationComplexNodes = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -277,7 +283,7 @@ public class NewNodesTab extends PreferencePanel
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setBorder(new javax.swing.border.TitledBorder("For Primitive Nodes"));
+        jPanel2.setBorder(new javax.swing.border.TitledBorder("For New Primitive Nodes"));
         jLabel1.setText("Primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -394,15 +400,15 @@ public class NewNodesTab extends PreferencePanel
         nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(nodeDisallowModificationLockedPrims, gridBagConstraints);
 
         nodeMoveAfterDuplicate.setText("Move after Duplicate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(nodeMoveAfterDuplicate, gridBagConstraints);
@@ -410,7 +416,7 @@ public class NewNodesTab extends PreferencePanel
         nodeDupArrayCopyExports.setText("Duplicate/Array/Paste copies exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(nodeDupArrayCopyExports, gridBagConstraints);
@@ -418,10 +424,18 @@ public class NewNodesTab extends PreferencePanel
         nodeExtractCopyExports.setText("Extract copies exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(nodeExtractCopyExports, gridBagConstraints);
+
+        nodeDisallowModificationComplexNodes.setText("Disallow modification of complex nodes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel4.add(nodeDisallowModificationComplexNodes, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -452,6 +466,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel newNode;
     private javax.swing.JCheckBox nodeCheckCellDates;
+    private javax.swing.JCheckBox nodeDisallowModificationComplexNodes;
     private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
     private javax.swing.JCheckBox nodeDupArrayCopyExports;
     private javax.swing.JCheckBox nodeExtractCopyExports;

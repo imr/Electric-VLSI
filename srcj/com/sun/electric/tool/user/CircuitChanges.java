@@ -5996,6 +5996,7 @@ public class CircuitChanges
 				if (ret == 2) item.clearLocked();
 				if (ret == 3 || ret == -1) return -1;  // -1 represents ESC or cancel
 			}
+			boolean complexNode = false;
 			if (item.getProto() instanceof PrimitiveNode)
 			{
 				// see if a primitive is locked
@@ -6011,9 +6012,14 @@ public class CircuitChanges
 					if (ret == 2) User.setDisallowModificationLockedPrims(false);
 					if (ret == 3) return -1;
 				}
+				PrimitiveNode.Function fun = item.getFunction();
+				if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
+						complexNode = true;
 			} else
 			{
 				// see if this type of cell is locked
+				complexNode = true;
 				if (cell.isInstancesLocked())
 				{
 					if (!giveError) return 1;
@@ -6024,6 +6030,20 @@ public class CircuitChanges
 						null, options, options[1]);
 					if (ret == 1) return 1;
 					if (ret == 2) cell.clearInstancesLocked();
+					if (ret == 3) return -1;
+				}
+			}
+			if (complexNode)
+			{
+				if (User.isDisallowModificationComplexNodes())
+				{
+					if (!giveError) return 1;
+					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Changes to complex nodes (such as " + item + ") are disallowed.  Change anyway?",
+						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+						null, options, options[1]);
+					if (ret == 1) return 1;
+					if (ret == 2) User.setDisallowModificationComplexNodes(false);
 					if (ret == 3) return -1;
 				}
 			}
