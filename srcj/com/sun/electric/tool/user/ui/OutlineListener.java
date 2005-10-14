@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -102,13 +103,13 @@ public class OutlineListener
 
 		public boolean doIt()
 		{
-			Point2D [] points = new Point2D[4];
+			EPoint [] points = new EPoint[4];
 			double halfWid = ni.getXSize() / 2;
 			double halfHei = ni.getYSize() / 2;
-			points[0] = new Point2D.Double(-halfWid, -halfHei);
-			points[1] = new Point2D.Double(-halfWid,  halfHei);
-			points[2] = new Point2D.Double( halfWid,  halfHei);
-			points[3] = new Point2D.Double( halfWid, -halfHei);
+			points[0] = new EPoint(-halfWid, -halfHei);
+			points[1] = new EPoint(-halfWid,  halfHei);
+			points[2] = new EPoint( halfWid,  halfHei);
+			points[3] = new EPoint( halfWid, -halfHei);
 			ni.newVar(NodeInst.TRACE, points);
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();

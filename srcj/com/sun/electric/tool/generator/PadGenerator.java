@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -875,12 +876,12 @@ public class PadGenerator
                 if (bbNi == null) return;
                 bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
-                Point2D[] points = new Point2D.Double[5];
-                points[0] = new Point2D.Double(-0.5 * xSize, -0.5 * ySize);
-                points[1] = new Point2D.Double(-0.5 * xSize, 0.5 * ySize);
-                points[2] = new Point2D.Double(0.5 * xSize, 0.5 * ySize);
-                points[3] = new Point2D.Double(0.5 * xSize, -0.5 * ySize);
-                points[4] = new Point2D.Double(-0.5 * xSize, -0.5 * ySize);
+				EPoint[] points = new EPoint[5];
+                points[0] = new EPoint(-0.5 * xSize, -0.5 * ySize);
+                points[1] = new EPoint(-0.5 * xSize, 0.5 * ySize);
+                points[2] = new EPoint(0.5 * xSize, 0.5 * ySize);
+                points[3] = new EPoint(0.5 * xSize, -0.5 * ySize);
+                points[4] = new EPoint(-0.5 * xSize, -0.5 * ySize);
                 bbNi.newVar(NodeInst.TRACE, points);
 
                 // put the original cell name on it

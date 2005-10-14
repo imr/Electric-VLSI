@@ -26,6 +26,7 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -1466,7 +1467,7 @@ public class Connectivity
 		}
 
 		// serpentine transistor: organize the lines into an array of points
-		Point2D [] points = new Point2D[lines.size()+1];
+		EPoint [] points = new EPoint[lines.size()+1];
 		for(Iterator it = lines.iterator(); it.hasNext(); )
 		{
 			Centerline cl = (Centerline)it.next();
@@ -1474,8 +1475,8 @@ public class Connectivity
 		}
 		Centerline firstCL = (Centerline)lines.get(0);
 		firstCL.handled = true;
-		points[0] = firstCL.start;
-		points[1] = firstCL.end;
+		points[0] = new EPoint(firstCL.start.getX(), firstCL.start.getY());
+		points[1] = new EPoint(firstCL.end.getX(), firstCL.end.getY());
 		int pointsSeen = 2;
 		while (pointsSeen < points.length)
 		{
@@ -1489,7 +1490,7 @@ public class Connectivity
 					// insert "end" point at start
 					for(int i=pointsSeen; i>0; i--)
 						points[i] = points[i-1];
-					points[0] = cl.end;
+					points[0] = new EPoint(cl.end.getX(), cl.end.getY());
 					pointsSeen++;
 					cl.handled = true;
 					added = true;
@@ -1500,7 +1501,7 @@ public class Connectivity
 					// insert "start" point at start
 					for(int i=pointsSeen; i>0; i--)
 						points[i] = points[i-1];
-					points[0] = cl.start;
+					points[0] = new EPoint(cl.start.getX(), cl.start.getY());
 					pointsSeen++;
 					cl.handled = true;
 					added = true;
@@ -1509,7 +1510,7 @@ public class Connectivity
 				if (cl.start.equals(points[pointsSeen-1]))
 				{
 					// add "end" at the end
-					points[pointsSeen++] = cl.end;
+					points[pointsSeen++] = new EPoint(cl.end.getX(), cl.end.getY());
 					cl.handled = true;
 					added = true;
 					break;
@@ -1517,7 +1518,7 @@ public class Connectivity
 				if (cl.end.equals(points[pointsSeen-1]))
 				{
 					// add "start" at the end
-					points[pointsSeen++] = cl.start;
+					points[pointsSeen++] = new EPoint(cl.start.getX(), cl.start.getY());
 					cl.handled = true;
 					added = true;
 					break;
@@ -2351,10 +2352,10 @@ public class Connectivity
 				{
 					// store the trace
 					Point2D [] points = poly.getPoints();
-					Point2D [] newPoints = new Point2D[points.length];
+					EPoint [] newPoints = new EPoint[points.length];
 					for(int i=0; i<points.length; i++)
 					{
-						newPoints[i] = new Point2D.Double(points[i].getX() - centerX, points[i].getY() - centerY);
+						newPoints[i] = new EPoint(points[i].getX() - centerX, points[i].getY() - centerY);
 					}
 					ni.newVar(NodeInst.TRACE, newPoints);
 				}

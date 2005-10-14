@@ -27,6 +27,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -605,10 +606,10 @@ public class CIF extends Input
 		}
 
 		// store the trace information
-		Point2D [] points = new Point2D[cp.lim];
+		EPoint [] points = new EPoint[cp.lim];
 		for(int i=0; i<cp.lim; i++)
 		{
-			points[i] = new Point2D.Double(convertFromCentimicrons(cp.x[i]-cmCX), convertFromCentimicrons(cp.y[i]-cmCY));
+			points[i] = new EPoint(convertFromCentimicrons(cp.x[i]-cmCX), convertFromCentimicrons(cp.y[i]-cmCY));
 		}
 
 		// store the trace information

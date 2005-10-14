@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -880,9 +881,9 @@ public class DXF extends Input
 		if (lineType == 0) np = Artwork.tech.openedPolygonNode;
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, curCell);
 		if (ni == null) return true;
-		Point2D [] points = new Point2D[2];
-		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
-		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
+		EPoint [] points = new EPoint[2];
+		points[0] = new EPoint(x1 - cX, y1 - cY);
+		points[1] = new EPoint(x2 - cX, y2 - cY);
 		ni.newVar(NodeInst.TRACE, points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readLines++;

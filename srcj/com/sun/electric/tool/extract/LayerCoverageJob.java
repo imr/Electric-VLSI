@@ -494,7 +494,10 @@ public class LayerCoverageJob extends Job
 
 							if (isMerge)
 							{
-								node.newVar(NodeInst.TRACE, points);
+								EPoint [] ePoints = new EPoint[points.length];
+								for(int j=0; j<points.length; j++)
+									ePoints[j] = new EPoint(points[j].getX(), points[j].getY());
+								node.newVar(NodeInst.TRACE, ePoints);
 							}
 							else
 							{

@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/14/05, SMR) New database doesn't allow variables to be Point2D (Bug #648).
+FIX: Converted to EPoint in ViewChanges.makeIconForCell(), AnnularRing.MakeAnnulus.doIt(),
+     PadGenerator.createPadFrame(), CIF.nodesPoly(), Connectivity.convertAllGeometry(),
+     Connectivity.realizeNode(), DXF.readLineEntity(), EDIF.doPoly(), EDIF.KeyRectangle.pop(),
+     GDS.determineBoundary(), GDS.determinePath(), OutlineListener.InitializePoints.doIt(),
+     Sue.readFile(), LayerCoverageJob.doIt().
+
 BUG: (10/14/05, SMR) Ports on subcells are not drawn properly (Bug #647).
 FIX: In VectorDrawing.showCellPorts(), caches proper port locations.
 

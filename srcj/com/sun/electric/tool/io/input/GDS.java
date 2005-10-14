@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -776,10 +777,10 @@ public class GDS extends Input
 			// store the trace information
 			double cx = (hx + lx) / 2;
 			double cy = (hy + ly) / 2;
-			Point2D [] points = new Point2D[npts];
+			EPoint [] points = new EPoint[npts];
 			for(int i=0; i<npts; i++)
 			{
-				points[i] = new Point2D.Double(theVertices[i].getX() - cx, theVertices[i].getY() - cy);
+				points[i] = new EPoint(theVertices[i].getX() - cx, theVertices[i].getY() - cy);
 			}
 
 			// store the trace information
@@ -913,10 +914,10 @@ public class GDS extends Input
 
 						// store the trace information
 						Point2D [] polyPoints = poly.getPoints();
-						Point2D [] points = new Point2D[polyPoints.length];
+						EPoint [] points = new EPoint[polyPoints.length];
 						for(int j=0; j<polyPoints.length; j++)
 						{
-							points[j] = new Point2D.Double(polyPoints[j].getX() - cx, polyPoints[j].getY() - cy);
+							points[j] = new EPoint(polyPoints[j].getX() - cx, polyPoints[j].getY() - cy);
 						}
 
 						// store the trace information

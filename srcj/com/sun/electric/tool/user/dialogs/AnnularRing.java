@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -149,7 +150,7 @@ public class AnnularRing extends EDialog
 			// allocate space for the trace
 			int numSegments = lastSegments + 1;
 			if (lastInner > 0) numSegments *= 2;
-			Point2D [] points = new Point2D[numSegments];
+			EPoint [] points = new EPoint[numSegments];
 	
 			int l = 0;
 			if (lastInner > 0)
@@ -159,7 +160,7 @@ public class AnnularRing extends EDialog
 					int p = degrees * i / lastSegments;
 					double x = lastInner * DBMath.cos(p);
 					double y = lastInner * DBMath.sin(p);
-					points[l++] = new Point2D.Double(x, y);
+					points[l++] = new EPoint(x, y);
 				}
 			}
 			for(int i=lastSegments; i>=0; i--)
@@ -167,7 +168,7 @@ public class AnnularRing extends EDialog
 				int p = degrees*i/lastSegments;
 				double x = lastOuter * DBMath.cos(p);
 				double y = lastOuter * DBMath.sin(p);
-				points[l++] = new Point2D.Double(x, y);
+				points[l++] = new EPoint(x, y);
 			}
 			double lX = points[0].getX();
 			double hX = lX;

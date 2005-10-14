@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -543,12 +544,12 @@ public class ViewChanges
 		{
 			bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 			if (bbNi == null) return null;
-			Point2D [] boxOutline = new Point2D[5];
-			boxOutline[0] = new Point2D.Double(-xSize/2, -ySize/2);
-			boxOutline[1] = new Point2D.Double(-xSize/2,  ySize/2);
-			boxOutline[2] = new Point2D.Double( xSize/2,  ySize/2);
-			boxOutline[3] = new Point2D.Double( xSize/2, -ySize/2);
-			boxOutline[4] = new Point2D.Double(-xSize/2, -ySize/2);
+			EPoint [] boxOutline = new EPoint[5];
+			boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
+			boxOutline[1] = new EPoint(-xSize/2,  ySize/2);
+			boxOutline[2] = new EPoint( xSize/2,  ySize/2);
+			boxOutline[3] = new EPoint( xSize/2, -ySize/2);
+			boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
 			bbNi.newVar(NodeInst.TRACE, boxOutline);
 
 			// put the original cell name on it

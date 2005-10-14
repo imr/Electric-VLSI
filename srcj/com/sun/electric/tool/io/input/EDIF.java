@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -1242,11 +1243,11 @@ public class EDIF extends Input
 			errorCount++;
 		} else
 		{
-			Point2D [] trace = new Point2D[curPoints.size()];
+			EPoint [] trace = new EPoint[curPoints.size()];
 			for(int i=0; i<curPoints.size(); i++)
 			{
 				Point2D point = (Point2D)curPoints.get(i);
-				trace[i] = new Point2D.Double(point.getX() - cX, point.getY() - cY);
+				trace[i] = new EPoint(point.getX() - cX, point.getY() - cY);
 			}
 
 			// store the trace information
@@ -3240,12 +3241,12 @@ public class EDIF extends Input
 				{
 					double cX = (p0.getX() + p1.getX()) / 2;
 					double cY = (p0.getY() + p1.getY()) / 2;
-					Point2D [] pts = new Point2D[5];
-					pts[0] = new Point2D.Double(p0.getX()-cX, p0.getY()-cY);
-					pts[1] = new Point2D.Double(p0.getX()-cX, p1.getY()-cY);
-					pts[2] = new Point2D.Double(p1.getX()-cX, p1.getY()-cY);
-					pts[3] = new Point2D.Double(p1.getX()-cX, p0.getY()-cY);
-					pts[4] = new Point2D.Double(p0.getX()-cX, p0.getY()-cY);
+					EPoint [] pts = new EPoint[5];
+					pts[0] = new EPoint(p0.getX()-cX, p0.getY()-cY);
+					pts[1] = new EPoint(p0.getX()-cX, p1.getY()-cY);
+					pts[2] = new EPoint(p1.getX()-cX, p1.getY()-cY);
+					pts[3] = new EPoint(p1.getX()-cX, p0.getY()-cY);
+					pts[4] = new EPoint(p0.getX()-cX, p0.getY()-cY);
 
 					// store the trace information
 					ni.newVar(NodeInst.TRACE, pts);

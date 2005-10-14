@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -884,11 +885,11 @@ public class Sue extends Input
 				Point2D ctr = new Point2D.Double(cX, cY);
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hX-lX, hY-lY, cell);
 				if (ni == null) return null;
-				Point2D [] points = new Point2D[keyCount];
+				EPoint [] points = new EPoint[keyCount];
 				for(int i=0; i<keyCount; i++)
 				{
 					Point2D pt = (Point2D)pointList.get(i);
-					points[i] = new Point2D.Double(pt.getX() - cX, pt.getY() - cY);
+					points[i] = new EPoint(pt.getX() - cX, pt.getY() - cY);
 				}
 				ni.newVar(NodeInst.TRACE, points);
 				continue;
