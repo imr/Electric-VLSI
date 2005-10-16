@@ -992,7 +992,8 @@ public class Analyzer extends Engine
 					SimVector afterSV = new SimVector();
 					afterSV.command = VECTORS;
 					afterSV.parameters = new String[1];
-					afterSV.parameters[0] = TextUtils.formatDouble(thisStep / cmdFileUnits);
+					afterSV.parameters[0] = TextUtils.formatDouble(thisStep);
+//					afterSV.parameters[0] = TextUtils.formatDouble(thisStep / cmdFileUnits);
 					afterSV.value = thisStep;
 					if (lastSV == null)
 					{
