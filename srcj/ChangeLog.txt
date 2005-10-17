@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/17/05, SMR) Typing ESC in the Zoom tool doesn't work (Bug #654).
+FIX: Added escape processing to ZoomAndPanListener.java.
+
 IMP: (10/17/05, SMR) Error display (such as viewing DRC errors) now flashes small objects (Bug #656).
 
 IMP/MAN: (10/17/05, GVG) Movements recorded in the electric message window (Bug #655).

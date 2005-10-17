@@ -226,7 +226,21 @@ public class ZoomAndPanListener
 		System.out.println("Mouse wheel rolled by " + clicks);
 	}
 
-	public void keyPressed(KeyEvent evt) {}
+	public void keyPressed(KeyEvent evt)
+	{
+        int chr = evt.getKeyCode();
+		if (chr == KeyEvent.VK_ESCAPE)
+		{
+			if (evt.getSource() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)evt.getSource();
+				wnd.clearDoingAreaDrag();
+				wnd.repaint();
+				mode = null;
+			}
+		}
+	}
+
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
