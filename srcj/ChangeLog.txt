@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/17/05, GVG) Movements recorded in the electric message window (Bug #655).
+Verbose mode of all ChangeBatch actions in messages window. Added extra flag in Preferences/General tab.
+
 BUG: (10/17/05, SMR) Array dialog doesn't leave room for numeric fields (Bug #657).
 FIX: Added call to pack() at end of constructor.
 

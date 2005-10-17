@@ -1747,6 +1747,20 @@ public class User extends Listener
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
 
+    private static Pref cacheJobVerboseMode = Pref.makeBooleanPref("JobVerboseMode", tool.prefs, false);
+	/**
+	 * Method to tell if jobs are described in messages window (verbose mode)
+	 * The default is "false".
+	 * @return true if jobs are described in the messages window.
+	 */
+	public static boolean isJobVerboseMode() { return cacheJobVerboseMode.getBoolean(); }
+	/**
+	 * Method to set whether jobs are described in messages window.
+	 * @param on true if jobs are described in the messages window.
+	 */
+	public static void setJobVerboseMode(boolean on) { cacheJobVerboseMode.setBoolean(on); }
+
+
 	private static Pref cacheSideBarOnRight = Pref.makeBooleanPref("SideBarOnRight", tool.prefs, false);
 	/**
 	 * Method to tell whether to place the side bar on the right by default.
