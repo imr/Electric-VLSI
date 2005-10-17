@@ -71,7 +71,7 @@ import java.util.Set;
  */
 public class VectorDrawing
 {
-	private static final boolean TAKE_STATS = false;
+	private static final boolean TAKE_STATS = true;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
@@ -490,7 +490,7 @@ public class VectorDrawing
 			System.out.println("Done");
 		}
 
-		if (TAKE_STATS && Main.getDebug())
+		if (TAKE_STATS && Main.getDebug() && Main.LOCALDEBUGFLAG)
 		{
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memUsed = curUsed - initialUsed;
