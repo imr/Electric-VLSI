@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/17/05, SMR) When editing text in-place, changes to zoom or pan ruin the display (Bug #659).
+FIX: Terminate editing in-place when zoom or change happens.
+
 BUG: (10/17/05, SMR) Typing ESC in the Zoom tool doesn't work (Bug #654).
 FIX: Added escape processing to ZoomAndPanListener.java.
 

@@ -477,7 +477,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	/**
 	 * Class to handle edit-in-place of text.
 	 */
-	private static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+	public static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private CachedTextInfo cti;
 		private EditWindow wnd;
@@ -512,7 +512,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			if (theFont != null) tc.setFont(theFont);
 			tc.selectAll();
 
-			wnd.addInPlaceTextObject(tc);
+			wnd.addInPlaceTextObject(this);
 			tc.setVisible(true);
 			tc.repaint();
 
@@ -523,6 +523,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			mb = top.getTheMenuBar();
 			mb.setIgnoreTextEditKeys(true);
 		}
+
+		/**
+		 * Method to return the JTextComponent associated with this listener.
+		 * @return the  JTextComponent associated with this listener.
+		 */
+		public JTextComponent getTextComponent() { return tc; }
 
 		/**
 		 * Method to determine the size of the in-place edit.
@@ -551,10 +557,10 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			return new Dimension((int)totalWidth+5, (int)totalHeight+5);
 		}
 
-		private void closeEditInPlace()
+		public void closeEditInPlace()
 		{
 			WindowFrame.setListener(oldListener);
-			wnd.removeInPlaceTextObject(tc);
+			wnd.removeInPlaceTextObject(this);
 			wnd.repaint();
 			mb.setIgnoreTextEditKeys(false);
 

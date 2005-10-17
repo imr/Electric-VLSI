@@ -56,6 +56,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 
 import java.awt.datatransfer.DataFlavor;
@@ -1145,8 +1146,8 @@ public class EditWindow extends JPanel
 		// draw any components that are on top (such as in-line text edits)
 		for(Iterator it = inPlaceTextObjects.iterator(); it.hasNext(); )
 		{
-			JTextComponent tc = (JTextComponent)it.next();
-			tc.paint(g);
+			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
+			tl.getTextComponent().paint(g);
 		}
 //		super.paint(g);
 
@@ -1173,22 +1174,38 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to store a new "in-place" text editing object on this EditWindow.
-	 * @param tc the JTextComponent that is now sitting on top of this EditWindow.
+	 * @param tc the Listener that is now sitting on top of this EditWindow.
 	 */
-	public void addInPlaceTextObject(JTextComponent tc)
+	public void addInPlaceTextObject(GetInfoText.EditInPlaceListener tl)
 	{
-		inPlaceTextObjects.add(tc);
-		add(tc);
+		inPlaceTextObjects.add(tl);
+		add(tl.getTextComponent());
 	}
 
 	/**
 	 * Method to remove a "in-place" text editing object from this EditWindow.
-	 * @param tc the JTextComponent that is no longer sitting on top of this EditWindow.
+	 * @param tc the Listener that is no longer sitting on top of this EditWindow.
 	 */
-	public void removeInPlaceTextObject(JTextComponent tc)
+	public void removeInPlaceTextObject(GetInfoText.EditInPlaceListener tl)
 	{
-		inPlaceTextObjects.remove(tc);
-		remove(tc);
+		inPlaceTextObjects.remove(tl);
+		remove(tl.getTextComponent());
+	}
+
+	/**
+	 * Method to remove all in-place text objects in this window.
+	 * Called when the window pans or zooms and the text objects are no longer in the proper place.
+	 */
+	public void removeAllInPlaceTextObjects()
+	{
+		List allTextObjects = new ArrayList();
+		for(Iterator it = inPlaceTextObjects.iterator(); it.hasNext(); )
+			allTextObjects.add(it.next());
+		for(Iterator it = allTextObjects.iterator(); it.hasNext(); )
+		{
+			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
+			tl.closeEditInPlace();
+		}
 	}
 
 	public void fullRepaint() { repaintContents(null, false); }
@@ -2298,6 +2315,7 @@ public class EditWindow extends JPanel
 			}
 		}
 		this.scale = scale;
+		removeAllInPlaceTextObjects();
 		computeDatabaseBounds();
 	}
 
@@ -2334,7 +2352,11 @@ public class EditWindow extends JPanel
 		}
 		if (notThisWindow != null) windowChangeRequests = notThisWindow; else
 			windowChangeRequests.clear();
-		if (changed) wnd.computeDatabaseBounds();
+		if (changed)
+		{
+			wnd.removeAllInPlaceTextObjects();
+			wnd.computeDatabaseBounds();
+		}
 		return changed;
 	}
 
@@ -2391,6 +2413,7 @@ public class EditWindow extends JPanel
 			}
 		}
 		offx = off.getX();   offy = off.getY();
+		removeAllInPlaceTextObjects();
 		computeDatabaseBounds();
 	}
 
