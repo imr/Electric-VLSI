@@ -608,7 +608,17 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
 		// the KeyListener events
 		public void keyPressed(KeyEvent evt) {}
-		public void keyReleased(KeyEvent evt) { tc.setSize(figureSize()); }
+		public void keyReleased(KeyEvent evt)
+		{
+	        int chr = evt.getKeyCode();
+			if (chr == KeyEvent.VK_ESCAPE)
+			{
+				tc.setText(cti.initialText);
+				closeEditInPlace();
+				return;
+			}			
+			tc.setSize(figureSize());
+		}
 		public void keyTyped(KeyEvent evt) {}
 	}
 
