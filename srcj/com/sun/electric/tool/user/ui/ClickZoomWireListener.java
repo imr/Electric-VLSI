@@ -1011,6 +1011,11 @@ public class ClickZoomWireListener
 				if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
 					modeRight == Mode.stickyWiring)
 					router.cancelInteractiveRoute();
+				if (modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot || modeRight == Mode.zoomOut ||
+					modeLeft == Mode.drawBox || modeLeft == Mode.selectBox)
+				{
+					wnd.clearDoingAreaDrag();
+				}
 				modeLeft = Mode.none;
 				modeRight = Mode.none;
 				highlighter.setHighlightOffset(0, 0);
