@@ -275,6 +275,7 @@ public class Array extends EDialog
 			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
 		});
 		finishInitialization();
+		pack();
 	}
 
 	protected void escapePressed() { cancel(null); }

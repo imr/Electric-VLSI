@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/17/05, SMR) Array dialog doesn't leave room for numeric fields (Bug #657).
+FIX: Added call to pack() at end of constructor.
+
 BUG: (10/17/05, SMR) Aborting a drag leaves the dragged rectangle on the screen (Bug #654).
 FIX: In ClickZoomWireListener.keyPressed(), clear the area drag when aborted.
 
