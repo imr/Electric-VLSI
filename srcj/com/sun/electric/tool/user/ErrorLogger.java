@@ -418,6 +418,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
                 if (highlighter != null)
 				{
+					highlighter.ensureHighlightingSeen();
 					highlighter.finished();
 
 					// make sure the selection is visible

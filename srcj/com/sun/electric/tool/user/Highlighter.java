@@ -60,6 +60,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Stroke;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -71,6 +73,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /**
  * Class for per-window highlighting information.
@@ -423,6 +426,109 @@ public class Highlighter implements DatabaseChangeListener {
         } else {
             fireHighlightChanged();
         }
+	}
+
+	/**
+	 * Method to ensure that the highlighting is visible.
+	 * If the highlighting is offscreen, flash an arrow towards it.
+	 * If the highlighting is small, flash lines around it.
+	 */
+	public void ensureHighlightingSeen()
+	{
+		// must be drawing in an edit window
+	    if (wf == null || !(wf.getContent() instanceof EditWindow)) return;
+		EditWindow wnd = (EditWindow)wf.getContent();
+
+		// must have something highlighted
+		Rectangle2D bounds = getHighlightedArea(wnd);
+		if (bounds == null) return;
+
+		// determine the area being highlighted
+		double boundsArea = bounds.getWidth() * bounds.getHeight();
+		Rectangle2D displayBounds = wnd.displayableBounds();
+		double displayArea = displayBounds.getWidth() * displayBounds.getHeight();
+		Highlight line1 = null, line2 = null, line3 = null, line4 = null;
+
+		// if objects are offscreen, point the way
+		if (bounds.getMinX() >= displayBounds.getMaxX() ||
+			bounds.getMaxX() <= displayBounds.getMinX() ||
+			bounds.getMinY() >= displayBounds.getMaxY() ||
+			bounds.getMaxY() <= displayBounds.getMinY())
+		{
+			Point2D fromPt = new Point2D.Double(displayBounds.getCenterX(), displayBounds.getCenterY());
+			Point2D toPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+			GenMath.clipLine(fromPt, toPt, displayBounds.getMinX(), displayBounds.getMaxX(),
+					displayBounds.getMinY(), displayBounds.getMaxY());
+			if (fromPt.getX() != displayBounds.getCenterX() || fromPt.getY() != displayBounds.getCenterY())
+			{
+				// clipLine may swap points: swap them back
+				Point2D swap = fromPt;
+				fromPt = toPt;
+				toPt = swap;
+			}
+			line1 = addLine(fromPt, toPt, wnd.getCell());
+			int angle = GenMath.figureAngle(fromPt, toPt);
+			double headLength = fromPt.distance(toPt) / 10;
+			double xLeft = toPt.getX() - headLength * DBMath.cos(angle+150);
+			double yLeft = toPt.getY() - headLength * DBMath.sin(angle+150);
+			double xRight = toPt.getX() - headLength * DBMath.cos(angle-150);
+			double yRight = toPt.getY() - headLength * DBMath.sin(angle-150);
+			line2 = addLine(new Point2D.Double(xLeft, yLeft), toPt, wnd.getCell());
+			line3 = addLine(new Point2D.Double(xRight, yRight), toPt, wnd.getCell());
+		} else
+		{
+			// if displayed objects are very small, point them out
+			if (boundsArea * 500 <  displayArea)
+			{
+				if (bounds.getMinX() > displayBounds.getMinX() && bounds.getMinY() > displayBounds.getMinY())
+					line1 = addLine(new Point2D.Double(displayBounds.getMinX(), displayBounds.getMinY()),
+						new Point2D.Double(bounds.getMinX(), bounds.getMinY()), wnd.getCell());
+
+				if (bounds.getMinX() > displayBounds.getMinX() && bounds.getMaxY() < displayBounds.getMaxY())
+					line2 = addLine(new Point2D.Double(displayBounds.getMinX(), displayBounds.getMaxY()),
+						new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), wnd.getCell());
+
+				if (bounds.getMaxX() < displayBounds.getMaxX() && bounds.getMinY() > displayBounds.getMinY())
+					line3 = addLine(new Point2D.Double(displayBounds.getMaxX(), displayBounds.getMinY()),
+						new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), wnd.getCell());
+
+				if (bounds.getMaxX() < displayBounds.getMaxX() && bounds.getMaxY() < displayBounds.getMaxY())
+					line4 = addLine(new Point2D.Double(displayBounds.getMaxX(), displayBounds.getMaxY()),
+						new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), wnd.getCell());
+			}
+		}
+
+		// if there was temporary identification, queue a timer to turn it off
+		if (line1 != null || line2 != null || line3 != null || line4 != null)
+		{
+			Timer timer = new Timer(500, new FlashActionListener(this, line1, line2, line3, line4));
+			timer.setRepeats(false);
+			timer.start();
+		}
+	}
+
+	private static class FlashActionListener implements ActionListener
+	{
+		private Highlighter hl;
+		private Highlight line1, line2, line3, line4;
+
+		FlashActionListener(Highlighter hl, Highlight line1, Highlight line2, Highlight line3, Highlight line4)
+		{
+			this.hl = hl;
+			this.line1 = line1;
+			this.line2 = line2;
+			this.line3 = line3;
+			this.line4 = line4;
+		}
+	    public void actionPerformed(ActionEvent evt)
+		{
+			if (line1 != null) hl.remove(line1);
+			if (line2 != null) hl.remove(line2);
+			if (line3 != null) hl.remove(line3);
+			if (line4 != null) hl.remove(line4);
+			hl.finished();
+			hl.getWindowFrame().getContent().repaint();
+		}    
 	}
 
     /**
