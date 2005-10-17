@@ -62,6 +62,18 @@ public class GDSLayers
 	public int getTextLayer() { return textLayer; }
 
 	/**
+	 * Method to determine if the numbers in this GDSLayers are the same as another.
+	 * @param other the other GDSLayers being compared with this.
+	 * @return true if they have the same values.
+	 */
+	public boolean equals(GDSLayers other)
+	{
+		if (pinLayer != other.pinLayer) return false;
+		if (textLayer != other.textLayer) return false;
+		return normalLayers.equals(other.normalLayers);
+	}
+
+	/**
 	 * Method to parse the GDS layer string and get the layer numbers and types (plain, text, and pin).
 	 * @param string the GDS layer string, of the form [NUM[/TYP]]*[,NUM[/TYP]t][,NUM[/TYP]p]
 	 * @return a GDSLayers object with the values filled-in.

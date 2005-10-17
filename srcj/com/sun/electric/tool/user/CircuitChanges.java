@@ -1663,75 +1663,102 @@ public class CircuitChanges
 	 */
 	public static void eraseObjectsInList(Cell cell, List list)
 	{
-		HashMap deleteFlag = new HashMap();
-
+		// make sets of all of the arcs and nodes explicitly selected for deletion
+		HashSet arcsToDelete = new HashSet();
+		HashSet nodesToDelete = new HashSet();
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
 			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof Geometric)) continue;
-			Geometric geom = (Geometric)obj;
-
-			if (geom instanceof ArcInst)
+			if (obj instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)geom;
-				deleteFlag.put(ai.getHeadPortInst().getNodeInst(), new Integer(1));
-				deleteFlag.put(ai.getTailPortInst().getNodeInst(), new Integer(1));
+				ArcInst ai = (ArcInst)obj;
+				arcsToDelete.add(ai);
+			} else if (obj instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)obj;
+				nodesToDelete.add(ni);
 			}
 		}
 
-		// also mark all nodes on arcs that will be erased
-		for(Iterator it = list.iterator(); it.hasNext(); )
-		{
-			Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)obj;
+		// make a set of additional nodes to potentially delete
+		HashSet alsoDeleteTheseNodes = new HashSet();
 
-			Integer flag = (Integer)deleteFlag.get(ni);
-			if (flag != null && flag.intValue() != 2)
-				deleteFlag.put(ni, new Integer(2));
+		// also (potentially) delete nodes on the end of deleted arcs
+		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			alsoDeleteTheseNodes.add(ai.getHeadPortInst().getNodeInst());
+			alsoDeleteTheseNodes.add(ai.getTailPortInst().getNodeInst());
 		}
 
+//		// also mark all nodes on arcs that will be erased
+//		for(Iterator it = list.iterator(); it.hasNext(); )
+//		{
+//			Object obj = it.next();
+//			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+//			if (!(obj instanceof NodeInst)) continue;
+//			NodeInst ni = (NodeInst)obj;
+//			alsoDeleteTheseNodes.add(ni);
+//		}
+
 		// also mark all nodes on the other end of arcs connected to erased nodes
-		for(Iterator it = list.iterator(); it.hasNext(); )
+		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
 		{
-			Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)obj;
+			NodeInst ni = (NodeInst)it.next();
 
 			for(Iterator sit = ni.getConnections(); sit.hasNext(); )
 			{
 				Connection con = (Connection)sit.next();
 				ArcInst ai = con.getArc();
                 int otherEnd = 1 - con.getEndIndex();
-//				Connection otherEnd = ai.getHead();
-//				if (ai.getHead() == con) otherEnd = ai.getTail();
-
 				NodeInst oNi = ai.getPortInst(otherEnd).getNodeInst();
-				if (deleteFlag.get(oNi) == null) deleteFlag.put(oNi, new Integer(1));
+				alsoDeleteTheseNodes.add(oNi);
+			}
+		}
+
+		// reconnect hair to cells
+		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (!(ni.getProto() instanceof Cell)) continue;
+
+			// reconstruct each connection to a deleted cell instance
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				if (arcsToDelete.contains(ai)) continue;
+
+				// recreate them
+                int otherEnd = 1 - con.getEndIndex();
+				PortInst otherPi = ai.getPortInst(otherEnd);
+				NodeInst otherNi = otherPi.getNodeInst();
+				if (otherNi == ni)
+				{
+					// special case: arc from node to itself gets preserved?
+					continue;
+				}
+				if (nodesToDelete.contains(otherNi)) continue;
+
+				// reconnect a piece of hair to a cell instance
+				PrimitiveNode pinNp = ai.getProto().findPinProto();
+				NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
+				ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), otherPi, pin.getOnlyPortInst());
 			}
 		}
 
 		// now kill all of the arcs
-		for(Iterator it = list.iterator(); it.hasNext(); )
+		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
 		{
-			Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof ArcInst)) continue;
-			ArcInst ai = (ArcInst)obj;
-
+			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
 
 		// next kill all of the nodes
-		for(Iterator it = list.iterator(); it.hasNext(); )
+		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
 		{
-			Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)obj;
+			NodeInst ni = (NodeInst)it.next();
 
             // see if any arcs can be reconnected as a result of this kill
             Reconnect re = Reconnect.erasePassThru(ni, false);
@@ -1741,19 +1768,18 @@ public class CircuitChanges
 		}
 
 		// kill all pin nodes that touched an arc and no longer do
-		List nodesToDelete = new ArrayList();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		List deleteTheseNodes = new ArrayList();
+		for(Iterator it = alsoDeleteTheseNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (deleteFlag.get(ni) == null) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
-				nodesToDelete.add(ni);
+				deleteTheseNodes.add(ni);
 			}
 		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		for(Iterator it = deleteTheseNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			eraseNodeInst(ni);
@@ -1761,10 +1787,9 @@ public class CircuitChanges
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
 		List nodesToPassThru = new ArrayList();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator it = alsoDeleteTheseNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (deleteFlag.get(ni) == null) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;

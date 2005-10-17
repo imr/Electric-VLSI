@@ -282,34 +282,37 @@ public class GDSTab extends PreferencePanel
 			{
 				Layer layer = (Layer)lIt.next();
 				String str = (String)layerMap.get(layer);
-
 				GDSLayers numbers = gdsGetNumbers(str);
 				if (numbers == null) continue;
-				String currentGDSNumbers = "";
-				for(Iterator it = numbers.getLayers(); it.hasNext(); )
+
+				GDSLayers oldNumbers = GDSLayers.parseLayerString(layer.getGDSLayer());
+				if (!oldNumbers.equals(numbers))
 				{
-					Integer layVal = (Integer)it.next();
-					int layNum = layVal.intValue() & 0xFFFF;
-					int layType = (layVal.intValue() >> 16) & 0xFFFF;
-					currentGDSNumbers += Integer.toString(layNum);
-					if (layType != 0) currentGDSNumbers += "/" + layType;
+					String currentGDSNumbers = "";
+					for(Iterator it = numbers.getLayers(); it.hasNext(); )
+					{
+						Integer layVal = (Integer)it.next();
+						int layNum = layVal.intValue() & 0xFFFF;
+						int layType = (layVal.intValue() >> 16) & 0xFFFF;
+						currentGDSNumbers += Integer.toString(layNum);
+						if (layType != 0) currentGDSNumbers += "/" + layType;
+					}
+					if (numbers.getPinLayer() != -1)
+					{
+						currentGDSNumbers += "," + (numbers.getPinLayer() & 0xFFFF);
+						int pinType = (numbers.getPinLayer() >> 16) & 0xFFFF;
+						if (pinType != 0) currentGDSNumbers += "/" + pinType;
+						currentGDSNumbers += "p";
+					}
+					if (numbers.getTextLayer() != -1)
+					{
+						currentGDSNumbers += "," + (numbers.getTextLayer() & 0xFFFF);
+						int textType = (numbers.getTextLayer() >> 16) & 0xFFFF;
+						if (textType != 0) currentGDSNumbers += "/" + textType;
+						currentGDSNumbers += "t";
+					}
+					layer.setGDSLayer(currentGDSNumbers);
 				}
-				if (numbers.getPinLayer() != -1)
-				{
-					currentGDSNumbers += "," + (numbers.getPinLayer() & 0xFFFF);
-					int pinType = (numbers.getPinLayer() >> 16) & 0xFFFF;
-					if (pinType != 0) currentGDSNumbers += "/" + pinType;
-					currentGDSNumbers += "p";
-				}
-				if (numbers.getTextLayer() != -1)
-				{
-					currentGDSNumbers += "," + (numbers.getTextLayer() & 0xFFFF);
-					int textType = (numbers.getTextLayer() >> 16) & 0xFFFF;
-					if (textType != 0) currentGDSNumbers += "/" + textType;
-					currentGDSNumbers += "t";
-				}
-				if (currentGDSNumbers.equalsIgnoreCase(layer.getGDSLayer())) continue;
-				layer.setGDSLayer(currentGDSNumbers);
 			}
 		}
 		boolean currentValue = gdsOutputMergesBoxes.isSelected();

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/17/05, SMR) GDS preferences are sensitive to spaces and may update too often (Bug #474)
+FIX: In GDSTab.java, compare values, not the string.
+
+IMP: (10/17/05, SMR) Deleting a cell instance reconstructs the arcs to the cell (Bug #491).
+
 BUG: (10/17/05, DN) exception while doing cross-library copy (Bug #652).
 FIX: In Cell.copyNodeProtoUsingMapping use getVar(SCHEM_FUNCTION, String.class).
 
