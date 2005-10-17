@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/17/05, SMR) Undo and Redo now state the activity that is being undone/redone.
+
 IMP: (10/17/05, SMR) Typing ESC while editing in-place aborts and reverts the text (Bug #661).
 
 BUG: (10/17/05, SMR) When editing text in-place, changes to zoom or pan ruin the display (Bug #659).

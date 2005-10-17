@@ -1321,7 +1321,9 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
-//        // Put message in Message Window
+
+		// Put message in Message Window
+		System.out.println("Undoing " + batch.activity);
 //        batch.describe("Undo");
 
 		// broadcast the end-batch
@@ -1396,7 +1398,9 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
-//        // Put message in Message Window
+
+		// Put message in Message Window
+		System.out.println("Redoing " + batch.activity);
 //        batch.describe("Redo");
 
 		// broadcast the end-batch
