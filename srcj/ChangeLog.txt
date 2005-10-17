@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/17/05, DN) exception while doing cross-library copy (Bug #652).
+FIX: In Cell.copyNodeProtoUsingMapping use getVar(SCHEM_FUNCTION, String.class).
+
 BUG: (10/16/05, DN) Irsim doesn't saves stimuli to disk correctly (found by Moscow students in GNU 8.02).
 FIX: In irsim.Analyzer.newVector don't divide thisStep by cmdFileUnits twice. 
 

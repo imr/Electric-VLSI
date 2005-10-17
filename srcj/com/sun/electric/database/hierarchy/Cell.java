@@ -631,7 +631,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
             // then change the name from the old to the new
             if (newCell.isIcon()) {
-                Variable var = toNi.getVar(Schematics.SCHEM_FUNCTION);
+                Variable var = toNi.getVar(Schematics.SCHEM_FUNCTION, String.class);
                 if (var != null) {
                     String name = (String)var.getObject();
                     if (name.equals(fromCell.getName())) {
