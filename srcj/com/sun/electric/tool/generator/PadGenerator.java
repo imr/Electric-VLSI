@@ -159,6 +159,10 @@ public class PadGenerator
         int angle;
     }
 
+    private static class ReverseDirection {
+
+    }
+
 	private static class PortAssociate {
         boolean export;
         String portname;
@@ -219,6 +223,9 @@ public class PadGenerator
                                 continue;
                             } else if (keyWord.equals("rotate")) {
                                 if (!processRotate(str)) return false;
+                                continue;
+                            } else if (keyWord.equals("reverse")) {
+                                if (!processReverse(str)) return false;
                                 continue;
                             } else if (keyWord.equals("align")) {
                                 if (!processAlign(str)) return false;
@@ -369,6 +376,11 @@ public class PadGenerator
             return true;
         }
         return false;
+    }
+
+    private boolean processReverse(StringTokenizer str) {
+        orderedCommands.add(new ReverseDirection());
+        return true;
     }
 
     /**
@@ -605,6 +617,7 @@ public class PadGenerator
         NodeInst lastni = null;
 		int lastRotate = 0;
         String lastpadname = null;
+        boolean reversed = false;
 
 		// cycle through all orderedCommands, doing them
         for (Iterator it = orderedCommands.iterator(); it.hasNext();)
@@ -613,6 +626,10 @@ public class PadGenerator
             Object obj = it.next();
             if (obj instanceof Rotation) {
                 angle = (angle + ((Rotation) obj).angle) % 3600;
+                continue;
+            }
+            if (obj instanceof ReverseDirection) {
+                reversed = !reversed;
                 continue;
             }
 
@@ -663,8 +680,6 @@ public class PadGenerator
 
             int gapx = 0, gapy = 0;
             double centerX = 0, centerY = 0;
-            if (pad.locx != null) centerX = pad.locx.doubleValue();
-            if (pad.locy != null) centerY = pad.locy.doubleValue();
             if (lastni != null)
 			{
                 // get info on last nodeinst created
@@ -684,7 +699,12 @@ public class PadGenerator
 
             //corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
             Point2D pointCenter = new Point2D.Double(centerX, centerY);
-			Orientation orient = Orientation.fromAngle(angle);
+            boolean flipLR = false;
+            boolean flipUD = false;
+            if (reversed) {
+                flipUD = true;
+            }
+			Orientation orient = Orientation.fromJava(angle, flipLR, flipUD);
             NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, orient, null, 0);
 //             NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0);
             if (ni == null) {
@@ -694,12 +714,16 @@ public class PadGenerator
 
             if (lastni != null)
 			{
+                int gap = pad.gap;
+                if (reversed) {
+                    gap = -gap;
+                }
                 switch (lastRotate)
                 {
-                    case 0:    gapx = pad.gap;   gapy = 0;         break;
-                    case 900:  gapx = 0;         gapy = pad.gap;   break;
-                    case 1800: gapx = -pad.gap;  gapy = 0;         break;
-                    case 2700: gapx = 0;         gapy = -pad.gap;  break;
+                    case 0:    gapx = gap;       gapy = 0;         break;
+                    case 900:  gapx = 0;         gapy = gap;       break;
+                    case 1800: gapx = -gap;      gapy = 0;         break;
+                    case 2700: gapx = 0;         gapy = -gap;      break;
                 }
                 PortProto inport = cell.findPortProto(aa.inport);
                 if (inport == null)
@@ -713,6 +737,16 @@ public class PadGenerator
                 ni.move(tempx, tempy);
 //                ni.modifyInstance(tempx, tempy, 0, 0, 0);
             }
+
+            double dx = 0, dy = 0;
+            if (pad.locx != null) {
+                dx = pad.locx.doubleValue() - ni.getAnchorCenterX();
+            }
+            if (pad.locy != null) {
+                dy = pad.locy.doubleValue() - ni.getAnchorCenterY();
+            }
+            ni.move(dx, dy);
+
 
             // create exports
 
