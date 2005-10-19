@@ -58,6 +58,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,6 +73,7 @@ import java.util.Set;
 public class VectorDrawing
 {
 	private static final boolean TAKE_STATS = true;
+	private static final int MAXGREEKSIZE = 40;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
@@ -308,6 +310,8 @@ public class VectorDrawing
 		Point2D [] outlinePoints;
 		float size;
 		List portShapes;
+		boolean fadeImage;
+		BufferedImage fadeData;
 
 		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
 		{
@@ -319,6 +323,7 @@ public class VectorDrawing
 			this.outlinePoints = outlinePoints;
 			this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 			portShapes = new ArrayList();
+			fadeImage = false;
 		}
 	}
 
@@ -479,7 +484,7 @@ public class VectorDrawing
 		try
 		{
 			VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
-			render(topVC, 0, 0, Orientation.IDENT, context, true);
+			render(topVC, 0, 0, Orientation.IDENT, context, 0);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -620,13 +625,13 @@ public class VectorDrawing
 	 * @param oY the Y offset for rendering the cell (in database coordinates).
 	 * @param trans the orientation of the cell (this is not a transformation matrix with offsets, just an Orientation with rotation).
 	 * @param context the VarContext for this point in the rendering.
-	 * @param topLevel true if this is the top level cell in the window.
+	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
-	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, boolean topLevel)
+	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, int level)
 		throws AbortRenderingException
 	{
 		// render main list of shapes
-		drawList(oX, oY, vc.shapes, topLevel);
+		drawList(oX, oY, vc.shapes, level);
 
 		// now render subcells
 		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
@@ -658,12 +663,14 @@ public class VectorDrawing
 			if (vsc.size < maxObjectSize)
 			{
 				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
-				VectorCell subVC = vcg.getAnyCell();
+				Orientation thisOrient = vsc.ni.getOrient();
+				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
-				if (subVC == null)
-					subVC = drawCell(vsc.subCell, Orientation.IDENT, subContext);
+				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
+				makeGreekedImage(vsc, subVC);
+
 				int fadeColor = getFadeColor(subVC, subContext);
-				drawTinyBox(lX, hX, lY, hY, fadeColor);
+				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
 				tinySubCellCount++;
 				continue;
 			}
@@ -703,13 +710,27 @@ public class VectorDrawing
 					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
 					if (allTinyInside)
 					{
+						makeGreekedImage(vsc, subVC);
 						int fadeColor = getFadeColor(subVC, context);
-						drawTinyBox(lX, hX, lY, hY, fadeColor);
+						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
 						tinySubCellCount++;
 						continue;
 					}
 				}
-				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, subContext, false);
+
+				// may also be "tiny" if the screen size
+				if (hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
+				{
+					makeGreekedImage(vsc, subVC);
+					int fadeColor = getFadeColor(subVC, context);
+					drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
+					tinySubCellCount++;
+					continue;
+				}
+
+				int subLevel = level;
+				if (subLevel == 0) subLevel = 1;
+				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, subContext, subLevel);
 			} else
 			{
 				// now draw with the proper line type
@@ -731,7 +752,7 @@ public class VectorDrawing
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 				}
 			}
-			drawList(oX, oY, vsc.portShapes, topLevel);
+			drawList(oX, oY, vsc.portShapes, level);
 		}
 		if (stopRendering) throw new AbortRenderingException();
 	}
@@ -741,21 +762,27 @@ public class VectorDrawing
 	 * @param oX the X offset to draw the shapes (in display coordinates).
 	 * @param oY the Y offset to draw the shapes (in display coordinates).
 	 * @param shapes the List of shapes (VectorBase objects).
-	 * @param topLevel true if this is the top cell in the window.
+	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
-	private void drawList(float oX, float oY, List shapes, boolean topLevel)
+	private void drawList(float oX, float oY, List shapes, int level)
 	{
 		// render all shapes
 		for(Iterator it = shapes.iterator(); it.hasNext(); )
 		{
 			VectorBase vb = (VectorBase)it.next();
-			if (vb.hideOnLowLevel && !topLevel) continue;
+			if (vb.hideOnLowLevel && level != 0) continue;
 
 			// get visual characteristics of shape
 			Layer layer = vb.layer;
 			boolean dimmed = false;
 			if (layer != null)
 			{
+				if (level < 0)
+				{
+					// greeked cells ignore cut and implant layers
+					Layer.Function fun = layer.getFunction();
+					if (fun.isContact() || fun.isWell() || fun.isSubstrate()) continue;
+				}
 //				if (!forceVisible && !vb.layer.isVisible()) continue;
 				if (!layer.isVisible()) continue;
 				dimmed = layer.isDimmed();
@@ -793,7 +820,7 @@ public class VectorDrawing
 						if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
 							{ lY = tempPt2.y;   hY = tempPt1.y; }
 						if (hY < screenLY || lY >= screenHY) continue;
-						drawTinyBox(lX, hX, lY, hY, col);
+						drawTinyBox(lX, hX, lY, hY, col, null, null);
 						lineBoxCount++;
 					}
 					continue;
@@ -1005,12 +1032,108 @@ public class VectorDrawing
 	 * @param hY the high Y coordinate of the box.
 	 * @param col the color to draw.
 	 */
-	private void drawTinyBox(int lX, int hX, int lY, int hY, int col)
+	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, VectorCell greekedCell, VectorSubCell vsc)
 	{
 		if (lX < screenLX) lX = screenLX;
 		if (hX >= screenHX) hX = screenHX-1;
 		if (lY < screenLY) lY = screenLY;
 		if (hY >= screenHY) hY = screenHY-1;
+		if (User.isUseCellGreekingImages())
+		{
+			if (vsc != null && vsc.fadeData != null)
+			{
+				BufferedImage img = vsc.fadeData;
+				if (img != null)
+				{
+					// TODO render the icon properly with scale
+					int greekWid = img.getWidth();
+					int greekHei = img.getHeight();
+					int wid = hX - lX;
+					int hei = hY - lY;
+//for(int y=0; y<hei; y++)
+//{
+//	for(int x=0; x<wid; x++)
+//	{
+//		int value = img.getRGB(x%greekWid, y%greekHei);
+//		offscreen.drawPoint(lX+x, lY+y, null, value&0xFFFFFF);
+//	}
+//}
+//if (User.isUseCellGreekingImages()) return;
+					float xInc = greekWid / (float)wid;
+					float yInc = greekHei / (float)hei;
+					float yPos = 0;
+//System.out.println("Drawing icon of cell "+vsc.subCell+" at ("+lX+","+lY+"), size="+(hX-lX)+"x"+(hY-lY)+" increments are ("+xInc+","+yInc+")");
+					for(int y=0; y<hei; y++)
+					{
+						float yEndPos = yPos + yInc;
+						int yS = (int)yPos;
+						int yE = (int)yEndPos;
+
+						float xPos = 0;
+						for(int x=0; x<wid; x++)
+						{
+							float xEndPos = xPos + xInc;
+							int xS = (int)xPos;
+							int xE = (int)xEndPos;
+
+							float r = 0, g = 0, b = 0;
+							float totalArea = 0;
+							for(int yGrab = yS; yGrab <= yE; yGrab++)
+							{
+								if (yGrab >= greekHei) continue;
+								float yArea = 1;
+								if (yGrab == yS) yArea = (1 - (yPos - yS));
+								if (yGrab == yE) yArea *= (yEndPos-yE);
+
+								for(int xGrab = xS; xGrab <= xE; xGrab++)
+								{
+									if (xGrab >= greekWid) continue;
+									int value = img.getRGB(xGrab, yGrab);
+									int red = (value >> 16) & 0xFF;
+									int green = (value >> 8) & 0xFF;
+									int blue = value & 0xFF;
+									float area = yArea;
+									if (xGrab == xS) area *= (1 - (xPos - xS));
+									if (xGrab == xE) area *= (xEndPos-xE);
+									if (area <= 0) continue;
+									r += red * area;
+									g += green * area;
+									b += blue * area;
+									totalArea += area;
+								}
+							}
+							if (totalArea > 0)
+							{
+								int red = (int)(r / totalArea);
+								int green = (int)(g / totalArea);
+								int blue = (int)(b / totalArea);
+								offscreen.drawPoint(lX+x, lY+y, null, (red << 16) | (green << 8) | blue);
+							}
+							xPos = xEndPos;
+						}
+						yPos = yEndPos;
+					}
+//for(int y=0; y<img.getHeight(); y++)
+//{
+//	for(int x=0; x<img.getWidth(); x++)
+//	{
+//		int valToSet = img.getRGB(x, y) & 0xFFFFFF;
+//		offscreen.drawPoint(vsc.fadeOffset+x+1, y+1, null, valToSet);
+//	}
+//	offscreen.drawPoint(vsc.fadeOffset, y+1, null, 0);
+//	offscreen.drawPoint(vsc.fadeOffset+img.getWidth()+1, y+1, null, 0);
+//}
+//for(int x=0; x<img.getWidth()+2; x++)
+//{
+//	offscreen.drawPoint(vsc.fadeOffset+x, 0, null, 0);
+//	offscreen.drawPoint(vsc.fadeOffset+x, img.getHeight()+1, null, 0);
+//}
+				}
+				return;
+			}
+		}
+
+		// no greeked image: just use the greeked color
 		for(int y=lY; y<=hY; y++)
 		{
 			for(int x=lX; x<=hX; x++)
@@ -1051,6 +1174,59 @@ public class VectorDrawing
 			if (vsc.size > maxObjectSize) return false;
 		}
 		return true;
+	}
+
+	private void makeGreekedImage(VectorSubCell vsc, VectorCell subVC)
+		throws AbortRenderingException
+	{
+		if (vsc.fadeImage) return;
+
+		// determine size and scale of greeked cell image
+		Rectangle2D cellBounds = vsc.subCell.getBounds();
+		Rectangle2D ownBounds = new Rectangle2D.Double(cellBounds.getMinX(), cellBounds.getMinY(), cellBounds.getWidth(), cellBounds.getHeight());
+		AffineTransform trans = vsc.pureRotate.rotateAbout(0, 0);
+		GenMath.transformRect(ownBounds, trans);
+		double greekScale = MAXGREEKSIZE / ownBounds.getHeight();
+		if (ownBounds.getWidth() > ownBounds.getHeight())
+			greekScale = MAXGREEKSIZE / ownBounds.getWidth();
+		int greekWid = (int)(ownBounds.getWidth()*greekScale + 0.5) + 1;
+		int greekHei = (int)(ownBounds.getHeight()*greekScale + 0.5) + 1;
+
+		// construct the offscreen buffers for the greeked cell image
+		EditWindow fadeWnd = EditWindow.CreateElectricDoc(vsc.subCell, null);
+		fadeWnd.setScreenSize(new Dimension(greekWid, greekHei));
+		fadeWnd.setScale(greekScale);
+		Point2D cellCtr = new Point2D.Double(ownBounds.getCenterX(), ownBounds.getCenterY());
+		fadeWnd.setOffset(cellCtr);
+		VectorDrawing subVD = new VectorDrawing(fadeWnd);
+
+//System.out.println("Making greek for "+vsc.subCell+" "+greekWid+"x"+greekHei);
+
+		// set rendering information for the greeked cell image
+		subVD.wnd = fadeWnd;
+		subVD.offscreen = fadeWnd.getOffscreen();
+		subVD.screenLX = 0;   subVD.screenHX = greekWid;
+		subVD.screenLY = 0;   subVD.screenHY = greekHei;
+		subVD.szHalfWidth = greekWid / 2;
+		subVD.szHalfHeight = greekHei / 2;
+		subVD.maxObjectSize = 0;
+		subVD.scale = (float)greekScale;
+		subVD.offX = (float)cellCtr.getX();
+		subVD.offY = (float)cellCtr.getY();
+		subVD.factorX = subVD.szHalfWidth - subVD.offX*subVD.scale;
+		subVD.factorY = subVD.szHalfHeight + subVD.offY*subVD.scale;
+		subVD.fullInstantiate = true;
+		subVD.takingLongTime = true;
+
+		// TODO render the greeked cell
+		subVD.offscreen.clearImage(false, null);
+		subVD.render(subVC, 0, 0, vsc.pureRotate, VarContext.globalContext, -1);
+		subVD.offscreen.composite(null);
+		subVD.wnd.finished();
+
+		// remember the greeked cell image
+		vsc.fadeData = subVD.offscreen.getBufferedImage();
+		vsc.fadeImage = true;
 	}
 
 	/**

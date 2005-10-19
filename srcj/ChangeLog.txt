@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/19/05, SMR) New display algorithm now "greeks" small cells better
+     (uses an image of the cell instead of a single color).
+
+IMP: (10/19/05, SMR) "Nodes" preferences now has option to control reconstruction of arcs
+     when cells are deleted.
+
 BUG: (10/18/05, GVG) Special KeyStrokes such as KeyStroke.getKeyStroke('<') don't get properly uploaded if
 there is more key bindings for the same function (Bug #670).
 FIX: KeyStrokePair.stringToKeyStroke handles the situation now

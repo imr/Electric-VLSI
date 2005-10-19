@@ -1876,6 +1876,21 @@ public class User extends Listener
 	 */
 	public static void setUseOlderDisplayAlgorithm(boolean on) { cacheUseOlderDisplayAlgorithm.setBoolean(on); }
 
+	private static Pref cacheUseCellGreekingImages = Pref.makeBooleanPref("UseCellGreekingImages", tool.prefs, false);
+	/**
+	 * Method to tell whether to use small images when greeking cells.
+	 * When not using images, then a single blended color is used for greeked cells.
+	 * The default is "false".
+	 * @return true to use small images when greeking cells.
+	 */
+	public static boolean isUseCellGreekingImages() { return cacheUseCellGreekingImages.getBoolean(); }
+	/**
+	 * Method to set whether to use small images when greeking cells.
+	 * When not using images, then a single blended color is used for greeked cells.
+	 * @param on true to use small images when greeking cells.
+	 */
+	public static void setUseCellGreekingImages(boolean on) { cacheUseCellGreekingImages.setBoolean(on); }
+
 	private static Pref cacheGreekSizeLimit = Pref.makeDoublePref("GreekSizeLimit", tool.prefs, 3);
 	/**
 	 * Method to tell the smallest object that can be drawn.
@@ -2003,6 +2018,21 @@ public class User extends Listener
 	 * @param on true if the system should place a Cell-Center primitive in every newly created Cell.
 	 */
 	public static void setPlaceCellCenter(boolean on) { cachePlaceCellCenter.setBoolean(on); }
+
+	private static Pref cacheReconstructArcsToDeletedCells = Pref.makeBooleanPref("ReconstructArcsToDeletedCells", tool.prefs, true);
+	/**
+	 * Method to tell whether to reconstruct arcs to deleted cell instances.
+	 * When true, deleting a cell instance will leave the connecting arcs in place (now terminated with pins).
+	 * The default is "true".
+	 * @return true if the system should reconstruct arcs to deleted cell instances.
+	 */
+	public static boolean isReconstructArcsToDeletedCells() { return cacheReconstructArcsToDeletedCells.getBoolean(); }
+	/**
+	 * Method to set whether to reconstruct arcs to deleted cell instances.
+	 * When true, deleting a cell instance will leave the connecting arcs in place (now terminated with pins).
+	 * @param on true if the system should reconstruct arcs to deleted cell instances.
+	 */
+	public static void setReconstructArcsToDeletedCells(boolean on) { cacheReconstructArcsToDeletedCells.setBoolean(on); }
 
 	private static Pref cacheCheckCellDates = Pref.makeBooleanPref("CheckCellDates", tool.prefs, false);
 	/**

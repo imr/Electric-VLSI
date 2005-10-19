@@ -98,6 +98,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeCheckCellDates.setSelected(User.isCheckCellDates());
 		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
 		nodePlaceCellCenter.setSelected(User.isPlaceCellCenter());
+		reconstructArcs.setSelected(User.isReconstructArcsToDeletedCells());
 
 		// set checkboxes for "all nodes" area
 		nodeDisallowModificationComplexNodes.setSelected(User.isDisallowModificationComplexNodes());
@@ -215,6 +216,10 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isPlaceCellCenter())
 			User.setPlaceCellCenter(currBoolean);
 
+		currBoolean = reconstructArcs.isSelected();
+		if (currBoolean != User.isReconstructArcsToDeletedCells())
+			User.setReconstructArcsToDeletedCells(currBoolean);
+
 		currBoolean = nodeDisallowModificationComplexNodes.isSelected();
 		if (currBoolean != User.isDisallowModificationComplexNodes())
 			User.setDisallowModificationComplexNodes(currBoolean);
@@ -260,6 +265,7 @@ public class NewNodesTab extends PreferencePanel
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
+        reconstructArcs = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
@@ -388,6 +394,13 @@ public class NewNodesTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel3.add(nodePlaceCellCenter, gridBagConstraints);
 
+        reconstructArcs.setText("Reconstruct arcs when deleting instances");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel3.add(reconstructArcs, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -476,6 +489,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JTextField nodePrimitiveXSize;
     private javax.swing.JTextField nodePrimitiveYSize;
     private javax.swing.JCheckBox nodeSwitchTechnology;
+    private javax.swing.JCheckBox reconstructArcs;
     private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
 

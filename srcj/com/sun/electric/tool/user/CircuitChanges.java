@@ -1717,34 +1717,37 @@ public class CircuitChanges
 			}
 		}
 
-		// reconnect hair to cells
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		// reconnect hair to cells (if requested)
+		if (User.isReconstructArcsToDeletedCells())
 		{
-			NodeInst ni = (NodeInst)it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
-
-			// reconstruct each connection to a deleted cell instance
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
-				ArcInst ai = con.getArc();
-				if (arcsToDelete.contains(ai)) continue;
+				NodeInst ni = (NodeInst)it.next();
+				if (!(ni.getProto() instanceof Cell)) continue;
 
-				// recreate them
-                int otherEnd = 1 - con.getEndIndex();
-				PortInst otherPi = ai.getPortInst(otherEnd);
-				NodeInst otherNi = otherPi.getNodeInst();
-				if (otherNi == ni)
+				// reconstruct each connection to a deleted cell instance
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					// special case: arc from node to itself gets preserved?
-					continue;
-				}
-				if (nodesToDelete.contains(otherNi)) continue;
+					Connection con = (Connection)cIt.next();
+					ArcInst ai = con.getArc();
+					if (arcsToDelete.contains(ai)) continue;
 
-				// reconnect a piece of hair to a cell instance
-				PrimitiveNode pinNp = ai.getProto().findPinProto();
-				NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-				ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), otherPi, pin.getOnlyPortInst());
+					// recreate them
+	                int otherEnd = 1 - con.getEndIndex();
+					PortInst otherPi = ai.getPortInst(otherEnd);
+					NodeInst otherNi = otherPi.getNodeInst();
+					if (otherNi == ni)
+					{
+						// special case: arc from node to itself gets preserved?
+						continue;
+					}
+					if (nodesToDelete.contains(otherNi)) continue;
+
+					// reconnect a piece of hair to a cell instance
+					PrimitiveNode pinNp = ai.getProto().findPinProto();
+					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
+					ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), otherPi, pin.getOnlyPortInst());
+				}
 			}
 		}
 
