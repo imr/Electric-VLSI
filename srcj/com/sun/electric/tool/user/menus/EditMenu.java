@@ -68,14 +68,7 @@ import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
-import com.sun.electric.tool.user.ui.CurveListener;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.OutlineListener;
-import com.sun.electric.tool.user.ui.SizeListener;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -150,7 +143,9 @@ public class EditMenu {
         Undo.addPropertyChangeListener(new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled));
         redo.setEnabled(Undo.getRedoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
-        editMenu.addMenuItem("Repeat Last Action", KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
+        KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0);
+        KeyStrokePair.addSpecialStrokePair(key);
+        editMenu.addMenuItem("Repeat Last Action", key,
             new ActionListener() { public void actionPerformed(ActionEvent e) { repeatLastCommand(); } });
 
 		editMenu.addSeparator();
@@ -211,9 +206,13 @@ public class EditMenu {
 
 		editMenu.addSeparator();
 
-		m=editMenu.addMenuItem("_Erase", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+        key = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+        KeyStrokePair.addSpecialStrokePair(key);
+		m=editMenu.addMenuItem("_Erase", key,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
-        menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), null);
+        key = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0);
+        KeyStrokePair.addSpecialStrokePair(key);
+        menuBar.addDefaultKeyBinding(m, key, null);
 		editMenu.addMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
 		editMenu.addMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0),
@@ -454,9 +453,13 @@ public class EditMenu {
 		selListSubMenu.addMenuItem("Enclosed Ob_jects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Show Ne_xt Error", KeyStroke.getKeyStroke('>'),
+        key = KeyStroke.getKeyStroke('>');
+        KeyStrokePair.addSpecialStrokePair(key);
+		selListSubMenu.addMenuItem("Show Ne_xt Error", key,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
-		selListSubMenu.addMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<'),
+        key = KeyStroke.getKeyStroke('<');
+        KeyStrokePair.addSpecialStrokePair(key);
+		selListSubMenu.addMenuItem("Show Pre_vious Error", key,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Add to Waveform in _New Panel", KeyStroke.getKeyStroke('A', 0),

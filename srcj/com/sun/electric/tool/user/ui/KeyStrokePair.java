@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.ui;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.KeyStroke;
 
@@ -41,8 +43,15 @@ public class KeyStrokePair {
 
     /** cache of defined KeyStrokePairs */  private static HashMap cache = new HashMap();
     /** separator for toString() */         private static final String sep = ", ";
+    /** list of special keyStrokes */       private static List specialKeyStrokes = new ArrayList();
 
     private KeyStrokePair() {}
+
+    /**
+     * Method to collect special key strokes such as "Delete"
+     * @param key the stroke to store
+     */
+    public static void addSpecialStrokePair(KeyStroke key) {specialKeyStrokes.add(key);}
 
     /**
      * Factory method to get a new KeyStrokePair.  KeyStrokePairs are unique,
@@ -95,6 +104,16 @@ public class KeyStrokePair {
             return keyStrokeToString(prefixStroke)+ sep + keyStrokeToString(stroke);
     }
 
+    private static String getStringFromKeyStroke(KeyStroke key)
+    {
+      String id = "";
+        if (key.getKeyCode() == KeyEvent.VK_UNDEFINED ) // not recognized? like >
+            id = String.valueOf(key.getKeyChar());
+        else
+            id = KeyEvent.getKeyText(key.getKeyCode());
+        return id;
+    }
+
     /**
      * Converts KeyStroke to String that can be parsed by
      * KeyStroke.getKeyStroke(String s).  For some reason the
@@ -104,11 +123,7 @@ public class KeyStrokePair {
     public static String keyStrokeToString(KeyStroke key) {
         if (key == null) return "";
         String mods = KeyEvent.getKeyModifiersText(key.getModifiers());
-        String id = "";
-        if (key.getKeyCode() == KeyEvent.VK_UNDEFINED ) // not recognized? like >
-            id = String.valueOf(key.getKeyChar());
-        else
-            id = KeyEvent.getKeyText(key.getKeyCode());
+        String id = getStringFromKeyStroke(key);
         // change key to lower case, unless the shift modifier was pressed
         //if ((key.getModifiers() & InputEvent.SHIFT_DOWN_MASK) == 0) id = id.toLowerCase();
         if (mods.equals("")) return id;
@@ -134,7 +149,22 @@ public class KeyStrokePair {
             }
             return null;
         }
-        return KeyStroke.getKeyStroke(str);
+        KeyStroke key = KeyStroke.getKeyStroke(str);
+        if (key == null) // Doesn't seem to handle properly special keyEvent
+        {
+//            KeyStroke[] list = {KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
+//            KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0), KeyStroke.getKeyStroke('>'), KeyStroke.getKeyStroke('<')};
+            for (int i = 0; i < specialKeyStrokes.size(); i++)
+            {
+                KeyStroke tmp = (KeyStroke)specialKeyStrokes.get(i);
+                if (str.equals(getStringFromKeyStroke(tmp)))
+                {
+                    key = tmp;
+                    break; // found
+                }
+            }
+        }
+        return key;
     }
 
     // ----------------------------- Other methods --------------------------------
