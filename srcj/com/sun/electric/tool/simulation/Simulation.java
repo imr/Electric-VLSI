@@ -1519,6 +1519,10 @@ public class Simulation extends Listener
     public static boolean isParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBoolean(); }
     public static void setParasiticsExtractPowerGround(boolean b) { cacheParasiticsExtractPowerGround.setBoolean(b); }
 
+    public static Pref cacheSpiceExtractMeNetsOnly = Pref.makeBooleanPref("SpiceExtractMeNetsOnly", tool.prefs, false);
+    public static boolean isSpiceExtractMeNetsOnly() { return cacheSpiceExtractMeNetsOnly.getBoolean(); }
+    public static void setSpiceExtractMeNetsOnly(boolean b) { cacheSpiceExtractMeNetsOnly.setBoolean(b); }
+
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
 //    static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
 	/**

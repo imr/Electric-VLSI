@@ -503,6 +503,20 @@ public class Spice extends Topology
                     ignoreArc = true;
                 }
 
+                // if only extracting nets containing name 'extractMe', ignore if name not found
+                if (Simulation.isSpiceExtractMeNetsOnly() && ignoreArc == false) {
+                    // check if any net name contains 'extractMe'
+                    Network net = netList.getNetwork(ai, 0);
+                    ignoreArc = true;
+                    for (Iterator it = net.getNames(); it.hasNext(); ) {
+                        String str = (String)it.next();
+                        if (str.toLowerCase().indexOf("extractme") != -1) {
+                            ignoreArc = false;
+                            break;
+                        }
+                    }
+                }
+
                 int arcPImodels = SegmentedNets.getNumPISegments(res);
 
                 if (ignoreArc)

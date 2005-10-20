@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN (10/20/05, JKG) Added Spice option to only extract nets with a name that
+    contains 'extractme' from layout.
+
 BUG: (10/20/05, GVG) More option in SpecialProperties dialogs was broken if text was selected (Bug #678)
 FIX: Detect those cases where the more button was hit and bring the NodeInst dialog box.
 

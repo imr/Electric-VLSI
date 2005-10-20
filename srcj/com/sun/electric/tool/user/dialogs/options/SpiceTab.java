@@ -99,6 +99,8 @@ public class SpiceTab extends PreferencePanel
 		spiceOutputFormatPopup.setSelectedItem(Simulation.getSpiceOutputFormat());
 
 		spiceUseParasitics.setSelected(Simulation.isSpiceUseParasitics());
+        spiceExtractMeOnly.setSelected(Simulation.isSpiceExtractMeNetsOnly());
+        spiceExtractMeOnly.setEnabled(Simulation.isSpiceUseParasitics());
 		spiceUseNodeNames.setSelected(Simulation.isSpiceUseNodeNames());
 		spiceForceGlobalPwrGnd.setSelected(Simulation.isSpiceForceGlobalPwrGnd());
 		spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
@@ -402,6 +404,9 @@ public class SpiceTab extends PreferencePanel
 		booleanNow = spiceUseParasitics.isSelected();
 		if (Simulation.isSpiceUseParasitics() != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
+        booleanNow = spiceExtractMeOnly.isSelected();
+        if (Simulation.isSpiceExtractMeNetsOnly() != booleanNow) Simulation.setSpiceExtractMeNetsOnly(booleanNow);
+
         // spice run options
         stringNow = (String)spiceRunPopup.getSelectedItem();
         if (!Simulation.getSpiceRunChoice().equals(stringNow)) Simulation.setSpiceRunChoice(stringNow);
@@ -515,6 +520,7 @@ public class SpiceTab extends PreferencePanel
         spiceUseCellParameters = new javax.swing.JCheckBox();
         spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
         spiceWriteSubcktTopCell = new javax.swing.JCheckBox();
+        spiceExtractMeOnly = new javax.swing.JCheckBox();
         spice2 = new javax.swing.JPanel();
         spiceRunProgram = new javax.swing.JTextField();
         jLabel17 = new javax.swing.JLabel();
@@ -599,11 +605,11 @@ public class SpiceTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         spice1.add(spiceRunPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -625,6 +631,12 @@ public class SpiceTab extends PreferencePanel
         spice1.add(spiceOutputFormatPopup, gridBagConstraints);
 
         spiceUseParasitics.setText("Use Parasitics");
+        spiceUseParasitics.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spiceUseParasiticsStateChanged(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -634,38 +646,45 @@ public class SpiceTab extends PreferencePanel
         spiceUseNodeNames.setText("Use Node Names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceUseNodeNames, gridBagConstraints);
 
         spiceForceGlobalPwrGnd.setText("Force Global VDD/GND");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceForceGlobalPwrGnd, gridBagConstraints);
 
         spiceUseCellParameters.setText("Use Cell Parameters");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceUseCellParameters, gridBagConstraints);
 
         spiceWriteTransSizesInLambda.setText("Write Trans Sizes in Units");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceWriteTransSizesInLambda, gridBagConstraints);
 
         spiceWriteSubcktTopCell.setText("Write Subckt For Top Cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 3, 0);
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 3, 0);
         spice1.add(spiceWriteSubcktTopCell, gridBagConstraints);
+
+        spiceExtractMeOnly.setText("'extractMe' only nets");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice1.add(spiceExtractMeOnly, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1012,6 +1031,10 @@ public class SpiceTab extends PreferencePanel
         pack();
     }//GEN-END:initComponents
 
+    private void spiceUseParasiticsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spiceUseParasiticsStateChanged
+        spiceExtractMeOnly.setEnabled(spiceUseParasitics.isSelected());
+    }//GEN-LAST:event_spiceUseParasiticsStateChanged
+
     private void spiceRunPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunPopupActionPerformed
         if (spiceRunPopup.getSelectedIndex() == 0) {
             setSpiceRunOptionsEnabled(false);
@@ -1074,6 +1097,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JScrollPane spiceCell;
     private javax.swing.JRadioButton spiceDeriveModelFromCircuit;
     private javax.swing.JComboBox spiceEnginePopup;
+    private javax.swing.JCheckBox spiceExtractMeOnly;
     private javax.swing.JCheckBox spiceForceGlobalPwrGnd;
     private javax.swing.ButtonGroup spiceHeader;
     private javax.swing.JTextField spiceHeaderCardExtension;
