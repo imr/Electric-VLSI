@@ -592,6 +592,7 @@ public class EditMenu {
 				}
 			}
 
+            boolean moreOption = false;
 			// special dialogs for double-clicking on known nodes
 			if (doubleClick)
 			{
@@ -599,14 +600,22 @@ public class EditMenu {
 					nodeCount + textCount == 1 && theNode != null)
 				{
 					if (SpecialProperties.doubleClickOnNode(wnd, theNode)) return;
+                    moreOption = nodeCount == 0 && textCount == 1;
 				}
 			}
 
 			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
-				if (nodeCount == 1)
+				if (nodeCount == 1 || moreOption)
 				{
+                    if (moreOption)
+                    {
+                        Highlighter highlighter = wnd.getHighlighter();
+                        highlighter.clear();
+                        highlighter.finished();
+                        highlighter.addElectricObject(theNode, theNode.getParent());
+                    }
 					// if in outline-edit mode, show that dialog
 			        if (WindowFrame.getListener() == OutlineListener.theOne)
 			        {
