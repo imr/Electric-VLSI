@@ -1042,9 +1042,9 @@ public class Schematics extends Technology
 		capacitorNode = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
 		capacitorNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
-				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		capacitorNode.setFunction(PrimitiveNode.Function.CAPAC);

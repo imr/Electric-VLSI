@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/20/05, GVG) Ability to connect bus wire to capacitors in Schematics (Bug #677)
+Solution: bus_wire added as capacitor port.
+
 IMP: (10/19/05, SMR) New display algorithm now "greeks" small cells better
      (uses an image of the cell instead of a single color).
 
