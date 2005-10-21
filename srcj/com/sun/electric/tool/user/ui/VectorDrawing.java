@@ -72,7 +72,8 @@ import java.util.Set;
  */
 public class VectorDrawing
 {
-	private static final boolean TAKE_STATS = true;
+	private static final boolean TAKE_STATS = false;
+	private static final boolean DEBUGIMAGES = false;
 	private static final int MAXGREEKSIZE = 40;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
@@ -97,6 +98,9 @@ public class VectorDrawing
 	/** the color of text */								private Color textColor;
 
 	/** list of cell expansions. */							private static HashMap cachedCells = new HashMap();
+	/** the object that draws the rendered screen */		private static VectorDrawing topVD;
+	/** location for debugging icon displays */				private static int debugXP, debugYP;
+
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -311,7 +315,9 @@ public class VectorDrawing
 		float size;
 		List portShapes;
 		boolean fadeImage;
-		BufferedImage fadeData;
+		int fadeOffsetX, fadeOffsetY;
+		int [] fadeImageColors;
+		int fadeImageWid, fadeImageHei;
 
 		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
 		{
@@ -630,6 +636,8 @@ public class VectorDrawing
 	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, int level)
 		throws AbortRenderingException
 	{
+		if (level == 0) topVD = this;
+
 		// render main list of shapes
 		drawList(oX, oY, vc.shapes, level);
 
@@ -704,11 +712,25 @@ public class VectorDrawing
 				VarContext subContext = context.push(vsc.ni);
 				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
 
-				// may also be "tiny" if all features in the cell are tiny
-				if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.cellSize < maxCellSize)
+				// expanded cells may be replaced with greeked versions (not icons)
+				if (vsc.subCell.getView() != View.ICON)
 				{
-					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
-					if (allTinyInside)
+					// may also be "tiny" if all features in the cell are tiny
+					if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.cellSize < maxCellSize)
+					{
+						boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
+						if (allTinyInside)
+						{
+							makeGreekedImage(vsc, subVC);
+							int fadeColor = getFadeColor(subVC, context);
+							drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
+							tinySubCellCount++;
+							continue;
+						}
+					}
+
+					// may also be "tiny" if the cell is smaller than the greeked image
+					if (User.isUseCellGreekingImages() && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
 					{
 						makeGreekedImage(vsc, subVC);
 						int fadeColor = getFadeColor(subVC, context);
@@ -716,16 +738,6 @@ public class VectorDrawing
 						tinySubCellCount++;
 						continue;
 					}
-				}
-
-				// may also be "tiny" if the screen size
-				if (hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
-				{
-					makeGreekedImage(vsc, subVC);
-					int fadeColor = getFadeColor(subVC, context);
-					drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
-					tinySubCellCount++;
-					continue;
 				}
 
 				int subLevel = level;
@@ -1040,94 +1052,95 @@ public class VectorDrawing
 		if (hY >= screenHY) hY = screenHY-1;
 		if (User.isUseCellGreekingImages())
 		{
-			if (vsc != null && vsc.fadeData != null)
+			if (vsc != null && vsc.fadeImageColors != null)
 			{
-				BufferedImage img = vsc.fadeData;
-				if (img != null)
+				int backgroundColor = User.getColorBackground();
+				int backgroundRed = (backgroundColor >> 16) & 0xFF;
+				int backgroundGreen = (backgroundColor >> 8) & 0xFF;
+				int backgroundBlue = backgroundColor & 0xFF;
+
+				// TODO render the icon properly with scale
+				int greekWid = vsc.fadeImageWid;
+				int greekHei = vsc.fadeImageHei;
+				int wid = hX - lX;
+				int hei = hY - lY;
+				float xInc = greekWid / (float)wid;
+				float yInc = greekHei / (float)hei;
+				float yPos = 0;
+				for(int y=0; y<hei; y++)
 				{
-					// TODO render the icon properly with scale
-					int greekWid = img.getWidth();
-					int greekHei = img.getHeight();
-					int wid = hX - lX;
-					int hei = hY - lY;
-//for(int y=0; y<hei; y++)
-//{
-//	for(int x=0; x<wid; x++)
-//	{
-//		int value = img.getRGB(x%greekWid, y%greekHei);
-//		offscreen.drawPoint(lX+x, lY+y, null, value&0xFFFFFF);
-//	}
-//}
-//if (User.isUseCellGreekingImages()) return;
-					float xInc = greekWid / (float)wid;
-					float yInc = greekHei / (float)hei;
-					float yPos = 0;
-//System.out.println("Drawing icon of cell "+vsc.subCell+" at ("+lX+","+lY+"), size="+(hX-lX)+"x"+(hY-lY)+" increments are ("+xInc+","+yInc+")");
-					for(int y=0; y<hei; y++)
+					float yEndPos = yPos + yInc;
+					int yS = (int)yPos;
+					int yE = (int)yEndPos;
+
+					float xPos = 0;
+					for(int x=0; x<wid; x++)
 					{
-						float yEndPos = yPos + yInc;
-						int yS = (int)yPos;
-						int yE = (int)yEndPos;
+						float xEndPos = xPos + xInc;
+						int xS = (int)xPos;
+						int xE = (int)xEndPos;
 
-						float xPos = 0;
-						for(int x=0; x<wid; x++)
+						float r = 0, g = 0, b = 0;
+						float totalArea = 0;
+						for(int yGrab = yS; yGrab <= yE; yGrab++)
 						{
-							float xEndPos = xPos + xInc;
-							int xS = (int)xPos;
-							int xE = (int)xEndPos;
+							if (yGrab >= greekHei) continue;
+							float yArea = 1;
+							if (yGrab == yS) yArea = (1 - (yPos - yS));
+							if (yGrab == yE) yArea *= (yEndPos-yE);
 
-							float r = 0, g = 0, b = 0;
-							float totalArea = 0;
-							for(int yGrab = yS; yGrab <= yE; yGrab++)
+							for(int xGrab = xS; xGrab <= xE; xGrab++)
 							{
-								if (yGrab >= greekHei) continue;
-								float yArea = 1;
-								if (yGrab == yS) yArea = (1 - (yPos - yS));
-								if (yGrab == yE) yArea *= (yEndPos-yE);
-
-								for(int xGrab = xS; xGrab <= xE; xGrab++)
-								{
-									if (xGrab >= greekWid) continue;
-									int value = img.getRGB(xGrab, yGrab);
-									int red = (value >> 16) & 0xFF;
-									int green = (value >> 8) & 0xFF;
-									int blue = value & 0xFF;
-									float area = yArea;
-									if (xGrab == xS) area *= (1 - (xPos - xS));
-									if (xGrab == xE) area *= (xEndPos-xE);
-									if (area <= 0) continue;
-									r += red * area;
-									g += green * area;
-									b += blue * area;
-									totalArea += area;
-								}
+								if (xGrab >= greekWid) continue;
+								int value = vsc.fadeImageColors[xGrab + yGrab*vsc.fadeImageWid];
+								int red = (value >> 16) & 0xFF;
+								int green = (value >> 8) & 0xFF;
+								int blue = value & 0xFF;
+								float area = yArea;
+								if (xGrab == xS) area *= (1 - (xPos - xS));
+								if (xGrab == xE) area *= (xEndPos-xE);
+								if (area <= 0) continue;
+								r += red * area;
+								g += green * area;
+								b += blue * area;
+								totalArea += area;
 							}
-							if (totalArea > 0)
+						}
+						if (totalArea > 0)
+						{
+							int red = (int)(r / totalArea);
+							if (red > 255) red = 255;
+							int green = (int)(g / totalArea);
+							if (green > 255) green = 255;
+							int blue = (int)(b / totalArea);
+							if (blue > 255) blue = 255;
+							if (Math.abs(backgroundRed-red) > 2 || Math.abs(backgroundGreen-green) > 2 ||
+								Math.abs(backgroundBlue-blue) > 2)
 							{
-								int red = (int)(r / totalArea);
-								int green = (int)(g / totalArea);
-								int blue = (int)(b / totalArea);
 								offscreen.drawPoint(lX+x, lY+y, null, (red << 16) | (green << 8) | blue);
 							}
-							xPos = xEndPos;
 						}
-						yPos = yEndPos;
+						xPos = xEndPos;
 					}
-//for(int y=0; y<img.getHeight(); y++)
-//{
-//	for(int x=0; x<img.getWidth(); x++)
-//	{
-//		int valToSet = img.getRGB(x, y) & 0xFFFFFF;
-//		offscreen.drawPoint(vsc.fadeOffset+x+1, y+1, null, valToSet);
-//	}
-//	offscreen.drawPoint(vsc.fadeOffset, y+1, null, 0);
-//	offscreen.drawPoint(vsc.fadeOffset+img.getWidth()+1, y+1, null, 0);
-//}
-//for(int x=0; x<img.getWidth()+2; x++)
-//{
-//	offscreen.drawPoint(vsc.fadeOffset+x, 0, null, 0);
-//	offscreen.drawPoint(vsc.fadeOffset+x, img.getHeight()+1, null, 0);
-//}
+					yPos = yEndPos;
+				}
+				if (DEBUGIMAGES)
+				{
+					for(int y=0; y<vsc.fadeImageHei; y++)
+					{
+						for(int x=0; x<vsc.fadeImageWid; x++)
+						{
+							int valToSet = vsc.fadeImageColors[x+y*vsc.fadeImageWid];
+							topVD.offscreen.drawPoint(vsc.fadeOffsetX+x+1, vsc.fadeOffsetY+y+1, null, valToSet);
+						}
+						topVD.offscreen.drawPoint(vsc.fadeOffsetX, vsc.fadeOffsetY+y+1, null, 0);
+						topVD.offscreen.drawPoint(vsc.fadeOffsetX+vsc.fadeImageWid+1, vsc.fadeOffsetY+y+1, null, 0);
+					}
+					for(int x=0; x<vsc.fadeImageWid; x++)
+					{
+						topVD.offscreen.drawPoint(vsc.fadeOffsetX+x, vsc.fadeOffsetY, null, 0);
+						topVD.offscreen.drawPoint(vsc.fadeOffsetX+x, vsc.fadeOffsetY+vsc.fadeImageHei+1, null, 0);
+					}
 				}
 				return;
 			}
@@ -1180,6 +1193,7 @@ public class VectorDrawing
 		throws AbortRenderingException
 	{
 		if (vsc.fadeImage) return;
+		if (!User.isUseCellGreekingImages()) return;
 
 		// determine size and scale of greeked cell image
 		Rectangle2D cellBounds = vsc.subCell.getBounds();
@@ -1200,10 +1214,21 @@ public class VectorDrawing
 		fadeWnd.setOffset(cellCtr);
 		VectorDrawing subVD = new VectorDrawing(fadeWnd);
 
+		vsc.fadeOffsetX = debugXP;
+		vsc.fadeOffsetY = debugYP;
+		debugXP += MAXGREEKSIZE + 5;
+		if (topVD != null)
+		{
+			if (debugXP + MAXGREEKSIZE+2 >= topVD.offscreen.getSize().width)
+			{
+				debugXP = 0;
+				debugYP += MAXGREEKSIZE + 5;
+			}
+		}
+
 //System.out.println("Making greek for "+vsc.subCell+" "+greekWid+"x"+greekHei);
 
 		// set rendering information for the greeked cell image
-		subVD.wnd = fadeWnd;
 		subVD.offscreen = fadeWnd.getOffscreen();
 		subVD.screenLX = 0;   subVD.screenHX = greekWid;
 		subVD.screenLY = 0;   subVD.screenHY = greekHei;
@@ -1222,10 +1247,22 @@ public class VectorDrawing
 		subVD.offscreen.clearImage(false, null);
 		subVD.render(subVC, 0, 0, vsc.pureRotate, VarContext.globalContext, -1);
 		subVD.offscreen.composite(null);
-		subVD.wnd.finished();
 
 		// remember the greeked cell image
-		vsc.fadeData = subVD.offscreen.getBufferedImage();
+		BufferedImage img = subVD.offscreen.getBufferedImage();
+		vsc.fadeImageWid = img.getWidth();
+		vsc.fadeImageHei = img.getHeight();
+		vsc.fadeImageColors = new int[vsc.fadeImageWid * vsc.fadeImageHei];
+		int i = 0;
+		for(int y=0; y<vsc.fadeImageHei; y++)
+		{
+			for(int x=0; x<vsc.fadeImageWid; x++)
+			{
+				int value = img.getRGB(x, y);
+				vsc.fadeImageColors[i++] = value & 0xFFFFFF;
+			}
+		}
+		subVD.wnd.finished();
 		vsc.fadeImage = true;
 	}
 
@@ -1592,8 +1629,12 @@ public class VectorDrawing
 
 			TextDescriptor descript = portPoly.getTextDescriptor();
 			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
-			portDescript.setColorIndex(descript.getColorIndex());
-			Poly.Type style = descript.getPos().getPolyType();
+			Poly.Type style = Poly.Type.FILLED;
+			if (descript != null)
+			{
+				portDescript.setColorIndex(descript.getColorIndex());
+				style = descript.getPos().getPolyType();
+			}
 			Rectangle rect = new Rectangle(tempPt1);
 			VectorText vt = new VectorText(portPoly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEPORT, ni, pp,
 				false, null, null);

@@ -76,12 +76,13 @@ public class MeasureListener
             //Highlight.clear();
             Point2D start = dbStart;
             Point2D end = dbPoint;
-            Highlighter highlighter = wnd.getHighlighter();
+            Highlighter highlighter = wnd.getRulerHighlighter();
 
             for (Iterator it = lastHighlights.iterator(); it.hasNext(); ) {
                 Highlight h = (Highlight)it.next();
                 highlighter.remove(h);
             }
+			lastHighlights.clear();
 
             // show coords at start and end point
             lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+TextUtils.formatDouble(start.getX())+
@@ -106,10 +107,20 @@ public class MeasureListener
 
     private void finishMeasure(EditWindow wnd) {
         if (measuring)
-            measuring = false;
-        else {
+		{
+            Highlighter highlighter = wnd.getRulerHighlighter();
+            for (Iterator it = lastHighlights.iterator(); it.hasNext(); )
+			{
+                Highlight h = (Highlight)it.next();
+                highlighter.remove(h);
+            }
+            highlighter.finished();
+			lastHighlights.clear();
+            wnd.repaint();
+			measuring = false;
+		} else {
             // clear measures from the screen if user cancels twice in a row
-            Highlighter highlighter = wnd.getHighlighter();
+            Highlighter highlighter = wnd.getRulerHighlighter();
             highlighter.clear();
             highlighter.finished();
             wnd.repaint();

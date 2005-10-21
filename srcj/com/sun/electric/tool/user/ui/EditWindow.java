@@ -163,6 +163,7 @@ public class EditWindow extends JPanel
 
     /** Highlighter for this window */                      private Highlighter highlighter;
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
+    /** Ruler Highlighter for this window */                private Highlighter rulerHighlighter;
 
     /** navigate through saved views */                     private EditWindowViewBrowser viewBrowser;
 
@@ -263,6 +264,8 @@ public class EditWindow extends JPanel
         highlighter.addHighlightListener(WaveformWindow.getStaticHighlightListener());
         mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
         mouseOverHighlighter.addHighlightListener(this);
+		rulerHighlighter = new Highlighter(Highlighter.RULER_HIGHLIGHTER, wf);
+//		rulerHighlighter.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
@@ -830,6 +833,12 @@ public class EditWindow extends JPanel
      */
     public Highlighter getMouseOverHighlighter() { return mouseOverHighlighter; }
 
+    /**
+     * Get the ruler highlighter for this EditWindow (for measurement)
+     * @return the ruler highlighter
+     */
+    public Highlighter getRulerHighlighter() { return rulerHighlighter; }
+
 	/**
 	 * Method to return the WindowFrame in which this EditWindow resides.
 	 * @return the WindowFrame in which this EditWindow resides.
@@ -871,6 +880,8 @@ public class EditWindow extends JPanel
 		highlighter.finished();
         mouseOverHighlighter.clear();
         mouseOverHighlighter.finished();
+		rulerHighlighter.clear();
+		rulerHighlighter.finished();
         viewBrowser.clear();
 
 		setWindowTitle();
@@ -961,6 +972,7 @@ public class EditWindow extends JPanel
         Undo.removeDatabaseChangeListener(this);
         highlighter.delete();
         mouseOverHighlighter.delete();
+		rulerHighlighter.delete();
 	}
 
 	// ************************************* SCROLLING *************************************
@@ -1058,7 +1070,7 @@ public class EditWindow extends JPanel
 		if (cell != null)
 		{
 			// add in grid if requested
-			if (showGrid) drawGrid(g);
+//			if (showGrid) drawGrid(g);
 
 			// add cross-probed level display
 			showCrossProbeLevels(g);
@@ -1071,6 +1083,7 @@ public class EditWindow extends JPanel
 	                    drawCellFrame(g);
 
 	                    //long start = System.currentTimeMillis();
+	                    rulerHighlighter.showHighlights(this, g);
 	                    mouseOverHighlighter.showHighlights(this, g);
 	                    highlighter.showHighlights(this, g);
 	                    //long end = System.currentTimeMillis();
@@ -1097,6 +1110,7 @@ public class EditWindow extends JPanel
                     drawCellFrame(g);
 
                     //long start = System.currentTimeMillis();
+                    rulerHighlighter.showHighlights(this, g);
                     mouseOverHighlighter.showHighlights(this, g);
                     highlighter.showHighlights(this, g);
                     //long end = System.currentTimeMillis();
@@ -1603,7 +1617,7 @@ public class EditWindow extends JPanel
 	public void setGrid(boolean showGrid)
 	{
 		this.showGrid = showGrid;
-		repaint();
+		repaintContents(null, false);
 	}
 
 	/**
@@ -1652,6 +1666,8 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to display the grid.
+	 * THIS METHOD IS NOT USED ANYMORE.  THE GRID IS NOW DRAWN INTO THE OFFSCREEN IMAGE.
+	 * SEE PixelDrawing.drawGrid()
 	 */
 	private void drawGrid(Graphics g)
 	{

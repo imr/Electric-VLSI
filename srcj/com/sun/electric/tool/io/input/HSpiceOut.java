@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: HSpiceOut.java
- * Input/output tool: reader for HSpice output (.tr0)
+ * Input/output tool: reader for HSpice output (tr0,tr1,...)
  * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
@@ -38,17 +38,19 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
- * Thease are contained in .tr0 and .pa0 files.
+ * Thease are contained in .trX and .paX files (.pa0/.tr0, .pa1/.tr1, ...)
  */
 public class HSpiceOut extends Simulate
 {
 	/** true if tr0 file is binary */					private boolean isTR0Binary;
-	/** true if binary tr0 file has bytes swapped */	private boolean isTR0BinarySwapped;
+	/** true if binary trX file has bytes swapped */	private boolean isTR0BinarySwapped;
+	/** the "tr0" file extension (could be tr1...) */	private String tr0Extension;
+	/** the "pa0" file extension (could be pa1...) */	private String pa0Extension;
 	private int binaryTR0Size, binaryTR0Position;
 	private boolean eofReached;
 	private byte [] binaryTR0Buffer;
 
-	// HSpice name associations from the .pa0 file
+	// HSpice name associations from the .paX file
 	private static class PA0Line
 	{
 		int     number;
@@ -113,13 +115,13 @@ public class HSpiceOut extends Simulate
 	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
-		// the .pa0 file has name information
+		// the .paX file has name information
 		List pa0List = readPA0File(fileURL);
 
-		// show progress reading .tr0 file
+		// show progress reading .trX file
 		startProgressDialog("HSpice output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .trX file
 		Stimuli sd = readTR0File(fileURL, pa0List, cell);
 
 		// stop progress dialog
@@ -129,18 +131,33 @@ public class HSpiceOut extends Simulate
 		return sd;
 	}
 
+	/**
+	 * Method to examine the "tr0" file pointer and read the associated "pa0" file.
+	 * These files can also end in "1", "2",...
+	 * As a side effect (oh no) the field variables "tr0Extension" and "pa0Extension"
+	 * are set.
+	 * @param fileURL the URL to the simulation output file ("pa0", "pa1", ...)
+	 * @return a list of PA0Line objects that describe the name mapping file entries.
+	 */
 	private List readPA0File(URL fileURL)
 		throws IOException
 	{
+		// find the associated ".pa" name file
 		String tr0File = fileURL.getFile();
-		String pa0File = null;
-		if (tr0File.endsWith(".tr0"))
+		tr0Extension = "";
+		pa0Extension = "";
+		String pa0File = tr0File + ".pa0";
+		int dotPos = tr0File.lastIndexOf('.');
+		if (dotPos > 0)
 		{
-			pa0File = tr0File.substring(0, tr0File.length()-4) + ".pa0";
-		} else
-		{
-			pa0File = tr0File + ".pa0";
+			tr0Extension = tr0File.substring(dotPos+1);
+			if (tr0Extension.length() > 2 && tr0Extension.startsWith("tr"))
+			{
+				pa0Extension = "pa" + tr0Extension.substring(2);
+				pa0File = tr0File.substring(0, dotPos) + "." + pa0Extension;
+			}
 		}
+
 		URL pa0URL = null;
 		try
 		{
@@ -292,7 +309,7 @@ public class HSpiceOut extends Simulate
 				if (pa0List == null)
 				{
 					if (!pa0MissingWarned)
-						System.out.println("ERROR: there should be a .pa0 file with extra signal names");
+						System.out.println("ERROR: there should be a ." + pa0Extension + " file with extra signal names");
 					pa0MissingWarned = true;
 				} else
 				{

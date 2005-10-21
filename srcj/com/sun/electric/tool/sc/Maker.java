@@ -1188,6 +1188,10 @@ public class Maker
 		PrimitiveNode.Function fun = viaProto.getFunction();
 		if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) return null;
 
+		// override given arc and choose one that will connect
+		if (pi.getPortProto() instanceof PrimitivePort)
+			arc = ((PrimitivePort)pi.getPortProto()).getConnections()[0];
+
 		// make sure that this contact connects to the desired arc
 		if (!viaProto.getPort(0).connectsTo(arc)) return null;
 

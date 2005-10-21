@@ -665,6 +665,8 @@ public class Clipboard
 
 		// create the new nodes
 		HashMap newNodes = new HashMap();
+        List portInstsToExport = new ArrayList();
+        HashMap originalExports = new HashMap();
 		for(Iterator it = theNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -697,8 +699,6 @@ public class Clipboard
 			lastDup = newNi;
 
 			// copy the ports, too
-            List portInstsToExport = new ArrayList();
-            HashMap originalExports = new HashMap();
 			if (copyExports)
 			{
 				for(Iterator eit = ni.getExports(); eit.hasNext(); )
@@ -709,8 +709,9 @@ public class Clipboard
 					originalExports.put(pi, pp);
 				}
 			}
-            ExportChanges.reExportPorts(portInstsToExport, true, true, false, originalExports);
 		}
+		if (copyExports)
+			ExportChanges.reExportPorts(portInstsToExport, true, true, false, originalExports);
 
 		HashMap newArcs = new HashMap();
 		if (theArcs.size() > 0)

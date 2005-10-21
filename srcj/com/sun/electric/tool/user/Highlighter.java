@@ -94,6 +94,7 @@ public class Highlighter implements DatabaseChangeListener {
 
     /** the selection highlighter type */       public static final int SELECT_HIGHLIGHTER = 0;
     /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
+    /** the "measurement" highlighter type */   public static final int RULER_HIGHLIGHTER = 2;
 
     private static final int EXACTSELECTDISTANCE = 5;
 

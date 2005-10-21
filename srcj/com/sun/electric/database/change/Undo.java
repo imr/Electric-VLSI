@@ -1323,7 +1323,7 @@ public class Undo
 		}
 
 		// Put message in Message Window
-		System.out.println("Undoing " + batch.activity);
+		System.out.println("Undoing: " + batch.activity);
 //        batch.describe("Undo");
 
 		// broadcast the end-batch
@@ -1400,7 +1400,7 @@ public class Undo
 		}
 
 		// Put message in Message Window
-		System.out.println("Redoing " + batch.activity);
+		System.out.println("Redoing: " + batch.activity);
 //        batch.describe("Redo");
 
 		// broadcast the end-batch

@@ -288,9 +288,11 @@ public class PixelDrawing
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
@@ -427,6 +429,7 @@ public class PixelDrawing
 
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
+		gridGraphics.setColor(new Color(User.getColorGrid()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 		
 		// initialize the cache of expanded cell displays
@@ -606,6 +609,9 @@ public class PixelDrawing
 	 */
 	public Image composite(Rectangle bounds)
 	{
+		// if a grid is requested, overlay it
+		if (wnd.isGrid()) drawGrid();
+
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
@@ -779,6 +785,105 @@ public class PixelDrawing
 			}
 		}
 		return img;
+	}
+
+	/**
+	 * Method to draw the grid into the offscreen buffer
+	 */
+	private void drawGrid()
+	{
+		double spacingX = wnd.getGridXSpacing();
+		double spacingY = wnd.getGridYSpacing();
+		if (spacingX == 0 || spacingY == 0) return;
+		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
+		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
+		double boldSpacingThreshX = spacingX / 4;
+		double boldSpacingThreshY = spacingY / 4;
+
+		// screen extent
+		Rectangle2D displayable = wnd.displayableBounds();
+		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
+		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
+		double scaleX = sz.width / (hX - lX);
+		double scaleY = sz.height / (lY - hY);
+
+		// initial grid location
+		double x1 = DBMath.toNearest(lX, spacingX);
+		double y1 = DBMath.toNearest(lY, spacingY);
+
+		// adjust grid placement according to scale
+		boolean allBoldDots = false;
+		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
+		{
+			// normal grid is too fine: only show the "bold dots"
+			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
+			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
+
+			// if even the bold dots are too close, don't draw a grid
+			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
+		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
+		{
+			// if zoomed-out far enough, show all bold dots
+			allBoldDots = true;
+		}
+
+		// draw the grid
+		int col = User.getColorGrid();
+		for(double i = y1; i > hY; i -= spacingY)
+		{
+			double boldValueY = i;
+			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
+				boldValueY += boldSpacingThreshY/2;
+			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
+			for(double j = x1; j < hX; j += spacingX)
+			{
+				Point xy = wnd.databaseToScreen(j, i);
+				int x = xy.x;
+				int y = xy.y;
+				if (x < 0 || x > sz.width) continue;
+				if (y < 0 || y > sz.height) continue;
+
+				double boldValueX = j;
+				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
+					boldValueX += boldSpacingThreshX/2;
+				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
+				if (allBoldDots && everyTenX && everyTenY)
+				{
+					int boxLX = x-2;   if (boxLX < 0) boxLX = 0;
+					int boxHX = x+2;   if (boxHX >= sz.width) boxHX = sz.width-1;
+					int boxLY = y-2;   if (boxLY < 0) boxLY = 0;
+					int boxHY = y+2;   if (boxHY >= sz.height) boxHY = sz.height-1;
+					drawBox(boxLX, boxHX, boxLY, boxHY, null, gridGraphics, false);
+					if (x > 1) opaqueData[y * sz.width + (x-2)] = col;
+					if (x < sz.width-2) opaqueData[y * sz.width + (x+2)] = col;
+					if (y > 1) opaqueData[(y-2) * sz.width + x] = col;
+					if (y < sz.height-2) opaqueData[(y+2) * sz.width + x] = col;
+					continue;
+				}
+
+				// special case every 10 grid points in each direction
+				if (allBoldDots || (everyTenX && everyTenY))
+				{
+					opaqueData[y * sz.width + x] = col;
+					if (x > 0) opaqueData[y * sz.width + (x-1)] = col;
+					if (x < sz.width-1) opaqueData[y * sz.width + (x+1)] = col;
+					if (y > 0) opaqueData[(y-1) * sz.width + x] = col;
+					if (y < sz.height-1) opaqueData[(y+1) * sz.width + x] = col;
+					continue;
+				}
+
+				// just a single dot
+				opaqueData[y * sz.width + x] = col;
+			}
+		}
+		if (User.isGridAxesShown())
+		{
+			Point xy = wnd.databaseToScreen(0, 0);
+			if (xy.x >= 0 && xy.x < sz.width)
+				drawSolidLine(xy.x, 0, xy.x, sz.height-1, null, col);
+			if (xy.y >= 0 && xy.y < sz.height)
+				drawSolidLine(0, xy.y, sz.width-1, xy.y, null, col);
+		}
 	}
 
 	private void initForTechnology()

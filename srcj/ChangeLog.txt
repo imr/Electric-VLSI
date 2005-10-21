@@ -4,6 +4,24 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/20/05, SMR) Measure mode highlighting is persistent, must use
+     right click to stop adding measures or to clear (Bugs #590, #668).
+
+BUG: (10/20/05, SMR) Selection slows down when grid is being displayed (Bug #568).
+FIX: Instead of drawing the grid with every redisplay,
+     render the grid into the offscreen buffer.
+
+BUG: (10/20/05, SMR) Silicon Compiler uses wrong type of arc and crashes.
+FIX: Override parameter and select arc in Maker.createConnection().
+
+BUG: (10/20/05, SMR) Copy/Pasting, Duplicating, or Arraying of exports
+     does not go in the right order (Bug #672).
+FIX: In Clipboard.copyListToCell(), gather all exports before reexporting.
+
+BUG: (10/20/05, SMR) When plotting HSpice output files ending with ".tr1",
+     still looks for name file that end with ".pa0" (Bug #674).
+FIX: In HSpiceOut.readPA0File(), copy number from one extension to the other.
+
 IMP (10/20/05, GVG) Two new cells representing 2 amplifiers in spiceparts.jelib.
 Changes in TechPalette to show only icon cells in spiceparts library.
 
