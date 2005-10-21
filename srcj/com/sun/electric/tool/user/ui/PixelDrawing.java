@@ -498,7 +498,14 @@ public class PixelDrawing
 		}
 
 		// merge transparent image into opaque one
-		synchronized(img) { composite(renderBounds); };
+		synchronized(img)
+		{
+			// if a grid is requested, overlay it
+			if (cell != null && wnd.isGrid()) drawGrid();
+
+			// combine transparent and opaque colors into a final image
+			composite(renderBounds);
+		};
 
 		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
 		{
@@ -609,9 +616,6 @@ public class PixelDrawing
 	 */
 	public Image composite(Rectangle bounds)
 	{
-		// if a grid is requested, overlay it
-		if (wnd.isGrid()) drawGrid();
-
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
