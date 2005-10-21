@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -188,6 +189,7 @@ public class WaveformWindow implements WindowContent
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** true to show a grid (analog only) */				private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
+	/** a listener for redraw requests */					private WaveComponentListener wcl;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = Variable.newKey("SIM_window_signalorder");
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
 	private static boolean freezeWaveformHighlighting = false;
@@ -729,8 +731,7 @@ public class WaveformWindow implements WindowContent
 		}
 
 		/**
-		 * Method to get rid of this WaveformWindow.  Called by WindowFrame when
-		 * that windowFrame gets closed.
+		 * Method to get rid of this Panel.
 		 */
 		public void finished()
 		{
@@ -2813,7 +2814,7 @@ public class WaveformWindow implements WindowContent
 		overall = new OnePanel(null, this);
 		overall.setLayout(new GridBagLayout());
 
-		WaveComponentListener wcl = new WaveComponentListener(overall);
+		wcl = new WaveComponentListener(overall);
 		overall.addComponentListener(wcl);
 
 		// the main part of the waveform window: a split-pane between names and traces, put into a scrollpane
@@ -5204,6 +5205,10 @@ if (wp.signalButtons != null)
 		}
 	}
 
+	/**
+	 * Method to get rid of this WaveformWindow.  Called by WindowFrame when
+	 * that windowFrame gets closed.
+	 */
 	public void finished()
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -5211,6 +5216,8 @@ if (wp.signalButtons != null)
 			Panel wp = (Panel)it.next();
 			wp.finished();
 		}
+		overall.removeComponentListener(wcl);
+        highlighter.delete();
 	}
 
 	public void fullRepaint() { repaint(); }
