@@ -778,7 +778,6 @@ public class ViewChanges
 
 	private static class MakeSchematicView extends Job
 	{
-		private static boolean reverseIconExportOrder;
 		private Cell oldCell;
 
 		protected MakeSchematicView(Cell cell)
@@ -792,6 +791,7 @@ public class ViewChanges
 		{
 			Cell newCell = convertSchematicCell(oldCell);
 			if (newCell == null) return false;
+			System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
 			WindowFrame.createEditWindow(newCell);
 			return true;
 		}
@@ -809,7 +809,7 @@ public class ViewChanges
 		buildSchematicArcs(oldCell, newCell, newNodes);
 
 		// now make adjustments for manhattan-ness
-		makeArcsManhattan(newCell);
+//		makeArcsManhattan(newCell);
 
 		// set "fixed-angle" if reasonable
 		for(Iterator it = newCell.getArcs(); it.hasNext(); )
@@ -820,8 +820,6 @@ public class ViewChanges
 			if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
 			if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
 		}
-
-		System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
 		return newCell;
 	}
 
@@ -1010,10 +1008,15 @@ public class ViewChanges
 
 	private static void makeArcsManhattan(Cell newCell)
 	{
-		// adjust this cell
+		// copy the list of nodes in the cell
+		List nodesInCell = new ArrayList();
+		for(Iterator it = newCell.getNodes(); it.hasNext(); )
+			nodesInCell.add(it.next());
+
+		// examine all nodes and adjust them
 		double [] x = new double[MAXADJUST];
 		double [] y = new double[MAXADJUST];
-		for(Iterator it = newCell.getNodes(); it.hasNext(); )
+		for(Iterator it = nodesInCell.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;

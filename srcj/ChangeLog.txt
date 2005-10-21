@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/21/05, SMR) Converting layout to schematic produces a bad database (Bug #675).
+FIX: Do not make manhattan in ViewChanges.convertSchematicCell().
+
 BUG: (10/21/05, SMR) Selecting stimuli can be slow (Bug #664).
 FIX: In Stimuli.java, always use fast lookup method.  Modify hash table to see all variations.
 
