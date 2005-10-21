@@ -501,7 +501,7 @@ public class VectorDrawing
 			System.out.println("Done");
 		}
 
-		if (TAKE_STATS && Main.getDebug() && Main.LOCALDEBUGFLAG)
+		if (TAKE_STATS && Main.getDebug())
 		{
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memUsed = curUsed - initialUsed;
