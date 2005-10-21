@@ -74,7 +74,7 @@ public class VectorDrawing
 {
 	private static final boolean TAKE_STATS = false;
 	private static final boolean DEBUGIMAGES = false;
-	private static final int MAXGREEKSIZE = 40;
+	private static final int MAXGREEKSIZE = 25;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
@@ -952,7 +952,7 @@ public class VectorDrawing
 					int portDisplayLevel = User.getPortDisplayLevel();
 					Color portColor = vt.e.getBasePort().getPortColor();
 					if (vt.ni.isExpanded()) portColor = textColor;
-					portGraphics.setColor(portColor);
+					if (portColor != null) portGraphics.setColor(portColor);
 					int cX = (lX + hX) / 2;
 					int cY = (lY + hY) / 2;
 					if (portDisplayLevel == 2)
