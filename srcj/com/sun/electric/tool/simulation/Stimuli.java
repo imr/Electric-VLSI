@@ -97,6 +97,10 @@ public class Stimuli
 	{
 		String name = TextUtils.canonicString(sigName);
 		signalNames.put(name, ws);
+
+		// simulators may strip off last "_"
+		if (name.indexOf('_') >= 0 && !name.endsWith("_"))
+			signalNames.put(name + "_", ws);
 	}
 
 	/**
@@ -328,42 +332,43 @@ public class Stimuli
 	 */
 	public Signal findSignalForNetwork(String netName)
 	{
-		// look at all signal names in the cell
-		for(Iterator it = getSignals().iterator(); it.hasNext(); )
-		{
-			Signal sSig = (Signal)it.next();
-
-			String signalName = sSig.getFullName();
-			if (netName.equalsIgnoreCase(signalName)) return sSig;
-
-			// if the signal name has underscores, see if all alphabetic characters match
-			if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
-			{
-				signalName += "_";
-			}
-			if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
-			{
-				boolean matches = true;
-				for(int i=0; i<signalName.length(); i++)
-				{
-					char sigChar = signalName.charAt(i);
-					char netChar = netName.charAt(i);
-					if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar))
-					{
-						matches = false;
-						break;
-					}
-					if (TextUtils.isLetterOrDigit(sigChar) &&
-						TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar))
-					{
-						matches = false;
-						break;
-					}
-				}
-				if (matches) return sSig;
-			}
-		}
-		return null;
+		return findSignalForNetworkQuickly(netName);
+//		// look at all signal names in the cell
+//		for(Iterator it = getSignals().iterator(); it.hasNext(); )
+//		{
+//			Signal sSig = (Signal)it.next();
+//
+//			String signalName = sSig.getFullName();
+//			if (netName.equalsIgnoreCase(signalName)) return sSig;
+//
+//			// if the signal name has underscores, see if all alphabetic characters match
+//			if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
+//			{
+//				signalName += "_";
+//			}
+//			if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
+//			{
+//				boolean matches = true;
+//				for(int i=0; i<signalName.length(); i++)
+//				{
+//					char sigChar = signalName.charAt(i);
+//					char netChar = netName.charAt(i);
+//					if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar))
+//					{
+//						matches = false;
+//						break;
+//					}
+//					if (TextUtils.isLetterOrDigit(sigChar) &&
+//						TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar))
+//					{
+//						matches = false;
+//						break;
+//					}
+//				}
+//				if (matches) return sSig;
+//			}
+//		}
+//		return null;
 	}
 
 	/**
