@@ -22,7 +22,7 @@ BUG: (10/20/05, SMR) When plotting HSpice output files ending with ".tr1",
      still looks for name file that end with ".pa0" (Bug #674).
 FIX: In HSpiceOut.readPA0File(), copy number from one extension to the other.
 
-IMP (10/20/05, GVG) Two new cells representing 2 amplifiers in spiceparts.jelib.
+IMP (10/20/05, GVG) Two new cells representing 2 amplifiers in spiceparts.jelib (Bug #682).
 Changes in TechPalette to show only icon cells in spiceparts library.
 
 IMP/MAN (10/20/05, JKG) Added Spice option to only extract nets with a name that
