@@ -27,6 +27,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -649,6 +650,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     for(Iterator it = spiceLib.getCells(); it.hasNext(); )
                     {
                         Cell cell = (Cell)it.next();
+                        // only access to icons of those cells
+                        if (cell.getView() != View.ICON) continue;
                         menuItem = new JMenuItem(cell.getName());
                         menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                         cellMenu.add(menuItem);

@@ -5,6 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.04b: *********************************
 
 IMP (10/20/05, GVG) Two new cells representing 2 amplifiers in spiceparts.jelib.
+Changes in TechPalette to show only icon cells in spiceparts library.
 
 IMP/MAN (10/20/05, JKG) Added Spice option to only extract nets with a name that
     contains 'extractme' from layout.
