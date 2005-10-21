@@ -832,7 +832,7 @@ public class PixelDrawing
 		}
 
 		// draw the grid
-		int col = User.getColorGrid();
+		int col = User.getColorGrid() & 0xFFFFFF;
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;

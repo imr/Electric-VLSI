@@ -1203,8 +1203,10 @@ public class VectorDrawing
 		double greekScale = MAXGREEKSIZE / ownBounds.getHeight();
 		if (ownBounds.getWidth() > ownBounds.getHeight())
 			greekScale = MAXGREEKSIZE / ownBounds.getWidth();
-		int greekWid = (int)(ownBounds.getWidth()*greekScale + 0.5) + 1;
-		int greekHei = (int)(ownBounds.getHeight()*greekScale + 0.5) + 1;
+		int greekWid = (int)(ownBounds.getWidth()*greekScale + 0.5);
+		if (greekWid <= 0) greekWid = 1;
+		int greekHei = (int)(ownBounds.getHeight()*greekScale + 0.5);
+		if (greekHei <= 0) greekHei = 1;
 
 		// construct the offscreen buffers for the greeked cell image
 		EditWindow fadeWnd = EditWindow.CreateElectricDoc(vsc.subCell, null);
