@@ -1738,10 +1738,10 @@ public class Quick
 			double pdy = Math.max(trueBox2.getMinY()-trueBox1.getMaxY(), trueBox1.getMinY()-trueBox2.getMaxY());
 			pd = Math.max(pdx, pdy);
 			if (pdx == 0 && pdy == 0) pd = 0; // touching
+			overlap = (pd < 0);
 			if (maytouch)
 			{
 				// they are electrically connected: see if they touch
-				overlap = (pd < 0);
                 if (checkMinDefects(cell, maytouch, geom1, poly1, trueBox1, layer2, geom2, poly2, trueBox2, layer2, cell))
                 {
                     if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
@@ -1756,20 +1756,20 @@ public class Quick
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
 				        layer2, net2, geom2, trueBox2))
-						return errorFound;
+					return errorFound;
 			} else
 			{
-				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1))
+				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1, overlap))
 					return errorFound;
 			}
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
 				        layer1, net1, geom1, trueBox1))
-						return errorFound;
+					return errorFound;
 			} else
 			{
-				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2))
+				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2, overlap))
 					return errorFound;
 			}
 			poly1 = new Poly(trueBox1);
@@ -3831,7 +3831,7 @@ public class Quick
 	 * are in the reference parameters (lx-hx, ly-hy).  Returns false
 	 * normally, 1 if the arcinst is cropped into oblivion.
 	 */
-	private boolean cropArcInst(ArcInst ai, Layer lay, AffineTransform inTrans, Rectangle2D bounds)
+	private boolean cropArcInst(ArcInst ai, Layer lay, AffineTransform inTrans, Rectangle2D bounds, boolean overlap)
 	{
 		for(int i=0; i<2; i++)
 		{
@@ -3845,7 +3845,8 @@ public class Quick
 
 			Technology tech = np.getTechnology();
             Poly [] cropArcPolyList = null;
-            if (np.getFunction() == PrimitiveNode.Function.PIN)
+            // No overlap means arc should be cropped to get away from other element
+            if (!overlap && np.getFunction() == PrimitiveNode.Function.PIN)
             {
                 // Pins don't generate polygons
                 // Search for another arc and try to crop it with that geometry

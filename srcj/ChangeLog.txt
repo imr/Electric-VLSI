@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/21/05, GVG) DRC does not find overlapping geometry that are not connected (bug #684)
+FIX: Still problems with arc crops if elements overlap. Previous pin code for bug 483 only valid if geometries don't overlap.
+
 BUG: (10/21/05, SMR) Waveform window has memory leak (Bug #679).
 FIX: In WaveformWindow.finished(), remove listeners and highlighters.
 
