@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document      : Containing Mosis Rules
+    Author        : Gilda G
+    Description   : none
+-->
+
+<!DOCTYPE DRC [
+ <!ELEMENT DRC (LayerRule*, LayersRule*)>
+ <!ELEMENT LayerRule ANY>   <!-- Rules for particular layers -->
+ <!ELEMENT LayersRule ANY>  <!-- Spacing rules between layers -->
+ <!ATTLIST LayerRule
+    ruleName CDATA #REQUIRED
+    layerName CDATA #REQUIRED
+    type (DRCTemplate.MINWID | DRCTemplate.MINAREA) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+ <!ATTLIST LayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    type (DRCTemplate.CONSPA | DRCTemplate.UCONSPA | DRCTemplate.SPACING) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+]>
+
+<DRC>
+    <!-- Well rules -->
+    <LayerRule ruleName="1.1" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.DE|DRCTemplate.SU" value="12"/>
+    <LayerRule ruleName="1.1" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.SC" value="10"/>
+    <LayersRule ruleName="1.2" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.DE|DRCTemplate.SU" value="18"/>
+    <LayersRule ruleName="1.2" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.SC" value="9"/>
+    <LayersRule ruleName="1.3" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.CONSPA" when="DRCTemplate.ALL" value="6"/>
+</DRC>
