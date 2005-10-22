@@ -62,6 +62,7 @@ import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -719,36 +720,35 @@ public class Spice extends Topology
 				}
 
                 // special case for parasitic extraction
-                if (useParasitics && !cs.isGlobal() && cs.getExport() != null &&
-                        !cs.isPower() && !cs.isGround()) {
-                    // write out all exports, even if on same network, otherwise we
-                    // short out resistors on feed through networks
+                if (useParasitics && !cs.isGlobal() && cs.getExport() != null) {
                     Network net = cs.getNetwork();
-                    List exportNames = new ArrayList();
-                    List shortedExports = null;
+                    HashMap shortedExportsMap = new HashMap();
+                    // For a single logical network, we need to:
+                    // 1) treat certain exports as separate so as not to short resistors on arcs between the exports
+                    // 2) join certain exports that do not have resistors on arcs between them, and record this information
+                    //   so that the next level up knows to short networks connection to those exports.
                     for (Iterator it = net.getExports(); it.hasNext(); ) {
                         Export e = (Export)it.next();
                         PortInst pi = e.getOriginalPort();
                         String name = segmentedNets.getNetName(pi);
-                        // add used export to first one: others will be shorted to this export
+                        // exports are shorted if their segmented net names are the same (case (2))
+                        List shortedExports = (List)shortedExportsMap.get(name);
                         if (shortedExports == null) {
                             shortedExports = new ArrayList();
-                            shortedExports.add(e.getName());
+                            shortedExportsMap.put(name, shortedExports);
+                            // this is the first occurance of this segmented network,
+                            // use the name as the export (1)
+                            infstr.append(" " + name);
                         }
-                        // if export connected, do not write to netlist, but add to list
-                        // of exports shorted to first export
-                        if (exportNames.contains(name)) {
-                            shortedExports.add(e.getName());
-                            continue;
-                        }
-                        exportNames.add(name);
-                        infstr.append(" " + name);
+                        shortedExports.add(e.getName());
                     }
                     // record shorted exports
-                    if (shortedExports.size() > 1) {
-                        segmentedNets.addShortedExports(shortedExports);
+                    for (Iterator it = shortedExportsMap.values().iterator(); it.hasNext(); ) {
+                        List shortedExports = (List)it.next();
+                        if (shortedExports.size() > 1) {
+                            segmentedNets.addShortedExports(shortedExports);
+                        }
                     }
-
                 } else {
                     infstr.append(" " + cs.getName());
                 }
@@ -912,8 +912,7 @@ public class Spice extends Topology
 					}
 					CellSignal cs = cni.getCellSignal(net);
                     // special case for parasitic extraction
-                    if (useParasitics && !cs.isGlobal() &&
-                            !cs.isPower() && !cs.isGround()) {
+                    if (useParasitics && !cs.isGlobal()) {
                         // connect to all exports (except power and ground of subcell net)
                         SegmentedNets subSegmentedNets = getSegmentedNets((Cell)no.getProto());
                         Network subNet = subCS.getNetwork();
@@ -1413,6 +1412,50 @@ public class Spice extends Topology
 			}
 		}
 
+        // finally, if this is the top level,
+        // write out some very small resistors between any networks
+        // that are asserted will be connected by the NCC annotation "exportsConnectedByParent"
+        // this should really be done internally in the network tool with a switch, but
+        // this hack works here for now
+        NccCellAnnotations anna = NccCellAnnotations.getAnnotations(cell);
+        if (cell == topCell && anna != null) {
+            // each list contains all name patterns that are be shorted together
+            if (anna.getExportsConnected().hasNext()) {
+                multiLinePrint(true, "\n*** Exports shorted due to NCC annotation 'exportsConnectedByParent':\n");
+            }
+
+            for (Iterator it = anna.getExportsConnected(); it.hasNext(); ) {
+                List list = (List)it.next();
+                List netsToConnect = new ArrayList();
+                // each name pattern can match any number of exports in the cell
+                for (Iterator it2 = list.iterator(); it2.hasNext(); ) {
+                    NccCellAnnotations.NamePattern pat = (NccCellAnnotations.NamePattern)it2.next();
+                    for (Iterator it3 = cell.getPorts(); it3.hasNext(); ) {
+                        Export e = (Export)it3.next();
+                        String name = e.getName();
+                        // keep track of networks to short together
+                        if (pat.matches(name)) {
+                            Network net = netList.getNetwork(e, 0);
+                            if (!netsToConnect.contains(net))
+                                netsToConnect.add(net);
+                        }
+                    }
+                }
+                // connect all nets in list of nets to connect
+                String name = null;
+                int i=0;
+                for (Iterator it2 = netsToConnect.iterator(); it2.hasNext(); ) {
+                    Network net = (Network)it2.next();
+                    if (name != null) {
+                        multiLinePrint(false, "R"+name+" "+name+" "+net.getName()+" 0.001\n");
+                    }
+                    name = net.getName();
+                    i++;
+                }
+            }
+        }
+
+
 		// now we're finished writing the subcircuit.
 		if (cell != topCell || useCDL || Simulation.isSpiceWriteSubcktTopCell())
 		{
@@ -1756,6 +1799,7 @@ public class Spice extends Topology
             if (!useParasitics || (isPowerGround(pi) &&
                     !Simulation.isParasiticsExtractPowerGround())) {
                 CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
+                //System.out.println("CellSignal name for "+pi.getNodeInst().getName()+"."+pi.getPortProto().getName()+" is "+cs.getName());
 //System.out.println("NETWORK NAMED "+cs.getName());
                 return cs.getName();
             }
@@ -1944,7 +1988,7 @@ public class Spice extends Topology
 
     /** Method to report that export names do NOT take precedence over
      * arc names when determining the name of the network. */
-    protected boolean isNetworksUseExportedNames() { return true; }
+    protected boolean isNetworksUseExportedNames() { return false; }
 
 	/** Method to report that library names are NOT always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }
