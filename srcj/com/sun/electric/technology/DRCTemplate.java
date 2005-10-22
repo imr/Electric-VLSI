@@ -175,7 +175,8 @@ public class DRCTemplate
 	/**
 	 * Method for spacing rules in single layers.
 	 */
-    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[])
+    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen,
+                                                      double value, String arrayL[])
 	{
 		// Clone same rule for different layers
 		int length = arrayL.length;
