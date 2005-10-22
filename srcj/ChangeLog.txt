@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/22/05, GVG) renaming of subcells should be major change (Bug #685)
+FIX: Set to major change in Undo.java:Change:setDirty()
+
 BUG: (10/21/05, GVG) DRC does not find overlapping geometry that are not connected (bug #684)
 FIX: Still problems with arc crops if elements overlap. Previous pin code for bug 483 only valid if geometries don't overlap.
 

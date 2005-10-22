@@ -495,7 +495,8 @@ public class Undo
 					{
 						CellUsage u = (CellUsage)it.next();
 						Cell parent = u.getParent();
-						parent.getLibrary().setChangedMinor();
+						parent.getLibrary().setChangedMajor();
+                        parent.setModified(true);
 					}
 				}
 				major = true;   // this is major change for the library (E.g.: export names)
