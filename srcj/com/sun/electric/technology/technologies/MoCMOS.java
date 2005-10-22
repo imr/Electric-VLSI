@@ -24,6 +24,7 @@
 package com.sun.electric.technology.technologies;
 
 import com.sun.electric.Main;
+import com.sun.electric.tool.drc.DRCXMLParser;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
@@ -45,6 +46,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.net.URL;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -130,6 +132,20 @@ public class MoCMOS extends Technology
 
 	// design rule constants
 	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
+
+    private void setRulesSet()
+    {
+        DRCXMLParser parser = new DRCXMLParser();
+        URL url = MOSRules.class.getResource("Mosis.xml");
+        List<DRCTemplate> rules = parser.process(url);
+
+        int size = rules.size();
+        theRules = new DRCTemplate[rules.size()];
+        for (int i = 0; i < size; i++)
+        {
+            theRules[i] = rules.get(i);
+        }
+    }
 
 	private DRCTemplate [] theRules = new DRCTemplate[]
 	{
@@ -3759,6 +3775,10 @@ public class MoCMOS extends Technology
 
 		// load the DRC tables from the explanation table
 		rules.wideLimit = new Double(WIDELIMIT);
+        // Read the deck
+        if (Main.LOCALDEBUGFLAG && Main.getDebug() || theRules == null)
+            setRulesSet();
+
 		for(int pass=0; pass<2; pass++)
 		{
 			for(int i=0; i < theRules.length; i++)

@@ -349,6 +349,20 @@ public class EvalJavaBsh
         return returnVal;
     }
 
+    public Object doEvalLine(String line)
+    {
+        Object obj = null;
+        try
+        {
+            obj = doEval(line);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+
     // source a Java Bean Shell script file
     private void doSource(String file)
     {
