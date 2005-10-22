@@ -709,13 +709,14 @@ public class TextUtils
 	}
 
 	/**
-	 * Method to break a line into keywords, separated by white space.
+	 * Method to break a line into keywords, separated by white space or comma
 	 * @param line the string to tokenize.
+     * @param delim the delimiters.
 	 * @return an array of Strings for each keyword on the line.
 	 */
-	public static String [] parseLine(String line)
+	public static String [] parseLine(String line, String delim)
 	{
-		StringTokenizer st = new StringTokenizer(line, " \t");
+		StringTokenizer st = new StringTokenizer(line, delim);
 		int total = st.countTokens();
 		String [] strings = new String[total];
 		for(int i=0; i<total; i++)
