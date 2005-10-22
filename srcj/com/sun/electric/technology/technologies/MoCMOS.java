@@ -149,28 +149,38 @@ public class MoCMOS extends Technology
 
 	private DRCTemplate [] theRules = new DRCTemplate[]
 	{
-		new DRCTemplate("1.1",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "P-Well",          null,            12, null),
-		new DRCTemplate("1.1",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "N-Well",          null,            12, null),
-		new DRCTemplate("1.1",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-P-Well",   null,            12, null),
-		new DRCTemplate("1.1",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-N-Well",   null,            12, null),
-		new DRCTemplate("1.1",  DRCTemplate.SC, DRCTemplate.MINWID,   "P-Well",          null,            10, null),
+		new DRCTemplate("1.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "P-Well",          null,            12, null),
+		new DRCTemplate("1.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "N-Well",          null,            12, null),
+		new DRCTemplate("1.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-P-Well",   null,            12, null),
+		new DRCTemplate("1.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-N-Well",   null,            12, null),
+		new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "P-Well",          null,            8.6, null),
+		new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "N-Well",          null,            8.6, null),
+		new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-P-Well",   null,            8.6, null),
+		new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "Pseudo-N-Well",   null,            8.6, null),
+        new DRCTemplate("1.1",  DRCTemplate.SC, DRCTemplate.MINWID,   "P-Well",          null,            10, null),
 		new DRCTemplate("1.1",  DRCTemplate.SC, DRCTemplate.MINWID,   "N-Well",          null,            10, null),
 		new DRCTemplate("1.1",  DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Well",   null,            10, null),
 		new DRCTemplate("1.1",  DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Well",   null,            10, null),
 
-		new DRCTemplate("1.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "P-Well",         "P-Well",         18, null),
-		new DRCTemplate("1.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "N-Well",         "N-Well",         18, null),
+		new DRCTemplate("1.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "P-Well",         "P-Well",         18, null),
+		new DRCTemplate("1.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "N-Well",         "N-Well",         18, null),
+        new DRCTemplate("NW.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "P-Well",         "P-Well",         14, null),
+		new DRCTemplate("NW.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.UCONSPA,  "N-Well",         "N-Well",         14, null),
 		new DRCTemplate("1.2",  DRCTemplate.SC, DRCTemplate.UCONSPA,  "P-Well",         "P-Well",         9,  null),
 		new DRCTemplate("1.2",  DRCTemplate.SC, DRCTemplate.UCONSPA,  "N-Well",         "N-Well",         9,  null),
 
-		new DRCTemplate("1.3",  DRCTemplate.ALL, DRCTemplate.CONSPA,   "P-Well",         "P-Well",         6,  null),
-		new DRCTemplate("1.3",  DRCTemplate.ALL, DRCTemplate.CONSPA,   "N-Well",         "N-Well",         6,  null),
+		new DRCTemplate("1.3 Mosis",  DRCTemplate.MOSIS, DRCTemplate.CONSPA,   "P-Well",         "P-Well",         6,  null),
+		new DRCTemplate("1.3 Mosis",  DRCTemplate.MOSIS, DRCTemplate.CONSPA,   "N-Well",         "N-Well",         6,  null),
+        new DRCTemplate("NW.S.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.CONSPA,   "P-Well",         "P-Well",         6,  null),
+		new DRCTemplate("NW.S.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.CONSPA,   "N-Well",         "N-Well",         6,  null),
 
 		// Valid in case of unconnected node or connected node UCONSPA -> SPACING May 21, 05
 		new DRCTemplate("1.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Well",         "N-Well",         0,  null),
 
-		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "P-Active",        null,            3,  null),
-		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "N-Active",        null,            3,  null),
+		new DRCTemplate("2.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "P-Active",        null,            3,  null),
+		new DRCTemplate("2.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "N-Active",        null,            3,  null),
+        new DRCTemplate("OD.W.1/2 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "P-Active",        null,            2.2,  null),
+		new DRCTemplate("OD.W.1/2 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "N-Active",        null,            2.2,  null),
 
 		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "P-Active",       3,  null),
 		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "N-Active",       "N-Active",       3,  null),

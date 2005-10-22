@@ -720,7 +720,7 @@ public class TextUtils
 		int total = st.countTokens();
 		String [] strings = new String[total];
 		for(int i=0; i<total; i++)
-			strings[i] = st.nextToken();
+			strings[i] = st.nextToken().trim();
 		return strings;
 	}
 

@@ -7,9 +7,11 @@
 -->
 
 <!DOCTYPE DRC [
- <!ELEMENT DRC (LayerRule*, LayersRule*)>
+ <!ELEMENT DRC (LayerRule*, LayersRule*, NodeLayersRule*, NodeRule*)>
  <!ELEMENT LayerRule ANY>   <!-- Rules for particular layers -->
  <!ELEMENT LayersRule ANY>  <!-- Spacing rules between layers -->
+ <!ELEMENT NodeLayersRule ANY> <!-- Spacing between layers in a node -->
+ <!ELEMENT NodeRule ANY> <!-- special for transistors so far -->
  <!ATTLIST LayerRule
     ruleName CDATA #REQUIRED
     layerName CDATA #REQUIRED
@@ -24,13 +26,48 @@
     when CDATA #REQUIRED
     value CDATA #REQUIRED
  >
+ <!ATTLIST NodeLayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    nodeName CDATA #REQUIRED
+    type (DRCTemplate.SURROUND | DRCTemplate.ASURROUND | DRCTemplate.TRAWELL) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+ <!ATTLIST NodeRule
+    ruleName CDATA #REQUIRED
+    type (DRCTemplate.TRAWELL) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
 ]>
 
 <DRC>
     <!-- Well rules -->
-    <LayerRule ruleName="1.1" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.DE|DRCTemplate.SU" value="12"/>
-    <LayerRule ruleName="1.1" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.SC" value="10"/>
-    <LayersRule ruleName="1.2" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.DE|DRCTemplate.SU" value="18"/>
-    <LayersRule ruleName="1.2" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.SC" value="9"/>
-    <LayersRule ruleName="1.3" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.CONSPA" when="DRCTemplate.ALL" value="6"/>
+    <LayerRule ruleName="1.1 (Mosis)" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="12"/>
+    <LayerRule ruleName="1.1 (Mosis)" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="DRCTemplate.MINWID" when="DRCTemplate.SC" value="10"/>
+    <LayersRule ruleName="1.2 (Mosis)" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="18"/>
+    <LayersRule ruleName="1.2 (Mosis)" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.UCONSPA" when="DRCTemplate.SC" value="9"/>
+    <LayersRule ruleName="1.3 (Mosis)" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="DRCTemplate.CONSPA" when="DRCTemplate.MOSIS" value="6"/>
+    <LayersRule ruleName="1.4 (Mosis)" layerNames="{P-Well, N-Well}" type="DRCTemplate.SPACING" when="DRCTemplate.MOSIS" value="0"/>
+    <!-- Active rules -->
+    <LayerRule ruleName="2.1 (Mosis)" layerName="P-Active, N-Active" type="DRCTemplate.MINWID" when="DRCTemplate.MOSIS" value="3"/>
+    <LayersRule ruleName="2.2 (Mosis)" layerNames="{P-Active, P-Active}, {N-Active, N-Active}, {P-Active-Well, P-Active-Well}, {P-Active, P-Active-Well}, {N-Active, P-Active-Well}"
+        type="DRCTemplate.SPACING" when="DRCTemplate.MOSIS" value="3"/>
+
+    <!-- Active contacts under DE|SU rules -->
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{N-Well, P-Active}" nodeName="Metal-1-P-Active-Con" type="DRCTemplate.SURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="6"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{N-Well, P-Active}" nodeName="P-Active" type="DRCTemplate.ASURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="6"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{P-Well, N-Active}" nodeName="Metal-1-N-Active-Con" type="DRCTemplate.SURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="6"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{P-Well, N-Active}" nodeName="N-Active" type="DRCTemplate.ASURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="6"/>
+    <!-- transistor well-active surround under DE|SU rules -->
+    <NodeRule ruleName="2.3 (Mosis)" type="DRCTemplate.TRAWELL" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="6"/>
+
+    <!-- Active contacts under SC rules -->
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{N-Well, P-Active}" nodeName="Metal-1-P-Active-Con" type="DRCTemplate.SURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="5"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{N-Well, P-Active}" nodeName="P-Active" type="DRCTemplate.ASURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="5"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{P-Well, N-Active}" nodeName="Metal-1-N-Active-Con" type="DRCTemplate.SURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="5"/>
+    <NodeLayersRule ruleName="2.3 (Mosis)" layerNames="{P-Well, N-Active}" nodeName="N-Active" type="DRCTemplate.ASURROUND" when="DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU" value="5"/>
+    <!-- transistor well-active surround under SC rules -->
+    <NodeRule ruleName="2.3 (Mosis)" type="DRCTemplate.TRAWELL" when="DRCTemplate.MOSIS|DRCTemplate.SC" value="5"/>
 </DRC>

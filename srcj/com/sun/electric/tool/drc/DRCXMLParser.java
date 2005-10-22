@@ -63,10 +63,12 @@ public class DRCXMLParser {
         {
             boolean layerRule = qName.equals("LayerRule");
             boolean layersRule = qName.equals("LayersRule");
+            boolean nodeLayersRule = qName.equals("NodeLayersRule");
+            boolean nodeRule = qName.equals("NodeRule");
 
-            if (layerRule || layersRule)
+            if (layerRule || layersRule || nodeLayersRule || nodeRule)
             {
-                String ruleName = "", layerNames = "";
+                String ruleName = "", layerNames = "", nodeName = "";
                 int when = DRCTemplate.NONE, type = DRCTemplate.NONE;
                 double value = Double.NaN;
 
@@ -102,9 +104,22 @@ public class DRCXMLParser {
                         drcRules.add(tmp);
                     }
                 }
-                else if (layersRule)
+                else if (nodeRule)
                 {
-                    
+                    DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, null);
+                    drcRules.add(tmp);
+                }
+                else if (layersRule || nodeLayersRule)
+                {
+                    String[] layerPairs = TextUtils.parseLine(layerNames, "{}");
+                    for (int i = 0; i < layerPairs.length; i++)
+                    {
+                        String[] pair = TextUtils.parseLine(layerPairs[i], ",");
+                        if (pair.length != 2) continue;
+                        DRCTemplate tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1],
+                                value, (layersRule?null:nodeName));
+                        drcRules.add(tmp);
+                    }
                 }
             }
         }
