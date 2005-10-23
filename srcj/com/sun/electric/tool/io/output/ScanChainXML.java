@@ -1287,10 +1287,14 @@ public class ScanChainXML {
             }
         }
         if (port == null) {
-            System.out.println("Error: no other ports connected to export "+inport.ex.getName()+" (make sure the export is on an off-page node).");
-            return null;
+            port = new Port(inport.name, ni, pi.getPortProto(), inport.index);
+            ArrayList list = new ArrayList();
+            list.add(port);
+            return list;
+            //System.out.println("Error: no other ports connected to export "+inport.ex.getName()+" (make sure the export is on an off-page node).");
+            //return null;
         }
-        return getOtherPorts(port);
+        return getOtherPorts(port, false);
     }
 
     /**
@@ -1300,6 +1304,16 @@ public class ScanChainXML {
      * @return a list of Port objects
      */
     private ArrayList getOtherPorts(Port inport) {
+        return getOtherPorts(inport, true);
+    }
+    /**
+     * Get a list of other Ports on the same network as inport.  List
+     * does not include inport.
+     * @param inport
+     * @param ignoreInport true to not include inport in the list
+     * @return a list of Port objects
+     */
+    private ArrayList getOtherPorts(Port inport, boolean ignoreInport) {
         if (inport == null) return null;
         ArrayList ports = new ArrayList();
 
@@ -1314,8 +1328,10 @@ public class ScanChainXML {
 
                 Name name = pp.getNameKey();
                 for (int i=0; i<name.busWidth(); i++) {
-                    if ((no == inport.no) && (pp == inport.pp) && (i == inport.index))
-                        continue;
+                    if (ignoreInport) {
+                        if ((no == inport.no) && (pp == inport.pp) && (i == inport.index))
+                            continue;
+                    }
                     if (netlist.getNetwork(no, pp, i) == net) {
                         // found matching port
                         Name subname = name;
