@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.plugins.j3d.utils.*;
+import com.sun.electric.tool.user.dialogs.FindText;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -503,7 +504,7 @@ public class View3DWindow extends JPanel
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
 	public JPanel getPanel() { return this; }
-	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set<FindText.WhatToSearch> whatToSearch) {}
 
 	/**
 	 * Method to pan along X according to fixed amount of ticks

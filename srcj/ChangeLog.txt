@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/20/05, DN) Deleting objects takes forever (Bug #666).
+FIX: In CircuitChanges.Reconnect.reconnectArcs reconnect only obtuse-angled arcs.
+
 BUG: (10/22/05, GVG) renaming of subcells should be major change (Bug #685)
 FIX: Set to major change in Undo.java:Change:setDirty()
 

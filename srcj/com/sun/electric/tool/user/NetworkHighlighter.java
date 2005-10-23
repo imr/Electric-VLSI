@@ -82,7 +82,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List getHighlights(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
+    public static synchronized List<Highlight> getHighlights(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, nets, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);

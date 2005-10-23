@@ -369,7 +369,7 @@ public class AutoStitch
         }
 
         // check for any inline pins due to created wires
-        List pinsToPassThrough = new ArrayList();
+        List<CircuitChanges.Reconnect> pinsToPassThrough = new ArrayList<CircuitChanges.Reconnect>();
         for (Iterator it = possibleInlinePins.iterator(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.isInlinePin()) {
@@ -381,8 +381,8 @@ public class AutoStitch
         }
         if (pinsToPassThrough.size() > 0)
         {
-            CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList(),
-                pinsToPassThrough, new HashMap(), new ArrayList(), new HashSet(), 0, 0, 0);
+            CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
+                pinsToPassThrough, new HashMap<NodeInst,Point2D.Double>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
             job.doIt();
         }
 	}

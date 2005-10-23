@@ -28,7 +28,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -56,6 +55,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 
@@ -114,7 +114,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
-import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -138,8 +137,8 @@ public class EditWindow extends JPanel
 	/** transform from screen to cell (in-place only) */	private AffineTransform intoCell;
 	/** transform from cell to screen (in-place only) */	private AffineTransform outofCell;
 	/** top-level cell being displayed (in-place only) */	private Cell topLevelCell;
-	/** path to cell being edited (in-place only) */		private List inPlaceDescent;
-	/** list of in-place text objects on this window */		private List inPlaceTextObjects = new ArrayList();
+	/** path to cell being edited (in-place only) */		private List<NodeInst> inPlaceDescent;
+	/** list of in-place text objects on this window */		private List<GetInfoText.EditInPlaceListener> inPlaceTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
@@ -158,7 +157,7 @@ public class EditWindow extends JPanel
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 
 	/** true if drawing popup cloud */                      private boolean showPopupCloud = false;
-	/** Strings to write to popup cloud */                  private List popupCloudText;
+	/** Strings to write to popup cloud */                  private List<String> popupCloudText;
 	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
     /** Highlighter for this window */                      private Highlighter highlighter;
@@ -167,8 +166,8 @@ public class EditWindow extends JPanel
 
     /** navigate through saved views */                     private EditWindowViewBrowser viewBrowser;
 
-	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
-	/** list of window changes (synchronized) */			private static List windowChangeRequests = new ArrayList();
+	/** list of windows to redraw (gets synchronized) */	private static List<EditWindow> redrawThese = new ArrayList<EditWindow>();
+	/** list of window changes (synchronized) */			private static List<WindowChangeRequest> windowChangeRequests = new ArrayList<WindowChangeRequest>();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
 
 	private static final int SCROLLBARRESOLUTION = 200;
@@ -212,7 +211,7 @@ public class EditWindow extends JPanel
 		setPreferredSize(sz);
 		databaseBounds = new Rectangle2D.Double();
 
-        cellHistory = new ArrayList();
+        cellHistory = new ArrayList<CellHistory>();
         cellHistoryLocation = -1;
         scale = 1;
 
@@ -300,7 +299,7 @@ public class EditWindow extends JPanel
 		setCell(cell, VarContext.globalContext);
         // Highlight an instance of cell we came from in current cell
         highlighter.clear();
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() instanceof Cell) {
                 Cell nodeCell = (Cell)ni.getProto();
@@ -795,7 +794,7 @@ public class EditWindow extends JPanel
 	 * cell while requesting that the upper-level remain displayed.
 	 * @return a List of NodeInsts to the cell being in-place edited.
 	 */
-	public List getInPlaceEditNodePath() { return inPlaceDescent; }
+	public List<NodeInst> getInPlaceEditNodePath() { return inPlaceDescent; }
 
 	/**
 	 * Method to set the List of NodeInsts to the cell being in-place edited.
@@ -803,7 +802,7 @@ public class EditWindow extends JPanel
 	 * cell while requesting that the upper-level remain displayed.
 	 * @param list the List of NodeInsts to the cell being in-place edited.
 	 */
-	public void setInPlaceEditNodePath(List list) { inPlaceDescent = list; }
+	public void setInPlaceEditNodePath(List<NodeInst> list) { inPlaceDescent = list; }
 
 	/**
 	 * Method to return the transformation matrix from the displayed top-level cell to the current cell.
@@ -924,7 +923,7 @@ public class EditWindow extends JPanel
 	 */
 	public static EditWindow findWindow(Cell cell)
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -1158,7 +1157,7 @@ public class EditWindow extends JPanel
 		}
 
 		// draw any components that are on top (such as in-line text edits)
-		for(Iterator it = inPlaceTextObjects.iterator(); it.hasNext(); )
+		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
 		{
 			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
 			tl.getTextComponent().paint(g);
@@ -1212,10 +1211,10 @@ public class EditWindow extends JPanel
 	 */
 	public void removeAllInPlaceTextObjects()
 	{
-		List allTextObjects = new ArrayList();
-		for(Iterator it = inPlaceTextObjects.iterator(); it.hasNext(); )
+		List<GetInfoText.EditInPlaceListener> allTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
+		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
 			allTextObjects.add(it.next());
-		for(Iterator it = allTextObjects.iterator(); it.hasNext(); )
+		for(Iterator<GetInfoText.EditInPlaceListener> it = allTextObjects.iterator(); it.hasNext(); )
 		{
 			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
 			tl.closeEditInPlace();
@@ -1229,7 +1228,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void repaintAllContents()
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -1244,7 +1243,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void repaintAll()
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -1394,7 +1393,7 @@ public class EditWindow extends JPanel
 		Color color;
 	};
 
-	private List crossProbeObjects = new ArrayList();
+	private List<CrossProbe> crossProbeObjects = new ArrayList<CrossProbe>();
 
 	/**
 	 * Method to clear the list of cross-probed levels in this EditWindow.
@@ -1454,7 +1453,7 @@ public class EditWindow extends JPanel
 
 	private void showCrossProbeLevels(Graphics g)
 	{
-		for(Iterator it = crossProbeObjects.iterator(); it.hasNext(); )
+		for(Iterator<CrossProbe> it = crossProbeObjects.iterator(); it.hasNext(); )
 		{
 			CrossProbe cp = (CrossProbe)it.next();
 			g.setColor(cp.color);
@@ -1757,7 +1756,7 @@ public class EditWindow extends JPanel
 
 	// *************************** SEARCHING FOR TEXT ***************************
 
-	/** list of all found strings in the cell */		private List foundInCell;
+	/** list of all found strings in the cell */		private List<StringsInCell> foundInCell;
 	/** the currently reported string */				private StringsInCell currentStringInCell;
 	/** the currently reported string index */			private int currentFindPosition;
 
@@ -1807,7 +1806,7 @@ public class EditWindow extends JPanel
 		boolean doTemp = whatToSearch.contains(WhatToSearch.TEMP_NAMES);
 		WhatToSearch what = get(whatToSearch, WhatToSearch.NODE_NAME);
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.NODE_VAR);
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (what!=null) 
@@ -1833,7 +1832,7 @@ public class EditWindow extends JPanel
 		boolean doTemp = whatToSearch.contains(WhatToSearch.TEMP_NAMES);
 		WhatToSearch what = get(whatToSearch, WhatToSearch.ARC_NAME);
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.ARC_VAR);
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (what!=null) 
@@ -1857,7 +1856,7 @@ public class EditWindow extends JPanel
 								   boolean regExp, Set whatToSearch) {
 		WhatToSearch what = get(whatToSearch, WhatToSearch.EXPORT_NAME);
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.EXPORT_VAR);
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			if (what!=null) {
@@ -1875,7 +1874,7 @@ public class EditWindow extends JPanel
 									boolean regExp, Set whatToSearch) {
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.CELL_VAR);
 		if (whatVar!=null) {
-			for(Iterator it = cell.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
@@ -1891,9 +1890,9 @@ public class EditWindow extends JPanel
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
-	                           boolean regExp, Set whatToSearch)
+	                           boolean regExp, Set<FindText.WhatToSearch> whatToSearch)
 	{
-		foundInCell = new ArrayList();
+		foundInCell = new ArrayList<StringsInCell>();
 		if (cell==null) 
 		{
 			System.out.println("No current Cell");
@@ -1989,11 +1988,11 @@ public class EditWindow extends JPanel
 	 * @param search the string to find on the text.
 	 * @param caseSensitive true to do a case-sensitive search.
 	 */
-	private void addVariableTextToList(ElectricObject eObj, List foundInCell, 
+	private void addVariableTextToList(ElectricObject eObj, List<StringsInCell> foundInCell, 
 	                                   String search, boolean caseSensitive,
 	                                   boolean regExp, WhatToSearch what)
 	{
-		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
@@ -2027,7 +2026,7 @@ public class EditWindow extends JPanel
 	 */
 	private static void findAllMatches(Object object, Variable variable, 
 	                                   int lineInVariable, Name name, 
-	                                   String theLine, List foundInCell,
+	                                   String theLine, List<StringsInCell> foundInCell,
 		                               String search, boolean caseSensitive,
 		                               boolean regExp, WhatToSearch what)
 	{
@@ -2213,7 +2212,7 @@ public class EditWindow extends JPanel
 		if (delta != 0)
 		{
 			// because the replacement changes the line length, must update other search strings
-			for(Iterator it = foundInCell.iterator(); it.hasNext(); )
+			for(Iterator<StringsInCell> it = foundInCell.iterator(); it.hasNext(); )
 			{
 				StringsInCell oSIC = (StringsInCell)it.next();
 				if (oSIC == sic) continue;
@@ -2237,7 +2236,7 @@ public class EditWindow extends JPanel
 
     public boolean getShowPopupCloud() { return showPopupCloud; }
 
-    public void setShowPopupCloud(List text, Point2D point)
+    public void setShowPopupCloud(List<String> text, Point2D point)
     {
         showPopupCloud = true;
         popupCloudText = text;
@@ -2338,13 +2337,13 @@ public class EditWindow extends JPanel
 	private static boolean handleWindowChangeRequests(EditWindow wnd)
 	{
 		boolean changed = false;
-		List notThisWindow = null;
-		for(Iterator it = windowChangeRequests.iterator(); it.hasNext(); )
+		List<WindowChangeRequest> notThisWindow = null;
+		for(Iterator<WindowChangeRequest> it = windowChangeRequests.iterator(); it.hasNext(); )
 		{
 			WindowChangeRequest zap = (WindowChangeRequest)it.next();
 			if (zap.wnd != wnd)
 			{
-				if (notThisWindow == null) notThisWindow = new ArrayList();
+				if (notThisWindow == null) notThisWindow = new ArrayList<WindowChangeRequest>();
 				notThisWindow.add(zap);
 				continue;
 			}
@@ -2393,7 +2392,7 @@ public class EditWindow extends JPanel
 		double oY = offy;
 		synchronized (redrawThese)
 		{
-			for(Iterator it = windowChangeRequests.iterator(); it.hasNext(); )
+			for(Iterator<WindowChangeRequest> it = windowChangeRequests.iterator(); it.hasNext(); )
 			{
 				WindowChangeRequest zap = (WindowChangeRequest)it.next();
 				if (zap.requestType != WindowChangeRequest.PANREQUEST) continue;
@@ -2810,7 +2809,7 @@ public class EditWindow extends JPanel
 	      		outofCell = transOut;
 	      		intoCell = transIn;
 	       		topLevelCell = this.cell;
-	       		inPlaceDescent = new ArrayList();
+	       		inPlaceDescent = new ArrayList<NodeInst>();
 	       	}
 	   		inPlaceDescent.add(ni);
 	    	inPlaceDisplay = true;
@@ -2821,14 +2820,14 @@ public class EditWindow extends JPanel
 
 		// for stacked NodeInsts, must choose which one
 		Nodable desiredNO = null;
-		List possibleNodables = new ArrayList();
+		List<Nodable> possibleNodables = new ArrayList<Nodable>();
 		Netlist nl = ni.getParent().acquireUserNetlist();
 		if (nl == null)
 		{
 			System.out.println("Netlist is not ready");
 			return;
 		}
-		for(Iterator it = nl.getNodables(); it.hasNext(); )
+		for(Iterator<Nodable> it = nl.getNodables(); it.hasNext(); )
 		{
 			Nodable no = (Nodable)it.next();
 			if (no.getNodeInst() == ni)
@@ -2846,12 +2845,12 @@ public class EditWindow extends JPanel
 			{
 				String [] manyOptions = new String[possibleNodables.size()];
 				int i = 0;
-				for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+				for(Iterator<Nodable> it = possibleNodables.iterator(); it.hasNext(); )
 					manyOptions[i++] = ((Nodable)it.next()).getName();
 		        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
 		            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
 		        if (chosen == null) return;
-				for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+				for(Iterator<Nodable> it = possibleNodables.iterator(); it.hasNext(); )
 				{
 					Nodable no = (Nodable)it.next();
 					if (no.getName().equals(chosen)) { desiredNO = no;   break; }
@@ -2901,14 +2900,14 @@ public class EditWindow extends JPanel
 		if (User.isPromptForIndexWhenDescending()) return true;
 
 		// matters if there is a waveform window open
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
             WindowFrame wf = (WindowFrame)it.next();
             if (wf.getContent() instanceof WaveformWindow) return true;
         }
 
 		// if getdrive is called
-        for (Iterator it = no.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
             Variable var = (Variable)it.next();
             Object obj = var.getObject();
             if (obj instanceof String) {
@@ -2931,11 +2930,11 @@ public class EditWindow extends JPanel
 
         // determine which export is selected so it can be shown in the upper level
         Export selectedExport = null;
-        Set nets = highlighter.getHighlightedNetworks();
-        for(Iterator it = nets.iterator(); it.hasNext(); )
+        Set<Network> nets = highlighter.getHighlightedNetworks();
+        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
         {
         	Network net = (Network)it.next();
-        	for(Iterator eIt = net.getExports(); eIt.hasNext(); )
+        	for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
         	{
         		Export e = (Export)eIt.next();
         		selectedExport = e;
@@ -2943,8 +2942,8 @@ public class EditWindow extends JPanel
         	}
         	if (selectedExport != null) break;
         }
-//        List what = highlighter.getHighlights();
-//        for(Iterator it = what.iterator(); it.hasNext(); )
+//        List what>Highlight> = highlighter.getHighlights();
+//        for(Iterator<Highlight> it = what.iterator(); it.hasNext(); )
 //        {
 //        	Highlight h = (Highlight)it.next();
 //        	if (h.getType() == Highlight.Type.EOBJ)
@@ -2953,7 +2952,7 @@ public class EditWindow extends JPanel
 //        		if (eObj instanceof PortInst)
 //        		{
 //        			PortInst pi = (PortInst)eObj;
-//        			for(Iterator eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
+//        			for(Iterator<Export> eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
 //        			{
 //        				Export e = (Export)eIt.next();
 //        				if (e.getOriginalPort() == pi)
@@ -3048,8 +3047,8 @@ public class EditWindow extends JPanel
 			}            
 
 			// find all possible parents in all libraries
-			Set found = new HashSet();
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			Set<Cell> found = new HashSet<Cell>();
+			for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				Cell parent = ni.getParent();
@@ -3061,7 +3060,7 @@ public class EditWindow extends JPanel
 				Cell iconView = cell.iconView();
 				if (iconView != null)
 				{
-					for(Iterator it = iconView.getInstancesOf(); it.hasNext(); )
+					for(Iterator<NodeInst> it = iconView.getInstancesOf(); it.hasNext(); )
 					{
 						NodeInst ni = (NodeInst)it.next();
 						if (ni.isIconOfParent()) continue;
@@ -3084,7 +3083,7 @@ public class EditWindow extends JPanel
 				setCell(parent, VarContext.globalContext);
                 // highlight instance
 //                NodeInst highlightNi = null;
-                for (Iterator it = parent.getNodes(); it.hasNext(); )
+                for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = (NodeInst)it.next();
                     if (ni.getProto() instanceof Cell)
@@ -3110,7 +3109,7 @@ public class EditWindow extends JPanel
 				// Unfortunately, this is a known bug in Java's JPopupMenu object.
 				// I also tried: JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 				JPopupMenu parents = new JPopupMenu("parents");
-				for(Iterator it = found.iterator(); it.hasNext(); )
+				for(Iterator<Cell> it = found.iterator(); it.hasNext(); )
 				{
                     Cell parent = (Cell)it.next();
                     String cellName = parent.describe(false);
@@ -3128,7 +3127,7 @@ public class EditWindow extends JPanel
 
     // ************************** Cell History Traversal  *************************************
 
-    /** List of CellHistory objects */                      private List cellHistory;
+    /** List of CellHistory objects */                      private List<CellHistory> cellHistory;
     /** Location in history (points to valid location) */   private int cellHistoryLocation;
     /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
     /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
@@ -3154,15 +3153,15 @@ public class EditWindow extends JPanel
      */
     public static class CellHistoryState
     {
-        /** the cell history list */    private List cellHistory;
+        /** the cell history list */    private List<CellHistory> cellHistory;
         /** the current cell's location in list */ private int cellHistoryLocation;
-        public CellHistoryState(List cellHistory, int cellHistoryLocation) {
-            this.cellHistory = new ArrayList(cellHistory);
+        public CellHistoryState(List<CellHistory> cellHistory, int cellHistoryLocation) {
+            this.cellHistory = new ArrayList<CellHistory>(cellHistory);
             this.cellHistoryLocation = cellHistoryLocation;
         }
         public int getLocation() { return cellHistoryLocation; }
         public void setLocation(int loc) { cellHistoryLocation = loc; }
-        public List getHistory() { return cellHistory; }
+        public List<CellHistory> getHistory() { return cellHistory; }
     }
 
     /**
@@ -3265,7 +3264,7 @@ public class EditWindow extends JPanel
         current.scale = scale;
         current.highlights = new ArrayList<Highlight>();
         current.highlights.clear();
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+        for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             if (h.getCell() == cell)
                 current.highlights.add(h);

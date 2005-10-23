@@ -24,13 +24,15 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -40,7 +42,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.ArrayList;
-import java.lang.reflect.Method;
+
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -146,24 +148,52 @@ public final class MenuCommands
      * @param wantArcs true if the list should include arcs
      * @return a list of selected objects
      */
-    public static List getSelectedObjects(boolean wantNodes, boolean wantArcs) {
+    public static List<Geometric> getSelectedObjects(boolean wantNodes, boolean wantArcs) {
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return new ArrayList();
+        if (wf == null) return new ArrayList<Geometric>();
         Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return new ArrayList();
+        if (highlighter == null) return new ArrayList<Geometric>();
 
         return highlighter.getHighlightedEObjs(wantNodes, wantArcs);
+    }
+
+    /**
+     * Get list of NodeInsts of what's currently selected by the user,
+     * in the window that has focus.
+     * @return a list of selected NodeInsts
+     */
+    public static List<NodeInst> getSelectedNodes() {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return new ArrayList<NodeInst>();
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return new ArrayList<NodeInst>();
+
+        return highlighter.getHighlightedNodes();
+    }
+
+    /**
+     * Get list of ArcInsts of what's currently selected by the user,
+     * in the window that has focus.
+     * @return a list of selected ArcInsts
+     */
+    public static List<ArcInst> getSelectedArcs() {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return new ArrayList<ArcInst>();
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return new ArrayList<ArcInst>();
+
+        return highlighter.getHighlightedArcs();
     }
 
     /**
      * Get list of Highlights in current highlighter
      * @return list of Highlights
      */
-    public static List getHighlighted() {
+    public static List<Highlight> getHighlighted() {
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return new ArrayList();
+        if (wf == null) return new ArrayList<Highlight>();
         Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return new ArrayList();
+        if (highlighter == null) return new ArrayList<Highlight>();
 
         return highlighter.getHighlights();
     }

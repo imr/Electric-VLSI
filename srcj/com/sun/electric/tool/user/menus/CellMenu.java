@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
@@ -268,7 +269,7 @@ public class CellMenu {
 			// first delete all circuitry on the page
 			double lY = page * Cell.FrameDescription.MULTIPAGESEPARATION - Cell.FrameDescription.MULTIPAGESEPARATION/2;
 			double hY = lY + Cell.FrameDescription.MULTIPAGESEPARATION;
-			List deleteList = new ArrayList();
+			List<Geometric> deleteList = new ArrayList<Geometric>();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();

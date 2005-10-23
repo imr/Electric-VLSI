@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,7 +38,6 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -79,12 +79,12 @@ public class ViewChanges
 
 	public static void convertMultiPageViews()
 	{
-		List multiPageCells = new ArrayList();
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		List<Cell> multiPageCells = new ArrayList<Cell>();
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				if (cell.getView().getFullName().startsWith("schematic-page-")) multiPageCells.add(cell);
@@ -136,7 +136,7 @@ public class ViewChanges
 	
 				// copy this page into the multipage cell
 				double dY = (pageNo - 1) * 1000;
-				List pasteList = new ArrayList();
+				List<Geometric> pasteList = new ArrayList<Geometric>();
 				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();

@@ -22,8 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.ui;
-
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,7 +35,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
@@ -57,6 +54,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
 import java.awt.BasicStroke;
@@ -4030,10 +4028,10 @@ if (wp.signalButtons != null)
 	/**
 	 * Method to get a Set of currently highlighted networks in this WaveformWindow.
 	 */
-	public Set getHighlightedNetworks()
+	public Set<Network> getHighlightedNetworks()
 	{
 		// make empty set
-		Set nets = new HashSet();
+		Set<Network> nets = new HashSet<Network>();
 
 		// if no cell in the window, stop now
 		Cell cell = sd.getCell();
@@ -5243,7 +5241,7 @@ if (wp.signalButtons != null)
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
-		boolean regExp, Set whatToSearch) {
+		boolean regExp, Set<FindText.WhatToSearch> whatToSearch) {
 		System.out.println("Text search not implemented for waveform windows");
 	}
 

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.dialogs.FindText;
 
 import java.awt.image.BufferedImage;
 import java.util.Set;
@@ -44,7 +45,7 @@ public interface WindowContent
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public abstract void initTextSearch(String search, boolean caseSensitive,
-	                                    boolean regExp, Set whatToSearch);
+	                                    boolean regExp, Set<FindText.WhatToSearch> whatToSearch);
 
 	/**
 	 * Method to find the next occurrence of a string.

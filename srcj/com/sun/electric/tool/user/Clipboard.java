@@ -285,7 +285,7 @@ public class Clipboard
 
 			// make sure deletion is allowed
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
-			List deleteList = new ArrayList();
+			List<Geometric> deleteList = new ArrayList<Geometric>();
 			for(Iterator it = highlights.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -300,7 +300,7 @@ public class Clipboard
 						if (errorCode > 0) continue;
 					}
 				}
-				deleteList.add(h);
+				deleteList.add(h.getGeometric());
 			}
 			highlights = deleteList;
 
@@ -309,7 +309,8 @@ public class Clipboard
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
-			CircuitChanges.eraseObjectsInList(parent, highlights);
+			CircuitChanges.eraseObjectsInList(parent, deleteList);
+//			CircuitChanges.eraseObjectsInList(parent, highlights);
 			return true;
 		}
 	}

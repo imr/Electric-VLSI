@@ -1,4 +1,4 @@
-/* -*- tab-width: 4 -*-
+/* -*- tab-width: 4 -*-i
  *
  * Electric(tm) VLSI Design System
  *
@@ -119,8 +119,8 @@ public class FindText extends EDialog
             return true;
         }
     }
-    private Set getWhatToSearch() {
-    	Set whatToSearch = new HashSet();
+    private Set<WhatToSearch> getWhatToSearch() {
+    	Set<WhatToSearch> whatToSearch = new HashSet<WhatToSearch>();
 		if (searchNodeNames.isSelected()) whatToSearch.add(WhatToSearch.NODE_NAME);
 		if (searchNodeVars.isSelected()) whatToSearch.add(WhatToSearch.NODE_VAR);
 		if (searchArcNames.isSelected()) whatToSearch.add(WhatToSearch.ARC_NAME);

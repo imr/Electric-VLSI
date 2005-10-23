@@ -55,8 +55,8 @@ import javax.swing.text.JTextComponent;
  */
 public class EDialog extends JDialog
 {
-	private static HashMap locations = new HashMap();
-	private static HashMap sizes = new HashMap();
+	private static HashMap<Class,Point> locations = new HashMap<Class,Point>();
+	private static HashMap<Class,Point> sizes = new HashMap<Class,Point>();
 	private Class thisClass;
     public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
     public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
@@ -192,9 +192,9 @@ public class EDialog extends JDialog
 
     private static class DialogFocusHandler implements WindowFocusListener {
 
-        private List dialogs;
+        private List<EDialog> dialogs;
 
-        private DialogFocusHandler() { dialogs = new ArrayList(); }
+        private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
 
         public synchronized void addEDialog(EDialog dialog) {
             dialogs.add(dialog);
