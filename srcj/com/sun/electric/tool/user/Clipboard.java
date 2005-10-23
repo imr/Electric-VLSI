@@ -118,47 +118,47 @@ public class Clipboard
 		init();
 
 		// delete all arcs in the clipboard
-		List arcsToDelete = new ArrayList();
-		for(Iterator it = clipCell.getArcs(); it.hasNext(); )
+		List<ArcInst> arcsToDelete = new ArrayList<ArcInst>();
+		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			arcsToDelete.add(ai);
 		}
-		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
 
 		// delete all exports in the clipboard
-		List exportsToDelete = new ArrayList();
-		for(Iterator it = clipCell.getPorts(); it.hasNext(); )
+		List<Export> exportsToDelete = new ArrayList<Export>();
+		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			exportsToDelete.add(pp);
 		}
-		for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
+		for(Iterator<Export> it = exportsToDelete.iterator(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			pp.kill();
 		}
 
 		// delete all nodes in the clipboard
-		List nodesToDelete = new ArrayList();
-		for(Iterator it = clipCell.getNodes(); it.hasNext(); )
+		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
+		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			nodesToDelete.add(ni);
 		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			ni.kill();
 		}
 
         // Delete all variables
-        List varsToDelete = new ArrayList();
-        for(Iterator it = clipCell.getVariables(); it.hasNext(); )
+        List<Variable> varsToDelete = new ArrayList<Variable>();
+        for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
             clipCell.delVar(var.getKey());
@@ -257,9 +257,9 @@ public class Clipboard
 
 	private static class CutObjects extends Job
 	{
-        private List highlights;
+        private List<Highlight> highlights;
 
-		protected CutObjects(List highlights)
+		protected CutObjects(List<Highlight> highlights)
 		{
 			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -285,8 +285,9 @@ public class Clipboard
 
 			// make sure deletion is allowed
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
-			List<Geometric> deleteList = new ArrayList<Geometric>();
-			for(Iterator it = highlights.iterator(); it.hasNext(); )
+            List<Geometric> deleteGeoms = new ArrayList<Geometric>();
+			List<Highlight> deleteList = new ArrayList<Highlight>();
+			for(Iterator<Highlight> it = highlights.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() == Highlight.Type.EOBJ)
@@ -300,7 +301,10 @@ public class Clipboard
 						if (errorCode > 0) continue;
 					}
 				}
-				deleteList.add(h.getGeometric());
+                Geometric geom = h.getGeometric();
+                if (geom != null)
+                    deleteGeoms.add(geom);
+				deleteList.add(h);
 			}
 			highlights = deleteList;
 
@@ -309,7 +313,18 @@ public class Clipboard
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
-			CircuitChanges.eraseObjectsInList(parent, deleteList);
+			CircuitChanges.eraseObjectsInList(parent, deleteGeoms);
+            // kill variables on cells
+            for(Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+                if (h.getType() != Highlight.Type.TEXT) continue;
+                Variable var = h.getVar();
+                if (var == null) continue;
+                ElectricObject owner = h.getElectricObject();
+                if (!(owner instanceof Cell)) continue;
+                
+                owner.delVar(var.getKey());
+            }
 //			CircuitChanges.eraseObjectsInList(parent, highlights);
 			return true;
 		}
@@ -394,7 +409,7 @@ public class Clipboard
         Highlighter highlighter = wnd.getHighlighter();
 
 		// special case of pasting on top of selected objects
-		List geoms = highlighter.getHighlightedEObjs(true, true);
+		List<Geometric> geoms = highlighter.getHighlightedEObjs(true, true);
 		if (geoms.size() > 0)
 		{
 			// can only paste a single object onto selection
@@ -403,7 +418,7 @@ public class Clipboard
 				ArcInst ai = (ArcInst)clipCell.getArcs().next();
 				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
 				NodeInst niTail = ai.getTailPortInst().getNodeInst();
-				Iterator nIt = clipCell.getNodes();
+				Iterator<NodeInst> nIt = clipCell.getNodes();
 				NodeInst ni1 = (NodeInst)nIt.next();
 				NodeInst ni2 = (NodeInst)nIt.next();
 				if ((ni1 == niHead && ni2 == niTail) ||
@@ -415,7 +430,7 @@ public class Clipboard
 				System.out.println("Can only paste a single object on top of selected objects");
 				return;
 			}
-			for(Iterator it = geoms.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = geoms.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && nTotal == 1)
@@ -432,18 +447,18 @@ public class Clipboard
 		}
 
 		// make list of things to paste
-		List pasteList = new ArrayList();
-		for(Iterator it = clipCell.getNodes(); it.hasNext(); )
+		List<Object> pasteList = new ArrayList<Object>();
+		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			pasteList.add(ni);
 		}
-		for(Iterator it = clipCell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			pasteList.add(ai);
 		}
-        for (Iterator it = clipCell.getVariables(); it.hasNext(); )
+        for (Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
             pasteList.add(var);
@@ -551,7 +566,7 @@ public class Clipboard
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// also copy any variables on the clipboard cell
-			for(Iterator it = clipCell.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
