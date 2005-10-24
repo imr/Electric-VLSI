@@ -314,10 +314,6 @@ public class VectorDrawing
 		Point2D [] outlinePoints;
 		float size;
 		List<VectorBase> portShapes;
-		boolean fadeImage;
-		int fadeOffsetX, fadeOffsetY;
-		int [] fadeImageColors;
-		int fadeImageWid, fadeImageHei;
 
 		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
 		{
@@ -329,7 +325,6 @@ public class VectorDrawing
 			this.outlinePoints = outlinePoints;
 			this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 			portShapes = new ArrayList<VectorBase>();
-			fadeImage = false;
 		}
 	}
 
@@ -338,7 +333,7 @@ public class VectorDrawing
 	 * Since each cell is cached many times, once for every orientation on the screen,
 	 * this object can hold many cell caches.
 	 */
-	static class VectorCellGroup
+	private static class VectorCellGroup
 	{
 		Cell cell;
 		HashMap<String,VectorCell> orientations;
@@ -364,6 +359,13 @@ public class VectorDrawing
 			return vcg;
 		}
 
+		void clear()
+		{
+			orientations.clear();
+			exports.clear();
+			any = null;
+		}
+
 		VectorCell getAnyCell()
 		{
 			return any;
@@ -380,7 +382,7 @@ public class VectorDrawing
 	/**
 	 * Class which defines the exports on a cell (used to tell if they changed)
 	 */
-	static class VectorCellExport
+	private static class VectorCellExport
 	{
 		String exportName;
 		Point2D exportCtr;
@@ -389,7 +391,7 @@ public class VectorDrawing
 	/**
 	 * Class which defines a cached cell in a single orientation.
 	 */
-	static class VectorCell
+	private static class VectorCell
 	{
 		List<VectorBase> shapes;
 		List<VectorSubCell> subCells;
@@ -398,6 +400,10 @@ public class VectorDrawing
 		float maxFeatureSize;
 		boolean isParameterized;
 		float cellSize;
+		boolean fadeImage;
+		int fadeOffsetX, fadeOffsetY;
+		int [] fadeImageColors;
+		int fadeImageWid, fadeImageHei;
 
 		VectorCell()
 		{
@@ -405,6 +411,7 @@ public class VectorDrawing
 			subCells = new ArrayList<VectorSubCell>();
 			hasFadeColor = false;
 			maxFeatureSize = 0;
+			fadeImage = false;
 		}
 	}
 
@@ -616,6 +623,42 @@ public class VectorDrawing
 	}
 
 	/**
+	 * Method called when a technology's parameters change.
+	 * All cells that use the technology must be recached.
+	 * @param tech the technology that changed.
+	 */
+	public static void technologyChanged(Technology tech)
+	{
+		for(Iterator it = cachedCells.keySet().iterator(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.getTechnology() != tech) continue;
+			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			vcg.clear();
+		}
+	}
+
+	/**
+	 * Method called when visible layers have changed.
+	 * Removes all "greeked images" from cached cells.
+	 */
+	public static void layerVisibilityChanged()
+	{
+		for(Iterator it = cachedCells.keySet().iterator(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			for(Iterator oIt = vcg.orientations.keySet().iterator(); oIt.hasNext(); )
+			{
+				String orientationName = (String)oIt.next();
+				VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
+				vc.fadeImageColors = null;
+				vc.fadeImage = false;
+			}
+		}
+	}
+
+	/**
 	 * Method to request that the current rendering be aborted because it must be restarted.
 	 *
 	 */
@@ -670,7 +713,7 @@ public class VectorDrawing
 			// see if the cell is too tiny to draw
 			if (vsc.size < maxObjectSize)
 			{
-				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
+//				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 				Orientation thisOrient = vsc.ni.getOrient();
 				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
@@ -678,7 +721,7 @@ public class VectorDrawing
 				makeGreekedImage(vsc, subVC);
 
 				int fadeColor = getFadeColor(subVC, subContext);
-				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
+				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 				tinySubCellCount++;
 				continue;
 			}
@@ -723,7 +766,7 @@ public class VectorDrawing
 						{
 							makeGreekedImage(vsc, subVC);
 							int fadeColor = getFadeColor(subVC, context);
-							drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
+							drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 							tinySubCellCount++;
 							continue;
 						}
@@ -734,7 +777,7 @@ public class VectorDrawing
 					{
 						makeGreekedImage(vsc, subVC);
 						int fadeColor = getFadeColor(subVC, context);
-						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC, vsc);
+						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 						tinySubCellCount++;
 						continue;
 					}
@@ -832,7 +875,7 @@ public class VectorDrawing
 						if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
 							{ lY = tempPt2.y;   hY = tempPt1.y; }
 						if (hY < screenLY || lY >= screenHY) continue;
-						drawTinyBox(lX, hX, lY, hY, col, null, null);
+						drawTinyBox(lX, hX, lY, hY, col, null);
 						lineBoxCount++;
 					}
 					continue;
@@ -1044,7 +1087,7 @@ public class VectorDrawing
 	 * @param hY the high Y coordinate of the box.
 	 * @param col the color to draw.
 	 */
-	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, VectorCell greekedCell, VectorSubCell vsc)
+	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, VectorCell greekedCell)
 	{
 		if (lX < screenLX) lX = screenLX;
 		if (hX >= screenHX) hX = screenHX-1;
@@ -1052,16 +1095,16 @@ public class VectorDrawing
 		if (hY >= screenHY) hY = screenHY-1;
 		if (User.isUseCellGreekingImages())
 		{
-			if (vsc != null && vsc.fadeImageColors != null)
+			if (greekedCell != null && greekedCell.fadeImageColors != null)
 			{
 				int backgroundColor = User.getColorBackground();
 				int backgroundRed = (backgroundColor >> 16) & 0xFF;
 				int backgroundGreen = (backgroundColor >> 8) & 0xFF;
 				int backgroundBlue = backgroundColor & 0xFF;
 
-				// TODO render the icon properly with scale
-				int greekWid = vsc.fadeImageWid;
-				int greekHei = vsc.fadeImageHei;
+				// render the icon properly with scale
+				int greekWid = greekedCell.fadeImageWid;
+				int greekHei = greekedCell.fadeImageHei;
 				int wid = hX - lX;
 				int hei = hY - lY;
 				float xInc = greekWid / (float)wid;
@@ -1092,7 +1135,7 @@ public class VectorDrawing
 							for(int xGrab = xS; xGrab <= xE; xGrab++)
 							{
 								if (xGrab >= greekWid) continue;
-								int value = vsc.fadeImageColors[xGrab + yGrab*vsc.fadeImageWid];
+								int value = greekedCell.fadeImageColors[xGrab + yGrab*greekedCell.fadeImageWid];
 								int red = (value >> 16) & 0xFF;
 								int green = (value >> 8) & 0xFF;
 								int blue = value & 0xFF;
@@ -1126,20 +1169,20 @@ public class VectorDrawing
 				}
 				if (DEBUGIMAGES)
 				{
-					for(int y=0; y<vsc.fadeImageHei; y++)
+					for(int y=0; y<greekedCell.fadeImageHei; y++)
 					{
-						for(int x=0; x<vsc.fadeImageWid; x++)
+						for(int x=0; x<greekedCell.fadeImageWid; x++)
 						{
-							int valToSet = vsc.fadeImageColors[x+y*vsc.fadeImageWid];
-							topVD.offscreen.drawPoint(vsc.fadeOffsetX+x+1, vsc.fadeOffsetY+y+1, null, valToSet);
+							int valToSet = greekedCell.fadeImageColors[x+y*greekedCell.fadeImageWid];
+							topVD.offscreen.drawPoint(greekedCell.fadeOffsetX+x+1, greekedCell.fadeOffsetY+y+1, null, valToSet);
 						}
-						topVD.offscreen.drawPoint(vsc.fadeOffsetX, vsc.fadeOffsetY+y+1, null, 0);
-						topVD.offscreen.drawPoint(vsc.fadeOffsetX+vsc.fadeImageWid+1, vsc.fadeOffsetY+y+1, null, 0);
+						topVD.offscreen.drawPoint(greekedCell.fadeOffsetX, greekedCell.fadeOffsetY+y+1, null, 0);
+						topVD.offscreen.drawPoint(greekedCell.fadeOffsetX+greekedCell.fadeImageWid+1, greekedCell.fadeOffsetY+y+1, null, 0);
 					}
-					for(int x=0; x<vsc.fadeImageWid; x++)
+					for(int x=0; x<greekedCell.fadeImageWid; x++)
 					{
-						topVD.offscreen.drawPoint(vsc.fadeOffsetX+x, vsc.fadeOffsetY, null, 0);
-						topVD.offscreen.drawPoint(vsc.fadeOffsetX+x, vsc.fadeOffsetY+vsc.fadeImageHei+1, null, 0);
+						topVD.offscreen.drawPoint(greekedCell.fadeOffsetX+x, greekedCell.fadeOffsetY, null, 0);
+						topVD.offscreen.drawPoint(greekedCell.fadeOffsetX+x, greekedCell.fadeOffsetY+greekedCell.fadeImageHei+1, null, 0);
 					}
 				}
 				return;
@@ -1192,7 +1235,7 @@ public class VectorDrawing
 	private void makeGreekedImage(VectorSubCell vsc, VectorCell subVC)
 		throws AbortRenderingException
 	{
-		if (vsc.fadeImage) return;
+		if (subVC.fadeImage) return;
 		if (!User.isUseCellGreekingImages()) return;
 
 		// determine size and scale of greeked cell image
@@ -1216,8 +1259,8 @@ public class VectorDrawing
 		fadeWnd.setOffset(cellCtr);
 		VectorDrawing subVD = new VectorDrawing(fadeWnd);
 
-		vsc.fadeOffsetX = debugXP;
-		vsc.fadeOffsetY = debugYP;
+		subVC.fadeOffsetX = debugXP;
+		subVC.fadeOffsetY = debugYP;
 		debugXP += MAXGREEKSIZE + 5;
 		if (topVD != null)
 		{
@@ -1245,27 +1288,27 @@ public class VectorDrawing
 		subVD.fullInstantiate = true;
 		subVD.takingLongTime = true;
 
-		// TODO render the greeked cell
+		// render the greeked cell
 		subVD.offscreen.clearImage(false, null);
 		subVD.render(subVC, 0, 0, vsc.pureRotate, VarContext.globalContext, -1);
 		subVD.offscreen.composite(null);
 
 		// remember the greeked cell image
 		BufferedImage img = subVD.offscreen.getBufferedImage();
-		vsc.fadeImageWid = img.getWidth();
-		vsc.fadeImageHei = img.getHeight();
-		vsc.fadeImageColors = new int[vsc.fadeImageWid * vsc.fadeImageHei];
+		subVC.fadeImageWid = img.getWidth();
+		subVC.fadeImageHei = img.getHeight();
+		subVC.fadeImageColors = new int[subVC.fadeImageWid * subVC.fadeImageHei];
 		int i = 0;
-		for(int y=0; y<vsc.fadeImageHei; y++)
+		for(int y=0; y<subVC.fadeImageHei; y++)
 		{
-			for(int x=0; x<vsc.fadeImageWid; x++)
+			for(int x=0; x<subVC.fadeImageWid; x++)
 			{
 				int value = img.getRGB(x, y);
-				vsc.fadeImageColors[i++] = value & 0xFFFFFF;
+				subVC.fadeImageColors[i++] = value & 0xFFFFFF;
 			}
 		}
 		subVD.wnd.finished();
-		vsc.fadeImage = true;
+		subVC.fadeImage = true;
 	}
 
 	/**
