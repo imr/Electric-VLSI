@@ -629,7 +629,7 @@ public class VectorDrawing
 	 */
 	public static void technologyChanged(Technology tech)
 	{
-		for(Iterator it = cachedCells.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Cell> it = cachedCells.keySet().iterator(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (cell.getTechnology() != tech) continue;
@@ -644,11 +644,11 @@ public class VectorDrawing
 	 */
 	public static void layerVisibilityChanged()
 	{
-		for(Iterator it = cachedCells.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Cell> it = cachedCells.keySet().iterator(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
-			for(Iterator oIt = vcg.orientations.keySet().iterator(); oIt.hasNext(); )
+			for(Iterator<String> oIt = vcg.orientations.keySet().iterator(); oIt.hasNext(); )
 			{
 				String orientationName = (String)oIt.next();
 				VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
@@ -732,7 +732,7 @@ public class VectorDrawing
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
 			{
-				List path = wnd.getInPlaceEditNodePath();
+				List<NodeInst> path = wnd.getInPlaceEditNodePath();
 				if (path != null)
 				{
 					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
