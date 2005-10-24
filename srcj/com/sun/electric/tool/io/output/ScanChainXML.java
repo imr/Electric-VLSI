@@ -1277,17 +1277,23 @@ public class ScanChainXML {
         Network net = netlist.getNetwork(inport.ex, inport.index);
         Port port = null;
 
+        PortProto pp = pi.getPortProto();
+        if (pp instanceof Export) {
+            PortProto equiv = ((Export)pp).getEquivalent();
+            if (equiv != null)
+                pp = equiv;
+        }
         for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
             if (no.getNodeInst() == ni) {
-                if (net == netlist.getNetwork(no, pi.getPortProto(), inport.index)) {
-                    port = new Port(inport.name, no, pi.getPortProto(), inport.index);
+                if (net == netlist.getNetwork(no, pp, inport.index)) {
+                    port = new Port(inport.name, no, pp, inport.index);
                     break;
                 }
             }
         }
         if (port == null) {
-            port = new Port(inport.name, ni, pi.getPortProto(), inport.index);
+            port = new Port(inport.name, ni, pp, inport.index);
             ArrayList list = new ArrayList();
             list.add(port);
             return list;

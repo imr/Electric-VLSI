@@ -97,7 +97,7 @@ public class VectorDrawing
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
 	/** the color of text */								private Color textColor;
 
-	/** list of cell expansions. */							private static HashMap cachedCells = new HashMap();
+	/** list of cell expansions. */							private static HashMap<Cell,VectorCellGroup> cachedCells = new HashMap<Cell,VectorCellGroup>();
 	/** the object that draws the rendered screen */		private static VectorDrawing topVD;
 	/** location for debugging icon displays */				private static int debugXP, debugYP;
 
@@ -313,7 +313,7 @@ public class VectorDrawing
 		float offsetX, offsetY;
 		Point2D [] outlinePoints;
 		float size;
-		List portShapes;
+		List<VectorBase> portShapes;
 		boolean fadeImage;
 		int fadeOffsetX, fadeOffsetY;
 		int [] fadeImageColors;
@@ -328,7 +328,7 @@ public class VectorDrawing
 			this.offsetY = (float)offset.getY();
 			this.outlinePoints = outlinePoints;
 			this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
-			portShapes = new ArrayList();
+			portShapes = new ArrayList<VectorBase>();
 			fadeImage = false;
 		}
 	}
@@ -341,15 +341,15 @@ public class VectorDrawing
 	static class VectorCellGroup
 	{
 		Cell cell;
-		HashMap orientations;
+		HashMap<String,VectorCell> orientations;
 		VectorCell any;
 		double sizeX, sizeY;
-		List exports;
+		List<VectorCellExport> exports;
 
 		VectorCellGroup(Cell cell)
 		{
 			this.cell = cell;
-			orientations = new HashMap();
+			orientations = new HashMap<String,VectorCell>();
 			any = null;
 		}
 
@@ -391,8 +391,8 @@ public class VectorDrawing
 	 */
 	static class VectorCell
 	{
-		List shapes;
-		List subCells;
+		List<VectorBase> shapes;
+		List<VectorSubCell> subCells;
 		boolean hasFadeColor;
 		int fadeColor;
 		float maxFeatureSize;
@@ -401,8 +401,8 @@ public class VectorDrawing
 
 		VectorCell()
 		{
-			shapes = new ArrayList();
-			subCells = new ArrayList();
+			shapes = new ArrayList<VectorBase>();
+			subCells = new ArrayList<VectorSubCell>();
 			hasFadeColor = false;
 			maxFeatureSize = 0;
 		}
@@ -435,7 +435,7 @@ public class VectorDrawing
 		// see if any layers are being highlighted/dimmed
 		offscreen = wnd.getOffscreen();
 		offscreen.highlightingLayers = false;
-		for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer.isDimmed())
@@ -525,14 +525,14 @@ public class VectorDrawing
 	 */
 	private boolean isCellParameterized(Cell cell)
 	{
-		for(Iterator vIt = cell.getParameters(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = cell.getParameters(); vIt.hasNext(); )
 		{
 			Variable var = (Variable)vIt.next();
 			// this attribute is not a parameter
 			if (var.getKey() == NCCKEY) continue;
 			return true;
 		}
-//		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+//		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 //		{
 //			Variable var = (Variable)vIt.next();
 //			if (var.isParam())
@@ -544,19 +544,19 @@ public class VectorDrawing
 //		}
 
 		// look for any Java coded stuff (Logical Effort calls)
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (var.getCode() != TextDescriptor.Code.NONE) return true;
 			}
 		}
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			for(Iterator vIt = ai.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (var.getCode() != TextDescriptor.Code.NONE) return true;
@@ -586,8 +586,8 @@ public class VectorDrawing
 				Rectangle2D cellBounds = cell.getBounds();
 				if (vcg.sizeX != cellBounds.getWidth() || vcg.sizeY != cellBounds.getHeight()) changed = true; else
 				{
-					Iterator cIt = vcg.exports.iterator();
-					for(Iterator it = cell.getPorts(); it.hasNext(); )
+					Iterator<VectorCellExport> cIt = vcg.exports.iterator();
+					for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 					{
 						Export e = (Export)it.next();
 						if (!cIt.hasNext()) { changed = true;   break; }
@@ -603,7 +603,7 @@ public class VectorDrawing
 				// queue parent cells for recaching if the bounds or exports changed
 				if (changed)
 				{
-					for(Iterator it = cell.getUsagesOf(); it.hasNext(); )
+					for(Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); )
 					{
 	                    CellUsage u = (CellUsage)it.next();
 						cellChanged(u.getParent());
@@ -642,7 +642,7 @@ public class VectorDrawing
 		drawList(oX, oY, vc.shapes, level);
 
 		// now render subcells
-		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
+		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
 		{
 			VectorSubCell vsc = (VectorSubCell)it.next();
 			subCellCount++;
@@ -776,10 +776,10 @@ public class VectorDrawing
 	 * @param shapes the List of shapes (VectorBase objects).
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
-	private void drawList(float oX, float oY, List shapes, int level)
+	private void drawList(float oX, float oY, List<VectorBase> shapes, int level)
 	{
 		// render all shapes
-		for(Iterator it = shapes.iterator(); it.hasNext(); )
+		for(Iterator<VectorBase> it = shapes.iterator(); it.hasNext(); )
 		{
 			VectorBase vb = (VectorBase)it.next();
 			if (vb.hideOnLowLevel && level != 0) continue;
@@ -1168,7 +1168,7 @@ public class VectorDrawing
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		boolean isAllTiny = true;
-		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
+		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
 		{
 			VectorSubCell vsc = (VectorSubCell)it.next();
 			NodeInst ni = vsc.ni;
@@ -1281,13 +1281,13 @@ public class VectorDrawing
 		if (vc.hasFadeColor) return vc.fadeColor;
 
 		// examine all shapes
-		HashMap layerAreas = new HashMap();
+		HashMap<Layer,MutableDouble> layerAreas = new HashMap<Layer,MutableDouble>();
 		gatherContents(vc, layerAreas, context);
 
 		// now compute the color
-		Set keys = layerAreas.keySet();
+		Set<Layer> keys = layerAreas.keySet();
 		double totalArea = 0;
-		for(Iterator it = keys.iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = keys.iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			MutableDouble md = (MutableDouble)layerAreas.get(layer);
@@ -1296,7 +1296,7 @@ public class VectorDrawing
 		double r = 0, g = 0, b = 0;
 		if (totalArea != 0)
 		{
-			for(Iterator it = keys.iterator(); it.hasNext(); )
+			for(Iterator<Layer> it = keys.iterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				MutableDouble md = (MutableDouble)layerAreas.get(layer);
@@ -1322,10 +1322,10 @@ public class VectorDrawing
 	 * @param vc the cached cell to examine.
 	 * @param layerAreas a HashMap of all layers and the areas they cover.
 	 */
-	private void gatherContents(VectorCell vc, HashMap layerAreas, VarContext context)
+	private void gatherContents(VectorCell vc, HashMap<Layer,MutableDouble> layerAreas, VarContext context)
 		throws AbortRenderingException
 	{
-		for(Iterator it = vc.shapes.iterator(); it.hasNext(); )
+		for(Iterator<VectorBase> it = vc.shapes.iterator(); it.hasNext(); )
 		{
 			VectorBase vb = (VectorBase)it.next();
 			if (vb.hideOnLowLevel) continue;
@@ -1364,7 +1364,7 @@ public class VectorDrawing
 			md.setValue(md.doubleValue() + area);
 		}
 
-		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
+		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
 		{
 			VectorSubCell vsc = (VectorSubCell)it.next();
 			VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
@@ -1422,10 +1422,10 @@ public class VectorDrawing
 		// save size and export centers to detect hierarchical changes later
 		if (vcg.exports == null)
 		{
-			vcg.exports = new ArrayList();
+			vcg.exports = new ArrayList<VectorCellExport>();
 			vcg.sizeX = cellBounds.getWidth();
 			vcg.sizeY = cellBounds.getHeight();
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				VectorCellExport vce = new VectorCellExport();
@@ -1438,14 +1438,14 @@ public class VectorDrawing
 
 //System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
 		// draw all arcs
-		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
+		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)arcs.next();
 			drawArc(ai, trans, vc);
 		}
 
 		// draw all nodes
-		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
 			drawNode(ni, trans, context, vc);
@@ -1472,15 +1472,16 @@ public class VectorDrawing
 	/**
 	 * Comparator class for sorting VectorBase objects by their layer depth.
 	 */
-    public static class ShapeByLayer implements Comparator
+    public static class ShapeByLayer implements Comparator<VectorBase>
     {
 		/**
 		 * Method to sort Objects by their string name.
 		 */
-        public int compare(Object o1, Object o2)
+/*5*/   public int compare(VectorBase vb1, VectorBase vb2)
+//4*/   public int compare(Object o1, Object o2)
         {
-			VectorBase vb1 = (VectorBase)o1;
-			VectorBase vb2 = (VectorBase)o2;
+//4*/		VectorBase vb1 = (VectorBase)o1;
+//4*/		VectorBase vb2 = (VectorBase)o2;
 			int level1 = 1000, level2 = 1000;
 			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
 			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
@@ -1541,7 +1542,7 @@ public class VectorDrawing
 		}
 
 		// draw any exports from the node
-		Iterator it = ni.getExports();
+		Iterator<Export> it = ni.getExports();
 		while (it.hasNext())
 		{
 			Export e = (Export)it.next();
@@ -1602,13 +1603,13 @@ public class VectorDrawing
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
 		boolean[] shownPorts = new boolean[numPorts];
-		for(Iterator it = ni.getConnections(); it.hasNext();)
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
 			Connection con = (Connection) it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
-		for(Iterator it = ni.getExports(); it.hasNext();)
+		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
 			Export exp = (Export) it.next();
 			PortInst pi = exp.getOriginalPort();
