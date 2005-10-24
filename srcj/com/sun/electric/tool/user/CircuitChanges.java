@@ -1485,6 +1485,9 @@ public class CircuitChanges
 						if (eobj instanceof Export)
 						{
 							Export pp = (Export)eobj;
+							int errCode = cantEdit(cell, pp.getOriginalPort().getNodeInst(), true);
+							if (errCode < 0) return false;
+							if (errCode > 0) continue;
 							pp.kill();
 						}
 					}

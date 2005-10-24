@@ -809,42 +809,58 @@ public class WaveformWindow implements WindowContent
 				}
 
 				// draw the horizontal grid lines
-				double displayedLow = scaleYToValue(hei);
-				double displayedHigh = scaleYToValue(0);
+//				double displayedLow = scaleYToValue(hei);
+//				double displayedHigh = scaleYToValue(0);
+//
+//				// instead of sensible values taken from ticks, base it on the range of numbers
+//				double lowYData = 0, highYData = 0;
+//				boolean first = true;
+//				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+//				{
+//					WaveSignal ws = (WaveSignal)it.next();
+//					if (ws.sSig instanceof AnalogSignal)
+//					{
+//						// grid on analog trace
+//						Rectangle2D bounds = ws.sSig.getBounds();
+//						if (first)
+//						{
+//							lowYData = bounds.getMinY();
+//							highYData = bounds.getMaxY();
+//							first = false;
+//						} else
+//						{
+//							if (bounds.getMinY() < lowYData) lowYData = bounds.getMinY();
+//							if (bounds.getMaxY() > highYData) highYData = bounds.getMaxY();
+//						}
+//					}
+//				}
+//				ss.separation = (highYData-lowYData) / 5;
+//				ss.low = (highYData-lowYData) / 10 + lowYData;
+//				ss.high = highYData - (highYData-lowYData) / 10;
+//				if (ss.separation != 0.0)
+//				{
+//					double value = ss.low;
+//					for(;;)
+//					{
+//						if (value >= displayedLow)
+//						{
+//							if (value > displayedHigh || value > ss.high) break;
+//							int y = scaleValueToY(value);
+//							g.drawLine(vertAxisPos, y, wid, y);
+//						}
+//						value += ss.separation;
+//					}
+//				}
 
-				// instead of sensible values taken from ticks, base it on the range of numbers
-				double lowYData = 0, highYData = 0;
-				boolean first = true;
-				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
-				{
-					WaveSignal ws = (WaveSignal)it.next();
-					if (ws.sSig instanceof AnalogSignal)
-					{
-						// grid on analog trace
-						Rectangle2D bounds = ws.sSig.getBounds();
-						if (first)
-						{
-							lowYData = bounds.getMinY();
-							highYData = bounds.getMaxY();
-							first = false;
-						} else
-						{
-							if (bounds.getMinY() < lowYData) lowYData = bounds.getMinY();
-							if (bounds.getMaxY() > highYData) highYData = bounds.getMaxY();
-						}
-					}
-				}
-				ss.separation = (highYData-lowYData) / 5;
-				ss.low = (highYData-lowYData) / 10 + lowYData;
-				ss.high = highYData - (highYData-lowYData) / 10;
+				ss = getSensibleValues(analogHighValue, analogLowValue, 5);
 				if (ss.separation != 0.0)
 				{
 					double value = ss.low;
 					for(;;)
 					{
-						if (value >= displayedLow)
+						if (value >= analogLowValue)
 						{
-							if (value > displayedHigh || value > ss.high) break;
+							if (value > analogHighValue || value > ss.high) break;
 							int y = scaleValueToY(value);
 							g.drawLine(vertAxisPos, y, wid, y);
 						}

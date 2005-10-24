@@ -33,6 +33,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -69,7 +70,7 @@ public final class ExportChanges
 	 */
 	public static void newExportCommand()
 	{
- 		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
+		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
 		dialog.setVisible(true);
 	}
 
@@ -678,7 +679,7 @@ public final class ExportChanges
 
             // disallow port action if lock is on
             Cell cell = pi.getNodeInst().getParent();
-			int errorCode = CircuitChanges.cantEdit(cell, null, true);
+			int errorCode = CircuitChanges.cantEdit(cell, pi.getNodeInst(), true);
 			if (errorCode < 0) return total;
 			if (errorCode > 0) continue;
 
@@ -925,6 +926,9 @@ public final class ExportChanges
 			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
+				int errorCode = CircuitChanges.cantEdit(cell, e.getOriginalPort().getNodeInst(), true);
+				if (errorCode < 0) break;
+				if (errorCode > 0) continue;
 				e.kill();
 				total++;
 			}

@@ -454,52 +454,53 @@ public class LayerTab extends JPanel
 			}
 		}
 
+		boolean textVisChanged = false;
 		boolean currentTextOnNode = nodeText.isSelected();
 		if (currentTextOnNode != User.isTextVisibilityOnNode())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnNode(currentTextOnNode);
 		}
 
 		boolean currentTextOnArc = arcText.isSelected();
 		if (currentTextOnArc != User.isTextVisibilityOnArc())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnArc(currentTextOnArc);
 		}
 
 		boolean currentTextOnPort = portText.isSelected();
 		if (currentTextOnPort != User.isTextVisibilityOnPort())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnPort(currentTextOnPort);
 		}
 
 		boolean currentTextOnExport = exportText.isSelected();
 		if (currentTextOnExport != User.isTextVisibilityOnExport())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnExport(currentTextOnExport);
 		}
 
 		boolean currentTextOnAnnotation = annotationText.isSelected();
 		if (currentTextOnAnnotation != User.isTextVisibilityOnAnnotation())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnAnnotation(currentTextOnAnnotation);
 		}
 
 		boolean currentTextOnInstance = instanceNames.isSelected();
 		if (currentTextOnInstance != User.isTextVisibilityOnInstance())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnInstance(currentTextOnInstance);
 		}
 
 		boolean currentTextOnCell = cellText.isSelected();
 		if (currentTextOnCell != User.isTextVisibilityOnCell())
 		{
-    		changed = true;
+			textVisChanged = true;
 			User.setTextVisibilityOnCell(currentTextOnCell);
 		}
 
@@ -512,11 +513,13 @@ public class LayerTab extends JPanel
 				lt.updateLayersTab();
 		}
 
-		if (changed)
+		if (changed || textVisChanged)
 		{
 			PixelDrawing.clearSubCellCache();
 			EditWindow.repaintAllContents();
 		}
+		if (changed)
+			VectorDrawing.layerVisibilityChanged();
 	}
 
 	/** This method is called from within the constructor to

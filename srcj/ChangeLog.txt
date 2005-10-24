@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/23/05, SMR) Greeked cell cache is cleared when layer visibility changes.
+     Vector display cache is cleard when technology preferences change.
+
+BUG: (10/23/05, SMR) Export changes are allowed even when nodes or cells are locked.
+FIX: Added checking code to CircuitChanges.DeleteSelected.doIt(), NewExport.MakeExport.doIt(),
+     and ExportChanges.DeleteExports.doIt().
+
+BUG: (10/23/05, SMR) Waveform window grid has bad horizontal lines.
+FIX: Grid lines are now aligned with tick marks.
+
 BUG: (10/20/05, DN) Deleting objects takes forever (Bug #666).
 FIX: In CircuitChanges.Reconnect.reconnectArcs reconnect only obtuse-angled arcs.
 

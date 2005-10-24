@@ -61,6 +61,7 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Priority;
@@ -4020,6 +4021,7 @@ public class Technology implements Comparable<Technology>
 		public void setSideEffect()
 		{
 			tech.setState();
+			VectorDrawing.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
 			EditWindow.repaintAllContents();
