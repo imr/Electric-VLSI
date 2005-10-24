@@ -1344,6 +1344,10 @@ public class ScanChainXML {
         }
 
         if (ports.size() == 0) {
+            if (!ignoreInport) {
+                ports.add(inport);
+                return ports;
+            }
             System.out.println("Warning: no other ports connected to port "+inport.name+" on node "+inport.no.getName()+" in cell "+inport.no.getParent().describe(false));
         }
         return ports;
