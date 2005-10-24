@@ -77,12 +77,12 @@ public class GenerateVHDL
 	/** a general flip-flop */		private static final int BLOCKFLOP    = 12;
 
 	// make an array to hold the generated VHDL
-	static List vhdlStrings;
+	static List<String> vhdlStrings;
 
 	/**
 	 * Method to ensure that cell "np" and all subcells have VHDL on them.
 	 */
-	public static List convertCell(Cell cell)
+	public static List<String> convertCell(Cell cell)
 	{
 		// cannot make VHDL for cell with no ports
 		if (cell.getNumPorts() == 0)
@@ -92,7 +92,7 @@ public class GenerateVHDL
 		}
 
 		// make an array to hold the generated VHDL
-		vhdlStrings = new ArrayList();
+		vhdlStrings = new ArrayList<String>();
 
 		// recursively generate the VHDL
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, new Visitor(cell));
@@ -103,12 +103,12 @@ public class GenerateVHDL
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private Cell cell;
-		private static HashSet seenCells;
+		private static HashSet<Cell> seenCells;
 
 		private Visitor(Cell cell)
 		{
 			this.cell = cell;
-			seenCells = new HashSet();
+			seenCells = new HashSet<Cell>();
 		}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -139,7 +139,7 @@ public class GenerateVHDL
 		Netlist nl = info.getNetlist();
 
 		// write the entity section
-		HashSet exportNames = new HashSet();
+		HashSet<String> exportNames = new HashSet<String>();
 		vhdlStrings.add("entity " + addString(cell.getName(), null) + " is port(" + addPortList(null, cell, nl /*cell.getUserNetlist()*/, 0, exportNames) + ");");
 		vhdlStrings.add("  end " + addString(cell.getName(), null)  + ";");
 
@@ -150,8 +150,8 @@ public class GenerateVHDL
 
 		// enumerate negated arcs
 		int instNum = 1;
-		HashMap negatedConnections = new HashMap();
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		HashMap<Connection,Integer> negatedConnections = new HashMap<Connection,Integer>();
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			for(int i=0; i<2; i++)
@@ -164,9 +164,9 @@ public class GenerateVHDL
 		int [] gotNand = new int[MAXINPUTS+1];
 		int [] gotNor = new int[MAXINPUTS+1];
 		int [] gotXNor = new int[MAXINPUTS+1];
-		List componentList = new ArrayList();
+		List<String> componentList = new ArrayList<String>();
 		boolean gotInverters = false;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.isIconOfParent()) continue;
@@ -269,9 +269,9 @@ public class GenerateVHDL
 		}
 
 		// write the instances
-		HashSet signalNames = new HashSet();
-		List bodyStrings = new ArrayList();
-		for(Iterator it = nl.getNodables(); it.hasNext(); )
+		HashSet<String> signalNames = new HashSet<String>();
+		List<String> bodyStrings = new ArrayList<String>();
+		for(Iterator<Nodable> it = nl.getNodables(); it.hasNext(); )
 		{
 			Nodable no = (Nodable)it.next();
 			// ignore component with no ports
@@ -300,7 +300,7 @@ public class GenerateVHDL
 		}
 
 		// write pseudo-nodes for all negated arcs
-		for(Iterator it = negatedConnections.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Connection> it = negatedConnections.keySet().iterator(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			Integer index = (Integer)negatedConnections.get(con);
@@ -324,7 +324,7 @@ public class GenerateVHDL
 		boolean first = false;
 		int lineLen = 0;
 		StringBuffer infstr = new StringBuffer();
-		for(Iterator it = signalNames.iterator(); it.hasNext(); )
+		for(Iterator<String> it = signalNames.iterator(); it.hasNext(); )
 		{
 			String signalName = (String)it.next();
 			if (exportNames.contains(signalName)) continue;
@@ -357,19 +357,20 @@ public class GenerateVHDL
 		// write the body
 		vhdlStrings.add("");
 		vhdlStrings.add("begin");
-		for(Iterator it = bodyStrings.iterator(); it.hasNext(); )
-			vhdlStrings.add(it.next());
+		for(Iterator<String> it = bodyStrings.iterator(); it.hasNext(); )
+			vhdlStrings.add((String)it.next());
 		vhdlStrings.add("end " + addString(cell.getName(), null) + "_BODY;");
 	}
 
-	private static String addRealPorts(Nodable no, int special, HashMap negatedConnections, HashSet signalNames, Netlist nl)
+	private static String addRealPorts(Nodable no, int special, HashMap<Connection,Integer> negatedConnections,
+		HashSet<String> signalNames, Netlist nl)
 	{
 		NodeProto np = no.getProto();
 		boolean first = false;
 		StringBuffer infstr = new StringBuffer();
 		for(int pass = 0; pass < 5; pass++)
 		{
-			for(Iterator it = np.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 			{
 				PortProto pp = (PortProto)it.next();
 
@@ -410,7 +411,7 @@ public class GenerateVHDL
 				{
 					// ignore electrically connected ports
 					boolean connected = false;
-					for(Iterator oIt = np.getPorts(); oIt.hasNext(); )
+					for(Iterator<PortProto> oIt = np.getPorts(); oIt.hasNext(); )
 					{
 						PrimitivePort oPp = (PrimitivePort)oIt.next();
 						if (oPp == pp) break;
@@ -452,7 +453,7 @@ public class GenerateVHDL
 				// if multiple connections, get them all
 				if (pp.getBasePort().isIsolated())
 				{
-					for(Iterator cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						if (con.getPortInst().getPortProto() != pp) continue;
@@ -477,7 +478,7 @@ public class GenerateVHDL
 
 				// get connection
 				boolean portNamed = false;
-				for(Iterator cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					PortProto otherPP = con.getPortInst().getPortProto();
@@ -517,7 +518,7 @@ public class GenerateVHDL
 				}
 				if (portNamed) continue;
 
-				for(Iterator eIt = no.getNodeInst().getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = no.getNodeInst().getExports(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
 					PortProto otherPP = e.getOriginalPort().getPortProto();
@@ -574,7 +575,7 @@ public class GenerateVHDL
 
 		private int getSpecial() { return special; }
 
-		private AnalyzePrimitive(NodeInst ni, HashMap negatedConnections)
+		private AnalyzePrimitive(NodeInst ni, HashMap<Connection,Integer> negatedConnections)
 		{
 			// cell instances are easy
 			special = BLOCKNORMAL;
@@ -630,7 +631,7 @@ public class GenerateVHDL
 			{
 				primName = "dsff";
 				special = BLOCKFLOPDS;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("clear"))
@@ -644,7 +645,7 @@ public class GenerateVHDL
 			{
 				primName = "tsff";
 				special = BLOCKFLOPTS;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("clear"))
@@ -659,7 +660,7 @@ public class GenerateVHDL
 				primName = Schematics.getVHDLNames(Schematics.tech.bufferNode);
 				int slashPos = primName.indexOf('/');
 				special = BLOCKBUFFER;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
@@ -681,7 +682,7 @@ public class GenerateVHDL
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
@@ -705,7 +706,7 @@ public class GenerateVHDL
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
@@ -729,7 +730,7 @@ public class GenerateVHDL
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
@@ -751,7 +752,7 @@ public class GenerateVHDL
 			{
 				primName = Schematics.getVHDLNames(Schematics.tech.muxNode);
 				int inPort = 0;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
@@ -767,7 +768,7 @@ public class GenerateVHDL
 			if (primName == null)
 			{
 				// if the node has an export with power/ground, make it that
-				for(Iterator it = ni.getExports(); it.hasNext(); )
+				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				{
 					Export e = (Export)it.next();
 					if (e.isPower())
@@ -826,7 +827,7 @@ public class GenerateVHDL
 		// see if there is a name clash
 		if (environment != null)
 		{
-			for(Iterator it = environment.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = environment.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
@@ -852,7 +853,7 @@ public class GenerateVHDL
 	 * If "special" is BLOCKFLOPTR or BLOCKFLOPDR, only include input ports "i1", "ck", "clear"
 	 *    and output port "q".
 	 */
-	private static String addPortList(NodeInst ni, NodeProto np, Netlist nl, int special, HashSet exportNames)
+	private static String addPortList(NodeInst ni, NodeProto np, Netlist nl, int special, HashSet<String> exportNames)
 	{
 		if (special == BLOCKFLOPTS || special == BLOCKFLOPDS)
 		{
@@ -874,15 +875,15 @@ public class GenerateVHDL
 		if (ni != null && np instanceof Cell) nl = ((Cell)np).acquireUserNetlist();
 
 		// flag important ports
-		HashSet flaggedPorts = new HashSet();
-		for(Iterator it = np.getPorts(); it.hasNext(); )
+		HashSet<PortProto> flaggedPorts = new HashSet<PortProto>();
+		for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 		{
 			PortProto pp = (PortProto)it.next();
 			if (special == BLOCKMOSTRAN)
 			{
 				// ignore ports that are electrically connected to previous ones
 				boolean connected = false;
-				for(Iterator oIt = np.getPorts(); it.hasNext(); )
+				for(Iterator<PortProto> oIt = np.getPorts(); it.hasNext(); )
 				{
 					PortProto oPp = (PortProto)oIt.next();
 					if (oPp == pp) break;
@@ -912,11 +913,11 @@ public class GenerateVHDL
 	}
 
 	private static String addThesePorts(StringBuffer infstr, NodeInst ni, NodeProto np, Netlist nl,
-		PortCharacteristic bits, HashSet flaggedPorts, HashSet exportNames, String before)
+		PortCharacteristic bits, HashSet flaggedPorts, HashSet<String> exportNames, String before)
 	{
 		boolean didsome = false;
-		HashSet networksFound = new HashSet();
-		for(Iterator it = np.getPorts(); it.hasNext(); )
+		HashSet<Network> networksFound = new HashSet<Network>();
+		for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 		{
 			PortProto pp = (PortProto)it.next();
 //	#ifdef IGNORE4PORTTRANSISTORS
@@ -958,7 +959,7 @@ public class GenerateVHDL
 				if (pp.getBasePort().isIsolated())
 				{
 					int inst = 1;
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						if (con.getPortInst().getPortProto() != pp) continue;
@@ -996,7 +997,7 @@ public class GenerateVHDL
 
 	private static String getOneNetworkName(Network net)
 	{
-		Iterator nIt = net.getNames();
+		Iterator<String> nIt = net.getNames();
 		if (nIt.hasNext()) return (String)nIt.next();
 		return net.describe(false);
 	}

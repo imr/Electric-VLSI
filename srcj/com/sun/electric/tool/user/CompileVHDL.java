@@ -236,9 +236,9 @@ public class CompileVHDL
 
 	private static class SymbolList
 	{
-		/** the symbol table map */		HashMap         sym;
-		/** previous in stack */		SymbolList		last;
-		/** next in list */				SymbolList		next;
+		/** the symbol table map */		HashMap<String,SymbolTree> sym;
+		/** previous in stack */		SymbolList		           last;
+		/** next in list */				SymbolList		           next;
 	};
 
 	/********** Unresolved Reference List **********************************/
@@ -923,7 +923,7 @@ public class CompileVHDL
 	};
 
 	private Cell vhdlCell;
-	private HashSet identTable;
+	private HashSet<String> identTable;
 	private TokenList  tListStart;
 	private TokenList  tListEnd;
 	private int errorCount;
@@ -949,7 +949,7 @@ public class CompileVHDL
 		unResolvedList = null;
 
 		// build and clear identTable
-		identTable = new HashSet();
+		identTable = new HashSet<String>();
 
 		errorCount = 0;
 		doScanner(strings);
@@ -980,12 +980,12 @@ public class CompileVHDL
 	 * Method to generate an ALS (simulation) netlist.
 	 * @return a List of strings with the netlist.
 	 */
-	public List getALSNetlist()
+	public List<String> getALSNetlist()
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
 		Library behaveLib = null;
-		List netlistStrings = genALS(behaveLib);
+		List<String> netlistStrings = genALS(behaveLib);
 		return netlistStrings;
 	}
 
@@ -5176,7 +5176,7 @@ public class CompileVHDL
 	private SymbolList pushSymbols(SymbolList oldSymList)
 	{
 		SymbolList newSymList = new SymbolList();
-		newSymList.sym = new HashMap();
+		newSymList.sym = new HashMap<String,SymbolTree>();
 
 		newSymList.last = oldSymList;
 
@@ -5296,12 +5296,12 @@ public class CompileVHDL
 	 * Assume parse tree is semantically correct.
 	 * @return a list of strings that has the netlist.
 	 */
-	private List genALS(Library behaveLib)
+	private List<String> genALS(Library behaveLib)
 	{
 		Cell basenp = vhdlCell;
 
 		// print file header
-		List netlist = new ArrayList();
+		List<String> netlist = new ArrayList<String>();
 		netlist.add("#*************************************************");
 		netlist.add("#  ALS Netlist file");
 		netlist.add("#");
@@ -5444,9 +5444,9 @@ public class CompileVHDL
 	 * Method to search library "lib" for a netlist that matches "name".  If found,
 	 * add it to the current output netlist and return nonzero.  If not found, return false.
 	 */
-	private boolean addNetlist(Library lib, String name, List netlist)
+	private boolean addNetlist(Library lib, String name, List<String> netlist)
 	{
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell np = (Cell)it.next();
 			if (np.getView() != View.NETLISTALS) continue;
@@ -5475,7 +5475,7 @@ public class CompileVHDL
 	/*
 	 * inputs cap = 0.xx pF, Tphl = T1 + T2*Cin, Tplh = T3 + T4*Cin
 	 */
-	private void genFunction(String name, boolean isand, boolean isneg, int inputs, List netlist)
+	private void genFunction(String name, boolean isand, boolean isneg, int inputs, List<String> netlist)
 	{
 		// generate model name
 		String modelName = "";
@@ -5567,7 +5567,7 @@ public class CompileVHDL
 		}
 	}
 
-	private void dumpFunction(String name, String [] model, List netlist)
+	private void dumpFunction(String name, String [] model, List<String> netlist)
 	{
 		netlist.add("");
 		netlist.add("# Built-in model for " + name);
@@ -5580,7 +5580,7 @@ public class CompileVHDL
 	 * @param interfacef pointer to interface.
 	 * @param netlist the List of strings to create.
 	 */
-	private void genALSInterface(DBInterface interfacef, String name, List netlist)
+	private void genALSInterface(DBInterface interfacef, String name, List<String> netlist)
 	{
 		// go through interface's architectural body and call generate interfaces
 		// for any interface called by an instance which has not been already generated
@@ -5823,7 +5823,7 @@ public class CompileVHDL
 	 */
 	private List genQuisc()
 	{
-		List netlist = new ArrayList();
+		List<String> netlist = new ArrayList<String>();
 
 		// print file header
 		netlist.add("!*************************************************");
@@ -5855,7 +5855,7 @@ public class CompileVHDL
 		{
 			// see if this is a reference to a cell in the current library
 			boolean found = false;
-			for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
 				Cell np = (Cell)it.next();
 				StringBuffer sb = new StringBuffer();
@@ -5870,7 +5870,7 @@ public class CompileVHDL
 			}
 			if (!found && cellLib != null)
 			{
-				for(Iterator it = cellLib.getCells(); it.hasNext(); )
+				for(Iterator<Cell> it = cellLib.getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
 					StringBuffer sb = new StringBuffer();
@@ -5945,7 +5945,7 @@ public class CompileVHDL
 	 * @param interfacef pointer to interface.
 	 * @param netlist the List of strings to create.
 	 */
-	private void genQuiscInterface(DBInterface interfacef, List netlist)
+	private void genQuiscInterface(DBInterface interfacef, List<String> netlist)
 	{
 		// go through interface's architectural body and call generate interface
 		// for any interface called by an instance which has not been already

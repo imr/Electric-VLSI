@@ -33,6 +33,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -101,7 +102,7 @@ public class ViewMenu {
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
 
-        java.util.List views = View.getOrderedViews();
+        List<View> views = View.getOrderedViews();
         String [] viewNames = new String[views.size()];
         for(int i=0; i<views.size(); i++)
             viewNames[i] = ((View)views.get(i)).getFullName();
@@ -175,7 +176,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
 
-        java.util.List views = View.getOrderedViews();
+        List<View> views = View.getOrderedViews();
         String [] viewNames = new String[views.size()];
         for(int i=0; i<views.size(); i++)
             viewNames[i] = ((View)views.get(i)).getFullName();

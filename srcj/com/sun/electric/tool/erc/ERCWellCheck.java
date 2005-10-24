@@ -64,10 +64,10 @@ public class ERCWellCheck
 	int mode;
 	ErrorLogger errorLogger;
 	Highlighter highlighter;
-	List wellCons = new ArrayList();
-	List wellAreas = new ArrayList();
-	HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
-	HashMap doneCells = new HashMap(); // Mark if cells are done already.
+	List<WellCon> wellCons = new ArrayList<WellCon>();
+	List<WellArea> wellAreas = new ArrayList<WellArea>();
+	HashMap<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
+	HashMap<Cell,Cell> doneCells = new HashMap<Cell,Cell>(); // Mark if cells are done already.
 	WellCheckJob job;
 
 	// well areas
@@ -146,17 +146,17 @@ public class ERCWellCheck
 		int wellIndex = 0;
         GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
 
-		for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
+		for(Iterator<Layer> it = topMerge.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 
 			// Not sure if null goes here
-			Collection set = topMerge.getObjects(layer, false, true);
+			Collection<Object> set = topMerge.getObjects(layer, false, true);
 
 		    if (Main.getDebug())
                 System.out.println("Layer " + layer.getName() + " " + set.size());
 
-			for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+			for(Iterator<Object> pIt = set.iterator(); pIt.hasNext(); )
 			{
 				WellArea wa = new WellArea();
 				PolyBase poly = null;
@@ -190,7 +190,7 @@ public class ERCWellCheck
 		boolean foundPWell = false;
 		boolean foundNWell = false;
 
-		for(Iterator it = wellAreas.iterator(); it.hasNext(); )
+		for(Iterator<WellArea> it = wellAreas.iterator(); it.hasNext(); )
 		{
 			WellArea wa = (WellArea)it.next();
 
@@ -216,7 +216,7 @@ public class ERCWellCheck
 			//@TODO: contactAction != 0 -> do nothing
 			// find a contact in the area
 			boolean found = false;
-			for(Iterator cIt = wellCons.iterator(); cIt.hasNext(); )
+			for(Iterator<WellCon> cIt = wellCons.iterator(); cIt.hasNext(); )
 			{
 				WellCon wc = (WellCon)cIt.next();
 				if (wc.fun != desiredContact) continue;
@@ -239,7 +239,7 @@ public class ERCWellCheck
 		}
 
 		// make sure all of the contacts are on the same net
-		for(Iterator it = wellCons.iterator(); it.hasNext(); )
+		for(Iterator<WellCon> it = wellCons.iterator(); it.hasNext(); )
 		{
 			WellCon wc = (WellCon)it.next();
 			// -1 means not connected in hierarchyEnumerator::numberNets()
@@ -294,7 +294,7 @@ public class ERCWellCheck
 		if (ERC.getNWellCheck() == 1 && foundNWell)
 		{
 			boolean found = false;
-			for(Iterator it = wellCons.iterator(); it.hasNext(); )
+			for(Iterator<WellCon> it = wellCons.iterator(); it.hasNext(); )
 			{
 				WellCon wc = (WellCon)it.next();
 				if (wc.fun == PrimitiveNode.Function.SUBSTRATE) { found = true;   break; }
@@ -309,7 +309,7 @@ public class ERCWellCheck
 		if (ERC.getPWellCheck() == 1 && foundPWell)
 		{
 			boolean found = false;
-			for(Iterator it = wellCons.iterator(); it.hasNext(); )
+			for(Iterator<WellCon> it = wellCons.iterator(); it.hasNext(); )
 			{
 				WellCon wc = (WellCon)it.next();
 				if (wc.fun == PrimitiveNode.Function.WELL) { found = true;   break; }
@@ -325,13 +325,13 @@ public class ERCWellCheck
 		// THIS IS A DRC JOB .. not efficient if done here.
 		if (ERC.isDRCCheck())
 		{
-			HashMap rulesCon = new HashMap();
-			HashMap rulesNonCon = new HashMap();
+			HashMap<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
+			HashMap<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
             int techMode = cell.getTechnology().getFoundry();
-			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
+			for(Iterator<WellArea> it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
-				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
+				for(Iterator<WellArea> oIt = wellAreas.iterator(); oIt.hasNext(); )
 				{
 					// Checking if job is scheduled for abort or already aborted
 					if (job != null && job.checkAbort()) return (0);
@@ -392,7 +392,7 @@ public class ERCWellCheck
 			Point2D worstNWellCon = null;
 			Point2D worstNWellEdge = null;
 
-			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
+			for(Iterator<WellArea> it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
 
@@ -422,7 +422,7 @@ public class ERCWellCheck
 					boolean first = true;
 					double bestDist = 0;
 					WellCon bestWc = null;
-					for(Iterator cIt = wellCons.iterator(); cIt.hasNext(); )
+					for(Iterator<WellCon> cIt = wellCons.iterator(); cIt.hasNext(); )
 					{
 						WellCon wc = (WellCon)cIt.next();
 						if (wc.fun != desiredContact) continue;
@@ -565,7 +565,7 @@ public class ERCWellCheck
 	        {
                 boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
 
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 
@@ -589,7 +589,7 @@ public class ERCWellCheck
                 thisMerge.postProcess(true);
 
                 // merge everything sub trees
-                for(Iterator it = cell.getNodes(); it.hasNext(); )
+                for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = (NodeInst)it.next();
                     NodeProto subNp = ni.getProto();
@@ -681,7 +681,7 @@ public class ERCWellCheck
 					}
 					if (parentNet != null)
 					{
-						for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
+						for (Iterator<Export> it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
 						{
 							Export exp = (Export)it.next();
 							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
@@ -709,7 +709,7 @@ public class ERCWellCheck
 	private static final int ERCNSelect = 4;
 	private static final int ERCPSEUDO = 0;
 
-	private static final List ercLayers = new ArrayList(7);
+	private static final List<Layer.Function> ercLayers = new ArrayList<Layer.Function>(7);
 
     static {
 	    ercLayers.add(Layer.Function.WELLP);

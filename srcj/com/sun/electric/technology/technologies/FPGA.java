@@ -489,7 +489,7 @@ public class FPGA extends Technology
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		boolean active = true;
 		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||

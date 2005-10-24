@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
@@ -201,7 +202,7 @@ public class Simulation extends Listener
 			{
 				// convert Schematic to VHDL
 				System.out.print("Generating VHDL from '" + cell + "' ...");
-				List vhdlStrings = GenerateVHDL.convertCell(cell);
+				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
 					System.out.println("No VHDL produced");
@@ -233,7 +234,7 @@ public class Simulation extends Listener
 					System.out.println("ERRORS during compilation, no netlist produced");
 					return false;
 				}
-				List netlistStrings = c.getALSNetlist();
+				List<String> netlistStrings = c.getALSNetlist();
 				if (netlistStrings == null)
 				{
 					System.out.println("No netlist produced");
@@ -452,7 +453,7 @@ public class Simulation extends Listener
 	{
 		// find a simulation engine to control
 		Engine engine = null;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof WaveformWindow)
@@ -519,7 +520,7 @@ public class Simulation extends Listener
         Highlighter highlighter = wf.getContent().getHighlighter();
         if (highlighter == null) return;
 
-		List list = highlighter.getHighlightedEObjs(false, true);
+		List<Geometric> list = highlighter.getHighlightedEObjs(false, true);
 		if (list.size() == 0)
 		{
 			System.out.println("Must select arcs before setting their type");
@@ -533,9 +534,9 @@ public class Simulation extends Listener
 	 */
 	private static class SetWireType extends Job
 	{
-		List list;
+		List<Geometric> list;
 		int type;
-		protected SetWireType(List list, int type)
+		protected SetWireType(List<Geometric> list, int type)
 		{
 			super("Change Verilog Wire Types", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = list;
@@ -545,7 +546,7 @@ public class Simulation extends Listener
 
 		public boolean doIt()
 		{
-			for(Iterator it = list.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				switch (type)
@@ -692,13 +693,13 @@ public class Simulation extends Listener
 				{
 					if (isAnalog)
 					{
-						for(Iterator it = ww.getPanels(); it.hasNext(); )
+						for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
 						{
 							WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-							List signals = wp.getSignals();
+							List<WaveformWindow.WaveSignal> signals = wp.getSignals();
 							boolean first = true;
 							double lowY = 0, highY = 0;
-							for(Iterator sIt = signals.iterator(); sIt.hasNext(); )
+							for(Iterator<WaveformWindow.WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
 							{
 								WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
 								Signal sSig = ws.getSignal();
@@ -733,7 +734,7 @@ public class Simulation extends Listener
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
 			makeBussedSignals(sd);
-			List allSignals = sd.getSignals();
+			List<Signal> allSignals = sd.getSignals();
 			for(int i=0; i<allSignals.size(); i++)
 			{
 				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
@@ -752,7 +753,7 @@ public class Simulation extends Listener
 
 	private static void makeBussedSignals(Stimuli sd)
 	{
-		List signals = sd.getSignals();
+		List<Signal> signals = sd.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
 			Signal sSig = (Signal)signals.get(i);

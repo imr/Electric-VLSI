@@ -555,7 +555,7 @@ public class EditMenu {
 			int textCount = 0;
 			int graphicsCount = 0;
 			NodeInst theNode = null;
-			for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+			for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				ElectricObject eobj = h.getElectricObject();
@@ -682,9 +682,9 @@ public class EditMenu {
 	private static class ParameterVisibility extends Job
 	{
 		private int how;
-        private List selected;
+        private List<Geometric> selected;
 
-		protected ParameterVisibility(int how, List selected)
+		protected ParameterVisibility(int how, List<Geometric> selected)
 		{
 			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
@@ -696,13 +696,13 @@ public class EditMenu {
 		{
 			// change visibility of parameters on the current node(s)
 			int changeCount = 0;
-			java.util.List list = selected;
-			for(Iterator it = list.iterator(); it.hasNext(); )
+			List<Geometric> list = selected;
+			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				boolean changed = false;
-				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = (Variable)vIt.next();
 					Variable nVar = findParameterSource(var, ni);
@@ -762,7 +762,7 @@ public class EditMenu {
 		Cell np = (Cell)ni.getProto();
 		Cell cnp = np.contentsView();
 		if (cnp != null) np = cnp;
-		for(Iterator it = np.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
 		{
 			Variable nVar = (Variable)it.next();
 			if (var.getKey() == nVar.getKey()) return nVar;
@@ -773,12 +773,12 @@ public class EditMenu {
     public static void updateInheritance(boolean allLibraries)
     {
         // get currently selected node(s)
-        List highlighted = MenuCommands.getSelectedObjects(true, false);
+        List<Geometric> highlighted = MenuCommands.getSelectedObjects(true, false);
         UpdateAttributes job = new UpdateAttributes(highlighted, allLibraries, 0);
     }
 
     private static class UpdateAttributes extends Job {
-        private List highlighted;
+        private List<Geometric> highlighted;
         private boolean allLibraries;
         private int whatToUpdate;
 
@@ -789,7 +789,7 @@ public class EditMenu {
          * highlighted
          * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
          */
-        UpdateAttributes(List highlighted, boolean allLibraries, int whatToUpdate) {
+        UpdateAttributes(List<Geometric> highlighted, boolean allLibraries, int whatToUpdate) {
             super("Update Inheritance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlighted = highlighted;
             this.allLibraries = allLibraries;
@@ -800,11 +800,11 @@ public class EditMenu {
         public boolean doIt() {
             int count = 0;
             if (allLibraries) {
-                for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                     Library lib = (Library)it.next();
-                    for (Iterator it2 = lib.getCells(); it2.hasNext(); ) {
+                    for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
                         Cell c = (Cell)it2.next();
-                        for (Iterator it3 = c.getNodes(); it3.hasNext(); ) {
+                        for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
                             NodeInst ni = (NodeInst)it3.next();
                             if (ni.getProto() instanceof Cell) {
                                 if (whatToUpdate == 0) {
@@ -820,8 +820,8 @@ public class EditMenu {
                     }
                 }
             } else {
-                for (Iterator it = highlighted.iterator(); it.hasNext(); ) {
-                    ElectricObject eobj = (ElectricObject)it.next();
+                for (Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); ) {
+					Geometric eobj = (Geometric)it.next();
                     if (eobj instanceof NodeInst) {
                         NodeInst ni = (NodeInst)eobj;
                         if (ni.getProto() instanceof Cell) {
@@ -904,7 +904,7 @@ public class EditMenu {
 
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
 		highlighter.clear();
-		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
@@ -916,7 +916,7 @@ public class EditMenu {
 			if (mustBeHard && !hard) continue;
 			if (ni.isInvisiblePinWithText())
 			{
-				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = (Variable)vIt.next();
 					if (var.isDisplay())
@@ -930,7 +930,7 @@ public class EditMenu {
 				highlighter.addElectricObject(ni, curCell);
 			}
 		}
-		for(Iterator it = curCell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			boolean hard = ai.isHardSelect();
@@ -940,7 +940,7 @@ public class EditMenu {
 		}
 
 		// Selecting annotations
-		for(Iterator it = curCell.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isAttribute())
@@ -961,9 +961,9 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		HashMap likeThis = new HashMap();
-		java.util.List highlighted = highlighter.getHighlightedEObjs(true, true);
-		for(Iterator it = highlighted.iterator(); it.hasNext(); )
+		HashMap<Object,Object> likeThis = new HashMap<Object,Object>();
+		List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
+		for(Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst)
@@ -978,14 +978,14 @@ public class EditMenu {
 		}
 
 		highlighter.clear();
-		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Object isLikeThis = likeThis.get(ni.getProto());
 			if (isLikeThis == null) continue;
 			if (ni.isInvisiblePinWithText())
 			{
-				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = (Variable)vIt.next();
 					if (var.isDisplay())
@@ -999,7 +999,7 @@ public class EditMenu {
 				highlighter.addElectricObject(ni, curCell);
 			}
 		}
-		for(Iterator it = curCell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Object isLikeThis = likeThis.get(ai.getProto());
@@ -1052,7 +1052,7 @@ public class EditMenu {
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		new SetEasyHardSelect(true, highlighted);
 	}
 
@@ -1063,7 +1063,7 @@ public class EditMenu {
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		java.util.List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		new SetEasyHardSelect(false, highlighted);
 	}
 
@@ -1073,9 +1073,9 @@ public class EditMenu {
 	private static class SetEasyHardSelect extends Job
 	{
 	    private boolean easy;
-		private List highlighted;
+		private List<Geometric> highlighted;
 	
-		private SetEasyHardSelect(boolean easy, List highlighted)
+		private SetEasyHardSelect(boolean easy, List<Geometric> highlighted)
 		{
 	        super("Make Selected Objects Easy/Hard To Select", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 	        this.easy = easy;
@@ -1085,7 +1085,7 @@ public class EditMenu {
 	
 	    public boolean doIt()
 		{
-			for(Iterator it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst)
@@ -1421,14 +1421,14 @@ public class EditMenu {
                 (tech.getScale()/1000) + " microns)");
         }
         int arcCount = 0;
-        for(Iterator it = tech.getArcs(); it.hasNext(); )
+        for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
         {
             ArcProto ap = (ArcProto)it.next();
             if (!ap.isNotUsed()) arcCount++;
         }
         StringBuffer sb = new StringBuffer();
         sb.append("    Has " + arcCount + " arcs (wires):");
-        for(Iterator it = tech.getArcs(); it.hasNext(); )
+        for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
         {
             ArcProto ap = (ArcProto)it.next();
             if (ap.isNotUsed()) continue;
@@ -1437,7 +1437,7 @@ public class EditMenu {
         System.out.println(sb.toString());
 
         int pinCount = 0, totalCount = 0, pureCount = 0, contactCount = 0;
-        for(Iterator it = tech.getNodes(); it.hasNext(); )
+        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
         {
             PrimitiveNode np = (PrimitiveNode)it.next();
             if (np.isNotUsed()) continue;
@@ -1451,7 +1451,7 @@ public class EditMenu {
         {
             sb = new StringBuffer();
             sb.append("    Has " + pinCount + " pin nodes for making bends in arcs:");
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
@@ -1464,7 +1464,7 @@ public class EditMenu {
         {
             sb = new StringBuffer();
             sb.append("    Has " + contactCount + " contact nodes for joining different arcs:");
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
@@ -1478,7 +1478,7 @@ public class EditMenu {
         {
             sb = new StringBuffer();
             sb.append("    Has " + (totalCount-pinCount-contactCount-pureCount) + " regular nodes:");
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
@@ -1493,7 +1493,7 @@ public class EditMenu {
         {
             sb = new StringBuffer();
             sb.append("    Has " + pureCount + " pure-layer nodes for creating custom geometry:");
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;

@@ -49,8 +49,8 @@ public class Sim
 	{
 		/** sundries list */									Node           nLink;
 		/** charge sharing event */								Eval.Event     events;
-		/** list of xtors w/ gates connected to this node */	List           nGateList;
-		/** list of xtors w/ src/drn connected to this node */	List           nTermList;
+		/** list of xtors w/ gates connected to this node */	List<Trans>    nGateList;
+		/** list of xtors w/ src/drn connected to this node */	List<Trans>    nTermList;
 		/** capacitance of node in pf */						float          nCap;
 		/** low logic threshold for node, normalized units */	float          vLow;
 		/** high logic threshold for node, normalized units */	float          vHigh;
@@ -151,8 +151,8 @@ public class Sim
 
 		// initialize node entries
 		n.nName = name;
-		n.nGateList = new ArrayList();
-		n.nTermList = new ArrayList();
+		n.nGateList = new ArrayList<Trans>();
+		n.nTermList = new ArrayList<Trans>();
 		n.nFlags = 0;
 		n.nCap = (float)MIN_CAP;
 		n.vLow = (float)theConfig.lowThresh;
@@ -181,7 +181,7 @@ public class Sim
 	/**
 	 * Return a list of all nodes in the network.
 	 */
-	public List getNodeList()
+	public List<Node> getNodeList()
 	{
 		return nodeList;
 	}
@@ -472,7 +472,7 @@ public class Sim
 
 	/** # of erros found in sim file */										private int     numErrors = 0;
 
-	/** list of transistors just read */									private List    readTransistorList;
+	/** list of transistors just read */									private List<Trans> readTransistorList;
 	public  Trans [] parallelTransistors = new Trans[MAX_PARALLEL];
 
 	/** pointer to dummy hist-entry that serves as tail for all nodes */	private HistEnt lastHist;
@@ -489,8 +489,8 @@ public class Sim
 	/** number of DELAY-units after which undriven nodes decay to X */		public  long    tDecay = 0;
 
 	private boolean  parallelWarning = false;
-	private HashMap  nodeHash;
-	private List     nodeList;
+	private HashMap<String,Node>  nodeHash;
+	private List<Node> nodeList;
 	private int      nodeIndexCounter;
 	private boolean  warnVdd, warnGnd;
 	public  int      irDebug;
@@ -623,7 +623,7 @@ public class Sim
 	{
 		Node ndList = null;
 
-		for(Iterator it = readTransistorList.iterator(); it.hasNext(); )
+		for(Iterator<Trans> it = readTransistorList.iterator(); it.hasNext(); )
 		{
 			Trans t = (Trans)it.next();
 			Node gate = null, src = null, drn = null;
@@ -955,7 +955,7 @@ public class Sim
 		if (iteratorFound && expand)
 		{
 			// expand iterators
-			List listOfStrings = new ArrayList();
+			List<String> listOfStrings = new ArrayList<String>();
 			for(int i=0; i<total; i++)
 			{
 				if (expand(strings[i], listOfStrings))
@@ -972,7 +972,7 @@ public class Sim
 		return strings;
 	}
 
-	private static boolean expand(String arg, List expanded)
+	private static boolean expand(String arg, List<String> expanded)
 	{
 		int itStart = arg.indexOf('{');
 		if (itStart < 0)
@@ -1062,14 +1062,14 @@ public class Sim
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
 	 */
-	private void inputSim(URL simFileURL, List components)
+	private void inputSim(URL simFileURL, List<ExtractedPBucket> components)
 	{
 		if (components != null)
 		{
             Technology layoutTech = Schematics.getDefaultSchematicTechnology();
             double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
 			// load the circuit from memory
-			for(Iterator it = components.iterator(); it.hasNext(); )
+			for(Iterator<ExtractedPBucket> it = components.iterator(); it.hasNext(); )
 			{
 				ExtractedPBucket pb = (ExtractedPBucket)it.next();
 
@@ -1253,11 +1253,11 @@ public class Sim
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
 	}
 
-	public boolean readNetwork(URL simFileURL, List components)
+	public boolean readNetwork(URL simFileURL, List<ExtractedPBucket> components)
 	{
-		readTransistorList = new ArrayList();
-		nodeHash = new HashMap();
-		nodeList = new ArrayList();
+		readTransistorList = new ArrayList<Trans>();
+		nodeHash = new HashMap<String,Node>();
+		nodeList = new ArrayList<Node>();
 		nodeIndexCounter = 1;
 		warnVdd = warnGnd = false;
 		maxTime = MAX_TIME;
@@ -1370,7 +1370,7 @@ public class Sim
 		Node thisOne = n.nLink = n;
 		do
 		{
-			for(Iterator it = thisOne.nTermList.iterator(); it.hasNext(); )
+			for(Iterator<Trans> it = thisOne.nTermList.iterator(); it.hasNext(); )
 			{
 				Trans t = (Trans)it.next();
 				if (t.state == OFF) continue;
@@ -1579,7 +1579,7 @@ public class Sim
 
 		if (nd.nGateList.size() != 0)		// recompute transistor states
 		{
-			for(Iterator it = nd.nGateList.iterator(); it.hasNext(); )
+			for(Iterator<Trans> it = nd.nGateList.iterator(); it.hasNext(); )
 			{
 				Trans t = (Trans)it.next();
 				t.state = (byte)theModel.computeTransState(t);

@@ -237,7 +237,7 @@ public class NewRStep extends Eval
 
 			n.getThev().setT(null);
 
-			for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+			for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 				if (t.state == Sim.OFF) continue;
@@ -596,7 +596,7 @@ public class NewRStep extends Eval
 			case Sim.HIGH:  r.cHigh.min = r.cHigh.max = n.nCap;	break;
 		}
 
-		for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 		{
 			Sim.Trans t = (Sim.Trans)it.next();
 
@@ -990,7 +990,7 @@ public class NewRStep extends Eval
 		r.tIn = 0.0;
 		r.flags &= ~(T_DOMDRIVEN | T_INT);
 
-		for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 		{
 			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tFlags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
@@ -1103,7 +1103,7 @@ public class NewRStep extends Eval
 
 		double taup = r.tauA * n.nCap;
 
-		for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 		{
 			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tFlags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
@@ -1150,7 +1150,7 @@ public class NewRStep extends Eval
 
 		int rType = (dom == Sim.LOW) ? Sim.R_LOW : Sim.R_HIGH;
 		float nmos = 0, pmos = 0;
-		for(Iterator it = nd.nTermList.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Trans> it = nd.nTermList.iterator(); it.hasNext(); )
 		{
 			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || (t.tFlags & Sim.BROKEN) != 0)

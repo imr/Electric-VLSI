@@ -270,12 +270,12 @@ public class CellMenu {
 			double lY = page * Cell.FrameDescription.MULTIPAGESEPARATION - Cell.FrameDescription.MULTIPAGESEPARATION/2;
 			double hY = lY + Cell.FrameDescription.MULTIPAGESEPARATION;
 			List<Geometric> deleteList = new ArrayList<Geometric>();
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getAnchorCenterY() > lY && ni.getAnchorCenterY() < hY) deleteList.add(ni);
 			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				double ctrY = ai.getBounds().getCenterY();
@@ -290,7 +290,7 @@ public class CellMenu {
 				CircuitChanges.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
 			}
 	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
-	    	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 	    	{
 	    		WindowFrame wf = (WindowFrame)it.next();
 	    		if (wf.getContent() instanceof EditWindow)

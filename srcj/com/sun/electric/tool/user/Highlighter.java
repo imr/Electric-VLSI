@@ -1533,7 +1533,7 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 			for(int j=0; j<getNumHighlights(); j++)
 			{
-                List highlightList = getHighlights();
+                List<Highlight> highlightList = getHighlights();
 				Highlight oldHigh = (Highlight)highlightList.get(j);
 				for(int i=0; i<underCursor.size(); i++)
 				{
@@ -1565,7 +1565,7 @@ public class Highlighter implements DatabaseChangeListener {
 		if (invert)
 		{
 			Highlight newHigh = (Highlight)underCursor.get(0);
-            List highlightList = getHighlights();
+            List<Highlight> highlightList = getHighlights();
 			for(int i=0; i<highlightList.size(); i++)
 			{
 				if (newHigh.sameThing((Highlight)highlightList.get(i)))

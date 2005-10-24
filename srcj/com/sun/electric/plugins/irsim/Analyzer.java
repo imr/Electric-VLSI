@@ -24,6 +24,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -114,8 +115,8 @@ public class Analyzer extends Engine
 	{
 		/** index of command */						int            command;
 		/** parameters to the command */			String []      parameters;
-		/** actual signals named in command */		List           sigs;
-		/** negated signals named in command */		List           sigsNegated;
+		/** actual signals named in command */		List<Signal>   sigs;
+		/** negated signals named in command */		List<Signal>   sigsNegated;
 		/** duration of step, where appropriate */	double         value;
 		/** next in list of vectors */				SimVector      next;
 	};
@@ -148,17 +149,17 @@ public class Analyzer extends Engine
 	private short  [] traceState;
 	private int       traceTotal = 0;
 
-	/** vectors which make up clock */				private List      xClock;
-	/** vectors which make up a sequence */			private List      sList;
-	/** longest clock sequence defined */			private int		  maxClock = 0;
-	/** current output column */					private int		  column = 0;
+	/** vectors which make up clock */				private List<Sequence> xClock;
+	/** vectors which make up a sequence */			private List<Sequence> sList;
+	/** longest clock sequence defined */			private int		       maxClock = 0;
+	/** current output column */					private int		       column = 0;
 
 	private List  [] listTbl = new List[5];
 
-	/** list of nodes to be driven high */			public List  hInputs = new ArrayList();
-	/** list of nodes to be driven low */			public List  lIinputs = new ArrayList();
-	/** list of nodes to be driven X */				public List  uInputs = new ArrayList();
-	/** list of nodes to be removed from input */	public List  xInputs = new ArrayList();
+	/** list of nodes to be driven high */			public List<Sim.Node>  hInputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be driven low */			public List<Sim.Node>  lIinputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be driven X */				public List<Sim.Node>  uInputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be removed from input */	public List<Sim.Node>  xInputs = new ArrayList<Sim.Node>();
 
 	/** set when analyzer is running */				public boolean  analyzerON;
 
@@ -236,7 +237,7 @@ public class Analyzer extends Engine
 		// tell the simulator to watch all signals
 		initTimes(0, 50000, theSim.curDelta);
 
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			while ((n.nFlags & Sim.ALIAS) != 0)
@@ -257,7 +258,7 @@ public class Analyzer extends Engine
 	private Stimuli getCircuit()
 	{
 		// Load network
-		List components = null;
+		List<ExtractedPBucket> components = null;
 		URL fileURL = null;
 		if (fileName == null)
 		{
@@ -274,7 +275,7 @@ public class Analyzer extends Engine
 		Stimuli sd = new Stimuli();
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
@@ -316,9 +317,9 @@ public class Analyzer extends Engine
 	 */
 	public void setSignalHigh()
 	{
-		List signals = ww.getHighlightedNetworkNames();
+		List<Signal> signals = ww.getHighlightedNetworkNames();
 		String [] parameters = new String[1];
-		for(Iterator it = signals.iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
@@ -333,9 +334,9 @@ public class Analyzer extends Engine
 	 */
 	public void setSignalLow()
 	{
-		List signals = ww.getHighlightedNetworkNames();
+		List<Signal> signals = ww.getHighlightedNetworkNames();
 		String [] parameters = new String[1];
-		for(Iterator it = signals.iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
@@ -358,9 +359,9 @@ public class Analyzer extends Engine
 	 */
 	public void setSignalX()
 	{
-		List signals = ww.getHighlightedNetworkNames();
+		List<Signal> signals = ww.getHighlightedNetworkNames();
 		String [] parameters = new String[1];
-		for(Iterator it = signals.iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
@@ -375,13 +376,13 @@ public class Analyzer extends Engine
 	 */
 	public void showSignalInfo()
 	{
-		List signals = ww.getHighlightedNetworkNames();
-		for(Iterator it = signals.iterator(); it.hasNext(); )
+		List<Signal> signals = ww.getHighlightedNetworkNames();
+		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			SimVector excl = new SimVector();
 			excl.command = VECTOREXCL;
-			excl.sigs = new ArrayList();
+			excl.sigs = new ArrayList<Signal>();
 			excl.sigs.add(sig);
 			issueCommand(excl);
 
@@ -395,7 +396,7 @@ public class Analyzer extends Engine
 	 */
 	public void removeStimuliFromSignal()
 	{
-		List signals = ww.getHighlightedNetworkNames();
+		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() != 1)
 		{
 			System.out.println("Must select a single signal on which to clear stimuli");
@@ -432,10 +433,10 @@ public class Analyzer extends Engine
 	public void removeSelectedStimuli()
 	{
 		boolean found = false;
-		for(Iterator it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
 		{
 			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
 				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
 				if (!ws.isSelected()) continue;
@@ -464,10 +465,10 @@ public class Analyzer extends Engine
 	 */
 	public void removeAllStimuli()
 	{
-		for(Iterator it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
 		{
 			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
 				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
 				ws.getSignal().clearControlPoints();
@@ -574,10 +575,10 @@ public class Analyzer extends Engine
 			// remove all vectors
 			firstVector = null;
 			lastVector = null;
-			for(Iterator it = ww.getPanels(); it.hasNext(); )
+			for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
 			{
 				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+				for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 				{
 					WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
 					ws.getSignal().clearControlPoints();
@@ -668,18 +669,18 @@ public class Analyzer extends Engine
 						// clear the stimuli on the first time
 						anyAnalyzerCommands = true;
 						ww.clearHighlighting();
-						List allPanels = new ArrayList();
-						for(Iterator it = ww.getPanels(); it.hasNext(); )
+						List<WaveformWindow.Panel> allPanels = new ArrayList<WaveformWindow.Panel>();
+						for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
 							allPanels.add(it.next());
-						for(Iterator it = allPanels.iterator(); it.hasNext(); )
+						for(Iterator<WaveformWindow.Panel> it = allPanels.iterator(); it.hasNext(); )
 						{
 							WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
 							wp.closePanel();
 						}
 					}
-					List sigs = new ArrayList();
+					List<Signal> sigs = new ArrayList<Signal>();
 					getTargetNodes(targ, 1, sigs, null);
-					for(Iterator it = sigs.iterator(); it.hasNext(); )
+					for(Iterator<Signal> it = sigs.iterator(); it.hasNext(); )
 					{
 						Signal sig = (Signal)it.next();
 						WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
@@ -695,7 +696,7 @@ public class Analyzer extends Engine
 					// find this vector name in the list of vectors
 					DigitalSignal busSig = null;
 					Stimuli sd = ww.getSimData();
-					for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
+					for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
 					{
 						DigitalSignal sig = (DigitalSignal)it.next();
 						if (sig.getSignalName().equals(targ[1]))
@@ -711,9 +712,9 @@ public class Analyzer extends Engine
 						busSig.setSignalName(targ[1]);
 						busSig.buildBussedSignalList();
 					}
-					List sigs = new ArrayList();
+					List<Signal> sigs = new ArrayList<Signal>();
 					getTargetNodes(targ, 2, sigs, null);
-					for(Iterator it = sigs.iterator(); it.hasNext(); )
+					for(Iterator<Signal> it = sigs.iterator(); it.hasNext(); )
 					{
 						Signal sig = (Signal)it.next();
 						busSig.addToBussedSignalList(sig);
@@ -911,15 +912,15 @@ public class Analyzer extends Engine
 			case VECTORT:
 			case VECTORPATH:
 			case VECTORSTOP:
-				newsv.sigs = new ArrayList();
+				newsv.sigs = new ArrayList<Signal>();
 				newsv.sigsNegated = null;
-				if (command == VECTORT) newsv.sigsNegated = new ArrayList();
+				if (command == VECTORT) newsv.sigsNegated = new ArrayList<Signal>();
 				getTargetNodes(params, 0, newsv.sigs, newsv.sigsNegated);
 
 				if (command == VECTORL || command == VECTORH || command == VECTORX)
 				{
 					// add this moment in time to the control points for the signal
-					for(Iterator it = newsv.sigs.iterator(); it.hasNext(); )
+					for(Iterator<Signal> it = newsv.sigs.iterator(); it.hasNext(); )
 					{
 						Signal sig = (Signal)it.next();
 						sig.addControlPoint(insertTime);
@@ -1062,7 +1063,7 @@ public class Analyzer extends Engine
 					if (GenMath.doublesEqual(insertTime, curTime))
 					{
 						boolean found = false;
-						for(Iterator it = sv.sigs.iterator(); it.hasNext(); )
+						for(Iterator<Signal> it = sv.sigs.iterator(); it.hasNext(); )
 						{
 							Signal s = (Signal)it.next();
 							if (s == sig)
@@ -1087,7 +1088,7 @@ public class Analyzer extends Engine
 		return cleared;
 	}
 
-	private void getTargetNodes(String [] params, int low, List normalList, List negatedList)
+	private void getTargetNodes(String [] params, int low, List<Signal> normalList, List<Signal> negatedList)
 	{
 		int size = params.length - low;
 		for(int i=0; i<size; i++)
@@ -1101,7 +1102,7 @@ public class Analyzer extends Engine
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Iterator it = ww.getSimData().getSignals().iterator(); it.hasNext(); )
+				for(Iterator<Signal> it = ww.getSimData().getSignals().iterator(); it.hasNext(); )
 				{
 					Signal sig = (Signal)it.next();
 					if (strMatch(name, sig.getFullName()))
@@ -1171,7 +1172,7 @@ public class Analyzer extends Engine
 	private void doInfo(SimVector sv)
 	{
 		if (sv.sigs == null) return;
-		for(Iterator sIt = sv.sigs.iterator(); sIt.hasNext(); )
+		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
 			Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1201,7 +1202,7 @@ public class Analyzer extends Engine
 			if (sv.command == VECTOREXCL)
 			{
 				infstr += "is computed from:";
-				for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+				for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
 					infstr += "  ";
@@ -1235,7 +1236,7 @@ public class Analyzer extends Engine
 			} else
 			{
 				infstr += "affects:";
-				for(Iterator it = n.nGateList.iterator(); it.hasNext(); )
+				for(Iterator<Sim.Trans> it = n.nGateList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
 					infstr += pTrans(t);
@@ -1273,7 +1274,7 @@ public class Analyzer extends Engine
 		long size = (end - begin + 1) / NBUCKETS;
 		if (size <= 0) size = 1;
 
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			if ((n.nFlags & (Sim.ALIAS | Sim.MERGED | Sim.POWER_RAIL)) == 0)
@@ -1304,7 +1305,7 @@ public class Analyzer extends Engine
 		else
 		{
 			System.out.println("there are " + theSim.numAliases + " aliases:");
-			for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+			for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 			{
 				Sim.Node n = (Sim.Node)it.next();
 				if ((n.nFlags & Sim.ALIAS) != 0)
@@ -1333,8 +1334,8 @@ public class Analyzer extends Engine
 		clearInputs();
 		theSim.getModel().backSimTime(theSim.curDelta, 0);
 		theSim.curNode = null;			// fudge
-		List nodes = theSim.getNodeList();
-		for(Iterator it = nodes.iterator(); it.hasNext(); )
+		List<Sim.Node> nodes = theSim.getNodeList();
+		for(Iterator<Sim.Node> it = nodes.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			theSim.backToTime(n);
@@ -1344,7 +1345,7 @@ public class Analyzer extends Engine
 
 		if (analyzerON)
 		{
-			for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+			for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 			{
 				Sim.Node n = (Sim.Node)it.next();
 				n.wind = n.cursor = n.head;
@@ -1387,7 +1388,7 @@ public class Analyzer extends Engine
 		column = 0;
 		System.out.print("Nodes with last transition in interval " + Sim.deltaToNS(begin) + " . " + Sim.deltaToNS(end) + "ns:");
 
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			n = unAlias(n);
@@ -1418,7 +1419,7 @@ public class Analyzer extends Engine
 
 		// compute the maximum clock size
 		maxClock = 0;
-		for(Iterator it = xClock.iterator(); it.hasNext(); )
+		for(Iterator<Sequence> it = xClock.iterator(); it.hasNext(); )
 		{
 			Sequence t = (Sequence)it.next();
 			if (t.values.length > maxClock) maxClock = t.values.length;
@@ -1498,7 +1499,7 @@ public class Analyzer extends Engine
 	{
 		if (sv.sigs == null) return;
 
-		for(Iterator sIt = sv.sigs.iterator(); sIt.hasNext(); )
+		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
 			Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1514,7 +1515,7 @@ public class Analyzer extends Engine
 		Sim.Node [] inpTbl = new Sim.Node[Sim.N_POTS];
 
 		inpTbl[Sim.HIGH] = inpTbl[Sim.LOW] = inpTbl[Sim.X] = null;
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			if ((n.nFlags & (Sim.INPUT|Sim.ALIAS|Sim.POWER_RAIL|Sim.VISITED|Sim.INPUT_MASK)) == Sim.INPUT)
@@ -1526,7 +1527,7 @@ public class Analyzer extends Engine
 		}
 
 		System.out.print("h inputs:");
-		for(Iterator it = hInputs.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = hInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			System.out.print(" " + n.nName);
@@ -1536,7 +1537,7 @@ public class Analyzer extends Engine
 		System.out.println();
 
 		System.out.print("l inputs:");
-		for(Iterator it = lIinputs.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = lIinputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			System.out.print(" " + n.nName);
@@ -1546,7 +1547,7 @@ public class Analyzer extends Engine
 		System.out.println();
 
 		System.out.println("u inputs:");
-		for(Iterator it = uInputs.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = uInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			System.out.println(" " + n.nName);
@@ -1581,7 +1582,7 @@ public class Analyzer extends Engine
 	private void doPath(SimVector sv)
 	{
 		if (sv.sigs == null) return;
-		for(Iterator sIt = sv.sigs.iterator(); sIt.hasNext(); )
+		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
 			Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1612,7 +1613,7 @@ public class Analyzer extends Engine
 	{
 		System.out.print("Nodes with undefined potential:");
 		column = 0;
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			n = unAlias(n);
@@ -1653,7 +1654,7 @@ public class Analyzer extends Engine
 
 		// determine the longest sequence
 		int maxSeq = 0;
-		for(Iterator it = sList.iterator(); it.hasNext(); )
+		for(Iterator<Sequence> it = sList.iterator(); it.hasNext(); )
 		{
 			Sequence cs = (Sequence)it.next();
 			if (cs.values.length > maxSeq) maxSeq = cs.values.length;
@@ -1717,7 +1718,7 @@ public class Analyzer extends Engine
 			return;
 		}
 
-		List sigsOnBus = sig.getBussedSignals();
+		List<Signal> sigsOnBus = sig.getBussedSignals();
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
@@ -1747,7 +1748,7 @@ public class Analyzer extends Engine
 		{
 			if (tranCntNG == 0 && tranCntNSD == 0)
 			{
-				for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+				for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 				{
 					Sim.Node n = (Sim.Node)it.next();
 					if ((n.nFlags & (Sim.ALIAS | Sim.POWER_RAIL)) == 0)
@@ -1802,7 +1803,7 @@ public class Analyzer extends Engine
 	{
 		if (sv.sigs != null)
 		{
-			for(Iterator sIt = sv.sigs.iterator(); sIt.hasNext(); )
+			for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
 				Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1826,7 +1827,7 @@ public class Analyzer extends Engine
 	{
 		if (sv.sigs != null)
 		{
-			for(Iterator sIt = sv.sigs.iterator(); sIt.hasNext(); )
+			for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
 				Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1843,7 +1844,7 @@ public class Analyzer extends Engine
 		}
 		if (sv.sigsNegated != null)
 		{
-			for(Iterator sIt = sv.sigsNegated.iterator(); sIt.hasNext(); )
+			for(Iterator<Signal> sIt = sv.sigsNegated.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
 				Sim.Node n = (Sim.Node)sig.getAppObject();
@@ -1946,7 +1947,7 @@ public class Analyzer extends Engine
 			nodes[0] = n;
 		} else
 		{
-			List sigsOnBus = sig.getBussedSignals();
+			List<Signal> sigsOnBus = sig.getBussedSignals();
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
 
@@ -2021,7 +2022,7 @@ public class Analyzer extends Engine
 			nodes = nodeList;
 		} else
 		{
-			List sigsOnBus = sig.getBussedSignals();
+			List<Signal> sigsOnBus = sig.getBussedSignals();
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
 			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
@@ -2151,14 +2152,14 @@ public class Analyzer extends Engine
 		System.out.println(temp);
 		column = temp.length();
 		Stimuli sd = ww.getSimData();
-		for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			if ((sig.flags & which) == 0) continue;
 			int i;
-			List sigsOnBus = sig.getBussedSignals();
+			List<Signal> sigsOnBus = sig.getBussedSignals();
 			boolean found = false;
-			for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+			for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 			{
 				Signal bSig = (Signal)sIt.next();
 				Sim.Node n = (Sim.Node)bSig.getAppObject();
@@ -2174,7 +2175,7 @@ public class Analyzer extends Engine
 
 	private void initRSim()
 	{
-		xClock = new ArrayList();
+		xClock = new ArrayList<Sequence>();
 		maxClock = 0;
 		column = 0;
 		analyzerON = false;
@@ -2204,7 +2205,7 @@ public class Analyzer extends Engine
 				endTime = startTime + stepsTime;
 
 				// make it conform to the displayed range
-				Iterator it = ww.getPanels();
+				Iterator<WaveformWindow.Panel> it = ww.getPanels();
 				if (it.hasNext())
 				{
 					WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
@@ -2247,7 +2248,7 @@ public class Analyzer extends Engine
 	{
 		long startT = startTime;
 		long cursT = firstTime;
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node nd = (Sim.Node)it.next();
 
@@ -2293,7 +2294,7 @@ public class Analyzer extends Engine
 		{
 			long startT = startTime;
 			boolean begin = (startT < lastStart);
-			for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+			for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 			{
 				Sim.Node nd = (Sim.Node)it.next();
 				Sim.HistEnt p = begin ? nd.head : nd.wind;
@@ -2308,7 +2309,7 @@ public class Analyzer extends Engine
 			lastStart = startTime;
 		}
 
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node nd = (Sim.Node)it.next();
 			if (nd.sig == null) continue;
@@ -2633,13 +2634,13 @@ public class Analyzer extends Engine
 	private void setVecNodes(int flag)
 	{
 		Stimuli sd = ww.getSimData();
-		for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			if ((sig.flags & flag) != 0)
 			{
-				List sigsOnBus = sig.getBussedSignals();
-				for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+				List<Signal> sigsOnBus = sig.getBussedSignals();
+				for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 				{
 					Signal bSig = (Signal)sIt.next();
 					Sim.Node n = (Sim.Node)bSig.getAppObject();
@@ -2679,7 +2680,7 @@ public class Analyzer extends Engine
 	private Signal findName(String name)
 	{
 		Stimuli sd = ww.getSimData();
-		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			if (sig.getFullName().equals(name)) return sig;
@@ -2692,7 +2693,7 @@ public class Analyzer extends Engine
 	 */
 	private void dVec(Signal sig)
 	{
-		List sigsOnBus = sig.getBussedSignals();
+		List<Signal> sigsOnBus = sig.getBussedSignals();
 		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
 		if (column + i >= MAXCOL)
 		{
@@ -2700,7 +2701,7 @@ public class Analyzer extends Engine
 		}
 		column += i;
 		String bits = "";
-		for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+		for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 		{
 			Signal bSig = (Signal)sIt.next();
 			Sim.Node n = (Sim.Node)bSig.getAppObject();
@@ -2731,7 +2732,7 @@ public class Analyzer extends Engine
 	 */
 	private void vecValue(int index)
 	{
-		for(Iterator it = xClock.iterator(); it.hasNext(); )
+		for(Iterator<Sequence> it = xClock.iterator(); it.hasNext(); )
 		{
 			Sequence cs = (Sequence)it.next();
 			String v = cs.values[index % cs.values.length];
@@ -2741,7 +2742,7 @@ public class Analyzer extends Engine
 				setIn(n, v.charAt(0));
 			} else
 			{
-				List sigsOnBus = cs.sig.getBussedSignals();
+				List<Signal> sigsOnBus = cs.sig.getBussedSignals();
 				for(int i=0; i<sigsOnBus.size(); i++)
 				{
 					Sim.Node n = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
@@ -2756,7 +2757,7 @@ public class Analyzer extends Engine
 	 * name of the node/vector for which the sequence is to be defined, second
 	 * and following args are the values.
 	 */
-	private void defSequence(String [] args, List list)
+	private void defSequence(String [] args, List<Sequence> list)
 	{
 		// if no arguments, get rid of all the sequences we have defined
 		if (args.length == 0)
@@ -2926,7 +2927,7 @@ public class Analyzer extends Engine
 		for(int i = 0; i < 5; i++)
 		{
 			if (listTbl[i] == null) continue;
-			for(Iterator it = listTbl[i].iterator(); it.hasNext(); )
+			for(Iterator<Sim.Node> it = listTbl[i].iterator(); it.hasNext(); )
 			{
 				Sim.Node n = (Sim.Node)it.next();
 				if ((n.nFlags & Sim.POWER_RAIL) == 0)
@@ -2934,7 +2935,7 @@ public class Analyzer extends Engine
 			}
 			listTbl[i].clear();
 		}
-		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			if ((n.nFlags & Sim.POWER_RAIL) == 0)

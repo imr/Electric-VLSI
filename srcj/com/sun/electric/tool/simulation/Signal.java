@@ -42,7 +42,7 @@ public class Signal
 	/** true if the bounds data is valid */							protected boolean boundsCurrent;
 	/** an array of time values on this signal (if not common) */	private double [] time;
 	/** an array of control points on this signal */				private double [] controlPoints;
-	/** a list of signals on this bussed signal */					private List bussedSignals;
+	/** a list of signals on this bussed signal */					private List<Signal> bussedSignals;
 	/** the number of busses that reference this signal */			private int busCount;
 	/** application-specific object associated with this signal */	private Object appObject;
 	/** application-specific flags for this signal */				public int flags;
@@ -122,7 +122,7 @@ public class Signal
 	 */
 	public void buildBussedSignalList()
 	{
-		bussedSignals = new ArrayList();
+		bussedSignals = new ArrayList<Signal>();
 if (sd == null) System.out.println("SD IS NULL!!!!!!!");
 		sd.getBussedSignals().add(this);
 	}
@@ -132,14 +132,14 @@ if (sd == null) System.out.println("SD IS NULL!!!!!!!");
 	 * Each entry in the List points to another simulation signal that is on this bus.
 	 * @return a List of signals on this bus signal.
 	 */
-	public List getBussedSignals() { return bussedSignals; }
+	public List<Signal> getBussedSignals() { return bussedSignals; }
 
 	/**
 	 * Method to request that this bussed signal be cleared of all signals on it.
 	 */
 	public void clearBussedSignalList()
 	{
-		for(Iterator it = bussedSignals.iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = bussedSignals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			sig.busCount--;

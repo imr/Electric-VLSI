@@ -569,7 +569,7 @@ public class Artwork extends Technology
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		layerOverride = getProperLayer(ai);
 		return super.getShapeOfArc(ai, wnd, layerOverride, onlyTheseLayers);

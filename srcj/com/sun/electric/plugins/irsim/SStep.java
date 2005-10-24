@@ -709,7 +709,7 @@ public class SStep extends Eval
 			n.nFlags |= Sim.VISITED;
 			result = (n.nGateList.size() == 0) ? xChargedState[n.nPot] : chargedState[n.nPot];
 
-			for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+			for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 

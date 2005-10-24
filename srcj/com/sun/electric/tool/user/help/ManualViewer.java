@@ -108,13 +108,13 @@ public class ManualViewer extends EDialog
 	private JTextField searchField;
 	private JTree optionTree;
 	private DefaultMutableTreeNode rootNode;
-	private List pageSequence;
+	private List<PageInfo> pageSequence;
 	private int currentIndex;
 	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
-	private static HashMap menuMap = null;
-	private static HashMap preferenceMap = null;
-	private List history = new ArrayList();
+	private static HashMap<String,String> menuMap = null;
+	private static HashMap<String,String> preferenceMap = null;
+	private List<Object> history = new ArrayList<Object>();
 	private static ManualViewer theManual = null;
 
 	/**
@@ -240,7 +240,7 @@ public class ManualViewer extends EDialog
 		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
 		InputStream stream = TextUtils.getURLStream(url, null);
 		InputStreamReader is = new InputStreamReader(stream);
-		pageSequence = new ArrayList();
+		pageSequence = new ArrayList<PageInfo>();
 		DefaultMutableTreeNode [] stack = new DefaultMutableTreeNode[20];
 		stack[0] = rootNode;
 		boolean newAtLevel = false;
@@ -375,12 +375,12 @@ public class ManualViewer extends EDialog
 		// stop if already done
 		if (preferenceMap != null) return;
 
-		menuMap = new HashMap();
-		HashMap menuMapCheck = null;
-		preferenceMap = new HashMap();
+		menuMap = new HashMap<String,String>();
+		HashMap<String,String> menuMapCheck = null;
+		preferenceMap = new HashMap<String,String>();
 		if (Main.getDebug())
 		{
-			menuMapCheck = new HashMap();
+			menuMapCheck = new HashMap<String,String>();
 		}
 
 		// scan all manual entries for menu associations
@@ -476,7 +476,7 @@ public class ManualViewer extends EDialog
 				checkMenu(menu, menu.getText() + "/", menuMapCheck);
 			}
 
-			for(Iterator it = menuMapCheck.keySet().iterator(); it.hasNext(); )
+			for(Iterator<String> it = menuMapCheck.keySet().iterator(); it.hasNext(); )
 			{
 				String commandName = (String)it.next();
 				String fileName = (String)menuMapCheck.get(commandName);
@@ -486,7 +486,7 @@ public class ManualViewer extends EDialog
 		}
 	}
 
-	private void checkMenu(Menu menu, String cumulative, HashMap menuMapCheck)
+	private void checkMenu(Menu menu, String cumulative, HashMap<String,String> menuMapCheck)
 	{
 		for (int i=0; i<menu.getItemCount(); i++)
 		{
@@ -851,7 +851,7 @@ public class ManualViewer extends EDialog
 		// gather the table of contents by chapter
 		int lastChapterNumber = 0;
 		StringBuffer chapterText = new StringBuffer();
-		List chapters = new ArrayList();
+		List<String> chapters = new ArrayList<String>();
 		StringBuffer afterTOC = new StringBuffer();
 		for(int index=0; index < pageSequence.size(); index++)
 		{

@@ -534,7 +534,7 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
+		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 
@@ -647,7 +647,7 @@ public class ToolMenu {
             int wiresUpdated = 0;
             ArrayList networks = new ArrayList();
             HashMap map = new HashMap();        // map of networks to associated wire model nodeinst
-            for (Iterator it = schLayCells[0].getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = schLayCells[0].getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
                 Variable var = ni.getVar(LENetlister.ATTR_LEWIRE);
                 if (var == null) continue;
@@ -668,7 +668,7 @@ public class ToolMenu {
             Collections.sort(networks, new TextUtils.NetworksByName());
 
             // update wire models
-            for (Iterator it = networks.iterator(); it.hasNext(); ) {
+            for (Iterator<Network> it = networks.iterator(); it.hasNext(); ) {
                 Network schNet = (Network)it.next();
 //                Netlist netlist = schLayCells[0].getNetlist(true);
                 // find equivalent network in layouy

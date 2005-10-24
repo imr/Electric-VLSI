@@ -1307,4 +1307,45 @@ public class AutoStitch
 		}
 	}
 
+	/**
+	 * Class to implement pairs of objects (in any order).
+	 */
+	private static class Pairs
+	{
+		private HashMap first;
+
+		Pairs()
+		{
+			first = new HashMap();
+		}
+
+		void add(Object o1, Object o2)
+		{
+			if (exists(o1, o2)) return;
+			HashSet other1 = (HashSet)first.get(o1);
+			if (other1 != null)
+			{
+				other1.add(o2);
+				return;
+			}
+			HashSet other2 = (HashSet)first.get(o2);
+			if (other2 != null)
+			{
+				other2.add(o1);
+				return;
+			}
+			other1 = new HashSet();
+			first.put(o1, other1);
+			other1.add(o2);			
+		}
+
+		boolean exists(Object o1, Object o2)
+		{
+			HashSet other1 = (HashSet)first.get(o1);
+			if (other1 != null && other1.contains(o2)) return true;
+			HashSet other2 = (HashSet)first.get(o2);
+			if (other2 != null && other2.contains(o1)) return true;
+			return false;
+		}
+	}
 }

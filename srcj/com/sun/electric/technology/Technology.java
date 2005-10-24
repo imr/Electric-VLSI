@@ -1129,7 +1129,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		// get information about the arc
 		ArcProto ap = ai.getProto();
@@ -3900,7 +3900,7 @@ public class Technology implements Comparable<Technology>
                     obj = null;
                 else if (obj instanceof List)
                 {
-                    List l = ((List)obj);
+                    List<Object> l = (List)obj;
                     Object o = l.get(0);
                     if (o instanceof NodeInst)
                     {

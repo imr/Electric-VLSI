@@ -262,7 +262,7 @@ public class WindowMenu {
         if (wnd == null) return;
         int numOthers = 0;
         EditWindow other = null;
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
             WindowFrame wf = (WindowFrame)it.next();
             if (wf.getContent() instanceof EditWindow)
@@ -330,7 +330,7 @@ public class WindowMenu {
 
         	// see how many windows are on this screen
         	int count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -343,7 +343,7 @@ public class WindowMenu {
 
 			int windowHeight = area.height / count;
 			count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -375,7 +375,7 @@ public class WindowMenu {
 
 			// see how many windows are on this screen
 			int count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -388,7 +388,7 @@ public class WindowMenu {
 
 			int windowWidth = area.width / count;
 			count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -420,7 +420,7 @@ public class WindowMenu {
 
 			// see how many windows are on this screen
 			int count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -450,7 +450,7 @@ public class WindowMenu {
 			}
 
 			count = 0;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
@@ -555,7 +555,7 @@ public class WindowMenu {
 		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
 
         EditWindow.repaintAllContents();
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
@@ -582,7 +582,7 @@ public class WindowMenu {
 		Generic.tech.glyph_lay.getGraphics().setColor(Color.WHITE);
 
 		EditWindow.repaintAllContents();
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
@@ -609,7 +609,7 @@ public class WindowMenu {
 		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
 
         EditWindow.repaintAllContents();
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();

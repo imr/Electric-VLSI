@@ -212,7 +212,7 @@ public class Eval
 			 * Fixed it so nodes with pending events also get
 			 * re_evaluated. Kevin Karplus
 			 */
-			for(Iterator it = n.nGateList.iterator(); it.hasNext(); )
+			for(Iterator<Sim.Trans> it = n.nGateList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 				t.state = (byte)computeTransState(t);
@@ -236,7 +236,7 @@ public class Eval
 				if ((n.nFlags & (Sim.INPUT | Sim.POWER_RAIL)) != Sim.INPUT)
 					continue;
 
-				for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+				for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
 					if (t.state != Sim.OFF)
@@ -269,7 +269,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 			 * above may become unmarked by earlier calculations before we get
 			 * to them in this loop...
 			 */
-			for(Iterator it = n.nGateList.iterator(); it.hasNext(); )
+			for(Iterator<Sim.Trans> it = n.nGateList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 				if ((t.source.nFlags & Sim.VISITED) != 0)
@@ -280,7 +280,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 
 			if ((n.nFlags & (Sim.INPUT | Sim.POWER_RAIL)) == Sim.INPUT)
 			{
-				for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
+				for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
 					Sim.Node other = Sim.otherNode(t, n);
@@ -303,9 +303,9 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 	 * Change the state of the nodes in the given input list to their new value,
 	 * setting their INPUT flag and enqueueing the event.
 	 */
-	private void SetInputs(List list, int val)
+	private void SetInputs(List<Sim.Node> list, int val)
 	{
-		for(Iterator it = list.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = list.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 
@@ -323,7 +323,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 
 	private void MarkNOinputs()
 	{
-		for(Iterator it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			n.nFlags &= ~(Sim.INPUT_MASK | Sim.INPUT);
@@ -336,7 +336,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 	 */
 	private void EvalNOinputs()
 	{
-		for(Iterator it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
+		for(Iterator<Sim.Node> it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			theSim.curNode = n;

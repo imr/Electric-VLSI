@@ -136,7 +136,7 @@ public class PolyMerge
 	 */
 	public void addMerge(PolyMerge other, AffineTransform trans)
 	{
-		for(Iterator it = other.layers.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = other.layers.keySet().iterator(); it.hasNext(); )
 		{
 			Layer subLayer = (Layer)it.next();
 			Area subArea = (Area)other.layers.get(subLayer);
@@ -237,11 +237,11 @@ public class PolyMerge
 		Area sourceArea = (Area)layers.get(source);
 		if (sourceArea == null) layers.remove(dest); else
 		{
-			layers.put(dest, sourceArea.clone());
+			layers.put(dest, (Area)sourceArea.clone());
 			if (amount == 0) return;
-			List orig = getAreaPoints(sourceArea, source, true);
+			List<PolyBase> orig = getAreaPoints(sourceArea, source, true);
 			Point2D [] subtractPoints = new Point2D[4];
-			for(Iterator it = orig.iterator(); it.hasNext(); )
+			for(Iterator<PolyBase> it = orig.iterator(); it.hasNext(); )
 			{
 				PolyBase poly = (PolyBase)it.next();
 				Point2D [] points = poly.getPoints();
@@ -328,9 +328,9 @@ public class PolyMerge
 
 	private double getAreaOfArea(Area area)
 	{
-		List pointList = getAreaPoints(area, null, true);
+		List<PolyBase> pointList = getAreaPoints(area, null, true);
 		double totalArea = 0;
-		for(Iterator iit=pointList.iterator(); iit.hasNext(); )
+		for(Iterator<PolyBase> iit = pointList.iterator(); iit.hasNext(); )
 		{
 			PolyBase p = (PolyBase)iit.next();
 			totalArea += p.getArea();
@@ -355,7 +355,7 @@ public class PolyMerge
 	 * Method to return an Iterator over all of the Layers used in this Merge.
 	 * @return an Iterator over all of the Layers used in this Merge.
 	 */
-	public Iterator getKeyIterator()
+	public Iterator<Layer> getKeyIterator()
 	{
 		return layers.keySet().iterator();
 	}
@@ -364,7 +364,7 @@ public class PolyMerge
      * Access to keySet to create a collection for example.
      * @return a Collection of Layers found in this Merge.
      */
-	public Collection getKeySet()
+	public Collection<Layer> getKeySet()
 	{
 		return layers.keySet();
 	}
@@ -382,7 +382,7 @@ public class PolyMerge
 	 * @param simple
 	 * @return the list of Polys that describes this Merge.
 	 */
-    public List getMergedPoints(Layer layer, boolean simple)
+    public List<PolyBase> getMergedPoints(Layer layer, boolean simple)
 	{
 		Area area = (Area)layers.get(layer);
 		if (area == null) return null;
@@ -396,14 +396,14 @@ public class PolyMerge
 	 * @param simple true for simple polygons, false to allow complex ones.
 	 * @return a List of PolyBase objects that describes the layer in the merge.
 	 */
-    public static List getAreaPoints(Area area, Layer layer, boolean simple)
+    public static List<PolyBase> getAreaPoints(Area area, Layer layer, boolean simple)
     {
-		List polyList = new ArrayList();
+		List<PolyBase> polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
-		List pointList = new ArrayList();
+		List<Point2D> pointList = new ArrayList<Point2D>();
 		Point2D lastMoveTo = null;
 		boolean isSingular = area.isSingular();
-		List toDelete = new ArrayList();
+		List<PolyBase> toDelete = new ArrayList<PolyBase>();
 
 		// Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
@@ -414,7 +414,7 @@ public class PolyMerge
 				if (lastMoveTo != null) pointList.add(lastMoveTo);
 				Point2D [] points = new Point2D[pointList.size()];
 				int i = 0;
-				for(Iterator it = pointList.iterator(); it.hasNext(); )
+				for(Iterator<Point2D> it = pointList.iterator(); it.hasNext(); )
 					points[i++] = (Point2D)it.next();
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
@@ -423,7 +423,7 @@ public class PolyMerge
 				toDelete.clear();
 				if (!simple && !isSingular)
 				{
-					Iterator it = polyList.iterator();
+					Iterator<PolyBase> it = polyList.iterator();
 					while (it.hasNext())
 					{
 						PolyBase pn = (PolyBase)it.next();
@@ -466,15 +466,15 @@ public class PolyMerge
             else
             {
                 boolean foundError = false;
-                for (Iterator it = polyList.iterator(); it.hasNext(); )
+                for (Iterator<PolyBase> it = polyList.iterator(); it.hasNext(); )
                 {
                     PolyBase poly = (PolyBase)it.next();
                     boolean found = false;
-                   for (Iterator iter = polyList.iterator(); iter.hasNext(); )
-                   {
+                    for (Iterator<PolyBase> iter = polyList.iterator(); iter.hasNext(); )
+                    {
                        PolyBase poly1 = (PolyBase)iter.next();
                        if (poly1.polySame(poly)) { found = true; break;};
-                   }
+                    }
                     if (!found) {foundError=true; break;}
                 }
                 if (foundError)

@@ -37,7 +37,7 @@ public class ERC extends Listener
 {
 
 	/** the ERC tool. */		protected static ERC tool = new ERC();
-	/** Pref map for arc antenna ratio. */						private static HashMap defaultAntennaRatioPrefs = new HashMap();
+	/** Pref map for arc antenna ratio. */		private static HashMap<ArcProto,Pref> defaultAntennaRatioPrefs = new HashMap<ArcProto,Pref>();
 
 	/**
 	 * The constructor sets up the ERC tool.

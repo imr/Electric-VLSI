@@ -121,7 +121,7 @@ public class PolyQTree extends GeometryHandler
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
 	 */
-	public void add(Object layer, Object newObj, boolean fasterAlgorithm)
+	public void add(Layer layer, Object newObj, boolean fasterAlgorithm)
 	{
 		PolyNode obj = (PolyNode)newObj;
 		PolyQNode root = (PolyQNode)layers.get(layer);

@@ -60,24 +60,24 @@ public class Stimuli
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the type of data in this Stimuli */						private FileType type;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
-	/** a list of all signals in this Stimuli */				private List signals;
-	/** a map of all signal names in this Stimuli */			private HashMap signalNames;
-	/** a list of all bussed signals in this Stimuli */			private List allBussedSignals;
-	/** all sweeps in this Stimuli */							private List sweeps;
+	/** a list of all signals in this Stimuli */				private List<Signal> signals;
+	/** a map of all signal names in this Stimuli */			private HashMap<String,Signal> signalNames;
+	/** a list of all bussed signals in this Stimuli */			private List<Signal> allBussedSignals;
+	/** all sweeps in this Stimuli */							private List<Object> sweeps;
 	/** the separator character that breaks names */			private char separatorChar;
 	/** the common time array (if there is common time) */		private double [] commonTime;
-	/** a list of time arrays for each sweep */					private List sweepCommonTime;
+	/** a list of time arrays for each sweep */					private List<double[]> sweepCommonTime;
 
 	/**
 	 * Constructor to build a new Simulation Data object.
 	 */
 	public Stimuli()
 	{
-		signals = new ArrayList();
-		signalNames = new HashMap();
-		sweeps = new ArrayList();
-		allBussedSignals = new ArrayList();
-		sweepCommonTime = new ArrayList();
+		signals = new ArrayList<Signal>();
+		signalNames = new HashMap<String,Signal>();
+		sweeps = new ArrayList<Object>();
+		allBussedSignals = new ArrayList<Signal>();
+		sweepCommonTime = new ArrayList<double[]>();
 		separatorChar = '.';
 	}
 
@@ -85,13 +85,13 @@ public class Stimuli
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
-	public List getSignals() { return signals; }
+	public List<Signal> getSignals() { return signals; }
 
 	/**
 	 * Method to get the list of bussed signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
-	public List getBussedSignals() { return allBussedSignals; }
+	public List<Signal> getBussedSignals() { return allBussedSignals; }
 
 	public void nameSignal(Signal ws, String sigName)
 	{
@@ -279,7 +279,7 @@ public class Stimuli
 		// determine extent of the data
 		Rectangle2D bounds = new Rectangle2D.Double();
 		boolean first = true;
-		for(Iterator it = signals.iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			Rectangle2D sigBounds = sig.getBounds();

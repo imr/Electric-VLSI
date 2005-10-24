@@ -106,6 +106,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -171,7 +172,7 @@ public class WaveformWindow implements WindowContent
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the time cursors. */			private JButton centerMain, centerExt;
-	/** a list of panels in this window */					private List wavePanels;
+	/** a list of panels in this window */					private List<Panel> wavePanels;
 	/** a list of sweep signals in this window */			private List sweepSignals;
 	/** the time panel at the top of the wave window. */	private TimeTickPanel mainTimePanel;
 	/** true to repaint the main time panel. */				private boolean mainTimePanelNeedsRepaint;
@@ -222,7 +223,7 @@ public class WaveformWindow implements WindowContent
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		/** the main waveform window this is part of */			private WaveformWindow waveWindow;
-		/** maps signal buttons to the actual Signal */			private HashMap waveSignals;
+		/** maps signal buttons to the actual Signal */			private HashMap<JButton,WaveSignal> waveSignals;
 		/** the list of signal name buttons on the left */		private JPanel signalButtons;
 		/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
 		/** the left side: with signal names etc. */			private JPanel leftHalf;
@@ -281,7 +282,7 @@ public class WaveformWindow implements WindowContent
 			addMouseListener(this);
 			addMouseMotionListener(this);
 			addMouseWheelListener(this);
-			waveSignals = new HashMap();
+			waveSignals = new HashMap<JButton,WaveSignal>();
 
 			setTimeRange(waveWindow.minTime, waveWindow.maxTime);
 
@@ -486,10 +487,10 @@ public class WaveformWindow implements WindowContent
 		 * Method to return a List of WaveSignals in this panel.
 		 * @return a List of WaveSignals in this panel.
 		 */
-		public List getSignals()
+		public List<WaveSignal> getSignals()
 		{
-			List signals = new ArrayList();
-			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
+			List<WaveSignal> signals = new ArrayList<WaveSignal>();
+			for(Iterator<JButton> it = waveSignals.keySet().iterator(); it.hasNext(); )
 			{
 				JButton but = (JButton)it.next();
 				WaveSignal ws = (WaveSignal)waveSignals.get(but);
@@ -510,7 +511,7 @@ public class WaveformWindow implements WindowContent
 				return;
 			}
 
-			Set set = waveSignals.keySet();
+			Set<JButton> set = waveSignals.keySet();
 			if (set.size() == 0) return;
 			JButton but = (JButton)set.iterator().next();
 			WaveSignal ws = (WaveSignal)waveSignals.get(but);
@@ -569,7 +570,7 @@ public class WaveformWindow implements WindowContent
 		private WaveSignal addSignalToPanel(Signal sSig)
 		{
 			// see if the signal is already there
-			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
+			for(Iterator<JButton> it = waveSignals.keySet().iterator(); it.hasNext(); )
 			{
 				JButton but = (JButton)it.next();
 				WaveSignal ws = (WaveSignal)waveSignals.get(but);
@@ -615,7 +616,7 @@ public class WaveformWindow implements WindowContent
 		private void toggleBusContents()
 		{
 			// this panel must have one signal
-			java.util.Collection theSignals = waveSignals.values();
+			Collection theSignals = waveSignals.values();
 			if (theSignals.size() != 1) return;
 
 			// the only signal must be digital
@@ -3259,7 +3260,7 @@ public class WaveformWindow implements WindowContent
 	 * Method to return an Iterator over the Panel in this window.
 	 * @return an Iterator over the Panel in this window.
 	 */
-	public Iterator getPanels() { return wavePanels.iterator(); }
+	public Iterator<Panel> getPanels() { return wavePanels.iterator(); }
 
 	/**
 	 * Method to return a Panel, given its number.
@@ -4012,9 +4013,9 @@ if (wp.signalButtons != null)
 	 * Method to return a List of highlighted simulation signals.
 	 * @return a List of highlighted simulation signals.
 	 */
-	public List getHighlightedNetworkNames()
+	public List<Signal> getHighlightedNetworkNames()
 	{
-		List highlightedSignals = new ArrayList();
+		List highlightedSignals = new ArrayList<Signal>();
 
 		// look at all signal names in the cell
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )

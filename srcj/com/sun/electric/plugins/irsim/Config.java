@@ -94,7 +94,7 @@ public class Config
 													private double CPTDE;
 	/** xtor gate capacitance -- area */			public  double CTGA;
 
-	private List [][]  resHTab;
+	private List<Sim.Resists> [][]  resHTab;
 	private int        configFlags;
 	private String []  tTypeDrop;
 	private Width [][] resistances;
@@ -236,7 +236,7 @@ public class Config
 	{
 		type = Sim.baseType(type);
 
-		List [] rTab = resHTab[type];
+		List<Sim.Resists> [] rTab = resHTab[type];
 		if (rTab == null)
 		{
 			rTab = new List[RES_TAB_SIZE];
@@ -246,7 +246,7 @@ public class Config
 		int n = (int)(Math.abs(length * 110133 + width) % RES_TAB_SIZE);
 		if (rTab[n] != null)
 		{
-			for(Iterator it = rTab[n].iterator(); it.hasNext(); )
+			for(Iterator<Sim.Resists> it = rTab[n].iterator(); it.hasNext(); )
 			{
 				Sim.Resists rr = (Sim.Resists)it.next();
 				if (rr.length == length && rr.width == width) return rr;
@@ -254,7 +254,7 @@ public class Config
 		}
 
 		Sim.Resists rr = new Sim.Resists();
-		if (rTab[n] == null) rTab[n] = new ArrayList();
+		if (rTab[n] == null) rTab[n] = new ArrayList<Sim.Resists>();
 		rTab[n].add(rr);
 
 		rr.length = length;

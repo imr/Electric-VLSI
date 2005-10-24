@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/24/05, SMR) Many changes to use generics.
+
 IMP: (10/23/05, SMR) Greeked cell cache is cleared when layer visibility changes.
      Vector display cache is cleard when technology preferences change.
 

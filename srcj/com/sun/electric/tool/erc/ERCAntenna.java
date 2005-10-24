@@ -103,16 +103,16 @@ public class ERCAntenna
 	/** found active on the path */							private static final int ERCANTPATHACTIVE = 2;
 	/** search was aborted */								private static final int ERCABORTED       = 3;
 
-	/** head of linked list of antenna objects to spread */	private List       firstSpreadAntennaObj;
+	/** head of linked list of antenna objects to spread */	private List<AntennaObject>     firstSpreadAntennaObj;
 	/** current technology being considered */				private Technology curTech;	
 	/** top-level cell being checked */						private Cell       topCell;
 	/** accumulated gate area */							private double     totalGateArea;
 	/** the worst ratio found */							private double     worstRatio;
-	/** A list of AntennaObjects to process. */				private List       pathList;
-	/** Map from ArcProtos to Layers. */					private HashMap    arcProtoToLayer;
-	/** Map from Layers to ArcProtos. */					private HashMap    layerToArcProto;
-	/** Map for marking ArcInsts and NodeInsts. */			private HashSet    fsGeom;
-	/** Map for marking Cells. */							private HashSet    fsCell;
+	/** A list of AntennaObjects to process. */				private List<AntennaObject>     pathList;
+	/** Map from ArcProtos to Layers. */					private HashMap<ArcProto,Layer> arcProtoToLayer;
+	/** Map from Layers to ArcProtos. */					private HashMap<Layer,ArcProto> layerToArcProto;
+	/** Map for marking ArcInsts and NodeInsts. */			private HashSet<Geometric>      fsGeom;
+	/** Map for marking Cells. */							private HashSet<Cell>           fsCell;
 
     /** for storing errors */                               private ErrorLogger errorLogger;
 
@@ -158,18 +158,18 @@ public class ERCAntenna
 		curTech = topCell.getTechnology();
 
 		// maps for marking nodes and arcs, and also for marking cells
-		fsGeom = new HashSet();
-		fsCell = new HashSet();
+		fsGeom = new HashSet<Geometric>();
+		fsCell = new HashSet<Cell>();
 
 		// create mappings between ArcProtos and Layers
-		arcProtoToLayer = new HashMap();
-		layerToArcProto = new HashMap();
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		arcProtoToLayer = new HashMap<ArcProto,Layer>();
+		layerToArcProto = new HashMap<Layer,ArcProto>();
+		for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			ArcProto.Function aFun = ap.getFunction();
 			if (!aFun.isMetal() && aFun != ArcProto.Function.POLY1) continue;
-			for(Iterator lIt = curTech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = curTech.getLayers(); lIt.hasNext(); )
 			{
 				Layer lay = (Layer)lIt.next();
 				Layer.Function lFun = lay.getFunction();
@@ -190,7 +190,7 @@ public class ERCAntenna
 		// now check each layer of the cell
 		int lasterrorcount = 0;
 		worstRatio = 0;
-		for(Iterator it = layerToArcProto.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = layerToArcProto.keySet().iterator(); it.hasNext(); )
 		{
 			Layer lay = (Layer)it.next();
 			System.out.println("Checking Antenna rules for " + lay.getName() + "...");
@@ -233,7 +233,7 @@ public class ERCAntenna
 		// examine every node and follow all relevant arcs
 		fsGeom.clear();
 
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			if (job.checkAbort()) return true;
 
@@ -242,13 +242,13 @@ public class ERCAntenna
 			fsGeom.add(ni);
 
 			// check every connection on the node
-			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 
 				// ignore if an arc on this port is already seen
 				boolean seen = false;
-				for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
@@ -263,7 +263,7 @@ public class ERCAntenna
 				if (seen) continue;
 
 				totalGateArea = 0.0;
-				pathList = new ArrayList();
+				pathList = new ArrayList<AntennaObject>();
 
 				int found = followNode(ni, pi.getPortProto(), lay, DBMath.MATID, job);
 				if (found == ERCABORTED) return true;
@@ -271,7 +271,7 @@ public class ERCAntenna
 				{
 					// gather the geometry here
 					PolyMerge vmerge = null;
-					for(Iterator hIt = pathList.iterator(); hIt.hasNext(); )
+					for(Iterator<AntennaObject> hIt = pathList.iterator(); hIt.hasNext(); )
 					{
 						AntennaObject ao = (AntennaObject)hIt.next();
 
@@ -329,7 +329,7 @@ public class ERCAntenna
 					{
 						// get the area of the antenna
 						double totalRegionPerimeterArea = 0.0;
-						for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
+						for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 						{
 							Layer oLay = (Layer)lIt.next();
 							double thickness = oLay.getThickness();
@@ -338,8 +338,8 @@ public class ERCAntenna
 								if (oLay.getFunction().isMetal()) thickness = DEFMETALTHICKNESS; else
 									if (oLay.getFunction().isPoly()) thickness = DEFPOLYTHICKNESS;
 							}
-							List merges = vmerge.getMergedPoints(oLay, true);
-							for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
+							List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
+							for(Iterator<PolyBase> mIt = merges.iterator(); mIt.hasNext(); )
 							{
 								PolyBase merged = (PolyBase)mIt.next();
 								totalRegionPerimeterArea += merged.getPerimeter() * thickness;
@@ -357,11 +357,11 @@ public class ERCAntenna
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
 							MessageLog err = errorLogger.logError(errMsg, cell, 0);
-							for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
+							for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();
-								List merges = vmerge.getMergedPoints(oLay, true);
-								for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
+								List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
+								for(Iterator<PolyBase> mIt = merges.iterator(); mIt.hasNext(); )
 								{
 									PolyBase merged = (PolyBase)mIt.next();
 									err.addPoly(merged, true, cell);
@@ -375,7 +375,7 @@ public class ERCAntenna
 	
 		// now look at subcells
 		fsCell.add(cell);
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -401,7 +401,7 @@ public class ERCAntenna
 	{
 		// presume that nothing was found
 		int ret = ERCANTPATHNULL;
-		firstSpreadAntennaObj = new ArrayList();
+		firstSpreadAntennaObj = new ArrayList<AntennaObject>();
 		NodeInst [] antstack = new NodeInst[200];
 		int depth = 0;
 	
@@ -508,7 +508,7 @@ public class ERCAntenna
 	private int findArcs(NodeInst ni, PortProto pp, Layer lay, int depth, NodeInst [] antstack)
 	{
         PortInst pi = ni.findPortInstFromProto(pp);
-		for(Iterator it = pi.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = pi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 //		for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -547,7 +547,7 @@ public class ERCAntenna
 	private int findExports(NodeInst ni, PortProto pp, Layer lay, int depth, NodeInst [] antstack)
 	{
 		depth--;
-		for(Iterator it = ni.getExports(); it.hasNext(); )
+		for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
 			if (e != pp) continue;
@@ -572,7 +572,7 @@ public class ERCAntenna
 	 */
 	private boolean haveAntennaObject(AntennaObject ao)
 	{
-		for(Iterator it = pathList.iterator(); it.hasNext(); )
+		for(Iterator<AntennaObject> it = pathList.iterator(); it.hasNext(); )
 		{
 			AntennaObject oAo = (AntennaObject)it.next();
 	
