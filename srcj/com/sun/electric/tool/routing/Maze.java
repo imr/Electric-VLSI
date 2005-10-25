@@ -245,10 +245,10 @@ public class Maze
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
 			return;
 		}
-		Set nets = hi.getHighlightedNetworks();
+		Set<Network> nets = hi.getHighlightedNetworks();
 		if (nets.size() == 0)
 		{
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
@@ -258,11 +258,11 @@ public class Maze
 		}
 
 		// turn this into a list of ArcInsts on each net so that it survives renetlisting after each route
-		List arcsToRoute = new ArrayList();
-		for(Iterator it = nets.iterator(); it.hasNext(); )
+		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
+		for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
-			for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
+			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)aIt.next();
 				arcsToRoute.add(ai);
@@ -271,7 +271,7 @@ public class Maze
 		}
 
 		// now route each arc
-		for(Iterator it = arcsToRoute.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = arcsToRoute.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 
@@ -290,9 +290,9 @@ public class Maze
 	private boolean routeNet(Network net, Highlighter hi)
 	{
 		// get extent of net and mark nodes and arcs on it
-		HashSet arcsToDelete = new HashSet();
-		HashSet nodesToDelete = new HashSet();
-		List netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList);
+		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
+		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
+		List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList);
 		int count = netEnds.size();
 		if (count == 0) return false;
 		if (count != 2)
@@ -304,7 +304,7 @@ public class Maze
 		// determine bounds of this networks
 		Cell cell = net.getParent();
 		Rectangle2D routingBounds = null;
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Network aNet = netList.getNetwork(ai, 0);
@@ -372,12 +372,12 @@ public class Maze
 		}
 
 		// remove marked networks
-		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			ni.kill();
@@ -409,7 +409,7 @@ public class Maze
 		if (routingArc == null)
 		{
 			// check out all arcs for use in this route
-			HashSet arcsUsed = new HashSet();
+			HashSet<ArcProto> arcsUsed = new HashSet<ArcProto>();
 			for(SRPORT port = net.ports; port != null; port = port.next)
 			{
 				PortProto pp = port.pi.getPortProto();
@@ -418,14 +418,14 @@ public class Maze
 				{
 					ArcProto ap = connections[i];
 					if (ap.getTechnology() == Generic.tech) continue;
-					arcsUsed.add(connections[i]);
+					arcsUsed.add(ap);
 				}
 			}
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				if (tech == Generic.tech) continue;
-				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)aIt.next();
 					if (!arcsUsed.contains(ap)) continue;
@@ -1487,7 +1487,7 @@ public class Maze
 
 		// search region for nodes/arcs to add to database
 		Rectangle2D searchBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (geom instanceof NodeInst)
@@ -1563,12 +1563,12 @@ public class Maze
 
 			// search through cell
 			Cell subCell = (Cell)np;
-			for(Iterator it = subCell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst iNo = (NodeInst)it.next();
 				drawCell(iNo, subRot, region);
 			}
-			for(Iterator it = subCell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst iAr = (ArcInst)it.next();
 				drawArcInst(iAr, subRot, region);
@@ -2074,7 +2074,7 @@ public class Maze
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? mazeVertWire : mazeHorizWire;
-				List portInstList = findPort(parent, fX, fY, ap, net, true);
+				List<PortInst> portInstList = findPort(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
 					PortInst pi = (PortInst)portInstList.get(0);
@@ -2100,7 +2100,7 @@ public class Maze
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? mazeVertWire : mazeHorizWire;
-				List portInstList = findPort(parent, fX, fY, ap, net, true);
+				List<PortInst> portInstList = findPort(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
 					PortInst pi = (PortInst)portInstList.get(0);
@@ -2120,11 +2120,11 @@ public class Maze
 			SRPORT port = path.port;
 
 			// create arc between the end points
-			List fromPortInstList = null;
+			List<PortInst> fromPortInstList = null;
 			fX = path.wx[0];   fY = path.wy[0];
 			if (path.end[0] && port.pi != null)
 			{
-				fromPortInstList = new ArrayList();
+				fromPortInstList = new ArrayList<PortInst>();
 				fromPortInstList.add(port.pi);
 			} else
 			{
@@ -2144,11 +2144,11 @@ public class Maze
 				}
 			}
 
-			List toPortInstList = null;
+			List<PortInst> toPortInstList = null;
 			double tX = path.wx[1];   double tY = path.wy[1];
 			if (path.end[1] && port.pi != null)
 			{
-				toPortInstList = new ArrayList();
+				toPortInstList = new ArrayList<PortInst>();
 				toPortInstList.add(port.pi);
 			} else
 			{
@@ -2253,14 +2253,14 @@ public class Maze
 	 * x, y  - the point to exam
 	 * ap    - the arc used to connect port (must match pp)
 	 */
-	private List findPort(Cell cell, double x, double y, ArcProto ap, SRNET srnet, boolean forceFind)
+	private List<PortInst> findPort(Cell cell, double x, double y, ArcProto ap, SRNET srnet, boolean forceFind)
 	{
-		List portInstList = new ArrayList();
+		List<PortInst> portInstList = new ArrayList<PortInst>();
 		Point2D searchPoint = new Point2D.Double(x, y);
 		double bestDist = 0;
 		PortInst closestPi = null;
 		Rectangle2D searchBounds = new Rectangle2D.Double(x-0.5, y-0.5, 1, 1);
-		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 
@@ -2268,7 +2268,7 @@ public class Maze
 			{
 				// now locate a portproto
 				NodeInst ni = (NodeInst)geom;
-				for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 				{
 					PortInst pi = (PortInst)it.next();
 					Poly portPoly = pi.getPoly();

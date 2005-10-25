@@ -231,7 +231,7 @@ public class Compaction extends Listener
 				System.out.println("Compacting vertically");
 
 			// number ports of cell "cell"
-			HashMap portIndices = new HashMap();
+			HashMap<PortProto,Integer> portIndices = new HashMap<PortProto,Integer>();
 			flatIndex = 1;
 			Netlist nl = cell.acquireUserNetlist();
 			if (nl == null)
@@ -239,14 +239,14 @@ public class Compaction extends Listener
 				System.out.println("Sorry, a deadlock aborted compaction (network information unavailable).  Please try again");
 				return false;
 			}
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				Network net = nl.getNetwork(pp, 0);
 
 				// see if this port is on the same net as previously examined one
 				Export found = null;
-				for(Iterator oIt = cell.getPorts(); oIt.hasNext(); )
+				for(Iterator<PortProto> oIt = cell.getPorts(); oIt.hasNext(); )
 				{
 					Export oPp = (Export)oIt.next();
 					if (oPp == pp) break;
@@ -261,24 +261,24 @@ public class Compaction extends Listener
 			}
 
 			// copy port numbering onto arcs
-			HashMap arcIndices = subCellSmash(cell, portIndices);
+			HashMap<ArcInst,Integer> arcIndices = subCellSmash(cell, portIndices);
 
 			// clear "seen" information on every node
-			HashSet nodesSeen = new HashSet();
+			HashSet<NodeInst> nodesSeen = new HashSet<NodeInst>();
 
 			// clear object information
 			Line lineComp = null;
-			List otherObjectList = new ArrayList();
+			List<GeomObj> otherObjectList = new ArrayList<GeomObj>();
 
 			// now check every object
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() == Generic.tech.cellCenterNode ||
 					ni.getProto() == Generic.tech.essentialBoundsNode) continue;
 
 				// clear "thisObject" before calling createobject
-				List thisObjectList = new ArrayList();
+				List<GeomObj> thisObjectList = new ArrayList<GeomObj>();
 				createObjects(ni, thisObjectList, otherObjectList, nodesSeen, arcIndices, portIndices);
 
 				// create object of layout
@@ -361,7 +361,7 @@ public class Compaction extends Listener
 				if (bestMotion > 0 || (spread && bestMotion < 0))
 				{
 					// initialize arcs: disable stretching line from sliding; make moving line rigid
-					HashSet clearedArcs = ensureSlidability(lineStretch);
+					HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
 					setupTemporaryRigidity(line, lineStretch);
 
 					if (curAxis == HORIZONTAL)
@@ -588,7 +588,7 @@ public class Compaction extends Listener
 			if (i > 0)
 			{
 				// initialize arcs: disable stretching line from sliding; make moving line rigid
-				HashSet clearedArcs = ensureSlidability(lineStretch);
+				HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
 				setupTemporaryRigidity(line, lineStretch);
 
 				if (curAxis == HORIZONTAL) change = moveLine(line, i, 0, change); else
@@ -707,9 +707,9 @@ public class Compaction extends Listener
 		 * set the CANTSLIDE bit of userbits for each object in line so that this
 		 * line will not slide.
 		 */
-		private HashSet ensureSlidability(Line line)
+		private HashSet<ArcInst> ensureSlidability(Line line)
 		{
-			HashSet clearedArcs = new HashSet();
+			HashSet<ArcInst> clearedArcs = new HashSet<ArcInst>();
 			for(Line curLine = line; curLine != null; curLine = curLine.nextLine)
 			{
 				for(GeomObj curObject = curLine.firstObject; curObject != null;
@@ -732,9 +732,9 @@ public class Compaction extends Listener
 		/**
 		 * restore the CANTSLIDE bit of userbits for each object in line
 		 */
-		private void restoreSlidability(HashSet clearedArcs)
+		private void restoreSlidability(HashSet<ArcInst> clearedArcs)
 		{
-			for(Iterator it = clearedArcs.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = clearedArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ai.setSlidable(true);
@@ -857,7 +857,7 @@ public class Compaction extends Listener
 		 * create a new line with the element object and add it to the beginning of
 		 * the given line
 		 */
-		private Line makeObjectLine(Line line, List objectList)
+		private Line makeObjectLine(Line line, List<GeomObj> objectList)
 		{
 			Line newLine = new Line();
 			newLine.index = lineIndex++;
@@ -865,7 +865,7 @@ public class Compaction extends Listener
 			newLine.prevLine = null;
 			newLine.firstObject = null;
 			GeomObj lastObject = null;
-			for(Iterator it = objectList.iterator(); it.hasNext(); )
+			for(Iterator<GeomObj> it = objectList.iterator(); it.hasNext(); )
 			{
 				GeomObj gO = (GeomObj)it.next();
 				if (lastObject == null) newLine.firstObject = gO; else
@@ -876,8 +876,8 @@ public class Compaction extends Listener
 			return newLine;
 		}
 
-		private void createObjects(NodeInst ni, List thisObject, List otherObject, HashSet nodesSeen,
-			HashMap arcIndices, HashMap portIndices)
+		private void createObjects(NodeInst ni, List<GeomObj> thisObject, List<GeomObj> otherObject, HashSet<NodeInst> nodesSeen,
+			HashMap<ArcInst,Integer> arcIndices, HashMap<PortProto,Integer> portIndices)
 		{
 			// if node has already been examined, quit now
 			if (nodesSeen.contains(ni)) return;
@@ -899,7 +899,7 @@ public class Compaction extends Listener
 			}
 
 			// for each arc on node, find node at other end and add to object
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
@@ -950,7 +950,7 @@ public class Compaction extends Listener
 		 * "object".
 		 */
 		private GeomObj makeNodeInstObject(NodeInst ni, GeomObj object, AffineTransform newTrans,
-			double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices)
+			double low1, double high1, double low2, double high2, HashMap<ArcInst,Integer> arcIndices, HashMap<PortProto,Integer> portIndices)
 		{
 			GeomObj newObject = object;
 			if (newObject == null)
@@ -991,7 +991,7 @@ public class Compaction extends Listener
 			}
 
 			// propagate global network info to local port prototypes on "ni"
-			HashMap localPortIndices = fillNode(ni, arcIndices, portIndices);
+			HashMap<PortProto,Integer> localPortIndices = fillNode(ni, arcIndices, portIndices);
 
 			// create pseudo-object for complex ni
 			if (ni.getProto() instanceof Cell)
@@ -1007,7 +1007,7 @@ public class Compaction extends Listener
 				 * translation.  Put only the instances which are within maxBoundary
 				 * of the perimeter of the cell.
 				 */
-				HashMap localArcIndices = subCellSmash(subCell, localPortIndices);
+				HashMap<ArcInst,Integer> localArcIndices = subCellSmash(subCell, localPortIndices);
 
 				// compute protection frame if at the top level
 				if (object == null)
@@ -1029,13 +1029,13 @@ public class Compaction extends Listener
 				}
 
 				// include polygons from those nodes and arcs in the protection frame
-				for(Iterator it = subCell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst subNi = (NodeInst)it.next();
 					makeNodeInstObject(subNi, newObject, trans,
 						low1, high1, low2, high2, localArcIndices, localPortIndices);
 				}
-				for(Iterator it = subCell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 				{
 					ArcInst subAi = (ArcInst)it.next();
 					makeArcInstObject(subAi, newObject, trans,
@@ -1079,13 +1079,13 @@ public class Compaction extends Listener
 			return newObject;
 		}
 
-		private HashMap fillNode(NodeInst ni, HashMap arcIndices, HashMap portIndices)
+		private HashMap<PortProto,Integer> fillNode(NodeInst ni, HashMap<ArcInst,Integer> arcIndices, HashMap<PortProto,Integer> portIndices)
 		{
 			// initialize network information for this node instance
-			HashMap localPortIndices = new HashMap();
+			HashMap<PortProto,Integer> localPortIndices = new HashMap<PortProto,Integer>();
 
 			// set network numbers from arcs
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
@@ -1096,7 +1096,7 @@ public class Compaction extends Listener
 			}
 
 			// set network numbers from exports
-			for(Iterator it = ni.getExports(); it.hasNext(); )
+			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				PortProto pp = e.getOriginalPort().getPortProto();
@@ -1107,7 +1107,7 @@ public class Compaction extends Listener
 
 			// look for unconnected ports and assign new network numbers
 			Netlist nl = ni.getParent().getUserNetlist();
-			for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 			{
 				PortProto pp = (PortProto)it.next();
 				if (localPortIndices.get(pp) != null) continue;
@@ -1115,7 +1115,7 @@ public class Compaction extends Listener
 				// look for similar connected port
 				boolean found = false;
 				Network net = nl.getNetwork(ni, pp, 0);
-				for(Iterator oIt = ni.getProto().getPorts(); oIt.hasNext(); )
+				for(Iterator<PortProto> oIt = ni.getProto().getPorts(); oIt.hasNext(); )
 				{
 					PortProto oPp = (PortProto)oIt.next();
 					Network oNet = nl.getNetwork(ni, oPp, 0);
@@ -1143,7 +1143,7 @@ public class Compaction extends Listener
 		 * defined by "low1", "high1" and "low2", "high2" before being added to "object".
 		 */
 		private GeomObj makeArcInstObject(ArcInst ai, GeomObj object, AffineTransform newTrans,
-			double low1, double high1, double low2, double high2, HashMap arcIndices)
+			double low1, double high1, double low2, double high2, HashMap<ArcInst,Integer> arcIndices)
 		{
 			// create the object if at the top level
 			GeomObj newObject = object;
@@ -1218,15 +1218,15 @@ public class Compaction extends Listener
 		/**
 		 * copy network information from ports to arcs in cell "topCell"
 		 */
-		private HashMap subCellSmash(Cell topCell, HashMap portIndices)
+		private HashMap<ArcInst,Integer> subCellSmash(Cell topCell, HashMap<PortProto,Integer> portIndices)
 		{
 			Netlist nl = topCell.getUserNetlist();
 
 			// first erase the arc node information
-			HashMap arcIndices = new HashMap();
+			HashMap<ArcInst,Integer> arcIndices = new HashMap<ArcInst,Integer>();
 
 			// copy network information from ports to arcs
-			for(Iterator it = topCell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = topCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 
@@ -1236,7 +1236,7 @@ public class Compaction extends Listener
 				// see if this arc connects to a port
 				Network aNet = nl.getNetwork(ai, 0);
 				boolean found = false;
-				for(Iterator pIt = topCell.getPorts(); pIt.hasNext(); )
+				for(Iterator<PortProto> pIt = topCell.getPorts(); pIt.hasNext(); )
 				{
 					Export pp = (Export)pIt.next();
 					Integer pIndex = (Integer)portIndices.get(pp);
@@ -1244,7 +1244,7 @@ public class Compaction extends Listener
 					if (pNet == aNet)
 					{
 						// propagate port numbers into all connecting arcs
-						for(Iterator aIt = topCell.getArcs(); aIt.hasNext(); )
+						for(Iterator<ArcInst> aIt = topCell.getArcs(); aIt.hasNext(); )
 						{
 							ArcInst oAi = (ArcInst)aIt.next();
 							Network oANet = nl.getNetwork(oAi, 0);
@@ -1260,7 +1260,7 @@ public class Compaction extends Listener
 				{
 					// copy new net number to all of these connected arcs
 					Integer pIndex = new Integer(flatIndex++);
-					for(Iterator aIt = topCell.getArcs(); aIt.hasNext(); )
+					for(Iterator<ArcInst> aIt = topCell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst oAi = (ArcInst)aIt.next();
 						Network oANet = nl.getNetwork(oAi, 0);

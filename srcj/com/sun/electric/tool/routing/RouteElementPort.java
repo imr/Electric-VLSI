@@ -56,7 +56,7 @@ public class RouteElementPort extends RouteElement {
     /** location to create Node */                  private Point2D location;
     /** size aspect that is seen on screen */       private double width, height;
     /** if this bisects an arc */                   private boolean isBisectArcPin;
-    /** RouteElementArcs connecting to this */      private List newArcs;
+    /** RouteElementArcs connecting to this */      private List<RouteElementArc> newArcs;
     /** port site spatial extents (db units) */     private Poly portInstSite;
 
     /** This contains the newly created instance, or the instance to delete */ private NodeInst nodeInst;
@@ -82,7 +82,7 @@ public class RouteElementPort extends RouteElement {
         e.portProto = newNodePort;
         e.location = location;
         e.isBisectArcPin = false;
-        e.newArcs = new ArrayList();
+        e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(width, height));
         e.nodeInst = null;
         e.portInst = null;
@@ -101,7 +101,7 @@ public class RouteElementPort extends RouteElement {
         e.portProto = null;
         e.location = nodeInstToDelete.getTrueCenter();
         e.isBisectArcPin = false;
-        e.newArcs = new ArrayList();
+        e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSize(), nodeInstToDelete.getYSize()));
         e.nodeInst = nodeInstToDelete;
         e.portInst = null;
@@ -136,7 +136,7 @@ public class RouteElementPort extends RouteElement {
         e.portProto = existingPortInst.getPortProto();
         e.location = nodeInst.getTrueCenter();
         e.isBisectArcPin = false;
-        e.newArcs = new ArrayList();
+        e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(nodeInst.getXSize(), nodeInst.getYSize()));
         e.nodeInst = nodeInst;
         e.portInst = existingPortInst;
@@ -205,7 +205,7 @@ public class RouteElementPort extends RouteElement {
 
         if (getAction() == RouteElementAction.existingPortInst) {
             // find all arcs of type ap connected to this
-            for (Iterator it = portInst.getConnections(); it.hasNext(); ) {
+            for (Iterator<Connection> it = portInst.getConnections(); it.hasNext(); ) {
                 Connection conn = (Connection)it.next();
                 ArcInst arc = conn.getArc();
                 if (arc.getProto() == ap) {
@@ -217,7 +217,7 @@ public class RouteElementPort extends RouteElement {
 
         if (getAction() == RouteElementAction.newNode) {
             if (newArcs == null) return -1;
-            for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
+            for (Iterator<RouteElementArc> it = newArcs.iterator(); it.hasNext(); ) {
                 RouteElementArc re = (RouteElementArc)it.next();
                 if (re.getArcProto() == ap) {
                     if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
@@ -233,8 +233,8 @@ public class RouteElementPort extends RouteElement {
      * newNode RouteElement.  Returns an iterator over an empty list
      * if no new arcs.
      */
-    public Iterator getNewArcs() {
-        ArrayList list = new ArrayList();
+    public Iterator<RouteElement> getNewArcs() {
+        ArrayList<RouteElement> list = new ArrayList<RouteElement>();
         list.addAll(newArcs);
         return list.iterator();
     }

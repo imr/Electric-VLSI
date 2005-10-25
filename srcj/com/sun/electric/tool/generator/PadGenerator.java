@@ -123,11 +123,11 @@ public class PadGenerator
 	private int lineno;                             // line no of the pad array file we are processing
 	private Library cellLib;                        // library containing pad cells
 	private boolean copycells;                      // if we copy cells into the library with the pad ring
-	private List views;                             // list of strings defining views of pad frame to create.
+	private List<View> views;                       // list of strings defining views of pad frame to create.
 	private int angle;                              // angle of placed instances
-	private HashMap alignments;                     // how to align adjacent instances
-	private HashMap exports;                        // which ports to export
-	private List orderedCommands;                   // list of orderedCommands to do
+	private HashMap<String,ArrayAlign> alignments;  // how to align adjacent instances
+	private HashMap<String,PadExports> exports;     // which ports to export
+	private List<Object> orderedCommands;           // list of orderedCommands to do
 
     private static class ArrayAlign {
         int lineno;
@@ -149,8 +149,8 @@ public class PadGenerator
         String exportsname;
         int gap;
         NodeInst ni;
-        List associations;
-        List exportAssociations;
+        List<PortAssociate> associations;
+        List<ExportAssociate> exportAssociations;
         Double locx;
         Double locy;
     }
@@ -177,12 +177,12 @@ public class PadGenerator
 	private PadGenerator(String fileName)
 	{
 		this.fileName = fileName;
-        alignments = new HashMap();
-        exports = new HashMap();
-        views = new ArrayList();
+        alignments = new HashMap<String,ArrayAlign>();
+        exports = new HashMap<String,PadExports>();
+        views = new ArrayList<View>();
         angle = 0;
         lineno = 1;
-        orderedCommands = new ArrayList();
+        orderedCommands = new ArrayList<Object>();
     }
 
 	private boolean MakePadFrame()
@@ -454,8 +454,8 @@ public class PadGenerator
         pad.exportsname = null;
         pad.gap = 0;
         pad.ni = null;
-        pad.associations = new ArrayList();
-        pad.exportAssociations = new ArrayList();
+        pad.associations = new ArrayList<PortAssociate>();
+        pad.exportAssociations = new ArrayList<ExportAssociate>();
         pad.locx = null;
         pad.locy = null;
         if (!str.hasMoreTokens()) {
@@ -575,7 +575,7 @@ public class PadGenerator
         if (views.size() == 0) {
             createPadFrame(padframename, View.LAYOUT);
         } else {
-            for (Iterator it = views.iterator(); it.hasNext();) {
+            for (Iterator<View> it = views.iterator(); it.hasNext();) {
                 View view = (View) it.next();
                 if (view == View.SCHEMATIC) view = View.ICON;
                 createPadFrame(padframename, view);
@@ -611,8 +611,8 @@ public class PadGenerator
             return;
         }
 
-        List padPorts = new ArrayList();
-        List corePorts = new ArrayList();
+        List<Export> padPorts = new ArrayList<Export>();
+        List<Export> corePorts = new ArrayList<Export>();
 
         NodeInst lastni = null;
 		int lastRotate = 0;
@@ -620,7 +620,7 @@ public class PadGenerator
         boolean reversed = false;
 
 		// cycle through all orderedCommands, doing them
-        for (Iterator it = orderedCommands.iterator(); it.hasNext();)
+        for (Iterator<Object> it = orderedCommands.iterator(); it.hasNext();)
 		{
             // Rotation commands are ordered with respect to Place commands.
             Object obj = it.next();
@@ -651,7 +651,7 @@ public class PadGenerator
 			{
 				Cell existing = cell;
 				cell = null;
-				for(Iterator cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
 				{
 					Cell thereCell = (Cell)cIt.next();
 					if (thereCell.getName().equals(existing.getName()) && thereCell.getView() == existing.getView())
@@ -799,7 +799,7 @@ public class PadGenerator
                 }
             }
             // create exports from export pin=name command
-            for (Iterator it2 = pad.exportAssociations.iterator(); it2.hasNext(); ) {
+            for (Iterator<ExportAssociate> it2 = pad.exportAssociations.iterator(); it2.hasNext(); ) {
                 ExportAssociate ea = (ExportAssociate)it2.next();
                 Export pp = cell.findExport(ea.padportName);
                 if (pp == null) {
@@ -847,11 +847,11 @@ public class PadGenerator
                 SizeOffset so = corenp.getProtoSizeOffset();
                 NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
 
-                for (Iterator ocit = orderedCommands.iterator(); ocit.hasNext();) {
+                for (Iterator<Object> ocit = orderedCommands.iterator(); ocit.hasNext();) {
                     Object obj = ocit.next();
                     if (obj instanceof PlacePad) {
                         PlacePad pad = (PlacePad) obj;
-                        for (Iterator it = pad.associations.iterator(); it.hasNext();) {
+                        for (Iterator<PortAssociate> it = pad.associations.iterator(); it.hasNext();) {
                             PortAssociate pa = (PortAssociate) it.next();
                             if (pad.ni == null) continue;
 
@@ -929,7 +929,7 @@ public class PadGenerator
             int total = 0;
             int leftSide = padPorts.size();
             int rightSide = corePorts.size();
-            for (Iterator it = padPorts.iterator(); it.hasNext();) {
+            for (Iterator<Export> it = padPorts.iterator(); it.hasNext();) {
                 Export pp = (Export) it.next();
                 if (pp.isBodyOnly()) continue;
 
@@ -946,7 +946,7 @@ public class PadGenerator
             }
 
             total = 0;
-            for (Iterator it = corePorts.iterator(); it.hasNext();) {
+            for (Iterator<Export> it = corePorts.iterator(); it.hasNext();) {
                 Export pp = (Export) it.next();
 
                 if (pp == null) {

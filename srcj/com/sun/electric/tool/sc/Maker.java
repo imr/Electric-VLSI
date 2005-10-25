@@ -311,7 +311,7 @@ public class Maker
 		mChan.minY = 0;
 		double yPos = mChan.ySize;
 		MakerRow lastMRow = null;
-		for(Iterator it = cell.placement.theRows.iterator(); it.hasNext(); )
+		for(Iterator<Place.RowList> it = cell.placement.theRows.iterator(); it.hasNext(); )
 		{
 			Place.RowList row = (Place.RowList)it.next();
 
@@ -803,7 +803,7 @@ public class Maker
 		}
 
 		// create stitches and lateral feeds
-		for(Iterator it = data.cell.placement.theRows.iterator(); it.hasNext(); )
+		for(Iterator<Place.RowList> it = data.cell.placement.theRows.iterator(); it.hasNext(); )
 		{
 			Place.RowList rlist = (Place.RowList)it.next();
 			for (Place.NBPlace place = rlist.start; place != null; place = place.next)
@@ -1220,7 +1220,7 @@ public class Maker
 		if (layer2Arc == null) return "Unable to find Vertical Arc " + layer2 + " for MAKER";
 
 		// find the contact between the two layers
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode via = (PrimitiveNode)it.next();
 			PrimitiveNode.Function fun = via.getFunction();

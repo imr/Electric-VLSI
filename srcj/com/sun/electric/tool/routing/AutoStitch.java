@@ -70,9 +70,9 @@ public class AutoStitch
 {
 	/** the prefered arc */											private static ArcProto preferredArc;
     /** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
-	/** list of all routes to be created at end of analysis */		private static List allRoutes;
-	/** list of pins that may be inline pins due to created arcs */	private static HashSet possibleInlinePins;
-	private static HashSet nodeMark;
+	/** list of all routes to be created at end of analysis */		private static List<Route> allRoutes;
+	/** list of pins that may be inline pins due to created arcs */	private static HashSet<NodeInst> possibleInlinePins;
+	private static HashSet<NodeInst> nodeMark;
 
 	/**
 	 * Method to do auto-stitching.
@@ -120,14 +120,14 @@ public class AutoStitch
 	 */
 	public static void runAutoStitch(Cell cell, boolean highlighted, boolean forced, PolyMerge stayInside)
 	{
-		List nodesToStitch = new ArrayList();
-		List arcsToStitch = new ArrayList();
+		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
+		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
 		if (highlighted)
 		{
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd == null) return;
-			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-			for(Iterator it = highs.iterator(); it.hasNext(); )
+			List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				ElectricObject eObj = (ElectricObject)it.next();
 				if (eObj instanceof NodeInst)
@@ -139,13 +139,13 @@ public class AutoStitch
 			}
 		} else
 		{
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.isIconOfParent()) continue;
 				nodesToStitch.add(ni);
 			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				arcsToStitch.add(ai);
@@ -157,21 +157,21 @@ public class AutoStitch
             return;
         }
 
-		allRoutes = new ArrayList();
-        possibleInlinePins = new HashSet();
-		HashSet cellMark = new HashSet();
-		nodeMark = new HashSet();
+		allRoutes = new ArrayList<Route>();
+        possibleInlinePins = new HashSet<NodeInst>();
+		HashSet<Cell> cellMark = new HashSet<Cell>();
+		nodeMark = new HashSet<NodeInst>();
 
 		// next pre-compute bounds on all nodes in cells to be changed
 		int count = 0;
-		HashMap nodeBounds = new HashMap();
-		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds = new HashMap<NodeInst, Rectangle2D[]>();
+		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst nodeToStitch = (NodeInst)it.next();
 			if (cellMark.contains(cell)) continue;
 			cellMark.add(cell);
 
-			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				nodeMark.remove(ni);
@@ -183,7 +183,7 @@ public class AutoStitch
 				Rectangle2D [] bbArray = new Rectangle2D[total];
 				nodeBounds.put(ni, bbArray);
 				int i = 0;
-				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+				for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
 
@@ -200,7 +200,7 @@ public class AutoStitch
 		}
 
 		// next mark nodes to be checked
-		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			nodeMark.add(ni);
@@ -218,11 +218,11 @@ public class AutoStitch
 		}
 
 		// finally, initialize the information about which layer is smallest on each arc
-		HashMap arcLayers = new HashMap();
+		HashMap<ArcProto,Layer> arcLayers = new HashMap<ArcProto,Layer>();
 
 		// now run through the nodeinsts to be checked for stitching
-        HashMap arcCount = new HashMap();
-		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+        HashMap<ArcProto, Integer> arcCount = new HashMap<ArcProto, Integer>();
+		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (cell.isAllLocked()) continue;
@@ -236,7 +236,7 @@ public class AutoStitch
 		}
 
 		// now run through the arcinsts to be checked for stitching
-		for(Iterator it = arcsToStitch.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = arcsToStitch.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (!ai.isLinked()) continue;
@@ -262,7 +262,7 @@ public class AutoStitch
 	            StringBuffer buf = new StringBuffer();
 	            buf.append("AUTO ROUTING: added ");
 	            boolean first = true;
-	            for (Iterator it = arcCount.keySet().iterator(); it.hasNext(); ) {
+	            for (Iterator<ArcProto> it = arcCount.keySet().iterator(); it.hasNext(); ) {
 	                ArcProto ap = (ArcProto)it.next();
 	                if (!first) buf.append("; ");
 	                Integer c = (Integer)arcCount.get(ap);
@@ -277,10 +277,10 @@ public class AutoStitch
 		}
 
 		// clean up
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell c = (Cell)cIt.next();
 				if (!cellMark.contains(c)) continue;
@@ -290,7 +290,7 @@ public class AutoStitch
 		nodeMark = null;
 
         // create the routes
-        for (Iterator it = allRoutes.iterator(); it.hasNext(); )
+        for (Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
         {
             Route route = (Route)it.next();
             RouteElement re = (RouteElement)route.get(0);
@@ -304,7 +304,7 @@ public class AutoStitch
             if (startPi != null && endPi != null)
             {
 				boolean already = false;
-				for(Iterator cIt = startPi.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = startPi.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst existingAI = con.getArc();
@@ -327,7 +327,7 @@ public class AutoStitch
             // if requesting no new geometry, make sure all arcs are default width
             if (stayInside != null)
             {
-	            for (Iterator rIt = route.iterator(); rIt.hasNext(); )
+	            for (Iterator<Object> rIt = route.iterator(); rIt.hasNext(); )
 	            {
 	                Object obj = rIt.next();
 	                if (obj instanceof RouteElementArc)
@@ -370,7 +370,7 @@ public class AutoStitch
 
         // check for any inline pins due to created wires
         List<CircuitChanges.Reconnect> pinsToPassThrough = new ArrayList<CircuitChanges.Reconnect>();
-        for (Iterator it = possibleInlinePins.iterator(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = possibleInlinePins.iterator(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.isInlinePin()) {
                 CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
@@ -440,22 +440,23 @@ public class AutoStitch
 	/**
 	 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
 	 */
-	private static int checkStitching(Geometric geom, HashMap arcCount, HashMap nodeBounds, HashMap arcLayers, PolyMerge stayInside, Netlist netlist)
+	private static int checkStitching(Geometric geom, HashMap<ArcProto, Integer> arcCount, HashMap<NodeInst, Rectangle2D[]> nodeBounds,
+		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist)
 	{
 		Cell cell = geom.getParent();
 		NodeInst ni = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom;
 
 		// make a list of other geometrics that touch or overlap this one (copy it because the main list will change)
-		List geomsInArea = new ArrayList();
+		List<Geometric> geomsInArea = new ArrayList<Geometric>();
 		Rectangle2D geomBounds = geom.getBounds();
 		double epsilon = DBMath.getEpsilon();
 		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
 			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
-		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
-			geomsInArea.add(it.next());
+		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
+			geomsInArea.add((Geometric)it.next());
 		int count = 0;
-		for(Iterator it = geomsInArea.iterator(); it.hasNext(); )
+		for(Iterator<Geometric> it = geomsInArea.iterator(); it.hasNext(); )
 		{
 			// find another node in this area
 			Geometric oGeom = (Geometric)it.next();
@@ -496,7 +497,8 @@ public class AutoStitch
 		return count;
 	}
 
-	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap arcCount, HashMap nodeBounds, HashMap arcLayers, PolyMerge stayInside, Netlist netlist)
+	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap<ArcProto, Integer> arcCount,
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist)
 	{
 		int count = 0;
 
@@ -510,7 +512,7 @@ public class AutoStitch
 			// complex node instance: look at all ports
 			Rectangle2D [] boundArray = (Rectangle2D [])nodeBounds.get(ni);
 			int bbp = 0;
-			for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+			for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 			{
 				PortProto pp = (PortProto)pIt.next();
 
@@ -663,7 +665,7 @@ public class AutoStitch
 					// search all ports for the closest
 					PortProto bestPp = null;
 					double bestDist = 0;
-					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto tPp = (PortProto)pIt.next();
 
@@ -692,7 +694,7 @@ public class AutoStitch
 					// search all ports for the closest connected to this layer
 					PortProto bestPp = null;
 					double bestDist = 0;
-					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto tPp = (PortProto)pIt.next();
 						if (!netlist.portsConnected(ni, tPp, polyPtr.getPort())) continue;
@@ -719,7 +721,7 @@ public class AutoStitch
 
 				// stop now if already an arc on this port to other node
 				boolean found = false;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					PortInst pi = con.getPortInst();
@@ -854,7 +856,7 @@ public class AutoStitch
 				// search all ports for the closest connected to this layer
 				PortProto bestPp = null;
 				double bestDist = 0;
-				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+				for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto tPp = (PortProto)pIt.next();
 					if (!nl.portsConnected(ni, tPp, nodePoly.getPort())) continue;
@@ -922,7 +924,8 @@ public class AutoStitch
 	 * nodeinst "ni", port "pp" with an arc of type "ap".  Returns the number of
 	 * connections made (0 if none).
 	 */
-	private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist, HashMap nodeBounds, HashMap arcLayers, PolyMerge stayInside)
+	private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist,
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside)
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
@@ -937,7 +940,7 @@ public class AutoStitch
 			Rectangle2D [] boundArray = (Rectangle2D [])nodeBounds.get(oNi);
 			int bbp = 0;
 			Rectangle2D bounds = poly.getBounds2D();
-			for(Iterator it = oNi.getProto().getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
 			{
 				PortProto mPp = (PortProto)it.next();
 
@@ -959,7 +962,7 @@ public class AutoStitch
                 // do not stitch if there is already an arc connecting these two ports
                 PortInst oPi = oNi.findPortInstFromProto(mPp);
                 boolean ignore = false;
-                for (Iterator piit = oPi.getConnections(); piit.hasNext(); ) {
+                for (Iterator<Connection> piit = oPi.getConnections(); piit.hasNext(); ) {
                     Connection conn = (Connection)piit.next();
                     ArcInst ai = conn.getArc();
                     if (ai.getHeadPortInst() == pi) ignore = true;
@@ -1039,7 +1042,7 @@ public class AutoStitch
 				// not a geometric primitive: look for ports that touch
 				PortProto bestPp = null;
 				double bestDist = 0;
-				for(Iterator pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
+				for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto rPp = (PortProto)pIt.next();
 					// compute best distance to the other node
@@ -1092,7 +1095,7 @@ public class AutoStitch
 					// search all ports for the closest connected to this layer
 					PortProto bestPp = null;
 					double bestDist = 0;
-					for(Iterator pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
+					for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto rPp = (PortProto)pIt.next();
 						if (!netlist.portsConnected(oNi, rPp, oPoly.getPort())) continue;
@@ -1146,7 +1149,7 @@ public class AutoStitch
 		Point2D oPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 
 		double dist = portCenter.distance(oPortCenter);
-		for(Iterator it = oNi.getProto().getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
 		{
 			PortProto tPp = (PortProto)it.next();
 			if (tPp == opp) continue;
@@ -1159,7 +1162,7 @@ public class AutoStitch
 			opp = tPp;
 			oPortCenter.setLocation(tPortCenter);
 		}
-		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 		{
 			PortProto tPp = (PortProto)it.next();
 			if (tPp == pp) continue;
@@ -1220,7 +1223,7 @@ public class AutoStitch
 			boolean gotOne = false;
 			Rectangle2D coverage = null;
 			Rectangle2D polyBounds = nodePolys[0].getBounds2D();
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
@@ -1279,7 +1282,7 @@ public class AutoStitch
 	 * Method to find the smallest layer on arc proto "ap" and cache that information
 	 * in the "temp1" field of the arc proto.
 	 */
-	public static void findSmallestLayer(ArcProto ap, HashMap arcLayers)
+	public static void findSmallestLayer(ArcProto ap, HashMap<ArcProto,Layer> arcLayers)
 	{
 		// quit if the value has already been computed
 		if (arcLayers.get(ap) != null) return;
@@ -1312,29 +1315,29 @@ public class AutoStitch
 	 */
 	private static class Pairs
 	{
-		private HashMap first;
+		private HashMap<Object,HashSet> first;
 
 		Pairs()
 		{
-			first = new HashMap();
+			first = new HashMap<Object,HashSet>();
 		}
 
 		void add(Object o1, Object o2)
 		{
 			if (exists(o1, o2)) return;
-			HashSet other1 = (HashSet)first.get(o1);
+			HashSet<Object> other1 = (HashSet)first.get(o1);
 			if (other1 != null)
 			{
 				other1.add(o2);
 				return;
 			}
-			HashSet other2 = (HashSet)first.get(o2);
+			HashSet<Object> other2 = (HashSet)first.get(o2);
 			if (other2 != null)
 			{
 				other2.add(o1);
 				return;
 			}
-			other1 = new HashSet();
+			other1 = new HashSet<Object>();
 			first.put(o1, other1);
 			other1.add(o2);			
 		}

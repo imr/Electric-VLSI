@@ -253,9 +253,9 @@ public class Route
 	 * Checks where their active areas start and uses the minimum active distance.
 	 * @param rows pointer to start of row list.
 	 */
-	private void squeezeCells(List theRows)
+	private void squeezeCells(List<Place.RowList> theRows)
 	{
-		for(Iterator it = theRows.iterator(); it.hasNext(); )
+		for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			Place.RowList row = (Place.RowList)it.next();
 			for (Place.NBPlace place = row.start; place != null; place = place.next)
@@ -292,7 +292,7 @@ public class Route
 	 * @param cell pointer to parent cell.
 	 * @return created list.
 	 */
-	private RouteRow createRowList(List theRows, GetNetlist.SCCell cell)
+	private RouteRow createRowList(List<Place.RowList> theRows, GetNetlist.SCCell cell)
 	{
 		// clear all reference pointers in extracted node list
 		for (GetNetlist.ExtNode eNode = cell.exNodes; eNode != null; eNode = eNode.next)
@@ -301,7 +301,7 @@ public class Route
 		// create a route row list for each placement row
 		RouteRow firstRRow = null, lastRRow = null;
 		RouteNode sameNode = null;
-		for(Iterator it = theRows.iterator(); it.hasNext(); )
+		for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			Place.RowList row = (Place.RowList)it.next();
 			RouteRow newRRow = new RouteRow();
@@ -964,7 +964,7 @@ public class Route
 	 * @param channels pointer to current channels.
 	 * @param rows pointer to placed rows.
 	 */
-	private void createPassThroughs(RouteChannel channels, List theRows)
+	private void createPassThroughs(RouteChannel channels, List<Place.RowList> theRows)
 	{
 		feedNumber = 0;
 
@@ -1002,7 +1002,7 @@ public class Route
 	 * @param channels list of channels.
 	 * @param rows list of placed rows.
 	 */
-	private void betweenChNodes(RouteChNode node1, RouteChNode node2, RouteChannel channels, List theRows)
+	private void betweenChNodes(RouteChNode node1, RouteChNode node2, RouteChannel channels, List<Place.RowList> theRows)
 	{
 		GetNetlist.ExtNode extNode = node1.extNode;
 
@@ -1043,7 +1043,7 @@ public class Route
 
 			// determine which row we are in
 			Place.RowList row = null;
-			for(Iterator it = theRows.iterator(); it.hasNext(); )
+			for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
 			{
 				row = (Place.RowList)it.next();
 				if (row.rowNum == chan.number) break;

@@ -373,7 +373,7 @@ public class PolyMerge
 	{
 		// Since simple is used, correct detection of loops must be guaranteed
 		// outside.
-		return (getMergedPoints((Layer)layer, simple));
+		return getMergedPoints((Layer)layer, simple);
 	}
 
     /**

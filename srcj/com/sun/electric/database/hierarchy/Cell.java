@@ -584,7 +584,8 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 * @param nodePrototypes a HashMap from NodeInsts in the source Cell to proper NodeProtos to use in the new Cell.
 	 * @return the new Cell in the destination Library.
 	 */
-	public static Cell copyNodeProtoUsingMapping(Cell fromCell, Library toLib, String toName, HashMap nodePrototypes)
+	public static Cell copyNodeProtoUsingMapping(Cell fromCell, Library toLib, String toName,
+		HashMap<NodeInst,NodeProto> nodePrototypes)
 	{
 		// create the nodeproto
 		String cellName = toName;

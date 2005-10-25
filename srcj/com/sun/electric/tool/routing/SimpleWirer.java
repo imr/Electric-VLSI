@@ -135,12 +135,20 @@ public class SimpleWirer extends InteractiveRouter {
         if (width2 > width) width = width2;
 
         // see if we should only draw a single arc
-        double angleD = Math.atan2(endLoc.getY()-startLoc.getY(), endLoc.getX()-startLoc.getX());
-        //System.out.println("angleD is "+angleD);
-        int angle = (int)Math.round(angleD * 180 / Math.PI);
-        //if (angle < 0) angle = angle + 360;
-        //System.out.println("angle is "+angle+", incr is "+useArc.getAngleIncrement());
-        if (useArc.getAngleIncrement() == 0 || (angle % useArc.getAngleIncrement()) == 0) {
+		boolean singleArc = false;
+		if (useArc.getAngleIncrement() == 0) singleArc = true; else
+		{
+			if (useArc.getAngleIncrement() == 900)
+			{
+				if (endLoc.getX() == startLoc.getX() || endLoc.getY() == startLoc.getY()) singleArc = true; else
+				{
+			        double angleD = Math.atan2(endLoc.getY()-startLoc.getY(), endLoc.getX()-startLoc.getX());
+			        int angle = (int)Math.round(angleD * 180 / Math.PI);
+					if ((angle % useArc.getAngleIncrement()) == 0) singleArc = true;
+				}
+			}
+		}
+        if (singleArc) {
             // draw single
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
             route.add(arcRE);

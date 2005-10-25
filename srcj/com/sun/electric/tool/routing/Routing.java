@@ -243,7 +243,7 @@ public class Routing extends Listener
 			if (wf == null) return false;
 			Highlighter highlighter = wf.getContent().getHighlighter();
 			if (highlighter == null) return false;
-			Set nets = highlighter.getHighlightedNetworks();
+			Set<Network> nets = highlighter.getHighlightedNetworks();
 			if (nets.size() == 0)
 			{
 				System.out.println("Must select networks to unroute");
@@ -264,16 +264,16 @@ public class Routing extends Listener
 			// make arrays of what to unroute
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
-			List [] netEnds = new List[total];
-			HashSet [] arcsToDelete = new HashSet[total];
-			HashSet [] nodesToDelete = new HashSet[total];
+			List<Connection> [] netEnds = new List[total];
+			HashSet<ArcInst> [] arcsToDelete = new HashSet[total];
+			HashSet<NodeInst> [] nodesToDelete = new HashSet[total];
 			int i = 0;
-			for(Iterator it = nets.iterator(); it.hasNext(); )
+			for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
 			{
 				Network net = (Network)it.next();
 				netsToUnroute[i] = net;
-				arcsToDelete[i] = new HashSet();
-				nodesToDelete[i] = new HashSet();
+				arcsToDelete[i] = new HashSet<ArcInst>();
+				nodesToDelete[i] = new HashSet<NodeInst>();
 				netEnds[i] = findNetEnds(net, arcsToDelete[i], nodesToDelete[i], netList);
 				i++;
 			}
@@ -287,15 +287,16 @@ public class Routing extends Listener
 			return true;
 		}
 
-		private static boolean unrouteNet(Network net, HashSet arcsToDelete, HashSet nodesToDelete, List netEnds, Netlist netList, Highlighter highlighter)
+		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
+			List<Connection> netEnds, Netlist netList, Highlighter highlighter)
 		{
 			// remove marked nodes and arcs
-			for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ai.kill();
 			}
-			for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+			for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.kill();
@@ -361,14 +362,14 @@ public class Routing extends Listener
 	 * @param netList the netlist for the current cell.
 	 * @return a List of Connection (PortInst/Point2D pairs) that should be wired together.
 	 */
-	public static List findNetEnds(Network net, HashSet arcsToDelete, HashSet nodesToDelete, Netlist netList)
+	public static List<Connection> findNetEnds(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete, Netlist netList)
 	{
 		// initialize
 		Cell cell = net.getParent();
-		List endList = new ArrayList();
+		List<Connection> endList = new ArrayList<Connection>();
 
 		// look at every arc and see if it is part of the network
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Network aNet = netList.getNetwork(ai, 0);
@@ -381,7 +382,7 @@ public class Routing extends Listener
 				Connection thisCon = ai.getConnection(i);
 				NodeInst ni = thisCon.getPortInst().getNodeInst();
 				boolean term = true;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
@@ -529,10 +530,10 @@ public class Routing extends Listener
 		int wiresMade = 0;
 
 		// reset association pointers in the destination cell
-		HashMap nodesAssoc = new HashMap();
+		HashMap<NodeInst,NodeInst> nodesAssoc = new HashMap<NodeInst,NodeInst>();
 
 		// look for associations
-		for(Iterator it = toCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = toCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode || ni.getProto() == Generic.tech.essentialBoundsNode) continue;
@@ -549,7 +550,7 @@ public class Routing extends Listener
 					if (ni.getNumExports() > 0)
 					{
 						// an export on a simple node: find the equivalent
-						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 						{
 							Export e = (Export)eIt.next();
 							Export fromE = fromCell.findExport(e.getName());
@@ -565,8 +566,8 @@ public class Routing extends Listener
 			}
 
 			// count the number of this type of node in the two cells
-			List fromList = new ArrayList();
-			for(Iterator nIt = fromCell.getNodes(); nIt.hasNext(); )
+			List<NodeInst> fromList = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> nIt = fromCell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst oNi = (NodeInst)nIt.next();
 				if (ni.getProto() instanceof Cell)
@@ -578,8 +579,8 @@ public class Routing extends Listener
 					if (oFun == fun) fromList.add(oNi);
 				}
 			}
-			List toList = new ArrayList();
-			for(Iterator nIt = toCell.getNodes(); nIt.hasNext(); )
+			List<NodeInst> toList = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> nIt = toCell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst oNi = (NodeInst)nIt.next();
 				if (ni.getProto() instanceof Cell)
@@ -602,14 +603,14 @@ public class Routing extends Listener
 			}
 
 			// look for name matches
-			List copyList = new ArrayList();
-			for(Iterator fIt = fromList.iterator(); fIt.hasNext(); ) copyList.add(fIt.next());
-			for(Iterator fIt = copyList.iterator(); fIt.hasNext(); )
+			List<NodeInst> copyList = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> fIt = fromList.iterator(); fIt.hasNext(); ) copyList.add((NodeInst)fIt.next());
+			for(Iterator<NodeInst> fIt = copyList.iterator(); fIt.hasNext(); )
 			{
 				NodeInst fNi = (NodeInst)fIt.next();
 				String fName = fNi.getName();
 				NodeInst matchedNode = null;
-				for(Iterator tIt = toList.iterator(); tIt.hasNext();  )
+				for(Iterator<NodeInst> tIt = toList.iterator(); tIt.hasNext();  )
 				{
 					NodeInst tNi = (NodeInst)tIt.next();
 					String tName = tNi.getName();
@@ -652,14 +653,14 @@ public class Routing extends Listener
 			System.out.println("Sorry, a deadlock aborted topology copying (network information unavailable).  Please try again");
 			return false;
 		}
-		for(Iterator tIt = toCell.getNodes(); tIt.hasNext(); )
+		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
 		{
 			NodeInst tNi = (NodeInst)tIt.next();
 			NodeInst fNi = (NodeInst)nodesAssoc.get(tNi);
 			if (fNi == null) continue;
 
 			// look for another node that may match
-			for(Iterator oTIt = toCell.getNodes(); oTIt.hasNext(); )
+			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
 			{
 				NodeInst oTNi = (NodeInst)oTIt.next();
 				if (tNi == oTNi) continue;
@@ -669,11 +670,11 @@ public class Routing extends Listener
 				// see if they share a connection in the original
 				PortInst fPi = null;
 				PortInst oFPi = null;
-				for(Iterator fPIt = fNi.getPortInsts(); fPIt.hasNext(); )
+				for(Iterator<PortInst> fPIt = fNi.getPortInsts(); fPIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)fPIt.next();
 					Network net = fNl.getNetwork(pi);
-					for(Iterator oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
+					for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
 					{
 						PortInst oPi = (PortInst)oFPIt.next();
 						Network oNet = fNl.getNetwork(oPi);
@@ -701,7 +702,7 @@ public class Routing extends Listener
 		}
 
 		// add in any exported but unconnected pins
-		for(Iterator tIt = toCell.getNodes(); tIt.hasNext(); )
+		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
 		{
 			NodeInst tNi = (NodeInst)tIt.next();
 			if (nodesAssoc.get(tNi) != null) continue;
@@ -714,7 +715,7 @@ public class Routing extends Listener
 			PortProto tPp = tNi.getProto().getPort(0);
 			String matchName = ((Export)tNi.getExports().next()).getName();
 			Network net = null;
-			for(Iterator fIt = fromCell.getPorts(); fIt.hasNext(); )
+			for(Iterator<PortProto> fIt = fromCell.getPorts(); fIt.hasNext(); )
 			{
 				Export fPp = (Export)fIt.next();
 				int width = fNl.getBusWidth(fPp);
@@ -731,14 +732,14 @@ public class Routing extends Listener
 			// check to see if this is connected elsewhere in the "to" cell
 			PortInst oFPi = null;
 			NodeInst oTNi = null;
-			for(Iterator oTIt = toCell.getNodes(); oTIt.hasNext(); )
+			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)oTIt.next();
 				NodeInst oFNi = (NodeInst)nodesAssoc.get(ni);
 				if (oFNi == null) continue;
 
 				// see if they share a connection in the original
-				for(Iterator oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
+				for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)oFPIt.next();
 					Network oNet = fNl.getNetwork(pi);
@@ -792,12 +793,10 @@ public class Routing extends Listener
 		return 1;
 	}
 
-	private static class InstacesSpatially implements Comparator
+	private static class InstacesSpatially implements Comparator<NodeInst>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(NodeInst n1, NodeInst n2)
 		{
-			NodeInst n1 = (NodeInst)o1;
-			NodeInst n2 = (NodeInst)o2;
 			double x1 = n1.getAnchorCenterX();
 			double y1 = n1.getAnchorCenterY();
 			double x2 = n2.getAnchorCenterX();

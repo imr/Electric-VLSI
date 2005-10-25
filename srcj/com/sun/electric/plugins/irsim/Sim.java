@@ -1316,12 +1316,10 @@ public class Sim
 		return false;
 	}
 
-	private static class NodesByName implements Comparator
+	private static class NodesByName implements Comparator<Node>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(Node n1, Node n2)
 		{
-			Node n1 = (Node)o1;
-			Node n2 = (Node)o2;
 			return n1.nName.compareToIgnoreCase(n2.nName);
 		}
 	}

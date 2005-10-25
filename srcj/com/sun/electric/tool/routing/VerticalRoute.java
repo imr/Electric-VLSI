@@ -266,7 +266,7 @@ public class VerticalRoute {
 
         // resize contacts to right size, and add to route
         Dimension2D size = Router.getContactSize(vertRoute.getStart(), vertRoute.getEnd());
-        for (Iterator it = vertRoute.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = vertRoute.iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
             if (re instanceof RouteElementPort)
                 ((RouteElementPort)re).setNodeSize(size);

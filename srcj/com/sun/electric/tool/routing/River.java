@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
@@ -103,13 +104,13 @@ public class River
 	/** side   to top  -- side 2 or side 4 to side 3 */	private static final int FROMSIDE = 2;
 	/** bottom to side -- side 1 to side 3 or side 2 */	private static final int TOSIDE   = 3;
 
-	/** list of RDESC objects */						private List     rightP, leftP;
-	/** the initial coordinate of the route */			private double   fromLine;
-	/** final coordinate of the route */				private double   toLine;
-	/**  ROUTEINX route in X, ROUTEINY route in Y */	private int      routDirection;
-	/** where to start wires on the right */			private double   startRight;
-	/** where to start wires on the left */				private double   startLeft;
-	/** linked list of possible routing coordinates */	private RCOORD   xAxis, yAxis;
+	/** list of RDESC objects */						private List<RDESC> rightP, leftP;
+	/** the initial coordinate of the route */			private double      fromLine;
+	/** final coordinate of the route */				private double      toLine;
+	/**  ROUTEINX route in X, ROUTEINY route in Y */	private int         routDirection;
+	/** where to start wires on the right */			private double      startRight;
+	/** where to start wires on the left */				private double      startLeft;
+	/** linked list of possible routing coordinates */	private RCOORD      xAxis, yAxis;
 	private double   height;
 	private double   routBoundLX, routBoundLY, routBoundHX, routBoundHY;
 	private double   wireBoundLX, wireBoundLY, wireBoundHX, wireBoundHY;
@@ -295,12 +296,12 @@ public class River
 		if (findWires(cell))
 		{
 			// make wires
-			for(Iterator it = rightP.iterator(); it.hasNext(); )
+			for(Iterator<RDESC> it = rightP.iterator(); it.hasNext(); )
 			{
 				RDESC q = (RDESC)it.next();
 				checkTheCell(q.unroutedWire2.getPortInst(q.unroutedEnd2).getNodeInst());
 			}
-			for(Iterator it = leftP.iterator(); it.hasNext(); )
+			for(Iterator<RDESC> it = leftP.iterator(); it.hasNext(); )
 			{
 				RDESC q = (RDESC)it.next();
 				checkTheCell(q.unroutedWire2.getPortInst(q.unroutedEnd2).getNodeInst());
@@ -336,17 +337,17 @@ public class River
 		initialize();
 
 		// reset flags on all arcs in this cell
-		HashSet arcsSeen = new HashSet();
+		HashSet<ArcInst> arcsSeen = new HashSet<ArcInst>();
 
 		// make a list of RDESC objects
-		List theList = new ArrayList();
+		List<RDESC> theList = new ArrayList<RDESC>();
 
 		// get list of all highlighted arcs
-		List allArcs = MenuCommands.getSelectedObjects(false, true);
+		List<Geometric> allArcs = MenuCommands.getSelectedObjects(false, true);
 		if (allArcs.size() != 0)
 		{
 			// add all highlighted arcs to the list of RDESC objects
-			for(Iterator it = allArcs.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = allArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				addWire(theList, ai, arcsSeen);
@@ -354,7 +355,7 @@ public class River
 		} else
 		{
 			// add all arcs in the cell to the list of RDESC objects
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				addWire(theList, ai, arcsSeen);
@@ -363,7 +364,7 @@ public class River
 
 		// determine bounds of the routes
 		boolean first = true;
-		for(Iterator it = theList.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = theList.iterator(); it.hasNext(); )
 		{
 			RDESC rdesc = (RDESC)it.next();
 			if (first)
@@ -382,8 +383,8 @@ public class River
 		}
 
 		// figure out which ArcProto to use
-		HashMap arcProtoUsage = new HashMap();
-		for(Iterator it = theList.iterator(); it.hasNext(); )
+		HashMap<ArcProto,GenMath.MutableInteger> arcProtoUsage = new HashMap<ArcProto,GenMath.MutableInteger>();
+		for(Iterator<RDESC> it = theList.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			sumUp(rd.unroutedWire1.getPortInst(rd.unroutedEnd1), arcProtoUsage);
@@ -394,7 +395,7 @@ public class River
 		ArcProto wantAp = null;
 		int mostUses = -1;
 		int total = 0;
-		for(Iterator it = arcProtoUsage.keySet().iterator(); it.hasNext(); )
+		for(Iterator<ArcProto> it = arcProtoUsage.keySet().iterator(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			GenMath.MutableInteger mi = (GenMath.MutableInteger)arcProtoUsage.get(ap);
@@ -428,10 +429,10 @@ public class River
 	 * takes two unsorted list of ports and routes between them
 	 * warning - if the width is not even, there will be round off problems
 	 */
-	private boolean unsortedRivRot(ArcProto layerDesc, List lists, double width,
+	private boolean unsortedRivRot(ArcProto layerDesc, List<RDESC> lists, double width,
 		double space, double cellOff1, double cellOff2)
 	{
-		for(Iterator it = lists.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = lists.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			rd.sortVal = (routDirection != ROUTEINX ? rd.from.x : rd.from.y);
@@ -441,12 +442,10 @@ public class River
 		return sortedRivRot(layerDesc, lists, width, space, cellOff1, cellOff2);
 	}
 
-	private static class SortRDESC implements Comparator
+	private static class SortRDESC implements Comparator<RDESC>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(RDESC r1, RDESC r2)
 		{
-			RDESC r1 = (RDESC)o1;
-			RDESC r2 = (RDESC)o2;
 			if (r1.sortVal == r2.sortVal) return 0;
 			if (r1.sortVal > r2.sortVal) return 1;
 			return -1;
@@ -457,7 +456,7 @@ public class River
 	 * takes two sorted list of ports and routes between them
 	 * warning - if the width is not even, there will be round off problems
 	 */
-	private boolean sortedRivRot(ArcProto layerDesc, List listR, double width,
+	private boolean sortedRivRot(ArcProto layerDesc, List<RDESC> listR, double width,
 		double space, double cellOff1, double cellOff2)
 	{
 		// ports invalid
@@ -473,11 +472,11 @@ public class River
 		return true;
 	}
 
-	private void calculateBB(List right, List left)
+	private void calculateBB(List<RDESC> right, List<RDESC> left)
 	{
 		routBoundLX = routBoundLY = Double.MAX_VALUE;
 		routBoundHX = routBoundHY = Double.MIN_VALUE;
-		for(Iterator it = right.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = right.iterator(); it.hasNext(); )
 		{
 			RDESC rRight = (RDESC)it.next();
 			for(RPOINT rvp = rRight.path.pathDesc; rvp != null; rvp = rvp.next)
@@ -488,7 +487,7 @@ public class River
 				routBoundHY = Math.max(routBoundHY, rvp.y);
 			}
 		}
-		for(Iterator it = left.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = left.iterator(); it.hasNext(); )
 		{
 			RDESC lLeft = (RDESC)it.next();
 			for(RPOINT rvp = lLeft.path.pathDesc; rvp != null; rvp = rvp.next)
@@ -501,16 +500,16 @@ public class River
 		}
 	}
 
-	private Double calculateHeightAndProcess(List right, List left, double width, double co2)
+	private Double calculateHeightAndProcess(List<RDESC> right, List<RDESC> left, double width, double co2)
 	{
 		double minHeight = 0;
 		double maxHeight = Double.MIN_VALUE;
-		for(Iterator it = right.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = right.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			maxHeight = Math.max(maxHeight, rd.path.lastP.second);
 		}
-		for(Iterator it = left.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = left.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			maxHeight = Math.max(maxHeight, rd.path.lastP.second);
@@ -521,7 +520,7 @@ public class River
 		maxHeight = Math.max(maxHeight, toLine);
 
 		// make sure its at least where the coordinates are
-		for(Iterator it = right.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = right.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			RPOINT lastP = rd.path.lastP;
@@ -531,7 +530,7 @@ public class River
 			}
 			remapPoints(rd.path.pathDesc, xfInverse);
 		}
-		for(Iterator it = left.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = left.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			RPOINT lastP = rd.path.lastP;
@@ -565,12 +564,12 @@ public class River
 		return sec * matrix.t12;
 	}
 
-	private boolean processLeft(double width, ArcProto ptype, List rout, double co1, double space, double dir)
+	private boolean processLeft(double width, ArcProto ptype, List<RDESC> rout, double co1, double space, double dir)
 	{
 		boolean firstTime = true;
 		RPATH lastP = null;
 		double offset = startRight;
-		for(Iterator it = rout.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = rout.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			if (rd.from.side != RPOINT.SIDE2)
@@ -602,14 +601,14 @@ public class River
 		return false;
 	}
 
-	private boolean processRight(double width, ArcProto ptype, List rout, double co1, double space, int dir)
+	private boolean processRight(double width, ArcProto ptype, List<RDESC> rout, double co1, double space, int dir)
 	{
 		boolean firstTime = true;
 		RPATH lastP = null;
 		double offset = startLeft;
 
 		reverse(rout);
-		for(Iterator it = rout.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = rout.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			if (rd.from.side != RPOINT.SIDE4)
@@ -716,7 +715,7 @@ public class River
 		return rp;
 	}
 
-	private void reverse(List p)
+	private void reverse(List<RDESC> p)
 	{
 		int total = p.size();
 		if (total <= 1) return;
@@ -724,21 +723,21 @@ public class River
 		for(int i=0; i<total/2; i++)
 		{
 			int otherI = total - i - 1;
-			Object early = p.get(i);
-			Object late = p.get(otherI);
+			RDESC early = (RDESC)p.get(i);
+			RDESC late = (RDESC)p.get(otherI);
 			p.set(i, late);
 			p.set(otherI, early);
 		}
 	}
 
-	private boolean checkStructuredPoints(List right, List left, double co1, double width, double space)
+	private boolean checkStructuredPoints(List<RDESC> right, List<RDESC> left, double co1, double width, double space)
 	{
 		boolean fromSide1 = false;
 		boolean toSide2 = false;
 		double botOffs2 = 0;
 
 		// ensure ordering is correct
-		for(Iterator it = right.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = right.iterator(); it.hasNext(); )
 		{
 			RDESC r = (RDESC)it.next();
 			switch (r.from.side)
@@ -778,7 +777,7 @@ public class River
 		}
 
 		boolean fromSide2 = false;   boolean toSide3 = false;   boolean toSide4 = false;   double botOffs4 = 0;
-		for(Iterator it = left.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = left.iterator(); it.hasNext(); )
 		{
 			RDESC l = (RDESC)it.next();
 			switch (l.from.side)
@@ -827,11 +826,11 @@ public class River
 		return true;
 	}
 
-	private void structurePoints(List listr)
+	private void structurePoints(List<RDESC> listr)
 	{
-		rightP = new ArrayList();
-		leftP = new ArrayList();
-		for(Iterator it = listr.iterator(); it.hasNext(); )
+		rightP = new ArrayList<RDESC>();
+		leftP = new ArrayList<RDESC>();
+		for(Iterator<RDESC> it = listr.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
 			if (rd.to.first >= rd.from.first) rightP.add(rd);
@@ -839,7 +838,7 @@ public class River
 		}
 	}
 
-	private boolean checkPoints(List rdescList, double width, double space)
+	private boolean checkPoints(List<RDESC> rdescList, double width, double space)
 	{
 		int numRDesc = rdescList.size();
 		if (numRDesc == 0)
@@ -933,7 +932,7 @@ public class River
 		RPOINT lastFrom = null;   RPOINT lastTo = null;
 
 		// transform points and clip to boundary
-		for(Iterator it = rdescList.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = rdescList.iterator(); it.hasNext(); )
 		{
 			RDESC lList = (RDESC)it.next();
 			lList.from.first = (lList.from.x * tMatrix.t11) + (lList.from.y * tMatrix.t21);
@@ -988,9 +987,9 @@ public class River
 		}
 	}
 
-	private void setWiresToRails(List lists)
+	private void setWiresToRails(List<RDESC> lists)
 	{
-		for(Iterator it = lists.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = lists.iterator(); it.hasNext(); )
 		{
 			RDESC r = (RDESC)it.next();
 			double fVal = pointVal(r.from, routDirection);
@@ -1107,7 +1106,7 @@ public class River
 	 * increment the flag bits (temp1) IN the prototype thus indicating that
 	 * this river route point is allowed to connect to it
 	 */
-	private void sumUp(PortInst pi, HashMap arcProtoUsage)
+	private void sumUp(PortInst pi, HashMap<ArcProto,GenMath.MutableInteger> arcProtoUsage)
 	{
 		ArcProto [] possibleArcs = pi.getPortProto().getBasePort().getConnections();
 		for(int i=0; i<possibleArcs.length; i++)
@@ -1144,7 +1143,7 @@ public class River
 	/**
 	 * figure out the wires to route at all
 	 */
-	private void addWire(List list, ArcInst ai, HashSet arcsSeen)
+	private void addWire(List<RDESC> list, ArcInst ai, HashSet<ArcInst> arcsSeen)
 	{
 		if (!isInterestingArc(ai, arcsSeen)) return;
 
@@ -1155,7 +1154,7 @@ public class River
 			NodeInst ni = ae1.getPortInst(e1).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				oAi = con.getArc();
@@ -1173,7 +1172,7 @@ public class River
 			NodeInst ni = ae2.getPortInst(e2).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				oAi = con.getArc();
@@ -1279,16 +1278,16 @@ public class River
 	        }
         }
 
-		HashSet arcsToDelete = new HashSet();
-		HashSet nodesToDelete = new HashSet();
-		for(Iterator it = rightP.iterator(); it.hasNext(); )
+		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
+		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
+		for(Iterator<RDESC> it = rightP.iterator(); it.hasNext(); )
 		{
 			RDESC q = (RDESC)it.next();
 			makeGeometry(q, cell);
 			markToBeDeleted(q.unroutedWire1, arcsToDelete, nodesToDelete);
 			if (q.unroutedWire1 != q.unroutedWire2) markToBeDeleted(q.unroutedWire2, arcsToDelete, nodesToDelete);
 		}
-		for(Iterator it = leftP.iterator(); it.hasNext(); )
+		for(Iterator<RDESC> it = leftP.iterator(); it.hasNext(); )
 		{
 			RDESC q = (RDESC)it.next();
 			makeGeometry(q, cell);
@@ -1298,7 +1297,7 @@ public class River
 		killWires(cell, arcsToDelete, nodesToDelete);
 	}
 
-	private void markToBeDeleted(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
+	private void markToBeDeleted(ArcInst ai, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
 	{
 		if (!isInterestingArc(ai, arcsToDelete)) return;
 
@@ -1309,7 +1308,7 @@ public class River
 			NodeInst ni = ae.getPortInst(e).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				oAi = con.getArc();
@@ -1327,7 +1326,7 @@ public class River
 			NodeInst ni = ae.getPortInst(e).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				oAi = con.getArc();
@@ -1341,7 +1340,7 @@ public class River
 		}
 	}
 
-	private void setFlags(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
+	private void setFlags(ArcInst ai, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
 	{
 		arcsToDelete.add(ai);
 		NodeInst niH = ai.getHeadPortInst().getNodeInst();
@@ -1350,14 +1349,14 @@ public class River
 		if (isUnroutedPin(niT)) nodesToDelete.add(niT);
 	}
 
-	private void killWires(Cell cell, HashSet arcsToDelete, HashSet nodesToDelete)
+	private void killWires(Cell cell, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
 	{
-		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (isUnroutedPin(ni))

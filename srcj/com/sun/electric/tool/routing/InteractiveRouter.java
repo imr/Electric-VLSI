@@ -234,7 +234,7 @@ public abstract class InteractiveRouter extends Router {
         if (!started) startInteractiveRoute(wnd);
         wnd.getHighlighter().clear();
         //wnd.getHighlighter().setHighlightList(startRouteHighlights);
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.addHighlightArea(wnd.getHighlighter());
         }

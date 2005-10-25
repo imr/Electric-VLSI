@@ -175,8 +175,8 @@ public final class HierarchyEnumerator {
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
-	private List netIdToNetDesc = new ArrayList();
-    private HashMap/*<Cell,CellShorts>*/cellShortsMap = new HashMap/*<Cell,CellShorts>*/();
+	private List<NetDescription> netIdToNetDesc = new ArrayList<NetDescription>();
+    private HashMap<Cell,CellShorts>cellShortsMap = new HashMap<Cell,CellShorts>();
 
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
@@ -528,14 +528,14 @@ public final class HierarchyEnumerator {
 		private int[] netNdxToNetID;
 		private int[][] exportNdxToNetIDs;
 		private AffineTransform xformToRoot;
-		private List netIdToNetDesc;
+		private List<NetDescription> netIdToNetDesc;
 		private CellInfo parentInfo;
 
 		// package private
 		void init(Nodable parentInst, Cell cell, CellShorts shorts, VarContext context,
 			      Netlist netlist,
 		          int[] netToNetID, int[][] exportNdxToNetIDs, 
-				  AffineTransform xformToRoot, List netIdToNetDesc,	
+				  AffineTransform xformToRoot, List<NetDescription> netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
@@ -972,13 +972,13 @@ public final class HierarchyEnumerator {
      * for progress tracking of hierarchical netlisters and writers.
      */
     public static int getNumUniqueChildCells(Cell cell) {
-        HashMap uniqueChildCells = new HashMap();
+        HashMap<Cell,Cell> uniqueChildCells = new HashMap<Cell,Cell>();
         hierCellsRecurse(cell, uniqueChildCells);
         return uniqueChildCells.size();
     }
         
     /** Recursive method used to traverse down hierarchy */
-    private static void hierCellsRecurse(Cell cell, HashMap uniqueCells) {
+    private static void hierCellsRecurse(Cell cell, HashMap<Cell,Cell> uniqueCells) {
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();) {
             CellUsage u = (CellUsage) uit.next();
             Cell subCell = u.getProto();

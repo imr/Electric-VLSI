@@ -123,10 +123,10 @@ public abstract class Router {
 
         int arcsCreated = 0;
         int nodesCreated = 0;
-        HashMap arcsCreatedMap = new HashMap();
-        HashMap nodesCreatedMap = new HashMap();
+        HashMap<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
+        HashMap<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
         // pass 1: build all newNodes
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             if (e.getAction() == RouteElement.RouteElementAction.newNode) {
                 if (e.isDone()) continue;
@@ -142,7 +142,7 @@ public abstract class Router {
             }
         }
         // pass 2: do all other actions (deletes, newArcs)
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
@@ -158,8 +158,8 @@ public abstract class Router {
         }
 
         if (verbose) {
-            List arcEntries = new ArrayList(arcsCreatedMap.keySet());
-            List nodeEntries = new ArrayList(nodesCreatedMap.keySet());
+            List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
+            List<NodeProto> nodeEntries = new ArrayList<NodeProto>(nodesCreatedMap.keySet());
             if (arcEntries.size() == 0 && nodeEntries.size() == 0) {
                 System.out.println("Nothing wired");
             } else if (arcEntries.size() == 1 && nodeEntries.size() == 0) {
@@ -176,12 +176,12 @@ public abstract class Router {
                 System.out.println("Wiring added:");
                 Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
                 Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
-                for (Iterator it = arcEntries.iterator(); it.hasNext();) {
+                for (Iterator<ArcProto> it = arcEntries.iterator(); it.hasNext();) {
                     ArcProto ap = (ArcProto)it.next();
                     Integer i = (Integer)arcsCreatedMap.get(ap);
                     System.out.println("    "+i+" "+ap.describe()+" arcs");
                 }
-                for (Iterator it = nodeEntries.iterator(); it.hasNext();) {
+                for (Iterator<NodeProto> it = nodeEntries.iterator(); it.hasNext();) {
                     NodeProto np = (NodeProto)it.next();
                     Integer i = (Integer)nodesCreatedMap.get(np);
                     System.out.println("    "+i+" "+np.describe(true)+" nodes");
@@ -278,16 +278,16 @@ public abstract class Router {
             if (pp1.connectsTo(curAp)) return curAp;
             // otherwise, find one that does
             Technology tech = pp1.getParent().getTechnology();
-            for(Iterator it = tech.getArcs(); it.hasNext(); )
+            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
             {
                 ArcProto ap = (ArcProto)it.next();
                 if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
             }
             // none in current technology: try any technology
-            for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+            for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
             {
                 Technology anyTech = (Technology)it.next();
-                for(Iterator aIt = anyTech.getArcs(); aIt.hasNext(); )
+                for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
                     ArcProto ap = (ArcProto)aIt.next();
                     if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
@@ -300,16 +300,16 @@ public abstract class Router {
             if (pp1.connectsTo(curAp) && pp2.connectsTo(curAp)) return curAp;
             // find one that works if current doesn't
             Technology tech = pp1.getParent().getTechnology();
-            for(Iterator it = tech.getArcs(); it.hasNext(); )
+            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
             {
                 ArcProto ap = (ArcProto)it.next();
                 if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
             }
             // none in current technology: try any technology
-            for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+            for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
             {
                 Technology anyTech = (Technology)it.next();
-                for(Iterator aIt = anyTech.getArcs(); aIt.hasNext(); )
+                for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
                     ArcProto ap = (ArcProto)aIt.next();
                     if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
@@ -327,7 +327,7 @@ public abstract class Router {
         // get widest wire connected to anything in route
         double width = getArcWidthToUse(route, ap);
         // set all new arcs of that type to use that width
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
             if (re instanceof RouteElementArc) {
                 RouteElementArc reArc = (RouteElementArc)re;
@@ -346,7 +346,7 @@ public abstract class Router {
      */
     protected static double getArcWidthToUse(Route route, ArcProto ap) {
         double widest = ap.getDefaultWidth();
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
             double width = getArcWidthToUse(re, ap);
             if (width > widest) widest = width;
@@ -370,7 +370,7 @@ public abstract class Router {
 
         // get all ArcInsts on pi, find largest
         double width = ap.getDefaultWidth();
-        for (Iterator it = pi.getConnections(); it.hasNext(); ) {
+        for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
             Connection c = (Connection)it.next();
             ArcInst ai = c.getArc();
             if (ai.getProto() != ap) continue;
@@ -460,7 +460,7 @@ public abstract class Router {
         if (re.getAction() == RouteElement.RouteElementAction.existingPortInst) {
             RouteElementPort rePort = (RouteElementPort)re;
             PortInst pi = rePort.getPortInst();
-            for (Iterator it = pi.getConnections(); it.hasNext(); ) {
+            for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
                 Connection conn = (Connection)it.next();
                 ArcInst arc = conn.getArc();
 
@@ -482,7 +482,7 @@ public abstract class Router {
         if (re.getAction() == RouteElement.RouteElementAction.newNode) {
             RouteElementPort rePort = (RouteElementPort)re;
             Dimension2D dim = null;
-            for (Iterator it = rePort.getNewArcs(); it.hasNext(); ) {
+            for (Iterator<RouteElement> it = rePort.getNewArcs(); it.hasNext(); ) {
                 RouteElement newArcRE = (RouteElement)it.next();
                 Dimension2D d = getContactSize(newArcRE);
                 if (dim == null) dim = d;

@@ -54,7 +54,7 @@ public class Place
 		/** average height of inst */				int				avgHeight;
 		/** number of rows */						int				numRows;
 		/** target size of each row */				int				sizeRows;
-		/** rows of placed cells */					List            theRows;
+		/** rows of placed cells */					List<RowList>   theRows;
 		/** start of cell list */					NBPlace			plist;
 		/** end of cell list */						NBPlace			endList;
 	};
@@ -158,12 +158,12 @@ public class Place
 		place.avgHeight = 0;
 		place.numRows = SilComp.getNumberOfRows();
 		place.sizeRows = 0;
-		place.theRows = new ArrayList();
+		place.theRows = new ArrayList<RowList>();
 		place.plist = null;
 		place.endList = null;
 
 		// create clusters of cells
-		List clusters = createClusters(gnl.curSCCell);
+		List<Cluster> clusters = createClusters(gnl.curSCCell);
 		int numCl = clusters.size();
 		if (numCl == 0)
 		{
@@ -173,7 +173,7 @@ public class Place
 
 		// create a cluster tree node for each cluster
 		ClusterTree nStart = null;
-		for (Iterator it = clusters.iterator(); it.hasNext(); )
+		for (Iterator<Cluster> it = clusters.iterator(); it.hasNext(); )
 		{
 			ClusterTree node = new ClusterTree();
 			node.cluster = (Cluster)it.next();
@@ -260,13 +260,13 @@ public class Place
 	 * @param cell pointer to complex cell.
 	 * @return list of clusters.
 	 */
-	private List createClusters(GetNetlist.SCCell cell)
+	private List<Cluster> createClusters(GetNetlist.SCCell cell)
 	{
 		// find total 'size' and number of all the cells
 		int size = 0;
 		int num = 0;
 		int height = 0;
-		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
+		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
 		{
 			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
 			if (iList.type == GetNetlist.LEAFCELL)
@@ -277,7 +277,7 @@ public class Place
 			}
 		}
 
-		List clusters = new ArrayList();
+		List<Cluster> clusters = new ArrayList<Cluster>();
 		if (num == 0)
 		{
 			System.out.println("WARNING - No leaf cells found for placement");
@@ -301,7 +301,7 @@ public class Place
 		// create cluster list
 		int i = 0;
 		boolean warn = false;
-		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
+		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
 		{
 			GetNetlist.SCNiTree node = (GetNetlist.SCNiTree)it.next();
 			if (node.type != GetNetlist.LEAFCELL)
@@ -341,7 +341,7 @@ public class Place
 		if (nodes.next == null) return nodes;
 
 		// create list of connections between nodes
-		List connectList = cTreeNumConnects(nodes, cell);
+		List<ClConnect> connectList = cTreeNumConnects(nodes, cell);
 
 		// pair by number of connects
 		ClusterTree nStart = cTreePair(nodes, connectList);
@@ -355,9 +355,9 @@ public class Place
 	 * @param nodes List of current nodes.
 	 * @param cell Pointer to parent cell.
 	 */
-	private List cTreeNumConnects(ClusterTree nodes, GetNetlist.SCCell cell)
+	private List<ClConnect> cTreeNumConnects(ClusterTree nodes, GetNetlist.SCCell cell)
 	{
-		List connections = new ArrayList();
+		List<ClConnect> connections = new ArrayList<ClConnect>();
 		int nodeNum = 0;
 
 		// go through list of nodes
@@ -388,12 +388,10 @@ public class Place
         return connections;
 	}
 
-    private static class ConnectsByCount implements Comparator
+    private static class ConnectsByCount implements Comparator<ClConnect>
     {
-        public int compare(Object o1, Object o2)
+        public int compare(ClConnect c1, ClConnect c2)
         {
-        	ClConnect c1 = (ClConnect)o1;
-        	ClConnect c2 = (ClConnect)o2;
             return c2.count - c1.count;
         }
     }
@@ -453,7 +451,7 @@ public class Place
 	 * @param nConnects pointer to start of list of connections.
 	 * @return new list.
 	 */
-	private ClusterTree cTreePair(ClusterTree nodes, List connectList)
+	private ClusterTree cTreePair(ClusterTree nodes, List<ClConnect> connectList)
 	{
 		// clear the placed flag in all tree nodes
 		for (ClusterTree tPtr = nodes; tPtr != null; tPtr = tPtr.next)
@@ -547,9 +545,9 @@ public class Place
 	 * @param connect start of sorted list.
 	 * @return pointer to best pair.
 	 */
-	private ClConnect bestPair(List connectList, int index)
+	private ClConnect bestPair(List<ClConnect> connectList, int index)
 	{
-		List sList = new ArrayList();
+		List<Temp> sList = new ArrayList<Temp>();
 		ClConnect connect = (ClConnect)connectList.get(index);
 		for(int oIndex=index; oIndex<connectList.size(); oIndex++)
 		{
@@ -562,7 +560,7 @@ public class Place
 			for(int i=0; i<2; i++)
 			{
 				Temp nList = null;
-				for(Iterator it = sList.iterator(); it.hasNext(); )
+				for(Iterator<Temp> it = sList.iterator(); it.hasNext(); )
 				{
 					Temp nl = (Temp)it.next();
 					if (nl.node == nConnect.node[i])
@@ -587,7 +585,7 @@ public class Place
 
 		// find the minimum count
 		Temp best = null;
-		for(Iterator it = sList.iterator(); it.hasNext(); )
+		for(Iterator<Temp> it = sList.iterator(); it.hasNext(); )
 		{
 			Temp nList = (Temp)it.next();
 			if (best == null || nList.count <= best.count) best = nList;
@@ -835,7 +833,7 @@ public class Place
 	 * @param row pointer to the current row.
 	 * @param place pointer to placement information.
 	 */
-	private void addClusterToRow(Cluster cluster, List theRows, SCPlace place)
+	private void addClusterToRow(Cluster cluster, List<RowList> theRows, SCPlace place)
 	{
 		if (cluster.node.type != GetNetlist.LEAFCELL) return;
 		NBPlace newPlace = new NBPlace();
@@ -894,7 +892,7 @@ public class Place
 	private void netBalance(GetNetlist.SCCell cell)
 	{
 		// create channel list
-		List channels = new ArrayList();
+		List<Channel> channels = new ArrayList<Channel>();
 		int i = 0;
 		NBTrunk sameTrunk = null;
 		do
@@ -959,10 +957,10 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @param channels pointer to start of channel list.
 	 */
-	private void nBAllCells(GetNetlist.SCCell cell, List channels)
+	private void nBAllCells(GetNetlist.SCCell cell, List<Channel> channels)
 	{
 		// process cell
-		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
+		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
 		{
 			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
 			if (iList.type == GetNetlist.LEAFCELL)
@@ -976,12 +974,12 @@ public class Place
 	 * @param channels pointer to channel list of trunks.
 	 * @param cell parent complex cell.
 	 */
-	private void nBDoCell(NBPlace place, List channels, GetNetlist.SCCell cell)
+	private void nBDoCell(NBPlace place, List<Channel> channels, GetNetlist.SCCell cell)
 	{
 		if (place == null) return;
 
 		// find cost at present location and set as current minimum
-		List theRows = cell.placement.theRows;
+		List<RowList> theRows = cell.placement.theRows;
 		int minCost = nBCost(theRows, channels, cell);
 		int pos = 0;
 
@@ -1076,10 +1074,10 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @return cost.
 	 */
-	private int nBCost(List theRows, List channels, GetNetlist.SCCell cell)
+	private int nBCost(List<RowList> theRows, List<Channel> channels, GetNetlist.SCCell cell)
 	{
 		// initialize all trunks
-		for(Iterator it = channels.iterator(); it.hasNext(); )
+		for(Iterator<Channel> it = channels.iterator(); it.hasNext(); )
 		{
 			Channel nChan = (Channel)it.next();
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
@@ -1171,7 +1169,7 @@ public class Place
 		int cost = 0;
 
 		// calculate horizontal costs
-		for(Iterator it = channels.iterator(); it.hasNext(); )
+		for(Iterator<Channel> it = channels.iterator(); it.hasNext(); )
 		{
 			nChan = (Channel)it.next();
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
@@ -1232,7 +1230,7 @@ public class Place
 	 * @param place pointer to place to be removed.
 	 * @param rows pointer to start of row list.
 	 */
-	private void nBRemove(NBPlace place, List theRows)
+	private void nBRemove(NBPlace place, List<RowList> theRows)
 	{
 		NBPlace oldNext = place.next;
 		NBPlace oldLast = place.last;
@@ -1242,7 +1240,7 @@ public class Place
 			place.next.last = oldLast;
 
 		// check if row change
-		for(Iterator it = theRows.iterator(); it.hasNext(); )
+		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			if (row.start == place)
@@ -1275,7 +1273,7 @@ public class Place
 	 * @param oldPlace pointer to place to be inserted before.
 	 * @param rows start of list of row markers.
 	 */
-	private void nBInsertBefore(NBPlace place, NBPlace oldPlace, List theRows)
+	private void nBInsertBefore(NBPlace place, NBPlace oldPlace, List<RowList> theRows)
 	{
 		place.next = oldPlace;
 		if (oldPlace != null)
@@ -1290,7 +1288,7 @@ public class Place
 		}
 
 		// check if row change
-		for(Iterator it = theRows.iterator(); it.hasNext(); )
+		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
@@ -1318,7 +1316,7 @@ public class Place
 	 * @param oldPlace pointer to place to be inserted after.
 	 * @param rows start of list of row markers.
 	 */
-	private void nBInsertAfter(NBPlace place, NBPlace oldPlace, List theRows)
+	private void nBInsertAfter(NBPlace place, NBPlace oldPlace, List<RowList> theRows)
 	{
 		place.last = oldPlace;
 		if (oldPlace != null)
@@ -1334,7 +1332,7 @@ public class Place
 
 		// check if row change
 		RowList rows = (RowList)theRows.get(0);
-		for (Iterator it = theRows.iterator(); it.hasNext(); )
+		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
@@ -1360,7 +1358,7 @@ public class Place
 	 * @param rows pointer to start of row list.
 	 * @param place pointer to global placement structure.
 	 */
-	private void nBRebalanceRows(List theRows, SCPlace place)
+	private void nBRebalanceRows(List<RowList> theRows, SCPlace place)
 	{
 		int maxRowSize = place.sizeRows + (place.avgSize >> 1);
 		int rowPos = 0;
@@ -1397,9 +1395,9 @@ public class Place
 	 * Method to number the x position of all the cells in their rows.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private void numberPlacement(List theRows)
+	private void numberPlacement(List<RowList> theRows)
 	{
-		for (Iterator it = theRows.iterator(); it.hasNext(); )
+		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			int xPos = 0;
@@ -1425,9 +1423,9 @@ public class Place
 	 * of odd rows and breaking the snake pattern by row.
 	 * @param rows pointer to start of row list.
 	 */
-	private void reorderRows(List theRows)
+	private void reorderRows(List<RowList> theRows)
 	{
-		for(Iterator it = theRows.iterator(); it.hasNext(); )
+		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			if ((row.rowNum % 2) != 0)
@@ -1455,9 +1453,9 @@ public class Place
 	 * Method to print the cells in their rows of placement.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private void showPlacement(List theRows)
+	private void showPlacement(List<RowList> theRows)
 	{
-		for (Iterator it = theRows.iterator(); it.hasNext(); )
+		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
 		{
 			RowList row = (RowList)it.next();
 			System.out.println("For Row #" + row.rowNum + ", size " + row.rowSize+ ":");

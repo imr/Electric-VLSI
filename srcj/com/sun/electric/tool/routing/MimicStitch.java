@@ -163,8 +163,8 @@ public class MimicStitch
 			// find the ends of arcs that do not attach to the intermediate pins
 			ArcProto proto = lastActivity.createdArcs[0].getProto();
 			Cell parent = lastActivity.createdArcs[0].getParent();
-			HashSet gotOne = new HashSet();
-			HashSet gotMany = new HashSet();
+			HashSet<NodeInst> gotOne = new HashSet<NodeInst>();
+			HashSet<NodeInst> gotMany = new HashSet<NodeInst>();
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
 			{
 				ArcInst ai = lastActivity.createdArcs[i];
@@ -250,8 +250,8 @@ public class MimicStitch
 
 		// look for a similar situation to delete
 		Cell cell = activity.deletedNodes[0].getParent();
-		List arcKills = new ArrayList();
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		List<ArcInst> arcKills = new ArrayList<ArcInst>();
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			// arc must be of the same type
@@ -291,9 +291,9 @@ public class MimicStitch
 	 */
 	private static class MimicUnstitchJob extends Job
 	{
-		private List arcKills;
+		private List<ArcInst> arcKills;
 
-		private MimicUnstitchJob(List arcKills)
+		private MimicUnstitchJob(List<ArcInst> arcKills)
 		{
 			super("Mimic-Unstitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.arcKills = arcKills;
@@ -305,7 +305,7 @@ public class MimicStitch
 		{
 			// now delete those arcs
 			int deleted = 0;
-			for(Iterator it = arcKills.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = arcKills.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 
@@ -400,17 +400,17 @@ public class MimicStitch
 		}
 
 		// make list of possible arc connections
-		List possibleArcs = new ArrayList();
+		List<PossibleArc> possibleArcs = new ArrayList<PossibleArc>();
 
 		// count the number of other arcs on the ends
 		int con1 = endPi[0].getNodeInst().getNumConnections() + endPi[1].getNodeInst().getNumConnections() - 2;
 
 		// precompute polygon information about every port in the cell
-		HashMap cachedPortPoly = new HashMap();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		HashMap<PortInst,Poly> cachedPortPoly = new HashMap<PortInst,Poly>();
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				if (oProto != null)
@@ -458,13 +458,13 @@ public class MimicStitch
 			double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
 
 			// now search every node in the cell
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				Rectangle2D bounds = ni.getBounds();
 
 				// now look for another node that matches the situation
-				for(Iterator oIt = cell.getNodes(); oIt.hasNext(); )
+				for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
 				{
 					NodeInst oNi = (NodeInst)oIt.next();
 					Rectangle2D oBounds = oNi.getBounds();
@@ -499,7 +499,7 @@ public class MimicStitch
 					}
 
 					// compare each port
-					for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+					for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
 						PortInst pi = (PortInst)pIt.next();
 						PortProto pp = pi.getPortProto();
@@ -527,7 +527,7 @@ public class MimicStitch
 						Point2D xy0 = new Point2D.Double(x0, y0);
 						Point2D want1 = new Point2D.Double(wantX1, wantY1);
 
-						for(Iterator oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
+						for(Iterator<PortInst> oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
 						{
 							PortInst oPi = (PortInst)oPIt.next();
 							PortProto oPp = oPi.getPortProto();
@@ -551,7 +551,7 @@ public class MimicStitch
 							if (x0 != wantX1 || y0 != wantY1)
 								desiredAngle = DBMath.figureAngle(xy0, want1);
 							PortInst piNet0 = null;
-							for(Iterator pII = ni.getConnections(); pII.hasNext(); )
+							for(Iterator<Connection> pII = ni.getConnections(); pII.hasNext(); )
 							{
 								Connection con = (Connection)pII.next();
 								PortInst aPi = con.getPortInst();
@@ -587,7 +587,7 @@ public class MimicStitch
 							if (x0 != wantX1 || y0 != wantY1)
 								desiredAngle = DBMath.figureAngle(want1, xy0);
 							PortInst piNet1 = null;
-							for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
+							for(Iterator<Connection> pII = oNi.getConnections(); pII.hasNext(); )
 							{
 								Connection con = (Connection)pII.next();
 								PortInst aPi = con.getPortInst();
@@ -643,7 +643,7 @@ public class MimicStitch
 
 							// see if this combination has already been considered
 							PossibleArc found = null;
-							for(Iterator paIt = possibleArcs.iterator(); paIt.hasNext(); )
+							for(Iterator<PossibleArc> paIt = possibleArcs.iterator(); paIt.hasNext(); )
 							{
 								PossibleArc pa = (PossibleArc)paIt.next();
 								if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == oPp)
@@ -692,8 +692,8 @@ public class MimicStitch
 			for(int j=0; j<situations.length; j++)
 			{
 				// see if this situation is possible
-				List allRoutes = new ArrayList();
-				for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
+				List<Route> allRoutes = new ArrayList<Route>();
+				for(Iterator<PossibleArc> it = possibleArcs.iterator(); it.hasNext(); )
 				{
 					PossibleArc pa = (PossibleArc)it.next();
 					if (pa.situation != situations[j]) continue;
@@ -761,10 +761,10 @@ public class MimicStitch
 		}
 	}
 
-	private static void runTheWires(List allRoutes, Highlighter highlighter, boolean redisplay)
+	private static void runTheWires(List<Route> allRoutes, Highlighter highlighter, boolean redisplay)
 	{
 		// create the routes
-		for (Iterator it = allRoutes.iterator(); it.hasNext(); )
+		for (Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
 		{
 			Route route = (Route)it.next();
 			RouteElement re = (RouteElement)route.get(0);
@@ -779,11 +779,11 @@ public class MimicStitch
 	 */
 	private static class MimicWireJob extends Job
 	{
-		private List allRoutes;
+		private List<Route> allRoutes;
 		private Highlighter highlighter;
 		private boolean redisplay;
 
-		private MimicWireJob(List allRoutes, Highlighter highlighter, boolean redisplay)
+		private MimicWireJob(List<Route> allRoutes, Highlighter highlighter, boolean redisplay)
 		{
 			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.allRoutes = allRoutes;
@@ -808,11 +808,11 @@ public class MimicStitch
 	private static class MimicInteractive implements Runnable
 	{
 		private Cell cell;
-		private List possibleArcs;
+		private List<PossibleArc> possibleArcs;
 		private double prefX, prefY;
 		private Highlighter highlighter;
 
-		private MimicInteractive(Cell cell, List possibleArcs, double prefX, double prefY, Highlighter highlighter)
+		private MimicInteractive(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY, Highlighter highlighter)
 	    {
 	    	this.cell = cell;
 	    	this.possibleArcs = possibleArcs;
@@ -838,14 +838,15 @@ public class MimicStitch
 	 * @param prefX preferred X coordinate when arcs bend.
 	 * @param prefY preferred Y coordinate when arcs bend.
 	 */
-	private static void presentNextSituation(int count, int situationNumber, List possibleArcs, Cell cell, Highlighter highlighter, double prefX, double prefY)
+	private static void presentNextSituation(int count, int situationNumber, List<PossibleArc> possibleArcs,
+		Cell cell, Highlighter highlighter, double prefX, double prefY)
 	{
 		// find the next situation
  		for(int j=situationNumber; j<situations.length; j++)
 		{
 			// make a list of mimics that match the situation
-			List allRoutes = new ArrayList();
-			for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
+			List<Route> allRoutes = new ArrayList<Route>();
+			for(Iterator<PossibleArc> it = possibleArcs.iterator(); it.hasNext(); )
 			{
 				PossibleArc pa = (PossibleArc)it.next();
 				if (pa.situation != situations[j]) continue;
@@ -873,7 +874,7 @@ public class MimicStitch
 
 			// show the wires to be created
 			highlighter.clear();
-			for(Iterator it = allRoutes.iterator(); it.hasNext(); )
+			for(Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
 			{
 				Route route = (Route)it.next();
 
@@ -909,16 +910,16 @@ public class MimicStitch
 	private static class MimicDialog extends EDialog
 	{
 		private int count;
-		private List allRoutes;
+		private List<Route> allRoutes;
 		private List<Highlight> saveHighlights;
 		private Highlighter highlighter;
 		private int nextSituationNumber;
-		private List possibleArcs;
+		private List<PossibleArc> possibleArcs;
 		private Cell cell;
 		private double prefX, prefY;
 
-		private MimicDialog(Frame parent, int count, List allRoutes, List<Highlight> saveHighlights, Highlighter highlighter, int nextSituationNumber,
-			List possibleArcs, Cell cell, double prefX, double prefY)
+		private MimicDialog(Frame parent, int count, List<Route> allRoutes, List<Highlight> saveHighlights, Highlighter highlighter, int nextSituationNumber,
+			List<PossibleArc> possibleArcs, Cell cell, double prefX, double prefY)
 		{
 			super(parent, false);
 			this.count = count;

@@ -255,18 +255,18 @@ public class GenMath
 			double x1 = points[i].getX();
 			y1 = points[i].getY();
 
-			/* triangulate around the polygon */
+			// triangulate around the polygon
 			double p1 = x1 - x0;
 			double p2 = y0 + y1;
 			double partial = p1 * p2;
-			area += partial / 2.0f;
+			area += partial / 2.0;
 			x0 = x1;
 			y0 = y1;
 		}
 		double p1 = points[0].getX() - x0;
 		double p2 = points[0].getY() + y1;
 		double partial = p1 * p2;
-		area += partial / 2.0f;
+		area += partial / 2.0;
 		return Math.abs(area);
 	}
 

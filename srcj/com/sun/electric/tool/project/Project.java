@@ -122,11 +122,11 @@ public class Project extends Listener
 	private static final String PROJECTFILE = "project.proj";
 
 	/** the Project tool. */					private static Project tool = new Project();
-	/** the users */							private static HashMap usersMap;
-	/** all libraries read in */				private static HashMap libraryProjectInfo = new HashMap();
+	/** the users */							private static HashMap<String,String> usersMap;
+	/** all libraries read in */				private static HashMap<Library,ProjectLibrary> libraryProjectInfo = new HashMap<Library,ProjectLibrary>();
 	/** nonzero if the system is active */		private static boolean pmActive;
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
-	/** check modules */						private static List    fCheckList = new ArrayList();
+	/** check modules */						private static List<FCheck>    fCheckList = new ArrayList<FCheck>();
 
 	/**
 	 * Each combination of cell and change-batch is queued by one of these objects.
@@ -181,17 +181,17 @@ public class Project extends Listener
 	 */
 	private static class ProjectLibrary
 	{
-		/** the project directory */				String           projDirectory;
-		/** Library associated with project file */	Library          lib;
-		/** all cell records in the project */		List             allCells;
-		/** cell records by Cell in the project */	HashMap          byCell;
-		/** I/O channel for project file */			RandomAccessFile raf;
-		/** Lock on file when updating it */		FileLock         lock;
+		/** the project directory */				String                    projDirectory;
+		/** Library associated with project file */	Library                   lib;
+		/** all cell records in the project */		List<ProjectCell>         allCells;
+		/** cell records by Cell in the project */	HashMap<Cell,ProjectCell> byCell;
+		/** I/O channel for project file */			RandomAccessFile          raf;
+		/** Lock on file when updating it */		FileLock                  lock;
 
 		private ProjectLibrary()
 		{
-			allCells = new ArrayList();
-			byCell = new HashMap();
+			allCells = new ArrayList<ProjectCell>();
+			byCell = new HashMap<Cell,ProjectCell>();
 		}
 
 		/**
@@ -235,7 +235,7 @@ public class Project extends Listener
 
 		private ProjectCell findProjectCellByNameView(String name, View view)
 		{
-			for(Iterator it = allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cellName.equals(name) && pc.cellView == view) return pc;
@@ -245,7 +245,7 @@ public class Project extends Listener
 
 		private ProjectCell findProjectCellByNameViewVersion(String name, View view, int version)
 		{
-			for(Iterator it = allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cellName.equals(name) && pc.cellView == view && pc.cellVersion == version) return pc;
@@ -407,7 +407,7 @@ public class Project extends Listener
 				{
 					fc.position(0);
 					fc.truncate(0);
-					for(Iterator it = allCells.iterator(); it.hasNext(); )
+					for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 					{
 						ProjectCell pc = (ProjectCell)it.next();
 						String line = "::" + pc.cellName + ":" + pc.cellVersion + "-" +
@@ -517,7 +517,7 @@ public class Project extends Listener
 				pc.comment = userLine.substring(colonPos[5]+1);
 
 				// check for duplication
-				for(Iterator it = allCells.iterator(); it.hasNext(); )
+				for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 				{
 					ProjectCell opc = (ProjectCell)it.next();
 					if (!opc.cellName.equalsIgnoreCase(pc.cellName)) continue;
@@ -554,8 +554,8 @@ public class Project extends Listener
 			}
 
 			// determine the most recent views
-			HashMap mostRecent = new HashMap();
-			for(Iterator it = allCells.iterator(); it.hasNext(); )
+			HashMap<String,ProjectCell> mostRecent = new HashMap<String,ProjectCell>();
+			for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				String cellEntry = pc.describe();
@@ -563,7 +563,7 @@ public class Project extends Listener
 				if (recent != null && recent.cellVersion > pc.cellVersion) continue;
 				mostRecent.put(cellEntry, pc);
 			}
-			for(Iterator it = allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				String cellEntry = pc.describe();
@@ -669,7 +669,7 @@ public class Project extends Listener
 	public static void checkIn(Cell cell)
 	{
 		pmActive = true;
-		HashMap cellsMarked = markRelatedCells(cell);
+		HashMap<Cell,MutableInteger> cellsMarked = markRelatedCells(cell);
 		new CheckInJob(cell.getLibrary(), cellsMarked);
 	}
 
@@ -962,7 +962,7 @@ public class Project extends Listener
 	{
 		// scan the library to see if any cells are locked
 		if (ignoreChanges) return;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (cell.getVar(PROJLOCKEDKEY) != null)
@@ -1004,7 +1004,7 @@ public class Project extends Listener
 		int undoneCells = 0;
 		int lowBatch = Integer.MAX_VALUE;
 		String errorMsg = "";
-		for(Iterator it = fCheckList.iterator(); it.hasNext(); )
+		for(Iterator<FCheck> it = fCheckList.iterator(); it.hasNext(); )
 		{
 			FCheck f = (FCheck)it.next();
 			Cell cell = f.entry;
@@ -1121,7 +1121,7 @@ public class Project extends Listener
 		int batchNumber = batch.getBatchNumber();
 
 		// see if the cell is already queued
-		for(Iterator it = fCheckList.iterator(); it.hasNext(); )
+		for(Iterator<FCheck> it = fCheckList.iterator(); it.hasNext(); )
 		{
 			FCheck f = (FCheck)it.next();
 			if (f.entry == cell && f.batchNumber == batchNumber) return;
@@ -1161,8 +1161,8 @@ public class Project extends Listener
 			if (pl.lockProjectFile()) return false;
 
 			// make a list of newer versions of this cell
-			List newerProjectCells = new ArrayList();
-			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+			List<ProjectCell> newerProjectCells = new ArrayList<ProjectCell>();
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cellName.equals(oldVers.getName()) && pc.cellView == oldVers.getView())
@@ -1170,7 +1170,7 @@ public class Project extends Listener
 					if (pc.cellVersion > oldVers.getVersion()) newerProjectCells.add(pc);
 				}
 			}
-			for(Iterator it = newerProjectCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = newerProjectCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.owner.length() == 0)
@@ -1182,7 +1182,7 @@ public class Project extends Listener
 					return false;
 				}
 			}
-			for(Iterator it = newerProjectCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = newerProjectCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				{
@@ -1303,11 +1303,11 @@ public class Project extends Listener
 				System.out.println("Cell " + newVers.describe(true) + " checked out for your use");
 
 				// advise of possible problems with other checkouts higher up in the hierarchy
-				HashMap cellsMarked = new HashMap();
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				HashMap<Cell,MutableInteger> cellsMarked = new HashMap<Cell,MutableInteger>();
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library oLib = (Library)it.next();
-					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						cellsMarked.put(cell, new MutableInteger(0));
@@ -1319,10 +1319,10 @@ public class Project extends Listener
 				while (propagated)
 				{
 					propagated = false;
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 					{
 						Library oLib = (Library)it.next();
-						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1330,7 +1330,7 @@ public class Project extends Listener
 							{
 								propagated = true;
 								val.setValue(2);
-								for(Iterator nIt = cell.getInstancesOf(); nIt.hasNext(); )
+								for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
 								{
 									NodeInst ni = (NodeInst)nIt.next();
 									MutableInteger pVal = (MutableInteger)cellsMarked.get(ni.getParent());
@@ -1342,10 +1342,10 @@ public class Project extends Listener
 				}
 				miNewVers.setValue(0);
 				int total = 0;
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library oLib = (Library)it.next();
-					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1361,10 +1361,10 @@ public class Project extends Listener
 				{
 					System.out.println("*** Warning: the following cells are above this in the hierarchy");
 					System.out.println("*** and are checked out to others.  This may cause problems");
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 					{
 						Library oLib = (Library)it.next();
-						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1375,10 +1375,10 @@ public class Project extends Listener
 				}
 
 				// advise of possible problems with other checkouts lower down in the hierarchy
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library oLib = (Library)it.next();
-					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1390,10 +1390,10 @@ public class Project extends Listener
 				while(propagated)
 				{
 					propagated = false;
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 					{
 						Library oLib = (Library)it.next();
-						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1401,7 +1401,7 @@ public class Project extends Listener
 							{
 								propagated = true;
 								val.setValue(2);
-								for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+								for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 								{
 									NodeInst ni = (NodeInst)nIt.next();
 									if (!(ni.getProto() instanceof Cell)) continue;
@@ -1414,10 +1414,10 @@ public class Project extends Listener
 				}
 				miNewVers.setValue(0);
 				total = 0;
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library oLib = (Library)it.next();
-					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1435,10 +1435,10 @@ public class Project extends Listener
 				{
 					System.out.println("*** Warning: the following cells are below this in the hierarchy");
 					System.out.println("*** and are checked out to others.  This may cause problems");
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 					{
 						Library oLib = (Library)it.next();
-						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
@@ -1482,7 +1482,7 @@ public class Project extends Listener
 
 			ProjectCell cancelled = null;
 			ProjectCell former = null;
-			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
@@ -1586,9 +1586,9 @@ public class Project extends Listener
 	private static class CheckInJob extends Job
 	{
 		private Library lib;
-		private HashMap cellsMarked;
+		private HashMap<Cell,MutableInteger> cellsMarked;
 
-		protected CheckInJob(Library lib, HashMap cellsMarked)
+		protected CheckInJob(Library lib, HashMap<Cell,MutableInteger> cellsMarked)
 		{
 			super("Check in cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
@@ -1609,7 +1609,7 @@ public class Project extends Listener
 
 			// check in the requested cells
 			String cellNames = "";
-			for(Iterator it = cellsMarked.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = cellsMarked.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
@@ -1619,7 +1619,7 @@ public class Project extends Listener
 			}
 
 			String comment = null;
-			for(Iterator it = cellsMarked.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = cellsMarked.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
@@ -1719,8 +1719,8 @@ public class Project extends Listener
 
 			// gather versions found in the project file
 			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(cell.getLibrary());
-			List versions = new ArrayList();
-			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+			List<ProjectCell> versions = new ArrayList<ProjectCell>();
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
@@ -1746,7 +1746,7 @@ public class Project extends Listener
 				Date modDate = new Date(subFile.lastModified());
 				int version = TextUtils.atoi(subFile.getName());
 				boolean found = false;
-				for(Iterator it = versions.iterator(); it.hasNext(); )
+				for(Iterator<ProjectCell> it = versions.iterator(); it.hasNext(); )
 				{
 					ProjectCell pc = (ProjectCell)it.next();
 					if (pc.cellVersion == version)
@@ -1774,7 +1774,7 @@ public class Project extends Listener
 			int numVersions = versions.size();
 			Object [][] data = new Object[numVersions][4];
 			int index = 0;
-			for(Iterator it = versions.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = versions.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				data[index][0] = Integer.toString(pc.cellVersion);
@@ -1851,7 +1851,7 @@ public class Project extends Listener
 
 	        public Object getValueAt(int row, int col) { return data[row][col]; }
 
-	        public Class getColumnClass(int c) { return getValueAt(0, c).getClass(); }
+	        public Class<?> getColumnClass(int c) { return getValueAt(0, c).getClass(); }
 	    }
 	}
 
@@ -2055,7 +2055,7 @@ public class Project extends Listener
 
 			// get all recent cells
 			String userName = getCurrentUserName();
-			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (!pc.latestVersion) continue;
@@ -2101,8 +2101,8 @@ public class Project extends Listener
 			if (needUserName()) return false;
 
 			// make a list of all cells that need to be updated
-			List updatedProjectCells = new ArrayList();
-			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			List<ProjectCell> updatedProjectCells = new ArrayList<ProjectCell>();
+			for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
 				Library lib = (Library)lIt.next();
 				if (lib.isHidden()) continue;
@@ -2114,9 +2114,9 @@ public class Project extends Listener
 			}
 
 			// lock library projects
-			HashSet libsLocked = new HashSet();
+			HashSet<ProjectLibrary> libsLocked = new HashSet<ProjectLibrary>();
 			boolean allLocked = true;
-			for(Iterator it = updatedProjectCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = updatedProjectCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				ProjectLibrary pl = pc.projLib;
@@ -2133,7 +2133,7 @@ public class Project extends Listener
 
 				for(;;)
 				{
-					Iterator it = updatedProjectCells.iterator();
+					Iterator<ProjectCell> it = updatedProjectCells.iterator();
 					if (!it.hasNext()) break;
 					ProjectCell pc = (ProjectCell)it.next();
 					total += updateCellFromRepository(pc, updatedProjectCells);
@@ -2144,7 +2144,7 @@ public class Project extends Listener
 			}
 
 			// relase project file locks and validate all cell locks
-			for(Iterator it = libsLocked.iterator(); it.hasNext(); )
+			for(Iterator<ProjectLibrary> it = libsLocked.iterator(); it.hasNext(); )
 			{
 				ProjectLibrary pl = (ProjectLibrary)it.next();
 				pl.releaseProjectFileLock(false);
@@ -2221,7 +2221,7 @@ public class Project extends Listener
 			setChangeStatus(true);
 
 			// make libraries for every cell
-			for(Iterator it = lib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 
@@ -2265,7 +2265,7 @@ public class Project extends Listener
 			try
 			{
 				PrintStream buffWriter = new PrintStream(new FileOutputStream(projfile));
-				for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+				for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 				{
 					ProjectCell pc = (ProjectCell)it.next();
 					buffWriter.println("::" + pc.cellName + ":" + pc.cellVersion + "-" +
@@ -2393,17 +2393,17 @@ public class Project extends Listener
 			Library lib = cell.getLibrary();
 
 			// make sure the cell is not being used
-			HashSet markedCells = new HashSet();
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			HashSet<Cell> markedCells = new HashSet<Cell>();
+			for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				markedCells.add(ni.getParent());
 			}
 			StringBuffer err = new StringBuffer();
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library oLib = (Library)it.next();
-				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = (Cell)cIt.next();
 					if (markedCells.contains(oCell))
@@ -2429,7 +2429,7 @@ public class Project extends Listener
 
 			// make sure the user has no cells checked-out
 			boolean youOwn = false;
-			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.owner.equals(getCurrentUserName())) { youOwn = true;   break; }
@@ -2437,7 +2437,7 @@ public class Project extends Listener
 			if (youOwn)
 			{
 				StringBuffer infstr = new StringBuffer();
-				for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+				for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 				{
 					ProjectCell pc = (ProjectCell)it.next();
 					if (!pc.owner.equals(getCurrentUserName())) continue;
@@ -2452,11 +2452,11 @@ public class Project extends Listener
 			} else
 			{
 				// find this in the project file
-				List copyList = new ArrayList();
-				for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+				List<ProjectCell> copyList = new ArrayList<ProjectCell>();
+				for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 					copyList.add(it.next());
 				boolean found = false;
-				for(Iterator it = copyList.iterator(); it.hasNext(); )
+				for(Iterator<ProjectCell> it = copyList.iterator(); it.hasNext(); )
 				{
 					ProjectCell pc = (ProjectCell)it.next();
 					if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
@@ -2511,7 +2511,7 @@ public class Project extends Listener
 	{
 		if (usersMap == null)
 		{
-			usersMap = new HashMap();
+			usersMap = new HashMap<String,String>();
 			String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
 			URL url = TextUtils.makeURLToFile(userFile);
 			try
@@ -2552,7 +2552,7 @@ public class Project extends Listener
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(userFile)));
 
-			for(Iterator it = usersMap.keySet().iterator(); it.hasNext(); )
+			for(Iterator<String> it = usersMap.keySet().iterator(); it.hasNext(); )
 			{
 				String userName = (String)it.next();
 				String encryptedPassword = (String)usersMap.get(userName);
@@ -2570,7 +2570,7 @@ public class Project extends Listener
 
 	private static void validateLocks(Library lib)
 	{
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			ProjectCell pc = ProjectCell.findProjectCell(cell);
@@ -2604,7 +2604,7 @@ public class Project extends Listener
 	{
 		if (!locked)
 		{
-			for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 			{
 				Cell oCell = (Cell)it.next();
 				if (oCell.getView() != cell.getView()) continue;
@@ -2613,7 +2613,7 @@ public class Project extends Listener
 			}
 		} else
 		{
-			for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 			{
 				Cell oCell = (Cell)it.next();
 				if (oCell.getView() != cell.getView()) continue;
@@ -2636,15 +2636,15 @@ public class Project extends Listener
 	 * @return a Map of Cells to check-in (if an entry in the map, associated with a Cell,
 	 * is not null, that Cell should be checked-in).
 	 */
-	private static HashMap markRelatedCells(Cell cell)
+	private static HashMap<Cell,MutableInteger> markRelatedCells(Cell cell)
 	{
 		// mark the cell to be checked-in
-		HashMap cellsMarked1 = new HashMap();
-		HashMap cellsMarked2 = new HashMap();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		HashMap<Cell,MutableInteger> cellsMarked1 = new HashMap<Cell,MutableInteger>();
+		HashMap<Cell,MutableInteger> cellsMarked2 = new HashMap<Cell,MutableInteger>();
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library oLib = (Library)it.next();
-			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
 				cellsMarked1.put(oCell, new MutableInteger(0));
@@ -2661,10 +2661,10 @@ public class Project extends Listener
 		while (propagated)
 		{
 			propagated = false;
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library oLib = (Library)it.next();
-				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = (Cell)cIt.next();
 					mi = (MutableInteger)cellsMarked2.get(oCell);
@@ -2672,7 +2672,7 @@ public class Project extends Listener
 					{
 						propagated = true;
 						mi.setValue(2);
-						for(Iterator nIt = oCell.getInstancesOf(); nIt.hasNext(); )
+						for(Iterator<NodeInst> nIt = oCell.getInstancesOf(); nIt.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)nIt.next();
 							mi = (MutableInteger)cellsMarked2.get(ni.getParent());
@@ -2685,10 +2685,10 @@ public class Project extends Listener
 		mi = (MutableInteger)cellsMarked2.get(cell);
 		mi.setValue(0);
 		int total = 0;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library oLib = (Library)it.next();
-			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
 				mi = (MutableInteger)cellsMarked2.get(oCell);
@@ -2705,10 +2705,10 @@ public class Project extends Listener
 		}
 
 		// look for cells below this one that must also be checked in
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library oLib = (Library)it.next();
-			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
 				mi = (MutableInteger)cellsMarked2.get(oCell);
@@ -2721,10 +2721,10 @@ public class Project extends Listener
 		while (propagated)
 		{
 			propagated = false;
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library oLib = (Library)it.next();
-				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = (Cell)cIt.next();
 					mi = (MutableInteger)cellsMarked2.get(oCell);
@@ -2732,7 +2732,7 @@ public class Project extends Listener
 					{
 						propagated = true;
 						mi.setValue(2);
-						for(Iterator nIt = oCell.getNodes(); nIt.hasNext(); )
+						for(Iterator<NodeInst> nIt = oCell.getNodes(); nIt.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)nIt.next();
 							if (!(ni.getProto() instanceof Cell)) continue;
@@ -2745,10 +2745,10 @@ public class Project extends Listener
 		}
 		mi = (MutableInteger)cellsMarked2.get(cell);
 		mi.setValue(0);
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library oLib = (Library)it.next();
-			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
 				mi = (MutableInteger)cellsMarked2.get(oCell);
@@ -2769,10 +2769,10 @@ public class Project extends Listener
 		{
 			total = 0;
 			StringBuffer infstr = new StringBuffer();
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library oLib = (Library)it.next();
-				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = (Cell)cIt.next();
 					mi = (MutableInteger)cellsMarked1.get(oCell);
@@ -2809,8 +2809,8 @@ public class Project extends Listener
 			if (cur == null) System.out.println("Cannot find cell " + cellNameInRepository + " in library " + libName); else
 			{
 				// make the mapping from repository dummy cells to real cells
-				HashMap nodePrototypes = new HashMap();
-				for(Iterator it = cur.getNodes(); it.hasNext(); )
+				HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
+				for(Iterator<NodeInst> it = cur.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					nodePrototypes.put(ni, ni.getProto());
@@ -2842,7 +2842,7 @@ public class Project extends Listener
 	
 									// get all recent cells
 									String userName = getCurrentUserName();
-									for(Iterator sIt = subPL.allCells.iterator(); sIt.hasNext(); )
+									for(Iterator<ProjectCell> sIt = subPL.allCells.iterator(); sIt.hasNext(); )
 									{
 										ProjectCell recPC = (ProjectCell)sIt.next();
 										if (!recPC.latestVersion) continue;
@@ -2905,10 +2905,10 @@ public class Project extends Listener
 			pl.byCell.put(newCell, pc);
 	}
 
-	private static void addNewProjectCells(ProjectLibrary pl, List updatedProjectCells)
+	private static void addNewProjectCells(ProjectLibrary pl, List<ProjectCell> updatedProjectCells)
 	{
-		HashMap versionToGet = new HashMap();
-		for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+		HashMap<String,ProjectCell> versionToGet = new HashMap<String,ProjectCell>();
+		for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 		{
 			ProjectCell pc = (ProjectCell)it.next();
 			String cellName = pc.cellName + "{" + pc.cellView.getAbbreviation() + "}";
@@ -2944,7 +2944,7 @@ public class Project extends Listener
 			}
 			versionToGet.put(cellName, pc);
 		}
-		for(Iterator it = versionToGet.keySet().iterator(); it.hasNext(); )
+		for(Iterator<String> it = versionToGet.keySet().iterator(); it.hasNext(); )
 		{
 			String cellName = (String)it.next();
 			ProjectCell pc = (ProjectCell)versionToGet.get(cellName);
@@ -2962,7 +2962,7 @@ public class Project extends Listener
 	 * If subcells need to be updated first, that will happen.
 	 * @return the number of cells that were updated.
 	 */
-	private static int updateCellFromRepository(ProjectCell pc, List updatedProjectCells)
+	private static int updateCellFromRepository(ProjectCell pc, List<ProjectCell> updatedProjectCells)
 	{
 		ProjectLibrary pl = pc.projLib;
 		Library lib = pl.lib;
@@ -2982,8 +2982,8 @@ public class Project extends Listener
 			if (cur == null) System.out.println("Cannot find cell " + cellNameInRepository + " in library " + libName); else
 			{
 				// build node map and see if others should be copied first
-				HashMap nodePrototypes = new HashMap();
-				for(Iterator it = cur.getNodes(); it.hasNext(); )
+				HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
+				for(Iterator<NodeInst> it = cur.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					NodeProto np = ni.getProto();
@@ -3081,10 +3081,10 @@ public class Project extends Listener
 	private static boolean useNewestVersion(Cell oldCell, Cell newCell)
 	{
 		// replace all instances
-		List instances = new ArrayList();
-		for(Iterator it = oldCell.getInstancesOf(); it.hasNext(); )
+		List<NodeInst> instances = new ArrayList<NodeInst>();
+		for(Iterator<NodeInst> it = oldCell.getInstancesOf(); it.hasNext(); )
 			instances.add(it.next());
-		for(Iterator it = instances.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = instances.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeInst newNi = ni.replace(newCell, false, false);
@@ -3096,7 +3096,7 @@ public class Project extends Listener
 		}
 
 		// redraw windows that showed the old cell
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent().getCell() != oldCell) continue;
@@ -3110,7 +3110,7 @@ public class Project extends Listener
 		});
 
 		// replace library references
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib.getCurCell() == oldCell) lib.setCurCell(newCell);
@@ -3192,8 +3192,8 @@ public class Project extends Listener
 		if (newFromCell != null) return newFromCell;
 
 		// must copy subcells
-		HashMap nodePrototypes = new HashMap();
-		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
+		HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
+		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -3244,12 +3244,10 @@ public class Project extends Listener
 	/**
 	 * Class to sort project cells.
 	 */
-    private static class OrderedProjectCells implements Comparator
+    private static class OrderedProjectCells implements Comparator<ProjectCell>
     {
-        public int compare(Object o1, Object o2)
+        public int compare(ProjectCell pc1, ProjectCell pc2)
         {
-        	ProjectCell pc1 = (ProjectCell)o1;
-        	ProjectCell pc2 = (ProjectCell)o2;
         	int diff = pc1.cellName.compareTo(pc2.cellName);
         	if (diff != 0) return diff;
         	diff = pc1.cellView.getFullName().compareTo(pc2.cellView.getFullName());
@@ -3261,12 +3259,10 @@ public class Project extends Listener
 	/**
 	 * Class to sort project cells by reverse version number.
 	 */
-    private static class ProjectCellByVersion implements Comparator
+    private static class ProjectCellByVersion implements Comparator<ProjectCell>
     {
-        public int compare(Object o1, Object o2)
+        public int compare(ProjectCell pc1, ProjectCell pc2)
         {
-        	ProjectCell pc1 = (ProjectCell)o1;
-        	ProjectCell pc2 = (ProjectCell)o2;
         	return pc2.cellVersion - pc1.cellVersion;
         }
     }
