@@ -137,7 +137,7 @@ public class MoCMOS extends Technology
     {
         DRCXMLParser parser = new DRCXMLParser();
         URL url = MOSRules.class.getResource("Mosis.xml");
-        List<DRCTemplate> rules = parser.process(url);
+        List<DRCTemplate> rules = parser.process(url, getFoundry());
 
         int size = rules.size();
         theRules = new DRCTemplate[rules.size()];
@@ -205,7 +205,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("2.3",  DRCTemplate.SC, DRCTemplate.TRAWELL,   null,             null,            5,  null),
 
 		// Rule 2.4 not implemented
-		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might discrepancies.
+		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might have discrepancies.
 		new DRCTemplate("2.5 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
         new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "N-Active",       2.8,  null),
 
@@ -215,15 +215,16 @@ public class MoCMOS extends Technology
         new DRCTemplate("PO.W.1/PO.W.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
 		new DRCTemplate("3.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
-		new DRCTemplate("PO.S.2/PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null),
+		new DRCTemplate("PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null),
         new DRCTemplate("3.2 Mosis",   DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-		new DRCTemplate("PO.S.2/PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null),
+		new DRCTemplate("PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null),
         new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
 		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
 
 		new DRCTemplate("3.2a", DRCTemplate.DE, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",4,  null),
-		new DRCTemplate("3.2a", DRCTemplate.SU, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",3,  null),
-		new DRCTemplate("3.2a", DRCTemplate.SC, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null),
+		new DRCTemplate("3.2a  Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",3,  null),
+		new DRCTemplate("PO.S.2 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",2.5,  null),
+        new DRCTemplate("3.2a", DRCTemplate.SC, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null),
 
 		new DRCTemplate("3.3",  DRCTemplate.DE, DRCTemplate.TRAPOLY,   null,             null,            2.5,null),
 		new DRCTemplate("3.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2,  null),
@@ -233,6 +234,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("3.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3,  null),
 //        new DRCTemplate("3.4 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3.2,  null),
 
+        // TSMC PO.C.1 = 1 too
 		new DRCTemplate("3.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Polysilicon-1",  "P-Active",       1,  null),
 		new DRCTemplate("3.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Transistor-Poly","P-Active",       1,  null),
 		new DRCTemplate("3.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Polysilicon-1",  "N-Active",       1,  null),
