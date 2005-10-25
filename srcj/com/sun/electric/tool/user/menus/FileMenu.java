@@ -309,9 +309,12 @@ public class FileMenu {
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.
      */
     public static FileType getLibraryFormat(String fileName, FileType defaultType) {
-        for (int i=0; i<FileType.libraryTypes.length; i++) {
-            FileType type = FileType.libraryTypes[i];
-            if (fileName.endsWith("."+type.getExtensions()[0])) return type;
+        if (fileName != null)
+        {
+            for (int i=0; i<FileType.libraryTypes.length; i++) {
+                FileType type = FileType.libraryTypes[i];
+                if (fileName.endsWith("."+type.getExtensions()[0])) return type;
+            }
         }
         return defaultType;
     }
