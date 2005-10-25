@@ -234,9 +234,12 @@ public class OpenFile
             for (int i=0; i<types.length; i++) {
 			    dialog.addChoosableFileFilter(types[i].getFileFilterSwing());
             }
-			dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
-			dialog.setSelectedFile(new File(defaultFile));
+            if (defaultFile != null)
+            {
+                dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
+                dialog.setSelectedFile(new File(defaultFile));
+            }
 			int returnVal = dialog.showSaveDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
