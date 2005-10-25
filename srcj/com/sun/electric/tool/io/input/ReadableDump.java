@@ -38,6 +38,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
@@ -542,15 +543,11 @@ public class ReadableDump extends LibraryFiles
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
 			PortInst pi = findProperPortInst(subNi, el.exportSubPort[j]);
-//			int userBits = pp.lowLevelGetUserbits();
 			int userBits = exportList[curCellNumber].exportUserBits[curExportIndex];
-            Export pp = Export.newInstance(cell, el.exportName[j], exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, userBits);
-//            Export pp = new Export(cell, el.exportName[j]);
-//			if (pp.lowLevelPopulate(pi)) return;
-//            if (exportList[curCellNumber].exportNameDescriptor[curExportIndex] != null)
-//                pp.setTextDescriptor(Export.EXPORT_NAME_TD, exportList[curCellNumber].exportNameDescriptor[curExportIndex]);
-//			pp.lowLevelSetUserbits(userBits);
-//			if (pp.lowLevelLink(null)) return;
+            boolean alwaysDrawn = Export.alwaysDrawnFromElib(userBits);
+            boolean bodyOnly = Export.bodyOnlyFromElib(userBits);
+            PortCharacteristic characteristic = Export.portCharacteristicFromElib(userBits);
+            Export pp = Export.newInstance(cell, el.exportName[j], exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic);
 			el.exportList[j] = pp;
             if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);

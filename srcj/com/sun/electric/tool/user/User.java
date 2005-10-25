@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
@@ -61,7 +62,6 @@ import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -181,10 +181,11 @@ public class User extends Listener
 	/**
 	 * Method to handle a change to an Export.
 	 * @param pp the Export that moved.
-	 * @param oldPi the old PortInst on which it resided.
+	 * @param oD the old contents of the Export.
 	 */
-	public void modifyExport(Export pp, PortInst oldPi)
+	public void modifyExport(Export pp, ImmutableExport oD)
 	{
+        PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oD.originalNodeId, oD.originalPortId);
 		// remember what has changed in the cell
 		Cell cell = (Cell)pp.getParent();
 		NodeInst oldNi = oldPi.getNodeInst();
@@ -218,14 +219,6 @@ public class User extends Listener
 			}
 		}
 	}
-
-	/**
-	 * Method to handle a change to a TextDescriptor.
-	 * @param obj the ElectricObject on which the TextDescriptor resides.
-     * @param varName name of variable or special name.
-     * @param oldDescriptor old text descriptor.
-	 */
-	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.

@@ -359,8 +359,8 @@ public class NewExport extends EDialog
 				return false;
 			}
 			e.setCharacteristic(ch);
-			if (drawn) e.setAlwaysDrawn();
-			if (body) e.setBodyOnly();
+			e.setAlwaysDrawn(drawn);
+			e.setBodyOnly(body);
 			if (ch.isReference())
 				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
 

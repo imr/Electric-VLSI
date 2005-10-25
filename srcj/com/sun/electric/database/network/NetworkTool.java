@@ -43,9 +43,8 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
@@ -437,10 +436,11 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
 	}
 
-	public void modifyExport(Export pp, PortInst oldPi)
+	public void modifyExport(Export pp, ImmutableExport oD)
 	{
+        exportsChanged((Cell)pp.getParent());
 		if (!debug) return;
-		System.out.println("NetworkTool.modifyExport("+pp+","+oldPi+")");
+		System.out.println("NetworkTool.modifyExport("+pp+","+oD+")");
 	}
 
 	/**
@@ -457,12 +457,6 @@ public class NetworkTool extends Listener
 		}
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
-	}
-
-	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyTextDescript(" + obj + "," + varName + ",...)");
 	}
 
 	public void newObject(ElectricObject obj)

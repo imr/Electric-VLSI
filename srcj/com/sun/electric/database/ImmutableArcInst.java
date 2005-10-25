@@ -295,9 +295,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
 
 	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by name and duplicate.
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by name.
 	 * @param name node name key.
-	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name and duplicate.
+	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name.
 	 * @throws NullPointerException if name is null
      * @throws IllegalArgumentException if name is not valid.
 	 */
@@ -423,7 +423,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * with the specified key. Returns this ImmutableArcInst if it doesn't contain variable with the specified key.
 	 * @param key Variable Key to remove.
 	 * @return ImmutableArcInst without Variable with the specified key.
-	 * @throws NullPointerException if var is null
+	 * @throws NullPointerException if key is null
 	 */
     public ImmutableArcInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);

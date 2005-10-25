@@ -38,6 +38,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -76,13 +77,13 @@ public class JELIB extends LibraryFiles
 	{
 		boolean filledIn;
 		int lineNumber;
-		List cellStrings;
+		List<String> cellStrings;
 		String fileName;
 
 		CellContents()
 		{
 			filledIn = false;
-			cellStrings = new ArrayList();
+			cellStrings = new ArrayList<String>();
 		}
 	}
 
@@ -107,11 +108,11 @@ public class JELIB extends LibraryFiles
         defaultArcFlags = ImmutableArcInst.HEAD_ARROWED.set(defaultArcFlags, false); // X
         defaultArcFlags = ImmutableArcInst.TAIL_ARROWED.set(defaultArcFlags, false); // Y
     }
- 	private LinkedHashMap allCells = new LinkedHashMap();
-	private HashMap externalCells;
-	private HashMap externalExports;
-    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptorsF = new HashMap/*<ImmutableTextDescriptor>*/();
-    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptorsT = new HashMap/*<ImmutableTextDescriptor>*/();
+ 	private LinkedHashMap<Cell,CellContents> allCells = new LinkedHashMap<Cell,CellContents>();
+	private HashMap<String,Rectangle2D> externalCells;
+	private HashMap<String,Point2D.Double> externalExports;
+    private HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
+    private HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
 	private Version version;
 	private int revision;
 	private char escapeChar = '\\';
@@ -153,7 +154,7 @@ public class JELIB extends LibraryFiles
 			nodeProtoList = new Cell[nodeProtoCount];
 			cellLambda = new double[nodeProtoCount];
 			int i = 0;
-			for (Iterator it = allCells.keySet().iterator(); it.hasNext();)
+			for (Iterator<Cell> it = allCells.keySet().iterator(); it.hasNext();)
 				nodeProtoList[i++] = (Cell)it.next();
 			return false;
 		} catch (IOException e)
@@ -178,9 +179,9 @@ public class JELIB extends LibraryFiles
 		String curExternalCellName = "";
 		Technology curTech = null;
 		PrimitiveNode curPrim = null;
-		externalCells = new HashMap();
-		externalExports = new HashMap();
-		ArrayList groupLines = new ArrayList();
+		externalCells = new HashMap<String,Rectangle2D>();
+		externalExports = new HashMap<String,Point2D.Double>();
+		ArrayList<Cell[]> groupLines = new ArrayList<Cell[]>();
 		for(;;)
 		{
 			// get keyword from file
@@ -534,9 +535,9 @@ public class JELIB extends LibraryFiles
 		}
 
 		// collect the cells by common protoName and by "groupLines" relation
-		TransitiveRelation transitive = new TransitiveRelation();
-		HashMap/*<String,String>*/ protoNames = new HashMap();
-		for (Iterator cit = lib.getCells(); cit.hasNext();)
+		TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
+		HashMap<String,String> protoNames = new HashMap<String,String>();
+		for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
 		{
 			Cell cell = (Cell)cit.next();
 			String protoName = (String)protoNames.get(cell.getName());
@@ -547,7 +548,7 @@ public class JELIB extends LibraryFiles
 			}
 			transitive.theseAreRelated(cell, protoName);
 		}
-		for (Iterator git = groupLines.iterator(); git.hasNext(); )
+		for (Iterator<Cell[]> git = groupLines.iterator(); git.hasNext(); )
 		{
 			Cell[] groupLine = (Cell[])git.next();
 			Cell firstCell = null;
@@ -562,11 +563,11 @@ public class JELIB extends LibraryFiles
 		}
 
 		// create the cell groups
-		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
+		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
 		{
-			Set group = (Set)git.next();
+			Set<Object> group = (Set<Object>)git.next();
 			Cell firstCell = null;
-			for (Iterator it = group.iterator(); it.hasNext();)
+			for (Iterator<Object> it = group.iterator(); it.hasNext();)
 			{
 				Object o = it.next();
 				if (!(o instanceof Cell)) continue;
@@ -579,7 +580,7 @@ public class JELIB extends LibraryFiles
 		}
 
 		// set main schematic cells
-		for (Iterator git = groupLines.iterator(); git.hasNext(); )
+		for (Iterator<Cell[]> git = groupLines.iterator(); git.hasNext(); )
 		{
 			Cell[] groupLine = (Cell[])git.next();
 			Cell firstCell = groupLine[0];
@@ -589,8 +590,8 @@ public class JELIB extends LibraryFiles
 		}
 
 		// sensibility check: shouldn't all cells with the same root name be in the same group?
-		HashMap cellGroups = new HashMap();
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			String canonicName = TextUtils.canonicString(cell.getName());
@@ -670,12 +671,12 @@ public class JELIB extends LibraryFiles
 	 * @param cell the Cell to instantiate.
 	 * @param cc the contents of that cell (the strings from the file).
 	 */
-	private void instantiateCellContent(Cell cell, CellContents cc, HashSet/*<Cell>*/ recursiveSetupFlag)
+	private void instantiateCellContent(Cell cell, CellContents cc, HashSet<Cell> recursiveSetupFlag)
 	{
 		int numStrings = cc.cellStrings.size();
 
 		// map disk node names (duplicate node names written "sig"1 and "sig"2)
-		HashMap diskName = new HashMap();
+		HashMap<String,NodeInst> diskName = new HashMap<String,NodeInst>();
 
 		// place all nodes
 		for(int line=0; line<numStrings; line++)
@@ -944,10 +945,27 @@ public class JELIB extends LibraryFiles
 			String textDescriptorInfo = (String)pieces.get(1);
             TextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 			// parse state information in field 6
-            int userBits = Export.parseJelibUserBits((String)pieces.get(numPieces - 1));
+            boolean alwaysDrawn = false;
+            boolean bodyOnly = false;
+    		// parse state information in field 6
+            String userBits = (String)pieces.get(numPieces - 1);
+            int slashPos = userBits.indexOf('/');
+            if (slashPos >= 0) {
+                String extras = userBits.substring(slashPos);
+                userBits = userBits.substring(0, slashPos);
+                while (extras.length() > 0) {
+                    switch (extras.charAt(1)) {
+                        case 'A': alwaysDrawn = true; break;
+                        case 'B': bodyOnly = true; break;
+                    }
+                    extras = extras.substring(2);
+                }
+            }
+            PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(userBits);
+            if (ch == null) ch = PortCharacteristic.UNKNOWN;
             
 			// create the export
-			Export pp = Export.newInstance(cell, exportName, nameTextDescriptor, pi, userBits);
+			Export pp = Export.newInstance(cell, exportName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch);
 			if (pp == null)
 			{
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1222,7 +1240,7 @@ public class JELIB extends LibraryFiles
 	 */
 	private List parseLine(String line)
 	{
-		List stringPieces = new ArrayList();
+		List<String> stringPieces = new ArrayList<String>();
 		int len = line.length();
 		int pos = 1;
 		int startPos = 1;
@@ -1366,7 +1384,7 @@ public class JELIB extends LibraryFiles
 			{
 				if (piece.charAt(objectPos) == '[')
 				{
-					List objList = new ArrayList();
+					List<Object> objList = new ArrayList<Object>();
 					objectPos++;
 					while (objectPos < piece.length())
 					{
@@ -1468,7 +1486,7 @@ public class JELIB extends LibraryFiles
 	 */
 	private TextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
 	{
-        HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
+        HashMap<String,TextDescriptor> parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
         TextDescriptor td = (TextDescriptor)parsedDescriptors.get(varBits);
         if (td != null) return td;
         

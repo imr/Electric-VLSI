@@ -701,7 +701,8 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			ppt.copyVarsFrom(pp);
 
 			// copy miscellaneous information
-			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
+			ppt.copyStateBits(pp);
+//			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
 			ppt.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 		}
 
@@ -3758,7 +3759,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			if (i > 0)
 				assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getName(), e.getName()) < 0) : i;
 			e.check();
-            assert e == chronExports[e.exportId.chronIndex]; 
+            assert e == chronExports[e.getExportId().chronIndex]; 
 		}
         for (int i = 0; i < chronExports.length; i++) {
             Export e = chronExports[i];

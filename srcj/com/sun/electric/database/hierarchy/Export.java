@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -51,7 +52,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -79,41 +79,26 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
 
-	/** a collection of state bits that are important */	private static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
-
 	// -------------------------- private data ---------------------------
-    /** ExportId of this Cell. */                           final ExportId exportId;
-	/** The name of this Export. */							private Name name;
-	/** Internal flag bits of this Export. */				private int userBits;
+    /** persistent data of this Export. */                  private ImmutableExport d;
 	/** The parent Cell of this Export. */					private final Cell parent;
 	/** Index of this Export in Cell ports. */				private int portIndex;
-	/** The text descriptor of this Export. */				private TextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 
 	// -------------------- protected and private methods --------------
 
 	/**
-	 * The private constructor of Export
-	 * @param parent the Cell in which this Export resides.
-	 * @param protoName the name of this Export.
-	 * It may not have unprintable characters, spaces, or tabs in it.
-     * @param nameTextDescriptor text descriptor of this Export
-	 * @param originalPort the PortInst that is being exported.
-     * @param userBits flag bits of this Export.
+	 * The constructor of Export. Use the factory "newInstance" instead.
+     * @param d persistent data of this Export.
+	 * @param parent the Cell in which this Export will reside.
 	 */
-	private Export(Cell parent, String protoName, TextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
-	{
-		// initialize the parent object
-		assert parent == originalPort.getNodeInst().getParent();
-        this.exportId = parent.cellId.newExportId();
-		this.parent = parent;
-		this.name = Name.findName(protoName);
-        if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
-		this.descriptor = nameTextDescriptor.withDisplayWithoutParamAndCode();
-		this.originalPort = originalPort;
-        this.userBits = userBits & EXPORT_BITS;
-	}
-
+    Export(ImmutableExport d, Cell parent) {
+        this.parent = parent;
+        this.d = d;
+        assert d.exportId.parentId == parent.getId();
+        originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
+    }
+    
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -154,12 +139,15 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
             assert(parent.findExport(protoName) == null);
 		}
         PortProto originalProto = portInst.getPortProto();
+        boolean alwaysDrawn = false;
+        boolean bodyOnly = false;
         int userBits;
-		if (originalProto instanceof Export)
-			userBits = ((Export)originalProto).userBits;
-		else
-			userBits = originalProto.getCharacteristic().getBits() << STATEBITSSH;
-		Export pp = newInstance(parent, protoName, smartPlacement(portInst), portInst, userBits);
+		if (originalProto instanceof Export) {
+            Export e = (Export)originalProto;
+            alwaysDrawn = e.isAlwaysDrawn();
+            bodyOnly = e.isBodyOnly();
+        }
+		Export pp = newInstance(parent, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic());
 
 		if (createOnIcon)
 		{
@@ -214,26 +202,35 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * It may not have unprintable characters, spaces, or tabs in it.
      * @param nameTextDescriptor text descriptor of this Export
 	 * @param originalPort the PortInst that is being exported.
-     * @param userBits flag bits of this Export.
+     * @param alwaysDrawn true if this Export is always drawn.
+     * @param bodyOnly true to exclude this Export from icon.
+     * @param characteristic PortCharacteristic of this Export.
 	 * @return created Export or null on error.
 	 */
-    public static Export newInstance(Cell parent, String name, TextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
+    public static Export newInstance(Cell parent, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
+            boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic)
     {
 		// initialize this object
-		if (originalPort == null)
+		if (originalPort == null || !originalPort.isLinked())
 		{
 			System.out.println("Null port on Export " + name + " in " + parent);
 			return null;
 		}
 		NodeInst ni = originalPort.getNodeInst();
 		PortProto subpp = originalPort.getPortProto();
-		if (ni.getParent() != parent || subpp.getParent() != ni.getProto()/* || doesntConnect(subpp.getBasePort())*/)
+		if (ni.getParent() != parent || subpp.getParent() != ni.getProto())
 		{
 			System.out.println("Bad port on Export " + name + " in " + parent);
 			return null;
 		}
-        
-        Export e = new Export(parent, name, nameTextDescriptor, originalPort, userBits);
+
+        ExportId exportId = parent.cellId.newExportId();
+		Name nameKey = Name.findName(name);
+        if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
+        ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
+                ni.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
+        Export e = new Export(d, parent);
+        assert e.originalPort == originalPort;
 		if (e.lowLevelLink()) return null;
         
 		// handle change control, constraint, and broadcast
@@ -241,7 +238,6 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
         return e;
     }
     
-
 	/**
 	 * Method to unlink this Export from its Cell.
 	 */
@@ -332,13 +328,16 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 		if (doesntConnect(newsubpt.getBasePort())) return true;
 
 		// remember old state
-		PortInst oldPi = this.getOriginalPort();
+		ImmutableExport oldD = d;
 
 		// change the port origin
-		lowLevelModify(newPi);
+		lowLevelModify(d.withOriginalPort(newno.getD().nodeId, newsubpt.getId()));
 
 		// handle change control, constraint, and broadcast
-		Undo.modifyExport(this, oldPi);
+		Undo.modifyExport(this, oldD);
+
+		// update all port characteristics exported from this one
+		changeallports();
 		return false;
 	}
 
@@ -353,7 +352,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	{
 		assert isLinked();
 		parent.moveExport(portIndex, newName.toString());
-		this.name = newName;
+        d = d.withName(newName);
 	}
 
 	/**
@@ -385,22 +384,22 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * Method to change the origin of this Export to another place in the Cell.
 	 * @param newPi the new PortInst in the cell that will hold this Export.
 	 */
-	public void lowLevelModify(PortInst newPi)
+	public void lowLevelModify(ImmutableExport d)
 	{
+        boolean moved = this.d.originalNodeId != d.originalNodeId || this.d.originalPortId != d.originalPortId;
 		// remove the old linkage
-		NodeInst origNode = getOriginalPort().getNodeInst();
-		origNode.removeExport(this);
+        if (moved) {
+            NodeInst origNode = getOriginalPort().getNodeInst();
+            origNode.removeExport(this);
+        }
 
+        this.d = d;
+        
 		// create the new linkage
-		NodeInst newNodeInst = newPi.getNodeInst();
-		PortProto newPortProto = newPi.getPortProto();
-		newNodeInst.addExport(this);
-		originalPort = newNodeInst.findPortInstFromProto(newPortProto);
-
-		// update all port characteristics exported from this one
-//		this->userbits = (this->userbits & STATEBITS) |
-//			(newPortProto->userbits & (PORTANGLE|PORTARANGE|PORTNET|PORTISOLATED));
-		changeallports();
+        if (moved) {
+            originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
+            originalPort.getNodeInst().addExport(this);
+        }
 	}
 
 	/**
@@ -410,28 +409,52 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 */
 	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
-	/**
-	 * Low-level method to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return userBits; }
+    /**
+     * Returns ELIB user bits of this ImmutableExport.
+     * @return ELIB user bits of this ImmutableExport.
+     */
+	public int getElibBits() {
+        int userBits = getCharacteristic().getBits() << STATEBITSSH;
+        if (isAlwaysDrawn()) userBits |= PORTDRAWN;
+        if (isBodyOnly()) userBits |= BODYONLY;
+        return userBits;
+    }
+    
+    /**
+     * Get alwaysDrawn Export flag from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return alwaysDrawn flag.
+     */
+    public static boolean alwaysDrawnFromElib(int elibBits) { return (elibBits & PORTDRAWN) != 0; }
 
-	/**
-	 * Low-level method to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits & EXPORT_BITS;  Undo.otherChange(this); }
+    /**
+     * Get bodyOnly Export flag from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return bodyOnly flag.
+     */
+    public static boolean bodyOnlyFromElib(int elibBits) { return (elibBits & BODYONLY) != 0; }
 
+    /**
+     * Get PortCharacteristic of Export from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return PortCharacteristic.
+     */
+    public static PortCharacteristic portCharacteristicFromElib(int elibBits) {
+        PortCharacteristic characteristic = PortCharacteristic.findCharacteristic((elibBits >> STATEBITSSH) & STATEBITSSHIFTED);
+        return characteristic != null ? characteristic : PortCharacteristic.UNKNOWN;
+    }
+
+    /**
+     * Method to copy state bits from other Export.
+     * State bits are alowaysDrawn, bodyOnly and characteristic.
+     * @param other Export from which to take state bits.
+     */
+    public void copyStateBits(Export other) {
+        setAlwaysDrawn(other.isAlwaysDrawn());
+        setBodyOnly(other.isBodyOnly());
+        setCharacteristic(other.getCharacteristic());
+    }
+    
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -483,11 +506,24 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 */
 	public Cell whichCell() { return parent; };
 
+    /**
+     * Returns persistent data of this Export.
+     * @return persistent data of this Export.
+     */
+    public ImmutableExport getD() { return d; }
+    
+    
     /** Method to return PortProtoId of this Export.
      * PortProtoId identifies Export independently of threads.
      * @return PortProtoId of this Export.
      */
-    public PortProtoId getId() { return exportId; }
+    public PortProtoId getId() { return d.exportId; }
+    
+    /** Method to return ExportId of this Export.
+     * ExportId identifies Export independently of threads.
+     * @return ExportId of this Export.
+     */
+    public ExportId getExportId() { return d.exportId; }
     
 	/**
 	 * Method to return the parent NodeProto of this Export.
@@ -512,7 +548,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 */
 	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		if (varKey == EXPORT_NAME) return descriptor;
+		if (varKey == EXPORT_NAME) return d.nameDescriptor;
 		return super.getTextDescriptor(varKey);
 	}
 
@@ -528,36 +564,15 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == EXPORT_NAME) {
-            checkChanging();
-            TextDescriptor oldDescriptor = descriptor;
-            descriptor = td.withDisplayWithoutParamAndCode();
-            Undo.modifyTextDescript(this, varKey.getName(), oldDescriptor);
+        	checkChanging();
+            ImmutableExport oldD = d;
+			d = d.withNameDescriptor(td);
+            if (d != oldD)
+                Undo.modifyExport(this, oldD);
             return;
         }
         super.setTextDescriptor(varKey, td);
     }
-
-	/**
-	 * Updates the TextDescriptor on this Export selected by varName.
-	 * The varName may be a name of variable on this Export or
-	 * the special name <code>Export.EXPORT_NAME_TD</code>.
-	 * If varName doesn't select any text descriptor, no action is performed.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
-	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
-	 * @param td new value TextDescriptor
-     * @return old text descriptor
-     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this Export.
-	 */
-	public TextDescriptor lowLevelSetTextDescriptor(String varName, TextDescriptor td)
-	{
-        assert varName.equals(EXPORT_NAME.getName());
-        TextDescriptor oldDescriptor = descriptor;
-		descriptor = td.withDisplayWithoutParamAndCode();
-        return oldDescriptor;
-	}
 
 	/**
 	 * Method to determine whether a variable key on Export is deprecated.
@@ -625,13 +640,13 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * Method to return the name key of this Export.
 	 * @return the Name key of this Export.
 	 */
-	public Name getNameKey() { return name; }
+	public Name getNameKey() { return d.name; }
 
 	/**
 	 * Method to return the name of this Export.
 	 * @return the name of this Export.
 	 */
-	public String getName() { return name.toString(); }
+	public String getName() { return d.name.toString(); }
 
 	/**
 	 * Method to return the short name of this PortProto.
@@ -665,7 +680,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 			int cmp = parent.compareTo(that.parent);
 			if (cmp != 0) return cmp;
 		}
-		return name.toString().compareTo(that.name.toString());
+		return d.name.toString().compareTo(that.d.name.toString());
 	}
 
 	/**
@@ -708,25 +723,22 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	}
 
 	/**
-	 * Method to return the PortCharacteristic of this Exort.
+	 * Method to return the PortCharacteristic of this Export.
 	 * @return the PortCharacteristic of this Exort.
 	 */
-	public PortCharacteristic getCharacteristic()
-	{
-		PortCharacteristic characteristic = PortCharacteristic.findCharacteristic((userBits>>STATEBITSSH)&STATEBITSSHIFTED);
-		return characteristic;
-	}
+	public PortCharacteristic getCharacteristic() { return d.characteristic; }
 
 	/**
-	 * Method to set the PortCharacteristic of this Exort.
+	 * Method to set the PortCharacteristic of this Export.
 	 * @param characteristic the PortCharacteristic of this Exort.
 	 */
 	public void setCharacteristic(PortCharacteristic characteristic)
 	{
 		checkChanging();
-        if (characteristic == null) characteristic = PortCharacteristic.UNKNOWN;
-		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
-        Undo.otherChange(this); 
+        ImmutableExport oldD = d;
+        d = d.withCharacteristic(characteristic);
+        if (d != oldD)
+            Undo.modifyExport(this, oldD); 
 	}
 
 	/**
@@ -801,34 +813,34 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * Method to set this PortProto to be always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
-	public void setAlwaysDrawn() { checkChanging(); userBits |= PORTDRAWN; Undo.otherChange(this); }
-
-	/**
-	 * Method to set this PortProto to be not always drawn.
-	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
-	 */
-	public void clearAlwaysDrawn() { checkChanging(); userBits &= ~PORTDRAWN; Undo.otherChange(this); }
+	public void setAlwaysDrawn(boolean b) {
+        checkChanging();
+        ImmutableExport oldD = d;
+        d = d.withAlwaysDrawn(b);
+        if (d != oldD)
+            Undo.modifyExport(this, oldD);
+    }
 
 	/**
 	 * Method to tell whether this PortProto is always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 * @return true if this PortProto is always drawn.
 	 */
-	public boolean isAlwaysDrawn() { return (userBits & PORTDRAWN) != 0; }
+	public boolean isAlwaysDrawn() { return d.alwaysDrawn; }
 
 	/**
 	 * Method to set this PortProto to exist only in the body of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
+     * @param b true if this Export exists only in the body of a cell.
 	 */
-	public void setBodyOnly() { checkChanging(); userBits |= BODYONLY; Undo.otherChange(this); }
-
-	/**
-	 * Method to set this PortProto to exist in the body and icon of a cell.
-	 * Ports that exist only in the body do not have an equivalent in the icon.
-	 * This is used by simulators and icon generators to recognize less significant ports.
-	 */
-	public void clearBodyOnly() { checkChanging(); userBits &= ~BODYONLY; Undo.otherChange(this); }
+	public void setBodyOnly(boolean b) {
+        checkChanging();
+        ImmutableExport oldD = d;
+        d = d.withBodyOnly(b);
+        if (d != oldD)
+            Undo.modifyExport(this, oldD);
+    }
 
 	/**
 	 * Method to tell whether this PortProto exists only in the body of a cell.
@@ -836,33 +848,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 * @return true if this PortProto exists only in the body of a cell.
 	 */
-	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
-
-	/**
-	 * Parses JELIB string with Export user bits.
-     * @param jelibUserBits JELIB string.
-	 * @return Export user bust.
-     * @throws NumberFormatException
-	 */
-    public static int parseJelibUserBits(String jelibUserBits) {
-        int userBits = 0;
-    			// parse state information in field 6
-		int slashPos = jelibUserBits.indexOf('/');
-        if (slashPos >= 0) {
-            String extras = jelibUserBits.substring(slashPos);
-            jelibUserBits = jelibUserBits.substring(0, slashPos);
-            while (extras.length() > 0) {
-                switch (extras.charAt(1)) {
-                    case 'A': userBits |= PORTDRAWN; break;
-                    case 'B': userBits |= BODYONLY; break;
-                }
-                extras = extras.substring(2);
-            }
-        }
-        PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(jelibUserBits);
-        if (ch != null) userBits |= ch.getBits() << STATEBITSSH;
-        return userBits;
-    }
+	public boolean isBodyOnly() { return d.bodyOnly; }
 
     /**
      * Returns true if this Export is linked into database.
@@ -888,10 +874,12 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
         super.check();
 		assert originalPort != null;
 		NodeInst ni = originalPort.getNodeInst();
+        assert d.originalNodeId == ni.getD().nodeId;
 		PortProto pp = originalPort.getPortProto();
+        assert d.originalPortId == pp.getId();
 		assert ni.getParent() == parent && ni.isLinked();
 		assert ni.getProto() == pp.getParent();
-        assert exportId.parentId == parent.cellId;
+        assert d.exportId.parentId == parent.cellId;
 		if (pp instanceof Export) assert ((Export)pp).isLinked();
 	}
 
@@ -1054,11 +1042,12 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 				if (upPP.getOriginalPort().getPortProto() != this) continue;
 
 				// change this port and recurse up the hierarchy
-				if (upPP.lowLevelGetUserbits() != lowLevelGetUserbits())
-				{
-					// Should use change control here !!!
-					upPP.lowLevelSetUserbits(lowLevelGetUserbits());
-				}
+                upPP.copyStateBits(this);
+//				if (upPP.lowLevelGetUserbits() != lowLevelGetUserbits())
+//				{
+//					// Should use change control here !!!
+//					upPP.lowLevelSetUserbits(lowLevelGetUserbits());
+//				}
 				upPP.recursivelyChangeAllPorts();
 			}
 		}

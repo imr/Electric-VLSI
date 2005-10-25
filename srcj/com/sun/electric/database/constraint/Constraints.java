@@ -22,8 +22,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.constraint;
+
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Cell;
@@ -31,12 +33,10 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
 
-import java.util.Collection;
 
 /**
  * Top-level class to handle constraints.
@@ -104,22 +104,15 @@ public class Constraints implements Changes
 	/**
 	 * Method to handle a change to an Export.
 	 * @param pp the Export that moved.
-	 * @param oldPi the old PortInst on which it resided.
+	 * @param oD the old contents of the Export.
 	 */
-	public void modifyExport(Export pp, PortInst oldPi) {}
+	public void modifyExport(Export pp, ImmutableExport oD) {}
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
 	 * @param oCellGroup the old CellGroup of the Cell.
 	 */
 	public void modifyCellGroup(Cell cell, Cell.CellGroup  oCellGroup) {}
-	/**
-	 * Method to handle a change to a TextDescriptor.
-	 * @param obj the ElectricObject on which the TextDescriptor resides.
-     * @param varName name of variable or special name.
-     * @param oldDescriptor old text descriptor.
-	 */
-	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.

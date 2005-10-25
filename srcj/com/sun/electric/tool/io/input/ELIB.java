@@ -39,6 +39,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
@@ -1225,12 +1226,10 @@ public class ELIB extends LibraryFiles
 
 			// convert portproto to portinst
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getName());
-            Export pp = Export.newInstance(cell, exportName, exportNameDescriptors[i], pi, exportUserbits[i]);
-//			Export pp = new Export(cell, exportName);
-//			pp.setTextDescriptor(Export.EXPORT_NAME_TD, exportNameDescriptors[i]);
-//			if (pp.lowLevelPopulate(pi)) return;
-//			if (pp.lowLevelLink(null)) return;
-//			pp.lowLevelSetUserbits(exportUserbits[i]);
+            boolean alwaysDrawn = Export.alwaysDrawnFromElib(exportUserbits[i]);
+            boolean bodyOnly = Export.bodyOnlyFromElib(exportUserbits[i]);
+            PortCharacteristic characteristic = Export.portCharacteristicFromElib(exportUserbits[i]);
+            Export pp = Export.newInstance(cell, exportName, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic);
             exportList[i] = pp;
             if (pp == null) continue;
 			realizeVariables(pp, exportVariables[i]);

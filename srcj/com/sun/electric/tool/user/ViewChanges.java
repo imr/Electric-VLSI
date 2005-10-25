@@ -702,8 +702,7 @@ public class ViewChanges
 					break;
 			}
 			port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
-			if (pp.isAlwaysDrawn()) port.setAlwaysDrawn(); else
-				port.clearAlwaysDrawn();
+			port.setAlwaysDrawn(pp.isAlwaysDrawn());
 			port.setCharacteristic(pp.getCharacteristic());
 			port.copyVarsFrom(pp);
 		}

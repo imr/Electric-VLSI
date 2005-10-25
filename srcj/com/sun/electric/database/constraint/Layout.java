@@ -25,6 +25,7 @@ package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -155,9 +156,11 @@ public class Layout extends Constraints
 	/**
 	 * Method to handle a change to an Export.
 	 * @param pp the Export that moved.
-	 * @param oldPi the old PortInst on which it resided.
+	 * @param oD the old contents of the Export.
 	 */
-	public void modifyExport(Export pp, PortInst oldPi) {
+	public void modifyExport(Export pp, ImmutableExport oldD) {
+        PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oldD.originalNodeId, oldD.originalPortId);
+        if (oldPi == pp.getOriginalPort()) return;
         getCellInfo((Cell)pp.getParent()).modifyExport(pp, oldPi);
     }
     

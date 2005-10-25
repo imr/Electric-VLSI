@@ -406,7 +406,7 @@ public class ReadableDump extends Output
 
 				// need to write both words
 				writeTextDescriptor(-1, pp.getTextDescriptor(Export.EXPORT_NAME));
-				printWriter.println("userbits: " + pp.lowLevelGetUserbits());
+				printWriter.println("userbits: " + pp.getElibBits());
 				writeVars(pp, cell);
 			}
 

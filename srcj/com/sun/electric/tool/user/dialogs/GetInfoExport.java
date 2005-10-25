@@ -301,11 +301,9 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 			if (!oldName.equals(newName)) pp.rename(newName);
 
 			// change the body-only
-			if (newBodyOnly) pp.setBodyOnly(); else
-				pp.clearBodyOnly();
+			pp.setBodyOnly(newBodyOnly);
             // change always drawn
-			if (newAlwaysDrawn) pp.setAlwaysDrawn(); else
-				pp.clearAlwaysDrawn();
+			pp.setAlwaysDrawn(newAlwaysDrawn);
 
 			// change the characteristic
 			pp.setCharacteristic(newChar);

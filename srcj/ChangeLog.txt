@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/25/05, DN) PortCharacteristic of Exports is not undoable.
+FIX: Side effect of implementing ImmutableExport for transactional DB.
+
 BUG: (10/24/05, SMR) Nonmanhattan arcs may be produced when they are long.
 FIX: In SimpleWirer.planRoute() make special case for manhattan routes.
 

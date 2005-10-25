@@ -927,10 +927,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						PortCharacteristic ch = PortCharacteristic.findCharacteristic(charName);
 						e.setCharacteristic(ch);
 					}
-					if (bodyOnly == 1) e.setBodyOnly(); else
-						if (bodyOnly == 2) e.clearBodyOnly();
-					if (alwaysDrawn == 1) e.setAlwaysDrawn(); else
-						if (alwaysDrawn == 2) e.clearAlwaysDrawn();
+					if (bodyOnly == 1) e.setBodyOnly(true); else
+						if (bodyOnly == 2) e.setBodyOnly(false);
+					if (alwaysDrawn == 1) e.setAlwaysDrawn(true); else
+						if (alwaysDrawn == 2) e.setAlwaysDrawn(false);
 
 					MutableTextDescriptor td = e.getMutableTextDescriptor(Export.EXPORT_NAME);
 					boolean tdChanged = false;

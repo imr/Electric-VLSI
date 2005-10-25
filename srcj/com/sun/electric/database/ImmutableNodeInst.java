@@ -230,10 +230,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //	}
 
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name.
 	 * @param name node name key.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
-	 * @throws NullPointerException if name is null
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name.
+	 * @throws NullPointerException if name is null.
 	 */
 	public ImmutableNodeInst withName(Name name) {
 		if (this.name.equals(name)) return this;
@@ -246,7 +246,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
-     * @param td TextDescriptor of name
+     * @param nameDescriptor TextDescriptor of name
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
 	 */
 	public ImmutableNodeInst withNameDescriptor(TextDescriptor nameDescriptor) {
@@ -376,7 +376,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * with the specified key. Returns this ImmutableNodeInst if it doesn't contain variable with the specified key.
 	 * @param key Variable Key to remove.
 	 * @return ImmutableNodeInst without Variable with the specified key.
-	 * @throws NullPointerException if var is null
+	 * @throws NullPointerException if key is null
 	 */
     public ImmutableNodeInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);

@@ -556,7 +556,7 @@ public class ELIB extends Output
 				writeTextDescriptor(pp.getTextDescriptor(Export.EXPORT_NAME), true);
 
 				// write the portproto tool information
-				writeBigInteger(pp.lowLevelGetUserbits());
+				writeBigInteger(pp.getElibBits());
 
 				// write variable information
 				writeVariables(pp, 0);

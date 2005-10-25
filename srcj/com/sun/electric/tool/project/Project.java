@@ -27,6 +27,7 @@ package com.sun.electric.tool.project;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
@@ -872,9 +873,9 @@ public class Project extends Listener
 	/**
 	 * Method to handle a change to an Export.
 	 * @param pp the Export that moved.
-	 * @param oldPi the old PortInst on which it resided.
+	 * @param oD the old contents of the Export.
 	 */
-	public void modifyExport(Export pp, PortInst oldPi)
+	public void modifyExport(Export pp, ImmutableExport oD)
 	{
 		if (ignoreChanges) return;
 		queueCheck((Cell)pp.getParent());
@@ -903,17 +904,6 @@ public class Project extends Listener
 	{
 		if (ignoreChanges) return;
 		queueCheck(cell);
-	}
-
-	/**
-	 * Method to handle a change to a TextDescriptor.
-	 * @param obj the ElectricObject on which the TextDescriptor resides.
-     * @param varName name of variable or special name.
-     * @param oldDescriptor old text descriptor.
-	 */
-	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor)
-	{
-		checkObject(obj);
 	}
 
 	/**

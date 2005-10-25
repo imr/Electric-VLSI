@@ -27,10 +27,10 @@ import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -56,7 +56,6 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -100,7 +99,6 @@ public class Undo
 		/** Describes the renaming of an arbitrary object. */				public static final Type OBJECTRENAME = new Type("ObjectRename");
 		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
 		/** Describes the change of Variables on an object. */              public static final Type VARIABLESMOD = new Type("VariablesMod");
-		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
 		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
 		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
 		/** Describes a Cell-group change */								public static final Type CELLGROUPMOD = new Type("CellGroupMod");
@@ -116,7 +114,7 @@ public class Undo
 		private ElectricObject obj;
 		private Type type;
 		private int i1;
-		private Object o1, o2;
+		private Object o1;
 
 		Change(ElectricObject obj, Type type)
 		{
@@ -149,11 +147,6 @@ public class Undo
 		 * @return the first Object associated with this Change.
 		 */
 		public Object getO1() { return o1; }
-		/**
-		 * Method to get the second Object associated with this Change.
-		 * @return the second Object associated with this Change.
-		 */
-		public Object getO2() { return o2; }
 
 		/**
 		 * Method to broadcast a change to all tools that are on.
@@ -221,7 +214,7 @@ public class Undo
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyExport((Export)obj, (PortInst)o1);
+					listener.modifyExport((Export)obj, (ImmutableExport)o1);
 				}
 			} else if (type == Type.CELLGROUPMOD)
 			{
@@ -236,13 +229,6 @@ public class Undo
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyVariables(obj, (ImmutableElectricObject)o1);
-				}
-			} else if (type == Type.DESCRIPTORMOD)
-			{
-				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.modifyTextDescript(obj, (String)o1, (TextDescriptor)o2);
 				}
 			} else if (type == Type.OTHERCHANGE)
             {
@@ -331,10 +317,9 @@ public class Undo
 			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
-				PortInst oldPi = (PortInst)o1;
-				PortInst currentPi = pp.getOriginalPort();
-				pp.lowLevelModify(oldPi);
-				o1 = currentPi;
+                ImmutableExport oldD = pp.getD();
+				pp.lowLevelModify((ImmutableExport)o1);
+				o1 = oldD;
 				return;
 			}
 			if (type == Type.CELLNEW)
@@ -428,12 +413,6 @@ public class Undo
                 o1 = oldImmutable;
 				return;
 			}
-			if (type == Type.DESCRIPTORMOD)
-			{
-                String varName = (String)o1;
-                o2 = ((Export)obj).lowLevelSetTextDescriptor(varName, (TextDescriptor)o2);
-                return;
-			}
             if (type == Type.OTHERCHANGE)
             {
                 return;
@@ -506,10 +485,6 @@ public class Undo
 				if (cell != null) lib = cell.getLibrary();
 //				Variable var = (Variable)o1;
 //				major = isMajorVariable(obj, var.getKey());
-			} else if (type == Type.DESCRIPTORMOD)
-			{
-				cell = obj.whichCell();
-				if (cell != null) lib = cell.getLibrary();
 			} else if (type == Type.OTHERCHANGE)
             {
                 cell = obj.whichCell();
@@ -600,7 +575,8 @@ public class Undo
 			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
-				PortInst pi = (PortInst)o1;
+				ImmutableExport d = (ImmutableExport)o1;
+                PortInst pi = ((Cell)pp.getParent()).getPortInst(d.originalNodeId, d.originalPortId);
 				return "Export " + pp.getName() + " moved in " + pp.getParent() +
 					"[was on " + pi.getNodeInst() + " port " + pi.getPortProto().getName() + "]";
 			}
@@ -639,10 +615,6 @@ public class Undo
 			if (type == Type.VARIABLESMOD)
 			{
 				return "Changed variables on "+obj;
-			}
-			if (type == Type.DESCRIPTORMOD)
-			{
-				return "Modified Text Descriptor in "+obj+"."+o1+" [was "+o2+"]";
 			}
             if (type == Type.OTHERCHANGE)
             {
@@ -719,11 +691,6 @@ public class Undo
 				} else if (ch.getType() == Type.VARIABLESMOD)
 				{
 					variable++;
-				} else if (ch.getType() == Type.DESCRIPTORMOD)
-				{
-                    String varName = (String)ch.o1;
-                    assert ch.obj instanceof Export && varName.equals(Export.EXPORT_NAME.getName());
-                    export++;
 				} else if (ch.getType() == Type.OTHERCHANGE)
                 {
                         object++;
@@ -987,7 +954,7 @@ public class Undo
 	 * <LI>ARCINSTMOD takes o1=oldD.
 	 * <LI>EXPORTNEW takes nothing.
 	 * <LI>EXPORTKILL takes nothing.
-	 * <LI>EXPORTMOD takes o1=oldPortInst.
+	 * <LI>EXPORTMOD takes o1=oldD.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
 	 * <LI>OBJECTNEW takes nothing.
@@ -995,7 +962,6 @@ public class Undo
 	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLESMOD takes o1=oldImmutable.
-	 * <LI>DESCRIPTORMOD takes o1=varName o2=oldDescriptor.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
      * <LI?OTHERCHANGE takes nothing
 	 * </UL>
@@ -1072,18 +1038,18 @@ public class Undo
 	 * Method to store a change to an Export in the change-control system.
 	 * Export changes involve moving them from one PortInst to another in the Cell.
 	 * @param pp the Export that was moved.
-	 * @param oldPi the former PortInst on which the Export resided.
+	 * @param oD the old contents of the Export.
 	 */
-	public static void modifyExport(Export pp, PortInst oldPi)
+	public static void modifyExport(Export pp, ImmutableExport oD)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(pp, Type.EXPORTMOD, oldPi);
+		Change ch = newChange(pp, Type.EXPORTMOD, oD);
 		if (ch == null) return;
 //		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
-		Constraints.getCurrent().modifyExport(pp, oldPi);
+		Constraints.getCurrent().modifyExport(pp, oD);
 	}
 
 	/**
@@ -1099,25 +1065,6 @@ public class Undo
 
 		ch.broadcast(currentBatch.getNumChanges() <=1, false);
 //		fireChangeEvent(ch);
-	}
-
-	/**
-	 * Method to store a change to a TextDescriptor in the change-control system.
-	 * @param obj the ElectricObject on which the TextDescriptor resides.
-     * @param varName name of variable or special name.
-	 * @param oldDescriptor the former TextDescriptor.
-	 */
-	public static void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor)
-	{
-		if (!recordChange()) return;
-		Change ch = newChange(obj, Type.DESCRIPTORMOD, varName);
-		if (ch == null) return;
-		ch.o2 = oldDescriptor;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		// tell constraint system about this TextDescriptor
-		Constraints.getCurrent().modifyTextDescript(obj, varName, oldDescriptor);
 	}
 
 	/**
