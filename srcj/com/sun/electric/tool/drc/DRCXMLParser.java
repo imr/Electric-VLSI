@@ -25,7 +25,7 @@ import com.sun.electric.database.text.TextUtils;
  */
 public class DRCXMLParser {
 
-    public List<DRCTemplate> process(URL fileURL)
+    public List<DRCTemplate> process(URL fileURL, int foundry)
     {
         List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
         try
@@ -39,7 +39,7 @@ public class DRCXMLParser {
             URLConnection urlCon = fileURL.openConnection();
 			InputStream inputStream = urlCon.getInputStream();
 			System.out.println("Parsing XML file ...");
-            parser.parse(inputStream, new DRCXMLHandler(drcRules));
+            parser.parse(inputStream, new DRCXMLHandler(drcRules, foundry));
 
 			System.out.println("End Parsing XML file ...");
         }
@@ -53,10 +53,12 @@ public class DRCXMLParser {
     private static class DRCXMLHandler extends DefaultHandler
     {
         private List drcRules = null;
+        private int foundry = DRCTemplate.NONE;
 
-        DRCXMLHandler(List drcList)
+        DRCXMLHandler(List drcList, int foundry)
         {
             this.drcRules = drcList;
+            this.foundry = foundry;
         }
 
         public void startElement (String uri, String localName, String qName, Attributes attributes)
@@ -68,7 +70,7 @@ public class DRCXMLParser {
 
             if (layerRule || layersRule || nodeLayersRule || nodeRule)
             {
-                String ruleName = "", layerNames = "", nodeName = "";
+                String ruleName = "", layerNames = "", nodeName = null;
                 int when = DRCTemplate.NONE, type = DRCTemplate.NONE;
                 double value = Double.NaN;
 
@@ -78,6 +80,8 @@ public class DRCXMLParser {
                         ruleName = attributes.getValue(i);
                     else if (attributes.getQName(i).startsWith("layerName"))
                         layerNames = attributes.getValue(i);
+                    else if (attributes.getQName(i).startsWith("nodeName"))
+                        nodeName = attributes.getValue(i);
                     else if (attributes.getQName(i).equals("type"))
                     {
                         Integer obj = (Integer)EvalJavaBsh.evalJavaBsh.doEvalLine("import com.sun.electric.technology.DRCTemplate; " + attributes.getValue(i));
@@ -87,6 +91,7 @@ public class DRCXMLParser {
                     {
                         Integer obj = (Integer)EvalJavaBsh.evalJavaBsh.doEvalLine("import com.sun.electric.technology.DRCTemplate; " + attributes.getValue(i));
                         when = obj;
+                        when |= foundry; // No need to hardcode foundry in DRC deck
                     }
                     else if (attributes.getQName(i).equals("value"))
                         value = Double.parseDouble(attributes.getValue(i));
@@ -106,7 +111,7 @@ public class DRCXMLParser {
                 }
                 else if (nodeRule)
                 {
-                    DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, null);
+                    DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, nodeName);
                     drcRules.add(tmp);
                 }
                 else if (layersRule || nodeLayersRule)
@@ -117,7 +122,7 @@ public class DRCXMLParser {
                         String[] pair = TextUtils.parseLine(layerPairs[i], ",");
                         if (pair.length != 2) continue;
                         DRCTemplate tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1],
-                                value, (layersRule?null:nodeName));
+                                value, nodeName);
                         drcRules.add(tmp);
                     }
                 }

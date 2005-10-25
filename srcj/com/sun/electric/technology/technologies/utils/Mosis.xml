@@ -36,7 +36,7 @@
  >
  <!ATTLIST NodeRule
     ruleName CDATA #REQUIRED
-    type (DRCTemplate.TRAWELL | DRCTemplate.TRAPOLY | DRCTemplate.TRAACTIVE | DRCTemplate.NODSIZ | DRCTemplate.CUTSUR) #REQUIRED
+    type (DRCTemplate.TRAWELL | DRCTemplate.TRAPOLY | DRCTemplate.TRAACTIVE | DRCTemplate.NODSIZ | DRCTemplate.CUTSUR | DRCTemplate.CUTSPA) #REQUIRED
     when CDATA #REQUIRED
     value CDATA #REQUIRED
     nodeName CDATA #IMPLIED
@@ -115,4 +115,7 @@
     <NodeRule ruleName="5.2b (Mosis)" type="DRCTemplate.NODSIZ" when="DRCTemplate.AC" value="4" nodeName="Metal-1-Polysilicon-1-Con"/>
     <NodeLayersRule ruleName="5.2b (Mosis)" layerNames="{Polysilicon-1,  Metal-1}" type="DRCTemplate.SURROUND" when="DRCTemplate.AC" value="0" nodeName="Metal-1-Polysilicon-1-Con"/>
     <NodeRule ruleName="5.2b (Mosis)" type="DRCTemplate.CUTSUR" when="DRCTemplate.AC" value="1" nodeName="Metal-1-Polysilicon-1-Con"/>
+
+    <!-- Multi contacts -->
+    <NodeRule ruleName="5.3 (Mosis)" type="DRCTemplate.CUTSPA" when="DRCTemplate.DE" value="4" nodeName="Metal-1-Polysilicon-1-Con"/>
 </DRC>
