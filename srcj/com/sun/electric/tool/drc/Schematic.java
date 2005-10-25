@@ -56,12 +56,12 @@ import java.util.Iterator;
  */
 public class Schematic
 {
-	private static HashSet cellsChecked;
+	private static HashSet<Cell> cellsChecked;
     private static ErrorLogger errorLogger = null;
 
 	public static ErrorLogger doCheck(Cell cell)
 	{
-		cellsChecked = new HashSet();
+		cellsChecked = new HashSet<Cell>();
 
         if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
@@ -80,7 +80,7 @@ public class Schematic
 			return;
 
 		// recursively check contents
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -107,14 +107,14 @@ public class Schematic
 		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode &&
 				ni.getProto().getTechnology() == Generic.tech) continue;
 			schematicDoCheck(netlist, ni);
 		}
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			schematicDoCheck(netlist, ai);
@@ -147,7 +147,7 @@ public class Schematic
 				{
 					// must not connect to any bus arcs
 					boolean found = false;
-					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
 						if (con.getArc().getProto() == Schematics.tech.bus_arc) { found = true;   break; }
@@ -162,7 +162,7 @@ public class Schematic
 
 				// flag bus pin if more than 1 wire is connected
 				int i = 0;
-				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = (Connection)it.next();
 					if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
@@ -171,7 +171,7 @@ public class Schematic
 				{
 					ErrorLogger.MessageLog err = errorLogger.logError("Wire arcs cannot connect through a bus pin", cell, 0);
 					err.addGeom(geom, true, cell, null);
-					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
 						if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
@@ -189,7 +189,7 @@ public class Schematic
 				{
 					// see if the pin has displayable variables on it
 					boolean found = false;
-					for(Iterator it = ni.getVariables(); it.hasNext(); )
+					for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 					{
 						Variable var = (Variable)it.next();
 						if (var.isDisplay()) { found = true;   break; }
@@ -227,7 +227,7 @@ public class Schematic
 				if (contentsCell == null) contentsCell = instCell;
 
 				// ensure that this node matches the parameter list
-				for(Iterator it = ni.getVariables(); it.hasNext(); )
+				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
                     if (!ni.isParam(var.getKey())) continue;
@@ -397,12 +397,12 @@ public class Schematic
 					AffineTransform subRot = ni.translateOut();
 					subRot.preConcatenate(localTrans);
 					Cell subCell = (Cell)np;
-					for(Iterator it = subCell.getNodes(); it.hasNext(); )
+					for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 					{
 						NodeInst subNi = (NodeInst)it.next();
 						checkObjectVicinity(netlist, topGeom, subNi, subRot); 
 					}
-					for(Iterator it = subCell.getArcs(); it.hasNext(); )
+					for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 					{
 						ArcInst subAi = (ArcInst)it.next();
 						checkObjectVicinity(netlist, topGeom, subAi, subRot); 
@@ -451,7 +451,7 @@ public class Schematic
 		ArcInst ai = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom; else ai = (ArcInst)geom;
 		Rectangle2D bounds = geom.getBounds();
-		for(Iterator sIt = cell.searchIterator(bounds); sIt.hasNext(); )
+		for(Iterator<Geometric> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
 			Geometric oGeom = (Geometric)sIt.next();
 
@@ -470,10 +470,10 @@ public class Schematic
 				{
 					// this is node, nearby is node: see if two nodes touch
 					boolean found = false;
-					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
-						for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
+						for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
 						{
 							Connection oCon = (Connection)oIt.next();
 							if (netlist.sameNetwork(con.getArc(), oCon.getArc()))
@@ -489,7 +489,7 @@ public class Schematic
 				{			
 					// this is arc, nearby is node: see if electrically connected
 					boolean found = false;
-					for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
+					for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
 					{
 						Connection oCon = (Connection)oIt.next();
 						if (netlist.sameNetwork(ai, oCon.getArc()))
@@ -514,7 +514,7 @@ public class Schematic
 				{
 					// this is node, nearby is arc: see if electrically connected
 					boolean found = false;
-					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
 						if (netlist.sameNetwork(oAi, con.getArc()))
@@ -602,13 +602,13 @@ public class Schematic
 				AffineTransform subRot = ni.translateOut();
 				subRot.preConcatenate(thisTrans);
 				Cell subCell = (Cell)np;
-				for(Iterator it = subCell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst subNi = (NodeInst)it.next();
 					if (checkPoly(geom, poly, oTopGeom, subNi, subRot, canCross))
 						return true;
 				}
-				for(Iterator it = subCell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 				{
 					ArcInst subAi = (ArcInst)it.next();
 					if (checkPoly(geom, poly, oTopGeom, subAi, subRot, canCross))

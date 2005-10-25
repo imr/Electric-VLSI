@@ -79,7 +79,7 @@ public class SpiceOut extends Simulate
 		boolean pastEnd = false;
 		String cellName = null;
 		int mostSignals = 0;
-		List allNumbers = new ArrayList();
+		List<List<Double>> allNumbers = new ArrayList<List<Double>>();
 		for(;;)
 		{
 			String line = getLine();
@@ -159,7 +159,7 @@ public class SpiceOut extends Simulate
 			}
 			if (dataMode)
 			{
-				List numbers = new ArrayList();
+				List<Double> numbers = new ArrayList<Double>();
 				int ptr = 0;
 				while (ptr < len)
 				{
@@ -190,7 +190,7 @@ public class SpiceOut extends Simulate
 		sd.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
-			List row = (List)allNumbers.get(i);
+			List<Double> row = (List<Double>)allNumbers.get(i);
 			sd.setCommonTime(i, ((Double)row.get(0)).doubleValue());
 		}
 		for(int j=0; j<mostSignals; j++)
@@ -200,7 +200,7 @@ public class SpiceOut extends Simulate
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
 			{
-				List row = (List)allNumbers.get(i);
+				List<Double> row = (List<Double>)allNumbers.get(i);
 				as.setValue(i, ((Double)row.get(j+1)).doubleValue());
 			}
 		}

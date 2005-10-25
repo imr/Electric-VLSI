@@ -89,7 +89,7 @@ public class LEF extends LEFDEF
 	{
 		// remove any vias in the globals
 		firstViaDefFromLEF = null;
-		widthsFromLEF = new HashMap();
+		widthsFromLEF = new HashMap<ArcProto,Double>();
 		lineBufferPosition = 0;
 		lineBuffer = "";
 
@@ -209,9 +209,9 @@ public class LEF extends LEFDEF
 		}
 		if (vd.lay1 != null && vd.lay2 != null)
 		{
-			for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 			{
-				NodeProto np = (NodeProto)it.next();
+				PrimitiveNode np = (PrimitiveNode)it.next();
 				if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 				PortProto pp = np.getPort(0);
 				if (pp.connectsTo(vd.lay1) && pp.connectsTo(vd.lay2))
@@ -287,7 +287,7 @@ public class LEF extends LEFDEF
 
 				// create or move the cell-center node
 				NodeInst ccNi = null;
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					if (ni.getProto() == Generic.tech.cellCenterNode) { ccNi = ni;   break; }
@@ -750,7 +750,7 @@ public class LEF extends LEFDEF
 			{
 				if (lp.ni[i] != null) continue;
 				Rectangle2D bounds = new Rectangle2D.Double(lp.pt[i].getX(), lp.pt[i].getY(), 0, 0);
-				for(Iterator sea = cell.searchIterator(bounds); sea.hasNext(); )
+				for(Iterator<Geometric> sea = cell.searchIterator(bounds); sea.hasNext(); )
 				{
 					Geometric geom = (Geometric)sea.next();
 					if (!(geom instanceof NodeInst)) continue;

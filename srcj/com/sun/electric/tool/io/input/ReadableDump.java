@@ -1671,7 +1671,7 @@ public class ReadableDump extends LibraryFiles
 					System.out.println("Error on line "+lineReader.getLineNumber()+": missing '[' in list of variable values: " + keyWord);
 					return vars;
 				}
-				ArrayList al = new ArrayList();
+				ArrayList<Object> al = new ArrayList<Object>();
 				int pos = 1;
 				len = keyWord.length();
 				for(;;)

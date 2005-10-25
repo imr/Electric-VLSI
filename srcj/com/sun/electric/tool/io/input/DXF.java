@@ -91,11 +91,11 @@ public class DXF extends Input
 	private ForwardRef          firstForwardRef;
 	private Cell                mainCell;
 	private Cell                curCell;
-	private List                headerText;
-	private List                headerID;
+	private List<String>        headerText;
+	private List<Integer>       headerID;
 	private int                 inputMode;			/* 0: pairs not read, 1: normal pairs, 2: blank lines */
-	private HashSet             validLayerNames;
-	private HashSet             ignoredLayerNames;
+	private HashSet<String>     validLayerNames;
+	private HashSet<String>     ignoredLayerNames;
 	private TextUtils.UnitScale dispUnit;
 	private int                 groupID;
 	private String              text;
@@ -137,9 +137,9 @@ public class DXF extends Input
 		if (mainCell == null) return true;
 		lib.setCurCell(mainCell);
 		curCell = mainCell;
-		headerID = new ArrayList();
-		headerText = new ArrayList();
-		ignoredLayerNames = new HashSet();
+		headerID = new ArrayList<Integer>();
+		headerText = new ArrayList<String>();
+		ignoredLayerNames = new HashSet<String>();
 
 		// read the file
 		lastPairValid = false;
@@ -214,7 +214,7 @@ public class DXF extends Input
 		{
 			// have to search by hand because of weird prototype names
 			Cell found = null;
-			for(Iterator it = lib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				if (cell.getName().equals(fr.refName)) { found = cell;   break; }
@@ -335,7 +335,7 @@ public class DXF extends Input
 		{
 			String warning = "Ignored layers ";
 			boolean first = true;
-			for(Iterator it = ignoredLayerNames.iterator(); it.hasNext(); )
+			for(Iterator<String> it = ignoredLayerNames.iterator(); it.hasNext(); )
 			{
 				String name = (String)it.next();
 				if (!first) warning += ", ";
@@ -803,7 +803,7 @@ public class DXF extends Input
 
 			// have to search by hand because of weird prototype names
 			Cell found = null;
-			for(Iterator it = lib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
 				Cell np = (Cell)it.next();
 				if (np.getName().equals(pt)) { found = np;   break; }
@@ -897,7 +897,7 @@ public class DXF extends Input
 		DXFLayer layer = null;
 		int lineType = 0;
 		boolean inEnd = false;
-		List polyPoints = new ArrayList();
+		List<PolyPoint> polyPoints = new ArrayList<PolyPoint>();
 		PolyPoint curPP = null;
 		boolean hasBulgeInfo = false;
 		for(;;)
@@ -1356,7 +1356,7 @@ public class DXF extends Input
 		trans.transform(pt, pt);
 		trans.setTransform(m00, m10, m01, m11, pt.getX(), pt.getY());
 
-		for(Iterator it = onp.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell)
@@ -1433,7 +1433,7 @@ public class DXF extends Input
 		Cell np = Cell.makeInstance(onp.getLibrary(), cellName);
 		if (np == null) return null;
 
-		for(Iterator it = onp.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell)
@@ -1511,8 +1511,8 @@ public class DXF extends Input
 	 */
 	private void getAcceptableLayers()
 	{
-		validLayerNames = new HashSet();
-		for(Iterator it = Artwork.tech.getLayers(); it.hasNext(); )
+		validLayerNames = new HashSet<String>();
+		for(Iterator<Layer> it = Artwork.tech.getLayers(); it.hasNext(); )
 		{
 			Layer lay = (Layer)it.next();
 			String layNames = lay.getDXFLayer();

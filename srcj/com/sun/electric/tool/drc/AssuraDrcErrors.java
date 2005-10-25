@@ -51,19 +51,19 @@ public class AssuraDrcErrors {
     private static class DrcRuleViolation {
         private final int number;
         private final String desc;
-        private final List errors;         // list of DrcErrors
+        private final List<DrcError> errors;         // list of DrcErrors
         private int realErrorCount;
         private int flatErrorCount;
         private DrcRuleViolation(int number, String desc) {
             this.number = number;
             this.desc = desc;
-            errors = new ArrayList();
+            errors = new ArrayList<DrcError>();
         }
         private void addError(DrcError error) {
             errors.add(error);
         }
-        public Iterator getErrors() {
-            ArrayList copy = new ArrayList(errors);
+        public Iterator<DrcError> getErrors() {
+            ArrayList<DrcError> copy = new ArrayList<DrcError>(errors);
             return copy.iterator();
         }
         private void setErrorCounts(int real, int flat) {

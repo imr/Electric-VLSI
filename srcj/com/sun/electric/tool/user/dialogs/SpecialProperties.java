@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -62,49 +63,50 @@ public class SpecialProperties
 	 * Method to handle special dialogs that are associated with double-clicking on a node.
 	 * @param wnd the EditWindow in which the click occurred.
 	 * @param ni the NodeInst that was double-clicked.
-	 * @return true if the double-click has been handled.
-	 * False indicates that a general "node properties" dialog should be shown.
+	 * @return 1 if the double-click has been handled.
+	 * 0 if text edit in-place should be done.
+	 * -1 indicates that a general "node properties" dialog should be shown.
 	 */
-	public static boolean doubleClickOnNode(EditWindow wnd, NodeInst ni)
+	public static int doubleClickOnNode(EditWindow wnd, NodeInst ni)
 	{
 		// if double-clicked on a technology editing object, modify it
 		int opt = Manipulate.getOptionOnNode(ni);
 		if (opt >= 0)
 		{
 			Manipulate.modifyObject(wnd, ni, opt);
-			return true;
+			return 1;
 		}
 
 		// if double-clicked on a schematic resistor, show special dialog
 		if (ni.getProto() == Schematics.tech.resistorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Resistance", "Ohms", Schematics.SCHEM_RESISTANCE);
-			if (npd.wantMore()) return false;
-			return true;
+			if (npd.wantMore()) return -1;
+			return 1;
 		}
 
 		// if double-clicked on a schematic capacitor, show special dialog
 		if (ni.getProto() == Schematics.tech.capacitorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Capacitance", "Farads", Schematics.SCHEM_CAPACITANCE);
-			if (npd.wantMore()) return false;
-			return true;
+			if (npd.wantMore()) return -1;
+			return 1;
 		}
 
 		// if double-clicked on a schematic inductor, show special dialog
 		if (ni.getProto() == Schematics.tech.inductorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Inductance", "Henrys", Schematics.SCHEM_INDUCTANCE);
-			if (npd.wantMore()) return false;
-			return true;
+			if (npd.wantMore()) return -1;
+			return 1;
 		}
 
 		// if double-clicked on a schematic diode, show special dialog
 		if (ni.getProto() == Schematics.tech.diodeNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Diode area", null, Schematics.SCHEM_DIODE);
-			if (npd.wantMore()) return false;
-			return true;
+			if (npd.wantMore()) return -1;
+			return 1;
 		}
 
 		// if double-clicked on a schematic transistor, show special dialog
@@ -117,14 +119,14 @@ public class SpecialProperties
 			{
 				// show just the area value for NPN and PNP transistors
 				NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Transistor area", null, Schematics.ATTR_AREA);
-				if (npd.wantMore()) return false;
-				return true;
+				if (npd.wantMore()) return -1;
+				return 1;
 			} else
 			{
 				// show length and width for other transistors
 				TransistorPropertiesDialog tpd = new TransistorPropertiesDialog(wnd, ni);
-				if (tpd.wantMore()) return false;
-				return true;
+				if (tpd.wantMore()) return -1;
+				return 1;
 			}
 		}
 
@@ -132,10 +134,10 @@ public class SpecialProperties
 		if (ni.getProto() == Schematics.tech.globalNode)
 		{
 			GlobalPropertiesDialog gpd = new GlobalPropertiesDialog(wnd, ni);
-			if (gpd.wantMore()) return false;
-			return true;
+			if (gpd.wantMore()) return -1;
+			return 1;
 		}
-		return false;
+		return 0;
 	}
 
 	private static TextUtils.UnitScale getUnit(String str)
@@ -359,27 +361,41 @@ public class SpecialProperties
 
 		public boolean doIt()
 		{
+			NodeInst reHiNode = null;
+			Variable.Key reHiKey = null;
+			Variable reHiVar = null;
+	        EditWindow wnd = EditWindow.getCurrent();
+	        if (wnd != null)
+			{
+				Highlight h = wnd.getHighlighter().getOneHighlight();
+				if (h != null && h.getType() == Highlight.Type.TEXT && h.getElectricObject() instanceof NodeInst)
+				{
+					reHiNode = (NodeInst)h.getElectricObject();
+					reHiKey = h.getVar().getKey();
+				}
+			}
+
 			if (key == null)
 			{
 				// update length/width on transistor
 				Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
                 TextDescriptor wtd = oldWid != null ? oldWid.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
+				Variable var = ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
+				if (var != null && reHiKey == Schematics.ATTR_WIDTH) reHiVar = var;
 //				Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, newValue);
 //				if (var != null)
 //				{
-////					var.setDisplay(true);
 //					if (oldWid != null) var.setTextDescriptor(oldWid.getTextDescriptor());
 //					var.setCode(newCode);
 //				}
 
 				Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
                 TextDescriptor ltd = oldLen != null ? oldLen.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
+				var = ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
+				if (var != null && reHiKey == Schematics.ATTR_LENGTH) reHiVar = var;
 //				var = ni.newDisplayVar(Schematics.ATTR_LENGTH, newValueLen);
 //				if (var != null)
 //				{
-////					var.setDisplay(true);
 //					if (oldLen != null) var.setTextDescriptor(oldLen.getTextDescriptor());
 //					var.setCode(newCodeLen);
 //				}
@@ -388,17 +404,23 @@ public class SpecialProperties
 				// update single value on a node
 				Variable oldVar = ni.getVar(key);
                 TextDescriptor td = oldVar != null ? oldVar.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(key, newValue, td);
+				Variable var = ni.newVar(key, newValue, td);
+				if (var != null) reHiVar = var;
 //				Variable var = ni.newDisplayVar(key, newValue);
 //				if (var != null)
 //				{
-////					var.setDisplay(true);
 //					if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
 //				}
 //
 				// set techbits if requested
 				if (newBits != -1)
 					ni.setTechSpecific(newBits);
+			}
+			if (reHiNode != null && reHiVar != null)
+			{
+				wnd.getHighlighter().clear();
+				wnd.getHighlighter().addText(reHiNode, reHiNode.getParent(), reHiVar, null);
+				wnd.getHighlighter().finished();
 			}
 			return true;
 		}
@@ -495,8 +517,8 @@ public class SpecialProperties
 
 			combo = new JComboBox();
 			int selected = 0;
-			List characteristics = PortCharacteristic.getOrderedCharacteristics();
-			for(Iterator it = characteristics.iterator(); it.hasNext(); )
+			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
+			for(Iterator<PortCharacteristic> it = characteristics.iterator(); it.hasNext(); )
 			{
 				PortCharacteristic ch = (PortCharacteristic)it.next();
 				combo.addItem(ch.getName());
@@ -655,7 +677,7 @@ public class SpecialProperties
 			valueWid.selectAll();
 
 			comboWid = new JComboBox();
-			for(Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); )
+			for(Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); )
 				comboWid.addItem(it.next());
 			comboWid.setSelectedItem(codeWid);
 			gbc = new GridBagConstraints();
@@ -684,7 +706,7 @@ public class SpecialProperties
 			getContentPane().add(valueLen, gbc);
 
 			comboLen = new JComboBox();
-			for(Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); )
+			for(Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); )
 				comboLen.addItem(it.next());
 			comboLen.setSelectedItem(codeLen);
 			gbc = new GridBagConstraints();

@@ -125,13 +125,13 @@ public class GDS extends Input
 	private String         tokenString;
 	private Point2D []     theVertices;
 	private double         theScale;
-	private HashMap        layerNames;
-	private HashSet        pinLayers;
+	private HashMap<Integer,Layer> layerNames;
+	private HashSet<Integer>       pinLayers;
 
 	private static class GSymbol
 	{
 		private int value;
-		private static List symbols = new ArrayList();
+		private static List<GSymbol> symbols = new ArrayList<GSymbol>();
 
 		private GSymbol(int value)
 		{
@@ -141,7 +141,7 @@ public class GDS extends Input
 
 		private static GSymbol findSymbol(int value)
 		{
-			for(Iterator it = symbols.iterator(); it.hasNext(); )
+			for(Iterator<GSymbol> it = symbols.iterator(); it.hasNext(); )
 			{
 				GSymbol gs = (GSymbol)it.next();
 				if (gs.value == value) return gs;
@@ -224,7 +224,7 @@ public class GDS extends Input
 
 	private static class MakeInstance
 	{
-		private static HashMap allInstances;
+		private static HashMap<Cell,List<MakeInstance>> allInstances;
 
 		private Cell parent;
 		private Cell subCell;
@@ -243,24 +243,24 @@ public class GDS extends Input
 			this.angle = angle;
 			this.instantiated = false;
 
-			List instancesInCell = (List)allInstances.get(parent);
+			List<MakeInstance> instancesInCell = (List<MakeInstance>)allInstances.get(parent);
 			if (instancesInCell == null)
 			{
-				instancesInCell = new ArrayList();
+				instancesInCell = new ArrayList<MakeInstance>();
 				allInstances.put(parent, instancesInCell);
 			}
 			instancesInCell.add(this);
 		}
 
-		private static void init() { allInstances = new HashMap(); }
+		private static void init() { allInstances = new HashMap<Cell,List<MakeInstance>>(); }
 
 		private static void term() { allInstances = null; }
 
 		private static void makeCellInstances(Cell cell)
 		{
-			List instancesInCell = (List)allInstances.get(cell);
+			List<MakeInstance> instancesInCell = (List<MakeInstance>)allInstances.get(cell);
 			if (instancesInCell == null) return;
-			for(Iterator iIt = instancesInCell.iterator(); iIt.hasNext(); )
+			for(Iterator<MakeInstance> iIt = instancesInCell.iterator(); iIt.hasNext(); )
 			{
 				MakeInstance mi = (MakeInstance)iIt.next();
 				if (mi.instantiated) continue;
@@ -295,7 +295,7 @@ public class GDS extends Input
 
 		private static void buildInstances()
 		{
-			for(Iterator it = allInstances.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = allInstances.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				makeCellInstances(cell);
@@ -337,18 +337,18 @@ public class GDS extends Input
 		recordCount = 0;
 
 		// get the array of GDS names
-		layerNames = new HashMap();
-		pinLayers = new HashSet();
+		layerNames = new HashMap<Integer,Layer>();
+		pinLayers = new HashSet<Integer>();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String gdsName = layer.getGDSLayer();
 			if (gdsName != null && gdsName.length() > 0)
 			{
 				GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);
-				for(Iterator lIt = gdsl.getLayers(); lIt.hasNext(); )
+				for(Iterator<Integer> lIt = gdsl.getLayers(); lIt.hasNext(); )
 				{
 					Integer lVal = (Integer)lIt.next();
 					Integer lay = new Integer(lVal.intValue());
@@ -368,10 +368,10 @@ public class GDS extends Input
 	 * Method to parse a string of layer numbers in "layernumbers" and return those layers
 	 * in the array "layers", with the size of the array in "total".
 	 */
-	private List parseLayerNumbers(String layerNumbers)
+	private List<Integer> parseLayerNumbers(String layerNumbers)
 	{
 		String [] numberStrings = layerNumbers.split(",");
-		List numbers = new ArrayList();
+		List<Integer> numbers = new ArrayList<Integer>();
 		for(int i=0; i<numberStrings.length; i++)
 		{
 			String numberString = numberStrings[i].trim();
@@ -1162,7 +1162,7 @@ public class GDS extends Input
             pinNodeProto = Generic.tech.universalPinNode;
 			if (pinLayers.contains(layerInt)) {
                 layerIsPin = true;
-                for (Iterator it = layer.getTechnology().getArcs(); it.hasNext(); ) {
+                for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); ) {
                     ArcProto arc = (ArcProto)it.next();
                     PortProto pp = layerNodeProto.getPort(0);
                     if (pp != null && pp.connectsTo(arc)) {

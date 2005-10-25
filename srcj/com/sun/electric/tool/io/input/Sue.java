@@ -209,9 +209,9 @@ public class Sue extends Input
 		private String   label;
 	};
 
-	private String sueLastLine;
-	private String lastLineRead;
-	private List   sueDirectories;
+	private String       sueLastLine;
+	private String       lastLineRead;
+	private List<String> sueDirectories;
 
 	/**
 	 * Method to import a library from disk.
@@ -224,7 +224,7 @@ public class Sue extends Input
 		String cellName = lib.getName();
 
 		// initialize the number of directories that need to be searched
-		sueDirectories = new ArrayList();
+		sueDirectories = new ArrayList<String>();
 
 		// determine the current directory
 		String topDirName = TextUtils.getFilePath(lib.getLibFile());
@@ -279,20 +279,20 @@ public class Sue extends Input
 		throws IOException
 	{
 		boolean placeIcon = false;
-		List sueWires = new ArrayList();
-		List sueNets = new ArrayList();
+		List<SueWire> sueWires = new ArrayList<SueWire>();
+		List<SueNet> sueNets = new ArrayList<SueNet>();
 		Cell cell = null;
 		Cell schemCell = null;
 		Cell iconCell = null;
 		lastLineRead = null;
 		Point2D iconPt = null;
-		List argumentKey = new ArrayList();
-		List argumentValue = new ArrayList();
-		HashSet invertNodeOutput = new HashSet();
+		List<String> argumentKey = new ArrayList<String>();
+		List<String> argumentValue = new ArrayList<String>();
+		HashSet<NodeInst> invertNodeOutput = new HashSet<NodeInst>();
 		for(;;)
 		{
 			// get the next line of text
-			List keywords = getNextLine(lr);
+			List<String> keywords = getNextLine(lr);
 			if (keywords == null) break;
 			int count = keywords.size();
 			if (count == 0) continue;
@@ -306,8 +306,8 @@ public class Sue extends Input
 				{
 					placeWires(sueWires, sueNets, cell, invertNodeOutput);
 					placeNets(sueNets, cell);
-					sueWires = new ArrayList();
-					sueNets = new ArrayList();
+					sueWires = new ArrayList<SueWire>();
+					sueNets = new ArrayList<SueNet>();
 				}
 
 				if (count < 2)
@@ -592,7 +592,7 @@ public class Sue extends Input
 					// export a port if this is an input, output, inout
 					if (proto == Schematics.tech.offpageNode && parP.theName != null)
 					{
-						Iterator it = ni.getPortInsts();
+						Iterator<PortInst> it = ni.getPortInsts();
 						PortInst pi = (PortInst)it.next();
 						if (keyword1.equalsIgnoreCase("output")) pi = (PortInst)it.next();
 						Export ppt = newExport(cell, pi, parP.theName);
@@ -849,7 +849,7 @@ public class Sue extends Input
 			// handle "icon_line" for defining icon outlines
 			if (keyword0.equalsIgnoreCase("icon_line"))
 			{
-				List pointList = new ArrayList();
+				List<Point2D> pointList = new ArrayList<Point2D>();
 				double x = 0;
 				for(int i=1; i<keywords.size(); i++)
 				{
@@ -1072,14 +1072,14 @@ public class Sue extends Input
 	private PortInst findPinNode(double x, double y, Cell cell)
 	{
 		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 
 			// find closest port
-			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				Poly poly = pi.getPoly();
@@ -1096,7 +1096,7 @@ public class Sue extends Input
 	private NodeProto readFromDisk(Library lib, String name)
 	{
 		// look for another "sue" file that describes this cell
-		for(Iterator it = sueDirectories.iterator(); it.hasNext(); )
+		for(Iterator<String> it = sueDirectories.iterator(); it.hasNext(); )
 		{
 			// get the directory
 			String directory = (String)it.next();
@@ -1137,7 +1137,7 @@ public class Sue extends Input
 	 */
 	private NodeProto getNodeProto(Library lib, String protoname)
 	{
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (cell.getName().equalsIgnoreCase(protoname))
@@ -1171,7 +1171,7 @@ public class Sue extends Input
 		 * "-label"   placed into "thelabel".
 		 * "-text"    placed into "thetext".
 		 */
-		private ParseParameters(List keywords, int start)
+		private ParseParameters(List<String> keywords, int start)
 		{
 			rot = 0;
 			pt = null;
@@ -1233,10 +1233,10 @@ public class Sue extends Input
 	/**
 	 * Method to place all SUE wires into the cell.
 	 */
-	private void placeWires(List sueWires, List sueNets, Cell cell, HashSet invertNodeOutput)
+	private void placeWires(List<SueWire> sueWires, List<SueNet> sueNets, Cell cell, HashSet invertNodeOutput)
 	{
 		// mark all wire ends as "unassigned", all wire types as unknown
-		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+		for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			sw.pi[0] = sw.pi[1] = null;
@@ -1244,10 +1244,10 @@ public class Sue extends Input
 		}
 
 		// examine all network names and assign wire types appropriately
-		for(Iterator nIt = sueNets.iterator(); nIt.hasNext(); )
+		for(Iterator<SueNet> nIt = sueNets.iterator(); nIt.hasNext(); )
 		{
 			SueNet sn = (SueNet)nIt.next();
-			for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+			for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 			{
 				SueWire sw = (SueWire)wIt.next();
 				for(int i=0; i<2; i++)
@@ -1263,13 +1263,13 @@ public class Sue extends Input
 		}
 
 		// find connections that are exactly on existing nodes
-		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+		for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			for(int i=0; i<2; i++)
 			{
 				if (sw.pi[i] != null) continue;
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					PortInst pi = wiredPort(ni, sw.pt[i], sw.pt[1-i]);
@@ -1285,7 +1285,7 @@ public class Sue extends Input
 					if (!isBus && ni.getProto() == Schematics.tech.offpageNode)
 					{
 						// see if there is a bus port on this primitive
-						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 						{
 							Export e = (Export)eIt.next();
 							Name eName = Name.findName(e.getName());
@@ -1310,11 +1310,11 @@ public class Sue extends Input
 		while (propagatedBus)
 		{
 			propagatedBus = false;
-			for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+			for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 			{
 				SueWire sw = (SueWire)wIt.next();
 				if (sw.proto != Schematics.tech.bus_arc) continue;
-				for(Iterator oWIt = sueWires.iterator(); oWIt.hasNext(); )
+				for(Iterator<SueWire> oWIt = sueWires.iterator(); oWIt.hasNext(); )
 				{
 					SueWire oSw = (SueWire)oWIt.next();
 					if (oSw.proto != null) continue;
@@ -1335,7 +1335,7 @@ public class Sue extends Input
 		}
 
 		// now make pins where wires meet
-		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+		for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			for(int i=0; i<2; i++)
@@ -1345,7 +1345,7 @@ public class Sue extends Input
 				if (sw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
 
 				// look at all other wires at this point and figure out type of pin to make
-				for(Iterator oWIt = sueWires.iterator(); oWIt.hasNext(); )
+				for(Iterator<SueWire> oWIt = sueWires.iterator(); oWIt.hasNext(); )
 				{
 					SueWire oSw = (SueWire)oWIt.next();
 					if (oSw == sw) continue;
@@ -1371,7 +1371,7 @@ public class Sue extends Input
 				}
 
 				// put that node in all appropriate locations
-				for(Iterator oWIt = sueWires.iterator(); oWIt.hasNext(); )
+				for(Iterator<SueWire> oWIt = sueWires.iterator(); oWIt.hasNext(); )
 				{
 					SueWire oSw = (SueWire)oWIt.next();
 					if (oSw == sw) continue;
@@ -1386,7 +1386,7 @@ public class Sue extends Input
 		}
 
 		// make pins at all of the remaining wire ends
-		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+		for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			for(int i=0; i<2; i++)
@@ -1404,7 +1404,7 @@ public class Sue extends Input
 		}
 
 		// now make the connections
-		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
+		for(Iterator<SueWire> wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			if (sw.proto == null) sw.proto = Schematics.tech.wire_arc;
@@ -1454,7 +1454,7 @@ public class Sue extends Input
 		}
 
 		// now look for implicit connections where "offpage" connectors touch
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Schematics.tech.offpageNode) continue;
@@ -1464,14 +1464,14 @@ public class Sue extends Input
 			double x = piPoly.getCenterX();
 			double y = piPoly.getCenterY();
 			Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-			for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+			for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 			{
 				Geometric geom = (Geometric)sea.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst oNi = (NodeInst)geom;
 				if (oNi == ni) continue;
 				boolean wired = false;
-				for(Iterator oIt = oNi.getPortInsts(); oIt.hasNext(); )
+				for(Iterator<PortInst> oIt = oNi.getPortInsts(); oIt.hasNext(); )
 				{
 					PortInst oPi = (PortInst)oIt.next();
 					Poly oPiPoly = oPi.getPoly();
@@ -1511,7 +1511,7 @@ public class Sue extends Input
 		PortInst bestPi = null;
 		double bestDist = Double.MAX_VALUE;
 		Rectangle2D searchBounds = new Rectangle2D.Double(pt.getX()-slop, pt.getY()-slop, slop*2, slop*2);
-		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
@@ -1522,7 +1522,7 @@ public class Sue extends Input
 			if (ni.getProto() == Schematics.tech.wirePinNode) continue;
 
 			// find closest port
-			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				Poly poly = pi.getPoly();
@@ -1567,7 +1567,7 @@ public class Sue extends Input
 	 */
 	private PortInst wiredPort(NodeInst ni, Point2D pt, Point2D oPt)
 	{
-		for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+		for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 		{
 			PortInst pi = (PortInst)it.next();
 			Poly poly = pi.getPoly();
@@ -1579,7 +1579,7 @@ public class Sue extends Input
 		// find port that is closest to OTHER end
 		double bestDist = Double.MAX_VALUE;
 		PortInst bestPi = null;
-		for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+		for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 		{
 			PortInst pi = (PortInst)it.next();
 			Poly poly = pi.getPoly();
@@ -1598,12 +1598,12 @@ public class Sue extends Input
 	 * Method to place all SUE nets into the cell (they are in a linked
 	 * list headed by "sueNets").
 	 */
-	private void placeNets(List sueNets, Cell cell)
+	private void placeNets(List<SueNet> sueNets, Cell cell)
 	{
 		// 3 passes: qualified labels, unqualified busses, unqualified wires
 		for(int pass=0; pass<3; pass++)
 		{
-			for(Iterator it = sueNets.iterator(); it.hasNext(); )
+			for(Iterator<SueNet> it = sueNets.iterator(); it.hasNext(); )
 			{
 				SueNet sn = (SueNet)it.next();
 
@@ -1626,7 +1626,7 @@ public class Sue extends Input
 				ArcInst bestAi = null;
 				double bestDist = Double.MAX_VALUE;
 				Rectangle2D searchBounds = new Rectangle2D.Double(sn.pt.getX(), sn.pt.getY(), 0, 0);
-				for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+				for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 				{
 					Geometric geom = (Geometric)sea.next();
 					if (geom instanceof NodeInst) continue;
@@ -1683,7 +1683,7 @@ public class Sue extends Input
 	 */
 	private String findBusName(ArcInst ai)
 	{
-		HashSet arcsSeen = new HashSet();
+		HashSet<ArcInst> arcsSeen = new HashSet<ArcInst>();
 		String busName = searchBusName(ai, arcsSeen);
 		if (busName == null)
 		{
@@ -1692,7 +1692,7 @@ public class Sue extends Input
 				String pseudoBusName = "NET" + index;
 				int len = pseudoBusName.length();
 				boolean found = false;
-				for(Iterator it = ai.getParent().getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = ai.getParent().getArcs(); it.hasNext(); )
 				{
 					ArcInst oAi = (ArcInst)it.next();
 					String arcName = oAi.getName();
@@ -1705,7 +1705,7 @@ public class Sue extends Input
 		return busName;
 	}
 
-	private String searchBusName(ArcInst ai, HashSet arcsSeen)
+	private String searchBusName(ArcInst ai, HashSet<ArcInst> arcsSeen)
 	{
 		arcsSeen.add(ai);
 		if (ai.getProto() == Schematics.tech.bus_arc)
@@ -1723,7 +1723,7 @@ public class Sue extends Input
 			if (ni.getProto() == Schematics.tech.busPinNode || ni.getProto() == Schematics.tech.offpageNode)
 			{
 				// see if there is an arrayed port here
-				for(Iterator it = ni.getExports(); it.hasNext(); )
+				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				{
 					Export pp = (Export)it.next();
 					String busName = pp.getName();
@@ -1731,7 +1731,7 @@ public class Sue extends Input
 					if (openPos >= 0) return busName.substring(0, openPos);
 				}
 			}
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst oAi = con.getArc();
@@ -1748,7 +1748,7 @@ public class Sue extends Input
 	 * it up into space-separated keywords.  Returns the number
 	 * of keywords (-1 on EOF)
 	 */
-	private List getNextLine(LineNumberReader lr)
+	private List<String> getNextLine(LineNumberReader lr)
 		throws IOException
 	{
 		lastLineRead = null;
@@ -1774,7 +1774,7 @@ public class Sue extends Input
 
 		// parse the line
 		boolean inBlank = true;
-		List keywords = new ArrayList();
+		List<String> keywords = new ArrayList<String>();
 		int startIndex = 0;
 		int len = lastLineRead.length();
 		int curlyDepth = 0;

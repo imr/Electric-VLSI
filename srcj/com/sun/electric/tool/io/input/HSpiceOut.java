@@ -116,7 +116,7 @@ public class HSpiceOut extends Simulate
 		throws IOException
 	{
 		// the .paX file has name information
-		List pa0List = readPA0File(fileURL);
+		List<PA0Line> pa0List = readPA0File(fileURL);
 
 		// show progress reading .trX file
 		startProgressDialog("HSpice output", fileURL.getFile());
@@ -139,7 +139,7 @@ public class HSpiceOut extends Simulate
 	 * @param fileURL the URL to the simulation output file ("pa0", "pa1", ...)
 	 * @return a list of PA0Line objects that describe the name mapping file entries.
 	 */
-	private List readPA0File(URL fileURL)
+	private List<PA0Line> readPA0File(URL fileURL)
 		throws IOException
 	{
 		// find the associated ".pa" name file
@@ -169,7 +169,7 @@ public class HSpiceOut extends Simulate
         if (!TextUtils.URLExists(pa0URL)) return null;
 		if (openTextInput(pa0URL)) return null;
 
-		List pa0List = new ArrayList();
+		List<PA0Line> pa0List = new ArrayList<PA0Line>();
 		for(;;)
 		{
 			// get line from file
@@ -192,7 +192,7 @@ public class HSpiceOut extends Simulate
 		return pa0List;
 	}
 
-	private Stimuli readTR0File(URL fileURL, List pa0List, Cell cell)
+	private Stimuli readTR0File(URL fileURL, List<PA0Line> pa0List, Cell cell)
 		throws IOException
 	{
 		if (openBinaryInput(fileURL)) return null;
@@ -313,7 +313,7 @@ public class HSpiceOut extends Simulate
 					pa0MissingWarned = true;
 				} else
 				{
-					for(Iterator it = pa0List.iterator(); it.hasNext(); )
+					for(Iterator<PA0Line> it = pa0List.iterator(); it.hasNext(); )
 					{
 						PA0Line pa0Line = (PA0Line)it.next();
 						if (pa0Line.number == l) { foundPA0Line = pa0Line;   break; }
@@ -420,7 +420,7 @@ public class HSpiceOut extends Simulate
 			}
 		}
 
-		List theSweeps = new ArrayList();
+		List<List<float[]>> theSweeps = new ArrayList<List<float[]>>();
 		int sweepCounter = sweepcnt;
 		for(;;)
 		{
@@ -433,7 +433,7 @@ public class HSpiceOut extends Simulate
 			}
 
 			// now read the data
-			List allTheData = new ArrayList();
+			List<float[]> allTheData = new ArrayList<float[]>();
 			for(;;)
 			{
 				float [] oneSetOfData = new float[numSignals+1];
@@ -463,7 +463,7 @@ public class HSpiceOut extends Simulate
         // Put data to HSpiceStimuli
         sd.data = new float[theSweeps.size()][][];
         for (int i = 0; i < sd.data.length; i++) {
-            ArrayList allTheData = (ArrayList)theSweeps.get(i);
+            ArrayList<float[]> allTheData = (ArrayList<float[]>)theSweeps.get(i);
             float[][] d = new float[allTheData.size()][];
             for (int j = 0; j < d.length; j++)
                 d[j] = (float[])allTheData.get(j);

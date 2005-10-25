@@ -291,7 +291,7 @@ public abstract class Job implements ActionListener, Runnable {
 		/** Build Job explorer tree */
 		public synchronized DefaultMutableTreeNode getExplorerTree() {
 			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-			for (Iterator it = allJobs.iterator(); it.hasNext();) {
+			for (Iterator<Job> it = allJobs.iterator(); it.hasNext();) {
                 Job j = (Job)it.next();
                 if (j.getDisplay()) {
                     DefaultMutableTreeNode node = new DefaultMutableTreeNode(j);
@@ -312,7 +312,7 @@ public abstract class Job implements ActionListener, Runnable {
 
         /** Get job running in the specified thread */
         private synchronized Job getJob(Thread t) {
-            for (Iterator it = allJobs.iterator(); it.hasNext(); ) {
+            for (Iterator<Job> it = allJobs.iterator(); it.hasNext(); ) {
                 Job j = (Job)it.next();
                 if (j.thread == t) return j;
             }
@@ -329,7 +329,7 @@ public abstract class Job implements ActionListener, Runnable {
         }
 
         private synchronized boolean isChangeJobQueuedOrRunning() {
-            Iterator it;
+            Iterator<Job> it;
             for (it = allJobs.iterator(); it.hasNext(); ) {
                 Job j = (Job)it.next();
                 if (j.finished) continue;               // ignore finished jobs

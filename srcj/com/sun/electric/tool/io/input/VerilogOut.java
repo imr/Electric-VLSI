@@ -91,8 +91,8 @@ public class VerilogOut extends Simulate
 		String currentScope = "";
 		int curLevel = 0;
 		int numSignals = 0;
-		HashMap symbolTable = new HashMap();
-		List curArray = null;
+		HashMap<String,Object> symbolTable = new HashMap<String,Object>();
+		List<DigitalSignal> curArray = null;
 		for(;;)
 		{
 			String keyword = getNextKeyword();
@@ -124,14 +124,14 @@ public class VerilogOut extends Simulate
 				{
 					// scan for arrays
 					cleanUpScope(curArray, sd);
-					curArray = new ArrayList();
+					curArray = new ArrayList<DigitalSignal>();
 
 					String scopeName = getNextKeyword();
 					if (scopeName == null) break;
 					if (currentScope.length() > 0) currentScope += ".";
 					currentScope += scopeName;
 					curLevel++;
-					curArray = new ArrayList();
+					curArray = new ArrayList<DigitalSignal>();
 				}
 				parseToEnd();
 				continue;
@@ -147,7 +147,7 @@ public class VerilogOut extends Simulate
 
 				// scan for arrays
 				cleanUpScope(curArray, sd);
-				curArray = new ArrayList();
+				curArray = new ArrayList<DigitalSignal>();
 
 				int dotPos = currentScope.lastIndexOf('.');
 				if (dotPos >= 0)
@@ -192,7 +192,7 @@ public class VerilogOut extends Simulate
 					DigitalSignal sig = new DigitalSignal(sd);
 					sig.setSignalName(signalName + index);
 					sig.setSignalContext(currentScope);
-					sig.tempList = new ArrayList();
+					sig.tempList = new ArrayList<Object>();
 
 					if (index.length() > 0 && width == 1)
 					{
@@ -212,7 +212,7 @@ public class VerilogOut extends Simulate
 							DigitalSignal subSig = new DigitalSignal(sd);
 							subSig.setSignalName(signalName + "[" + i + "]");
 							subSig.setSignalContext(currentScope);
-							subSig.tempList = new ArrayList();
+							subSig.tempList = new ArrayList<Object>();
 							sig.addToBussedSignalList(subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
 							numSignals++;
@@ -293,7 +293,7 @@ public class VerilogOut extends Simulate
 						if (entry instanceof List) entry = ((List)entry).get(0);
 						DigitalSignal sig = (DigitalSignal)entry;
 						int i = 0;
-						for(Iterator it = sig.getBussedSignals().iterator(); it.hasNext(); )
+						for(Iterator<Signal> it = sig.getBussedSignals().iterator(); it.hasNext(); )
 						{
 							DigitalSignal subSig = (DigitalSignal)it.next();
 							char bit = restOfLine.charAt(i++);
@@ -317,10 +317,10 @@ public class VerilogOut extends Simulate
 		}
 
 		// convert the stimuli
-		for(Iterator it = symbolTable.values().iterator(); it.hasNext(); )
+		for(Iterator<Object> it = symbolTable.values().iterator(); it.hasNext(); )
 		{
 			Object entry = it.next();
-			List fullList = null;
+			List<DigitalSignal> fullList = null;
 			if (entry instanceof List)
 			{
 				fullList = (List)entry;
@@ -332,7 +332,7 @@ public class VerilogOut extends Simulate
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;
-			for(Iterator sIt = sig.tempList.iterator(); sIt.hasNext(); )
+			for(Iterator<Object> sIt = sig.tempList.iterator(); sIt.hasNext(); )
 			{
 				VerilogStimuli vs = (VerilogStimuli)sIt.next();
 				sig.setTime(i, vs.time);
@@ -342,7 +342,7 @@ public class VerilogOut extends Simulate
 			sig.tempList = null;
 			if (fullList != null)
 			{
-				for(Iterator lIt = fullList.iterator(); lIt.hasNext(); )
+				for(Iterator<DigitalSignal> lIt = fullList.iterator(); lIt.hasNext(); )
 				{
 					DigitalSignal oSig = (DigitalSignal)lIt.next();
 					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
@@ -353,7 +353,7 @@ public class VerilogOut extends Simulate
 
 		// remove singular top-level signal name
 		String singularPrefix = null;
-		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
 		{
 			Signal sSig = (Signal)it.next();
 			String context = sSig.getSignalContext();
@@ -368,7 +368,7 @@ public class VerilogOut extends Simulate
 		if (singularPrefix != null)
 		{
 			int len = singularPrefix.length();
-			for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+			for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
 			{
 				Signal sSig = (Signal)it.next();
 				String context = sSig.getSignalContext();
@@ -379,7 +379,7 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private void cleanUpScope(List curArray, Stimuli sd)
+	private void cleanUpScope(List<DigitalSignal> curArray, Stimuli sd)
 	{
 		if (curArray == null) return;
 
@@ -435,7 +435,7 @@ public class VerilogOut extends Simulate
 		}
 	}
 
-	private void addSignalToHashMap(DigitalSignal sig, String symbol, HashMap symbolTable)
+	private void addSignalToHashMap(DigitalSignal sig, String symbol, HashMap<String,Object> symbolTable)
 	{
 		Object entry = symbolTable.get(symbol);
 		if (entry == null)
@@ -443,7 +443,7 @@ public class VerilogOut extends Simulate
 			symbolTable.put(symbol, sig);
 		} else if (entry instanceof DigitalSignal)
 		{
-			List manySigs = new ArrayList();
+			List<Object> manySigs = new ArrayList<Object>();
 			manySigs.add(entry);
 			manySigs.add(sig);
 			symbolTable.put(symbol, manySigs);

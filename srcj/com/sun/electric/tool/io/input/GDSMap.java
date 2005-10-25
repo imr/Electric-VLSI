@@ -64,9 +64,9 @@ import javax.swing.JScrollPane;
  */
 public class GDSMap extends EDialog
 {
-	private HashMap assocCombos;
-	private List drawingEntries;
-	private List pinEntries;
+	private HashMap<String,JComboBox> assocCombos;
+	private List<MapLine> drawingEntries;
+	private List<MapLine> pinEntries;
 	private Technology tech;
 
 	private static class MapLine
@@ -80,9 +80,9 @@ public class GDSMap extends EDialog
 	{
 		String fileName = OpenFile.chooseInputFile(FileType.GDSMAP, "GDS Layer Map File");
 		if (fileName == null) return;
-		HashSet allNames = new HashSet();
-		List drawingEntries = new ArrayList();
-		List pinEntries = new ArrayList();
+		HashSet<String> allNames = new HashSet<String>();
+		List<MapLine> drawingEntries = new ArrayList<MapLine>();
+		List<MapLine> pinEntries = new ArrayList<MapLine>();
 		URL url = TextUtils.makeURLToFile(fileName);
 		try
 		{
@@ -139,7 +139,7 @@ public class GDSMap extends EDialog
 	}
 
 	/** Creates new form Layer Map Association */
-	public GDSMap(Frame parent, HashSet allNames, List drawingEntries, List pinEntries)
+	public GDSMap(Frame parent, HashSet<String> allNames, List<MapLine> drawingEntries, List<MapLine> pinEntries)
 	{
 		super(parent, true);
 		this.drawingEntries = drawingEntries;
@@ -154,17 +154,17 @@ public class GDSMap extends EDialog
         });
 
 		// make a list of names
-		List nameList = new ArrayList();
-		for(Iterator it = allNames.iterator(); it.hasNext(); )
+		List<String> nameList = new ArrayList<String>();
+		for(Iterator<String> it = allNames.iterator(); it.hasNext(); )
 			nameList.add(it.next());
 		Collections.sort(nameList, TextUtils.STRING_NUMBER_ORDER);
 
 		// show the list
-		assocCombos = new HashMap();
+		assocCombos = new HashMap<String,JComboBox>();
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		int row = 1;
-		for(Iterator it = nameList.iterator(); it.hasNext(); )
+		for(Iterator<String> it = nameList.iterator(); it.hasNext(); )
 		{
 			String name = (String)it.next();
 			JLabel lab = new JLabel(name);		
@@ -175,7 +175,7 @@ public class GDSMap extends EDialog
 
 			JComboBox comboBox = new JComboBox();
 			comboBox.addItem("<<IGNORE>>");
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				comboBox.addItem(((Layer)lIt.next()).getName());
 			String savedAssoc = getSavedAssoc(name);
 			if (savedAssoc.length() > 0) comboBox.setSelectedItem(savedAssoc);
@@ -230,7 +230,7 @@ public class GDSMap extends EDialog
 
 	public void termDialog()
 	{
-		for(Iterator it = assocCombos.keySet().iterator(); it.hasNext(); )
+		for(Iterator<String> it = assocCombos.keySet().iterator(); it.hasNext(); )
 		{
 			String name = (String)it.next();
 			JComboBox combo = (JComboBox)assocCombos.get(name);
@@ -241,14 +241,14 @@ public class GDSMap extends EDialog
 		}
 
 		// wipe out all GDS layer associations
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			layer.setGDSLayer("");
 		}
 
 		// set the associations
-		for(Iterator it = drawingEntries.iterator(); it.hasNext(); )
+		for(Iterator<MapLine> it = drawingEntries.iterator(); it.hasNext(); )
 		{
 			MapLine ml = (MapLine)it.next();
 			String layerName = (String)getSavedAssoc(ml.name);
@@ -257,7 +257,7 @@ public class GDSMap extends EDialog
 			if (layer == null) continue;
 			String layerInfo = "" + ml.layer;
 			if (ml.type != 0) layerInfo += "/" + ml.type;
-			for(Iterator pIt = pinEntries.iterator(); pIt.hasNext(); )
+			for(Iterator<MapLine> pIt = pinEntries.iterator(); pIt.hasNext(); )
 			{
 				MapLine pMl = (MapLine)pIt.next();
 				if (pMl.name.equals(ml.name))
@@ -288,7 +288,7 @@ public class GDSMap extends EDialog
 		dispose();
 	}
 
-	HashMap savedAssocs = new HashMap();
+	HashMap<String,Pref> savedAssocs = new HashMap<String,Pref>();
 
 	private String getSavedAssoc(String mapName)
 	{

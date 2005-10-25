@@ -73,7 +73,7 @@ public class ArchSimOut extends Simulate
 		throws IOException
 	{
 		// read all of the stimuli
-		HashMap symbolTable = new HashMap();
+		HashMap<String,List<Point>> symbolTable = new HashMap<String,List<Point>>();
 		int greatestTime = 0;
 		for(;;)
 		{
@@ -90,10 +90,10 @@ public class ArchSimOut extends Simulate
 			if (time > greatestTime) greatestTime = time;
 			String signalName = line.substring(firstColon+1, secondColon);
 			int value = TextUtils.atoi(line.substring(secondColon+1));
-			List values = (List)symbolTable.get(signalName);
+			List<Point> values = (List<Point>)symbolTable.get(signalName);
 			if (values == null)
 			{
-				values = new ArrayList();
+				values = new ArrayList<Point>();
 				symbolTable.put(signalName, values);
 			}
 			values.add(new Point(time, value));			
@@ -103,10 +103,10 @@ public class ArchSimOut extends Simulate
 		// make a data structure for it
 		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
-		for(Iterator it = symbolTable.keySet().iterator(); it.hasNext(); )
+		for(Iterator<String> it = symbolTable.keySet().iterator(); it.hasNext(); )
 		{
 			String signalName = (String)it.next();
-			List values = (List)symbolTable.get(signalName);
+			List<Point> values = (List<Point>)symbolTable.get(signalName);
 
 			int numStimuli = values.size();
 			DigitalSignal sig = new DigitalSignal(sd);
@@ -114,7 +114,7 @@ public class ArchSimOut extends Simulate
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;
-			for(Iterator vIt = values.iterator(); vIt.hasNext(); )
+			for(Iterator<Point> vIt = values.iterator(); vIt.hasNext(); )
 			{
 				Point pt = (Point)vIt.next();
 				sig.setTime(i, pt.x);

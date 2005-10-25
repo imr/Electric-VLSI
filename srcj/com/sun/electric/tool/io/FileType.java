@@ -33,7 +33,7 @@ import java.io.File;
  * A typesafe enum class that describes the types of files that can be read or written.
  */
 public class FileType {
-	/** all types */                        private static final ArrayList allTypes = new ArrayList();
+	/** all types */                        private static final ArrayList<FileType> allTypes = new ArrayList<FileType>();
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
 	/** Describes ALS decks. */				public static final FileType ALS          = makeFileType("ALS", new String[] {"als"}, "ALS Simulation Deck (als)");
@@ -103,7 +103,7 @@ public class FileType {
 	private static String [] libraryTypesExt;
 	private static String libraryTypesExtReadable;
 	static {
-		ArrayList exts = new ArrayList();
+		ArrayList<String> exts = new ArrayList<String>();
 		for (int i=0; i<libraryTypes.length; i++) {
 			FileType type = libraryTypes[i];
 			String [] typeExts = type.getExtensions();
@@ -187,7 +187,7 @@ public class FileType {
 	 * Get the Type for the specified filter
 	 */
 	public static FileType getType(FileFilter filter) {
-		for (Iterator it = allTypes.iterator(); it.hasNext(); ) {
+		for (Iterator<FileType> it = allTypes.iterator(); it.hasNext(); ) {
 			FileType type = (FileType)it.next();
 			if (type.ffs == filter) return type;
 		}
@@ -198,7 +198,7 @@ public class FileType {
 	 * Get the Type for the specified filter
 	 */
 	public static FileType getType(FilenameFilter filter) {
-		for (Iterator it = allTypes.iterator(); it.hasNext(); ) {
+		for (Iterator<FileType> it = allTypes.iterator(); it.hasNext(); ) {
 			FileType type = (FileType)it.next();
 			if (type.ffa == filter) return type;
 		}

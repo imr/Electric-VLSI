@@ -310,7 +310,7 @@ public class DEF extends LEFDEF
 		if (cell != null) return cell;
 
 		// now look in other libraries
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
@@ -369,13 +369,13 @@ public class DEF extends LEFDEF
 	{
 		Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
 		Point2D pt = new Point2D.Double(x, y);
-		for(Iterator sea = cell.searchIterator(bound); sea.hasNext(); )
+		for(Iterator<Geometric> sea = cell.searchIterator(bound); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni == noti) continue;
-			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				if (!pi.getPortProto().connectsTo(ap)) continue;
@@ -789,7 +789,7 @@ public class DEF extends LEFDEF
 				} else
 				{
 					NodeInst found = null;
-					for(Iterator it = cell.getNodes(); it.hasNext(); )
+					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					{
 						NodeInst ni = (NodeInst)it.next();
 						if (ni.getName().equalsIgnoreCase(key)) { found = ni;   break; }

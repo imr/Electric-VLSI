@@ -46,7 +46,7 @@ public class Signal
 	/** the number of busses that reference this signal */			private int busCount;
 	/** application-specific object associated with this signal */	private Object appObject;
 	/** application-specific flags for this signal */				public int flags;
-	/** used only in the Verilog reader */							public List tempList;
+	/** used only in the Verilog reader */							public List<Object> tempList;
 
 	/**
 	 * Constructor for a simulation signal.

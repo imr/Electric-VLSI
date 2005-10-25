@@ -105,7 +105,7 @@ public class PSpiceOut extends Simulate
 
 				// parse the signal names on the first line
 				int ptr = 0;
-				List signalNames = new ArrayList();
+				List<String> signalNames = new ArrayList<String>();
 				for(;;)
 				{
 					while (ptr < line.length() && Character.isWhitespace(line.charAt(ptr))) ptr++;

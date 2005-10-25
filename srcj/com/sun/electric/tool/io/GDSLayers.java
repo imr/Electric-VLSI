@@ -36,20 +36,20 @@ import java.util.List;
  */
 public class GDSLayers
 {
-	private List normalLayers;
+	private List<Integer> normalLayers;
 	private int pinLayer;
 	private int textLayer;
 
 	public GDSLayers()
 	{
-		normalLayers = new ArrayList();
+		normalLayers = new ArrayList<Integer>();
 		pinLayer = -1;
 		textLayer = -1;
 	}
 
 	public int getNumLayers() { return normalLayers.size(); }
 
-	public Iterator getLayers() { return normalLayers.iterator(); }
+	public Iterator<Integer> getLayers() { return normalLayers.iterator(); }
 
 	public Integer getFirstLayer()
 	{

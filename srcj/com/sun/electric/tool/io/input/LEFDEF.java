@@ -42,7 +42,7 @@ import java.util.Iterator;
 public class LEFDEF extends Input
 {
 	protected static ViaDef firstViaDefFromLEF = null;
-	protected static HashMap widthsFromLEF = new HashMap();
+	protected static HashMap<ArcProto,Double> widthsFromLEF = new HashMap<ArcProto,Double>();
 
 	/**
 	 * Class to define Via information for LEF and DEF reading.
@@ -71,7 +71,7 @@ public class LEFDEF extends Input
 		private NodeProto getPureLayerNode()
 		{
 			// find the pure layer node with this function
-			for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 			{
 				Layer lay = (Layer)it.next();
 				if (lay.getFunction() == layerFun)
@@ -120,7 +120,7 @@ public class LEFDEF extends Input
 				}
 
 				// find the arcprotos that embody these layers
-				for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 				{
 					ArcProto apTry = (ArcProto)it.next();
 					if (apTry.getFunction() == aFunc1) viaArc1 = apTry;
@@ -129,9 +129,9 @@ public class LEFDEF extends Input
 				if (viaArc1 == null || viaArc2 == null) return;
 
 				// find the via that connects these two arcs
-				for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
+				for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 				{
-					NodeProto np = (NodeProto)it.next();
+					PrimitiveNode np = (PrimitiveNode)it.next();
 					// must have just one port
 					if (np.getNumPorts() != 1) continue;
 
@@ -213,7 +213,7 @@ public class LEFDEF extends Input
 				if (arcFun == null || layerFun == null) return;
 
 				// find the arc with this function
-				for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)it.next();
 					if (ap.getFunction() == arcFun)

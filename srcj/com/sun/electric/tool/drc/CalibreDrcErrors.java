@@ -31,7 +31,7 @@ public class CalibreDrcErrors {
     private Cell topCell;
     private ErrorLogger logger;
     private BufferedReader in;
-    private List ruleViolations;            // list of DrcRuleViolations
+    private List<DrcRuleViolation> ruleViolations;            // list of DrcRuleViolations
     private int lineno;
 
     private static final String spaces = "[\\s\\t ]+";
@@ -66,7 +66,7 @@ public class CalibreDrcErrors {
         assert(in != null);
         this.in = in;
         lineno = 0;
-        ruleViolations = new ArrayList();
+        ruleViolations = new ArrayList<DrcRuleViolation>();
     }
 
     // read the cell name and precision, if any
@@ -301,17 +301,17 @@ public class CalibreDrcErrors {
         logger = ErrorLogger.newInstance("Calibre DRC Errors");
         int sortKey = 0;
         int count = 0;
-        for (Iterator it = ruleViolations.iterator(); it.hasNext(); ) {
+        for (Iterator<DrcRuleViolation> it = ruleViolations.iterator(); it.hasNext(); ) {
             DrcRuleViolation v = (DrcRuleViolation)it.next();
             String ruleDesc = v.header.comment.toString().replaceAll("\\n", ";");
             logger.setGroupName(sortKey, ruleDesc);
             int y = 1;
-            for (Iterator it2 = v.errors.iterator(); it2.hasNext(); ) {
+            for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
                 DrcError drcError = (DrcError)it2.next();
                 Cell cell = drcError.cell;
                 ErrorLogger.MessageLog log = logger.logError(y+". "+cell.getName()+": "+ruleDesc,
                         cell, sortKey);
-                for (Iterator it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
+                for (Iterator<Shape> it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
                     Shape shape = (Shape)it3.next();
                     if (shape instanceof Line2D) {
                         Line2D line = (Line2D)shape;
@@ -340,12 +340,12 @@ public class CalibreDrcErrors {
     private static class DrcRuleViolation {
         private final String ruleNumber;
         private final Header header;
-        private final List errors;              // list of DrcErrors
+        private final List<DrcError> errors;              // list of DrcErrors
 
         private DrcRuleViolation(String ruleNumber, Header header) {
             this.ruleNumber = ruleNumber;
             this.header = header;
-            this.errors = new ArrayList();
+            this.errors = new ArrayList<DrcError>();
         }
         private void addError(DrcError error) {
             errors.add(error);
@@ -354,11 +354,11 @@ public class CalibreDrcErrors {
 
     private static class DrcError {
         private final Cell cell;
-        private final List shapes;              // list of shapes
+        private final List<Shape> shapes;              // list of shapes
 
         private DrcError(Cell cell) {
             this.cell = cell;
-            this.shapes = new ArrayList();
+            this.shapes = new ArrayList<Shape>();
         }
         private void addShape(Shape shape) {
             shapes.add(shape);
@@ -416,7 +416,7 @@ public class CalibreDrcErrors {
 
     public static Cell getCell(String cellName) {
         // try blind search
-        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             Cell c = lib.findNodeProto(cellName+"{lay}");
             if (c != null && (c instanceof Cell))
@@ -429,7 +429,7 @@ public class CalibreDrcErrors {
             Library lib = Library.findLibrary(libname);
             if (lib == null) {
                 // lib name may have been truncated
-                for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                     Library l = (Library)it.next();
                     if (l.getName().startsWith(libname)) {
                         lib = l;

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/25/05, SMR) Double-clicking text does not edit it in-place.
+FIX: In EditMenu.getInfoCommand(), do not ignore text that is not special.
+     In SpecialProperties.java, rehighlight the text after the "more" button is clicked.
+
 BUG: (10/25/05, DN) PortCharacteristic of Exports is not undoable.
 FIX: Side effect of implementing ImmutableExport for transactional DB.
 

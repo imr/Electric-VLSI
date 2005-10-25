@@ -372,7 +372,7 @@ public class CIF extends Input
 	/** 91 pending */						private boolean          namePending;
 	/** end command flag */					private boolean          endCommandFound;
 	/** current layer */					private Layer            currentLayer;
-	/** symbol table */						private HashMap          symbolTable;
+	/** symbol table */						private HashMap<Integer,FrontSymbol> symbolTable;
 	/** the top of stack */					private FrontMatrix      matrixStackTop;
 	/** lookahead character */				private int              nextInputCharacter;
 	/** # statements since 91 com */		private boolean          statementsSince91;
@@ -381,11 +381,11 @@ public class CIF extends Input
 	/** min/max stack: right edge */		private int []           minMaxStackRight;
 	/** min/max stack: bottom edge */		private int []           minMaxStackBottom;
 	/** min/max stack: top edge */			private int []           minMaxStackTop;
-	/** map from cell numbers to cells */	private HashMap          cifCellMap;
+	/** map from cell numbers to cells */	private HashMap<Integer,BackCIFCell> cifCellMap;
 	/** the current cell */					private BackCIFCell      currentBackCell;
 	/** current technology for layers */	private Technology       curTech;
-	/** map from layer names to layers */	private HashMap          cifLayerNames;
-	/** set of unknown layers */			private HashSet          unknownLayerNames;
+	/** map from layer names to layers */	private HashMap<String,Layer> cifLayerNames;
+	/** set of unknown layers */			private HashSet<String>  unknownLayerNames;
 	/** address of cell being defined */	private Cell             cellBeingBuilt;
 	/** name of the current cell */			private String           currentNodeProtoName;
 	/** the line being read */				private StringBuffer     inputBuffer;
@@ -400,7 +400,7 @@ public class CIF extends Input
         progress.setNote("Reading CIF file");
 
         // initialize all lists and the searching routines
-		cifCellMap = new HashMap();
+		cifCellMap = new HashMap<Integer,BackCIFCell>();
 
 		if (initFind()) return true;
 
@@ -714,7 +714,7 @@ public class CIF extends Input
 		if (unknownLayerNames.size() > 0)
 		{
 			System.out.println("Error: these layers appear in the CIF file but are not assigned to Electric layers:");
-			for(Iterator it = unknownLayerNames.iterator(); it.hasNext(); )
+			for(Iterator<String> it = unknownLayerNames.iterator(); it.hasNext(); )
 			{
 				System.out.println("    " + (String)it.next());
 			}
@@ -751,11 +751,11 @@ public class CIF extends Input
 	private boolean initFind()
 	{
 		// get the array of CIF names
-		cifLayerNames = new HashMap();
-		unknownLayerNames = new HashSet();
+		cifLayerNames = new HashMap<String,Layer>();
+		unknownLayerNames = new HashSet<String>();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String cifName = layer.getCIFLayer();
@@ -1265,7 +1265,7 @@ public class CIF extends Input
 		minMaxStackRight = new int[MAXMMSTACK];
 		minMaxStackBottom = new int[MAXMMSTACK];
 		minMaxStackTop = new int[MAXMMSTACK];
-		symbolTable = new HashMap();
+		symbolTable = new HashMap<Integer,FrontSymbol>();
 		minMaxStackPtr = -1;			// minmax stack pointer
 	}
 
