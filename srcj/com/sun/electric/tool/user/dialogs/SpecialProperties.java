@@ -361,27 +361,12 @@ public class SpecialProperties
 
 		public boolean doIt()
 		{
-			NodeInst reHiNode = null;
-			Variable.Key reHiKey = null;
-			Variable reHiVar = null;
-	        EditWindow wnd = EditWindow.getCurrent();
-	        if (wnd != null)
-			{
-				Highlight h = wnd.getHighlighter().getOneHighlight();
-				if (h != null && h.getType() == Highlight.Type.TEXT && h.getElectricObject() instanceof NodeInst)
-				{
-					reHiNode = (NodeInst)h.getElectricObject();
-					reHiKey = h.getVar().getKey();
-				}
-			}
-
 			if (key == null)
 			{
 				// update length/width on transistor
 				Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
                 TextDescriptor wtd = oldWid != null ? oldWid.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				Variable var = ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
-				if (var != null && reHiKey == Schematics.ATTR_WIDTH) reHiVar = var;
+				ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
 //				Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, newValue);
 //				if (var != null)
 //				{
@@ -391,8 +376,7 @@ public class SpecialProperties
 
 				Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
                 TextDescriptor ltd = oldLen != null ? oldLen.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				var = ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
-				if (var != null && reHiKey == Schematics.ATTR_LENGTH) reHiVar = var;
+				ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
 //				var = ni.newDisplayVar(Schematics.ATTR_LENGTH, newValueLen);
 //				if (var != null)
 //				{
@@ -404,8 +388,7 @@ public class SpecialProperties
 				// update single value on a node
 				Variable oldVar = ni.getVar(key);
                 TextDescriptor td = oldVar != null ? oldVar.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				Variable var = ni.newVar(key, newValue, td);
-				if (var != null) reHiVar = var;
+				ni.newVar(key, newValue, td);
 //				Variable var = ni.newDisplayVar(key, newValue);
 //				if (var != null)
 //				{
@@ -415,12 +398,6 @@ public class SpecialProperties
 				// set techbits if requested
 				if (newBits != -1)
 					ni.setTechSpecific(newBits);
-			}
-			if (reHiNode != null && reHiVar != null)
-			{
-				wnd.getHighlighter().clear();
-				wnd.getHighlighter().addText(reHiNode, reHiNode.getParent(), reHiVar, null);
-				wnd.getHighlighter().finished();
 			}
 			return true;
 		}

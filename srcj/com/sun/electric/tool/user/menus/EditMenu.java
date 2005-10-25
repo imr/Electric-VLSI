@@ -596,7 +596,7 @@ public class EditMenu {
 			if (doubleClick)
 			{
 				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-					nodeCount + textCount == 1 && theNode != null)
+					nodeCount == 1 &&  textCount == 0 && theNode != null)
 				{
 					int ret = SpecialProperties.doubleClickOnNode(wnd, theNode);
 					if (ret > 0) return;
