@@ -335,11 +335,11 @@ public class EditKeyBinding extends EDialog {
         if (removeConflicts == 2) {
             return;                         // do nothing
         } else if (removeConflicts == 0) {
-            List conflicts = getConflicts();
-            for (Iterator it = conflicts.iterator(); it.hasNext(); ) {
+            List<KeyBindings> conflicts = getConflicts();
+            for (Iterator<KeyBindings> it = conflicts.iterator(); it.hasNext(); ) {
                 KeyBindings k = (KeyBindings)it.next();
                 // remove all bindings in k
-                for (Iterator kit = k.getKeyStrokePairs(); kit.hasNext(); ) {
+                for (Iterator<KeyStrokePair> kit = k.getKeyStrokePairs(); kit.hasNext(); ) {
                     KeyStrokePair pair = (KeyStrokePair)kit.next();
                     menuBar.removeKeyBinding(k.getActionDesc(), pair);
                 }
@@ -362,7 +362,7 @@ public class EditKeyBinding extends EDialog {
     // --------------------------------- List Box ----------------------------------
 
     private void updateConflicts() {
-        List conflicts = getConflicts();
+        List<KeyBindings> conflicts = getConflicts();
         if (conflicts == null || conflicts.size() == 0) {
             clearConflictsList();
             return;
@@ -391,7 +391,7 @@ public class EditKeyBinding extends EDialog {
      * has entered into this dialog.
      * @return a list of KeyBindings, or null if none.
      */
-    private List getConflicts() {
+    private List<KeyBindings> getConflicts() {
         // grab key combo from input boxes
         KeyStroke key1 = getStroke(stroke1Input);
         if (key1 == null) { clearConflictsList(); return null; }

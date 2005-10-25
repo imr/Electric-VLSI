@@ -70,7 +70,7 @@ public class KeyBindingManager {
 
     // ----------------------------- object stuff ---------------------------------
     /** Hash table of lists all key bindings */     private HashMap inputMap;
-    /** Hash table of all actions */                private HashMap actionMap;
+    /** Hash table of all actions */                private HashMap<String,Object> actionMap;
     /** last prefix key pressed */                  private KeyStroke lastPrefix;
     /** Hash table of hash of lists of prefixed key bindings */ private HashMap prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
@@ -79,7 +79,7 @@ public class KeyBindingManager {
 
     // ----------------------------- global stuff ----------------------------------
     /** Listener to register for catching keys */   //public static KeyBindingListener listener = new KeyBindingListener();
-    /** All key binding manangers */                private static List allManagers = new ArrayList();
+    /** All key binding manangers */                private static List<KeyBindingManager> allManagers = new ArrayList<KeyBindingManager>();
 
     /** debug preference saving */                  private static final boolean debugPrefs = false;
     /** debug key bindings */                       private static final boolean DEBUG = false;
@@ -90,7 +90,7 @@ public class KeyBindingManager {
      */
     public KeyBindingManager(String prefPrefix, Preferences prefs) {
         inputMap = new HashMap();
-        actionMap = new HashMap();
+        actionMap = new HashMap<String,Object>();
         prefixedInputMapMaps = new HashMap();
         lastPrefix = null;
         prefixAction = new PrefixAction(this);
@@ -331,10 +331,10 @@ public class KeyBindingManager {
      * @param pair the keystrokepair
      * @return a list of conflicting KeyBindings from all KeyBindingManagers
      */
-    public static List getConflictsAllManagers(KeyStrokePair pair) {
-        List conflicts = new ArrayList();
+    public static List<KeyBindings> getConflictsAllManagers(KeyStrokePair pair) {
+        List<KeyBindings> conflicts = new ArrayList<KeyBindings>();
         synchronized(allManagers) {
-            for (Iterator it = allManagers.iterator(); it.hasNext(); ) {
+            for (Iterator<KeyBindingManager> it = allManagers.iterator(); it.hasNext(); ) {
                 KeyBindingManager m = (KeyBindingManager)it.next();
                 conflicts.addAll(m.getConflictingKeyBindings(pair));
             }

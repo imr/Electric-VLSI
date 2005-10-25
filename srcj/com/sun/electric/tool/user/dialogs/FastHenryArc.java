@@ -54,7 +54,7 @@ import javax.swing.JOptionPane;
 public class FastHenryArc extends EDialog
 {
 	private ArcInst ai;
-	private List groupsList;
+	private List<String> groupsList;
 	private String initialGroupName;
 	private double initialThickness;
 	private int initialWidthSubdivs, initialHeightSubdivs;
@@ -81,7 +81,7 @@ public class FastHenryArc extends EDialog
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd != null)
         {
-			for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+			for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() == Highlight.Type.EOBJ)
@@ -106,21 +106,21 @@ public class FastHenryArc extends EDialog
 		fhaIncludeArc.setEnabled(true);
 
 		// gather list of all groups in the cell
-		Set groupNames = new HashSet();
-		for(Iterator it = ai.getParent().getArcs(); it.hasNext(); )
+		Set<String> groupNames = new HashSet<String>();
+		for(Iterator<ArcInst> it = ai.getParent().getArcs(); it.hasNext(); )
 		{
 			ArcInst oAi = (ArcInst)it.next();
 			Variable var = oAi.getVar(FastHenry.GROUP_NAME_KEY);
 			if (var == null) continue;
 			groupNames.add(var.getPureValue(-1));
 		}
-		groupsList = new ArrayList();
-		for(Iterator it = groupNames.iterator(); it.hasNext(); )
+		groupsList = new ArrayList<String>();
+		for(Iterator<String> it = groupNames.iterator(); it.hasNext(); )
 		{
 			groupsList.add(it.next());
 		}
 		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
-		for(Iterator it = groupsList.iterator(); it.hasNext(); )
+		for(Iterator<String> it = groupsList.iterator(); it.hasNext(); )
 		{
 			fhaGroups.addItem((String)it.next());
 		}
@@ -194,7 +194,7 @@ public class FastHenryArc extends EDialog
 		groupsList.add(groupName);
 		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
 		fhaGroups.removeAllItems();
-		for(Iterator it = groupsList.iterator(); it.hasNext(); )
+		for(Iterator<String> it = groupsList.iterator(); it.hasNext(); )
 			fhaGroups.addItem((String)it.next());
 		fhaGroups.setSelectedItem(groupName);
 	}

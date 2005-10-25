@@ -84,8 +84,8 @@ public class ViewControl extends EDialog
 	private void loadViews()
 	{
 		listModel.clear();
-		List views = View.getOrderedViews();
-		for(Iterator it = views.iterator(); it.hasNext(); )
+		List<View> views = View.getOrderedViews();
+		for(Iterator<View> it = views.iterator(); it.hasNext(); )
 		{
 			View v = (View)it.next();
 			listModel.addElement(v.getFullName() + " {" + v.getAbbreviation() + "}");

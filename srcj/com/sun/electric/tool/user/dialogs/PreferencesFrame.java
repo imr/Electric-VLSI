@@ -112,7 +112,7 @@ public class PreferencesFrame extends EDialog
 	JButton cancel;
 	JButton ok;
 
-	List optionPanes = new ArrayList();
+	List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
@@ -493,10 +493,10 @@ public class PreferencesFrame extends EDialog
         top.getTheMenuBar().restoreSavedBindings(false); // trying to cache again
 
 		// recache all layers and their graphics
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				layer.getGraphics().recachePrefs();
@@ -508,7 +508,7 @@ public class PreferencesFrame extends EDialog
 
 		// redraw everything
 		EditWindow.repaintAllContents();
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
@@ -517,7 +517,7 @@ public class PreferencesFrame extends EDialog
 
 	private void loadOptionPanel()
 	{
-		for(Iterator it = optionPanes.iterator(); it.hasNext(); )
+		for(Iterator<PreferencePanel> it = optionPanes.iterator(); it.hasNext(); )
 		{
 			PreferencePanel ti = (PreferencePanel)it.next();
 			if (ti.getName().equals(currentTabName))
@@ -551,7 +551,7 @@ public class PreferencesFrame extends EDialog
 
 		public boolean doIt()
 		{
-			for(Iterator it = dialog.optionPanes.iterator(); it.hasNext(); )
+			for(Iterator<PreferencePanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
 			{
 				PreferencePanel ti = (PreferencePanel)it.next();
 				if (ti.isInited())

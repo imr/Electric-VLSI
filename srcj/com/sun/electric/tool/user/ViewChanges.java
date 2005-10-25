@@ -136,7 +136,7 @@ public class ViewChanges
 	
 				// copy this page into the multipage cell
 				double dY = (pageNo - 1) * 1000;
-				List<Geometric> pasteList = new ArrayList<Geometric>();
+				List<Object> pasteList = new ArrayList<Object>();
 				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();

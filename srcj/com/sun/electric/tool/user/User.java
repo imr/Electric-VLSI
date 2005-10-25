@@ -120,7 +120,7 @@ public class User extends Listener
 		Cell cell = ni.getParent();
 		Rectangle2D oldBounds = oldD.computeBounds(ni);
 		Rectangle2D newBounds = ni.getD().computeBounds(ni);	// TODO Why can't we use "ni.getBounds()" ?
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -155,7 +155,7 @@ public class User extends Listener
 		Poly oldPoly = ArcInst.makePolyForArc(ai, oD.length, oD.width, oD.headLocation, oD.tailLocation, Poly.Type.FILLED);
 		Rectangle2D oldBounds = oldPoly.getBounds2D();
 		Rectangle2D newBounds = ai.getBounds();
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -192,7 +192,7 @@ public class User extends Listener
 		NodeInst newNi = pp.getOriginalPort().getNodeInst();
 		Rectangle2D oldBounds = oldPi.getBounds();
 		Rectangle2D newBounds = newNi.getBounds();
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -246,7 +246,7 @@ public class User extends Listener
 			bounds = pp.getOriginalPort().getNodeInst().getBounds();
 		}
 		if (cell == null) return;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -303,7 +303,7 @@ public class User extends Listener
 			bounds = pp.getOriginalPort().getNodeInst().getBounds();
 		}
 		if (cell == null) return;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -337,7 +337,7 @@ public class User extends Listener
 			{
 				Manipulate.renamedCell((String)oldName, cell.getName());
 			}
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				WindowContent content = wf.getContent();
@@ -368,7 +368,7 @@ public class User extends Listener
 		if (cell != null)
 		{
 			markCellForRedraw(cell, true);
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				if (wf.getContent() instanceof EditWindow)
@@ -408,7 +408,7 @@ public class User extends Listener
 		if (Main.BATCHMODE) return;
 
 		// redraw all windows with Cells that changed
-		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
+		for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			markCellForRedraw(cell, true);
@@ -417,7 +417,7 @@ public class User extends Listener
 
 	/************************** TRACKING CHANGES TO CELLS **************************/
 
-	private static HashMap changedWindowRects = new HashMap();
+	private static HashMap<EditWindow,Rectangle2D> changedWindowRects = new HashMap<EditWindow,Rectangle2D>();
 
 	/**
 	 * Method to tell which area of a window has been changed.
@@ -466,7 +466,7 @@ public class User extends Listener
 			VectorDrawing.cellChanged(cell);
 			PixelDrawing.forceRedraw(cell);
 		}
-		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
+		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)wit.next();
 			WindowContent content = wf.getContent();
@@ -480,7 +480,7 @@ public class User extends Listener
 		}
 
 		// recurse up the hierarchy so that all windows showing the cell get redrawn
-		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.isExpanded()) markCellForRedraw(ni.getParent(), false);
@@ -1216,7 +1216,7 @@ public class User extends Listener
 		cacheColorBackground.setInt(c);
         Color color = new Color(c);
 
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent() instanceof EditWindow)
@@ -1685,8 +1685,8 @@ public class User extends Listener
      * Get the choices for the way Electric chooses the initial working directory
      * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
      */
-    public static Iterator getInitialWorkingDirectorySettings() {
-        ArrayList list = new ArrayList();
+    public static Iterator<String> getInitialWorkingDirectorySettings() {
+        ArrayList<String> list = new ArrayList<String>();
         for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
             list.add(initialWorkingDirectorySettingChoices[i]);
         return list.iterator();

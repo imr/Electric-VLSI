@@ -49,9 +49,9 @@ public interface DRCRules
     /********************* For UI ***********************************/
     DRCTemplate getMinNodeSize(int index, int when);
     String[] getNodesWithRules();
-    List getSpacingRules(int index, int type, int techMode);
+    List<DRCTemplate> getSpacingRules(int index, int type, int techMode);
     void addRule(int index, DRCTemplate rule, int spacingCase);
     void deleteRule(int index, DRCTemplate rule);
-    void setSpacingRules(int index, List newRules, int spacingCase);
+    void setSpacingRules(int index, List<DRCTemplate> newRules, int spacingCase);
     boolean doesAllowMultipleWideRules(int index);
 }

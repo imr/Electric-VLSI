@@ -90,7 +90,7 @@ public class ChangeCurrentLib extends EDialog
 
 		changeListModel.clear();
 		/*for(Library lib: Library.getVisibleLibraries())	changeListModel.addElement(lib.getName());*/
-		for (Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			changeListModel.addElement(lib.getName());

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -53,7 +54,7 @@ import javax.swing.JPanel;
 public class ArtworkLook extends EDialog implements HighlightListener
 {
 	private ColorPatternPanel.Info li;
-	private List artworkObjects;
+	private List<Geometric> artworkObjects;
 	private ColorPatternPanel colorPatternPanel;
 	private EditWindow wnd;
 	private static ArtworkLook dialog;
@@ -64,7 +65,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	public static void showArtworkLookDialog()
 	{
 		// see if there is a piece of artwork selected
-		List artObjects = findSelectedArt();
+		List<Geometric> artObjects = findSelectedArt();
 		if (artObjects.size() == 0)
 		{
 			System.out.println("Selected object must be from the Artwork technology");
@@ -76,15 +77,15 @@ public class ArtworkLook extends EDialog implements HighlightListener
 			dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artObjects);
 	}
 
-	private static List findSelectedArt()
+	private static List<Geometric> findSelectedArt()
 	{
-		List artworkObjects = new ArrayList();
+		List<Geometric> artworkObjects = new ArrayList<Geometric>();
 
 		// find all pieces of artwork selected
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return artworkObjects;
-		List objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		for(Iterator it = objects.iterator(); it.hasNext(); )
+		List<Geometric> objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		for(Iterator<Geometric> it = objects.iterator(); it.hasNext(); )
 		{
 			ElectricObject eObj = (ElectricObject)it.next();
 			if (eObj instanceof PortInst)
@@ -107,7 +108,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	}
 
 	/** Creates new form ArtworkLook */
-	public ArtworkLook(Frame parent, List artObjects)
+	public ArtworkLook(Frame parent, List<Geometric> artObjects)
 	{
 		super(parent, false);
 		initComponents();
@@ -137,7 +138,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 
 	protected void escapePressed() { cancel(null); }
 
-	private void showArtworkObjects(List artObjects)
+	private void showArtworkObjects(List<Geometric> artObjects)
 	{
 		artworkObjects = artObjects;
         EditWindow curWnd = EditWindow.getCurrent();
@@ -168,7 +169,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	public void highlightChanged(Highlighter which)
 	{
 		if (!isVisible()) return;
-		List artObjects = findSelectedArt();
+		List<Geometric> artObjects = findSelectedArt();
 		showArtworkObjects(artObjects);
 	}
 
@@ -180,7 +181,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	public void highlighterLostFocus(Highlighter highlighterGainedFocus)
 	{
 		if (!isVisible()) return;
-		List artObjects = findSelectedArt();
+		List<Geometric> artObjects = findSelectedArt();
 		showArtworkObjects(artObjects);
 	}
 
@@ -209,9 +210,9 @@ public class ArtworkLook extends EDialog implements HighlightListener
 
 		public boolean doIt()
 		{
-			for(Iterator it = dialog.artworkObjects.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = dialog.artworkObjects.iterator(); it.hasNext(); )
 			{
-				ElectricObject eObj = (ElectricObject)it.next();
+				Geometric eObj = (Geometric)it.next();
 				Artwork.setGraphics(dialog.li.graphics, eObj);
 			}
 			return true;

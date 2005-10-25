@@ -179,7 +179,7 @@ public class Clipboard
 	 */
 	private static void copySelectedText()
 	{
-		List highlights = MenuCommands.getHighlighted();
+		List<Highlight> highlights = MenuCommands.getHighlighted();
 		if (highlights.size() == 1)
 		{
 			Highlight h = (Highlight)highlights.get(0);
@@ -214,9 +214,9 @@ public class Clipboard
 
 	private static class CopyObjects extends Job
 	{
-        private List highlights;
+        private List<Highlight> highlights;
 
-		protected CopyObjects(List highlights)
+		protected CopyObjects(List<Highlight> highlights)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -241,7 +241,10 @@ public class Clipboard
 			clear();
 
 			// copy objects to clipboard
-			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0,0),
+			List<Object> listToCopy = new ArrayList<Object>();
+			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+				listToCopy.add(it.next());
+			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0,0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 			return true;
 		}
@@ -309,7 +312,10 @@ public class Clipboard
 			highlights = deleteList;
 
 			// copy objects to clipboard
-			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0),
+			List<Object> listToCopy = new ArrayList<Object>();
+			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+				listToCopy.add(it.next());
+			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
@@ -351,9 +357,9 @@ public class Clipboard
 
 	private static class DuplicateObjects extends Job
     {
-        private List highlights;
+        private List<Highlight> highlights;
 
-        protected DuplicateObjects(List highlights)
+        protected DuplicateObjects(List<Highlight> highlights)
         {
             super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -378,7 +384,10 @@ public class Clipboard
             clear();
 
             // copy objects to clipboard
-            copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0),
+			List<Object> listToCopy = new ArrayList<Object>();
+			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+				listToCopy.add(it.next());
+            copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
             	User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
             Highlighter highlighter = wnd.getHighlighter();
@@ -539,10 +548,10 @@ public class Clipboard
 
 	private static class PasteObjects extends Job
 	{
-		List pasteList;
+		List<Object> pasteList;
 		double dX, dY;
 
-		protected PasteObjects(List pasteList, double dX, double dY)
+		protected PasteObjects(List<Object> pasteList, double dX, double dY)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pasteList = pasteList;
@@ -598,11 +607,11 @@ public class Clipboard
 	 * @param copyExports true to copy exports.
 	 * @param uniqueArcs true to generate unique arc names.
 	 */
-	public static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell,
+	public static void copyListToCell(EditWindow wnd, List<Object> list, Cell fromCell, Cell toCell,
 		Point2D delta, boolean copyExports, boolean uniqueArcs)
 	{
 		// make sure they are all in the same cell
-		for(Iterator it = list.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = list.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
 			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
@@ -617,10 +626,10 @@ public class Clipboard
 		}
 
         // make a list of all objects to be copied (includes end points of arcs)
-        List theNodes = new ArrayList();
-        List theArcs = new ArrayList();
-        List theTextVariables = new ArrayList();
-        for (Iterator it = list.iterator(); it.hasNext(); )
+        List<NodeInst> theNodes = new ArrayList<NodeInst>();
+        List<ArcInst> theArcs = new ArrayList<ArcInst>();
+        List<Variable> theTextVariables = new ArrayList<Variable>();
+        for (Iterator<Object> it = list.iterator(); it.hasNext(); )
         {
 	        Object obj = it.next();
             Highlight h = null;
@@ -635,7 +644,7 @@ public class Clipboard
 
                 if (geom instanceof NodeInst)
                 {
-                    if (!theNodes.contains(geom)) theNodes.add(geom);
+                    if (!theNodes.contains(geom)) theNodes.add((NodeInst)geom);
                 }
                 if (geom instanceof ArcInst)
                 {
@@ -659,7 +668,7 @@ public class Clipboard
 		if (theNodes.size() == 0 && theTextVariables.size() == 0) return;
 
 		// check for recursion
-		for(Iterator it = theNodes.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode) continue;
@@ -680,10 +689,10 @@ public class Clipboard
 		Collections.sort(theNodes);
 
 		// create the new nodes
-		HashMap newNodes = new HashMap();
-        List portInstsToExport = new ArrayList();
-        HashMap originalExports = new HashMap();
-		for(Iterator it = theNodes.iterator(); it.hasNext(); )
+		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+        List<PortInst> portInstsToExport = new ArrayList<PortInst>();
+        HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
+		for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode && toCell.alreadyCellCenter()) continue;
@@ -717,7 +726,7 @@ public class Clipboard
 			// copy the ports, too
 			if (copyExports)
 			{
-				for(Iterator eit = ni.getExports(); eit.hasNext(); )
+				for(Iterator<Export> eit = ni.getExports(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
                     PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
@@ -729,17 +738,17 @@ public class Clipboard
 		if (copyExports)
 			ExportChanges.reExportPorts(portInstsToExport, true, true, false, originalExports);
 
-		HashMap newArcs = new HashMap();
+		HashMap<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();
 		if (theArcs.size() > 0)
 		{
 			// sort the arcs by name
 			Collections.sort(theArcs);
 
 			// for associating old names with new names
-			HashMap newArcNames = new HashMap();
+			HashMap<String,String> newArcNames = new HashMap<String,String>();
 
 			// create the new arcs
-			for(Iterator it = theArcs.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = theArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				PortInst oldHeadPi = ai.getHeadPortInst();
@@ -779,7 +788,7 @@ public class Clipboard
 		}
 
 		// copy variables on cells
-        for(Iterator it = theTextVariables.iterator(); it.hasNext(); )
+        for(Iterator<Variable> it = theTextVariables.iterator(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			Variable cellVar = toCell.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
@@ -796,7 +805,7 @@ public class Clipboard
 		{
             Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
-			for(Iterator it = theNodes.iterator(); it.hasNext(); )
+			for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni = (NodeInst)newNodes.get(ni);
@@ -817,7 +826,7 @@ public class Clipboard
 				}
 				Highlight h = highlighter.addElectricObject(ni, toCell);
 			}
-			for(Iterator it = list.iterator(); it.hasNext(); )
+			for(Iterator<Object> it = list.iterator(); it.hasNext(); )
 			{
 				Object obj = it.next();
 				if (!(obj instanceof Geometric)) continue; // Temporary fix?
@@ -839,13 +848,13 @@ public class Clipboard
      * @param pasteList a list of Geometrics to paste
      * @return a Rectangle2D that is the paste bounds.
      */
-    private static Rectangle2D getPasteBounds(List pasteList, EditWindow wnd) {
+    private static Rectangle2D getPasteBounds(List<Object> pasteList, EditWindow wnd) {
 
         Point2D llcorner = null;
         Point2D urcorner = null;
 
         // figure out lower-left corner and upper-rigth corner of this collection of objects
-        for(Iterator it = pasteList.iterator(); it.hasNext(); )
+        for(Iterator<Object> it = pasteList.iterator(); it.hasNext(); )
         {
             Object obj = it.next();
             if ((obj instanceof Variable))
@@ -943,7 +952,7 @@ public class Clipboard
 		while (checkAgain)
 		{
 			checkAgain = false;
-			for(Iterator it = destNode.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = destNode.getVariables(); it.hasNext(); )
 			{
 				Variable destVar = (Variable)it.next();
 				Variable.Key key = destVar.getKey();
@@ -995,7 +1004,7 @@ public class Clipboard
 		while (checkAgain)
 		{
 			checkAgain = false;
-			for(Iterator it = destArc.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = destArc.getVariables(); it.hasNext(); )
 			{
 				Variable destVar = (Variable)it.next();
 				Variable.Key key = destVar.getKey();
@@ -1008,7 +1017,7 @@ public class Clipboard
 		}
 
 		// make sure all variables are on the arc
-		for(Iterator it = srcArc.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = srcArc.getVariables(); it.hasNext(); )
 		{
 			Variable srcVar = (Variable)it.next();
 			Variable.Key key = srcVar.getKey();
@@ -1027,7 +1036,7 @@ public class Clipboard
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private EditWindow wnd;
-		private List pasteList;
+		private List<Object> pasteList;
 		private EventListener currentListener;
         private Rectangle2D pasteBounds;
         private double translateX;
@@ -1043,7 +1052,7 @@ public class Clipboard
          * @param pasteList list of objects to paste
          * @param currentListener listener to restore when done
          */
-		private PasteListener(EditWindow wnd, List pasteList, EventListener currentListener)
+		private PasteListener(EditWindow wnd, List<Object> pasteList, EventListener currentListener)
 		{
 			this.wnd = wnd;
 			this.pasteList = pasteList;
@@ -1106,7 +1115,7 @@ public class Clipboard
 			Cell cell = wnd.getCell();
             Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
-			for(Iterator it = pasteList.iterator(); it.hasNext(); )
+			for(Iterator<Object> it = pasteList.iterator(); it.hasNext(); )
 			{
                 Object obj = it.next();
                 Point2D [] points = null;
@@ -1132,7 +1141,7 @@ public class Clipboard
                         if (ni.isInvisiblePinWithText())
                         {
                             // find text on the invisible pin
-                            for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+                            for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
                             {
                                 Variable var = (Variable)vIt.next();
                                 if (var.isDisplay())

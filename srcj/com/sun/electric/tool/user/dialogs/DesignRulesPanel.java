@@ -59,7 +59,7 @@ public class DesignRulesPanel extends JPanel
 	private boolean designRulesUpdating = false;
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
-	private List wideSpacingRules;
+	private List<DRCTemplate> wideSpacingRules;
 	private int foundry;
 
 	/** Creates new form DesignRulesTab */
@@ -100,7 +100,7 @@ public class DesignRulesPanel extends JPanel
         int numLayers = curTech.getNumLayers();
 		designRulesValidLayers = new boolean[numLayers];
 		for(int i=0; i<numLayers; i++) designRulesValidLayers[i] = false;
-		for(Iterator it = curTech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np.isNotUsed()) continue;
@@ -112,7 +112,7 @@ public class DesignRulesPanel extends JPanel
 				designRulesValidLayers[layer.getIndex()] = true;
 			}
 		}
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
@@ -135,7 +135,7 @@ public class DesignRulesPanel extends JPanel
 		{
 			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedNode(); }
 		});
-		for(Iterator it = curTech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			designRulesNodeModel.addElement(np.getName());
@@ -244,7 +244,7 @@ public class DesignRulesPanel extends JPanel
         if (dindex == -1) return;
 
 		// get new normal spacing values
-        List list = new ArrayList();
+        List<DRCTemplate> list = new ArrayList<DRCTemplate>();
 		double value = TextUtils.atof(drNormalConnected.getText());
         list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
                 0, 0, null, null, value, -1));
@@ -467,7 +467,7 @@ public class DesignRulesPanel extends JPanel
 		if (dindex != -1)
 		{
 //            double wideLimit = 0;
-            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
+            List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
@@ -486,7 +486,7 @@ public class DesignRulesPanel extends JPanel
 
 			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry);
             Collections.sort(spacingRules, DRCTemplate.templateSort);
-			wideSpacingRules = new ArrayList();
+			wideSpacingRules = new ArrayList<DRCTemplate>();
 			drSpacingsList.removeAllItems();
             // Not iterator otherwise the order is lost
 			for(int i = 0; i < spacingRules.size(); i++)
@@ -549,7 +549,7 @@ public class DesignRulesPanel extends JPanel
 	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
 	{
 		boolean gotRule = false;
-		List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
+		List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);

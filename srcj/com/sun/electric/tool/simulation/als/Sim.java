@@ -28,6 +28,7 @@ package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.als.ALS.Load;
@@ -47,9 +48,9 @@ import java.util.List;
 public class Sim
 {
 	private ALS als;
-	private List       chekList = new ArrayList();
+	private List<Load> chekList = new ArrayList<Load>();
 //	private Load       chekRoot;
-	private HashMap tracking;
+	private HashMap<ALS.Node,List<ALS.Trak>> tracking;
 
 	private static String [] stateDesc = {"High", "Undefined", "Low"};
 	private static String [] strengthDesc = {"Off-", "Weak-", "Weak-", "", "", "Strong-", "Strong-"};
@@ -71,7 +72,7 @@ public class Sim
 	double initializeSimulator(boolean force)
 	{
 		als.timeAbs = 0.0;
-		tracking = new HashMap();
+		tracking = new HashMap<ALS.Node,List<ALS.Trak>>();
 
 		while (als.linkFront != null)
 		{
@@ -102,7 +103,7 @@ public class Sim
 		}
 
 
-		for(Iterator it = als.nodeList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.Node> it = als.nodeList.iterator(); it.hasNext(); )
 		{
 			ALS.Node nodeHead = (ALS.Node)it.next();
 			nodeHead.sumState = Stimuli.LOGIC_LOW;
@@ -112,7 +113,7 @@ public class Sim
 			nodeHead.arrive = 0;
 			nodeHead.depart = 0;
 			nodeHead.tLast = 0.0;
-			for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
+			for(Iterator<Stat> sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 			{
 				Stat statHead = (Stat)sIt.next();
 				statHead.newState = Stimuli.LOGIC_LOW;
@@ -132,7 +133,7 @@ public class Sim
 			// determine highest time to simulate
 			Rectangle2D bounds = als.sd.getBounds();
 			double tMax = bounds.getMaxX();
-			for(Iterator it = als.ww.getPanels(); it.hasNext(); )
+			for(Iterator<WaveformWindow.Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
 				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
 				double panelMax = wp.getMaxTimeRange();
@@ -161,19 +162,19 @@ public class Sim
 	 */
 	private void fillDisplayArrays()
 	{
-		HashSet sigsChanged = new HashSet();
-		for(Iterator it = tracking.keySet().iterator(); it.hasNext(); )
+		HashSet<DigitalSignal> sigsChanged = new HashSet<DigitalSignal>();
+		for(Iterator<ALS.Node> it = tracking.keySet().iterator(); it.hasNext(); )
 		{
 			ALS.Node node = (ALS.Node)it.next();
 			DigitalSignal sig = node.sig;
-			List trakHeads = (List)tracking.get(node);
+			List<ALS.Trak> trakHeads = (List<ALS.Trak>)tracking.get(node);
 			int count = trakHeads.size();
 			double [] timeVector = new double[count+1];
 			int [] stateVector = new int[count+1];
 			timeVector[0] = 0;
 			stateVector[0] = Stimuli.LOGIC_LOW | Stimuli.OFF_STRENGTH;
 			int j=1;
-			for(Iterator dIt = trakHeads.iterator(); dIt.hasNext(); )
+			for(Iterator<ALS.Trak> dIt = trakHeads.iterator(); dIt.hasNext(); )
 			{
 				ALS.Trak trakHead = (ALS.Trak)dIt.next();
 				timeVector[j] = trakHead.time;
@@ -190,7 +191,7 @@ public class Sim
 		stateVector[0] = 0;
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
-		for(Iterator it = als.sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = als.sd.getSignals().iterator(); it.hasNext(); )
 		{
 			DigitalSignal sig = (DigitalSignal)it.next();
 			if (sigsChanged.contains(sig)) continue;
@@ -325,7 +326,7 @@ public class Sim
 			case 'C':
 				double time = als.timeAbs;
 				ALS.Row rowHead = (ALS.Row)linkHead.ptr;
-				for(Iterator it = rowHead.inList.iterator(); it.hasNext(); )
+				for(Iterator<Object> it = rowHead.inList.iterator(); it.hasNext(); )
 				{
 					ALS.Link vectHead = (ALS.Link)it.next();
 					ALS.Link linkPtr2 = new ALS.Link();
@@ -377,7 +378,7 @@ public class Sim
 		}
 
 		// look at all factors affecting the node
-		for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
+		for(Iterator<Stat> sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 		{
 			Stat statHead = (Stat)sIt.next();
 			int thisState = statHead.newState;
@@ -418,10 +419,10 @@ public class Sim
 
 		if (nodeHead.sig != null)
 		{
-			List nodeData = (List)tracking.get(nodeHead);
+			List<ALS.Trak> nodeData = (List<ALS.Trak>)tracking.get(nodeHead);
 			if (nodeData == null)
 			{
-				nodeData = new ArrayList();
+				nodeData = new ArrayList<ALS.Trak>();
 				tracking.put(nodeHead, nodeData);
 			}
 
@@ -438,7 +439,7 @@ public class Sim
 		nodeHead.tLast = als.timeAbs;
 
 		als.driveNode = nodeHead;
-		for(Iterator it = nodeHead.pinList.iterator(); it.hasNext(); )
+		for(Iterator<Load> it = nodeHead.pinList.iterator(); it.hasNext(); )
 			chekList.add(it.next());
 	}
 
@@ -451,14 +452,14 @@ public class Sim
 	private boolean scheduleNewEvents()
 	{
 		// make a copy of the event list, and clear the main list
-		List chekListCopy =  new ArrayList();
-		for(Iterator cIt = chekList.iterator(); cIt.hasNext(); )
+		List<Load> chekListCopy =  new ArrayList<Load>();
+		for(Iterator<Load> cIt = chekList.iterator(); cIt.hasNext(); )
 			chekListCopy.add(cIt.next());
 		chekList.clear();
 
-		for(Iterator cIt = chekListCopy.iterator(); cIt.hasNext(); )
+		for(Iterator<Load> cIt = chekListCopy.iterator(); cIt.hasNext(); )
 		{
-			ALS.Load chekHead = (ALS.Load)cIt.next();
+			Load chekHead = (Load)cIt.next();
 			ALS.Model primHead = (ALS.Model)chekHead.ptr;
 			if (primHead.type == 'F')
 			{
@@ -470,7 +471,7 @@ public class Sim
 			for (ALS.Row rowHead = (ALS.Row)primHead.ptr; rowHead != null; rowHead = rowHead.next)
 			{
 				int flag = 1;
-				for(Iterator it = rowHead.inList.iterator(); it.hasNext(); )
+				for(Iterator<Object> it = rowHead.inList.iterator(); it.hasNext(); )
 				{
 					ALS.IO ioHead = (ALS.IO)it.next();
 					int operatr = ioHead.operatr;
@@ -589,14 +590,14 @@ public class Sim
 
 		if (primHead.fanOut != 0)
 		{
-			Iterator it = rowHead.outList.iterator();
+			Iterator<Object> it = rowHead.outList.iterator();
 			ALS.IO ioPtr = (ALS.IO)it.next();
 			ALS.Stat statHead = (ALS.Stat)ioPtr.nodePtr;
 			time *= statHead.nodePtr.load;
 		}
 		time += als.timeAbs;
 
-		for(Iterator it = rowHead.outList.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = rowHead.outList.iterator(); it.hasNext(); )
 		{
 			ALS.IO ioHead = (ALS.IO)it.next();
 			ALS.Stat statHead = (ALS.Stat)ioHead.nodePtr;

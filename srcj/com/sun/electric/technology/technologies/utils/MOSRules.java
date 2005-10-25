@@ -519,7 +519,7 @@ public class MOSRules implements DRCRules {
      * @param newRules
      * @param spacingCase SPACING for normal case, SPACINGW for wide case, CUTSPA for multi cuts
      */
-    public void setSpacingRules(int index, List newRules, int spacingCase)
+    public void setSpacingRules(int index, List<DRCTemplate> newRules, int spacingCase)
     {
         for (int i = 0; i < newRules.size(); i++)
         {

@@ -74,7 +74,7 @@ public class LayoutText extends EDialog
 		textBold.setSelected(lastBold);
 		textUnderline.setSelected(lastUnderline);
 
-		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np.getFunction() == PrimitiveNode.Function.NODE)

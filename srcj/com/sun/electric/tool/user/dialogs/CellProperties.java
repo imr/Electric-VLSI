@@ -50,7 +50,7 @@ public class CellProperties extends EDialog
 {
 	private JList cellList;
 	private DefaultListModel cellListModel;
-	private HashMap origValues;
+	private HashMap<Cell,PerCellValues> origValues;
 	private boolean initialCheckDatesDuringCreation;
 	private boolean initialAutoTechnologySwitch;
 	private boolean initialPlaceCellCenter;
@@ -113,7 +113,7 @@ public class CellProperties extends EDialog
 		initComponents();
 
 		// cache all information
-		origValues = new HashMap();
+		origValues = new HashMap<Cell,PerCellValues>();
 
 		// build the cell list
 		cellListModel = new DefaultListModel();
@@ -130,7 +130,7 @@ public class CellProperties extends EDialog
 		});
 
 		// build the technology popup
-		for(Iterator it = Technology.getTechnologies(); it.hasNext();)
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
 		{
 			Technology tech = (Technology)it.next();
 			whichTechnology.addItem(tech.getTechName());
@@ -146,9 +146,9 @@ public class CellProperties extends EDialog
 		frameSize.addItem("E-Size");
 
 		// make a popup of libraries
-		List/*<Library>*/ libList = Library.getVisibleLibraries();
+		List<Library> libList = Library.getVisibleLibraries();
 		/*for(Library lib: libList) libraryPopup.addItem(lib.getName());*/
-		for(Iterator it = libList.iterator(); it.hasNext(); )
+		for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			libraryPopup.addItem(lib.getName());
@@ -177,7 +177,7 @@ public class CellProperties extends EDialog
 		if (lib == null) return;
 		boolean any = false;
 		cellListModel.clear();
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			cellListModel.addElement(cell.noLibDescribe());
@@ -946,7 +946,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_clearUseTechEditorActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -959,7 +959,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_setUseTechEditorActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -972,7 +972,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_clearPartOfCellLibActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -985,7 +985,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_setPartOfCellLibActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -998,7 +998,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_clearDisallowModInstInCellActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -1011,7 +1011,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_setDisallowModInstInCellActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -1024,7 +1024,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_clearDisallowModAnyInCellActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -1037,7 +1037,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_setDisallowModAnyInCellActionPerformed
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			PerCellValues pcv = getPCV(cell);
@@ -1073,7 +1073,7 @@ public class CellProperties extends EDialog
 
 		public boolean doIt()
 		{
-            for (Iterator it = dialog.origValues.keySet().iterator(); it.hasNext(); )
+            for (Iterator<Cell> it = dialog.origValues.keySet().iterator(); it.hasNext(); )
 			{
                 Cell cell = (Cell)it.next();
 				PerCellValues pcv = dialog.getPCV(cell);

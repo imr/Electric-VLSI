@@ -84,11 +84,11 @@ public class Change extends EDialog implements HighlightListener
 	private static Change theDialog = null;
 	private static boolean nodesAndArcs = false;
 	private static int whatToChange = CHANGE_SELECTED;
-	private List geomsToChange;                  // List of Geometrics to change
+	private List<Geometric> geomsToChange;                  // List of Geometrics to change
     private static String libSelected = null;
 	private JList changeList;
 	private DefaultListModel changeListModel;
-	private List changeNodeProtoList;
+	private List<NodeProto> changeNodeProtoList;
     private EditWindow wnd;
 
 	public static void showChangeDialog()
@@ -115,7 +115,7 @@ public class Change extends EDialog implements HighlightListener
 		changeList = new JList(changeListModel);
 		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listPane.setViewportView(changeList);
-		changeNodeProtoList = new ArrayList();
+		changeNodeProtoList = new ArrayList<NodeProto>();
 		changeList.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked(MouseEvent e)
@@ -125,10 +125,10 @@ public class Change extends EDialog implements HighlightListener
 		});
 
 		// make a popup of libraries
-		List/*<Library>*/ libList = Library.getVisibleLibraries();
+		List<Library> libList = Library.getVisibleLibraries();
         int curIndex = libList.indexOf(Library.getCurrent());
 		/*for(Library lib: libList)*/
-		for (Iterator it = libList.iterator(); it.hasNext(); )
+		for (Iterator<Library> it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			librariesPopup.addItem(lib.getName());
@@ -255,11 +255,11 @@ public class Change extends EDialog implements HighlightListener
 		}
 
 		// find out what is going to be changed
-		geomsToChange = new ArrayList();
+		geomsToChange = new ArrayList<Geometric>();
 		if (wnd != null)
 		{
-			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-			for (Iterator it = highs.iterator(); it.hasNext(); )
+			List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+			for (Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				geomsToChange.add(it.next());
 			}
@@ -351,7 +351,7 @@ public class Change extends EDialog implements HighlightListener
 
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
-				for(Iterator it = lib.getCells(); it.hasNext(); )
+				for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
 					changeListModel.addElement(cell.noLibDescribe());
@@ -361,7 +361,7 @@ public class Change extends EDialog implements HighlightListener
 			if (showPrimitives.isSelected())
 			{
 				// primitive: list primitives in this and the generic technology
-				for(Iterator it = curTech.getNodesSortedByName().iterator(); it.hasNext(); )
+				for(Iterator<PrimitiveNode> it = curTech.getNodesSortedByName().iterator(); it.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)it.next();
 					changeListModel.addElement(np.describe(false));
@@ -420,7 +420,7 @@ public class Change extends EDialog implements HighlightListener
 			ArcInst ai = (ArcInst)geomToChange;
 			PortProto pp1 = ai.getHeadPortInst().getPortProto();
 			PortProto pp2 = ai.getTailPortInst().getPortProto();
-			for(Iterator it = curTech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				if (!changeNodesWithArcs.isSelected())
@@ -432,7 +432,7 @@ public class Change extends EDialog implements HighlightListener
 			}
 			if (curTech != Generic.tech)
 			{
-				for(Iterator it = Generic.tech.getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = Generic.tech.getArcs(); it.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)it.next();
 					if (!changeNodesWithArcs.isSelected())
@@ -446,7 +446,7 @@ public class Change extends EDialog implements HighlightListener
 			Technology arcTech = ai.getProto().getTechnology();
 			if (arcTech != curTech && arcTech != Generic.tech)
 			{
-				for(Iterator it = arcTech.getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = arcTech.getArcs(); it.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)it.next();
 					if (!changeNodesWithArcs.isSelected())
@@ -485,7 +485,7 @@ public class Change extends EDialog implements HighlightListener
 
 		public boolean doIt()
 		{
-            for (Iterator geomit = dialog.geomsToChange.iterator(); geomit.hasNext(); )
+            for (Iterator<Geometric> geomit = dialog.geomsToChange.iterator(); geomit.hasNext(); )
 			{
                 Geometric geomToChange = (Geometric)geomit.next();
 				// handle node replacement
@@ -535,10 +535,10 @@ public class Change extends EDialog implements HighlightListener
 					if (dialog.changeEverywhere.isSelected())
 					{
 						// replace in all cells of library if requested
-						for(Iterator it = Library.getLibraries(); it.hasNext(); )
+						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 						{
 							Library lib = (Library)it.next();
-							for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+							for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 							{
 								Cell cell = (Cell)cIt.next();
 
@@ -546,7 +546,7 @@ public class Change extends EDialog implements HighlightListener
 								while (found)
 								{
 									found = false;
-									for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+									for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 									{
 										NodeInst lNi = (NodeInst)nIt.next();
 										if (lNi.getProto() != oldNType) continue;
@@ -580,14 +580,14 @@ public class Change extends EDialog implements HighlightListener
 					{
 						// replace throughout this library if requested
 						Library lib = Library.getCurrent();
-						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							boolean found = true;
 							while (found)
 							{
 								found = false;
-								for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+								for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 								{
 									NodeInst lNi = (NodeInst)nIt.next();
 									if (lNi.getProto() != oldNType) continue;
@@ -617,7 +617,7 @@ public class Change extends EDialog implements HighlightListener
 						while (found)
 						{
 							found = false;
-							for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+							for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 							{
 								NodeInst lNi = (NodeInst)nIt.next();
 								if (lNi.getProto() != oldNType) continue;
@@ -643,18 +643,18 @@ public class Change extends EDialog implements HighlightListener
 						// replace all connected to this in the cell if requested
 						Cell curCell = WindowFrame.getCurrentCell();
 						Netlist netlist = curCell.getUserNetlist();
-						List others = new ArrayList();
-						for(Iterator it = curCell.getNodes(); it.hasNext(); )
+						List<NodeInst> others = new ArrayList<NodeInst>();
+						for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 						{
 							NodeInst lNi = (NodeInst)it.next();
 							if (lNi.getProto() != oldNType) continue;
 							if (lNi == onlyNewNi) continue;
 
 							boolean found = false;
-							for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
+							for(Iterator<PortInst> pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
 							{
 								PortInst pi = (PortInst)pIt.next();
-								for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
+								for(Iterator<PortInst> lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
 								{
 									PortInst lPi = (PortInst)lPIt.next();
 									if (netlist.sameNetwork(pi.getNodeInst(), pi.getPortProto(), lPi.getNodeInst(), lPi.getPortProto()))
@@ -669,7 +669,7 @@ public class Change extends EDialog implements HighlightListener
 						}
 
 						// make the changes
-						for(Iterator it = others.iterator(); it.hasNext(); )
+						for(Iterator<NodeInst> it = others.iterator(); it.hasNext(); )
 						{
 							NodeInst lNi = (NodeInst)it.next();
 
@@ -716,7 +716,7 @@ public class Change extends EDialog implements HighlightListener
 					{
 						if (dialog.changeInLibrary.isSelected())
 						{
-							for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+							for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 							{
 								Cell cell = (Cell)it.next();
 								replaceAllArcs(cell, ai, ap, false, true);
@@ -743,17 +743,17 @@ public class Change extends EDialog implements HighlightListener
 					if (dialog.changeEverywhere.isSelected())
 					{
 						// replace in all cells of library if requested
-						for(Iterator it = Library.getLibraries(); it.hasNext(); )
+						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 						{
 							Library lib = (Library)it.next();
-							for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+							for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 							{
 								Cell cell = (Cell)cIt.next();
 								boolean found = true;
 								while (found)
 								{
 									found = false;
-									for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+									for(Iterator<ArcInst> nIt = cell.getArcs(); nIt.hasNext(); )
 									{
 										ArcInst lAi = (ArcInst)nIt.next();
 										if (lAi.getProto() != oldAType) continue;
@@ -780,14 +780,14 @@ public class Change extends EDialog implements HighlightListener
 					{
 						// replace throughout this library if requested
 						Library lib = Library.getCurrent();
-						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
 							boolean found = true;
 							while (found)
 							{
 								found = false;
-								for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+								for(Iterator<ArcInst> nIt = cell.getArcs(); nIt.hasNext(); )
 								{
 									ArcInst lAi = (ArcInst)nIt.next();
 									if (lAi.getProto() != oldAType) continue;
@@ -817,7 +817,7 @@ public class Change extends EDialog implements HighlightListener
 						while (found)
 						{
 							found = false;
-							for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+							for(Iterator<ArcInst> nIt = cell.getArcs(); nIt.hasNext(); )
 							{
 								ArcInst lAi = (ArcInst)nIt.next();
 								if (lAi.getProto() != oldAType) continue;
@@ -841,17 +841,17 @@ public class Change extends EDialog implements HighlightListener
 					} else if (dialog.changeConnected.isSelected())
 					{
 						// replace all connected to this if requested
-						List others = new ArrayList();
+						List<ArcInst> others = new ArrayList<ArcInst>();
 						Cell cell = WindowFrame.getCurrentCell();
 						Netlist netlist = cell.getUserNetlist();
-						for(Iterator it = cell.getArcs(); it.hasNext(); )
+						for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 						{
 							ArcInst lAi = (ArcInst)it.next();
 							if (lAi == onlyNewAi) continue;
 							if (netlist.sameNetwork(onlyNewAi, lAi)) others.add(lAi);
 						}
 
-						for(Iterator it = others.iterator(); it.hasNext(); )
+						for(Iterator<ArcInst> it = others.iterator(); it.hasNext(); )
 						{
 							ArcInst lAi = (ArcInst)it.next();
 							ArcInst newAi = lAi.replace(ap);
@@ -877,10 +877,10 @@ public class Change extends EDialog implements HighlightListener
 		{
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd == null) return;
-			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-			HashSet geomMarked = new HashSet();
+			List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+			HashSet<Geometric> geomMarked = new HashSet<Geometric>();
 
-			for(Iterator it = highs.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof ArcInst)) continue;
@@ -891,7 +891,7 @@ public class Change extends EDialog implements HighlightListener
 			if (connected)
 			{
 				Netlist netlist = cell.getUserNetlist();
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (ai.getProto() != oldAi.getProto()) continue;
@@ -901,21 +901,21 @@ public class Change extends EDialog implements HighlightListener
 			}
 			if (thiscell)
 			{
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (ai.getProto() != oldAi.getProto()) continue;
 					geomMarked.add(ai);
 				}
 			}
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() instanceof Cell) continue;
 //				if (ni.getNumExports() != 0) continue;
 				if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 				boolean allArcs = true;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
@@ -927,15 +927,15 @@ public class Change extends EDialog implements HighlightListener
 			PrimitiveNode pin = ap.findOverridablePinProto();
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
-			List dupPins = new ArrayList();
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			List<NodeInst> dupPins = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (!geomMarked.contains(ni)) continue;
 				dupPins.add(ni);
 			}
-			HashMap newNodes = new HashMap();
-			for(Iterator it = dupPins.iterator(); it.hasNext(); )
+			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+			for(Iterator<NodeInst> it = dupPins.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 
@@ -946,7 +946,7 @@ public class Change extends EDialog implements HighlightListener
 				newNodes.put(ni, newNi);
 
 				// move exports
-				for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
 					Export oldExport = (Export)eIt.next();
 					if (oldExport.move(newNi.getOnlyPortInst()))
@@ -958,13 +958,13 @@ public class Change extends EDialog implements HighlightListener
 			}
 
 			// now create new arcs to replace the old ones
-			List dupArcs = new ArrayList();
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			List<ArcInst> dupArcs = new ArrayList<ArcInst>();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (geomMarked.contains(ai)) dupArcs.add(ai);
 			}
-			for(Iterator it = dupArcs.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = dupArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 
@@ -1005,25 +1005,25 @@ public class Change extends EDialog implements HighlightListener
 			}
 
 			// now remove the previous arcs and nodes
-			List killArcs = new ArrayList();
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			List<ArcInst> killArcs = new ArrayList<ArcInst>();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (geomMarked.contains(ai)) killArcs.add(ai);
 			}
-			for(Iterator it = killArcs.iterator(); it.hasNext(); )
+			for(Iterator<ArcInst> it = killArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ai.kill();
 			}
 
-			List killNodes = new ArrayList();
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			List<NodeInst> killNodes = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (geomMarked.contains(ni)) killNodes.add(ni);
 			}
-			for(Iterator it = killNodes.iterator(); it.hasNext(); )
+			for(Iterator<NodeInst> it = killNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getNumExports() == 0)
@@ -1043,7 +1043,7 @@ public class Change extends EDialog implements HighlightListener
 		{
 			NodeInst lastNi = ai.getPortInst(end).getNodeInst();
 			PortProto lastPp = ai.getPortInst(end).getPortProto();
-			Set marked = new HashSet();
+			Set<PrimitiveNode> marked = new HashSet<PrimitiveNode>();
 			int depth = findPathToArc(lastPp, ap, 0, marked);
 			if (depth < 0) return null;
 
@@ -1068,17 +1068,17 @@ public class Change extends EDialog implements HighlightListener
 			return retPi;
 		}
 
-		int findPathToArc(PortProto pp, ArcProto ap, int depth, Set marked)
+		int findPathToArc(PortProto pp, ArcProto ap, int depth, Set<PrimitiveNode> marked)
 		{
 			// see if the connection is made
 			if (pp.connectsTo(ap)) return depth;
 
 			// look for a contact
-			NodeProto bestNp = null;
+			PrimitiveNode bestNp = null;
 			ArcProto bestAp = null;
 			int bestDepth = 0;
 			Technology tech = ap.getTechnology();
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode nextNp = (PrimitiveNode)it.next();
 				if (marked.contains(nextNp)) continue;

@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -97,16 +98,16 @@ public class DebugMenus {
 			Cell lay = WindowFrame.getCurrentCell();
 
 			// find all exports
-			List aList = new ArrayList();
-			List bList = new ArrayList();
-			for(Iterator it = lay.getPorts(); it.hasNext(); )
+			List<Export> aList = new ArrayList<Export>();
+			List<Export> bList = new ArrayList<Export>();
+			for(Iterator<PortProto> it = lay.getPorts(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				if (e.getName().startsWith("a")) aList.add(e);
 				if (e.getName().startsWith("b")) bList.add(e);
 			}
 
-			for(Iterator it = aList.iterator(); it.hasNext(); )
+			for(Iterator<Export> it = aList.iterator(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				PortInst pi = e.getOriginalPort();
@@ -122,7 +123,7 @@ public class DebugMenus {
 				int level = fun.getLevel();
 				ArcProto.Function nextFun = ArcProto.Function.getMetal(level+1);
 				ArcProto nextLevel = null;
-				for(Iterator tIt = desired.getTechnology().getArcs(); tIt.hasNext(); )
+				for(Iterator<ArcProto> tIt = desired.getTechnology().getArcs(); tIt.hasNext(); )
 				{
 					ArcProto other = (ArcProto)tIt.next();
 					if (other.getFunction() == nextFun) { nextLevel = other;   break; }
@@ -131,10 +132,10 @@ public class DebugMenus {
 
 				// find contact between desired and nextLevel
 				PrimitiveNode contact = null;
-				for(Iterator cIt = desired.getTechnology().getNodes(); cIt.hasNext(); )
+				for(Iterator<PrimitiveNode> cIt = desired.getTechnology().getNodes(); cIt.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)cIt.next();
-                if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+					if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 					PrimitivePort pp = (PrimitivePort)np.getPort(0);
 					if (pp.connectsTo(desired) && pp.connectsTo(nextLevel)) { contact = np;   break; }
 				}
@@ -756,7 +757,7 @@ public class DebugMenus {
 //        while (!noMoreFound)
         {
             noMoreFound = true;
-            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
                 Library lib = (Library)it.next();
 
@@ -764,7 +765,7 @@ public class DebugMenus {
                 if (lib.getName().indexOf(keyword) != -1)
                     continue;
 
-                for (Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
                 {
                     Cell cell = (Cell)itCell.next();
 //                    if (CircuitChanges.deleteCell(cell, true, true))
@@ -878,16 +879,16 @@ public class DebugMenus {
 
     private static void testParameters()
     {
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
 
-            for (Iterator itCell = lib.getCells(); itCell.hasNext(); )
+            for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
             {
                 Cell cell = (Cell)itCell.next();
 
                 // Checking NodeInst/Cell master relation
-                for(Iterator itNodes = cell.getNodes(); itNodes.hasNext(); )
+                for(Iterator<NodeInst> itNodes = cell.getNodes(); itNodes.hasNext(); )
                 {
                     NodeInst node = (NodeInst)itNodes.next();
                     if (node.isIconOfParent()) continue;
@@ -898,7 +899,7 @@ public class DebugMenus {
                         if (!master.isIcon()) continue;
                         NodeInst ni = null;
                         // Searching for instance of that icon in master cell
-                        for (Iterator itU = master.getNodes(); itU.hasNext(); )
+                        for (Iterator<NodeInst> itU = master.getNodes(); itU.hasNext(); )
                         {
                             NodeInst ni1 = (NodeInst)itU.next();
                             if (ni1.isIconOfParent())
@@ -913,7 +914,7 @@ public class DebugMenus {
                             continue;
                         }
 
-                        for (Iterator itVar = node.getVariables(); itVar.hasNext();)
+                        for (Iterator<Variable> itVar = node.getVariables(); itVar.hasNext();)
                         {
                             Variable var = (Variable)itVar.next();
                             if (var.isAttribute())
@@ -929,7 +930,7 @@ public class DebugMenus {
                 }
 
                 // Checking schematic/icon relation
-                for (Iterator itInstOf = cell.getInstancesOf(); itInstOf.hasNext(); )
+                for (Iterator<NodeInst> itInstOf = cell.getInstancesOf(); itInstOf.hasNext(); )
                 {
                     NodeInst instOf = (NodeInst)itInstOf.next();
 
@@ -938,7 +939,7 @@ public class DebugMenus {
                         NodeInst icon = instOf;
                         Cell parent = icon.getParent();
 
-                        for (Iterator itVar = icon.getVariables(); itVar.hasNext();)
+                        for (Iterator<Variable> itVar = icon.getVariables(); itVar.hasNext();)
                         {
                             Variable var = (Variable)itVar.next();
                             if (var.isAttribute())
@@ -1089,11 +1090,11 @@ public class DebugMenus {
 		public boolean doIt()
 		{
 			PolyMerge merge = new PolyMerge();
-			java.util.List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
-			HashMap allLayers = new HashMap();
+			List<NodeInst> deleteList = new ArrayList<NodeInst>(); // New coverage implants are pure primitive nodes
+			HashMap<Layer,List<Poly>> allLayers = new HashMap<Layer,List<Poly>>();
 
 			// Traversing arcs
-			for(Iterator it = curCell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst arc = (ArcInst)it.next();
 				ArcProto arcType = arc.getProto();
@@ -1111,11 +1112,11 @@ public class DebugMenus {
 					if ( func.isSubstrate() )
 					{
 						merge.addPolygon(layer, poly);
-						java.util.List rectList = (java.util.List)allLayers.get(layer);
+						List<Poly> rectList = (List<Poly>)allLayers.get(layer);
 
 						if ( rectList == null )
 						{
-							rectList = new ArrayList();
+							rectList = new ArrayList<Poly>();
 							allLayers.put(layer, rectList);
 						}
 						rectList.add(poly);
@@ -1123,9 +1124,9 @@ public class DebugMenus {
 				}
 			}
 			// Traversing nodes
-			for(Iterator it = curCell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst node = (NodeInst)it .next();
+				NodeInst node = (NodeInst)it.next();
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
@@ -1154,11 +1155,11 @@ public class DebugMenus {
 					{
 						poly.transform(transform);
 						merge.addPolygon(layer, poly);
-						java.util.List rectList = (java.util.List)allLayers.get(layer);
+						List<Poly> rectList = (List<Poly>)allLayers.get(layer);
 
-						if ( rectList == null )
+						if (rectList == null)
 						{
-							rectList = new ArrayList();
+							rectList = new ArrayList<Poly>();
 							allLayers.put(layer, rectList);
 						}
 						rectList.add(poly);
@@ -1168,26 +1169,26 @@ public class DebugMenus {
 
 			// With polygons collected, new geometries are calculated
 			highlighter.clear();
-			java.util.List nodesList = new ArrayList();
+			List<NodeInst> nodesList = new ArrayList<NodeInst>();
 
 			// Need to detect if geometry was really modified
-			for(Iterator it = merge.getKeyIterator(); it.hasNext(); )
+			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				java.util.List list = merge.getMergedPoints(layer, true) ;
+				List<PolyBase> list = merge.getMergedPoints(layer, true) ;
 
 				// Temp solution until qtree implementation is ready
 				// delete uncessary polygons. Doesn't insert poly if identical
 				// to original. Very ineficient!!
-				java.util.List rectList = (java.util.List)allLayers.get(layer);
-				java.util.List delList = new ArrayList();
+				List<Poly> rectList = (List<Poly>)allLayers.get(layer);
+				List<PolyBase> delList = new ArrayList<PolyBase>();
 
-				for (Iterator iter = rectList.iterator(); iter.hasNext();)
+				for (Iterator<Poly> iter = rectList.iterator(); iter.hasNext();)
 				{
-					PolyBase p = (PolyBase)iter.next();
+					Poly p = (Poly)iter.next();
 					Rectangle2D rect = p.getBounds2D();
 
-					for (Iterator i = list.iterator(); i.hasNext();)
+					for (Iterator<PolyBase> i = list.iterator(); i.hasNext();)
 					{
 						PolyBase poly = (PolyBase)i.next();
 						Rectangle2D r = poly.getBounds2D();
@@ -1198,13 +1199,13 @@ public class DebugMenus {
 						}
 					}
 				}
-				for (Iterator iter = delList.iterator(); iter.hasNext();)
+				for (Iterator<PolyBase> iter = delList.iterator(); iter.hasNext();)
 				{
 					list.remove(iter.next());
 				}
 
 				// Ready to create new implants.
-				for(Iterator i = list.iterator(); i.hasNext(); )
+				for(Iterator<PolyBase> i = list.iterator(); i.hasNext(); )
 				{
 					PolyBase poly = (PolyBase)i.next();
 					Rectangle2D rect = poly.getBounds2D();
@@ -1219,9 +1220,9 @@ public class DebugMenus {
 				}
 			}
 			highlighter.finished();
-			for (Iterator it = deleteList.iterator(); it.hasNext(); )
+			for (Iterator<NodeInst> it = deleteList.iterator(); it.hasNext(); )
 			{
-				NodeInst node = (NodeInst)it .next();
+				NodeInst node = (NodeInst)it.next();
 				node.kill();
 			}
 			if ( nodesList.isEmpty() )
@@ -1257,7 +1258,7 @@ public class DebugMenus {
             cell.getInfo();
 			return;
 		}
-		for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+		for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 			ElectricObject eobj = h.getElectricObject();
@@ -1284,11 +1285,11 @@ public class DebugMenus {
         if (curEdit == null) return;
 
 		if (curEdit.getHighlighter().getNumHighlights() == 0) return;
-		for (Iterator it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+		for (Iterator<Highlight> it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 			ElectricObject eobj = h.getElectricObject();
-			Iterator itVar = eobj.getVariables();
+			Iterator<Variable> itVar = eobj.getVariables();
 			while(itVar.hasNext()) {
 				Variable var = (Variable)itVar.next();
 				Object obj = curEdit.getVarContext().evalVar(var);
@@ -1300,7 +1301,7 @@ public class DebugMenus {
 
 	public static void listLibVars() {
 		Library lib = Library.getCurrent();
-		Iterator itVar = lib.getVariables();
+		Iterator<Variable> itVar = lib.getVariables();
 		System.out.println("----------"+lib+" Vars-----------");
 		while(itVar.hasNext()) {
 			Variable var = (Variable)itVar.next();
@@ -1314,7 +1315,7 @@ public class DebugMenus {
         if (wnd == null) return;
 
         if (wnd.getHighlighter().getNumHighlights() == 0) return;
-        for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+        for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
             if (h.getType() == Highlight.Type.EOBJ) {
                 ElectricObject eobj = h.getElectricObject();
@@ -1474,7 +1475,7 @@ public class DebugMenus {
         DefunctJob j = new DefunctJob();
     }
 
-    private static ArrayList sharedList = new ArrayList();
+    private static ArrayList<Object> sharedList = new ArrayList<Object>();
 
     private static void changeSharedList() {
         //if (sharedList.size() < 100) sharedList.add(new Integer(sharedList.size()));
@@ -1588,7 +1589,7 @@ public class DebugMenus {
         Library lib = Library.getCurrent();
         int deleted = 0;
         int notDeleted = 0;
-        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = (Cell)it.next();
             if (cell.getView() != view) continue;
             if (CircuitChanges.deleteCell(cell, false, false))
@@ -1607,8 +1608,8 @@ public class DebugMenus {
 	private static int[] vobjs1;
 	private static int[] vcnt;
 	private static int numPoints;
-	private static HashSet points;
-    private static HashSet descriptors;
+	private static HashSet<Point2D> points;
+    private static HashSet<TextDescriptor> descriptors;
 
 	private static void varStatistics()
 	{
@@ -1622,32 +1623,32 @@ public class DebugMenus {
 		vobjs = new int[96];
 		vobjs1 = new int[96];
 		vcnt = new int[96];
-		points = new HashSet();
-        descriptors = new HashSet();
+		points = new HashSet<Point2D>();
+        descriptors = new HashSet<TextDescriptor>();
 		numPoints = 0;
 		
-		TreeSet nodeNames = new TreeSet();
-		TreeSet arcNames = new TreeSet();
+		TreeSet<String> nodeNames = new TreeSet<String>();
+		TreeSet<String> arcNames = new TreeSet<String>();
 
-		for (Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		for (Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			countVars('H', lib);
 
-			for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				countVars('C', cell);
-				TreeSet cellNodes = new TreeSet();
-				TreeSet cellArcs = new TreeSet();
+				TreeSet<String> cellNodes = new TreeSet<String>();
+				TreeSet<String> cellArcs = new TreeSet<String>();
 
-				for (Iterator uIt = cell.getUsagesIn(); uIt.hasNext(); )
+				for (Iterator<CellUsage> uIt = cell.getUsagesIn(); uIt.hasNext(); )
 				{
 					CellUsage nu = (CellUsage)uIt.next();
 					cellUsages++;
 				}
 
-				for (Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				for (Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					countVars('N', ni);
@@ -1660,14 +1661,14 @@ public class DebugMenus {
                     if (ni.getProto() instanceof Cell) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_PROTO), true, null);
 					countPoint(ni.getAnchorCenter());
 					
-					for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+					for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
 						PortInst pi = (PortInst)pIt.next();
 						countVars('P', pi);
 					}
 				}
 
-				for (Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				for (Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)aIt.next();
 					countVars('A', ai);
@@ -1684,7 +1685,7 @@ public class DebugMenus {
 					}
 				}
 
-				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
+				for (Iterator<PortProto> eIt = cell.getPorts(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
                     countDescriptor(e.getTextDescriptor(Export.EXPORT_NAME), true, null);
@@ -1715,8 +1716,8 @@ public class DebugMenus {
 		System.out.println(namedArcs + " named arcs " + arcNames.size());
 		System.out.println(sameLocations + " same locations");
 		System.out.println(numPoints + " points " + points.size());
-		HashSet doubles = new HashSet();
-		for (Iterator it = points.iterator(); it.hasNext(); )
+		HashSet<Double> doubles = new HashSet<Double>();
+		for (Iterator<Point2D> it = points.iterator(); it.hasNext(); )
 		{
 			Point2D point = (Point2D)it.next();
 			doubles.add(new Double(point.getX()));
@@ -1724,7 +1725,7 @@ public class DebugMenus {
 		}
 		int whole = 0;
 		int quarter = 0;
-		for (Iterator it = doubles.iterator(); it.hasNext(); )
+		for (Iterator<Double> it = doubles.iterator(); it.hasNext(); )
 		{
 			double d = ((Double)it.next()).doubleValue();
 			double rd = Math.rint(d);
@@ -1781,7 +1782,7 @@ P 704883 0 0 0
 		vobjs[c]++;
 		if (numVars == 1) vobjs1[c]++;
 		vcnt[c] += numVars;
-		for (Iterator it = eObj.getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
             countDescriptor(var.getTextDescriptor(), var.isDisplay(), var.getCode());

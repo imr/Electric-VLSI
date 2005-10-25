@@ -123,7 +123,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private int [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
 	private List<Highlight> highlightList;
-	List nodeList, arcList, exportList, textList;
+	List<NodeInst> nodeList;
+	List<ArcInst>arcList;
+	List<Export> exportList;
+	List<Highlight> textList;
 
     private EditWindow wnd;
 
@@ -214,7 +217,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
         boolean reload = false;
         // reload if any objects that changed are part of our list of highlighted objects
-		for (Iterator it = highlightList.iterator(); it.hasNext(); ) {
+		for (Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); ) {
 			Highlight h = (Highlight)it.next();
 			if (e.objectChanged(h.getElectricObject())) {
 				reload = true; break;
@@ -276,10 +279,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         }
 
 		// show the list
-		nodeList = new ArrayList();
-		arcList = new ArrayList();
-		exportList = new ArrayList();
-		textList = new ArrayList();
+		nodeList = new ArrayList<NodeInst>();
+		arcList = new ArrayList<ArcInst>();
+		exportList = new ArrayList<Export>();
+		textList = new ArrayList<Highlight>();
 		Geometric firstGeom = null, secondGeom = null;
 		double xPositionLow = Double.MAX_VALUE, xPositionHigh = -Double.MAX_VALUE;
 		double yPositionLow = Double.MAX_VALUE, yPositionHigh = -Double.MAX_VALUE;
@@ -288,7 +291,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		double widthLow = Double.MAX_VALUE, widthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		listModel.clear();
-		for(Iterator it = highlightList.iterator(); it.hasNext(); )
+		for(Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			ElectricObject eobj = h.getElectricObject();
@@ -504,8 +507,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					case CHANGECHARACTERISTICS:
 						JComboBox ch = new JComboBox();
 						ch.addItem("Leave alone");
-						List chList = PortCharacteristic.getOrderedCharacteristics();
-						for(Iterator it = chList.iterator(); it.hasNext(); )
+						List<PortCharacteristic> chList = PortCharacteristic.getOrderedCharacteristics();
+						for(Iterator<PortCharacteristic> it = chList.iterator(); it.hasNext(); )
 						{
 							PortCharacteristic chara = (PortCharacteristic)it.next();
 							ch.addItem(chara.getName());
@@ -543,7 +546,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					case CHANGEANCHOR:
 						JComboBox an = new JComboBox();
 						an.addItem("Leave alone");
-				        for(Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); )
+				        for(Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); )
 						{
 				            TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
 				            an.addItem(pos);
@@ -584,21 +587,21 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					case CHANGECODE:
 						JComboBox cd = new JComboBox();
 						cd.addItem("Leave alone");
-						for (Iterator cIt = TextDescriptor.Code.getCodes(); cIt.hasNext(); )
+						for (Iterator<TextDescriptor.Code> cIt = TextDescriptor.Code.getCodes(); cIt.hasNext(); )
 			                cd.addItem(cIt.next());
 						addChangePossibility("Code:", currentChangeValues[c] = cd, null, onePanel);
 						break;
 					case CHANGEUNITS:
 						JComboBox un = new JComboBox();
 						un.addItem("Leave alone");
-			            for (Iterator uIt = TextDescriptor.Unit.getUnits(); uIt.hasNext(); )
+			            for (Iterator<TextDescriptor.Unit> uIt = TextDescriptor.Unit.getUnits(); uIt.hasNext(); )
 							un.addItem(uIt.next());
 						addChangePossibility("Units:", currentChangeValues[c] = un, null, onePanel);
 						break;
 					case CHANGESHOW:
 						JComboBox sh = new JComboBox();
 						sh.addItem("Leave alone");
-			            for (Iterator sIt = TextDescriptor.DispPos.getShowStyles(); sIt.hasNext(); )
+			            for (Iterator<TextDescriptor.DispPos> sIt = TextDescriptor.DispPos.getShowStyles(); sIt.hasNext(); )
 							sh.addItem(sIt.next());
 						addChangePossibility("Show:", currentChangeValues[c] = sh, null, onePanel);
 						break;
@@ -734,7 +737,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 				// make other node changes
 				boolean changes = false;
-				for(Iterator it = dialog.nodeList.iterator(); it.hasNext(); )
+				for(Iterator<NodeInst> it = dialog.nodeList.iterator(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					if (ni.getProto() instanceof Cell)
@@ -773,7 +776,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						double newXPosition = TextUtils.atof(xPos);
 						double newYPosition = TextUtils.atof(yPos);
 						int i = 0;
-						for(Iterator it = dialog.nodeList.iterator(); it.hasNext(); )
+						for(Iterator<NodeInst> it = dialog.nodeList.iterator(); it.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)it.next();
 		                    SizeOffset so = ni.getSizeOffset();
@@ -803,7 +806,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						NodeInst.modifyInstances(nis, dXP, dYP, dXS, dYS);
 					} else
 					{
-						for(Iterator it = dialog.nodeList.iterator(); it.hasNext(); )
+						for(Iterator<NodeInst> it = dialog.nodeList.iterator(); it.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)it.next();
 		                    SizeOffset so = ni.getSizeOffset();
@@ -852,7 +855,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				int negated = dialog.findComponentIntValue(CHANGENEGATION);
 				int easySelect = dialog.findComponentIntValue(CHANGEEASYSELECT);
 
-				for(Iterator it = dialog.arcList.iterator(); it.hasNext(); )
+				for(Iterator<ArcInst> it = dialog.arcList.iterator(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (width.length() > 0)
@@ -917,7 +920,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				int underline = dialog.findComponentIntValue(CHANGEUNDERLINE);
 				int invisOutside = dialog.findComponentIntValue(CHANGEINVOUTSIDECELL);
 
-				for(Iterator it = dialog.exportList.iterator(); it.hasNext(); )
+				for(Iterator<Export> it = dialog.exportList.iterator(); it.hasNext(); )
 				{
 					Export e = (Export)it.next();
 					if (characteristics != 0)
@@ -1007,7 +1010,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 			if (dialog.textList.size() > 0)
 			{
-				for(Iterator it = dialog.textList.iterator(); it.hasNext(); )
+				for(Iterator<Highlight> it = dialog.textList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					ElectricObject eobj = h.getElectricObject();

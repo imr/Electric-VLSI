@@ -62,7 +62,7 @@ public class NewExport extends EDialog
 
 		// setup the export characteristics popup
 		String last = latestCharacteristic;
-		for(Iterator it = PortCharacteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
+		for(Iterator<PortCharacteristic> it = PortCharacteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
 		{
 			PortCharacteristic ch = (PortCharacteristic)it.next();
 			exportCharacteristics.addItem(ch.getName());

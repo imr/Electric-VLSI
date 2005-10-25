@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -160,7 +161,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			if (nodes.isSelected())
 			{
 				// find nodes
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					if (s.equals(ni.getName()))
@@ -172,7 +173,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			} else if (arcs.isSelected())
 			{
 				// find arcs
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (s.equals(ai.getName()))
@@ -184,7 +185,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			} else if (exports.isSelected())
 			{
 				// find exports
-				for(Iterator it = cell.getPorts(); it.hasNext(); )
+				for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 				{
 					Export pp = (Export)it.next();
 					if (s.equals(pp.getName()))
@@ -196,7 +197,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			} else
 			{
 				// find networks
-				for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+				for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 				{
 					Network net = (Network)it.next();
 					String netName = net.describe(false);
@@ -229,12 +230,12 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         if (highlighter == null) return;
 
 
-		List allNames = new ArrayList();
+		List<String> allNames = new ArrayList<String>();
 		if (nodes.isSelected())
 		{
 			// show all nodes
 			what = NODES;
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				allNames.add(ni.getName());
@@ -243,7 +244,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			// show all arcs
 			what = ARCS;
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				allNames.add(ai.getName());
@@ -252,7 +253,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			// show all exports
 			what = EXPORTS;
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				allNames.add(pp.getName());
@@ -262,7 +263,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			// show all networks
 			what = NETS;
 			Netlist netlist = cell.getUserNetlist();
-			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+			for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 			{
 				Network net = (Network)it.next();
 				String netName = net.describe(false);
@@ -271,7 +272,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			}
 		}
 		Collections.sort(allNames, TextUtils.STRING_NUMBER_ORDER);
-		for(Iterator it = allNames.iterator(); it.hasNext(); )
+		for(Iterator<String> it = allNames.iterator(); it.hasNext(); )
 		{
 			String s = (String)it.next();
 			model.addElement(s);
@@ -423,7 +424,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
 		Pattern p = Pattern.compile(search, flags);
 		list.clearSelection();
-		List selected = new ArrayList();
+		List<Integer> selected = new ArrayList<Integer>();
 		for(int i = 0; i < model.getSize(); i++)
 		{
 			String thisLine = (String)model.getElementAt(i);
@@ -436,7 +437,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			int [] indices = new int[selected.size()];
 			int i = 0;
-			for(Iterator it = selected.iterator(); it.hasNext(); )
+			for(Iterator<Integer> it = selected.iterator(); it.hasNext(); )
 				indices[i++] = ((Integer)it.next()).intValue();
 			list.setSelectedIndices(indices);
 		}

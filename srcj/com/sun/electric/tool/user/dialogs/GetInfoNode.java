@@ -85,8 +85,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private String initialPopupEntry;
 	private DefaultListModel listModel;
 	private JList list;
-	private List allAttributes;
-	private List portObjects;
+	private List<AttributesTable.AttValPair> allAttributes;
+	private List<ArcInst> portObjects;
 	private boolean bigger;
 	private boolean scalableTrans;
 	private boolean swapXY;
@@ -210,8 +210,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
 			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(); }
 		});
-		allAttributes = new ArrayList();
-		portObjects = new ArrayList();
+		allAttributes = new ArrayList<AttributesTable.AttValPair>();
+		portObjects = new ArrayList<ArcInst>();
 
         attributesTable = new AttributesTable(null, true, false, false);
 
@@ -240,7 +240,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		PortProto pp = null;
 		int nodeCount = 0;
         if (wnd != null) {
-            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
                 Highlight h = (Highlight)it.next();
                 if (h.getType() == Highlight.Type.EOBJ)
@@ -415,7 +415,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		// grab all attributes and parameters
 		allAttributes.clear();
 
-		for(Iterator it = ni.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			String name = var.getKey().getName();
@@ -622,8 +622,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setText(initialTextField);
 
 			popupLabel.setText("Characteristics:");
-			List characteristics = PortCharacteristic.getOrderedCharacteristics();
-			for(Iterator it = characteristics.iterator(); it.hasNext(); )
+			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
+			for(Iterator<PortCharacteristic> it = characteristics.iterator(); it.hasNext(); )
 			{
 				PortCharacteristic ch = (PortCharacteristic)it.next();
 				popup.addItem(ch.getName());
@@ -672,7 +672,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
 			// show ports
 			NodeProto np = shownNode.getProto();
-			for(Iterator it = shownNode.getPortInsts(); it.hasNext(); )
+			for(Iterator<PortInst> it = shownNode.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				PortProto pp = pi.getPortProto();
@@ -694,12 +694,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 				boolean moreInfo = false;
 				if (pp == shownPort) moreInfo = true;
-				for(Iterator aIt = shownNode.getConnections(); aIt.hasNext(); )
+				for(Iterator<Connection> aIt = shownNode.getConnections(); aIt.hasNext(); )
 				{
 					Connection con = (Connection)aIt.next();
 					if (con.getPortInst() == pi) { moreInfo = true;   break; }
 				}
-				for(Iterator eIt = shownNode.getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = shownNode.getExports(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
 					if (e.getOriginalPort() == pi) { moreInfo = true;   break; }
@@ -716,7 +716,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 
 				// talk about any arcs on this prototype
-				for(Iterator aIt = shownNode.getConnections(); aIt.hasNext(); )
+				for(Iterator<Connection> aIt = shownNode.getConnections(); aIt.hasNext(); )
 				{
 					Connection con = (Connection)aIt.next();
 					if (con.getPortInst() != pi) continue;
@@ -728,7 +728,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 
 				// talk about any exports of this prototype
-				for(Iterator eIt = shownNode.getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = shownNode.getExports(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
 					if (e.getOriginalPort() != pi) continue;

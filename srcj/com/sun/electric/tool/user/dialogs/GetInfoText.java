@@ -272,7 +272,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         Highlight textHighlight = null;
         int textCount = 0;
         if (wnd != null) {
-            for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+            for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
                 Highlight h = (Highlight) it.next();
                 if (h.getType() != Highlight.Type.TEXT) continue;
                 // ignore export text
@@ -391,7 +391,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		// must have a single text selected
 		Highlight theHigh = null;
 		int textCount = 0;
-		for (Iterator it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
+		for (Iterator<Highlight> it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.TEXT) continue;
@@ -568,7 +568,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			if (!currentText.equals(cti.initialText))
 			{
 				String[] textArray = currentText.split("\\n");
-				ArrayList textList = new ArrayList();
+				ArrayList<String> textList = new ArrayList<String>();
 				for (int i=0; i<textArray.length; i++)
 				{
 					String str = textArray[i];
@@ -910,7 +910,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
         if (changed) {
 
             String[] textArray = currentText.split("\\n");
-            ArrayList textList = new ArrayList();
+            ArrayList<String> textList = new ArrayList<String>();
             for (int i=0; i<textArray.length; i++) {
                 String str = textArray[i];
                 str = str.trim();

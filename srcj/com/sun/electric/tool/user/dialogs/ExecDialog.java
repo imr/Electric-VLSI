@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
@@ -90,14 +91,14 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
     private ProcessOutput outStream;
     private ProcessOutput errStream;
     private Exec exec;
-    private ArrayList finishedListenersToAdd;
+    private List<Exec.FinishedListener> finishedListenersToAdd;
 
     /** Creates new form ExecDialog */
     public ExecDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         exec = null;
-        finishedListenersToAdd = new ArrayList();
+        finishedListenersToAdd = new ArrayList<Exec.FinishedListener>();
 		finishInitialization();
     }
 
@@ -129,7 +130,7 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         errStream = new ProcessOutput(outputTextArea);
         exec = new Exec(command, envVars, dir, outStream, errStream);
         exec.addFinishedListener(this);
-        for (Iterator it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
+        for (Iterator<Exec.FinishedListener> it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
             exec.addFinishedListener((Exec.FinishedListener)it.next());
         }
         finishedListenersToAdd.clear();
@@ -154,7 +155,7 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         errStream = new ProcessOutput(outputTextArea);
         exec = new Exec(command, envVars, dir, outStream, errStream);
         exec.addFinishedListener(this);
-        for (Iterator it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
+        for (Iterator<Exec.FinishedListener> it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
             exec.addFinishedListener((Exec.FinishedListener)it.next());
         }
         finishedListenersToAdd.clear();

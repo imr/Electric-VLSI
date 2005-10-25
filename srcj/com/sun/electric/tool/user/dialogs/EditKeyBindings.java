@@ -430,8 +430,8 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
             bindingsJList.setListData(new Object [] {});
             return;
         }
-        ArrayList list = new ArrayList();
-        for (Iterator it = bindings.getKeyStrokePairs(); it.hasNext(); ) {
+        ArrayList<KeyStrokePair> list = new ArrayList<KeyStrokePair>();
+        for (Iterator<KeyStrokePair> it = bindings.getKeyStrokePairs(); it.hasNext(); ) {
             KeyStrokePair pair = (KeyStrokePair)it.next();
             list.add(pair);
         }

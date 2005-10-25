@@ -62,12 +62,12 @@ public class TextAttributesPanel extends javax.swing.JPanel
         initComponents();
 
         // add variable code types
-        for (Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
+        for (Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
             code.addItem(it.next());
         }
 
         // populate units dialog box
-        for (Iterator it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
+        for (Iterator<TextDescriptor.Unit> it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
             units.addItem((TextDescriptor.Unit)it.next());
         }
 
@@ -228,7 +228,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         show.removeAllItems();
         // populate show style dialog box
         if (includeNoneChoice) show.addItem(displaynone);
-        for (Iterator it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
+        for (Iterator<TextDescriptor.DispPos> it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
             show.addItem((TextDescriptor.DispPos)it.next());
         }
 

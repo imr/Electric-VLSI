@@ -77,11 +77,11 @@ public class MenuBar extends JMenuBar
      */
     public static class MenuBarGroup implements ActionListener {
 
-        /** all groups */                                               private static final HashMap menuBarGroups = new HashMap();
+        /** all groups */                                               private static final HashMap<String,MenuBarGroup> menuBarGroups = new HashMap<String,MenuBarGroup>();
 
         /** Name of this group */                                       private String name;
         /** Preferences for User Bindings */                            private Preferences prefs;
-        /** All menu items created, stores as ArrayLists in HashMap */  private HashMap menuItems;
+        /** All menu items created, stores as ArrayLists in HashMap */  private HashMap<String,List<AbstractButton>> menuItems;
         /** Key Binding Manager for menu items */                       public final KeyBindingManager keyBindingManager;
 
         /** Factory method to create/get a group */
@@ -98,7 +98,7 @@ public class MenuBar extends JMenuBar
         private MenuBarGroup(String name) {
             this.name = name;
             prefs = Preferences.userNodeForPackage(MenuBarGroup.class);
-            menuItems = new HashMap(40);
+            menuItems = new HashMap<String,List<AbstractButton>>(40);
             keyBindingManager = new KeyBindingManager(this.name+"MenuKeyBinding-", prefs);
             // add to hashmap of existing groups
             menuBarGroups.put(name, this);
@@ -128,9 +128,9 @@ public class MenuBar extends JMenuBar
                 name = source.getText();
             //System.out.println("ActionPerformed on Menu "+name+", state is "+source.isSelected());
             synchronized(this) {
-                ArrayList list = (ArrayList)menuItems.get(name);
+                ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)menuItems.get(name);
                 if (list == null) return;
-                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
                     AbstractButton b = (AbstractButton)it.next();
                     if (b == source) continue;
                     //String name2;
@@ -375,7 +375,7 @@ public class MenuBar extends JMenuBar
 
 
     /** Menu bar group this belongs to */       private final MenuBarGroup menuBarGroup;
-    /** hidden menus */                         private ArrayList hiddenMenus = new ArrayList();
+    /** hidden menus */                         private ArrayList<JMenu> hiddenMenus = new ArrayList<JMenu>();
     /** whether to ignore all shortcuts keys */ boolean ignoreKeyBindings;
     /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
     /** For logging menu activiations */        private static MenuLogger menuLogger = new MenuLogger();
@@ -450,10 +450,10 @@ public class MenuBar extends JMenuBar
             String key = ((MenuItemInterface)item).getDescription();
             KeyStroke accelerator = item.getAccelerator();
             // look up list of associated menuitems already in hash table
-            ArrayList list = (ArrayList)menuBarGroup.menuItems.get(key);
+            ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)menuBarGroup.menuItems.get(key);
             if (list == null) {
                 // this is the first instance of this menu item
-                list = new ArrayList();
+                list = new ArrayList<AbstractButton>();
                 menuBarGroup.menuItems.put(key, list);
                 // add default binding
                 addDefaultKeyBinding(item, accelerator, null);
@@ -570,9 +570,9 @@ public class MenuBar extends JMenuBar
      */
     public void resetAllKeyBindings() {
         synchronized(menuBarGroup) {
-            Collection c = menuBarGroup.menuItems.values();
-            for (Iterator it = c.iterator(); it.hasNext(); ) {
-                List list = (List)it.next();
+            Collection<List<AbstractButton>> c = menuBarGroup.menuItems.values();
+            for (Iterator<List<AbstractButton>> it = c.iterator(); it.hasNext(); ) {
+                List<AbstractButton> list = (List<AbstractButton>)it.next();
                 JMenuItem m = (JMenuItem)list.get(0);
                 // call set to default only on one, others will get reset by that method
                 resetKeyBindings(m);
@@ -605,7 +605,7 @@ public class MenuBar extends JMenuBar
         KeyBindings bindings = menuBarGroup.keyBindingManager.getKeyBindings(actionDesc);
         KeyStroke accelerator = null;
         if (bindings != null) {
-            Iterator it;
+            Iterator<KeyStrokePair> it;
             if (bindings.getUsingDefaultKeys()) it = bindings.getDefaultKeyStrokePairs(); else
                 it = bindings.getKeyStrokePairs();
             while (it.hasNext()) {
@@ -617,9 +617,9 @@ public class MenuBar extends JMenuBar
         }
         // update menu items
         synchronized(menuBarGroup) {
-            ArrayList list = (ArrayList)menuBarGroup.menuItems.get(actionDesc);
+            List<AbstractButton> list = (List<AbstractButton>)menuBarGroup.menuItems.get(actionDesc);
             if (list != null) {
-                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
                     JMenuItem m = (JMenuItem)it.next();
                     m.setAccelerator(accelerator);
                 }
@@ -639,7 +639,7 @@ public class MenuBar extends JMenuBar
         menuBarGroup.keyBindingManager.restoreSavedBindings(initialCall);
         // update all accelerators
         synchronized(menuBarGroup) {
-            for (Iterator it = menuBarGroup.menuItems.keySet().iterator(); it.hasNext(); ) {
+            for (Iterator<String> it = menuBarGroup.menuItems.keySet().iterator(); it.hasNext(); ) {
                 String actionDesc = (String)it.next();
                 updateAccelerator(actionDesc);
             }
@@ -712,7 +712,7 @@ public class MenuBar extends JMenuBar
      * @return a string of the description.
      */
     private static String getDescription(JMenuItem item) {
-        Stack parents = new Stack();
+        Stack<JComponent> parents = new Stack<JComponent>();
         JComponent parent = ((MenuItemInterface)item).getParentMenu();
         while ((parent != null) && (parent instanceof JMenuItem)) {
             parents.push(parent);

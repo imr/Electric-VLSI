@@ -83,13 +83,13 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
      */
     private static class VariableTableModel extends AbstractTableModel {
 
-        private List vars;                     // list of variables to display
+        private List<VarEntry> vars;                     // list of variables to display
 //        private boolean DEBUG = false;                      // if true, displays database var names
         private static final String [] columnNames = { "Name", "Value", "Code", "Display", "Units" };
         private boolean showCode = true;
         private boolean showDispPos = false;
         private boolean showUnits = false;
-        private List varsToDelete;
+        private List<VarEntry> varsToDelete;
 
         private static class VarEntry {
             // current state of var entry
@@ -150,12 +150,10 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         /**
          * Class to sort Variables by name.
          */
-        public static class VarEntrySort implements Comparator
+        public static class VarEntrySort implements Comparator<VarEntry>
         {
-            public int compare(Object o1, Object o2)
+            public int compare(VarEntry v1, VarEntry v2)
             {
-                VarEntry v1 = (VarEntry)o1;
-                VarEntry v2 = (VarEntry)o2;
                 String s1 = v1.getName();
                 String s2 = v2.getName();
                 return s1.compareToIgnoreCase(s2);
@@ -164,8 +162,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         // constructor
         private VariableTableModel(boolean showCode, boolean showDispPos, boolean showUnits) {
-            vars = new ArrayList();
-            varsToDelete = new ArrayList();
+            vars = new ArrayList<VarEntry>();
+            varsToDelete = new ArrayList<VarEntry>();
             this.showCode = showCode;
             this.showDispPos = showDispPos;
             this.showUnits = showUnits;
@@ -308,11 +306,11 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
          * @param owner ElectricObject which owns Variables 
          * @param variables the list of Variables to show
          */
-        private void setVars(ElectricObject owner, List variables) {
+        private void setVars(ElectricObject owner, List<Variable> variables) {
             vars.clear();
             varsToDelete.clear();
             // sort by name
-            for (Iterator it = variables.iterator(); it.hasNext(); ) {
+            for (Iterator<Variable> it = variables.iterator(); it.hasNext(); ) {
                 Variable var = (Variable)it.next();                 // do cast here to catch source of non-var in list
                 vars.add(new VarEntry(owner, var));
             }
@@ -333,7 +331,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             fireTableDataChanged();
         }
 
-        public Class getColumnClass(int col) {
+        public Class<?> getColumnClass(int col) {
             if (col == getCodeColumn()) return TextDescriptor.Code.class;
             if (col == getDispColumn()) return Object.class;
             if (col == getUnitsColumn()) return TextDescriptor.Unit.class;
@@ -423,7 +421,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
          * Apply all new/delete/duplicate/modify changes
          */
         public void applyChanges() {
-            ApplyChanges job = new ApplyChanges(new ArrayList(vars), new ArrayList(varsToDelete));
+            ApplyChanges job = new ApplyChanges(new ArrayList<VarEntry>(vars), new ArrayList<VarEntry>(varsToDelete));
         }
 
         /**
@@ -440,7 +438,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             while (nameConflict) {
                 nameConflict = false;
                 i++;
-                for (Iterator it = vars.iterator(); it.hasNext(); ) {
+                for (Iterator<VarEntry> it = vars.iterator(); it.hasNext(); ) {
                     VarEntry ve = (VarEntry)it.next();
                     if (newName.equals(ve.getName())) {
                         nameConflict = true;
@@ -453,10 +451,10 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         }
 
         private static class ApplyChanges extends Job {
-            private List varEntries;
-            private List varEntriesToDelete;
+            private List<VarEntry> varEntries;
+            private List<VarEntry> varEntriesToDelete;
 
-            private ApplyChanges(List varEntries, List varEntriesToDelete) {
+            private ApplyChanges(List<VarEntry> varEntries, List<VarEntry> varEntriesToDelete) {
                 super("Apply Attribute Changes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
                 this.varEntries = varEntries;
                 this.varEntriesToDelete = varEntriesToDelete;
@@ -465,7 +463,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
             public boolean doIt() {
                 // delete vars first
-                for (Iterator it = varEntriesToDelete.iterator(); it.hasNext(); ) {
+                for (Iterator<VarEntry> it = varEntriesToDelete.iterator(); it.hasNext(); ) {
                     VarEntry ve = (VarEntry)it.next();
                     Variable var = ve.var;
                     if (var == null) continue;
@@ -473,7 +471,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     owner.delVar(var.getKey());
                 }
 
-                for (Iterator it = varEntries.iterator(); it.hasNext(); ) {
+                for (Iterator<VarEntry> it = varEntries.iterator(); it.hasNext(); ) {
                     VarEntry ve = (VarEntry)it.next();
                     Variable var = ve.var;
                     ElectricObject owner = ve.getOwner();
@@ -574,7 +572,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private void initComboBoxes() {
         if (codeComboBox == null) {
             codeComboBox = new JComboBox();
-            for (Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
+            for (Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
                 codeComboBox.addItem(it.next());
             }
             codeComboBox.setFont(new Font("Dialog", 0, 11));
@@ -582,14 +580,14 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         if (dispComboBox == null) {
             dispComboBox = new JComboBox();
             dispComboBox.addItem(displaynone);
-            for (Iterator it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
+            for (Iterator<TextDescriptor.DispPos> it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
                 dispComboBox.addItem(it.next());
             }
             dispComboBox.setFont(new Font("Dialog", 0, 11));
         }
         if (unitComboBox == null) {
             unitComboBox = new JComboBox();
-            for (Iterator it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
+            for (Iterator<TextDescriptor.Unit> it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
                 unitComboBox.addItem(it.next());
             }
             unitComboBox.setFont(new Font("Dialog", 0, 11));
@@ -750,8 +748,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         clearVariables();
         // add new vars
         if (eobj != null) {
-            List vars = new ArrayList();
-            for (Iterator it = eobj.getVariables(); it.hasNext(); ) {
+            List<Variable> vars = new ArrayList<Variable>();
+            for (Iterator<Variable> it = eobj.getVariables(); it.hasNext(); ) {
                 // only add attributes
                 Variable var = (Variable)it.next();
                 if (var.isAttribute())

@@ -45,7 +45,7 @@ public class ChangeCellGroup extends EDialog {
 
     private Cell cell;                              // cell to move
     private Library initialLibrary;                 // initial destination library
-    private List cellGroups;                        // list of cell groups
+    private List<Cell.CellGroup> cellGroups;        // list of cell groups
 
     /** Creates new form ChangeCellGroup */
     public ChangeCellGroup(java.awt.Frame parent, boolean modal, Cell cell, Library initialLibrary) {
@@ -53,7 +53,7 @@ public class ChangeCellGroup extends EDialog {
         setTitle("Change Cell Group");
         this.cell = cell;
         this.initialLibrary = initialLibrary;
-        cellGroups = new ArrayList();
+        cellGroups = new ArrayList<Cell.CellGroup>();
 
         initComponents();
 
@@ -77,7 +77,7 @@ public class ChangeCellGroup extends EDialog {
     private void populateCellGroupsComboBox(Cell cell, Library lib) {
         cellGroups.clear();
         cellGroupsComboBox.removeAllItems();
-        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             Cell.CellGroup cg = c.getCellGroup();
             if (cg == null) continue;
@@ -88,17 +88,15 @@ public class ChangeCellGroup extends EDialog {
         }
         // sort cell groups
         Collections.sort(cellGroups, new CellGroupComparator());
-        for (Iterator it = cellGroups.iterator(); it.hasNext(); ) {
+        for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); ) {
             Cell.CellGroup cg = (Cell.CellGroup)it.next();
             cellGroupsComboBox.addItem(cg.getName());
         }
     }
 
-    private static class CellGroupComparator implements Comparator {
+    private static class CellGroupComparator implements Comparator<Cell.CellGroup> {
 
-        public int compare(Object o1, Object o2) {
-            Cell.CellGroup cg1 = (Cell.CellGroup)o1;
-            Cell.CellGroup cg2 = (Cell.CellGroup)o2;
+        public int compare(Cell.CellGroup cg1, Cell.CellGroup cg2) {
             String s1 = cg1.getName();
             String s2 = cg2.getName();
             return s1.compareTo(s2);

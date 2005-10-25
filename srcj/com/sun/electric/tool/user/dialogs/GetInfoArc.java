@@ -71,7 +71,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private String initialColor;
 	private EditWindow wnd;
 	private AttributesTable attributesTable;
-	private List allAttributes;
+	private List<AttributesTable.AttValPair> allAttributes;
 	/** true if need to reload info due to failure to get Examine lock on DB */ private boolean needReload = false;
 	private boolean bigger;
 
@@ -212,7 +212,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		directionality.addItem("Head/Tail/Body");
 
 		// make the attributes list
-		allAttributes = new ArrayList();
+		allAttributes = new ArrayList<AttributesTable.AttValPair>();
 		attributesTable = new AttributesTable(null, true, false, false);
 		attributesPane.setViewportView(attributesTable);
 		finishInitialization();
@@ -251,7 +251,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		// must have a single node selected
 		ArcInst ai = null;
 		int arcCount = 0;
-		for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() == Highlight.Type.EOBJ)
@@ -364,7 +364,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 			// grab all attributes and parameters
 			allAttributes.clear();
-			for(Iterator it = ai.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = ai.getVariables(); it.hasNext(); )
 			{
 				Variable aVar = (Variable)it.next();
 				String name = aVar.getKey().getName();

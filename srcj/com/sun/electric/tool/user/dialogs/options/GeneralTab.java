@@ -66,7 +66,7 @@ public class GeneralTab extends PreferencePanel
 		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
 		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit()));
 
-        for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
+        for (Iterator<String> it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
         workingDirComboBox.setSelectedItem(User.getInitialWorkingDirectorySetting());
 

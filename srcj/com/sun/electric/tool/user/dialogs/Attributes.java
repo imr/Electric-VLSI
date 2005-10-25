@@ -486,7 +486,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         listModel.clear();
 
         // show the variables
-        for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
+        for(Iterator<Variable> it = selectedObject.getVariables(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
             String varName = var.getKey().getName();

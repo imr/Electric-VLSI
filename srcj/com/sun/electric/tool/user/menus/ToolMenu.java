@@ -650,8 +650,8 @@ public class ToolMenu {
 
             // find all wire models in schematic
             int wiresUpdated = 0;
-            ArrayList networks = new ArrayList();
-            HashMap map = new HashMap();        // map of networks to associated wire model nodeinst
+            ArrayList<Network> networks = new ArrayList<Network>();
+            HashMap<Network,NodeInst> map = new HashMap<Network,NodeInst>();        // map of networks to associated wire model nodeinst
             for (Iterator<NodeInst> it = schLayCells[0].getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
                 Variable var = ni.getVar(LENetlister.ATTR_LEWIRE);
@@ -686,7 +686,7 @@ public class ToolMenu {
                 Network layNet = proxy.getNet();
                 Cell netcell = layNet.getParent();
                 // get wire length
-                HashSet nets = new HashSet();
+                HashSet<Network> nets = new HashSet<Network>();
                 nets.add(layNet);
                 //LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets,
                 LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(netcell, nets,
@@ -713,7 +713,7 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
+		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 
@@ -733,7 +733,7 @@ public class ToolMenu {
 
 	public static void clearSizesCommand() {
 		/*for (Library lib: Library.getVisibleLibraries()) LETool.clearStoredSizesJob(lib);*/
-		for (Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			LETool.clearStoredSizesJob(lib);
@@ -788,7 +788,7 @@ public class ToolMenu {
 			return;
 		}
 		int total = 0;
-		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
 			String netName = net.describe(false);
@@ -800,7 +800,7 @@ public class ToolMenu {
 //				formatinfstr(infstr, _(" (bus with %d signals)"), net->buswidth);
 //			}
 			boolean connected = false;
-			for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
+			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)aIt.next();
 				if (!connected)
@@ -812,7 +812,7 @@ public class ToolMenu {
 			}
 
 			boolean exported = false;
-			for(Iterator eIt = net.getExports(); eIt.hasNext(); )
+			for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
 			{
 				Export pp = (Export)eIt.next();
 				if (!exported)
@@ -839,7 +839,7 @@ public class ToolMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
+        Set<Network> nets = highlighter.getHighlightedNetworks();
 //        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
@@ -847,32 +847,32 @@ public class ToolMenu {
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator it = nets.iterator(); it.hasNext(); )
+        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
             System.out.println("Network " + net.describe(true) + ":");
 
             int total = 0;
-            for(Iterator nIt = netlist.getNodables(); nIt.hasNext(); )
+            for(Iterator<Nodable> nIt = netlist.getNodables(); nIt.hasNext(); )
             {
                 Nodable no = (Nodable)nIt.next();
                 NodeProto np = no.getProto();
 
-                HashMap portNets = new HashMap();
-                for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+                HashMap<Network,HashSet<Object>> portNets = new HashMap<Network,HashSet<Object>>();
+                for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
                 {
                     PortProto pp = (PortProto)pIt.next();
                     if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isIsolated())
                     {
                         NodeInst ni = (NodeInst)no;
-                        for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+                        for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
                         {
                             Connection con = (Connection)cIt.next();
                             ArcInst ai = con.getArc();
                             Network oNet = netlist.getNetwork(ai, 0);
-                            HashSet ports = (HashSet)portNets.get(oNet);
+                            HashSet<Object> ports = (HashSet<Object>)portNets.get(oNet);
                             if (ports == null) {
-                                ports = new HashSet();
+                                ports = new HashSet<Object>();
                                 portNets.put(oNet, ports);
                             }
                             ports.add(pp);
@@ -889,9 +889,9 @@ public class ToolMenu {
                         for(int i=0; i<width; i++)
                         {
                             Network oNet = netlist.getNetwork(no, pp, i);
-                            HashSet ports = (HashSet)portNets.get(oNet);
+                            HashSet<Object> ports = (HashSet<Object>)portNets.get(oNet);
                             if (ports == null) {
-                                ports = new HashSet();
+                                ports = new HashSet<Object>();
                                 portNets.put(oNet, ports);
                             }
                             ports.add(pp);
@@ -902,7 +902,7 @@ public class ToolMenu {
 
                 // if there is only 1 net connected, the node is unimportant
                 if (portNets.size() <= 1) continue;
-                HashSet ports = (HashSet)portNets.get(net);
+                HashSet<Object> ports = (HashSet<Object>)portNets.get(net);
                 if (ports == null) continue;
 //                PortProto pp = (PortProto)portNets.get(net);
 //                if (pp == null) continue;
@@ -913,7 +913,7 @@ public class ToolMenu {
                 {
                     name = no.getName();
                 }
-                for (Iterator pIt = ports.iterator(); pIt.hasNext(); ) {
+                for (Iterator<Object> pIt = ports.iterator(); pIt.hasNext(); ) {
                     PortProto pp = (PortProto)pIt.next();
                     System.out.println("    Node " + name + ", port " + pp.getName());
                     total++;
@@ -934,7 +934,7 @@ public class ToolMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
+        Set<Network> nets = highlighter.getHighlightedNetworks();
 //        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
@@ -942,13 +942,13 @@ public class ToolMenu {
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator it = nets.iterator(); it.hasNext(); )
+        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
             System.out.println("Network '" + net.describe(true) + "':");
 
             // find all exports on network "net"
-            HashSet/*<Export>*/ listedExports = new HashSet/*<Export>*/();
+            HashSet<Export> listedExports = new HashSet<Export>();
             System.out.println("  Going up the hierarchy from " + cell + ":");
             if (findPortsUp(netlist, net, cell, listedExports)) break;
             System.out.println("  Going down the hierarchy from " + cell + ":");
@@ -967,7 +967,7 @@ public class ToolMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
+        Set<Network> nets = highlighter.getHighlightedNetworks();
 //        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
@@ -975,13 +975,13 @@ public class ToolMenu {
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator it = nets.iterator(); it.hasNext(); )
+        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
             System.out.println("Network " + net.describe(true) + ":");
 
             // find all exports on network "net"
-            if (findPortsDown(netlist, net, cell, new HashSet())) break;
+            if (findPortsDown(netlist, net, cell, new HashSet<Export>())) break;
         }
     }
 
@@ -990,10 +990,10 @@ public class ToolMenu {
      * ports connected to net "net" in cell "cell", and recurse up the hierarchy.
      * @return true if an error occurred.
      */
-    private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet/*<Export>*/ listedExports)
+    private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet<Export> listedExports)
     {
         // look at every node in the cell
-        for(Iterator it = cell.getPorts(); it.hasNext(); )
+        for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
         {
             Export pp = (Export)it.next();
             int width = netlist.getBusWidth(pp);
@@ -1011,7 +1011,7 @@ public class ToolMenu {
                 if (instanceCell == null) instanceCell = cell;
 
                 // ascend to higher cell and continue
-                for(Iterator uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
+                for(Iterator<CellUsage> uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
                 {
                     CellUsage u = (CellUsage)uIt.next();
                     Cell superCell = u.getParent();
@@ -1022,7 +1022,7 @@ public class ToolMenu {
             			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
             			return true;
             		}
-                    for(Iterator nIt = superNetlist.getNodables(); nIt.hasNext(); )
+                    for(Iterator<Nodable> nIt = superNetlist.getNodables(); nIt.hasNext(); )
                     {
                         Nodable no = (Nodable)nIt.next();
                         if (no.getProto() != cell) continue;
@@ -1040,10 +1040,10 @@ public class ToolMenu {
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      * @return true on error.
      */
-    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet/*<Export>*/ listedExports)
+    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet<Export> listedExports)
     {
         // look at every node in the cell
-        for(Iterator it = netlist.getNodables(); it.hasNext(); )
+        for(Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); )
         {
             Nodable no = (Nodable)it.next();
 
@@ -1053,7 +1053,7 @@ public class ToolMenu {
             Cell subCell = (Cell)subnp;
 
             // look at all wires connected to the node
-            for(Iterator pIt = subCell.getPorts(); pIt.hasNext(); )
+            for(Iterator<PortProto> pIt = subCell.getPorts(); pIt.hasNext(); )
             {
                 Export pp = (Export)pIt.next();
                 int width = netlist.getBusWidth(pp);
@@ -1119,15 +1119,15 @@ public class ToolMenu {
 
         public boolean doIt() {
             Netlist netlist = cell.getNetlist(true);
-            ArrayList networks = new ArrayList();
-            for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+            List<Network> networks = new ArrayList<Network>();
+            for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
                 networks.add(it.next());
             }
             // sort list of networks by name
             Collections.sort(networks, new TextUtils.NetworksByName());
-            for (Iterator it = networks.iterator(); it.hasNext(); ) {
+            for (Iterator<Network> it = networks.iterator(); it.hasNext(); ) {
                 Network net = (Network)it.next();
-                HashSet nets = new HashSet();
+                HashSet<Network> nets = new HashSet<Network>();
                 nets.add(net);
                 LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets,
                         false, GeometryHandler.ALGO_QTREE);
@@ -1153,8 +1153,8 @@ public class ToolMenu {
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        HashSet pAndG = new HashSet();
-        for(Iterator it = cell.getPorts(); it.hasNext(); )
+        HashSet<Network> pAndG = new HashSet<Network>();
+        for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
         {
             Export pp = (Export)it.next();
             if (pp.isPower() || pp.isGround())
@@ -1167,13 +1167,13 @@ public class ToolMenu {
                 }
             }
         }
-        for(Iterator it = cell.getNodes(); it.hasNext(); )
+        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = (NodeInst)it.next();
             PrimitiveNode.Function fun = ni.getFunction();
             if (fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND)
                 continue;
-            for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+            for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
             {
                 Connection con = (Connection)cIt.next();
                 ArcInst ai = con.getArc();
@@ -1187,7 +1187,7 @@ public class ToolMenu {
         }
 
         highlighter.clear();
-        for(Iterator it = pAndG.iterator(); it.hasNext(); )
+        for(Iterator<Network> it = pAndG.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
             highlighter.addNetwork(net, cell);
@@ -1201,13 +1201,13 @@ public class ToolMenu {
     {
         System.out.println("Validating power and ground networks");
         int total = 0;
-        for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+        for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
         {
             Library lib = (Library)lIt.next();
-            for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+            for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
             {
                 Cell cell = (Cell)cIt.next();
-                for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
+                for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); )
                 {
                     Export pp = (Export)pIt.next();
                     if (pp.isNamedGround() && pp.getCharacteristic() != PortCharacteristic.GND)
@@ -1332,7 +1332,7 @@ public class ToolMenu {
     public static void listToolsCommand()
     {
         System.out.println("Tools in Electric:");
-        for(Iterator it = Tool.getTools(); it.hasNext(); )
+        for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
         {
             Tool tool = (Tool)it.next();
             StringBuffer infstr = new StringBuffer();
@@ -1481,7 +1481,7 @@ public class ToolMenu {
 			{
 				// convert Schematic to VHDL
 				System.out.print("Generating VHDL from " + cell + " ...");
-				List vhdlStrings = GenerateVHDL.convertCell(cell);
+				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
 					System.out.println("No VHDL produced");
@@ -1513,7 +1513,7 @@ public class ToolMenu {
 					System.out.println("ERRORS during compilation, no netlist produced");
 					return false;
 				}
-				List netlistStrings = c.getQUISCNetlist();
+				List<String> netlistStrings = c.getQUISCNetlist();
 				if (netlistStrings == null)
 				{
 					System.out.println("No netlist produced");
@@ -1611,8 +1611,8 @@ public class ToolMenu {
         Cell cell = wnd.getCell();
         Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
-        for (Iterator it = nets.iterator(); it.hasNext();)
+        Set<Network> nets = highlighter.getHighlightedNetworks();
+        for (Iterator<Network> it = nets.iterator(); it.hasNext();)
         {
             Network net = (Network)it.next();
             ParasiticTool.getParasiticTool().netwokParasitic(net, cell);

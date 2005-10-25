@@ -98,7 +98,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         }
 
         // populate Anchor combo box
-        for (Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); ) {
+        for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); ) {
             TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
             textAnchor.addItem(pos);
         }

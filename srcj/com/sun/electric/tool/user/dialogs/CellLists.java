@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -91,7 +92,7 @@ public class CellLists extends EDialog
 
 		// make a popup of views
 		/*for(View v: View.getOrderedViews()) views.addItem(v.getFullName());*/
-		for (Iterator it = View.getOrderedViews().iterator(); it.hasNext(); )
+		for (Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
 		{
 			View v = (View)it.next();
 			views.addItem(v.getFullName());
@@ -195,7 +196,7 @@ public class CellLists extends EDialog
 
 		/* count the number of instances */
 		int total = 0;
-		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
 			total++;
 			it.next();
@@ -229,11 +230,11 @@ public class CellLists extends EDialog
 	/*
 	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
 	 */
-	private void recursiveMark(Cell cell, HashSet cellsSeen)
+	private void recursiveMark(Cell cell, HashSet<Cell> cellsSeen)
 	{
 		if (cellsSeen.contains(cell)) return;
 		cellsSeen.add(cell);
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -245,13 +246,10 @@ public class CellLists extends EDialog
 		}
 	}
 
-	private static class SortByCellStructure implements Comparator
+	private static class SortByCellStructure implements Comparator<Cell>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(Cell c1, Cell c2)
 		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-
 			// first sort by cell size
 			Rectangle2D b1 = c1.getBounds();
 			Rectangle2D b2 = c2.getBounds();
@@ -322,24 +320,24 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		HashMap nodeCount = new HashMap();
+		HashMap<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
 
 		// first zero the count of each nodeproto
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 			{
-				NodeProto np = (NodeProto)nIt.next();
+				PrimitiveNode np = (PrimitiveNode)nIt.next();
 				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator nIt = lib.getCells(); nIt.hasNext(); )
+			for(Iterator<Cell> nIt = lib.getCells(); nIt.hasNext(); )
 			{
-				NodeProto np = (NodeProto)nIt.next();
+				Cell np = (Cell)nIt.next();
 				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
@@ -350,12 +348,12 @@ public class CellLists extends EDialog
 		// print the totals
 		System.out.println("Contents of " + curCell + ":");
 		Technology printtech = null;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology curtech = (Technology)it.next();
-			for(Iterator nIt = curtech.getNodes(); nIt.hasNext(); )
+			for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
-				NodeProto np = (NodeProto)nIt.next();
+				PrimitiveNode np = (PrimitiveNode)nIt.next();
 				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
 				if (count.intValue() == 0) continue;
 				if (curtech != printtech)
@@ -366,11 +364,11 @@ public class CellLists extends EDialog
 				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
 			}
 		}
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			Library printlib = null;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
@@ -389,9 +387,9 @@ public class CellLists extends EDialog
 	 * Method to recursively examine cell "np" and update the number of
 	 * instantiated primitive nodeprotos in the "temp1" field of the nodeprotos.
 	 */
-	private static void addObjects(Cell cell, HashMap nodeCount)
+	private static void addObjects(Cell cell, HashMap<NodeProto,GenMath.MutableInteger> nodeCount)
 	{
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -417,13 +415,13 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		HashMap nodeCount = new HashMap();
+		HashMap<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
 
 		// set counters on every cell in every library
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				nodeCount.put(cell, new GenMath.MutableInteger(0));
@@ -431,7 +429,7 @@ public class CellLists extends EDialog
 		}
 
 		// count the number of instances in this cell
-		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -442,10 +440,10 @@ public class CellLists extends EDialog
 
 		// show the results
 		boolean first = true;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
@@ -454,7 +452,7 @@ public class CellLists extends EDialog
 					System.out.println("Instances appearing in " + curCell);
 				first = false;
 				String line = "   " + count.intValue() + " instances of " + cell + " at";
-				for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
+				for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					if (ni.getProto() != cell) continue;
@@ -475,13 +473,13 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		HashMap nodeCount = new HashMap();
+		HashMap<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
 
 		// set counters on every cell in every library
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				nodeCount.put(cell, new GenMath.MutableInteger(0));
@@ -490,7 +488,7 @@ public class CellLists extends EDialog
 
 		// count the number of instances in this cell
 		boolean found = false;
-		for(Iterator nIt = curCell.getInstancesOf(); nIt.hasNext(); )
+		for(Iterator<NodeInst> nIt = curCell.getInstancesOf(); nIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nIt.next();
 			Cell cell = ni.getParent();
@@ -506,7 +504,7 @@ public class CellLists extends EDialog
 		Cell iconCell = curCell.iconView();
 		if (iconCell != null)
 		{
-			for(Iterator nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+			for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				if (ni.isIconOfParent()) continue;
@@ -527,10 +525,10 @@ public class CellLists extends EDialog
 			return;
 		}
 		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
@@ -892,16 +890,16 @@ public class CellLists extends EDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		// get cell and port markers
-		HashSet cellsSeen = new HashSet();
+		HashSet<Cell> cellsSeen = new HashSet<Cell>();
 
 		// mark cells to be shown
 		if (allCells.isSelected())
 		{
 			// mark all cells for display
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
 					cellsSeen.add(cell);
@@ -917,10 +915,10 @@ public class CellLists extends EDialog
 			} else if (onlyCellsUsedElsewhere.isSelected())
 			{
 				// mark those that are in use
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library lib = (Library)it.next();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						Cell iconCell = cell.iconView();
@@ -932,10 +930,10 @@ public class CellLists extends EDialog
 			} else if (onlyCellsNotUsedElsewhere.isSelected())
 			{
 				// mark those that are not in use
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library lib = (Library)it.next();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						Cell iconCell = cell.iconView();
@@ -944,7 +942,7 @@ public class CellLists extends EDialog
 							// has icon: acceptable if the only instances are examples
 							if (cell.getInstancesOf().hasNext()) continue;
 							boolean found = false;
-							for(Iterator nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+							for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
 							{
 								NodeInst ni = (NodeInst)nIt.next();
 								if (ni.isIconOfParent()) { found = true;   break; }
@@ -957,7 +955,7 @@ public class CellLists extends EDialog
 							{
 								// this is an icon: reject if instances are not examples
 								boolean found = false;
-								for(Iterator nIt = cell.getInstancesOf(); nIt.hasNext(); )
+								for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
 								{
 									NodeInst ni = (NodeInst)nIt.next();
 									if (ni.isIconOfParent()) { found = true;   break; }
@@ -974,10 +972,10 @@ public class CellLists extends EDialog
 			} else
 			{
 				// mark placeholder cells
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library lib = (Library)it.next();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						Variable var = cell.getVar("IO_true_library");
@@ -994,10 +992,10 @@ public class CellLists extends EDialog
 			View v = View.findView(viewName);
 			if (v != null)
 			{
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
 					Library lib = (Library)it.next();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = (Cell)cIt.next();
 						if (cell.getView() != v)
@@ -1016,10 +1014,10 @@ public class CellLists extends EDialog
 		// filter versions
 		if (excludeOlderVersions.isSelected())
 		{
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
 					if (cell.getNewestVersion() != cell) cellsSeen.remove(cell);
@@ -1028,10 +1026,10 @@ public class CellLists extends EDialog
 		}
 		if (excludeNewestVersions.isSelected())
 		{
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
 					if (cell.getNewestVersion() == cell) cellsSeen.remove(cell);
@@ -1040,12 +1038,12 @@ public class CellLists extends EDialog
 		}
 
 		// now make a list and sort it
-		List cellList = new ArrayList();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		List<Cell> cellList = new ArrayList<Cell>();
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				if (cellsSeen.contains(cell)) cellList.add(cell);
@@ -1083,7 +1081,7 @@ public class CellLists extends EDialog
 						dataOutputStream.write(header.getBytes(), 0, header.length());
 						header = "Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n";
 						dataOutputStream.write(header.getBytes(), 0, header.length());
-						for(Iterator it = cellList.iterator(); it.hasNext(); )
+						for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
 						{
 							Cell cell = (Cell)it.next();
 							String line =  makeCellLine(cell, -1) + "\n";
@@ -1099,7 +1097,7 @@ public class CellLists extends EDialog
 			} else
 			{
 				int maxLen = 0;
-				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
 					maxLen = Math.max(maxLen, cell.noLibDescribe().length());
@@ -1107,7 +1105,7 @@ public class CellLists extends EDialog
 				maxLen = Math.max(maxLen+2, 7);
 				printHeaderLine(maxLen);
 				Library lib = null;
-				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
 					if (cell.getLibrary() != lib)

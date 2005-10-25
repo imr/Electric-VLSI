@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.als.ALS.Model;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
@@ -102,7 +103,7 @@ public class Command
 		if (par[0].equals("netlist"))
 		{
 			System.out.println("** NETWORK DESCRIPTION **");
-			for(Iterator pIt = als.primList.iterator(); pIt.hasNext(); )
+			for(Iterator<Model> pIt = als.primList.iterator(); pIt.hasNext(); )
 			{
 				ALS.Model primHead = (ALS.Model)pIt.next();
 				switch (primHead.type)
@@ -112,7 +113,7 @@ public class Command
 						infstr.append("FUNCTION: " + primHead.name + " (instance " +
 							(primHead.level == null ? "null" : primHead.level) + ") [");
 						boolean first = true;
-						for(Iterator it = primHead.exList.iterator(); it.hasNext(); )
+						for(Iterator<ALS.ALSExport> it = primHead.exList.iterator(); it.hasNext(); )
 						{
 							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							if (first) first = false; else
@@ -124,7 +125,7 @@ public class Command
 						infstr = new StringBuffer();
 						infstr.append("  Event Driving Inputs:");
 						ALS.Func funcHead = (ALS.Func)primHead.ptr;
-						for(Iterator it = funcHead.inList.iterator(); it.hasNext(); )
+						for(Iterator<ALS.ALSExport> it = funcHead.inList.iterator(); it.hasNext(); )
 						{
 							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							infstr.append(" N" + exHead.nodePtr.getIndex());
@@ -132,7 +133,7 @@ public class Command
 						System.out.println(infstr.toString());
 						infstr = new StringBuffer();
 						infstr.append("  Output Ports:");
-						for(Iterator it = primHead.exList.iterator(); it.hasNext(); )
+						for(Iterator<ALS.ALSExport> it = primHead.exList.iterator(); it.hasNext(); )
 						{
 							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							if (exHead.nodeName != null)
@@ -180,7 +181,7 @@ public class Command
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("  Input: ");
 
-		for(Iterator it = rowHead.inList.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = rowHead.inList.iterator(); it.hasNext(); )
 		{
 			ALS.IO ioHead = (ALS.IO)it.next();
 			if (flag) infstr.append("& ");
@@ -220,7 +221,7 @@ public class Command
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("  Output: ");
 
-		for(Iterator it = rowHead.outList.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = rowHead.outList.iterator(); it.hasNext(); )
 		{
 			ALS.IO ioHead = (ALS.IO)it.next();
 			if (flag) infstr.append("& ");

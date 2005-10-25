@@ -43,9 +43,9 @@ import javax.swing.KeyStroke;
  */
 public class KeyBindings implements ActionListener {
     /** description of action */            private String actionDesc;
-    /** list of KeyStrokePairs */           private List keyStrokePairs;
-    /** default KeyStrokePairs */           private List defaultKeyStrokePairs;
-    /** actions to perform */               private List actionListeners;
+    /** list of KeyStrokePairs */           private List<KeyStrokePair> keyStrokePairs;
+    /** default KeyStrokePairs */           private List<KeyStrokePair> defaultKeyStrokePairs;
+    /** actions to perform */               private List<ActionListener> actionListeners;
     /** source to use when sending event to listeners */ private Object eventSource;
     /** true if KeyBindingManager using default keys */  private boolean usingDefaultKeys;
     /** if these bindings are enabled */    private boolean enabled;
@@ -58,9 +58,9 @@ public class KeyBindings implements ActionListener {
      */
     public KeyBindings(String actionDesc) {
         this.actionDesc = actionDesc;
-        keyStrokePairs = new ArrayList();
-        defaultKeyStrokePairs = new ArrayList();
-        actionListeners = new ArrayList();
+        keyStrokePairs = new ArrayList<KeyStrokePair>();
+        defaultKeyStrokePairs = new ArrayList<KeyStrokePair>();
+        actionListeners = new ArrayList<ActionListener>();
         eventSource = null;
         usingDefaultKeys = true;
         enabled = true;
@@ -158,7 +158,7 @@ public class KeyBindings implements ActionListener {
         if (!enabled) return;
         if (eventSource != null)
             e.setSource(eventSource);               // fake the source of the event
-        for (Iterator it = actionListeners.iterator(); it.hasNext(); ) {
+        for (Iterator<ActionListener> it = actionListeners.iterator(); it.hasNext(); ) {
             ActionListener action = (ActionListener)it.next();
             action.actionPerformed(e);
         }
@@ -171,7 +171,7 @@ public class KeyBindings implements ActionListener {
      */
     public String bindingsToString() {
         StringBuffer buf = new StringBuffer("");
-        for (Iterator it = keyStrokePairs.iterator(); it.hasNext(); ) {
+        for (Iterator<KeyStrokePair> it = keyStrokePairs.iterator(); it.hasNext(); ) {
             KeyStrokePair k = (KeyStrokePair)it.next();
             buf.append(k.toString());
             if (it.hasNext()) buf.append(sep);
@@ -190,10 +190,10 @@ public class KeyBindings implements ActionListener {
     public Iterator getActionListeners() { return actionListeners.iterator(); }
 
     /** Get an iterator over the user key stroke pairs */
-    public Iterator getKeyStrokePairs() { return keyStrokePairs.iterator(); }
+    public Iterator<KeyStrokePair> getKeyStrokePairs() { return keyStrokePairs.iterator(); }
 
     /** Get an iterator over the default key stroke pairs */
-    public Iterator getDefaultKeyStrokePairs() { return defaultKeyStrokePairs.iterator(); }
+    public Iterator<KeyStrokePair> getDefaultKeyStrokePairs() { return defaultKeyStrokePairs.iterator(); }
 
     /**
      * Set the object that will used as the "source" when the actions in

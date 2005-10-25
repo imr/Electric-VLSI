@@ -153,7 +153,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		Export pp = null;
 		int exportCount = 0;
         if (wnd != null) {
-            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
                 Highlight h = (Highlight)it.next();
                 if (h.getType() != Highlight.Type.TEXT) continue;
@@ -244,8 +244,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         Undo.addDatabaseChangeListener(this);
 
         // set characteristic combo box
-		List chars = PortCharacteristic.getOrderedCharacteristics();
-		for(Iterator it = chars.iterator(); it.hasNext(); )
+		List<PortCharacteristic> chars = PortCharacteristic.getOrderedCharacteristics();
+		for(Iterator<PortCharacteristic> it = chars.iterator(); it.hasNext(); )
 		{
 			PortCharacteristic ch = (PortCharacteristic)it.next();
 			characteristics.addItem(ch.getName());

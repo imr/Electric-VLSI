@@ -269,7 +269,7 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			Iterator it = primHead.exList.iterator();
+			Iterator<ALS.ALSExport> it = primHead.exList.iterator();
 			ALS.ALSExport argPtr = (ALS.ALSExport)it.next();
 			int state = 0;
 			for (int i = 7; i > -1; --i)
@@ -299,7 +299,7 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			Iterator it = primHead.exList.iterator();
+			Iterator<ALS.ALSExport> it = primHead.exList.iterator();
 			ALS.ALSExport argPtr = (ALS.ALSExport)it.next();
 			int input = argPtr.nodePtr.sumState;
 

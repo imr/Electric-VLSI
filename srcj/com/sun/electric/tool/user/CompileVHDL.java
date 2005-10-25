@@ -968,11 +968,11 @@ public class CompileVHDL
 	 * Method to generate a QUISC (silicon compiler) netlist.
 	 * @return a List of strings with the netlist.
 	 */
-	public List getQUISCNetlist()
+	public List<String> getQUISCNetlist()
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
-		List netlistStrings = genQuisc();
+		List<String> netlistStrings = genQuisc();
 		return netlistStrings;
 	}
 
@@ -5821,7 +5821,7 @@ public class CompileVHDL
 	 * Assume parse tree is semantically correct.
 	 * @return a list of strings that has the netlist.
 	 */
-	private List genQuisc()
+	private List<String> genQuisc()
 	{
 		List<String> netlist = new ArrayList<String>();
 

@@ -53,14 +53,14 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
     private Cell cell;
     private Netlist netlist;
-    private Set/*<Network>*/ nets;
+    private Set<Network> nets;
     private BitSet netIDs;
     private int startDepth;
     private int endDepth;
     private int currentDepth;
     private Highlighter highlighter;
 
-    private NetworkHighlighter(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
+    private NetworkHighlighter(Cell cell, Netlist netlist, Set<Network> nets, int startDepth, int endDepth) {
         this.cell = cell;
         this.netlist = netlist;
         this.nets = nets;
@@ -82,7 +82,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List<Highlight> getHighlights(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
+    public static synchronized List<Highlight> getHighlights(Cell cell, Netlist netlist, Set<Network> nets, int startDepth, int endDepth) {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, nets, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);
@@ -97,7 +97,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         if (currentDepth == 0) {
             // set the global net ID that will be used in sub cells
             netIDs = new BitSet();
-            for (Iterator it = nets.iterator(); it.hasNext(); ) {
+            for (Iterator<Network> it = nets.iterator(); it.hasNext(); ) {
                 Network net = (Network)it.next();
                 netIDs.set(info.getNetID(net));
             }
@@ -139,14 +139,14 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param nets
      * @return HashSet of ArcInsts, PortInsts and Exports on networs.
      */
-    private static HashSet getNetworkObjects(Cell cell, Netlist netlist, Set nets) {
-        HashSet objs = new HashSet();
+    private static HashSet<ElectricObject> getNetworkObjects(Cell cell, Netlist netlist, Set nets) {
+        HashSet<ElectricObject> objs = new HashSet<ElectricObject>();
         
         // all port instances on the networks
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getNameKey().isBus()) continue;
-            for (Iterator pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
                 PortInst pi = (PortInst)pit.next();
                 PortProto portProto = pi.getPortProto();
                 if (portProto.getNameKey().isBus()) continue;
@@ -156,7 +156,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         }
         
         // all arcs on the networks
-        for(Iterator aIt = cell.getArcs(); aIt.hasNext(); ) {
+        for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); ) {
             ArcInst ai = (ArcInst)aIt.next();
             int width = netlist.getBusWidth(ai);
             for(int i=0; i<width; i++) {
@@ -178,7 +178,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         }
 
         // show all exports on the networks
-        for(Iterator pIt = cell.getPorts(); pIt.hasNext(); ) {
+        for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); ) {
             Export pp = (Export)pIt.next();
             int width = netlist.getBusWidth(pp);
             for(int i=0; i<width; i++) {
@@ -194,9 +194,9 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private void addNetworkObjects() {
         // highlight objects in this cell
-        HashSet objs = getNetworkObjects(cell, netlist, nets);
+        HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
 
-        for (Iterator it = objs.iterator(); it.hasNext(); ) {
+        for (Iterator<ElectricObject> it = objs.iterator(); it.hasNext(); ) {
             ElectricObject eObj = (ElectricObject)it.next();
             highlighter.addElectricObject(eObj, cell, false);
         }
@@ -210,8 +210,8 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         Netlist netlist = info.getNetlist();
 
         // find all local networks in this cell that corresponds to global id
-        HashSet localNets = new HashSet();
-        for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+        HashSet<Network> localNets = new HashSet<Network>();
+        for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network aNet = (Network)it.next();
             if (netIDs.get(info.getNetID(aNet))) {
                 localNets.add(aNet);
@@ -220,19 +220,19 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         addNetworkPolys(localNets, info);
     }
 
-    private void addNetworkPolys(HashSet/*<Network>*/ localNets, HierarchyEnumerator.CellInfo info) {
+    private void addNetworkPolys(HashSet<Network> localNets, HierarchyEnumerator.CellInfo info) {
         Netlist netlist = info.getNetlist();
 
         // no local net that matches with global network
         if (localNets.size() == 0) return;
 
         Cell currentCell = info.getCell();
-        HashSet objs = getNetworkObjects(currentCell, netlist, localNets);
+        HashSet<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets);
 
         // get polys for each object and transform them to root
         AffineTransform trans = info.getTransformToRoot();
-        for (Iterator it = objs.iterator(); it.hasNext(); ) {
-            Object o = it.next();
+        for (Iterator<ElectricObject> it = objs.iterator(); it.hasNext(); ) {
+			ElectricObject o = it.next();
             Color color = null;
             Poly poly = null;
             if (o instanceof ArcInst) {

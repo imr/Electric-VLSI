@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.text.Name;
@@ -96,7 +97,7 @@ public class ChangeText extends EDialog
 
 		cell = WindowFrame.getCurrentCell();
         wnd = EditWindow.getCurrent();
-		for(Iterator it = View.getOrderedViews().iterator(); it.hasNext(); )
+		for(Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
 		{
 			View view = (View)it.next();
 			viewList.addItem(view.getFullName());
@@ -196,7 +197,7 @@ public class ChangeText extends EDialog
 
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd != null) {
-                for(Iterator it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
+                for(Iterator<Highlight> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
                 {
                     Highlight h = (Highlight)it.next();
                     if (h.getType() != Highlight.Type.TEXT) continue;
@@ -212,7 +213,7 @@ public class ChangeText extends EDialog
 			View v = View.findView(viewName);
 			if (v != null)
 			{
-				for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 				{
 					Cell c = (Cell)it.next();
 					if (c.getView() == v) findAllInCell(c, change);
@@ -220,7 +221,7 @@ public class ChangeText extends EDialog
 			}
 		} else if (changeAllInLibrary.isSelected())
 		{
-			for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
 				Cell c = (Cell)it.next();
 				findAllInCell(c, change);
@@ -267,7 +268,7 @@ public class ChangeText extends EDialog
 		}
 
 		// text on nodes
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell && !ni.isExpanded())
@@ -280,7 +281,7 @@ public class ChangeText extends EDialog
 				// node name
 				accumulateTextFound(ni, null, ni.getNameKey(), change);
 			}
-			for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
@@ -289,7 +290,7 @@ public class ChangeText extends EDialog
 		}
 
 		// text on arcs
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (!ai.getNameKey().isTempname())
@@ -297,7 +298,7 @@ public class ChangeText extends EDialog
 				// arc name
 				accumulateTextFound(ai, null, ai.getNameKey(), change);
 			}
-			for(Iterator vIt = ai.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
@@ -306,11 +307,11 @@ public class ChangeText extends EDialog
 		}
 
 		// text on exports
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			accumulateTextFound(pp, null, null, change);
-			for(Iterator vIt = pp.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
@@ -319,7 +320,7 @@ public class ChangeText extends EDialog
 		}
 
 		// text on the cell
-		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 		{
 			Variable var = (Variable)vIt.next();
 			if (!var.isDisplay()) continue;

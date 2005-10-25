@@ -108,7 +108,7 @@ public class SavedViews extends EDialog implements HighlightListener
 		if (cell == null) return;
 
 		boolean found = false;
-		for(Iterator it = cell.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			String name = var.getKey().getName();

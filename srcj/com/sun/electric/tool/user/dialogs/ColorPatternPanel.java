@@ -72,7 +72,7 @@ public class ColorPatternPanel extends JPanel
 		public EGraphics graphics;
 		public int [] pattern;
 		public boolean useStippleDisplay;
-		public EGraphics.Outline outlinePatternDisplay;
+		public Outline outlinePatternDisplay;
 		public boolean useStipplePrinter;
 		public int transparentLayer;
 		public int red, green, blue;
@@ -190,9 +190,9 @@ public class ColorPatternPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
 		});
-		for(Iterator it = EGraphics.Outline.getOutlines().iterator(); it.hasNext(); )
+		for(Iterator<Outline> it = Outline.getOutlines().iterator(); it.hasNext(); )
 		{
-			EGraphics.Outline o = (EGraphics.Outline)it.next();
+			Outline o = (Outline)it.next();
 			outlinePattern.addItem(o.getSample());
 		}
 		outlinePattern.addActionListener(new ActionListener()
@@ -302,9 +302,9 @@ public class ColorPatternPanel extends JPanel
 						g.drawImage(im, x+BORDER, y+BORDER, null, null);
 
 				// draw an outline if requested
-				List outlines = EGraphics.Outline.getOutlines();
-				EGraphics.Outline o = (EGraphics.Outline)outlines.get(dia.outlinePattern.getSelectedIndex());
-				if (o != EGraphics.Outline.NOPAT)
+				List<Outline> outlines = Outline.getOutlines();
+				Outline o = (Outline)outlines.get(dia.outlinePattern.getSelectedIndex());
+				if (o != Outline.NOPAT)
 				{
 					g.setColor(curColor);
 					for(int t=0; t<o.getThickness(); t++)
@@ -463,8 +463,8 @@ public class ColorPatternPanel extends JPanel
 		if (dataChanging) return;
 		if (currentLI == null) return;
 		currentLI.useStippleDisplay = useStipplePatternDisplay.isSelected();
-		List outlines = EGraphics.Outline.getOutlines();
-		currentLI.outlinePatternDisplay = (EGraphics.Outline)outlines.get(outlinePattern.getSelectedIndex());
+		List<Outline> outlines = Outline.getOutlines();
+		currentLI.outlinePatternDisplay = (Outline)outlines.get(outlinePattern.getSelectedIndex());
 		outlinePattern.setEnabled(currentLI.useStippleDisplay);
 		if (showPrinter)
 		{

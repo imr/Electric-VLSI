@@ -626,10 +626,10 @@ public class Layer
 	 */
 	public static void preserveVisibility()
 	{
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				Pref visPref = layer.getBooleanPref("Visibility", layerVisibilityPrefs, layer.visible);

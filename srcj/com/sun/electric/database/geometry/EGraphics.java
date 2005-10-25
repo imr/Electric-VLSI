@@ -63,9 +63,9 @@ public class EGraphics extends Observable
 		private boolean solid;
 		private ImageIcon sample;
 
-		private static List allOutlines = new ArrayList();
-		private static HashMap outlineByIndex = new HashMap();
-		private static HashMap outlineByName = new HashMap();
+		private static List<Outline> allOutlines = new ArrayList<Outline>();
+		private static HashMap<Integer,Outline> outlineByIndex = new HashMap<Integer,Outline>();
+		private static HashMap<String,Outline> outlineByName = new HashMap<String,Outline>();
 
 		private Outline(String name, String constName, int pattern, int len, int thickness, int index)
 		{
@@ -139,7 +139,7 @@ public class EGraphics extends Observable
 			return o;
 		}
 
-		public static List getOutlines() { return allOutlines; }
+		public static List<Outline> getOutlines() { return allOutlines; }
 
 		public String toString() { return name; }
 

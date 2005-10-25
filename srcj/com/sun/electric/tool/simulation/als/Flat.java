@@ -28,6 +28,7 @@ package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.als.ALS.IO;
 import com.sun.electric.tool.simulation.als.ALS.Stat;
 
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public class Flat
 		als.cellRoot = new ALS.Connect();
 		als.cellRoot.instName = "[MIXED_SIGNAL_LEVEL]";
 		als.cellRoot.modelName = als.cellRoot.instName;
-		als.cellRoot.exList = new ArrayList();
+		als.cellRoot.exList = new ArrayList<ALS.ALSExport>();
 		als.cellRoot.parent = null;
 		als.cellRoot.child = null;
 		als.cellRoot.next = null;
@@ -76,7 +77,7 @@ public class Flat
 		als.cellRoot = new ALS.Connect();
 		als.cellRoot.instName = mainName;
 		als.cellRoot.modelName = als.cellRoot.instName;
-		als.cellRoot.exList = new ArrayList();
+		als.cellRoot.exList = new ArrayList<ALS.ALSExport>();
 		als.cellRoot.parent = null;
 		als.cellRoot.child = null;
 		als.cellRoot.next = null;
@@ -89,7 +90,7 @@ public class Flat
 		// this code checks to see if model mainCell is present in the netlist PJG
 		ALS.Model modHead = findModel(mainName);
 		if (modHead == null) return true;
-		for(Iterator it = modHead.exList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.ALSExport> it = modHead.exList.iterator(); it.hasNext(); )
 		{
 			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 			findXRefEntry(als.cellRoot.next, (String)exHead.nodeName);
@@ -97,7 +98,7 @@ public class Flat
 
 		if (flattenModel(als.cellRoot.next)) return true;
 
-		for(Iterator it = als.nodeList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.Node> it = als.nodeList.iterator(); it.hasNext(); )
 		{
 			ALS.Node nodeHead = (ALS.Node)it.next();
 			if (nodeHead.load < 1) nodeHead.load = 1;
@@ -164,7 +165,7 @@ public class Flat
 			ALS.Connect cellPtr2 = new ALS.Connect();
 			cellPtr2.instName = conHead.instName;
 			cellPtr2.modelName = conHead.modelName;
-			cellPtr2.exList = new ArrayList();
+			cellPtr2.exList = new ArrayList<ALS.ALSExport>();
 			cellPtr2.parent = cellHead;
 			cellPtr2.child = null;
 			cellPtr2.next = cellHead.child;
@@ -172,8 +173,8 @@ public class Flat
 
 			ALS.Model modHead = findModel(conHead.modelName);
 			if (modHead == null) return true;
-			Iterator it = modHead.exList.iterator();
-			for(Iterator cIt = conHead.exList.iterator(); cIt.hasNext(); )
+			Iterator<ALS.ALSExport> it = modHead.exList.iterator();
+			for(Iterator<ALS.ALSExport> cIt = conHead.exList.iterator(); cIt.hasNext(); )
 			{
 				ALS.ALSExport exHead = (ALS.ALSExport)cIt.next();
 				if (!it.hasNext()) break;
@@ -186,7 +187,7 @@ public class Flat
 					return true;
 				}
 
-				for(Iterator xIt = cellPtr2.exList.iterator(); xIt.hasNext(); )
+				for(Iterator<ALS.ALSExport> xIt = cellPtr2.exList.iterator(); xIt.hasNext(); )
 				{
 					ALS.ALSExport xRefPtr1 = (ALS.ALSExport)xIt.next();
 					if (xRefPtr1.nodeName.equals(als.exPtr2.nodeName))
@@ -226,7 +227,7 @@ public class Flat
 			sb.append(chr);
 		}
 		String properName = sb.toString();
-		for(Iterator it = als.modelList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.Model> it = als.modelList.iterator(); it.hasNext(); )
 		{
 			ALS.Model modHead = (ALS.Model)it.next();
 			if (modHead.name.equals(properName)) return modHead;
@@ -245,7 +246,7 @@ public class Flat
 	 */
 	private ALS.ALSExport findXRefEntry(ALS.Connect cellHead, String name)
 	{
-		for(Iterator it = cellHead.exList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.ALSExport> it = cellHead.exList.iterator(); it.hasNext(); )
 		{
 			ALS.ALSExport xRefPtr1 = (ALS.ALSExport)it.next();
 			if (xRefPtr1.nodeName.equals(name)) return xRefPtr1;
@@ -256,8 +257,8 @@ public class Flat
 
 		ALS.Node nodePtr2 = new ALS.Node();
 		nodePtr2.cellPtr = cellHead;
-		nodePtr2.statList = new ArrayList();
-		nodePtr2.pinList = new ArrayList();
+		nodePtr2.statList = new ArrayList<Stat>();
+		nodePtr2.pinList = new ArrayList<ALS.Load>();
 		nodePtr2.load = -1;
 		nodePtr2.visit = 0;
 		nodePtr2.traceNode = false;
@@ -290,8 +291,8 @@ public class Flat
 		while (rowHead != null)
 		{
 			ALS.Row rowPtr2 = new ALS.Row();
-			rowPtr2.inList = new ArrayList();
-			rowPtr2.outList = new ArrayList();
+			rowPtr2.inList = new ArrayList<Object>();
+			rowPtr2.outList = new ArrayList<Object>();
 			rowPtr2.delta = rowHead.delta;
 			rowPtr2.linear = rowHead.linear;
 			rowPtr2.exp = rowHead.exp;
@@ -335,9 +336,9 @@ public class Flat
 	 *		  entry into the cross reference table
 	 *	flag    = character indicating if the node is an input or output
 	 */
-	private void processIOEntry(ALS.Model modHead, ALS.Connect cellHead, List ioList, char flag)
+	private void processIOEntry(ALS.Model modHead, ALS.Connect cellHead, List<Object> ioList, char flag)
 	{
-		for(Iterator it = ioList.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = ioList.iterator(); it.hasNext(); )
 		{
 			ALS.IO ioHead = (ALS.IO)it.next();
 			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)ioHead.nodePtr);
@@ -388,7 +389,7 @@ public class Flat
 	 */
 	private void createPinEntry(ALS.Model modHead, String nodeName, ALS.Node nodeHead)
 	{
-		for(Iterator it = nodeHead.pinList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.Load> it = nodeHead.pinList.iterator(); it.hasNext(); )
 		{
 			ALS.Load pinPtr1 = (ALS.Load)it.next();
 			if (pinPtr1.ptr == primPtr2) return;
@@ -413,7 +414,7 @@ public class Flat
 	 */
 	private ALS.Stat createStatEntry(ALS.Model modHead, String nodeName, ALS.Node nodeHead)
 	{
-		for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
+		for(Iterator<Stat> sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 		{
 			Stat statPtr1 = (Stat)sIt.next();
 			if (statPtr1.primPtr == primPtr2) return statPtr1;
@@ -439,7 +440,7 @@ public class Flat
 	 */
 	private double findLoadValue(ALS.Model modHead, String nodeName)
 	{
-		for(Iterator it = modHead.loadList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.Load> it = modHead.loadList.iterator(); it.hasNext(); )
 		{
 			ALS.Load loadHead = (ALS.Load)it.next();
 			if (loadHead.ptr.equals(nodeName)) return loadHead.load;
@@ -459,9 +460,9 @@ public class Flat
 	 *		  are to be found
 	 *	ioHead   = pointer to the set list containing node names and state info
 	 */
-	private void processSetEntry(ALS.Connect cellHead, List ioList)
+	private void processSetEntry(ALS.Connect cellHead, List<ALS.IO> ioList)
 	{
-		for(Iterator it = ioList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.IO> it = ioList.iterator(); it.hasNext(); )
 		{
 			ALS.IO ioHead = (ALS.IO)it.next();
 			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)ioHead.nodePtr);
@@ -502,14 +503,14 @@ public class Flat
 		ALS.Func funcPtr2 = (ALS.Func)primPtr2.ptr;
 		funcPtr2.procPtr = ALS.UserProc.getFunctionAddress(modHead.name);
 		if (funcPtr2.procPtr == null) return true;
-		funcPtr2.inList = new ArrayList();
+		funcPtr2.inList = new ArrayList<ALS.ALSExport>();
 		funcPtr2.delta = funcHead.delta;
 		funcPtr2.linear = funcHead.linear;
 		funcPtr2.exp = funcHead.exp;
 		funcPtr2.abs = funcHead.abs;
 		funcPtr2.random = funcHead.random;
 		funcPtr2.userPtr = null;
-		for(Iterator it = modHead.exList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.ALSExport> it = modHead.exList.iterator(); it.hasNext(); )
 		{
 			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)exHead.nodeName);
@@ -525,7 +526,7 @@ public class Flat
 			primPtr2.exList.add(als.exPtr2);
 		}
 
-		for(Iterator it = funcHead.inList.iterator(); it.hasNext(); )
+		for(Iterator<ALS.ALSExport> it = funcHead.inList.iterator(); it.hasNext(); )
 		{
 			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)exHead.nodeName);

@@ -77,7 +77,7 @@ public class Array extends EDialog
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
 	/** amount when spacing by characteristic distance */	private double spacingCharacteristicX, spacingCharacteristicY;
 	/** amount when spacing by measured distance */			private double spacingMeasuredX, spacingMeasuredY;
-	/** the selected objects to be arrayed */				private HashMap selected;
+	/** the selected objects to be arrayed */				private HashMap<Geometric,Geometric> selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
 
 	/**
@@ -118,7 +118,7 @@ public class Array extends EDialog
 		// see if a single cell instance is selected (in which case DRC validity can be done)
 		onlyDRCCorrect.setEnabled(false);
         EditWindow wnd = EditWindow.getCurrent();
-		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 1)
 		{
 			ElectricObject eObj = (ElectricObject)highs.get(0);
@@ -135,9 +135,9 @@ public class Array extends EDialog
 		// see if a cell was selected which has a characteristic distance
 		spacingCharacteristicX = spacingCharacteristicY = 0;
 		boolean haveChar = false;
-		for(Iterator it = highs.iterator(); it.hasNext(); )
+		for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 		{
-			ElectricObject eObj = (ElectricObject)it.next();
+			Geometric eObj = (Geometric)it.next();
 			if (!(eObj instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)eObj;
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -222,10 +222,10 @@ public class Array extends EDialog
 		}
 
 		// mark the list of nodes and arcs in the cell that will be arrayed
-		selected = new HashMap();
-		for(Iterator it = highs.iterator(); it.hasNext(); )
+		selected = new HashMap<Geometric,Geometric>();
+		for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 		{
-			ElectricObject eObj = (ElectricObject)it.next();
+			Geometric eObj = (Geometric)it.next();
 			if (eObj instanceof NodeInst)
 			{
 				selected.put(eObj, eObj);
@@ -243,7 +243,7 @@ public class Array extends EDialog
 		// determine spacing between arrayed objects
 		boolean first = true;
 		bounds = new Rectangle2D.Double();
-		for(Iterator it = selected.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Geometric> it = selected.keySet().iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
 			if (first)
@@ -357,7 +357,7 @@ public class Array extends EDialog
 			Cell cell = null;
 
 			// disallow arraying if lock is on
-			for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				cell = geom.getParent();
@@ -387,25 +387,25 @@ public class Array extends EDialog
 			}
 
 			// make lists of nodes and arcs that will be arrayed
-			List nodeList = new ArrayList();
-			List arcList = new ArrayList();
-			List exportList = new ArrayList();
-			for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
+			List<NodeInst> nodeList = new ArrayList<NodeInst>();
+			List<ArcInst> arcList = new ArrayList<ArcInst>();
+			List<Export> exportList = new ArrayList<Export>();
+			for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				cell = geom.getParent();
 				if (geom instanceof NodeInst)
 				{
-					nodeList.add(geom);
+					nodeList.add((NodeInst)geom);
 					if (User.isDupCopiesExports())
 					{
 						NodeInst ni = (NodeInst)geom;
-						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 							exportList.add(eIt.next());
 					}
 				} else
 				{
-					arcList.add(geom);
+					arcList.add((ArcInst)geom);
 				}
 			}
 			Collections.sort(nodeList);
@@ -462,8 +462,8 @@ public class Array extends EDialog
 
 				// first replicate the nodes
 				boolean firstNode = true;
-				HashMap nodeMap = new HashMap();
-				for(Iterator it = nodeList.iterator(); it.hasNext(); )
+				HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
+				for(Iterator<NodeInst> it = nodeList.iterator(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					double xPos = cX + xOverlap * xIndex;
@@ -533,7 +533,7 @@ public class Array extends EDialog
 				}
 
 				// next replicate the arcs
-				for(Iterator it = arcList.iterator(); it.hasNext(); )
+				for(Iterator<ArcInst> it = arcList.iterator(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
 					double cX0 = ai.getHeadPortInst().getNodeInst().getAnchorCenterX();
@@ -590,9 +590,9 @@ public class Array extends EDialog
 				}
 
 				// copy the exports, too
-				List portInstsToExport = new ArrayList();
-				HashMap originalExports = new HashMap();
-				for(Iterator eit = exportList.iterator(); eit.hasNext(); )
+				List<PortInst> portInstsToExport = new ArrayList<PortInst>();
+				HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
+				for(Iterator<Export> eit = exportList.iterator(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
 					PortInst oldPI = pp.getOriginalPort();
@@ -608,7 +608,7 @@ public class Array extends EDialog
 			// rename the replicated objects
 			if (lastAddNames)
 			{
-				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
+				for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
 				{
 					Geometric geom = (Geometric)it.next();
 					setNewName(geom, originalX, originalY);

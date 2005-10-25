@@ -74,7 +74,7 @@ public class OpenFile
                 FileSystemView view = getFileSystemView();
                 if ((view instanceof LibDirs.LibDirFileSystemView) && !f.exists()) {
                     //LibDirs.LibDirFileSystemView lview = (LibDirs.LibDirFileSystemView)view;
-                    for (Iterator it = LibDirs.getLibDirs(); it.hasNext(); ) {
+                    for (Iterator<String> it = LibDirs.getLibDirs(); it.hasNext(); ) {
                         String dirName = (String)it.next();
                         File dir = new File(dirName);
                         if (!dir.exists()) continue;
