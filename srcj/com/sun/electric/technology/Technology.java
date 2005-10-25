@@ -3467,6 +3467,12 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setRuleVariables(DRCRules newRules) {;}
 
+    /**
+     * Method to get the DRC deck containing rules
+     * @return
+     */
+    public DRCTemplate [] getDRCDeck() { return new DRCTemplate [0]; }
+
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.
 	 * Used by simpler technologies that do not have full-sets of design rules.

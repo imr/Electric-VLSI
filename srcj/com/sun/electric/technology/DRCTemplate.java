@@ -26,6 +26,9 @@ package com.sun.electric.technology;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 /**
  * Class to define rules from TSCM files...
@@ -276,6 +279,36 @@ public class DRCTemplate
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;
             return (0); // identical
+        }
+    }
+
+    public static void exportDRCDeck(String fileName, Technology tech)
+    {
+        DRCTemplate[] rules = tech.getDRCDeck();
+        int foundry = tech.getFoundry();
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+            out.println("<DRC>");
+            for (int i = 0; i < rules.length; i++)
+            {
+                if ((rules[i].when & foundry) == 0) continue;
+                switch(rules[i].ruleType)
+                {
+                    case MINWID:
+                        //<LayerRule ruleName="1.1 (Mosis)" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well"
+                        // type="DRCTemplate.MINWID" when="DRCTemplate.DE|DRCTemplate.SU" value="12"/>
+                        out.println("\t<LayerRule ruleName=\"" + rules[i].ruleName + "\"" + "/>");
+                        break;
+                    default:
+                        ;
+                }
+            }
+            out.println("</DRC>");
+            out.close();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 }

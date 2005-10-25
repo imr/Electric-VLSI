@@ -53,6 +53,7 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
@@ -157,6 +158,10 @@ public class ToolMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
         drcSubMenu.addMenuItem("Import Calibre _DRC Errors...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importCalibreDrcErrors();}});
+
+        drcSubMenu.addSeparator();
+		drcSubMenu.addMenuItem("Export DRC deck", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { exportDRCDeck();}});
 
 		//------------------- Simulation (Built-in)
 
@@ -1624,5 +1629,11 @@ public class ToolMenu {
         String fileName = OpenFile.chooseInputFile(FileType.DB, null);
         if (fileName == null) return;
         CalibreDrcErrors.importErrors(fileName);
+    }
+
+    public static void exportDRCDeck() {
+        String fileName = OpenFile.chooseOutputFile(FileType.XML, "Save XML DRC deck", null);
+        if (fileName == null) return;
+        DRCTemplate.exportDRCDeck(fileName, Technology.getCurrent());
     }
 }

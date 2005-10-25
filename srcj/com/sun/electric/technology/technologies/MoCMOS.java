@@ -147,6 +147,8 @@ public class MoCMOS extends Technology
         }
     }
 
+    public DRCTemplate [] getDRCDeck() { return theRules; }
+
 	private DRCTemplate [] theRules = new DRCTemplate[]
 	{
 		new DRCTemplate("1.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.MINWID,   "P-Well",          null,            12, null),
