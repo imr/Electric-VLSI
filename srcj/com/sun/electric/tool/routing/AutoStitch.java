@@ -71,6 +71,7 @@ public class AutoStitch
 	/** the prefered arc */											private static ArcProto preferredArc;
     /** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
 	/** list of all routes to be created at end of analysis */		private static List<Route> allRoutes;
+	/** sets of netlists that will be connected */					private static Pairs intendedPairs;
 	/** list of pins that may be inline pins due to created arcs */	private static HashSet<NodeInst> possibleInlinePins;
 	private static HashSet<NodeInst> nodeMark;
 
@@ -158,6 +159,7 @@ public class AutoStitch
         }
 
 		allRoutes = new ArrayList<Route>();
+		intendedPairs = new Pairs();
         possibleInlinePins = new HashSet<NodeInst>();
 		HashSet<Cell> cellMark = new HashSet<Cell>();
 		nodeMark = new HashSet<NodeInst>();
@@ -816,7 +818,7 @@ public class AutoStitch
 				double y = intersection.getCenterY();
 
 				// run the wire
-				connectObjects(ai1, ai2, ai1.getParent(), new Point2D.Double(x,y), stayInside);
+				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside);
 				return 1;
 			}
 		}
@@ -876,15 +878,20 @@ public class AutoStitch
 				PortInst pi = ni.findPortInstFromProto(bestPp);
 				Network nodeNet = nl.getNetwork(pi);
 				if (arcNet == nodeNet) continue;
-				connectObjects(ai, pi, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside);
+				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside);
 				return 1;
 			}
 		}
 		return 0;
 	}
 
-	private static boolean connectObjects(ElectricObject eobj1, ElectricObject eobj2, Cell cell, Point2D ctr, PolyMerge stayInside)
+	private static boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
+		Cell cell, Point2D ctr, PolyMerge stayInside)
 	{
+		// make sure this pair of networks isn't already scheduled for connection
+		if (intendedPairs.contains(net1, net2)) return false;
+		intendedPairs.add(net1, net2);
+
 		// run the wire
 		NodeInst ni1 = null;
 		if (eobj1 instanceof NodeInst) ni1 = (NodeInst)eobj1; else
@@ -956,8 +963,8 @@ public class AutoStitch
 				if (!mPp.getBasePort().connectsTo(ap)) continue;
 
 				// do not stitch where there is already an electrical connection
-				//Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
-				//if (net != null && oNet == net) continue;
+				Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+				if (net != null && oNet == net) continue;
 
                 // do not stitch if there is already an arc connecting these two ports
                 PortInst oPi = oNi.findPortInstFromProto(mPp);
@@ -993,7 +1000,7 @@ public class AutoStitch
 				{
 					// not a geometric primitive: look for ports that touch
 					Poly oPoly = oNi.getShapeOfPort(mPp);
-					if (comparePoly(oNi, mPp, oPoly, ni, pp, poly, ap, stayInside, netlist))
+					if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
 						return true;
 				} else
 				{
@@ -1020,7 +1027,7 @@ public class AutoStitch
 
 						// transform the polygon and pass it on to the next test
 						oPoly.transform(trans);
-						if (comparePoly(oNi, mPp, oPoly, ni, pp, poly, ap, stayInside, netlist))
+						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
 							return true;
 					}
 				}
@@ -1059,14 +1066,17 @@ public class AutoStitch
 				if (bestPp != null)
 				{
 					PortProto rPp = bestPp;
-
-					// port must be able to connect to the arc
-					if (rPp.getBasePort().connectsTo(ap))
+					Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(bestPp));
+					if (net == null || oNet != net)
 					{
-						// transformed the polygon and pass it on to the next test
-						Poly oPoly = oNi.getShapeOfPort(rPp);
-						if (comparePoly(oNi, rPp, oPoly, ni, pp, poly, ap, stayInside, netlist))
-							return true;
+						// port must be able to connect to the arc
+						if (rPp.getBasePort().connectsTo(ap))
+						{
+							// transformed the polygon and pass it on to the next test
+							Poly oPoly = oNi.getShapeOfPort(rPp);
+							if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
+								return true;
+						}
 					}
 				}
 			} else
@@ -1115,7 +1125,7 @@ public class AutoStitch
 
 					// transformed the polygon and pass it on to the next test
 					oPoly.transform(trans);
-					if (comparePoly(oNi, rPp, oPoly, ni, pp, poly, ap, stayInside, netlist))
+					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
 						return true;
 				}
 			}
@@ -1130,8 +1140,9 @@ public class AutoStitch
 	 * "ap".  If a connection is made, the method returns true, otherwise
 	 * it returns false.
 	 */
-	private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, NodeInst ni,
-		PortProto pp, Poly poly, ArcProto ap, PolyMerge stayInside, Netlist netlist)
+	private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, Network oNet,
+		NodeInst ni, PortProto pp, Poly poly, Network net,
+		ArcProto ap, PolyMerge stayInside, Netlist netlist)
 	{
 		// find the bounding boxes of the polygons
 		if (poly.separation(oPoly) > 0) return false;
@@ -1183,7 +1194,7 @@ public class AutoStitch
 		// run the wire
         PortInst pi = ni.findPortInstFromProto(pp);
         PortInst opi = oNi.findPortInstFromProto(opp);
-        return connectObjects(pi, opi, ni.getParent(), new Point2D.Double(x,y), stayInside);
+        return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside);
 //        Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y), stayInside);
 //        if (route.size() == 0) return false;
 //        allRoutes.add(route);
@@ -1315,23 +1326,23 @@ public class AutoStitch
 	 */
 	private static class Pairs
 	{
-		private HashMap<Object,HashSet> first;
+		private HashMap<Object,HashSet<Object>> first;
 
 		Pairs()
 		{
-			first = new HashMap<Object,HashSet>();
+			first = new HashMap<Object,HashSet<Object>>();
 		}
 
 		void add(Object o1, Object o2)
 		{
-			if (exists(o1, o2)) return;
-			HashSet<Object> other1 = (HashSet)first.get(o1);
+			if (contains(o1, o2)) return;
+			HashSet<Object> other1 = (HashSet<Object>)first.get(o1);
 			if (other1 != null)
 			{
 				other1.add(o2);
 				return;
 			}
-			HashSet<Object> other2 = (HashSet)first.get(o2);
+			HashSet<Object> other2 = (HashSet<Object>)first.get(o2);
 			if (other2 != null)
 			{
 				other2.add(o1);
@@ -1342,7 +1353,7 @@ public class AutoStitch
 			other1.add(o2);			
 		}
 
-		boolean exists(Object o1, Object o2)
+		boolean contains(Object o1, Object o2)
 		{
 			HashSet other1 = (HashSet)first.get(o1);
 			if (other1 != null && other1.contains(o2)) return true;
