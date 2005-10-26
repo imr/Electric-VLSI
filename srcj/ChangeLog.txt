@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
-BUG: (10/25/05, SMR) Double-clicking text does not edit it in-place.
+BUG: (10/25/05, GVG) rename dialog resets to current cell every time you hit (bug #692)
+FIX: lastSelectedCell in rename job didn't include view abbreviation.
+
+BUG: (10/25/05, SMR) Double-clicking text does not edit it in-place (Bug #693).
 FIX: In EditMenu.getInfoCommand(), do not ignore text that is not special.
      In SpecialProperties.java, rehighlight the text after the "more" button is clicked.
 
