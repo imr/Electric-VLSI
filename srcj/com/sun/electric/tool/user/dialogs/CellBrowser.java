@@ -620,7 +620,6 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
             CircuitChanges.renameCellInJob(cell, newName);
             lastSelectedCell = newName + "{" + cell.getView().getAbbreviation() + "}";
-//            updateCellList();
             //setCell(cell);
 
         } else if (action == DoAction.duplicateCell) {
