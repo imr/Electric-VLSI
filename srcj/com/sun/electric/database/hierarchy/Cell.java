@@ -2747,7 +2747,8 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		String name = key.getName();
 		if (name.equals("NET_last_good_ncc") ||
 			name.equals("NET_last_good_ncc_facet") ||
-			name.equals("SIM_window_signal_order")) return true;
+			name.equals("SIM_window_signal_order") ||
+			name.equals("SIM_window_signalorder")) return true;
 		return super.isDeprecatedVariable(key);
 	}
 

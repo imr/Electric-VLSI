@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/26/05, SMR) "Find Text" dialog now has "alt" keys on its buttons (Bug #671).
+
+IMP: (10/25/05, SMR) Waveform window signal order saved in preferences, not cells.
+
+BUG: (10/25/05, SMR) Double-clicking text does not edit it in-place.
+
 BUG: (10/25/05, GVG) rename dialog resets to current cell every time you hit (bug #692)
 FIX: lastSelectedCell in rename job didn't include view abbreviation.
 

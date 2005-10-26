@@ -1089,6 +1089,9 @@ public class FileMenu {
 			// save changes to layer visibility
 			Layer.preserveVisibility();
 
+			// save changes to waveform window signals
+			WaveformWindow.preserveSignalOrder();
+
 			ActivityLogger.finished();
             System.exit(0);
             return true;

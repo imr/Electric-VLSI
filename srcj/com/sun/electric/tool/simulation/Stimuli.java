@@ -185,7 +185,7 @@ public class Stimuli
 	 * @return a list of sweep information in this simulation data.
 	 * If there is no sweep information, the list is empty.
 	 */
-	public List getSweepList() { return sweeps; }
+	public List<Object> getSweepList() { return sweeps; }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.

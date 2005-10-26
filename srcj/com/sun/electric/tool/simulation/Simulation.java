@@ -650,76 +650,71 @@ public class Simulation extends Listener
 		// if the data has an associated cell, see if that cell remembers the signals that were in the waveform window
 		if (sd.getCell() != null)
 		{
-			Variable var = sd.getCell().getVar(WaveformWindow.WINDOW_SIGNAL_ORDER);
-			if (var != null && var.getObject() instanceof String[])
+			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
+			boolean isAnalog = sd.isAnalog();
+			boolean showedSomething = false;
+			for(int i=0; i<signalNames.length; i++)
 			{
-				// load the window with previous signal set
-				String [] signalNames = (String [])var.getObject();
-				boolean isAnalog = sd.isAnalog();
-				boolean showedSomething = false;
-				for(int i=0; i<signalNames.length; i++)
-				{
-					String signalName = signalNames[i];
-					WaveformWindow.Panel wp = null;
-					boolean firstSignal = true;
+				String signalName = signalNames[i];
+				WaveformWindow.Panel wp = null;
+				boolean firstSignal = true;
 
-					// add signals to the panel
-					int start = 0;
-					for(;;)
-					{
-						int tabPos = signalName.indexOf('\t', start);
-						String sigName = null;
-						if (tabPos < 0) sigName = signalName.substring(start); else
-						{
-							sigName = signalName.substring(start, tabPos);
-							start = tabPos+1;
-						}
-						Signal sSig = sd.findSignalForNetwork(sigName);
-						if (sSig != null)
-						{
-							if (firstSignal)
-							{
-								firstSignal = false;
-								wp = new WaveformWindow.Panel(ww, isAnalog);
-								wp.makeSelectedPanel();
-								showedSomething = true;
-							}
-							new WaveformWindow.WaveSignal(wp, sSig);
-						}
-						if (tabPos < 0) break;
-					}
-				}
-				if (showedSomething)
+				// add signals to the panel
+				int start = 0;
+				for(;;)
 				{
-					if (isAnalog)
+					int tabPos = signalName.indexOf('\t', start);
+					String sigName = null;
+					if (tabPos < 0) sigName = signalName.substring(start); else
 					{
-						for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
-						{
-							WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-							List<WaveformWindow.WaveSignal> signals = wp.getSignals();
-							boolean first = true;
-							double lowY = 0, highY = 0;
-							for(Iterator<WaveformWindow.WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
-							{
-								WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-								Signal sSig = ws.getSignal();
-								Rectangle2D sigBounds = sSig.getBounds();
-								if (first)
-								{
-									lowY = sigBounds.getMinY();
-									highY = sigBounds.getMaxY();
-									first = false;
-								} else
-								{
-									if (sigBounds.getMinY() < lowY) lowY = sigBounds.getMinY();
-									if (sigBounds.getMaxY() > highY) highY = sigBounds.getMaxY();
-								}
-							}
-							if (!first) wp.setValueRange(lowY, highY);
-						}
+						sigName = signalName.substring(start, tabPos);
+						start = tabPos+1;
 					}
-					return;
+					Signal sSig = sd.findSignalForNetwork(sigName);
+					if (sSig != null)
+					{
+						if (firstSignal)
+						{
+							firstSignal = false;
+							wp = new WaveformWindow.Panel(ww, isAnalog);
+							wp.makeSelectedPanel();
+							showedSomething = true;
+						}
+						new WaveformWindow.WaveSignal(wp, sSig);
+					}
+					if (tabPos < 0) break;
 				}
+			}
+			if (showedSomething)
+			{
+				if (isAnalog)
+				{
+					for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+					{
+						WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+						List<WaveformWindow.WaveSignal> signals = wp.getSignals();
+						boolean first = true;
+						double lowY = 0, highY = 0;
+						for(Iterator<WaveformWindow.WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
+						{
+							WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+							Signal sSig = ws.getSignal();
+							Rectangle2D sigBounds = sSig.getBounds();
+							if (first)
+							{
+								lowY = sigBounds.getMinY();
+								highY = sigBounds.getMaxY();
+								first = false;
+							} else
+							{
+								if (sigBounds.getMinY() < lowY) lowY = sigBounds.getMinY();
+								if (sigBounds.getMaxY() > highY) highY = sigBounds.getMaxY();
+							}
+						}
+						if (!first) wp.setValueRange(lowY, highY);
+					}
+				}
+				return;
 			}
 		}
 

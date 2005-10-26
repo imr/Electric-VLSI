@@ -747,6 +747,12 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 * Method to make this the current Library.
 	 */
 	public void setCurrent() { curLib = this; }
+
+	/**
+	 * Method to get the Preferences associated with this Library.
+	 * @return the Preferences associated with this Library.
+	 */
+	public Preferences getPrefs() { return prefs; }
 	
 	/**
 	 * Low-level method to get the user bits.
