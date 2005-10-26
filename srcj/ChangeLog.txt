@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/26/05, SMR) Spice output sorts subcircuit signal names (Bug #694).
+
 IMP: (10/26/05, SMR) Auto-stitching avoids adding duplicate arcs.
 
 IMP: (10/26/05, SMR) "Find Text" dialog now has "alt" keys on its buttons (Bug #671).
