@@ -560,7 +560,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 		Cell.CellGroup cellGroup = null;
 		for(Iterator<Map.Entry<CellName,Cell>> it = cells.entrySet().iterator(); it.hasNext(); )
 		{
-			Map.Entry e = (Map.Entry)it.next();
+			Map.Entry<CellName,Cell> e = (Map.Entry<CellName,Cell>)it.next();
 			CellName cn = (CellName)e.getKey();
 			Cell cell = (Cell)e.getValue();
 			assert cell.getCellName().equals(cn);
@@ -598,7 +598,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 			TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 			for (Iterator<Map.Entry<String,Library>> it = libraries.entrySet().iterator(); it.hasNext(); )
 			{
-				Map.Entry e = (Map.Entry)it.next();
+				Map.Entry<String,Library> e = (Map.Entry<String,Library>)it.next();
 				String libName = (String)e.getKey();
 				Library lib = (Library)e.getValue();
 				assert libName.equals(lib.libName) : libName + " " + lib;

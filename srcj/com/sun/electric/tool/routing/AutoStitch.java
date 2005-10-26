@@ -135,7 +135,12 @@ public class AutoStitch
 				if (eObj instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)eObj;
-					if (ni.getProto() instanceof PrimitiveNode && ni.getProto().getTechnology() == Generic.tech) continue;
+					if (ni.getProto() instanceof PrimitiveNode)
+					{
+						PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+						if (pnp.getTechnology() == Generic.tech) continue;
+						if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+					}
 					nodesToStitch.add((NodeInst)eObj);
 				} else if (eObj instanceof ArcInst)
 				{
@@ -148,7 +153,12 @@ public class AutoStitch
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.isIconOfParent()) continue;
-				if (ni.getProto() instanceof PrimitiveNode && ni.getProto().getTechnology() == Generic.tech) continue;
+				if (ni.getProto() instanceof PrimitiveNode)
+				{
+					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+					if (pnp.getTechnology() == Generic.tech) continue;
+					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+				}
 				nodesToStitch.add(ni);
 			}
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -334,9 +344,9 @@ public class AutoStitch
             // if requesting no new geometry, make sure all arcs are default width
             if (stayInside != null)
             {
-	            for (Iterator<Object> rIt = route.iterator(); rIt.hasNext(); )
+	            for (Iterator<RouteElement> rIt = route.iterator(); rIt.hasNext(); )
 	            {
-	                Object obj = rIt.next();
+					RouteElement obj = rIt.next();
 	                if (obj instanceof RouteElementArc)
 	                {
 	                    RouteElementArc reArc = (RouteElementArc)obj;
@@ -489,7 +499,12 @@ public class AutoStitch
 			{
 				// other geometric a NodeInst
 				NodeInst oNi = (NodeInst)oGeom;
-				if (oNi.getProto() instanceof PrimitiveNode && oNi.getProto().getTechnology() == Generic.tech) continue;
+				if (oNi.getProto() instanceof PrimitiveNode)
+				{
+					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
+					if (pnp.getTechnology() == Generic.tech) continue;
+					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+				}
 
 				if (ni == null)
 				{
@@ -906,7 +921,7 @@ public class AutoStitch
 		NodeInst ni2 = null;
 		if (eobj2 instanceof NodeInst) ni2 = (NodeInst)eobj2; else
 			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
-		
+
         Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside);
         if (route.size() == 0) return false;
         allRoutes.add(route);

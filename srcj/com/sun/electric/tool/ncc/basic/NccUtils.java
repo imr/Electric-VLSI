@@ -50,7 +50,7 @@ public class NccUtils {
 	}
 	public static String fullName(Cell c) {return c.libDescribe();}
 	private static Cell findLayout(Cell.CellGroup group) {
-		for (Iterator it=group.getCells(); it.hasNext();) {
+		for (Iterator<Cell> it=group.getCells(); it.hasNext();) {
 			Cell c = (Cell) it.next();
 			if (c.getView()==View.LAYOUT) return c.getNewestVersion();
 		}
@@ -97,8 +97,8 @@ public class NccUtils {
 		return new CellContext(cell, context);
 	}
 	
-	public static List getCellContextsFromWindows() {
-		List cellCtxts = new ArrayList();
+	public static List<CellContext> getCellContextsFromWindows() {
+		List<CellContext> cellCtxts = new ArrayList<CellContext>();
 
 		// first is always current window
 		EditWindow wnd = EditWindow.getCurrent();
@@ -107,7 +107,7 @@ public class NccUtils {
 		if (curCellCtxt==null)  return cellCtxts;
 		cellCtxts.add(curCellCtxt);
 
-		for(Iterator it=WindowFrame.getWindows(); it.hasNext();) {
+		for(Iterator<WindowFrame> it=WindowFrame.getWindows(); it.hasNext();) {
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;

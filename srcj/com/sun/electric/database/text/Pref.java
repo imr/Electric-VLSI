@@ -878,7 +878,7 @@ public class Pref
 		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
 		for(Iterator<Map.Entry<Meaning,Object>> it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
 		{
-			Map.Entry entry = (Map.Entry)it.next();
+			Map.Entry<Meaning,Object> entry = (Map.Entry<Meaning,Object>)it.next();
 			Meaning meaning = (Meaning)entry.getKey();
 			Object value = entry.getValue();
 			meaning.marked = true;

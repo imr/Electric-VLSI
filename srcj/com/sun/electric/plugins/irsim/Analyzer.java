@@ -258,7 +258,7 @@ public class Analyzer extends Engine
 	private Stimuli getCircuit()
 	{
 		// Load network
-		List<ExtractedPBucket> components = null;
+		List<Object> components = null;
 		URL fileURL = null;
 		if (fileName == null)
 		{

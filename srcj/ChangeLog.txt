@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/26/05, SMR) Auto-stitcher connects pure-layer nodes of well (Bug #388).
+FIX: Disallow pure-layer nodes in auto-stitching.
+
 BUG: (10/26/05, SMR) Edit-in-place looks bad (Bug #635).
 FIX: In EditWindow.java, change the method paint() to paintComponent().
 

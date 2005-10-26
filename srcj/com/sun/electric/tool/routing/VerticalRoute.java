@@ -62,7 +62,7 @@ public class VerticalRoute {
     /** start of the vertical route */          private PortProto startPort;
     /** end of the vertical route */            private PortProto endPort;
     /** list of arcs and nodes to make route */ private SpecifiedRoute specifiedRoute;
-    /** list of all valid specified routes */   private List allSpecifiedRoutes;
+    /** list of all valid specified routes */   private List<SpecifiedRoute> allSpecifiedRoutes;
     /** first arc (from startRE) */             private ArcProto startArc;
     /** last arct (to endRE) */                 private ArcProto endArc;
 
@@ -76,7 +76,7 @@ public class VerticalRoute {
     private static final boolean DEBUGSEARCH = false;
     private static final boolean DEBUGTERSE = false;
 
-    private static class SpecifiedRoute extends ArrayList {
+    private static class SpecifiedRoute extends ArrayList<Object> {
         ArcProto startArc;
         ArcProto endArc;
 
@@ -296,7 +296,7 @@ public class VerticalRoute {
         if (specifiedRoute.size() == 0) return route;
         if (DEBUG) {
             System.out.println("Building route: ");
-            for (Iterator it = specifiedRoute.iterator(); it.hasNext(); ) {
+            for (Iterator<Object> it = specifiedRoute.iterator(); it.hasNext(); ) {
                 System.out.println("  "+it.next());
             }
         }
@@ -310,7 +310,7 @@ public class VerticalRoute {
         route.setEnd(node);
 
         // now iterate through rest of list and create arc,port route element pairs
-        for (Iterator it = specifiedRoute.iterator(); it.hasNext(); ) {
+        for (Iterator<Object> it = specifiedRoute.iterator(); it.hasNext(); ) {
             ArcProto ap = (ArcProto)it.next();
             PrimitivePort port = (PrimitivePort)it.next();
 
@@ -338,7 +338,7 @@ public class VerticalRoute {
     private boolean specifyRoute(ArcProto [] startArcs, ArcProto [] endArcs) {
 
         specifiedRoute = new SpecifiedRoute();
-        allSpecifiedRoutes = new ArrayList();
+        allSpecifiedRoutes = new ArrayList<SpecifiedRoute>();
         this.startArc = null;
         this.endArc = null;
 
@@ -363,7 +363,7 @@ public class VerticalRoute {
 
         // choose shortest route
         specifiedRoute = (SpecifiedRoute)allSpecifiedRoutes.get(0);
-        List zeroLengthRoutes = new ArrayList();
+        List<SpecifiedRoute> zeroLengthRoutes = new ArrayList<SpecifiedRoute>();
         for (int i=0; i<allSpecifiedRoutes.size(); i++) {
             SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(i);
             if (r.size() < specifiedRoute.size()) specifiedRoute = r;
@@ -372,7 +372,7 @@ public class VerticalRoute {
         // if multiple ways to connect that use only one wire, choose
         // the one that uses the current wire, if any.
         if (zeroLengthRoutes.size() > 0) {
-            for (Iterator it = zeroLengthRoutes.iterator(); it.hasNext(); ) {
+            for (Iterator<SpecifiedRoute> it = zeroLengthRoutes.iterator(); it.hasNext(); ) {
                 SpecifiedRoute r = (SpecifiedRoute)it.next();
                 if (r.startArc == User.getUserTool().getCurrentArcProto())
                     specifiedRoute = r;
@@ -427,12 +427,12 @@ public class VerticalRoute {
 
         // see if we can find a port in the current technology
         // that will connect the two arcs
-		for (Iterator nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
+		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
 			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
             // ignore anything that is noy CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 
-			for (Iterator portsIt = pn.getPorts(); portsIt.hasNext(); ) {
+			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
 				PrimitivePort pp = (PrimitivePort)portsIt.next();
 				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
 				if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
@@ -444,12 +444,12 @@ public class VerticalRoute {
 		}
 
         // try all contact ports as an intermediate
-		for (Iterator nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
+		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
 			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
             // ignore anything that is noy CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 
-			for (Iterator portsIt = pn.getPorts(); portsIt.hasNext(); ) {
+			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
 				PrimitivePort pp = (PrimitivePort)portsIt.next();
 				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
 				if (pp.connectsTo(startArc)) {
@@ -518,7 +518,7 @@ public class VerticalRoute {
         boolean trim = true;
         while (trim) {
             // remove shorter routes
-            Iterator it = null;
+            Iterator<SpecifiedRoute> it = null;
             for (it = allSpecifiedRoutes.iterator(); it.hasNext(); ) {
                 SpecifiedRoute r = (SpecifiedRoute)it.next();
                 if (r.size() > shortestLength) {

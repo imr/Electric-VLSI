@@ -81,7 +81,7 @@ public class IRSIM extends Output
 	 * @param context the hierarchical context to the cell.
 	 * @return a List of ComponentInfoOLD objects that describes the circuit.
 	 */
-	public static List getIRSIMComponents(Cell cell, VarContext context)
+	public static List<Object> getIRSIMComponents(Cell cell, VarContext context)
 	{
 		// gather all components
 		IRSIM out = new IRSIM(cell);

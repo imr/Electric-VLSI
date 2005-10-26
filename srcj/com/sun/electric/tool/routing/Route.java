@@ -34,6 +34,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Specifies a route to be created.  Note that the order if items
@@ -43,7 +44,7 @@ import java.util.Iterator;
  * Author: gainsley
  */
 
-public class Route extends ArrayList {
+public class Route extends ArrayList<RouteElement> {
 
     private RouteElementPort routeStart;       // start of route
     private RouteElementPort routeEnd;         // end of route
@@ -63,7 +64,7 @@ public class Route extends ArrayList {
      * in the order they are returned by the route iterator, and having
      * the same start and end RouteElement (if Collection is a Route).
      */
-    public Route(Collection c) {
+    public Route(Collection<RouteElement> c) {
         super(c);
         if (c instanceof Route) {
             Route r = (Route)c;
@@ -147,7 +148,7 @@ public class Route extends ArrayList {
         assert(contains(bisectPin));
 
         boolean success = true;
-        for (Iterator it = iterator(); it.hasNext(); ) {
+        for (Iterator<RouteElement> it = iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
             if (re instanceof RouteElementArc) {
                 RouteElementArc reArc = (RouteElementArc)re;
@@ -181,7 +182,7 @@ public class Route extends ArrayList {
         // if the pins is exported, do not replace
         if (pi.getExports().hasNext()) return false;
 
-        ArrayList newElements = new ArrayList();
+        List<RouteElementArc> newElements = new ArrayList<RouteElementArc>();
         Cell cell = replacementRE.getCell();
         boolean replace = true;
 
@@ -193,7 +194,7 @@ public class Route extends ArrayList {
         }
 
         // if any connection cannot be remade to replacement, abort
-        for (Iterator it = pi.getConnections(); it.hasNext(); ) {
+        for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
             Connection conn = (Connection)it.next();
             if (replacementRE.getPortProto().connectsTo(conn.getArc().getProto())) {
                 // possible to connect, check location
@@ -228,7 +229,7 @@ public class Route extends ArrayList {
             //System.out.println("Replacing "+pinRE+" with "+replacementRE);
             RouteElementPort delPort = RouteElementPort.deleteNode(ni);
             add(delPort);
-            for (Iterator it = newElements.iterator(); it.hasNext(); ) {
+            for (Iterator<RouteElementArc> it = newElements.iterator(); it.hasNext(); ) {
                 RouteElement e = (RouteElement)it.next();
                 add(e);
             }

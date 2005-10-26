@@ -1062,14 +1062,14 @@ public class Sim
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
 	 */
-	private void inputSim(URL simFileURL, List<ExtractedPBucket> components)
+	private void inputSim(URL simFileURL, List<Object> components)
 	{
 		if (components != null)
 		{
             Technology layoutTech = Schematics.getDefaultSchematicTechnology();
             double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
 			// load the circuit from memory
-			for(Iterator<ExtractedPBucket> it = components.iterator(); it.hasNext(); )
+			for(Iterator<Object> it = components.iterator(); it.hasNext(); )
 			{
 				ExtractedPBucket pb = (ExtractedPBucket)it.next();
 
@@ -1253,7 +1253,7 @@ public class Sim
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
 	}
 
-	public boolean readNetwork(URL simFileURL, List<ExtractedPBucket> components)
+	public boolean readNetwork(URL simFileURL, List<Object> components)
 	{
 		readTransistorList = new ArrayList<Trans>();
 		nodeHash = new HashMap<String,Node>();

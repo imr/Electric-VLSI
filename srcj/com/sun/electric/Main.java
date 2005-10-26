@@ -287,7 +287,7 @@ public final class Main
      * command line args. If present, return true and remove if from the list.
      * Otherwise, return false.
      */
-    private static boolean hasCommandLineOption(List argsList, String option) 
+    private static boolean hasCommandLineOption(List<String> argsList, String option) 
     {
         for (int i=0; i<argsList.size(); i++) {
             if (((String)argsList.get(i)).equals(option)) {
@@ -301,7 +301,7 @@ public final class Main
     /** get command line option for 'option'. Returns null if 
      * no such 'option'.  If found, remove it from the list.
      */
-    private static String getCommandLineOption(List argsList, String option)
+    private static String getCommandLineOption(List<String> argsList, String option)
     {
         for (int i=0; i<argsList.size()-1; i++) {
             if (((String)argsList.get(i)).equals(option)) {
@@ -320,7 +320,7 @@ public final class Main
     /** open any libraries specified on the command line.  This method should be 
      * called after any valid options have been parsed out
      */
-    public static void openCommandLineLibs(List argsList)
+    public static void openCommandLineLibs(List<String> argsList)
     {
         List<URL> fileURLs = new ArrayList<URL>();
         for (int i=0; i<argsList.size(); i++) {
@@ -377,10 +377,10 @@ public final class Main
 	 */
 	private static class InitDatabase extends Job
 	{
-		List argsList;
+		List<String> argsList;
 		SplashWindow sw;
 
-		protected InitDatabase(List argsList, SplashWindow sw)
+		protected InitDatabase(List<String> argsList, SplashWindow sw)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
