@@ -132,8 +132,8 @@ public class Output
 		}
 	}
 
-	/** connections comparator for writeNodeInst */		static final Comparator CONNECTIONS_ORDER = new OrderedConnections();
-	/** exports comparator for writeNodeInst */			static final Comparator EXPORTS_ORDER = new OrderedExports();
+	/** connections comparator for writeNodeInst */		static final Comparator<Connection> CONNECTIONS_ORDER = new OrderedConnections();
+	/** exports comparator for writeNodeInst */			static final Comparator<Export> EXPORTS_ORDER = new OrderedExports();
 
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;

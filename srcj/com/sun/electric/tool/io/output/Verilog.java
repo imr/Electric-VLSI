@@ -62,10 +62,10 @@ import java.util.HashMap;
 public class Verilog extends Topology
 {
 	/** A set of keywords that are reserved in Verilog */
-	private static HashSet reservedWords;
+	private static HashSet<String> reservedWords;
 	static
 	{
-		reservedWords = new HashSet();
+		reservedWords = new HashSet<String>();
 		reservedWords.add("always");
 		reservedWords.add("and");
 		reservedWords.add("assign");
@@ -294,7 +294,7 @@ public class Verilog extends Topology
             int globalSize = globals.size();
 
             // see if any globals besides power and ground to write
-            ArrayList globalsToWrite = new ArrayList();
+            ArrayList<Global> globalsToWrite = new ArrayList<Global>();
             for (int i=0; i<globalSize; i++) {
                 Global global = (Global)globals.get(i);
                 if (global == Global.power || global == Global.ground) continue;
@@ -339,9 +339,9 @@ public class Verilog extends Topology
         } */
 
 		// prepare arcs to store implicit inverters
-		HashMap implicitInverters = new HashMap();
+		HashMap<Connection,Integer> implicitInverters = new HashMap<Connection,Integer>();
 		int impInvCount = 0;
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			for(int e=0; e<2; e++)
@@ -375,7 +375,7 @@ public class Verilog extends Topology
 		StringBuffer sb = new StringBuffer();
 		sb.append("module " + cni.getParameterizedName() + "(");
 		boolean first = true;
-		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+		for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
 			CellAggregateSignal cas = (CellAggregateSignal)it.next();
 			if (cas.getExport() == null) continue;
@@ -387,7 +387,7 @@ public class Verilog extends Topology
 		writeWidthLimited(sb.toString());
 
 		// look for "wire/trireg" overrides
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Variable var = ai.getVar(WIRE_TYPE_KEY);
@@ -408,7 +408,7 @@ public class Verilog extends Topology
 
 		// write description of formal parameters to module
 		first = true;
-		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+		for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
 			CellAggregateSignal cas = (CellAggregateSignal)it.next();
 			Export pp = cas.getExport();
@@ -454,7 +454,7 @@ public class Verilog extends Topology
 		for(int wt=0; wt<2; wt++)
 		{
 			first = true;
-			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)it.next();
 				if (cas.getExport() != null) continue;
@@ -483,7 +483,7 @@ public class Verilog extends Topology
 		}
 
 		// write "wire/trireg" declarations for internal busses
-		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+		for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
 			CellAggregateSignal cas = (CellAggregateSignal)it.next();
 			if (cas.getExport() != null) continue;
@@ -521,7 +521,7 @@ public class Verilog extends Topology
 			printWriter.print("  /* automatically generated Verilog */\n");
 
 		// look at every node in this cell
-		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
+		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
 			NodeProto niProto = no.getProto();
@@ -531,7 +531,7 @@ public class Verilog extends Topology
 			if (niProto instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
-				Iterator pIt = ni.getPortInsts();
+				Iterator<PortInst> pIt = ni.getPortInsts();
 				if (pIt.hasNext())
 				{
 					boolean allConnected = true;
@@ -592,7 +592,7 @@ public class Verilog extends Topology
 					NodeInst ni = (NodeInst)no;
 					for(int i=0; i<2; i++)
 					{
-						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 						{
 							Connection con = (Connection)cIt.next();
 							PortInst pi = con.getPortInst();
@@ -707,7 +707,7 @@ public class Verilog extends Topology
 			{
 				case 0:		// explicit ports (for cell instances)
 					CellNetInfo subCni = getCellNetInfo(nodeName);
-					for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
+					for(Iterator<CellAggregateSignal> sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 					{
 						CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
 
@@ -747,7 +747,7 @@ public class Verilog extends Topology
 					ni = (NodeInst)no;
 					for(int i=0; i<2; i++)
 					{
-						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 						{
 							Connection con = (Connection)cIt.next();
 							PortInst pi = con.getPortInst();
@@ -790,7 +790,7 @@ public class Verilog extends Topology
 					Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 					for(int i=0; i<2; i++)
 					{
-						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+						for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 						{
 							PortInst pi = (PortInst)pIt.next();
 							Network net = netList.getNetwork(pi);
@@ -840,7 +840,7 @@ public class Verilog extends Topology
 
 	private String chooseNodeName(NodeInst ni, String positive, String negative)
 	{
-		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+		for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 		{
 			Connection con = (Connection)aIt.next();
 			if (con.isNegated() &&
@@ -1036,7 +1036,7 @@ public class Verilog extends Topology
 	{
 		// write out any directly-typed Verilog code
 		boolean first = true;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Generic.tech.invisiblePinNode) continue;

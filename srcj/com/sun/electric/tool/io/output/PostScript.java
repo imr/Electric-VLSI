@@ -91,7 +91,7 @@ public class PostScript extends Output
 	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
 	/** the EditWindow in which the cell resides. */					private EditWindow wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
-	/** list of patterns emitted so far. */								private HashMap patternsEmitted;
+	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
@@ -374,7 +374,7 @@ public class PostScript extends Output
 
 
 		// initialize list of EGraphics modules that have been put out
-		patternsEmitted = new HashMap();
+		patternsEmitted = new HashMap<EGraphics,Integer>();
 		psNumPatternsEmitted = 0;
 	}
 
@@ -518,8 +518,8 @@ public class PostScript extends Output
 		if (psUseColor)
 		{
 			// color: plot layers in proper order
-			List layerList = Technology.getCurrent().getLayersSortedByHeight();
-			for(Iterator it = layerList.iterator(); it.hasNext(); )
+			List<Layer> layerList = Technology.getCurrent().getLayersSortedByHeight();
+			for(Iterator<Layer> it = layerList.iterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				currentLayer = layer.getIndex() + 1;
@@ -541,7 +541,7 @@ public class PostScript extends Output
         if (job != null && job.checkAbort()) return;
 
 		// write the cells
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			AffineTransform subRot = ni.rotateOut();
@@ -606,7 +606,7 @@ public class PostScript extends Output
 			if (topLevel && User.isTextVisibilityOnExport())
 			{
 				int exportDisplayLevel = User.getExportDisplayLevel();
-				for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
 					Poly poly = e.getNamePoly();
@@ -643,7 +643,7 @@ public class PostScript extends Output
 		}
 
 		// write the arcs
-		for (Iterator it = cell.getArcs(); it.hasNext();)
+		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 		{
     		ArcInst ai = (ArcInst) it.next();
 			ArcProto ap = ai.getProto();
@@ -676,13 +676,13 @@ public class PostScript extends Output
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
 		boolean[] shownPorts = new boolean[numPorts];
-		for(Iterator it = ni.getConnections(); it.hasNext();)
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
 			Connection con = (Connection) it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
-		for(Iterator it = ni.getExports(); it.hasNext();)
+		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
 			Export exp = (Export) it.next();
 			PortInst pi = exp.getOriginalPort();
@@ -739,10 +739,10 @@ public class PostScript extends Output
 	{
 		// see if there are synchronization links
 		boolean syncOther = false;
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell aCell = (Cell)cIt.next();
 				Variable var = aCell.getVar(IOTool.POSTSCRIPT_FILENAME);
@@ -779,10 +779,10 @@ public class PostScript extends Output
 	{
 		// synchronize all cells
 		int numSyncs = 0;
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library oLib = (Library)lIt.next();
-			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
 				String syncFileName = IOTool.getPrintEPSSynchronizeFile(oCell);

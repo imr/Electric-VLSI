@@ -113,7 +113,7 @@ public class Silos extends Topology
 		}
 
 		// First look for any global sources
-		for(Iterator it = topCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;	// only real sources
@@ -175,7 +175,7 @@ public class Silos extends Topology
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
 		// Read a behavior file if it is available
-		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell oCell = (Cell)it.next();
 			Variable var = oCell.getVar(SILOS_BEHAVIOR_FILE_KEY);
@@ -211,7 +211,7 @@ public class Silos extends Topology
 		 * There was no behavior file...
 		 * Get the SILOS model from the library if it exists
 		 */
-		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell oCell = (Cell)it.next();
 			Variable var = oCell.getVar(SILOS_MODEL_KEY);
@@ -241,7 +241,7 @@ public class Silos extends Topology
 				System.out.println(" truncated to " + name);
 			}
 			writeWidthLimited(".MACRO " + convertName(name));
-			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)it.next();
 				if (cas.getExport() == null) continue;
@@ -252,7 +252,7 @@ public class Silos extends Topology
 		} else writeWidthLimited("\n");
 
 		// write the cell instances
-		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
+		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
 			NodeProto niProto = no.getProto();
@@ -261,7 +261,7 @@ public class Silos extends Topology
 				String nodeName = parameterizedName(no, context);
 				CellNetInfo subCni = getCellNetInfo(nodeName);
 				writeWidthLimited("(" + no.getName() + " " + convertName(nodeName));
-				for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
+				for(Iterator<CellAggregateSignal> sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 				{
 					CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
 					if (cas.isSupply()) continue;
@@ -296,7 +296,7 @@ public class Silos extends Topology
 		}
 
 		// write the primitives
-		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
+		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
 			NodeProto niProto = no.getProto();
@@ -315,7 +315,7 @@ public class Silos extends Topology
 					writeWidthLimited(getPrimitiveName(ni, false));
 
 					// write the names of the port(s)
-					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
 						writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
@@ -346,7 +346,7 @@ public class Silos extends Topology
 				{
 					// Gates use their output port as a name
 					PortProto outPP = null;
-					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
 						if (pp.getCharacteristic() == PortCharacteristic.OUT)
@@ -359,7 +359,7 @@ public class Silos extends Topology
 
 							// determine if this proto is negated
 							Connection con = null;
-							for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+							for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 							{
 								Connection c = (Connection)aIt.next();
 								if (c.getPortInst().getPortProto() == pp) { con = c;   break; }
@@ -379,7 +379,7 @@ public class Silos extends Topology
 					writeWidthLimited(getFallTime(ni));
 
 					// write the rest of the ports only if they're connected
-					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
 						Connection con = (Connection)aIt.next();
 						PortProto pp = con.getPortInst().getPortProto(); 
@@ -393,7 +393,7 @@ public class Silos extends Topology
 				if (nodeType == PrimitiveNode.Function.CAPAC)
 				{
 					// find a connected port for the node name
-					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
 						Connection con = (Connection)aIt.next();
 
@@ -646,7 +646,7 @@ public class Silos extends Topology
 
 		if (con == null)
 		{
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection c = (Connection)it.next();
 				PortInst pi = c.getPortInst();
@@ -764,7 +764,7 @@ public class Silos extends Topology
 	private void writeFlipFlop(boolean top, NodeInst ni, Cell np, PrimitiveNode.Function type, Netlist netList, CellNetInfo cni)
 	{
 		String [] portNames = new String[7];
-		Iterator it = ni.getProto().getPorts();
+		Iterator<PortProto> it = ni.getProto().getPorts();
 		for(int i=0; i<7; i++)
 		{
 			if (!it.hasNext()) break;

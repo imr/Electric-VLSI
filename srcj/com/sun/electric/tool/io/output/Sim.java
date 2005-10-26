@@ -33,6 +33,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -54,7 +55,7 @@ import java.util.Set;
  */
 public class Sim extends Output
 {
-	private HashMap globalNetNames;
+	private HashMap<Integer,String> globalNetNames;
 	private int globalNetVDD, globalNetGND, globalNetPhi1H, globalNetPhi1L, globalNetPhi2H, globalNetPhi2L;
 	/** key of Variable holding COSMOS attributes. */	private static final Variable.Key COSMOS_ATTRIBUTE_KEY = Variable.newKey("SIM_cosmos_attribute");
 
@@ -109,7 +110,7 @@ public class Sim extends Output
 
 	private void init(Cell cell, String netfile, FileType format)
 	{
-		globalNetNames = new HashMap();
+		globalNetNames = new HashMap<Integer,String>();
 
 		printWriter.println("| " + netfile);
 		emitCopyright("| ", "");
@@ -144,7 +145,7 @@ public class Sim extends Output
 		if (top)
 		{
 			globalNetVDD = globalNetGND = globalNetPhi1H = globalNetPhi1L = globalNetPhi2H = globalNetPhi2L = -1;
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				Network net = netList.getNetwork(e, 0);
@@ -168,10 +169,10 @@ public class Sim extends Output
 		}
 
 		// reset the arcinst node values
-		Set netsSeen = new HashSet();
+		Set<Network> netsSeen = new HashSet<Network>();
 	
 		// set every arcinst to a global node number (from inside or outside)
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Network net = netList.getNetwork(ai, 0);
@@ -181,7 +182,7 @@ public class Sim extends Output
 
 			// calculate parasitics for this network
 			double darea = 0, dperim = 0, parea = 0, pperim = 0, marea = 0, mperim = 0;
-			for(Iterator oIt = cell.getArcs(); oIt.hasNext(); )
+			for(Iterator<ArcInst> oIt = cell.getArcs(); oIt.hasNext(); )
 			{
 				ArcInst oAi = (ArcInst)oIt.next();
 				Network oNet = netList.getNetwork(oAi, 0);
@@ -235,7 +236,7 @@ public class Sim extends Output
 		if (format == FileType.COSMOS)
 		{
 			// Test each arc for attributes
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				Variable var = ai.getVar(COSMOS_ATTRIBUTE_KEY);
@@ -249,7 +250,7 @@ public class Sim extends Output
 		}
 
 		// look at every nodeinst in the cell
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			PrimitiveNode.Function fun = ni.getFunction();

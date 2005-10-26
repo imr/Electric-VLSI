@@ -71,9 +71,9 @@ import javax.swing.JOptionPane;
  */
 public class ELIB extends Output
 {
-	/** map with "next in cell group" pointers */				private HashMap cellInSameGroup = new HashMap();
+	/** map with "next in cell group" pointers */				private HashMap<Cell,Cell> cellInSameGroup = new HashMap<Cell,Cell>();
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
-	/** map to assign indices to cell names (for 6.XX) */		private TreeMap cellIndexMap = new TreeMap(TextUtils.STRING_NUMBER_ORDER);
+	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
 
 	ELIB()
 	{
@@ -120,22 +120,22 @@ public class ELIB extends Output
 		int portProtoIndex = 0;
 		int nodeProtoIndex = 0;
 		int arcIndex = 0;
-		HashSet cellGroups = new HashSet();
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			putObjIndex(cell, nodeProtoIndex++);
-			for (Iterator pit = cell.getPorts(); pit.hasNext(); )
+			for (Iterator<PortProto> pit = cell.getPorts(); pit.hasNext(); )
 			{
 				Export e = (Export)pit.next();
 				putObjIndex(e, portProtoIndex++);
 			}
-			for (Iterator nit = cell.getNodes(); nit.hasNext(); )
+			for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nit.next();
 				putObjIndex(ni, nodeIndex++);
 			}
-			for (Iterator ait = cell.getArcs(); ait.hasNext(); )
+			for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)ait.next();
 				putObjIndex(ai, arcIndex++);
@@ -147,7 +147,7 @@ public class ELIB extends Output
 			{
 				cellGroups.add(cellGroup);
 				// mark the group with "next" pointers
-				Iterator git = cellGroup.getCells();
+				Iterator<Cell> git = cellGroup.getCells();
 				Cell firstCellInGroup = (Cell)git.next();
 				Cell lastCellInGroup = firstCellInGroup;
 				while (git.hasNext())
@@ -170,17 +170,17 @@ public class ELIB extends Output
 		int cellsHere = nodeProtoIndex;
 
 		// count and number the cells in other libraries
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library olib = (Library)it.next();
 			if (olib == lib) continue;
 			if (!objInfo.containsKey(olib));
-			for(Iterator cit = olib.getCells(); cit.hasNext(); )
+			for(Iterator<Cell> cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
 				if (!objInfo.containsKey(cell)) continue;
 				putObjIndex(cell, nodeProtoIndex++);
-				for (Iterator pit = cell.getPorts(); pit.hasNext(); )
+				for (Iterator<PortProto> pit = cell.getPorts(); pit.hasNext(); )
 				{
 					Export e = (Export)pit.next();
 					putObjIndex(e, portProtoIndex++);
@@ -203,17 +203,17 @@ public class ELIB extends Output
 		int arcProtoIndex = 0;
 		int[] primNodeCounts = new int[Technology.getNumTechnologies()];
 		int[] primArcCounts = new int[Technology.getNumTechnologies()];
-		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
 			int primNodeStart = primNodeProtoIndex;
-			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
+			for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
 				if (!objInfo.containsKey(np)) continue;
 				putObjIndex(np, -2 - primNodeProtoIndex++);
-				for (Iterator pit = np.getPorts(); pit.hasNext(); )
+				for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pit.next();
 					putObjIndex(pp, -2 - primPortProtoIndex++);
@@ -221,7 +221,7 @@ public class ELIB extends Output
 			}
 			primNodeCounts[techCount] = primNodeProtoIndex - primNodeStart;
 			int primArcStart = arcProtoIndex;
-			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
+			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)ait.next();
 				if (!objInfo.containsKey(ap)) continue;
@@ -233,7 +233,7 @@ public class ELIB extends Output
 
 		// count the number of tools
 		int toolCount = 0;
-		for (Iterator it = Tool.getTools(); it.hasNext(); )
+		for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (!objInfo.containsKey(tool)) continue;
@@ -256,9 +256,9 @@ public class ELIB extends Output
 		int cellCount = 0;
 		if (compatibleWith6)
 		{
-			for(Iterator it = cellIndexMap.entrySet().iterator(); it.hasNext(); )
+			for(Iterator<Map.Entry<String,Integer>> it = cellIndexMap.entrySet().iterator(); it.hasNext(); )
 			{
-				Map.Entry e = (Map.Entry)it.next();
+				Map.Entry<String,Integer> e = (Map.Entry<String,Integer>)it.next();
 				e.setValue(new Integer(cellCount++));
 			}
 			writeBigInteger(cellCount);
@@ -287,8 +287,8 @@ public class ELIB extends Output
 		putObjIndex(View.NETLISTRSIM, -13);			// unknown in C
 		putObjIndex(View.NETLISTSILOS, -14);		// unknown in C
 		putObjIndex(View.VERILOG, -15);
-		List viewsToSave = new ArrayList();
-		for(Iterator it = View.getViews(); it.hasNext(); )
+		List<View> viewsToSave = new ArrayList<View>();
+		for(Iterator<View> it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
 			if (objInfo.get(view) != null) continue;
@@ -297,7 +297,7 @@ public class ELIB extends Output
 			putObjIndex(view, viewsToSave.size());
 		}
 		writeBigInteger(viewsToSave.size());
-		for(Iterator it = viewsToSave.iterator(); it.hasNext(); )
+		for(Iterator<View> it = viewsToSave.iterator(); it.hasNext(); )
 		{
 			View view = (View)it.next();
 			writeString(view.getFullName());
@@ -305,7 +305,7 @@ public class ELIB extends Output
 		}
 
 		// write total number of arcinsts, nodeinsts, and ports in each cell
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			writeBigInteger(cell.getNumArcs());
@@ -314,12 +314,12 @@ public class ELIB extends Output
 		}
 
 		// write dummy numbers of arcinsts and nodeinst; count ports for external cells
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library olib = (Library)it.next();
 			if (olib == lib) continue;
 			if (!objInfo.containsKey(olib)) continue;
-			for(Iterator cit = olib.getCells(); cit.hasNext(); )
+			for(Iterator<Cell> cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
 				if (!objInfo.containsKey(cell)) continue;
@@ -331,7 +331,7 @@ public class ELIB extends Output
 
 		// write the names of technologies and primitive prototypes
 		techCount = 0;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
@@ -341,7 +341,7 @@ public class ELIB extends Output
 
 			// write the primitive node prototypes
 			writeBigInteger(primNodeCounts[techCount]);
-			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
+			for(Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
 				if (!objInfo.containsKey(np)) continue;
@@ -349,7 +349,7 @@ public class ELIB extends Output
 				// write the primitive node prototype name
 				writeString(np.getName());
 				writeBigInteger(np.getNumPorts());
-				for(Iterator pit = np.getPorts(); pit.hasNext(); )
+				for(Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pit.next();
 					writeString(pp.getName());
@@ -358,7 +358,7 @@ public class ELIB extends Output
 
 			// write the primitive arc prototype names
 			writeBigInteger(primArcCounts[techCount]);
-			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
+			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)ait.next();
 				if (!objInfo.containsKey(ap)) continue;
@@ -368,7 +368,7 @@ public class ELIB extends Output
 		}
 
 		// write the names of the tools
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (!objInfo.containsKey(tool)) continue;
@@ -380,7 +380,7 @@ public class ELIB extends Output
 		//writeBigInteger(lib.lowLevelGetUserBits());
 
 		// write the tool scale values
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
@@ -394,7 +394,7 @@ public class ELIB extends Output
 		writeVariables(lib, 0);
 
 		// write the tool variables
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (!objInfo.containsKey(tool)) continue;
@@ -402,7 +402,7 @@ public class ELIB extends Output
 		}
 
 		// write the variables on technologies
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
@@ -427,7 +427,7 @@ public class ELIB extends Output
 		if (compatibleWith6)
 		{
 			String [] cellNames = new String[cellCount];
-			for(Iterator it = cellIndexMap.keySet().iterator(); it.hasNext(); )
+			for(Iterator<String> it = cellIndexMap.keySet().iterator(); it.hasNext(); )
 			{
 				String cellName = (String)it.next();
 				writeString(cellName);
@@ -436,19 +436,19 @@ public class ELIB extends Output
 		}
 
 		// write all of the cells in this library
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			writeNodeProto(cell, true);
 		}
 
 		// write all of the cells in external libraries
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library olib = (Library)it.next();
 			if (olib == lib) continue;
 			if (!objInfo.containsKey(olib)) continue;
-			for(Iterator cit = olib.getCells(); cit.hasNext(); )
+			for(Iterator<Cell> cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
 				if (!objInfo.containsKey(cell)) continue;
@@ -457,15 +457,15 @@ public class ELIB extends Output
 		}
 
 		// write all of the arcs and nodes in this library
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
+			for(Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)ait.next();
 				writeArcInst(ai);
 			}
-			for(Iterator nit = cell.getNodes(); nit.hasNext(); )
+			for(Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nit.next();
 				writeNodeInst(ni);
@@ -535,7 +535,7 @@ public class ELIB extends Output
 		writeBigInteger(cell.getNumPorts());
 
 		// write the portprotos on this nodeproto
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			if (thislib)
@@ -640,12 +640,12 @@ public class ELIB extends Output
 		if (numConnections > 0)
 		{
 			// must write connections in proper order
-			List sortedList = new ArrayList();
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			List<Connection> sortedList = new ArrayList<Connection>();
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				sortedList.add(it.next());
 			Collections.sort(sortedList, CONNECTIONS_ORDER);
 
-			for(Iterator it = sortedList.iterator(); it.hasNext(); )
+			for(Iterator<Connection> it = sortedList.iterator(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
@@ -667,12 +667,12 @@ public class ELIB extends Output
 		if (numExports > 0)
 		{
 			// must write exports in proper order
-			List sortedList = new ArrayList();
-			for(Iterator it = ni.getExports(); it.hasNext(); )
+			List<Export> sortedList = new ArrayList<Export>();
+			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				sortedList.add(it.next());
 			Collections.sort(sortedList, EXPORTS_ORDER);
 
-			for(Iterator it = sortedList.iterator(); it.hasNext(); )
+			for(Iterator<Export> it = sortedList.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				writeObj(pp);
@@ -771,7 +771,7 @@ public class ELIB extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
+			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
                 for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
@@ -803,7 +803,7 @@ public class ELIB extends Output
 		writeBigInteger(count);
 
 		// write the variables
-		for(Iterator it = obj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			writeVariable(obj, var, scale);
@@ -813,11 +813,11 @@ public class ELIB extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
+			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
 				if (pi.getNumVariables() == 0) continue;
-				for (Iterator it = pi.getVariables(); it.hasNext(); )
+				for (Iterator<Variable> it = pi.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
 						writeVariable(pi, var, scale);
@@ -927,9 +927,9 @@ public class ELIB extends Output
 	private void writeMeaningPrefs(Object obj)
 		throws IOException
 	{
-		List prefs = Pref.getMeaningVariables(obj);
+		List<Pref> prefs = Pref.getMeaningVariables(obj);
 		writeBigInteger(prefs.size());
-		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = prefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			writeVariableName(pref.getPrefName());

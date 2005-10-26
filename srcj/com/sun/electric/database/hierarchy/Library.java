@@ -521,8 +521,12 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
-        System.out.print("Checking " + this);
-        if (repair) System.out.print(" for repair");
+		boolean verbose = !isHidden();
+		if (verbose)
+		{
+	        System.out.print("Checking " + this);
+	        if (repair) System.out.print(" for repair");
+		}
 
 		for(Iterator<Cell> it = getCells(); it.hasNext(); )
 		{
@@ -531,17 +535,18 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 		}
 		if (errorCount != 0)
         {
-
             if (repair)
             {
-                System.out.println("... library repaired");
+				if (verbose) System.out.println("... library repaired");
 			    setChanged();
-            }
-            else
-                System.out.println("... library has to be repaired");
+            } else
+			{
+				if (verbose) System.out.println("... library has to be repaired");
+			}
+		} else
+		{
+			if (verbose) System.out.println("... library checked");
 		}
-        else
-            System.out.println("... library checked");
 		return errorCount;
 	}
 
