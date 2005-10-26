@@ -1033,7 +1033,7 @@ public class EditWindow extends JPanel
 	 * Composites the image (taken from the PixelDrawing object)
 	 * with the grid, highlight, and any dragging rectangle.
 	 */
-	public void paint(Graphics g)
+	public void paintComponent(Graphics g)
 	{
 		// to enable keys to be received
 		if (wf == null) return;
@@ -1157,11 +1157,11 @@ public class EditWindow extends JPanel
 		}
 
 		// draw any components that are on top (such as in-line text edits)
-		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
-		{
-			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
-			tl.getTextComponent().paint(g);
-		}
+//		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
+//		{
+//			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
+//			tl.getTextComponent().paint(g);
+//		}
 //		super.paint(g);
 
 		// see if anything else is queued
