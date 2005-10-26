@@ -249,7 +249,7 @@ public class Pref
 			System.out.println("Importing preferences...");
 
 			// reset all preferences to factory values
-			for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+			for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 			{
 				Pref pref = (Pref)it.next();
 				switch (pref.type)
@@ -282,7 +282,7 @@ public class Pref
 			inputStream.close();
 
 			// recache all prefs
-			for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+			for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 			{
 				Pref pref = (Pref)it.next();
 				switch (pref.type)
@@ -307,7 +307,7 @@ public class Pref
 			}
 
 			// recache technology color information
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				tech.cacheTransparentLayerColors();
@@ -782,7 +782,7 @@ public class Pref
             if (m.eObj == eObj) return m;
         }
 */
-		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
@@ -804,7 +804,7 @@ public class Pref
 	public static List<Pref> getMeaningVariables(Object ownerObj)
 	{
 		ArrayList<Pref> prefs = new ArrayList<Pref>();
-		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
@@ -869,14 +869,14 @@ public class Pref
 	 */
 	public static void reconcileMeaningVariables(String libName)
 	{
-		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
 			pref.meaning.marked = false;
 		}
 		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
-		for(Iterator it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
+		for(Iterator<Map.Entry<Meaning,Object>> it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
 		{
 			Map.Entry entry = (Map.Entry)it.next();
 			Meaning meaning = (Meaning)entry.getKey();
@@ -888,7 +888,7 @@ public class Pref
 //System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.ownerObj+" is "+value+" but is cached as "+meaning.pref.cachedObj);
 			meaningsToReconcile.add(meaning);
 		}
-		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
@@ -906,9 +906,9 @@ public class Pref
 		if (meaningsToReconcile.size() == 0) return;
 		if (Main.BATCHMODE)
 		{
-			for(Iterator it = meaningsToReconcile.iterator(); it.hasNext(); )
+			for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
 			{
-				Pref.Meaning meaning = (Pref.Meaning)it.next();
+				Meaning meaning = (Meaning)it.next();
 				Pref pref = meaning.getPref();
 
 //				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());

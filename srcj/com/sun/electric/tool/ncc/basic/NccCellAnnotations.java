@@ -112,9 +112,9 @@ public class NccCellAnnotations {
 	/** used for error messages */
 	private String cellThatOwnsMe;
 	/** unprocessed annotation text */
-	private List annotText = new ArrayList();
+	private List<String> annotText = new ArrayList<String>();
 	/** NamePatterns matching Exports connected by parent cell */
-	private List exportsConnByParent = new ArrayList();
+	private List<List<NamePattern>> exportsConnByParent = new ArrayList<List<NamePattern>>();
 	/** reason given by user for skipping NCC of this Cell */
 	private String skipReason;
 	/** reason given by user for treating this Cell as a subcircuit 
@@ -123,9 +123,9 @@ public class NccCellAnnotations {
 	/** the CellGroup that this cell should join */
 	private Cell.CellGroup groupToJoin;
 	/** NamePatterns matching instance names to flatten */
-	private List flattenInstances = new ArrayList();
+	private List<NamePattern> flattenInstances = new ArrayList<NamePattern>();
 	/** NamePatterns matching Export names that need renaming */
-	private List exportsToRename = new ArrayList();
+	private List<NamePattern> exportsToRename = new ArrayList<NamePattern>();
 	/** Reason why we should treat this Cell as a black box */
 	private String blackBoxReason;
 	/** Cell annotation describing type of contained MOS */
@@ -134,7 +134,7 @@ public class NccCellAnnotations {
 	private String resistorType;
 	
 	private void processExportsConnAnnot(NamePatternLexer lex) {
-		List connected = new ArrayList();
+		List<NamePattern> connected = new ArrayList<NamePattern>();
 		for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
 			connected.add(np);
 		}
@@ -300,19 +300,19 @@ public class NccCellAnnotations {
 	/** @return an Iterator over Lists of NamePatterns. Each List specifies 
 	 * the names (or regular expressions that match the names) of Exports 
 	 * that the user expects to be connected by the Cell's parent. */  
-	public Iterator getExportsConnected() {return exportsConnByParent.iterator();}
+	public Iterator<List<NamePattern>> getExportsConnected() {return exportsConnByParent.iterator();}
 	
 	public Iterator getAnnotationText() {return annotText.iterator();}
 	public Cell.CellGroup getGroupToJoin() {return groupToJoin;}
 	public boolean flattenInstance(String instName) {
-		for (Iterator it=flattenInstances.iterator(); it.hasNext();) {
+		for (Iterator<NamePattern> it=flattenInstances.iterator(); it.hasNext();) {
 			NamePattern pattern = (NamePattern) it.next();
 			if (pattern.matches(instName)) return true;
 		}
 		return false;
 	}
 	public boolean renameExport(String exportName) {
-		for (Iterator it=exportsToRename.iterator(); it.hasNext();) {
+		for (Iterator<NamePattern> it=exportsToRename.iterator(); it.hasNext();) {
 			NamePattern pattern = (NamePattern) it.next();
 			if (pattern.matches(exportName)) return true;
 		}

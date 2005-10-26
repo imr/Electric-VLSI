@@ -59,7 +59,7 @@ public class IRSIM extends Output
         implements ParasiticGenerator
 {
     private VarContext context;
-    private List components;
+    private List<Object> components;
     private Technology technology;
 
 	/**
@@ -88,7 +88,7 @@ public class IRSIM extends Output
 		return out.getNetlist(cell, context);
 	}
 
-	private List getNetlist(Cell cell, VarContext context)
+	private List<Object> getNetlist(Cell cell, VarContext context)
 	{
         this.context = context;
         if (context == null) this.context = VarContext.globalContext;
@@ -99,7 +99,7 @@ public class IRSIM extends Output
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
 		// gather all components
-        List parasitics = getNetlist(cell, context);
+        List<Object> parasitics = getNetlist(cell, context);
 
 		// write them
 		if (openTextOutputStream(filePath)) return;
@@ -123,7 +123,7 @@ public class IRSIM extends Output
 		}
 
 		// write the components
-		for(Iterator it = parasitics.iterator(); it.hasNext(); )
+		for(Iterator<Object> it = parasitics.iterator(); it.hasNext(); )
 		{
 			ExtractedPBucket ci = (ExtractedPBucket)it.next();
             String info = ci.getInfo(layoutTech);
@@ -203,7 +203,7 @@ public class IRSIM extends Output
 
             if (fun == PrimitiveNode.Function.CONTACT)
             {
-                for (Iterator it = ni.getConnections(); it.hasNext();)
+                for (Iterator<Connection> it = ni.getConnections(); it.hasNext();)
                 {
                     Connection c = (Connection)it.next();
                     Network net = netlist.getNetwork(c.getArc(), 0);

@@ -49,9 +49,9 @@ import java.util.Set;
 public class PAL extends Output
 {
 	private Cell topCell;
-	private List equations;
-	private Set internalSymbols;
-	private Set externalSymbols;
+	private List<String> equations;
+	private Set<String> internalSymbols;
+	private Set<String> externalSymbols;
 
 	/**
 	 * The main entry point for PAL deck writing.
@@ -84,9 +84,9 @@ public class PAL extends Output
 	private void initialize(Cell cell)
 	{
 		topCell = cell;
-		equations = new ArrayList();
-		internalSymbols = new HashSet();
-		externalSymbols = new HashSet();
+		equations = new ArrayList<String>();
+		internalSymbols = new HashSet<String>();
+		externalSymbols = new HashSet<String>();
 	}
 
 	private void terminate(Cell cell)
@@ -97,13 +97,13 @@ public class PAL extends Output
 
 		// write the external and internal symbols
 		int pinNumber = 1;
-		for(Iterator it = externalSymbols.iterator(); it.hasNext(); )
+		for(Iterator<String> it = externalSymbols.iterator(); it.hasNext(); )
 		{
 			String symbol = (String)it.next();
 			printWriter.println("    " + symbol + " pin " + pinNumber + ";");
 			pinNumber++;
 		}
-		for(Iterator it = internalSymbols.iterator(); it.hasNext(); )
+		for(Iterator<String> it = internalSymbols.iterator(); it.hasNext(); )
 		{
 			String symbol = (String)it.next();
 			printWriter.println("    " + symbol + " = 0,1;");
@@ -112,7 +112,7 @@ public class PAL extends Output
 		// write the equations
 		printWriter.println("");
 		printWriter.println("equations");
-		for(Iterator it = equations.iterator(); it.hasNext(); )
+		for(Iterator<String> it = equations.iterator(); it.hasNext(); )
 		{
 			String eq = (String)it.next();
 			printWriter.println("    " + eq + ";");
@@ -159,7 +159,7 @@ public class PAL extends Output
 
 			// find output
 			Connection outputCon = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				PortInst pi = con.getPortInst();
@@ -177,7 +177,7 @@ public class PAL extends Output
 			Network oNet = netlist.getNetwork(outputCon.getPortInst());
 			sb.append(getNetName(oNet, info) + " =");
 			int count = 0;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				PortInst pi = con.getPortInst();

@@ -53,7 +53,7 @@ public class DXF extends Output
 	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = Variable.newKey("IO_dxf_header_text");
 	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = Variable.newKey("IO_dxf_header_ID");
 	private int dxfEntityHandle;
-	private Set cellsSeen;
+	private Set<Cell> cellsSeen;
 	private TextUtils.UnitScale dxfDispUnit;
 	private static String [] ignorefromheader = {"$DWGCODEPAGE", "$HANDSEED", "$SAVEIMAGES"};
 
@@ -138,8 +138,8 @@ public class DXF extends Output
 		printWriter.print("  0\nSECTION\n");
 		printWriter.print("  2\nBLOCKS\n");
 
-		cellsSeen = new HashSet();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		cellsSeen = new HashSet<Cell>();
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -166,7 +166,7 @@ public class DXF extends Output
 		if (subCells)
 		{
 			cellsSeen.add(cell);
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -181,7 +181,7 @@ public class DXF extends Output
 			printWriter.print(" 70\n0\n");
 		}
 
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -356,7 +356,7 @@ public class DXF extends Output
 			{
 				buf = cell.getName() + i;
 				boolean found = false;
-				for(Iterator it = cell.getLibrary().getCells(); it.hasNext(); )
+				for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 				{
 					Cell oCell = (Cell)it.next();
 					if (oCell.getName().equalsIgnoreCase(buf)) { found = true;   break; }

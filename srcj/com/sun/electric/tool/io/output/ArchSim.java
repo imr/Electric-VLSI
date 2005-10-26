@@ -93,7 +93,7 @@ public class ArchSim extends Output
 		printWriter.println();
 
 		// write all components
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -110,17 +110,17 @@ public class ArchSim extends Output
 			System.out.println("Sorry, a deadlock aborted netlisting (network information unavailable).  Please try again");
 			return;
 		}
-		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
-			List inputs = new ArrayList();
-			List outputs = new ArrayList();
-			for(Iterator oIt = cell.getNodes(); oIt.hasNext(); )
+			List<PortInst> inputs = new ArrayList<PortInst>();
+			List<PortInst> outputs = new ArrayList<PortInst>();
+			for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)oIt.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				if (ni.isIconOfParent()) continue;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext();)
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext();)
 				{
 					Connection con = (Connection)cIt.next();
 					PortInst pi = con.getPortInst();
@@ -141,14 +141,14 @@ public class ArchSim extends Output
 
 			// get the network name
 			String netName = null;
-			Iterator nIt = net.getNames();
+			Iterator<String> nIt = net.getNames();
 			if (nIt.hasNext()) netName = (String)nIt.next(); else
 				netName = net.describe(true);
 			printWriter.println();
 			printWriter.println("<connection name= \"" + netName + "\">");
 
 			// write the output connections ("from")
-			for(Iterator pIt = outputs.iterator(); pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = outputs.iterator(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				printWriter.println("\t<from component= \"" + pi.getNodeInst().getName() + "\" terminal=\"" +
@@ -156,7 +156,7 @@ public class ArchSim extends Output
 			}
 
 			// write the input connections ("to")
-			for(Iterator pIt = inputs.iterator(); pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = inputs.iterator(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				printWriter.println("\t<to component= \"" + pi.getNodeInst().getName() + "\" terminal=\"" +

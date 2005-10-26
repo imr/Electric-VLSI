@@ -70,7 +70,7 @@ public class CIF extends Geometry
 
 	// cif output data
 	/** cell number */									private int cellNumber = 100;
-	/** cell to cell number map */						private HashMap cellNumbers;
+	/** cell to cell number map */						private HashMap<Cell,Integer> cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
 	/** for storing generated errors */					private ErrorLogger errorLogger;
@@ -116,7 +116,7 @@ public class CIF extends Geometry
 	 */
 	CIF()
 	{
-		cellNumbers = new HashMap();
+		cellNumbers = new HashMap<Cell,Integer>();
 
 		// scale is in centimicrons, technology scale is in nanometers
 		scaleFactor = Technology.getCurrent().getScale() / 10;
@@ -196,13 +196,13 @@ public class CIF extends Geometry
 		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
 
 		// write all polys by Layer
-		Set layers = cellGeom.polyMap.keySet();
-		for (Iterator it = layers.iterator(); it.hasNext();)
+		Set<Layer> layers = cellGeom.polyMap.keySet();
+		for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
 		{
 			Layer layer = (Layer)it.next();
 			if (writeLayer(layer)) continue;
-			List polyList = (List)cellGeom.polyMap.get(layer);
-			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+			List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
+			for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
 				if (includeGeometric())
 				{
@@ -218,7 +218,7 @@ public class CIF extends Geometry
 		}
 
 		// write all instances
-		for (Iterator noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
+		for (Iterator<NodeInst> noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)noIt.next();
 			if (ni.getProto() instanceof Cell)

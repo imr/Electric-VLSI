@@ -108,7 +108,7 @@ public class MOSSIM extends Topology
 			// write ports if this cell is sub-cell
 			printWriter.println("| Cell " + cell.describe(false) + " ;");
 			printWriter.print("c " + cell.getName());
-			for(Iterator it = cni.getCellSignals(); it.hasNext(); )
+			for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 			{
 				CellSignal cs = (CellSignal)it.next();
 				if (cs.isExported()) printWriter.print(" " + cs.getName());
@@ -118,8 +118,8 @@ public class MOSSIM extends Topology
 
 		// gather strength information
 		Netlist netList = cni.getNetList();
-		HashMap strengthMap = new HashMap();
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		HashMap<Network,String> strengthMap = new HashMap<Network,String>();
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Variable var = ai.getVar(MOSSIM_STRENGTH_KEY);
@@ -129,7 +129,7 @@ public class MOSSIM extends Topology
 		}
 
 		// mark all ports that are equivalent
-		for(Iterator it = cni.getCellSignals(); it.hasNext(); )
+		for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 		{
 			CellSignal cs = (CellSignal)it.next();
 			if (cs.isPower())
@@ -166,7 +166,7 @@ public class MOSSIM extends Topology
 		}
 
 		// now write the transistors
-		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
+		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
 			NodeProto subnp = no.getProto();
@@ -178,7 +178,7 @@ public class MOSSIM extends Topology
 				infstr.append("h " + nodeName + " " + no.getName());
 
 				CellNetInfo subCni = getCellNetInfo(nodeName);
-				for(Iterator sIt = subCni.getCellSignals(); sIt.hasNext(); )
+				for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
 					CellSignal subCs = (CellSignal)sIt.next();
 					if (!subCs.isExported()) continue;

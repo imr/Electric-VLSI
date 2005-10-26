@@ -36,6 +36,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -64,8 +65,8 @@ import java.util.Iterator;
 public class LEF extends Output
 {
 	private Layer io_lefoutcurlayer;
-	private HashSet nodesSeen;
-	private HashSet arcsSeen;
+	private HashSet<NodeInst> nodesSeen;
+	private HashSet<ArcInst> arcsSeen;
 
 	/**
 	 * The main entry point for LEF deck writing.
@@ -182,10 +183,10 @@ public class LEF extends Output
 		printWriter.println("  SITE " + cell.getName() + " ;");
 		
 		// write all of the metal geometry and ports
-		nodesSeen = new HashSet();
-		arcsSeen = new HashSet();
+		nodesSeen = new HashSet<NodeInst>();
+		arcsSeen = new HashSet<ArcInst>();
 		boolean first = true;
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
 			if (first) first = false; else printWriter.println("");
@@ -247,7 +248,7 @@ public class LEF extends Output
 	{
 		Cell cell = info.getCell();
 		AffineTransform trans = info.getTransformToRoot();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
@@ -263,7 +264,7 @@ public class LEF extends Output
 		}
 	
 		// write metal layers for all arcs
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (info.isRootCell() && arcsSeen.contains(ai)) continue;
@@ -283,7 +284,7 @@ public class LEF extends Output
 	 */
 	void io_lefoutspread(Cell cell, Network net, NodeInst ignore, Netlist netList)
 	{
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
@@ -292,7 +293,7 @@ public class LEF extends Output
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
 				fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT) continue;
 			boolean found = true;
-			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				Network pNet = netList.getNetwork(pi);
@@ -313,7 +314,7 @@ public class LEF extends Output
 		}
 	
 		// write metal layers for all arcs
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Network aNet = netList.getNetwork(ai, 0);

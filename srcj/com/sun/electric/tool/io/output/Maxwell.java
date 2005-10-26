@@ -57,8 +57,8 @@ import java.util.HashMap;
  */
 public class Maxwell extends Output
 {	
-	HashMap maxNetMap;
-	HashMap boxNames;
+	HashMap<Integer,List<Integer>> maxNetMap;
+	HashMap<Integer,String> boxNames;
 	int boxNumber;
 
 	/**
@@ -93,8 +93,8 @@ public class Maxwell extends Output
 
 	private void initialize(Cell cell)
 	{
-		maxNetMap = new HashMap();
-		boxNames = new HashMap();
+		maxNetMap = new HashMap<Integer,List<Integer>>();
+		boxNames = new HashMap<Integer,String>();
 		boxNumber = 1;
 
 		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getName() + "\n");
@@ -114,14 +114,14 @@ public class Maxwell extends Output
 
 	private void terminate()
 	{
-		for(Iterator it = maxNetMap.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Integer> it = maxNetMap.keySet().iterator(); it.hasNext(); )
 		{
 			Integer index = (Integer)it.next();
-			List boxList = (List)maxNetMap.get(index);
+			List<Integer> boxList = (List<Integer>)maxNetMap.get(index);
 			if (boxList.size() <= 1) continue;
 			printWriter.print("Unite {");
 			boolean first = true;
-			for(Iterator lIt = boxList.iterator(); lIt.hasNext(); )
+			for(Iterator<Integer> lIt = boxList.iterator(); lIt.hasNext(); )
 			{
 				Integer boxNum = (Integer)lIt.next();
 				if (first) first = false; else
@@ -148,10 +148,10 @@ public class Maxwell extends Output
 
 		// find this network object
 		Integer index = new Integer(globalNetNum);
-		List boxList = (List)maxNetMap.get(index);
+		List<Integer> boxList = (List<Integer>)maxNetMap.get(index);
 		if (boxList == null)
 		{
-			boxList = new ArrayList();
+			boxList = new ArrayList<Integer>();
 			maxNetMap.put(index, boxList);
 		}
 
@@ -183,7 +183,7 @@ public class Maxwell extends Output
         {
 			// emit all node polygons
 			Netlist netList = info.getNetlist();
-			for(Iterator it = info.getCell().getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -208,7 +208,7 @@ public class Maxwell extends Output
 			}
 
 			// emit all arc polygons
-			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				Technology tech = ai.getProto().getTechnology();

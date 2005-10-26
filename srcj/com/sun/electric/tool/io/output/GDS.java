@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortOriginal;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -122,10 +123,10 @@ public class GDS extends Geometry
 	/** Position of next byte in the buffer */	private static int bufferPosition;					
 	/** Number data buffers output so far */	private static int blockCount;				
 	/** constant for GDS units */				private static double scaleFactor;				
-	/** cell naming map */						private HashMap cellNames;
-	/** layer number map */						private HashMap layerNumbers;
+	/** cell naming map */						private HashMap<Cell,String> cellNames;
+	/** layer number map */						private HashMap<Layer,GDSLayers> layerNumbers;
     /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
-    /** Name remapping if NCC annotation */     private HashMap nameRemapping;
+    /** Name remapping if NCC annotation */     private HashMap<String,Set<String>> nameRemapping;
 
 	/**
 	 * Main entry point for GDS output.
@@ -191,8 +192,8 @@ public class GDS extends Geometry
         }
 
 		// write all polys by Layer
-		Set layers = cellGeom.polyMap.keySet();
-		for (Iterator it = layers.iterator(); it.hasNext();)
+		Set<Layer> layers = cellGeom.polyMap.keySet();
+		for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
 		{
 			Layer layer = (Layer)it.next();
             // No technology associated, case when art elements are added in layout
@@ -203,8 +204,8 @@ public class GDS extends Geometry
                 System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
                 continue;
             }
-			List polyList = (List)cellGeom.polyMap.get(layer);
-			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+			List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
+			for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
 				PolyBase poly = (PolyBase)polyIt.next();
 				Integer firstLayer = (Integer)currentLayerNumbers.getFirstLayer();
@@ -215,7 +216,7 @@ public class GDS extends Geometry
 		}
 
 		// write all instances
-		for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
+		for (Iterator<Nodable> noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
 		{
 			Nodable no = (Nodable)noIt.next();
 			writeNodable(no);
@@ -224,7 +225,7 @@ public class GDS extends Geometry
 		// now write exports
 		if (IOTool.getGDSOutDefaultTextLayer() >= 0)
 		{
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 
@@ -266,27 +267,22 @@ public class GDS extends Geometry
 		outputHeader(HDR_ENDSTR, 0);
 	}
 
-    private HashMap createExportNameMap(NccCellAnnotations ann, Cell cell) {
-        HashMap nameMap = new HashMap();
-        for (Iterator it2 = ann.getExportsConnected(); it2.hasNext(); ) {
-            List list = (List)it2.next();
+    private HashMap<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell) {
+        HashMap<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
+        for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
+		{
+            List<NccCellAnnotations.NamePattern> list = (List<NccCellAnnotations.NamePattern>)it2.next();
             // list of all patterns that should be connected
-            Set connectedExports = new TreeSet(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    String s1 = (String)o1;
-                    String s2 = (String)o2;
-                    return s1.compareTo(s2);
-                }
-                public boolean equals(Object obj) {
-                    return (this == obj);
-                }
-            });
-            for (Iterator it3 = list.iterator(); it3.hasNext(); ) {
+            Set<String> connectedExports = new TreeSet<String>(new StringComparator());
+            for (Iterator<NccCellAnnotations.NamePattern> it3 = list.iterator(); it3.hasNext(); )
+			{
                 NccCellAnnotations.NamePattern pat = (NccCellAnnotations.NamePattern)it3.next();
-                for (Iterator it = cell.getPorts(); it.hasNext(); ) {
+                for (Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+				{
                     Export e = (Export)it.next();
                     String name = e.getName();
-                    if (pat.matches(name)) {
+                    if (pat.matches(name))
+					{
                         connectedExports.add(name);
                         nameMap.put(name, connectedExports);
                     }
@@ -295,7 +291,20 @@ public class GDS extends Geometry
         }
         return nameMap;
     }
-
+    private static class StringComparator implements Comparator<String>
+    {
+		/**
+		 * Method to sort Objects by their string name.
+		 */
+        public int compare(String s1, String s2)
+		{
+            return s1.compareTo(s2);
+        }
+        public boolean equals(Object obj)
+		{
+            return (this == obj);
+        }
+    }
 	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames)
 	{
 		outputHeader(HDR_TEXT, 0);
@@ -324,7 +333,7 @@ public class GDS extends Geometry
 		// now the string
 		String str = pp.getName();
         if (remapNames) {
-            Set nameSet = (Set)nameRemapping.get(str);
+            Set<String> nameSet = (Set<String>)nameRemapping.get(str);
             if (nameSet != null) {
                 str = (String)nameSet.iterator().next();
                 str = str + ":" + str;
@@ -533,12 +542,12 @@ public class GDS extends Geometry
 
 		Technology tech = topCell.getTechnology();
 		scaleFactor = tech.getScale();
-		layerNumbers = new HashMap();
-        nameRemapping = new HashMap();
+		layerNumbers = new HashMap<Layer,GDSLayers>();
+        nameRemapping = new HashMap<String,Set<String>>();
 
 		// precache the layers in this technology
 		boolean foundValid = false;
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (selectLayer(layer)) foundValid = true;
@@ -550,7 +559,7 @@ public class GDS extends Geometry
 		}
 
 		// make a hashmap of all names to use for cells
-		cellNames = new HashMap();
+		cellNames = new HashMap<Cell,String>();
         buildUniqueNames(topCell, cellNames);
 	}
 
@@ -560,10 +569,10 @@ public class GDS extends Geometry
      * @param cell the cell whose nodes and subnode cells will be given unique names.
      * @param cellNames a hashmap, key: cell, value: unique name (String).
      */
-    public static void buildUniqueNames(Cell cell, HashMap cellNames) {
+    public static void buildUniqueNames(Cell cell, HashMap<Cell,String> cellNames) {
         if (!cellNames.containsKey(cell))
             cellNames.put(cell, makeUniqueName(cell, cellNames));
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() instanceof Cell) {
                 Cell c = (Cell)ni.getProto();
@@ -576,7 +585,7 @@ public class GDS extends Geometry
         }
     }
 
-	public static String makeUniqueName(Cell cell, HashMap cellNames)
+	public static String makeUniqueName(Cell cell, HashMap<Cell,String> cellNames)
 	{
 		String name = makeGDSName(cell.getName(), IOTool.getGDSCellNameLenMax());
 		if (cell.getNewestVersion() != cell)

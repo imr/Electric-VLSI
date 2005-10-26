@@ -69,7 +69,7 @@ public class Pads extends Output
 	/** key of Variable holding package type. */			public static final Variable.Key PKG_TYPE_KEY = Variable.newKey("ATTR_pkg_type");
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
-	private List networks;
+	private List<NetNames> networks;
 
 	private static class NetNames
 	{
@@ -107,7 +107,7 @@ public class Pads extends Output
 		printWriter.println("*CLUSTER* ITEM");
 		printWriter.println("");
 		printWriter.println("*PART*");
-		networks = new ArrayList();
+		networks = new ArrayList<NetNames>();
 		PadsNetlister netlister = new PadsNetlister();
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
 //		Netlist netlist = cell.getNetlist(true);
@@ -149,12 +149,10 @@ public class Pads extends Output
 		System.out.println(filePath + " written");
 	}
 
-	private static class NetNamesSort implements Comparator
+	private static class NetNamesSort implements Comparator<NetNames>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(NetNames nn1, NetNames nn2)
 		{
-			NetNames nn1 = (NetNames)o1;
-			NetNames nn2 = (NetNames)o2;
 			String name1 = nn1.netName;
 			String name2 = nn2.netName;
 			return name1.compareToIgnoreCase(name2);
@@ -189,7 +187,7 @@ public class Pads extends Output
 			printWriter.println(nodeName + "  " + pkgType + "@" + pkgType);
 
 			// save all networks on this node for later
-			for(Iterator it = np.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				String pName = null;

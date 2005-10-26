@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -225,13 +226,13 @@ public class FastHenry extends Output
 		// look at every node in the cell
 		printWriter.println("");
 		printWriter.println("* Traces");
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			// see if this node has a FastHenry arc on it
 			boolean found = false;
 			double nodeZVal = 0;
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();
 				ArcInst ai = con.getArc();
@@ -268,7 +269,7 @@ public class FastHenry extends Output
 		}
 	
 		// look at every arc in the cell
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			// get info about this arc, stop if not part of the FastHenry output
@@ -307,16 +308,16 @@ public class FastHenry extends Output
 		printWriter.println("* External connections");
 	
 		// look at every export in the cell
-		Set arcsSeen = new HashSet();
-		Set portsSeen = new HashSet();
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
+		Set<Export> portsSeen = new HashSet<Export>();
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
 			if (portsSeen.contains(e)) continue;
 			portsSeen.add(e);
 			NodeInst ni = e.getOriginalPort().getNodeInst();
 			Connection con = null;
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
 				con = (Connection)cIt.next();
 				if (con.getArc().getVar(GROUP_NAME_KEY) != null) break;
@@ -341,7 +342,7 @@ public class FastHenry extends Output
 		}
 	
 		// warn about arcs that aren't connected to ".external" lines
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (arcsSeen.contains(ai)) continue;
@@ -350,13 +351,13 @@ public class FastHenry extends Output
 		}
 	}
 	
-	private Export sim_fasthenryfindotherport(ArcInst ai, int end, Set arcsSeen)
+	private Export sim_fasthenryfindotherport(ArcInst ai, int end, Set<ArcInst> arcsSeen)
 	{
 		arcsSeen.add(ai);
 		NodeInst ni = ai.getPortInst(end).getNodeInst();
 		if (ni.getNumExports() > 0) return (Export)ni.getExports().next();
 
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst oAi = con.getArc();

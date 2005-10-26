@@ -196,7 +196,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'C')
 			{
 				// grab a cell description
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				int numPieces = revision >= 1 ? 5 : 7;
 				if (pieces.size() < numPieces)
 				{
@@ -265,7 +265,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'L')
 			{
 				// cross-library reference
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				if (pieces.size() != 2)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -283,7 +283,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'R')
 			{
 				// cross-library cell information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				if (pieces.size() != 5 && pieces.size( ) != 7)
 // 				int numPieces = revision >= 1 ? 7 : 5;
 // 				if (pieces.size() != numPieces)
@@ -312,7 +312,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'F')
 			{
 				// cross-library export information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				if (pieces.size() != 3)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -329,7 +329,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'H')
 			{
 				// parse header
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				if (pieces.size() < 2)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -368,7 +368,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'O')
 			{
 				// parse Tool information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String toolName = unQuote((String)pieces.get(0));
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
@@ -389,7 +389,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'V')
 			{
 				// parse View information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String viewName = unQuote((String)pieces.get(0));
 				View view = View.findView(viewName);
 				if (view == null)
@@ -412,7 +412,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'T')
 			{
 				// parse Technology information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String techName = unQuote((String)pieces.get(0));
 				curTech = Technology.findTechnology(techName);
 				if (curTech == null)
@@ -434,7 +434,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'D')
 			{
 				// parse PrimitiveNode information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String primName = unQuote((String)pieces.get(0));
 				if (curTech == null)
 				{
@@ -458,7 +458,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'P')
 			{
 				// parse PrimitivePort information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String primPortName = unQuote((String)pieces.get(0));
 				if (curPrim == null)
 				{
@@ -484,7 +484,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'W')
 			{
 				// parse ArcProto information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				String arcName = unQuote((String)pieces.get(0));
 				if (curTech == null)
 				{
@@ -508,7 +508,7 @@ public class JELIB extends LibraryFiles
 			if (first == 'G')
 			{
 				// group information
-				List pieces = parseLine(line);
+				List<String> pieces = parseLine(line);
 				Cell[] groupLine = new Cell[pieces.size()];
 				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
@@ -688,7 +688,7 @@ public class JELIB extends LibraryFiles
 //			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the node line
-			List pieces = parseLine(cellString);
+			List<String> pieces = parseLine(cellString);
 			int numPieces = revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
 			if (pieces.size() < numPieces)
 			{
@@ -920,7 +920,7 @@ public class JELIB extends LibraryFiles
 //			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the export line
-			List pieces = parseLine(cellString);
+			List<String> pieces = parseLine(cellString);
 			int numPieces = revision >= 1 ? 5 : 7;
 			if (pieces.size() < numPieces)
 			{
@@ -988,7 +988,7 @@ public class JELIB extends LibraryFiles
 //			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the arc line
-			List pieces = parseLine(cellString);
+			List<String> pieces = parseLine(cellString);
 			if (pieces.size() < 13)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1130,7 +1130,7 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file being read (for error reporting).
 	 * @return the PortInst specified (null if none can be found).
 	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, Point2D pos, HashMap diskName, String fileName, int lineNumber)
+	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, Point2D pos, HashMap<String,NodeInst> diskName, String fileName, int lineNumber)
 	{
 		NodeInst ni = (NodeInst)diskName.get(nodeName);
 		if (ni == null)
@@ -1238,7 +1238,7 @@ public class JELIB extends LibraryFiles
 	 * @param line the text from the file.
 	 * @return a List of Strings.
 	 */
-	private List parseLine(String line)
+	private List<String> parseLine(String line)
 	{
 		List<String> stringPieces = new ArrayList<String>();
 		int len = line.length();
@@ -1306,7 +1306,7 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
      * @return an array of Variables. 
 	 */
-	private Variable[] readVariables(List pieces, int position, String fileName, int lineNumber)
+	private Variable[] readVariables(List<String> pieces, int position, String fileName, int lineNumber)
 	{
         variablesBuf.clear();
 		int total = pieces.size();

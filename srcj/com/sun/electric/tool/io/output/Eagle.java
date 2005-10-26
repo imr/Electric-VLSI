@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -66,7 +67,7 @@ public class Eagle extends Output
 	/** key of Variable holding package type. */			public static final Variable.Key PKG_TYPE_KEY = Variable.newKey("ATTR_pkg_type");
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
-	private List networks;
+	private List<NetNames> networks;
 
 	private static class NetNames
 	{
@@ -99,7 +100,7 @@ public class Eagle extends Output
 	{
 		if (openTextOutputStream(filePath)) return;
 
-		networks = new ArrayList();
+		networks = new ArrayList<NetNames>();
 		EagleNetlister netlister = new EagleNetlister();
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
 //		Netlist netlist = cell.getNetlist(true);
@@ -115,7 +116,7 @@ public class Eagle extends Output
 		// add all network pairs
 		Collections.sort(networks, new NetNamesSort());
 		int widestNodeName = 0, widestNetName = 0;
-		for(Iterator it = networks.iterator(); it.hasNext(); )
+		for(Iterator<NetNames> it = networks.iterator(); it.hasNext(); )
 		{
 			NetNames nn = (NetNames)it.next();
 			int nodeNameLen = nn.nodeName.length();
@@ -155,12 +156,10 @@ public class Eagle extends Output
 		System.out.println(filePath + " written");
 	}
 
-	private static class NetNamesSort implements Comparator
+	private static class NetNamesSort implements Comparator<NetNames>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(NetNames nn1, NetNames nn2)
 		{
-			NetNames nn1 = (NetNames)o1;
-			NetNames nn2 = (NetNames)o2;
 			String name1 = nn1.netName;
 			String name2 = nn2.netName;
 			return name1.compareToIgnoreCase(name2);
@@ -195,7 +194,7 @@ public class Eagle extends Output
 			printWriter.println("ADD " + pkgType + " '" + nodeName + "' (0 0)");
 
 			// save all networks on this node for later
-			for(Iterator it = np.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				String pName = null;

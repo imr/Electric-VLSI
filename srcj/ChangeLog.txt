@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/26/05, SMR) Auto-stitcher connects annotation text objects (Bug #695).
+FIX: Disallow Generic technology nodes in auto-stitching.
+
 IMP: (10/26/05, SMR) Spice output sorts subcircuit signal names (Bug #694).
 
 IMP: (10/26/05, SMR) Auto-stitching avoids adding duplicate arcs.

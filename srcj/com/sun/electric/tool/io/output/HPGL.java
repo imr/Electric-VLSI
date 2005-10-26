@@ -65,8 +65,8 @@ public class HPGL extends Output
 {
 	/** Scale to ensure that everything is integer */ private static final double SCALE = 100;
 
-	/** conversion from Layers to pen numbers */	private HashMap    cellGeoms;
-	/** conversion from Layers to pen numbers */	private HashMap    penNumbers;
+	/** conversion from Layers to pen numbers */	private HashMap<Layer,List<PolyBase>> cellGeoms;
+	/** conversion from Layers to pen numbers */	private HashMap<Layer,Integer>        penNumbers;
 	/** the Cell being written. */					private Cell       cell;
 	/** the Window being printed (for text). */		private EditWindow wnd;
 	/** the current line type */					private int        currentLineType;
@@ -117,7 +117,7 @@ public class HPGL extends Output
 
 	protected void start()
 	{
-		cellGeoms = new HashMap();
+		cellGeoms = new HashMap<Layer,List<PolyBase>>();
 		currentLineType = -1;
 		currentPen = -1;
 		fillEmitted = false;
@@ -142,13 +142,13 @@ public class HPGL extends Output
 		// HPGL/2 setup and defaults
 		writeLine("\033%0BBPIN");
 		writeLine("LA1,4,2,4QLMC0");
-		Set layerSet = cellGeoms.keySet();
+		Set<Layer> layerSet = cellGeoms.keySet();
 		writeLine("NP" + layerSet.size());
 
 		// setup pens and create the mapping between Layers and HPGL pen numbers
-		penNumbers = new HashMap();
+		penNumbers = new HashMap<Layer,Integer>();
 		int index = 1;
-		for(Iterator cIt = layerSet.iterator(); cIt.hasNext(); )
+		for(Iterator<Layer> cIt = layerSet.iterator(); cIt.hasNext(); )
 		{
 			Layer layer = (Layer)cIt.next();
 			penNumbers.put(layer, new Integer(index));
@@ -180,11 +180,11 @@ public class HPGL extends Output
 		writeLine("SC" + makeCoord(printBounds.getMinX()) + ",1," + makeCoord(printBounds.getMinY()) + ",1,2;");
 
 		// write all geometry collected
-		for(Iterator cIt = layerSet.iterator(); cIt.hasNext(); )
+		for(Iterator<Layer> cIt = layerSet.iterator(); cIt.hasNext(); )
 		{
 			Layer layer = (Layer)cIt.next();
-			List geoms = (List)cellGeoms.get(layer);
-			for (Iterator it = geoms.iterator(); it.hasNext();)
+			List<PolyBase> geoms = (List<PolyBase>)cellGeoms.get(layer);
+			for (Iterator<PolyBase> it = geoms.iterator(); it.hasNext();)
 			{
 				PolyBase poly = (PolyBase)it.next();
 				emitPoly(poly);
@@ -240,7 +240,7 @@ public class HPGL extends Output
 			PolyMerge merge = new PolyMerge();
 
 			// add nodes to cellGeom
-			for(Iterator it = info.getCell().getNodes(); it.hasNext();)
+			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext();)
 			{
 				NodeInst ni = (NodeInst)it.next();
 				AffineTransform nodeTrans = ni.rotateOut(trans);
@@ -262,7 +262,7 @@ public class HPGL extends Output
 						Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
 						poly.transform(subTrans);
 						poly.setStyle(Poly.Type.CLOSED);
-						List layerList = getListForLayer(null);
+						List<PolyBase> layerList = getListForLayer(null);
 						layerList.add(poly);
 
 						poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
@@ -279,11 +279,11 @@ public class HPGL extends Output
 				if (info.isRootCell() && User.isTextVisibilityOnExport())
 				{
 					int exportDisplayLevel = User.getExportDisplayLevel();
-					for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 					{
 						Export e = (Export)eIt.next();
 						Poly poly = e.getNamePoly();
-						List layerList = getListForLayer(null);
+						List<PolyBase> layerList = getListForLayer(null);
 						if (exportDisplayLevel == 2)
 						{
 							// draw port as a cross
@@ -305,7 +305,7 @@ public class HPGL extends Output
 			}
 
 			// add arcs to cellGeom
-			for(Iterator it = info.getCell().getArcs(); it.hasNext();)
+			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();)
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
@@ -315,12 +315,12 @@ public class HPGL extends Output
 			}
 
 			// extract merged data and add it to overall geometry
-			for(Iterator it = merge.getKeyIterator(); it.hasNext(); )
+			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				List layerList = getListForLayer(layer);
-				List geom = merge.getMergedPoints(layer, true);
-				for(Iterator gIt = geom.iterator(); gIt.hasNext(); )
+				List<PolyBase> layerList = getListForLayer(layer);
+				List<PolyBase> geom = merge.getMergedPoints(layer, true);
+				for(Iterator<PolyBase> gIt = geom.iterator(); gIt.hasNext(); )
 					layerList.add(gIt.next());
 			}
 		}
@@ -334,7 +334,7 @@ public class HPGL extends Output
 				Layer layer = poly.getLayer();
 				if (layer == null || poly.getStyle() != Poly.Type.FILLED)
 				{
-					List layerList = getListForLayer(layer);
+					List<PolyBase> layerList = getListForLayer(layer);
 					layerList.add(poly);
 					continue;
 				}
@@ -343,12 +343,12 @@ public class HPGL extends Output
 			}
 		}
 
-		private List getListForLayer(Layer layer)
+		private List<PolyBase> getListForLayer(Layer layer)
 		{
-			List layerList = (List)outGeom.cellGeoms.get(layer);
+			List<PolyBase> layerList = (List<PolyBase>)outGeom.cellGeoms.get(layer);
 			if (layerList == null)
 			{
-				layerList = new ArrayList();
+				layerList = new ArrayList<PolyBase>();
 				outGeom.cellGeoms.put(layer, layerList);
 			}
 			return layerList;

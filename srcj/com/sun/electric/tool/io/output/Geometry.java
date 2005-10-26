@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -59,7 +60,7 @@ public abstract class Geometry extends Output
     /** number of unique cells to process */            protected int numCells;
     /** top-level cell being processed */				protected Cell topCell;
 
-    /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
+    /** HashMap of all CellGeoms */                     protected HashMap<Cell,CellGeom> cellGeoms;
 
 	/**
 	 * Class for managing polygons that are associated with geometry.
@@ -101,7 +102,7 @@ public abstract class Geometry extends Output
 		numVisited = 0;
 		numCells = HierarchyEnumerator.getNumUniqueChildCells(cell) + 1;
 		topCell = cell;
-		cellGeoms = new HashMap();
+		cellGeoms = new HashMap<Cell,CellGeom>();
 
 		// write out cells
 		start();
@@ -137,16 +138,16 @@ public abstract class Geometry extends Output
     protected class CellGeom
     {
         /** HashMap of Poly(gons) in this Cell, keyed by Layer, all polys per layer stored as a List */
-															protected HashMap polyMap;
-        /** Nodables (instances) in this Cell */			protected ArrayList nodables;
+															protected HashMap<Layer,List<Object>> polyMap;
+        /** Nodables (instances) in this Cell */			protected List<Nodable> nodables;
         /** Cell */											protected Cell cell;
 		/** true if cell name used in other libraries */	protected boolean nonUniqueName;
         
         /** Constructor */
         protected CellGeom(Cell cell)
         {
-            polyMap = new HashMap();
-            nodables = new ArrayList();
+            polyMap = new HashMap<Layer,List<Object>>();
+            nodables = new ArrayList<Nodable>();
 			this.cell = cell;
 			nonUniqueName = false;
 			checkLayoutCell();
@@ -186,10 +187,10 @@ public abstract class Geometry extends Output
         {
             for (int i=0; i<polys.length; i++)
             {
-                ArrayList list = (ArrayList)polyMap.get(polys[i].getLayer());
+                List<Object> list = (List<Object>)polyMap.get(polys[i].getLayer());
                 if (list == null)
                 {
-                    list = new ArrayList();
+                    list = new ArrayList<Object>();
                    	polyMap.put(polys[i].getLayer(), list);
                 }
                 if (includeGeometric())
@@ -229,12 +230,12 @@ public abstract class Geometry extends Output
 			Cell cell = info.getCell();
             if (cellGeoms.containsKey(cell)) return false;    // already processed this Cell
             cellGeom = new CellGeom(cell);
-			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
 				Library lib = (Library)lIt.next();
 				if (lib.isHidden()) continue;
 				if (lib == cell.getLibrary()) continue;
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = (Cell)cIt.next();
 					if (cell.getView() != oCell.getView()) continue;
@@ -252,9 +253,9 @@ public abstract class Geometry extends Output
         public void exitCell(HierarchyEnumerator.CellInfo info) 
         {
             // add arcs to cellGeom
-    		for (Iterator it = info.getCell().getArcs(); it.hasNext();)
+    		for (Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();)
 			{
-        		ArcInst ai = (ArcInst) it.next();
+        		ArcInst ai = (ArcInst)it.next();
 				addArcInst(ai);
             }
             
@@ -262,18 +263,18 @@ public abstract class Geometry extends Output
 			if (merge)
 			{
 				PolyMerge pMerge = new PolyMerge();
-				Set layers = cellGeom.polyMap.keySet();
-				for (Iterator it = layers.iterator(); it.hasNext();)
+				Set<Layer> layers = cellGeom.polyMap.keySet();
+				for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
 				{
 					Layer layer = (Layer)it.next();
-					List polyList = (List)cellGeom.polyMap.get(layer);
-					for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+					List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
+					for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
 					{
 						Poly poly = (Poly)polyIt.next();
 						pMerge.addPolygon(layer, poly);
 					}
 				}
-				for (Iterator it = layers.iterator(); it.hasNext();)
+				for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
 				{
 					Layer layer = (Layer)it.next();
 					List polys = pMerge.getMergedPoints(layer, true);
@@ -337,9 +338,9 @@ public abstract class Geometry extends Output
     private static int hierCellsRecurse(Cell cell, int depth, int maxDepth)
     {
         if (depth > maxDepth) maxDepth = depth;
-        for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
+        for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();)
         {
-            CellUsage u = (CellUsage) uit.next();
+            CellUsage u = (CellUsage)uit.next();
             Cell subCell = u.getProto();
             if (subCell.isIcon()) continue;
             maxDepth = hierCellsRecurse(subCell, depth+1, maxDepth);

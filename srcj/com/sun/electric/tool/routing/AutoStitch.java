@@ -131,12 +131,16 @@ public class AutoStitch
 			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				ElectricObject eObj = (ElectricObject)it.next();
+				if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
 				if (eObj instanceof NodeInst)
-					nodesToStitch.add((NodeInst)eObj); else
-				if (eObj instanceof PortInst)
-					nodesToStitch.add(((PortInst)eObj).getNodeInst()); else
-				if (eObj instanceof ArcInst)
+				{
+					NodeInst ni = (NodeInst)eObj;
+					if (ni.getProto() instanceof PrimitiveNode && ni.getProto().getTechnology() == Generic.tech) continue;
+					nodesToStitch.add((NodeInst)eObj);
+				} else if (eObj instanceof ArcInst)
+				{
 					arcsToStitch.add((ArcInst)eObj);
+				}
 			}
 		} else
 		{
@@ -144,6 +148,7 @@ public class AutoStitch
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.isIconOfParent()) continue;
+				if (ni.getProto() instanceof PrimitiveNode && ni.getProto().getTechnology() == Generic.tech) continue;
 				nodesToStitch.add(ni);
 			}
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -484,6 +489,7 @@ public class AutoStitch
 			{
 				// other geometric a NodeInst
 				NodeInst oNi = (NodeInst)oGeom;
+				if (oNi.getProto() instanceof PrimitiveNode && oNi.getProto().getTechnology() == Generic.tech) continue;
 
 				if (ni == null)
 				{

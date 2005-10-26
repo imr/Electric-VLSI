@@ -74,7 +74,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		 * Method to return a List of all Functions that exist.
 		 * @return a List of all Functions that exist.
 		 */
-		public static List getFunctions() { return allFunctions; }
+		public static List<Function> getFunctions() { return allFunctions; }
 
 		/**
 		 * Returns a name of this Function.

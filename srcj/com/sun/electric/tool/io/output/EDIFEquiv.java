@@ -5,6 +5,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -39,15 +40,15 @@ public class EDIFEquiv {
 
 
 
-    private HashMap equivsByNodeProto;      // key: Electric hash (getElectricKey()), value: NodeEquivalence
-    private HashMap equivsByExternal;       // key: External hash (getExternalKey()), value: NodeEquivalence
+    private HashMap<Object,NodeEquivalence> equivsByNodeProto;      // key: Electric hash (getElectricKey()), value: NodeEquivalence
+    private HashMap<Object,NodeEquivalence> equivsByExternal;       // key: External hash (getExternalKey()), value: NodeEquivalence
     private HashMap exportEquivs;           // key: External hash (getExternalKey()), value: ExportEquivalence
-    private HashMap exportByVariable;       // key: External hash (electric varname), value: VariableEquivalence
-    private HashMap exportFromVariable;     // key: External hash (external varname), value: VariableEquivalence
-    private HashMap exportByFigureGroup;    // key: External hash (electric figureGroupName), value: FigureGroupEquivalence
-    private HashMap exportFromFigureGroup;  // key: External hash (external figureGroupName), value: FigureGroupEquivalence
-    private HashMap exportByGlobal;    		// key: External hash (electric figureGroupName), value: GlobalEquivalence
-    private HashMap exportFromGlobal;  		// key: External hash (external figureGroupName), value: GlobalEquivalence
+    private HashMap<String,VariableEquivalence> exportByVariable;       // key: External hash (electric varname), value: VariableEquivalence
+    private HashMap<String,VariableEquivalence> exportFromVariable;     // key: External hash (external varname), value: VariableEquivalence
+    private HashMap<String,FigureGroupEquivalence> exportByFigureGroup;    // key: External hash (electric figureGroupName), value: FigureGroupEquivalence
+    private HashMap<String,FigureGroupEquivalence> exportFromFigureGroup;  // key: External hash (external figureGroupName), value: FigureGroupEquivalence
+    private HashMap<String,GlobalEquivalence> exportByGlobal;    		// key: External hash (electric figureGroupName), value: GlobalEquivalence
+    private HashMap<String,GlobalEquivalence> exportFromGlobal;  		// key: External hash (external figureGroupName), value: GlobalEquivalence
 
     /**
      * Get the node equivalence for the NodeInst.  This must be a NodeInst, not a
@@ -65,7 +66,7 @@ public class EDIFEquiv {
             func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
             // if this is an off page node and one of it's ports is exported, find out type
             if (np == Schematics.tech.offpageNode) {
-                for (Iterator it = ni.getParent().getPorts(); it.hasNext(); ) {
+                for (Iterator<PortProto> it = ni.getParent().getPorts(); it.hasNext(); ) {
                     Export e = (Export)it.next();
                     if (e.getOriginalPort().getNodeInst() == ni) {
                         exportType = e.getCharacteristic();
@@ -159,8 +160,8 @@ public class EDIFEquiv {
      * Get a list of NodeEquivalences
      * @return  a list of NodeEquivalence objects
      */
-    public List getNodeEquivs() {
-        return new ArrayList(equivsByExternal.values());
+    public List<NodeEquivalence> getNodeEquivs() {
+        return new ArrayList<NodeEquivalence>(equivsByExternal.values());
     }
 
     /**
@@ -227,8 +228,8 @@ public class EDIFEquiv {
 
     // size of elecPorts and extPorts lists must be equal
     private void addNodeEquiv(NodeProto np, PrimitiveNode.Function func, PortCharacteristic exportType, int rot,
-                         String extLib, String extCell, String extView, List elecPorts, List extPorts) {
-        List portEquivs = new ArrayList();
+                         String extLib, String extCell, String extView, List<Port> elecPorts, List<Port> extPorts) {
+        List<PortEquivalence> portEquivs = new ArrayList<PortEquivalence>();
         if (elecPorts.size() != extPorts.size()) {
             System.out.println("Error, port lists differ in size!");
             return;
@@ -266,15 +267,15 @@ public class EDIFEquiv {
      * @param file the configuration file
      */
     public EDIFEquiv() {
-        equivsByNodeProto = new HashMap();
-        equivsByExternal = new HashMap();
+        equivsByNodeProto = new HashMap<Object,NodeEquivalence>();
+        equivsByExternal = new HashMap<Object,NodeEquivalence>();
         exportEquivs = new HashMap();
-		exportByVariable = new HashMap();
-		exportFromVariable = new HashMap();
-		exportByFigureGroup = new HashMap();
-		exportFromFigureGroup = new HashMap();
-		exportByGlobal = new HashMap();
-		exportFromGlobal = new HashMap();
+		exportByVariable = new HashMap<String,VariableEquivalence>();
+		exportFromVariable = new HashMap<String,VariableEquivalence>();
+		exportByFigureGroup = new HashMap<String,FigureGroupEquivalence>();
+		exportFromFigureGroup = new HashMap<String,FigureGroupEquivalence>();
+		exportByGlobal = new HashMap<String,GlobalEquivalence>();
+		exportFromGlobal = new HashMap<String,GlobalEquivalence>();
 
 		String file = IOTool.getEDIFConfigurationFile();
 		if (file.length() == 0)
@@ -397,7 +398,7 @@ public class EDIFEquiv {
                 System.out.println("Could not find PrimitiveNode "+parts[2]+" in technology "+parts[1]+" on line "+lineno);
                 return false;
             }
-            for (Iterator it = PrimitiveNode.Function.getFunctions().iterator(); it.hasNext(); ) {
+            for (Iterator<PrimitiveNode.Function> it = PrimitiveNode.Function.getFunctions().iterator(); it.hasNext(); ) {
                 PrimitiveNode.Function function = (PrimitiveNode.Function)it.next();
                 if (parts[3].equals(function.getName()) || parts[3].equals(function.getShortName()) ||
                         parts[3].equals(function.getConstantName())) {
@@ -457,8 +458,8 @@ public class EDIFEquiv {
         extview = parts[2];
 
         // port equivalences
-        List elecPorts = parsePortsList(elec_ports, lineno);
-        List extPorts = parsePortsList(ext_ports, lineno);
+        List<Port> elecPorts = parsePortsList(elec_ports, lineno);
+        List<Port> extPorts = parsePortsList(ext_ports, lineno);
         if (elecPorts.size() != extPorts.size()) {
             System.out.println("Port lists are not the same size on line "+lineno);
             return false;
@@ -474,10 +475,10 @@ public class EDIFEquiv {
      * @param portsList
      * @return a list of Port objects
      */
-    private List parsePortsList(String portsList, int lineno) {
+    private List<Port> parsePortsList(String portsList, int lineno) {
         // split by commas not contained in ()
         boolean opened = false;
-        List ports = new ArrayList();
+        List<Port> ports = new ArrayList<Port>();
         int i = 0, last = 0;
         for (i=0; i<portsList.length(); i++) {
             char c = portsList.charAt(i);
@@ -544,7 +545,7 @@ public class EDIFEquiv {
     }
 
     public void print() {
-        for (Iterator it = equivsByNodeProto.values().iterator(); it.hasNext(); ) {
+        for (Iterator<NodeEquivalence> it = equivsByNodeProto.values().iterator(); it.hasNext(); ) {
             NodeEquivalence ne = (NodeEquivalence)it.next();
             System.out.println(ne.toString());
         }
@@ -561,11 +562,11 @@ public class EDIFEquiv {
         public final String externalLib;
         public final String externalCell;
         public final String externalView;
-        public final List portEquivs;
+        public final List<PortEquivalence> portEquivs;
         public final int rotation;         // in degrees, rotate the electric prim by this value to match the cadence prim
 
         private NodeEquivalence(NodeProto np, PrimitiveNode.Function func, PortCharacteristic exportedType,
-                String externalLib, String externalCell, String externalView, int rotation, List portEquivs) {
+                String externalLib, String externalCell, String externalView, int rotation, List<PortEquivalence> portEquivs) {
             this.np = np;
             this.function = func;
             this.exortedType = exportedType;
@@ -574,7 +575,7 @@ public class EDIFEquiv {
             this.externalView = externalView;
             this.rotation = rotation;
             this.portEquivs = portEquivs;
-            for (Iterator it = portEquivs.iterator(); it.hasNext(); ) {
+            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
                 Object obj = it.next();
                 if (!(obj instanceof PortEquivalence)) {
                     System.out.println("EDIFEquiv.NodeEquivalence(): invalid argument, portEquivs list must be list of PortEquivalence objects");
@@ -588,7 +589,7 @@ public class EDIFEquiv {
          * @return null if no such port
          */
         public PortEquivalence getPortEquivElec(String elecPortName) {
-            for (Iterator it = portEquivs.iterator(); it.hasNext(); ) {
+            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
                 PortEquivalence pe = (PortEquivalence)it.next();
                 if (pe.getElecPort().name.equals(elecPortName))
                     return pe;
@@ -601,7 +602,7 @@ public class EDIFEquiv {
          * @return null if no such port
          */
         public PortEquivalence getPortEquivExt(String extPortName) {
-            for (Iterator it = portEquivs.iterator(); it.hasNext(); ) {
+            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
                 PortEquivalence pe = (PortEquivalence)it.next();
                 if (pe.getExtPort().name.equals(extPortName))
                     return pe;
@@ -613,9 +614,9 @@ public class EDIFEquiv {
          * Get a list of the external ports of this equivalence class
          * @return a list of EDIFEquiv.Port objects
          */
-        public List getExtPorts() {
-            List extPorts = new ArrayList();
-            for (Iterator it = portEquivs.iterator(); it.hasNext(); ) {
+        public List<Port> getExtPorts() {
+            List<Port> extPorts = new ArrayList<Port>();
+            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
                 PortEquivalence pe = (PortEquivalence)it.next();
                 extPorts.add(pe.getExtPort());
             }
@@ -626,7 +627,7 @@ public class EDIFEquiv {
             StringBuffer buf = new StringBuffer();
             buf.append("NodeEquivalence Elec: "+np.describe(false)+", func: "+function+"\n");
             buf.append("  Ext: "+externalLib+" "+externalCell+" "+externalView+"\n");
-            for (Iterator it = portEquivs.iterator(); it.hasNext(); ) {
+            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
                 PortEquivalence pe = (PortEquivalence)it.next();
                 buf.append(pe.toString()+"\n");
             }

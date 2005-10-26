@@ -105,7 +105,7 @@ public class EDIF extends Topology
 		private int busIndex;
 		private int splitterIndex;
 		private String busName;
-		private static HashMap rippersPerCell = null;
+		private static HashMap<Cell,List<BusRipper>> rippersPerCell = null;
 
 		private BusRipper(NodeInst ni, Network net, int busWidth, int busIndex, int splitterIndex, String busName)
 		{
@@ -129,11 +129,11 @@ public class EDIF extends Topology
 
 			// add to lists
 			Cell cell = ni.getParent();
-			if (rippersPerCell == null) rippersPerCell = new HashMap();
-			List rippersInCell = (List)rippersPerCell.get(cell);
+			if (rippersPerCell == null) rippersPerCell = new HashMap<Cell,List<BusRipper>>();
+			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(cell);
 			if (rippersInCell == null)
 			{
-				rippersInCell = new ArrayList();
+				rippersInCell = new ArrayList<BusRipper>();
 				rippersPerCell.put(cell, rippersInCell);
 			}
 			rippersInCell.add(br);
@@ -142,9 +142,9 @@ public class EDIF extends Topology
 		public static BusRipper findBusRipper(NodeInst ni, Network net)
 		{
 			if (rippersPerCell == null) return null;
-			List rippersInCell = (List)rippersPerCell.get(ni.getParent());
+			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(ni.getParent());
 			if (rippersInCell == null) return null;
-			for(Iterator it = rippersInCell.iterator(); it.hasNext(); )
+			for(Iterator<BusRipper> it = rippersInCell.iterator(); it.hasNext(); )
 			{
 				BusRipper br = (BusRipper)it.next();
 				if (br.ni == ni && br.net == net) return br;
@@ -152,13 +152,13 @@ public class EDIF extends Topology
 			return null;
 		}
 
-		public static List getRippersOnBus(Cell cell, String busName)
+		public static List<BusRipper> getRippersOnBus(Cell cell, String busName)
 		{
-			List ripperList = new ArrayList();
+			List<BusRipper> ripperList = new ArrayList<BusRipper>();
 			if (rippersPerCell == null) return ripperList;
-			List rippersInCell = (List)rippersPerCell.get(cell);
+			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(cell);
 			if (rippersInCell == null) return ripperList;
-			for(Iterator it = rippersInCell.iterator(); it.hasNext(); )
+			for(Iterator<BusRipper> it = rippersInCell.iterator(); it.hasNext(); )
 			{
 				BusRipper br = (BusRipper)it.next();
 				if (br.busName.equals(busName)) ripperList.add(br);
@@ -178,18 +178,18 @@ public class EDIF extends Topology
     private int scale = 20;
     private Library scratchLib;
     EDIFEquiv equivs;
-    private final HashMap libsToWrite; // key is Library, Value is LibToWrite
-    private final List libsToWriteOrder; // list of libraries to write, in order
+    private final HashMap<Library,LibToWrite> libsToWrite; // key is Library, Value is LibToWrite
+    private final List<Library> libsToWriteOrder; // list of libraries to write, in order
 
     private static class LibToWrite {
         private final Library lib;
-        private final List cellsToWrite;
+        private final List<CellToWrite> cellsToWrite;
         private LibToWrite(Library l) {
             lib = l;
-            cellsToWrite = new ArrayList();
+            cellsToWrite = new ArrayList<CellToWrite>();
         }
         private void add(CellToWrite c) { cellsToWrite.add(c); }
-        private Iterator getCells() { return cellsToWrite.iterator(); }
+        private Iterator<CellToWrite> getCells() { return cellsToWrite.iterator(); }
     }
 
     private static class CellToWrite {
@@ -224,8 +224,8 @@ public class EDIF extends Topology
 	 */
 	EDIF()
 	{
-        libsToWrite = new HashMap();
-        libsToWriteOrder = new ArrayList();
+        libsToWrite = new HashMap<Library,LibToWrite>();
+        libsToWriteOrder = new ArrayList<Library>();
         equivs = new EDIFEquiv();
 	}
 
@@ -296,7 +296,7 @@ public class EDIF extends Topology
             writeFigureGroup(EGBUS);
         }
         blockClose("technology");
-        HashMap primsFound = new HashMap();
+        HashMap<Object,PrimitiveNode> primsFound = new HashMap<Object,PrimitiveNode>();
         writeAllPrims(topCell, primsFound);
         blockClose("library");
 
@@ -304,7 +304,7 @@ public class EDIF extends Topology
 		if (ADD_RIPPERS)
 		{
 			// figure out how many bus rippers are needed
-			HashSet rippers = new HashSet();
+			HashSet<Integer> rippers = new HashSet<Integer>();
 			countRippers(topCell, rippers);
 			if (rippers.size() > 0)
 			{
@@ -318,7 +318,7 @@ public class EDIF extends Topology
 			        blockClose("numberDefinition");
 		        blockClose("technology");
 			}
-			for(Iterator it = rippers.iterator(); it.hasNext(); )
+			for(Iterator<Integer> it = rippers.iterator(); it.hasNext(); )
 			{
 				Integer width = (Integer)it.next();
 		        blockOpen("cell");
@@ -400,13 +400,13 @@ public class EDIF extends Topology
 
         // external libs
         // organize by library
-        List libs = new ArrayList();
-        for (Iterator it = equivs.getNodeEquivs().iterator(); it.hasNext(); ) {
+        List<String> libs = new ArrayList<String>();
+        for (Iterator<EDIFEquiv.NodeEquivalence> it = equivs.getNodeEquivs().iterator(); it.hasNext(); ) {
             EDIFEquiv.NodeEquivalence e = (EDIFEquiv.NodeEquivalence)it.next();
             if (libs.contains(e.externalLib)) continue;
             libs.add(e.externalLib);
         }
-        for (Iterator it = libs.iterator(); it.hasNext(); ) {
+        for (Iterator<String> it = libs.iterator(); it.hasNext(); ) {
             String lib = (String)it.next();
             blockOpen("external");
             blockPutIdentifier(lib);
@@ -419,7 +419,7 @@ public class EDIF extends Topology
             }
             blockClose("technology");
 
-            for (Iterator it2 = equivs.getNodeEquivs().iterator(); it2.hasNext(); ) {
+            for (Iterator<EDIFEquiv.NodeEquivalence> it2 = equivs.getNodeEquivs().iterator(); it2.hasNext(); ) {
                 EDIFEquiv.NodeEquivalence e = (EDIFEquiv.NodeEquivalence)it2.next();
                 if (!lib.equals(e.externalLib)) continue;
                 String viewType = null;
@@ -449,7 +449,7 @@ public class EDIF extends Topology
 
         // Note: if there are cross dependencies between libraries, there is no
         // way to write out valid EDIF without changing the cell organization of the libraries
-        for (Iterator it = libsToWriteOrder.iterator(); it.hasNext(); ) {
+        for (Iterator<Library> it = libsToWriteOrder.iterator(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             LibToWrite l = (LibToWrite)libsToWrite.get(lib);
             // here is where we write everything out, organized by library
@@ -471,7 +471,7 @@ public class EDIF extends Topology
                 writeFigureGroup(EGBUS);
             }
             blockClose("technology");
-            for (Iterator it2 = l.getCells(); it2.hasNext(); ) {
+            for (Iterator<CellToWrite> it2 = l.getCells(); it2.hasNext(); ) {
                 CellToWrite c = (CellToWrite)it2.next();
                 writeCellEdif(c.cell, c.cni, c.context);
             }
@@ -509,8 +509,8 @@ public class EDIF extends Topology
 
 		// write ports and directions
 		Netlist netList = cni.getNetList();
-		HashMap busExports = new HashMap();
-		for(Iterator it = cni.getCellSignals(); it.hasNext(); )
+		HashMap<Export,String> busExports = new HashMap<Export,String>();
+		for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 		{
 			CellSignal cs = (CellSignal)it.next();
 			if (cs.isExported())
@@ -549,7 +549,7 @@ public class EDIF extends Topology
 		}
 		if (IOTool.isEDIFUseSchematicView())
 		{
-            for (Iterator it = cell.getVariables(); it.hasNext(); ) {
+            for (Iterator<Variable> it = cell.getVariables(); it.hasNext(); ) {
                 Variable var = (Variable)it.next();
                 if (var.getTrueName().equals("prototype_center")) continue;
                 blockOpen("property");
@@ -593,7 +593,7 @@ public class EDIF extends Topology
 		if (ADD_RIPPERS)
 		{
 			int splitterIndex = 1;
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -605,7 +605,7 @@ public class EDIF extends Topology
 
 				// check all the connections
 				ArcInst busFound = null;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
@@ -616,7 +616,7 @@ public class EDIF extends Topology
 				int busWidth = netList.getBusWidth(busFound);
 
 				// a bus pin: look for wires that indicate ripping
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
@@ -659,7 +659,7 @@ public class EDIF extends Topology
 			}
 		}
 
-		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst no = (NodeInst)nIt.next();
             if (no.getProto() instanceof Cell) {
@@ -717,7 +717,7 @@ public class EDIF extends Topology
                 refCell = ne.externalCell;
                 if (ne.exortedType != null) {
                     // cadence pin: encapsulate instance inside of a portImplementation
-                    Iterator eit = no.getExports();
+                    Iterator<Export> eit = no.getExports();
                     if (eit.hasNext()) {
                         Export e = (Export)eit.next();
                         oname = e.getName();
@@ -734,7 +734,7 @@ public class EDIF extends Topology
                 refLib = primitivesLibName;
                 if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR) {					// count the number of inputs
                     int i = 0;
-                    for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+                    for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
                     {
                         Connection con = (Connection)pIt.next();
                         if (con.getPortInst().getPortProto().getName().equals("a")) i++;
@@ -813,7 +813,7 @@ public class EDIF extends Topology
 		}
 
 		// if there is anything to connect, write the networks in the cell
-		for(Iterator it = cni.getCellSignals(); it.hasNext(); )
+		for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 		{
 			CellSignal cs = (CellSignal)it.next();
 
@@ -865,7 +865,7 @@ public class EDIF extends Topology
 			}
 
 			Network net = cs.getNetwork();
-			for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
+			for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 			{
 				Nodable no = (Nodable)nIt.next();
 				NodeProto niProto = no.getProto();
@@ -893,7 +893,7 @@ public class EDIF extends Topology
 				{
 					String nodeName = parameterizedName(no, context);
 					CellNetInfo subCni = getCellNetInfo(nodeName);
-					for(Iterator sIt = subCni.getCellSignals(); sIt.hasNext(); )
+					for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 					{
 						CellSignal subCs = (CellSignal)sIt.next();
 
@@ -936,7 +936,7 @@ public class EDIF extends Topology
 						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
 						//fun == PrimitiveNode.Function.CONNECT ||
                             fun == PrimitiveNode.Function.ART) continue;
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						ArcInst ai = con.getArc();
@@ -980,7 +980,7 @@ public class EDIF extends Topology
 				// output net graphic information for all arc instances connected to this net
 				egraphic = EGUNKNOWN;
 				egraphic_override = EGWIRE;
-				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)aIt.next();
 					int aWidth = netList.getBusWidth(ai);
@@ -1008,8 +1008,8 @@ public class EDIF extends Topology
 		if (ADD_RIPPERS)
 		{
 			// TODO (DONE) the new way
-			HashSet bussesSeen = new HashSet();
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			HashSet<ArcInst> bussesSeen = new HashSet<ArcInst>();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				int busWidth = netList.getBusWidth(ai);
@@ -1034,8 +1034,8 @@ public class EDIF extends Topology
 	
 				// now each sub-net name
 				blockOpen("joined");
-				List rippersOnBus = BusRipper.getRippersOnBus(cell, realBusName);
-				for(Iterator rIt = rippersOnBus.iterator(); rIt.hasNext(); )
+				List<BusRipper> rippersOnBus = BusRipper.getRippersOnBus(cell, realBusName);
+				for(Iterator<BusRipper> rIt = rippersOnBus.iterator(); rIt.hasNext(); )
 				{
 					BusRipper br = (BusRipper)rIt.next();
 					blockOpen("portList");
@@ -1061,7 +1061,7 @@ public class EDIF extends Topology
 					// output net graphic information for all arc instances connected to this net
 					egraphic = EGUNKNOWN;
 					egraphic_override = EGBUS;
-					for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst oAi = (ArcInst)aIt.next();
 						if (oAi.getProto() != Schematics.tech.bus_arc) continue;
@@ -1080,7 +1080,7 @@ public class EDIF extends Topology
 		} else
 		{
 			// the old way: no longer done
-			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)it.next();
 	
@@ -1127,7 +1127,7 @@ public class EDIF extends Topology
 					// output net graphic information for all arc instances connected to this net
 					egraphic = EGUNKNOWN;
 					egraphic_override = EGBUS;
-					for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst ai = (ArcInst)aIt.next();
 						if (ai.getProto() != Schematics.tech.bus_arc) continue;
@@ -1244,7 +1244,7 @@ public class EDIF extends Topology
 	}
 
     // ports is a list of EDIFEquiv.Port objects
-    private void writeExternalDef(String extCell, String extView, String viewType, List ports) {
+    private void writeExternalDef(String extCell, String extView, String viewType, List<EDIFEquiv.Port> ports) {
         blockOpen("cell");
         blockPutIdentifier(extCell);
         blockPut("cellType", "generic");
@@ -1255,7 +1255,7 @@ public class EDIF extends Topology
 
         // write interface
         blockOpen("interface");
-        for (Iterator it = ports.iterator(); it.hasNext(); ) {
+        for (Iterator<EDIFEquiv.Port> it = ports.iterator(); it.hasNext(); ) {
             EDIFEquiv.Port port = (EDIFEquiv.Port)it.next();
             if (port.ignorePort) continue;
             blockOpen("port");
@@ -1276,12 +1276,12 @@ public class EDIF extends Topology
 	/**
 	 * Method to count the usage of primitives hierarchically below cell "np"
 	 */
-	private void writeAllPrims(Cell cell, HashMap primsFound)
+	private void writeAllPrims(Cell cell, HashMap<Object,PrimitiveNode> primsFound)
 	{
 		// do not search this cell if it is an icon
 		if (cell.isIcon()) return;
 
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -1295,7 +1295,7 @@ public class EDIF extends Topology
 				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
 					// count the number of inputs
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						if (con.getPortInst().getPortProto().getName().equals("a")) i++;
@@ -1331,13 +1331,13 @@ public class EDIF extends Topology
 	/**
 	 * Method to count the usage of primitives hierarchically below cell "np"
 	 */
-	private void countRippers(Cell cell, HashSet rippers)
+	private void countRippers(Cell cell, HashSet<Integer> rippers)
 	{
 		// do not search this cell if it is an icon
 		if (cell.isIcon()) return;
 
 		Netlist netlist = null;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -1351,7 +1351,7 @@ public class EDIF extends Topology
 					// check all the connections
 					int busWidthFound = -1;
 					boolean wireFound = false;
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						ArcInst ai = con.getArc();
@@ -1439,7 +1439,7 @@ public class EDIF extends Topology
 					{
 						Network net = netlist.getNetwork(ai, i);
 						if (busName.length() > 0) busName += ",";
-						Iterator nIt = net.getNames();
+						Iterator<String> nIt = net.getNames();
 						String netName;
 						if (nIt.hasNext()) netName = (String)nIt.next(); else
 							netName = net.describe(true);
@@ -1453,7 +1453,7 @@ public class EDIF extends Topology
 					{
 						Network net = netlist.getNetwork(e, i);
 						if (busName.length() > 0) busName += ",";
-						Iterator nIt = net.getNames();
+						Iterator<String> nIt = net.getNames();
 						String netName;
 						if (nIt.hasNext()) netName = (String)nIt.next(); else
 							netName = net.describe(true);
@@ -1602,19 +1602,19 @@ public class EDIF extends Topology
 		blockOpen("symbol");
 		egraphic_override = EGWIRE;
 		egraphic = EGUNKNOWN;
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
             writePortImplementation(e, true);
 		}
 		egraphic_override = EGUNKNOWN;
 
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			writeSymbolCell(ni, GenMath.MATID);
 		}
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			writeSymbolArcInst(ai, GenMath.MATID);
@@ -1631,7 +1631,7 @@ public class EDIF extends Topology
         blockOpen("symbol");
         egraphic_override = EGWIRE;
         egraphic = EGUNKNOWN;
-        for(Iterator it = pn.getPorts(); it.hasNext(); )
+        for(Iterator<PortProto> it = pn.getPorts(); it.hasNext(); )
         {
             PortProto e = (PortProto)it.next();
             blockOpen("portImplementation");
@@ -1769,12 +1769,12 @@ public class EDIF extends Topology
             writeDisplayableVariables(varPolys, "NODE_name", prevtrans);
 
 			// search through cell
-			for(Iterator it = subCell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst sNi = (NodeInst)it.next();
 				writeSymbolCell(sNi, subrot);
 			}
-			for(Iterator it = subCell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst sAi = (ArcInst)it.next();
 				writeSymbolArcInst(sAi, subrot);

@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -58,7 +59,7 @@ public class L extends Output
 	private static final int TRANSISTOR = 2;
 	private static final int INSTANCE   = 3;
 	private static final int OTHERNODE  = 4;
-	private Set cellsSeen;
+	private Set<Cell> cellsSeen;
 	/** the results of calling "transistorPorts". */	private PortInst gateLeft, gateRight, activeTop, activeBottom;
 
 	/**
@@ -90,7 +91,7 @@ public class L extends Output
 	private void writeLCells(Cell cell)
 	{
 		printWriter.println("L:: TECH ANY");
-		cellsSeen = new HashSet();
+		cellsSeen = new HashSet<Cell>();
 		writeLCell(cell);
 	}
 
@@ -101,7 +102,7 @@ public class L extends Output
 	private void writeLCell(Cell cell)
 	{
 		// if there are any sub-cells that have not been written, write them
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -136,7 +137,7 @@ public class L extends Output
 			TextUtils.formatDouble(bounds.getMaxY()) + ")");
 
 		// write the ports
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
 			Poly poly = e.getOriginalPort().getPoly();
@@ -156,7 +157,7 @@ public class L extends Output
 		printWriter.println("");
 
 		// write the components
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (getNodeType(ni) == TRUEPIN) continue;
@@ -276,13 +277,13 @@ public class L extends Output
 		printWriter.println("");
 
 		// write all arcs connected to nodes
-		Set arcsSeen = new HashSet();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			int nature = getNodeType(ni);
 			if (nature == TRUEPIN) continue;
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();
 				ArcInst ai = con.getArc();
@@ -368,7 +369,7 @@ public class L extends Output
 					int tot = 0;
     				int ot = 0;
 					ArcInst oAi = null;
-					for(Iterator oCIt = oNi.getConnections(); oCIt.hasNext(); )
+					for(Iterator<Connection> oCIt = oNi.getConnections(); oCIt.hasNext(); )
 					{
 						Connection oCon = (Connection)oCIt.next();
 						if (arcsSeen.contains(oCon.getArc())) continue;
@@ -413,7 +414,7 @@ public class L extends Output
 		}
 
 		// write any unmentioned wires (shouldn't be any)
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (arcsSeen.contains(ai)) continue;

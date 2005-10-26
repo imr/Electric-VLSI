@@ -94,7 +94,7 @@ public class ParasiticTool extends Listener{
         new AnalyzeParasitic(network, cell);
     }
 
-    public static List calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
+    public static List<Object> calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
     {
         errorLogger.clearLogs(cell);
 //        Netlist netList = cell.getNetlist(false);
@@ -102,23 +102,23 @@ public class ParasiticTool extends Listener{
         ParasiticVisitor visitor = new ParasiticVisitor(tool, context);
         HierarchyEnumerator.enumerateCell(cell, context, visitor);
 //        HierarchyEnumerator.enumerateCell(cell, context, netList, visitor);
-        List list = visitor.getParasitics();
+        List<Object> list = visitor.getParasitics();
         return list;
     }
 
     private static class ParasiticVisitor extends HierarchyEnumerator.Visitor
 	{
-		private HashMap netMap;
+		private HashMap<Network,NetPBucket> netMap;
         //private Netlist netList;
-        private List transAndRCList = new ArrayList();
+        private List<Object> transAndRCList = new ArrayList<Object>();
         private ParasiticGenerator tool;
         private VarContext context;
 
-        public List getParasitics()
+        public List<Object> getParasitics()
         {
-            List list = new ArrayList(transAndRCList);
+            List<Object> list = new ArrayList<Object>(transAndRCList);
 
-            for (Iterator it = netMap.keySet().iterator(); it.hasNext();)
+            for (Iterator<Network> it = netMap.keySet().iterator(); it.hasNext();)
             {
                 Object key = it.next();
                 Object value = netMap.get(key);
@@ -133,7 +133,7 @@ public class ParasiticTool extends Listener{
 		{
             //this.netList = netList;
             this.tool = tool;
-            netMap = new HashMap();
+            netMap = new HashMap<Network,NetPBucket>();
 //            netMap = new HashMap(netList.getNumNetworks());
             this.context = context;
 		}
@@ -146,7 +146,7 @@ public class ParasiticTool extends Listener{
             // Done with root cell
             if (info.getParentInfo() == null)
             {
-                for (Iterator it = netMap.keySet().iterator(); it.hasNext();)
+                for (Iterator<Network> it = netMap.keySet().iterator(); it.hasNext();)
                 {
                     Object obj = it.next();
                     NetPBucket bucket = (NetPBucket)netMap.get(obj);
@@ -175,7 +175,7 @@ public class ParasiticTool extends Listener{
             iinfo.extInit();
             int numRemoveParents = context.getNumLevels();
 
-            for(Iterator aIt = info.getCell().getArcs(); aIt.hasNext(); )
+            for(Iterator<ArcInst> aIt = info.getCell().getArcs(); aIt.hasNext(); )
             {
                 ArcInst ai = (ArcInst)aIt.next();
 
@@ -327,11 +327,11 @@ public class ParasiticTool extends Listener{
         /**
          * similar to PolyBase.separationBox
          */
-        public static List initParasiticValues(Poly p1, Poly p2)
+        public static List<ParasiticValue> initParasiticValues(Poly p1, Poly p2)
         {
             Rectangle2D thisBounds = p1.getBox();
             Rectangle2D otherBounds = p2.getBox();
-            List values = new ArrayList();
+            List<ParasiticValue> values = new ArrayList<ParasiticValue>();
 
             // Both polygons must be manhattan-shaped type
             if (thisBounds == null || otherBounds == null) return (null);
@@ -428,11 +428,11 @@ public class ParasiticTool extends Listener{
             this.startJob();
         }
 
-        private List getClosestPolys(Cell cell, Geometric geom, Technology tech, Poly poly, Rectangle2D bounds)
+        private List<ParasiticValue> getClosestPolys(Cell cell, Geometric geom, Technology tech, Poly poly, Rectangle2D bounds)
         {
-            List polyList = new ArrayList();
+            List<ParasiticValue> polyList = new ArrayList<ParasiticValue>();
 
-            for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+            for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
             {
                 Geometric nGeom = (Geometric)it.next();
 			    if ((nGeom == geom)) continue;
@@ -503,10 +503,10 @@ public class ParasiticTool extends Listener{
             System.out.println("Extracting Parasitic for " + cell + " " + net);
             Rectangle2D bounds = new Rectangle2D.Double();
             double maxDistance = getMaxDistance();
-            List polyToCheckList = new ArrayList();
+            List<ParasiticValue> polyToCheckList = new ArrayList<ParasiticValue>();
 
             // Selecting arcs attached to this network
-            for (Iterator it = net.getArcs(); it.hasNext(); )
+            for (Iterator<ArcInst> it = net.getArcs(); it.hasNext(); )
             {
                 ArcInst ai = (ArcInst)it.next();
                 Technology tech = ai.getProto().getTechnology();
@@ -527,8 +527,8 @@ public class ParasiticTool extends Listener{
             }
 
             // Adding related nodes, searching per ports
-	        HashMap nodeMap = new HashMap();
-            for (Iterator it = net.getPorts(); it.hasNext(); )
+	        HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
+            for (Iterator<PortInst> it = net.getPorts(); it.hasNext(); )
             {
                 PortInst pi = (PortInst)it.next();
                 NodeInst ni = pi.getNodeInst();
@@ -557,7 +557,7 @@ public class ParasiticTool extends Listener{
                 else
                     System.out.println("Not implemented");
             }
-            for (Iterator it = polyToCheckList.iterator(); it.hasNext(); )
+            for (Iterator<ParasiticValue> it = polyToCheckList.iterator(); it.hasNext(); )
             {
                 ParasiticValue val = (ParasiticValue)it.next();
                 System.out.println("Value " + val + " Layer " + val.elements[1].poly.getLayer());
