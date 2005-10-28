@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.DRCTemplate;
 
 /** IC Layer information database gives information about various IC
  *  layers */
@@ -271,9 +272,9 @@ public class Tech {
 			// My "TSMC180" really uses Electric's MoCMOS Technology in
 			// combination with the TSMC foundry.
             if (isTsmc180)
-			    tech.setSelectedFoundry(Technology.Foundry.TSMC_FOUNDRY);
+			    tech.setSelectedFoundry(DRCTemplate.DRCMode.TSMC.name());
             else // Make sure MOSIS is set as foundry. Doesn' rely on preferences
-                tech.setSelectedFoundry(Technology.Foundry.MOSIS_FOUNDRY);
+                tech.setSelectedFoundry(DRCTemplate.DRCMode.MOSIS.name());
 		} else {
 			tech = Technology.findTechnology(techNm);
 		}

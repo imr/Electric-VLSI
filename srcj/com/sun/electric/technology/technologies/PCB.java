@@ -28,13 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 
 import java.awt.Color;
 
@@ -255,29 +249,29 @@ public class PCB extends Technology
 		D1_lay.setFactoryDXFLayer("");		// Drawing
 
 		// The GDS names
-		S_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal1
-		S0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal2
-		S1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal3
-		S2_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal4
-		S3_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal5
-		S4_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal6
-		S5_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal7
-		S6_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal8
-		P_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power1
-		P0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power2
-		P1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power3
-		P2_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power4
-		P3_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power5
-		P4_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power6
-		P5_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power7
-		P6_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power8
-		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// TopSilk
-		B_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// BottomSilk
-		T0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// TopSolder
-		B0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// BottomSolder
-		D_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Drill
-		D0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// DrillNonPlated
-		D1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Drawing
+		S_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal1
+		S0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal2
+		S1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal3
+		S2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal4
+		S3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal5
+		S4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal6
+		S5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal7
+		S6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal8
+		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power1
+		P0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power2
+		P1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power3
+		P2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power4
+		P3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power5
+		P4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power6
+		P5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power7
+		P6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power8
+		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// TopSilk
+		B_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// BottomSilk
+		T0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// TopSolder
+		B0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// BottomSolder
+		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Drill
+		D0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// DrillNonPlated
+		D1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Drawing
 
 		//******************** ARCS ********************
 

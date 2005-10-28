@@ -555,7 +555,7 @@ public class Technology implements Comparable<Technology>
 	/** scale for this Technology. */						private Pref prefScale;
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private Pref prefFoundry;
-    /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
+    /** static list of all Manufacturers in Electric */     protected List<DRCTemplate.DRCMode> foundries;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
@@ -604,7 +604,7 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 
         // Initialize foundries
-        foundries = new ArrayList<Foundry>();
+        foundries = new ArrayList<DRCTemplate.DRCMode>();
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -717,7 +717,7 @@ public class Technology implements Comparable<Technology>
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
 	 */
-	public void setState() {}
+	public void setState(List<DRCTemplate> rules) {}
 
 	/**
 	 * Method to initialize a technology. This will check and restore
@@ -745,7 +745,7 @@ public class Technology implements Comparable<Technology>
 		}
 
 		// initialize all design rules in the technology (overwrites arc widths)
-		setState();
+		setState(null);
 
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
@@ -3257,7 +3257,7 @@ public class Technology implements Comparable<Technology>
 	public String getSelectedFoundry()
     {
         if (prefFoundry == null) return ""; // Nothing
-        return prefFoundry.getString();
+        return prefFoundry.getString().toUpperCase();
     }
 
 	/**
@@ -3275,7 +3275,7 @@ public class Technology implements Comparable<Technology>
      */
     protected void setFactorySelecedFound(String factoryName)
     {
-        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName);
+        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName.toUpperCase());
         prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
     }
 
@@ -3283,7 +3283,7 @@ public class Technology implements Comparable<Technology>
 	 * Get an iterator over all of the Manufacturers.
 	 * @return an iterator over all of the Manufacturers.
 	 */
-	public Iterator<Foundry> getFactories()
+	public Iterator<DRCTemplate.DRCMode> getFactories()
 	{
 		return foundries.iterator();
 	}
@@ -3292,16 +3292,16 @@ public class Technology implements Comparable<Technology>
 	 * Method to get the foundry index associated with this technology.
 	 * @return the foundry index associated with this technology.
 	 */
-    public int getFoundry()
+    public DRCTemplate.DRCMode getFoundry()
     {
         String foundryName = getSelectedFoundry();
         for (int i = 0; i < foundries.size(); i++)
         {
-            Technology.Foundry man = (Technology.Foundry)foundries.get(i);
-            if (man.name.equals(foundryName))
-                return man.techMode;
+            DRCTemplate.DRCMode man = foundries.get(i);
+            if (man.name().equals(foundryName))
+                return man;
         }
-        return DRCTemplate.NONE;
+        return DRCTemplate.DRCMode.NONE;
     }
 
 	/**
@@ -3720,7 +3720,7 @@ public class Technology implements Comparable<Technology>
 
     /**
      * Compares Technologies by their names.
-     * @param obj the other Technology.
+     * @param that the other Technology.
      * @return a comparison between the Technologies.
      */
 /*5*/public int compareTo(Technology that)
@@ -3834,9 +3834,9 @@ public class Technology implements Comparable<Technology>
 			index++;
 		}
         //@TODO this index might overlap with layer indices.
-        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.ALL, DRCTemplate.NODSIZ, 0, 0, null, null, wid, -1);
+        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null, wid, -1);
         tmp.value2 = hei;
-        rules.addRule(index, tmp, -1);
+        rules.addRule(index, tmp, DRCTemplate.DRCRuleType.NONE);
 //		rules.setMinNodeSize(index, ruleName, wid, hei);
 	}
 
@@ -3996,21 +3996,21 @@ public class Technology implements Comparable<Technology>
                                          Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
 
     /********************* Foundry **********************/
-    public static class Foundry
-    {
-        public static String MOSIS_FOUNDRY = "Mosis";
-        public static String TSMC_FOUNDRY = "TSMC";
-        public static String ST_FOUNDRY = "ST";
-        public static String ANY_FOUNDRY = "Combined";
-        public String name;
-        public int techMode; // this value goes according to DRCTemplate.mode
-
-        public Foundry(String name, int mode)
-        {
-            this.name = name;
-            this.techMode = mode;
-        }
-    }
+//    public static class Foundry
+//    {
+//        public static String MOSIS_FOUNDRY = "Mosis";
+//        public static String TSMC_FOUNDRY = "TSMC";
+//        public static String ST_FOUNDRY = "ST";
+//        public static String ANY_FOUNDRY = "Combined";
+//        public String name;
+//        public int techMode; // this value goes according to DRCTemplate.mode
+//
+//        public Foundry(String name, int mode)
+//        {
+//            this.name = name;
+//            this.techMode = mode;
+//        }
+//    }
 
     /**
 	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
@@ -4026,7 +4026,7 @@ public class Technology implements Comparable<Technology>
 
 		public void setSideEffect()
 		{
-			tech.setState();
+			tech.setState(null);
 			VectorDrawing.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();

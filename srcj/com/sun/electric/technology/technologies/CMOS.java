@@ -28,15 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 
 import java.awt.Color;
@@ -354,20 +346,20 @@ public class CMOS extends Technology
 		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Metal
-		P_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Polysilicon
-		D_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Diffusion
-		P0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// P+
-		CC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Contact-Cut
-		OC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Ohmic-Cut
-		PW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// P-Well
-		O_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Overglass
-		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Transistor
-		PM_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Diffusion
-		PP0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P+
-		PPW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P-Well
+		M_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Metal
+		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Polysilicon
+		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Diffusion
+		P0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// P+
+		CC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Contact-Cut
+		OC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic-Cut
+		PW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// P-Well
+		O_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Overglass
+		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Transistor
+		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Diffusion
+		PP0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-P+
+		PPW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 

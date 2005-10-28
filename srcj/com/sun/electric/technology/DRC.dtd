@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- First attemp to store DRC rules in files -->
+<!--<!ELEMENT ruleName (#PCDATA)> -->
+ <!ELEMENT DRCRules (Foundry)*>
+ <!ELEMENT Foundry ((LayerRule|LayersRule|NodeLayersRule|NodeRule)*)>
+ <!ELEMENT LayerRule ANY>   <!-- Rules for particular layers -->
+ <!ELEMENT LayersRule ANY>  <!-- Spacing rules between layers -->
+ <!ELEMENT NodeLayersRule ANY> <!-- Spacing between layers in a node -->
+ <!ELEMENT NodeRule ANY> <!-- special for transistors so far -->
+ <!ATTLIST Foundry name CDATA #REQUIRED>
+ <!ATTLIST LayerRule
+    ruleName CDATA #REQUIRED
+    layerName CDATA #REQUIRED
+    type (MINWID | MINAREA) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+ <!ATTLIST LayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    type (CONSPA | UCONSPA | SPACING | SPACINGM) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+ <!ATTLIST NodeLayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    nodeName CDATA #REQUIRED
+    type (SURROUND | ASURROUND | TRAWELL) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+ >
+ <!ATTLIST NodeRule
+    ruleName CDATA #REQUIRED
+    type (TRAWELL | TRAPOLY | TRAACTIVE | NODSIZ | CUTSUR | CUTSPA | CUTSPA2D) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+    nodeName CDATA #IMPLIED
+ >

@@ -162,6 +162,8 @@ public class ToolMenu {
         drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Export DRC deck", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { exportDRCDeck();}});
+        drcSubMenu.addMenuItem("Import DRC deck", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { importDRCDeck();}});
 
 		//------------------- Simulation (Built-in)
 
@@ -1635,5 +1637,11 @@ public class ToolMenu {
         String fileName = OpenFile.chooseOutputFile(FileType.XML, "Save XML DRC deck", null);
         if (fileName == null) return;
         DRCTemplate.exportDRCDeck(fileName, Technology.getCurrent());
+    }
+
+    public static void importDRCDeck() {
+        String fileName = OpenFile.chooseInputFile(FileType.XML, "Open XML DRC deck", false);
+        if (fileName == null) return;
+        DRCTemplate.importDRCDeck(fileName, Technology.getCurrent());
     }
 }

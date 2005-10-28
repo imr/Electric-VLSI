@@ -327,7 +327,7 @@ public class ERCWellCheck
 		{
 			HashMap<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
 			HashMap<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
-            int techMode = cell.getTechnology().getFoundry();
+            DRCTemplate.DRCMode techMode = cell.getTechnology().getFoundry();
 			for(Iterator<WellArea> it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/27/05, GVG) More changes towards DRC deck handling. Import/Export of DRC deck under Tools->DRC.
+Typesafe enums for DRC options. Generic DTD for DRC rules and can be loaded using EntityResolver.resolveEntity.
+
 BUG: (10/26/05, SMR) Auto-stitcher connects pure-layer nodes of well (Bug #388).
 FIX: Disallow pure-layer nodes in auto-stitching.
 

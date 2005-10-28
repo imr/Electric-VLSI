@@ -23,6 +23,9 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,70 +38,85 @@ import java.io.FileWriter;
  */
 public class DRCTemplate
 {
-    // design rule constants
-    
-    // the meaning of "when" in the DRC table
-    /** None */                                                         public static final int NONE =    -1;
-    /** always */			                                            public static final int ALL =      0;
-    /** only applies if there are 2 metal layers in process */			public static final int M2 =      01;
-    /** only applies if there are 3 metal layers in process */			public static final int M3 =      02;
-    /** only applies if there are 4 metal layers in process */			public static final int M4 =      04;
-    /** only applies if there are 5 metal layers in process */			public static final int M5 =     010;
-    /** only applies if there are 6 metal layers in process */			public static final int M6 =     020;
-    /** only applies if there are 2-3 metal layers in process */		public static final int M23 =     03;
-//    /** only applies if there are 2-4 metal layers in process */		public static final int M234 =    07;
-//    /** only applies if there are 2-5 metal layers in process */		public static final int M2345 =  017;
-    /** only applies if there are 4-6 metal layers in process */		public static final int M456 =   034;
-    /** only applies if there are 5-6 metal layers in process */		public static final int M56 =    030;
-//    /** only applies if there are 3-6 metal layers in process */		public static final int M3456 =  036;
+    public enum DRCMode
+    {
+        /** None */                                                         NONE (-1),
+        /** always */                                                       ALL (0),
+        /** only applies if there are 2 metal layers in process */			M2 (01),
+        /** only applies if there are 3 metal layers in process */			M3 (02),
+        /** only applies if there are 4 metal layers in process */			M4 (04),
+        /** only applies if there are 5 metal layers in process */			M5 (010),
+        /** only applies if there are 6 metal layers in process */			M6 (020),
+        /** only applies if there are 2-3 metal layers in process */		M23 (03),
+        /** only applies if there are 4-6 metal layers in process */		M456 (034),
+        /** only applies if there are 5-6 metal layers in process */		M56 (030),
 
-    /** only applies if alternate contact rules are in effect */		public static final int AC =     040;
-    /** only applies if alternate contact rules are not in effect */	public static final int NAC =   0100;
-    /** only applies if stacked vias are allowed */						public static final int SV =    0200;
-    /** only applies if stacked vias are not allowed */					public static final int NSV =   0400;
-    /** only applies if deep rules are in effect */						public static final int DE =   01000;
-    /** only applies if submicron rules are in effect */				public static final int SU =   02000;
-    /** only applies if scmos rules are in effect */					public static final int SC =   04000;
-    /** only for TSMC technology */                                     public static final int TSMC = 010000;
-    /** only for ST technology */                                       public static final int ST =   020000;
-    /** for MOSIS technology */                                         public static final int MOSIS =040000;
+        /** only applies if alternate contact rules are in effect */		AC (040),
+        /** only applies if alternate contact rules are not in effect */	NAC (0100),
+        /** only applies if stacked vias are allowed */						SV (0200),
+        /** only applies if stacked vias are not allowed */					NSV (0400),
+        /** only applies if deep rules are in effect */						DE (01000),
+        /** only applies if submicron rules are in effect */				SU (02000),
+        /** only applies if scmos rules are in effect */					SC (04000),
+        /** only for TSMC technology */                                     TSMC (010000),
+        /** only for ST technology */                                       ST (020000),
+        /** only for MOSIS technology */                                    MOSIS (040000);
 
+        private final int mode;   // mode
+        DRCMode(int mode) {
+            this.mode = mode;
+        }
+        public int mode() { return this.mode; }
+        public String toString() {return name();}
+    }
 
+    public enum DRCRuleType
+    {
     // the meaning of "ruletype" in the DRC table
-    /** a minimum-width rule */			public static final int MINWID =     1;
-    /** a node size rule */				public static final int NODSIZ =     2;
-    /** a general surround rule */		public static final int SURROUND =   3;
-    /** a via surround rule */			public static final int VIASUR =     4;
-    /** a transistor well rule */		public static final int TRAWELL =    5;
-    /** a transistor poly rule */		public static final int TRAPOLY =    6;
-    /** a transistor active rule */		public static final int TRAACTIVE =  7;
-    /** a spacing rule */				public static final int SPACING =    8;
-    /** a multi-cut spacing rule */		public static final int SPACINGM =   9;
-    /** a wide spacing rule */			public static final int SPACINGW =  10;
-    /** an edge spacing rule */			public static final int SPACINGE =  11;
-    /** a connected spacing rule */		public static final int CONSPA =    12;
-    /** an unconnected spacing rule */	public static final int UCONSPA =   13;
-    /** a contact cut spacing rule */	public static final int CUTSPA =    14;
-    /** 2D contact cut spacing rule */	public static final int CUTSPA2D =  15;
-    /** a contact cut size rule */		public static final int CUTSIZE =   16;
-    /** a contact cut surround rule */	public static final int CUTSUR =    17;
-    /** X contact cut surround rule */	public static final int CUTSURX =    18;
-    /** Y contact cut surround rule */	public static final int CUTSURY =    19;
-    /** arc surround rule */			public static final int ASURROUND = 20;
-    /** minimum area rule */			public static final int AREA = 21;
-    /** enclosed area rule */			public static final int ENCLOSEDAREA = 22;
-	/** extension rule */               public static final int EXTENSION = 23;
-    /** forbidden rule */               public static final int FORBIDDEN = 24;
-    /** layer combination rule */       public static final int COMBINATION = 25;
-    /** extension gate rule */          public static final int EXTENSIONGATE = 26;
-    /** slot size rule */               public static final int SLOTSIZE = 26;
+        /** nothing chosen */			    NONE (-1),
+        /** a minimum-width rule */			MINWID (1),
+        /** a node size rule */				NODSIZ (2),
+        /** a general surround rule */		SURROUND (3),
+        /** a via surround rule */			VIASUR (4),
+        /** a transistor well rule */		TRAWELL (5),
+        /** a transistor poly rule */		TRAPOLY (6),
+        /** a transistor active rule */		TRAACTIVE (7),
+        /** a spacing rule */				SPACING (8),
+        /** a multi-cut spacing rule */		SPACINGM (9),
+        /** a wide spacing rule */			SPACINGW (10),
+        /** an edge spacing rule */			SPACINGE (11),
+        /** a connected spacing rule */		CONSPA (12),
+        /** an unconnected spacing rule */	UCONSPA (13),
+        /** a contact cut spacing rule */	CUTSPA (14),
+        /** 2D contact cut spacing rule */	CUTSPA2D (15),
+        /** a contact cut size rule */		CUTSIZE (16),
+        /** a contact cut surround rule */	CUTSUR (17),
+        /** X contact cut surround rule */	CUTSURX (18),
+        /** Y contact cut surround rule */	CUTSURY (19),
+        /** arc surround rule */			ASURROUND (20),
+        /** minimum area rule */			AREA (21),
+        /** enclosed area rule */			ENCLOSEDAREA (22),
+        /** extension rule */               EXTENSION (23),
+        /** forbidden rule */               FORBIDDEN (24),
+        /** layer combination rule */       COMBINATION (25),
+        /** extension gate rule */          EXTENSIONGATE (26),
+        /** slot size rule */               SLOTSIZE (27);
+
+        private final int mode;
+
+        DRCRuleType(int mode)
+        {
+            this.mode = mode;
+        }
+        public int mode() { return this.mode; }
+    }
 
     // For sorting
     public static final DRCTemplateSort templateSort = new DRCTemplateSort();
 
     public String ruleName;			/* the name of the rule */
     public int when;				/* when the rule is used */
-    public int ruleType;			/* the type of the rule */
+    public DRCRuleType ruleType;			/* the type of the rule */
     public String name1, name2;	/* two layers/nodes that are used by the rule */
     public double value1;		/* value1 is distance for spacing rule or width for node rule */
     public double value2;		/* value1 is height for node rule */
@@ -108,7 +126,7 @@ public class DRCTemplate
 	public int multiCuts;         /* -1=dont care, 0=no cuts, 1=with cuts multi cut rule */
 
 
-    public DRCTemplate(String rule, int when, int ruleType, String name1, String name2, double distance, String nodeName)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double distance, String nodeName)
     {
         this.ruleName = rule;
         this.when = when;
@@ -135,7 +153,7 @@ public class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
-    public DRCTemplate(String rule, int when, int ruleType, double maxW, double minLen, double distance, int multiCut)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, double distance, int multiCut)
     {
         this.ruleName = rule;
         this.when = when;
@@ -149,7 +167,7 @@ public class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
-    public DRCTemplate(String rule, int when, int ruleType, double maxW, double minLen, String name1, String name2, double distance, int multiCut)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, String name1, String name2, double distance, int multiCut)
     {
         this.ruleName = rule;
         this.when = when;
@@ -178,7 +196,7 @@ public class DRCTemplate
 	/**
 	 * Method for spacing rules in single layers.
 	 */
-    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen,
+    public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double maxW, double minLen,
                                                       double value, String arrayL[])
 	{
 		// Clone same rule for different layers
@@ -197,7 +215,7 @@ public class DRCTemplate
      *  Create same rules for different foundries. In this case, primitive nodes are involved
      *  Matrix contains triple pair: layer1, layer2, primitiveNode
      */
-    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, int type, double value, String matrix[][])
+    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type, double value, String matrix[][])
 	{
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length * matrix.length);
 
@@ -216,7 +234,7 @@ public class DRCTemplate
     /**
      * For same rules but with different names depending on the foundry
      */
-    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, int type, double maxW, double value, String arrayL[][])
+    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type, double maxW, double value, String arrayL[][])
 	{
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length);
 
@@ -230,7 +248,7 @@ public class DRCTemplate
 	/**
 	 * For multi cuts as well.
 	 */
-    public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double maxW, double minLen, double value, String arrayL[][], int multiCut)
+    public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double maxW, double minLen, double value, String arrayL[][], int multiCut)
 	{
 		// Clone same rule for different layers
 		int l = arrayL.length;
@@ -249,7 +267,7 @@ public class DRCTemplate
     /**
      * For primitive node rules.
      */
-	public static List<DRCTemplate> makeRuleTemplates(String name, int when, int type, double value, String arrayL[])
+	public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double value, String arrayL[])
 	{
 		// Clone same rule for different layers
 		int length = arrayL.length;
@@ -282,29 +300,104 @@ public class DRCTemplate
         }
     }
 
+    public static void importDRCDeck(String fileName, Technology tech)
+    {
+        DRCXMLParser parser = new DRCXMLParser();
+        List<DRCTemplate> rules = parser.process(TextUtils.makeURLToFile(fileName));
+        tech.setState(rules);
+    }
+
     public static void exportDRCDeck(String fileName, Technology tech)
     {
         DRCTemplate[] rules = tech.getDRCDeck();
-        int foundry = tech.getFoundry();
+        DRCTemplate.DRCMode foundry = tech.getFoundry();
         try
         {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-            out.println("<DRC>");
+            out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            out.println("<!--");
+            out.println("\t Document: DRC deck for " + tech);
+            out.println("\t Generated by: Electric (" + Version.getVersion() + ")");
+            out.println("-->");
+            out.println("<!DOCTYPE DRCRules SYSTEM \"DRC.dtd\">");
+            out.println("<DRCRules>");
+            out.println("\t<Foundry name=\"" + foundry.name() + "\">");
+
             for (int i = 0; i < rules.length; i++)
             {
-                if ((rules[i].when & foundry) == 0) continue;
+                if ((rules[i].when & foundry.mode()) == 0) continue;
+                String whenName = null;
+                for (DRCMode p : DRCMode.values())
+                {
+                    if (p == DRCMode.NONE || p == DRCMode.MOSIS || p == DRCMode.TSMC || p == DRCMode.ST) continue;
+                    if ((p.mode() & rules[i].when) != 0)
+                    {
+                        if (whenName == null) // first element
+                            whenName = "";
+                        else
+                            whenName += "|";
+                        whenName += p;
+                    }
+                }
+                if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
                 switch(rules[i].ruleType)
                 {
                     case MINWID:
-                        //<LayerRule ruleName="1.1 (Mosis)" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well"
-                        // type="DRCTemplate.MINWID" when="DRCTemplate.DE|DRCTemplate.SU" value="12"/>
-                        out.println("\t<LayerRule ruleName=\"" + rules[i].ruleName + "\"" + "/>");
+                        out.println("\t\t<LayerRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " layerName=\"" + rules[i].name1 + "\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + "/>");
+                        break;
+                    case UCONSPA:
+                    case CONSPA:
+                    case SPACING:
+                    case SPACINGM:
+                        out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + "/>");
+                        break;
+                    case SURROUND:
+                    case ASURROUND:
+                        out.println("\t\t<NodeLayersRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + "/>");
+                        break;
+                    case TRAWELL:
+                    case TRAPOLY:
+                    case TRAACTIVE:
+                        out.println("\t\t<NodeRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + "/>");
+                        break;
+                    case NODSIZ:
+                    case CUTSUR:
+                    case CUTSPA:
+                    case CUTSPA2D:
+                        out.println("\t\t<NodeRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + "/>");
                         break;
                     default:
+                        System.out.println("Case not implemented " + rules[i].ruleType);
                         ;
                 }
             }
-            out.println("</DRC>");
+            out.println("\t</Foundry>");
+            out.println("</DRCRules>");
             out.close();
         } catch (Exception e)
         {

@@ -101,7 +101,7 @@ public class MOSRules implements DRCRules {
     public DRCTemplate getMinNodeSize(int index, int when)
     {
         // That division by 2 might be a problem
-        DRCTemplate rule = new DRCTemplate(minNodeSizeRules[index], when, DRCTemplate.NODSIZ, 0, 0, null, null,
+        DRCTemplate rule = new DRCTemplate(minNodeSizeRules[index], when, DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null,
                 minNodeSize[index*2].doubleValue(), -1);
         rule.value2 = minNodeSize[index*2+1].doubleValue(); // height
         return (rule);
@@ -219,7 +219,7 @@ public class MOSRules implements DRCRules {
      * @param techMode foundry.
      * @return true if given node is not allowed by foundry.
      */
-    public boolean isForbiddenNode(int nodeIndex, int type, int techMode)
+    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type, int techMode)
     {
         return false;
     }
@@ -327,7 +327,7 @@ public class MOSRules implements DRCRules {
 		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 		double dist = edgeList[pIndex].doubleValue();
 		if (dist < 0) return null;
-		return new DRCTemplate(edgeListRules[pIndex], techMode, DRCTemplate.SPACINGE, 0, 0, null, null, dist, -1);
+		return new DRCTemplate(edgeListRules[pIndex], techMode, DRCTemplate.DRCRuleType.SPACINGE, 0, 0, null, null, dist, -1);
 	}
 
      /**
@@ -385,7 +385,7 @@ public class MOSRules implements DRCRules {
 		}
 		if (bestDist < 0) return null;
 
-		return new DRCTemplate(rule, techMode, DRCTemplate.SPACING, 0, 0, bestDist, multiCut);
+		return new DRCTemplate(rule, techMode, DRCTemplate.DRCRuleType.SPACING, 0, 0, bestDist, multiCut);
 	}
 
     /**
@@ -436,9 +436,9 @@ public class MOSRules implements DRCRules {
 	 * @param index
 	 * @param rule
 	 */
-	public void addRule(int index, DRCTemplate rule, int spacingCase)
+	public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase)
 	{
-        if (rule.ruleType == DRCTemplate.NODSIZ)
+        if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)
             setMinNodeSize(index, rule.ruleName, rule.value1, rule.value2);
         else
         {
@@ -446,24 +446,24 @@ public class MOSRules implements DRCRules {
 
             switch (rule.ruleType)
             {
-                case DRCTemplate.CONSPA: // Connected
+                case CONSPA: // Connected
                 {
                     switch (spacingCase)
                     {
-                        case DRCTemplate.SPACING:
+                        case SPACING:
                             conList[index] = new Double(rule.value1);
                             conListRules[index] = rule.ruleName;
                             if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
-                        case DRCTemplate.SPACINGW:
+                        case SPACINGW:
                             conListWide[index] = new Double(rule.value1);
                             conListWideRules[index] = rule.ruleName;
                             break;
-                        case DRCTemplate.CUTSPA:
+                        case CUTSPA:
                             conListMulti[index] = new Double(rule.value1);
                             conListMultiRules[index] = rule.ruleName;
                             break;
-                        case DRCTemplate.SPACINGE: // edge rules
+                        case SPACINGE: // edge rules
                             edgeList[index] = new Double(rule.value1);
                             edgeListRules[index] = rule.ruleName;
                             break;
@@ -472,19 +472,19 @@ public class MOSRules implements DRCRules {
                     }
                 }
                 break;
-                case DRCTemplate.UCONSPA: // Connected
+                case UCONSPA: // Connected
                 {
                     switch (spacingCase)
                     {
-                        case DRCTemplate.SPACING:
+                        case SPACING:
                             unConList[index] = new Double(rule.value1);
                             unConListRules[index] = rule.ruleName;
                             break;
-                        case DRCTemplate.SPACINGW:
+                        case SPACINGW:
                             unConListWide[index] = new Double(rule.value1);
                             unConListWideRules[index] = rule.ruleName;
                             break;
-                        case DRCTemplate.CUTSPA:
+                        case CUTSPA:
                             unConListMulti[index] = new Double(rule.value1);
                             unConListMultiRules[index] = rule.ruleName;
                             break;
@@ -519,7 +519,7 @@ public class MOSRules implements DRCRules {
      * @param newRules
      * @param spacingCase SPACING for normal case, SPACINGW for wide case, CUTSPA for multi cuts
      */
-    public void setSpacingRules(int index, List<DRCTemplate> newRules, int spacingCase)
+    public void setSpacingRules(int index, List newRules, DRCTemplate.DRCRuleType spacingCase)
     {
         for (int i = 0; i < newRules.size(); i++)
         {
@@ -536,54 +536,54 @@ public class MOSRules implements DRCRules {
      * @param techMode to choose a foundry (ignore here).
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
-    public List<DRCTemplate> getSpacingRules(int index, int type, int techMode)
+    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type, int techMode)
     {
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(2);
 
 		// SMR changed the four lines listed below...widelimit should appear in the SPACINGW rule, not the SPACING rule
         switch (type)
         {
-            case DRCTemplate.SPACING: // normal rules
+            case SPACING: // normal rules
             {
                 double dist = conList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListRules[index], techMode, DRCTemplate.CONSPA,
+                    list.add(new DRCTemplate(conListRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, -1));
                 dist = unConList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListRules[index], techMode, DRCTemplate.UCONSPA,
+                    list.add(new DRCTemplate(unConListRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
                             0, 0, null, null, dist, -1));
            }
            break;
-           case DRCTemplate.SPACINGW: // wide rules
+           case SPACINGW: // wide rules
            {
                 double dist = conListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListWideRules[index], techMode, DRCTemplate.CONSPA,
+                    list.add(new DRCTemplate(conListWideRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
                             wideLimit.doubleValue(), 0, null, null, dist, -1));
                 dist = unConListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListWideRules[index], techMode, DRCTemplate.UCONSPA,
+                    list.add(new DRCTemplate(unConListWideRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
                             wideLimit.doubleValue(), 0, null, null, dist, -1));
            }
            break;
-           case DRCTemplate.CUTSPA: // multi contact rules
+           case CUTSPA: // multi contact rules
            {
                 double dist = conListMulti[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListMultiRules[index], techMode, DRCTemplate.CONSPA,
+                    list.add(new DRCTemplate(conListMultiRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, 1));
                 dist = unConListMulti[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListMultiRules[index], techMode, DRCTemplate.UCONSPA,
+                    list.add(new DRCTemplate(unConListMultiRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
                             0, 0, null, null, dist, 1));
            }
            break;
-           case DRCTemplate.SPACINGE: // edge rules
+           case SPACINGE: // edge rules
            {
                 double dist = edgeList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(edgeListRules[index], techMode, DRCTemplate.SPACINGE,
+                    list.add(new DRCTemplate(edgeListRules[index], techMode, DRCTemplate.DRCRuleType.SPACINGE,
                             0, 0, null, null, dist, -1));
            }
            break;
@@ -632,31 +632,31 @@ public class MOSRules implements DRCRules {
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-    public DRCTemplate getMinValue(Layer layer, int type, int techMode)
+    public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type, int techMode)
 	{
-	    if (type == DRCTemplate.MINWID)
+	    if (type == DRCTemplate.DRCRuleType.MINWID)
         {
             int index = layer.getIndex();
             double dist = minWidth[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.MINWID, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
         }
-        if (type == DRCTemplate.AREA)
+        if (type == DRCTemplate.DRCRuleType.AREA)
         {
             int index = layer.getIndex();
             double dist = minArea[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.AREA, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.DRCRuleType.AREA, 0, 0, null, null, dist, -1));
         }
-        if (type == DRCTemplate.SLOTSIZE)
+        if (type == DRCTemplate.DRCRuleType.SLOTSIZE)
         {
             int index = layer.getIndex();
             double dist = slotSize[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(slotSizeRules[index], techMode, DRCTemplate.SLOTSIZE, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(slotSizeRules[index], techMode, DRCTemplate.DRCRuleType.SLOTSIZE, 0, 0, null, null, dist, -1));
         }
         return null;
 	}
@@ -668,12 +668,12 @@ public class MOSRules implements DRCRules {
      * @param techMode to choose betweeb ST or TSMC
      * @return the requested cut rule.
      */
-    public DRCTemplate getCutRule(int index, int type, int techMode)
+    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type, int techMode)
     {
-        if (type != DRCTemplate.CUTSIZE) return null;
+        if (type != DRCTemplate.DRCRuleType.CUTSIZE) return null;
         double cutSize = minWidth[index].doubleValue();
         if (cutSize < 0) return null;
-        return (new DRCTemplate(cutNodeSizeRules[index], techMode, DRCTemplate.CUTSIZE, 0, 0, null, null, cutSize, -1));
+        return (new DRCTemplate(cutNodeSizeRules[index], techMode, DRCTemplate.DRCRuleType.CUTSIZE, 0, 0, null, null, cutSize, -1));
     }
 
     /**
@@ -685,9 +685,9 @@ public class MOSRules implements DRCRules {
      * @param type rule type
      * @param techMode to choose betweeb ST or TSMC
      */
-    public void setMinValue(Layer layer, String name, double value, int type, int techMode)
+    public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type, int techMode)
     {
-        if (type != DRCTemplate.MINWID) return;
+        if (type != DRCTemplate.DRCRuleType.MINWID) return;
 
         int index = layer.getIndex();
         if (value <= 0) value = MOSNORULE;

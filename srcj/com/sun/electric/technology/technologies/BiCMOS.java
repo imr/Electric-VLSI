@@ -28,15 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 
 import java.awt.Color;
@@ -562,33 +554,33 @@ public class BiCMOS extends Technology
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
 
 		// The GDS names
-		PS_lay.setFactoryGDSLayer("8", Foundry.MOSIS_FOUNDRY);		// P_Select
-		NS_lay.setFactoryGDSLayer("7", Foundry.MOSIS_FOUNDRY);		// N_Select
-		NW_lay.setFactoryGDSLayer("1", Foundry.MOSIS_FOUNDRY);		// N_Well
-		V_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Via
-		P_lay.setFactoryGDSLayer("13", Foundry.MOSIS_FOUNDRY);		// Passivation
-		PF_lay.setFactoryGDSLayer("9", Foundry.MOSIS_FOUNDRY);		// Pad_Frame
-		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Transistor
-		AC_lay.setFactoryGDSLayer("35", Foundry.MOSIS_FOUNDRY);		// Active_Cut
-		PM_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_Metal_1
-		PM0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_Metal_2
-		PP_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_Polysilicon
-		PPS_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_P_Select
-		PNS_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_N_Select
-		PNW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_N_Well
-		PP0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_Polysilicon_2
-		M_lay.setFactoryGDSLayer("10", Foundry.MOSIS_FOUNDRY);		// M1
-		M0_lay.setFactoryGDSLayer("12", Foundry.MOSIS_FOUNDRY);		// M2
-		P0_lay.setFactoryGDSLayer("4", Foundry.MOSIS_FOUNDRY);		// Poly1
-		P1_lay.setFactoryGDSLayer("19", Foundry.MOSIS_FOUNDRY);		// Poly2
-		A_lay.setFactoryGDSLayer("31", Foundry.MOSIS_FOUNDRY);		// Active
-		PC_lay.setFactoryGDSLayer("45", Foundry.MOSIS_FOUNDRY);		// Poly1_Cut
-		PC0_lay.setFactoryGDSLayer("55", Foundry.MOSIS_FOUNDRY);		// Poly2_Cut
-		PA_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo_Active
-		PBA_lay.setFactoryGDSLayer("33", Foundry.MOSIS_FOUNDRY);		// P_Base_Active
-		B_lay.setFactoryGDSLayer("17", Foundry.MOSIS_FOUNDRY);		// BCCD
-		OS_lay.setFactoryGDSLayer("3", Foundry.MOSIS_FOUNDRY);		// Ohmic_Substrate
-		OW_lay.setFactoryGDSLayer("3", Foundry.MOSIS_FOUNDRY);		// Ohmic_Well
+		PS_lay.setFactoryGDSLayer("8", DRCTemplate.DRCMode.MOSIS.name());		// P_Select
+		NS_lay.setFactoryGDSLayer("7", DRCTemplate.DRCMode.MOSIS.name());		// N_Select
+		NW_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// N_Well
+		V_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Via
+		P_lay.setFactoryGDSLayer("13", DRCTemplate.DRCMode.MOSIS.name());		// Passivation
+		PF_lay.setFactoryGDSLayer("9", DRCTemplate.DRCMode.MOSIS.name());		// Pad_Frame
+		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Transistor
+		AC_lay.setFactoryGDSLayer("35", DRCTemplate.DRCMode.MOSIS.name());		// Active_Cut
+		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Metal_1
+		PM0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Metal_2
+		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Polysilicon
+		PPS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_P_Select
+		PNS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_N_Select
+		PNW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_N_Well
+		PP0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Polysilicon_2
+		M_lay.setFactoryGDSLayer("10", DRCTemplate.DRCMode.MOSIS.name());		// M1
+		M0_lay.setFactoryGDSLayer("12", DRCTemplate.DRCMode.MOSIS.name());		// M2
+		P0_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.MOSIS.name());		// Poly1
+		P1_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.MOSIS.name());		// Poly2
+		A_lay.setFactoryGDSLayer("31", DRCTemplate.DRCMode.MOSIS.name());		// Active
+		PC_lay.setFactoryGDSLayer("45", DRCTemplate.DRCMode.MOSIS.name());		// Poly1_Cut
+		PC0_lay.setFactoryGDSLayer("55", DRCTemplate.DRCMode.MOSIS.name());		// Poly2_Cut
+		PA_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Active
+		PBA_lay.setFactoryGDSLayer("33", DRCTemplate.DRCMode.MOSIS.name());		// P_Base_Active
+		B_lay.setFactoryGDSLayer("17", DRCTemplate.DRCMode.MOSIS.name());		// BCCD
+		OS_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic_Substrate
+		OW_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic_Well
 
 		//******************** DESIGN RULES ********************
 

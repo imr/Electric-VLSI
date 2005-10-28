@@ -47,13 +47,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -171,7 +165,7 @@ public class Quick
     private HashMap nodesMap = new HashMap(); // for node caching
     private int activeBits = 0; // to caching current extra bits
     private int mergeMode = GeometryHandler.ALGO_SWEEP; // .ALGO_QTREE;
-    private int techMode = DRCTemplate.NONE;       /** To control different rules for ST and TSMC technologies */
+    private DRCTemplate.DRCMode techMode = DRCTemplate.DRCMode.NONE;       /** To control different rules for ST and TSMC technologies */
     private Map od2Layers = new HashMap(3);  /** to control OD2 combination in the same die according to foundries */
 
 	public Quick(DRC.CheckDRCLayoutJob job, int mode)
@@ -319,17 +313,17 @@ public class Quick
 				Layer layer = (Layer)it.next();
 
 				// Storing min areas
-				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA,techMode);
+				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.AREA,techMode);
 				if (minAreaRule != null)
 					minAreaLayerMap.put(layer, minAreaRule);
 
 				// Storing enclosed areas
-				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA, techMode);
+				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.ENCLOSEDAREA, techMode);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
 
                 // Storing slot sizes
-				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.SLOTSIZE, techMode);
+				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.SLOTSIZE, techMode);
 				if (slotRule != null)
 					slotSizeLayerMap.put(layer, slotRule);
 			}
@@ -750,7 +744,7 @@ public class Quick
 			return (false);
 		nodesMap.put(ni, ni);
 
-        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), DRCTemplate.FORBIDDEN, tech, techMode))
+        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.FORBIDDEN, tech, techMode))
         {
             reportError(FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
             if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
@@ -877,7 +871,7 @@ public class Quick
                     Layer lay1 = (Layer)keys[i];
                     if (lay1 == layer) continue;
                     int index = tech.getRuleIndex(lay1.getIndex(), layer.getIndex());
-                    if (DRC.isForbiddenNode(index, DRCTemplate.COMBINATION, tech, techMode))
+                    if (DRC.isForbiddenNode(index, DRCTemplate.DRCRuleType.COMBINATION, tech, techMode))
                     {
                         NodeInst node = (NodeInst)od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
@@ -1532,7 +1526,7 @@ public class Quick
 
         // they are electrically connected and they overlap: look for minimum size errors
         // of the overlapping region.
-        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID, techMode);
+        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.DRCRuleType.MINWID, techMode);
         if (wRule == null) return false; // no rule
 
         double minWidth = wRule.value1;
@@ -1836,7 +1830,7 @@ public class Quick
 		}
 
 		int errorType = SPACINGERROR;
-        if (theRule.ruleType == DRCTemplate.SURROUND)
+        if (theRule.ruleType == DRCTemplate.DRCRuleType.SURROUND)
         {
             if (pd > 0) // layers don't overlap -> no condition to check
                 return errorFound;
@@ -1848,7 +1842,7 @@ public class Quick
 		{
 			return errorFound;
 		}
-        if (theRule.ruleType != DRCTemplate.SURROUND)
+        if (theRule.ruleType != DRCTemplate.DRCRuleType.SURROUND)
         {
             /*
              * special case: ignore errors between two active layers connected
@@ -2448,7 +2442,7 @@ public class Quick
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
 		Cell cell = geom.getParent();
-		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID, techMode);
+		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID, techMode);
 		if (minWidthRule == null) return false;
 
 		// simpler analysis if manhattan
@@ -3153,7 +3147,7 @@ public class Quick
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.CUTSIZE, techMode);
+        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.CUTSIZE, techMode.mode());
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
         if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
@@ -3453,7 +3447,7 @@ public class Quick
 		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
 
-		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.EXTENSION, techMode);
+		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.EXTENSION, techMode);
 		if (minOverlapRule == null) return false;
 
 		Rectangle2D polyBnd = poly.getBounds2D();

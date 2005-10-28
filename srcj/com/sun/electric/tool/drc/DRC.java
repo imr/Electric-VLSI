@@ -489,13 +489,13 @@ public class DRC extends Listener
 	 * @return the edge rule distance between the layers.
 	 * Returns null if there is no edge spacing rule.
 	 */
-	public static DRCTemplate getEdgeRule(Layer layer1, Layer layer2, int techMode)
+	public static DRCTemplate getEdgeRule(Layer layer1, Layer layer2, DRCTemplate.DRCMode techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
 
-		return (rules.getEdgeRule(tech, layer1, layer2, techMode));
+		return (rules.getEdgeRule(tech, layer1, layer2, techMode.mode()));
 	}
 
 	/**
@@ -511,12 +511,12 @@ public class DRC extends Listener
 	 * Returns null if there is no spacing rule.
 	 */
 	public static DRCTemplate getSpacingRule(Layer layer1, Layer layer2, boolean connected,
-                                             int multiCut, double wideS, double length, int techMode)
+                                             int multiCut, double wideS, double length, DRCTemplate.DRCMode techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, length, techMode));
+        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, length, techMode.mode()));
 	}
 
 	/**
@@ -559,26 +559,26 @@ public class DRC extends Listener
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-	public static DRCTemplate getMinValue(Layer layer, int type, int techmode)
+	public static DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type, DRCTemplate.DRCMode techmode)
 	{
 		Technology tech = layer.getTechnology();
 		if (tech == null) return null;
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getMinValue(layer, type, techmode));
+        return (rules.getMinValue(layer, type, techmode.mode()));
 	}
 
     /**
      * Determine if node represented by index in DRC mapping table is forbidden under
      * this foundry.
      */
-    public static boolean isForbiddenNode(int elemIndex, int type, Technology tech, int techmode)
+    public static boolean isForbiddenNode(int elemIndex, DRCTemplate.DRCRuleType type, Technology tech, DRCTemplate.DRCMode techmode)
     {
         DRCRules rules = getRules(tech);
         if (rules == null) return false;
         int index = elemIndex;
-        if (type == DRCTemplate.FORBIDDEN) index += tech.getNumLayers();
-        return (rules.isForbiddenNode(index, type, techmode));
+        if (type == DRCTemplate.DRCRuleType.FORBIDDEN) index += tech.getNumLayers();
+        return (rules.isForbiddenNode(index, type, techmode.mode()));
     }
 
 	/**
@@ -703,9 +703,9 @@ public class DRC extends Listener
         if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
         if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
         // Adding foundry to bits set
-        int foundry = tech.getFoundry();
-        if (foundry != DRCTemplate.ALL)
-            bits |= (foundry == DRCTemplate.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
+        DRCTemplate.DRCMode foundry = tech.getFoundry();
+        if (foundry != DRCTemplate.DRCMode.ALL)
+            bits |= (foundry == DRCTemplate.DRCMode.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
 //        bits |= getFoundry();
         return bits;
     }

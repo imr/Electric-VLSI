@@ -40,18 +40,18 @@ public interface DRCRules
     public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2,
                                         int techMode, boolean isGateExtension);
 	public int getNumberOfRules();
-    public DRCTemplate getMinValue(Layer layer, int type, int techMode);
-    public DRCTemplate getCutRule(int index, int type, int techMode);
-    public void setMinValue(Layer layer, String name, double value, int type, int techMode);
+    public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type, int techMode);
+    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type, int techMode);
+    public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
-    public boolean isForbiddenNode(int nodeIndex, int type, int techMode);
+    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type, int techMode);
     public double getPolyOverhang();
     /********************* For UI ***********************************/
     DRCTemplate getMinNodeSize(int index, int when);
     String[] getNodesWithRules();
-    List<DRCTemplate> getSpacingRules(int index, int type, int techMode);
-    void addRule(int index, DRCTemplate rule, int spacingCase);
+    List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type, int techMode);
+    void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase);
     void deleteRule(int index, DRCTemplate rule);
-    void setSpacingRules(int index, List<DRCTemplate> newRules, int spacingCase);
+    void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase);
     boolean doesAllowMultipleWideRules(int index);
 }

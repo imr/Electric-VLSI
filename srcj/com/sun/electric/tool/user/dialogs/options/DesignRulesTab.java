@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -52,7 +53,7 @@ public class DesignRulesTab extends PreferencePanel
 	DesignRulesPanel rulesPanel;
 	private DRCRules drRules;
 	private boolean designRulesFactoryReset = false;
-	private int foundry;
+	private DRCTemplate.DRCMode foundry;
 
 	/** Creates new form DesignRulesTab */
 	public DesignRulesTab(Frame parent, boolean modal)
@@ -101,7 +102,7 @@ public class DesignRulesTab extends PreferencePanel
 
         drRules = rules;
 		foundry = curTech.getFoundry();
-        rulesPanel.init(curTech, foundry, drRules);
+        rulesPanel.init(curTech, foundry.mode(), drRules);
 
 		// load the dialog
         String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
@@ -109,13 +110,13 @@ public class DesignRulesTab extends PreferencePanel
 
         // Foundry
         String selectedFoundry = curTech.getSelectedFoundry();
-        for (Iterator it = curTech.getFactories(); it.hasNext(); )
+        for (Iterator<DRCTemplate.DRCMode> it = curTech.getFactories(); it.hasNext(); )
         {
-            Technology.Foundry factory = (Technology.Foundry)it.next();
-            defaultFoundryPulldown.addItem(factory.name);
-            if (selectedFoundry.equals(factory.name)) foundry = factory.techMode;
+            DRCTemplate.DRCMode factory = it.next();
+            defaultFoundryPulldown.addItem(factory.name());
+            if (selectedFoundry.equals(factory.name())) foundry = factory;
         }
-        defaultFoundryPulldown.setEnabled(foundry != -1);
+        defaultFoundryPulldown.setEnabled(foundry != DRCTemplate.DRCMode.NONE);
         defaultFoundryPulldown.setSelectedItem(selectedFoundry);
 
         // Resolution

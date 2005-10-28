@@ -35,14 +35,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Technology.Foundry;
+import com.sun.electric.technology.*;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
@@ -119,7 +112,7 @@ public class Artwork extends Technology
 		G_lay.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		G_lay.setFactoryGDSLayer("1", Foundry.MOSIS_FOUNDRY);		// Graphics
+		G_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************
 
