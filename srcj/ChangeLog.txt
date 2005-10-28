@@ -1017,8 +1017,8 @@ IMP: (07/28/05, JKG) Added Include File option to CDL tab (global include file).
 BUG: (07/28/05, JKG) Connecting contacts to contacts/arc in tsmc90 created broken arcs (Reported by Frankie).
 FIX: fixed bug in port size calc for wiring tool in NodeInst.getShapeOfPort()
 
-BUG: (07/28/05, JKF) Zoom mode does not clear current highlights (Boz).
-IMP: (07/28/05, JKF) Window->special zoom->zoom box can now use left mouse in addition to right mouse (Jon/Boz)
+BUG: (07/28/05, JKG) Zoom mode does not clear current highlights (Boz).
+IMP: (07/28/05, JKG) Window->special zoom->zoom box can now use left mouse in addition to right mouse (Jon/Boz)
 
 BUG: (07/27/05, GVG) Wrong names in 90nm N transistors (reported by Boz, no bugzilla)
 FIX: Function wrongly assigned in PrimitiveNode (TRAPMOS instead of TRANMOS)

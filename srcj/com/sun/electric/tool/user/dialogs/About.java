@@ -61,6 +61,7 @@ public class About extends EDialog
 			new CastOfThousands("Jason Imada", 				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, Hierarchy enumeration, Regressions"),
 			new CastOfThousands("Frank Lee", 				"ROM generator"),
+			new CastOfThousands("Ivan Minevskiy",			"NCC display"),
 			new CastOfThousands("Dmitry Nadezhin", 			"Database, Networks, Libraries, Simulation, Optimizations"),
 			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
 			new CastOfThousands("Thomas Valine", 			"GDS output"),
