@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (10/28/05, SMR) Deleting nodes and exports produces an error message.
+FIX: In CircuitChanges.eraseObjectsInList(), do not delete nodes already deleted.
+
 IMP: (10/27/05, SMR) Technology Editor produces proper Java.
 
 IMP: (10/27/05, GVG) More changes towards DRC deck handling. Import/Export of DRC deck under Tools->DRC.

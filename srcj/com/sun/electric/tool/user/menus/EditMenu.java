@@ -514,38 +514,11 @@ public class EditMenu {
 			return true;
 		}
 	}
-	
-//	static void replaceMe(String a, String b, Set<WhatToSearch> whatToSearch, WindowContent content){
-//	   content.initTextSearch(a, true, true, whatToSearch);
-//	   // content.replaceText(b);
-//	   content.replaceAllText(b);
-//	}
 
-    /**
+	/**
      * Repeat the last Command
      */
-    public static void repeatLastCommand() {		
-//		Set<WhatToSearch> whatToSearch = new HashSet<WhatToSearch>();
-//		whatToSearch.add(WhatToSearch.EXPORT_NAME);
-//		whatToSearch.add(WhatToSearch.EXPORT_VAR);
-//		
-//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-//		if (wf == null) return;
-//		
-//		String a= "^rxpad\\[1\\]\\[1\\]$";
-//		String b= "rxpad[1][F]";
-//		WindowContent content = wf.getContent();
-//		
-//		replaceMe(a,b, whatToSearch, content);
-//		a= "^rxpad\\[3\\]\\[1\\]$";
-//		b= "rxpad[3][F]";
-//		replaceMe(a,b, whatToSearch, content);
-//		a= "^rxpad\\[5\\]\\[1\\]$";
-//		b= "rxpad[5][F]";
-//		replaceMe(a,b, whatToSearch, content);
-//		a= "^rxpad\\[7\\]\\[1\\]$";
-//		b= "rxpad[7][F]";
-//		replaceMe(a,b, whatToSearch, content);
+    public static void repeatLastCommand() {
         AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
         if (lastActivated != null)
         {

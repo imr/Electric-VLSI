@@ -1788,7 +1788,7 @@ public class CircuitChanges
 		for(Iterator<NodeInst> it = deleteTheseNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			eraseNodeInst(ni);
+			if (ni.isLinked()) eraseNodeInst(ni);
 		}
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
