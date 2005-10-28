@@ -125,7 +125,7 @@ public class ZoomAndPanListener
 					if (dY < 0) scale = scale - scale * dY; else
 						scale = scale - scale * dY;
 					wnd.setScale(scale);
-                    wnd.getSavedViewBrowser().saveCurrentView();
+                    wnd.getSavedFocusBrowser().updateCurrentFocus();
 					wnd.repaintContents(null, false);
 				}
 /*
@@ -148,7 +148,7 @@ public class ZoomAndPanListener
 				Point2D pt = wnd.getScheduledOffset();
 				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
 					pt.getY() + (newY - lastY) / scale));
-                wnd.getSavedViewBrowser().updateCurrentView();
+                wnd.getSavedFocusBrowser().updateCurrentFocus();
 				wnd.repaintContents(null, false);
 			}
 			lastX = newX;
@@ -194,7 +194,7 @@ public class ZoomAndPanListener
 				if (wnd.isInPlaceEdit())
 					wnd.getInPlaceTransformOut().transform(offset, offset);
 				wnd.setOffset(offset);
-                wnd.getSavedViewBrowser().saveCurrentView();
+                wnd.getSavedFocusBrowser().updateCurrentFocus();
 				wnd.repaintContents(null, false);
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
 			} else
@@ -280,7 +280,7 @@ public class ZoomAndPanListener
 		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
 		if (bounds == null) return;
 		wnd.setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
-        wnd.getSavedViewBrowser().updateCurrentView();
+        wnd.getSavedFocusBrowser().updateCurrentFocus();
 		wnd.repaintContents(null, false);
 	}
 
@@ -294,7 +294,7 @@ public class ZoomAndPanListener
 		Point pt = wnd.getLastMousePosition();
 		Point2D center = wnd.screenToDatabase(pt.x, pt.y);
 		wnd.setOffset(center);
-        wnd.getSavedViewBrowser().updateCurrentView();
+        wnd.getSavedFocusBrowser().updateCurrentFocus();
 		wnd.repaintContents(null, false);
 
 	}
