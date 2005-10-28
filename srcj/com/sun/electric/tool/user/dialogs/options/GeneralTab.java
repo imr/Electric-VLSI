@@ -64,7 +64,7 @@ public class GeneralTab extends PreferencePanel
 		generalOlderDisplayAlgorithm.setSelected(User.isUseOlderDisplayAlgorithm());
 		generalUseGreekImages.setSelected(User.isUseCellGreekingImages());
 		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
-		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit()));
+		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit() * 100.0));
 
         for (Iterator<String> it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
@@ -131,7 +131,7 @@ public class GeneralTab extends PreferencePanel
 		if (currDouble != User.getGreekSizeLimit())
 			User.setGreekSizeLimit(currDouble);
 
-		currDouble = TextUtils.atof(generalGreekCellLimit.getText());
+		currDouble = TextUtils.atof(generalGreekCellLimit.getText()) / 100.0;
 		if (currDouble != User.getGreekCellSizeLimit())
 			User.setGreekCellSizeLimit(currDouble);
 
