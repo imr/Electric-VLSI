@@ -3445,7 +3445,7 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRCRules getFactoryDesignRules()
+	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules)
 	{
 		return null;
 	}
@@ -3976,6 +3976,11 @@ public class Technology implements Comparable<Technology>
      * @return
      */
     public DRCRules getCachedRules() {return cachedRules;}
+
+    /**
+     * Method to set cached rules
+     */
+    public void setCachedRules(DRCRules rules) {cachedRules = rules;}
 
     /**
      * Reset default width values. Dummy function except to 180nm

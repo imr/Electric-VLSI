@@ -25,6 +25,9 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -403,5 +406,24 @@ public class DRCTemplate
         {
             e.printStackTrace();
         }
+    }
+
+       /** Method to build combined name in special spacing rules
+     * @param layer
+     * @param geo
+     * @return
+     */
+    public static String getSpacingCombinedName(Layer layer, Geometric geo)
+    {
+        String n1 = layer.getName() + "-";
+
+        if (geo != null)
+        {
+            if (geo instanceof NodeInst)
+                n1 += ((NodeInst)geo).getProto().getName();
+            else
+                n1 += ((ArcInst)geo).getProto().getName();
+        }
+        return n1;
     }
 }

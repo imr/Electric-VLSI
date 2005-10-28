@@ -405,7 +405,7 @@ public class DRC extends Listener
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules
-		currentRules = tech.getFactoryDesignRules();
+		currentRules = tech.getFactoryDesignRules(null);
 		if (currentRules != null)
 		{
 			// add overrides
@@ -415,6 +415,7 @@ public class DRC extends Listener
 
 		// remember technology whose rules are cached
 		currentTechnology = tech;
+        tech.setCachedRules(currentRules);
 		return currentRules;
 	}
 
@@ -426,7 +427,7 @@ public class DRC extends Listener
 	public static void setRules(Technology tech, DRCRules newRules)
 	{
 		// get factory design rules
-		DRCRules factoryRules = tech.getFactoryDesignRules();
+		DRCRules factoryRules = tech.getFactoryDesignRules(null);
 
 		// determine override differences from the factory rules
 		StringBuffer changes = Technology.getRuleDifferences(factoryRules, newRules);
@@ -501,7 +502,9 @@ public class DRC extends Listener
 	/**
 	 * Method to find the spacing rule between two layer.
 	 * @param layer1 the first layer.
+     * @param geo1
 	 * @param layer2 the second layer.
+     * @param geo2
 	 * @param connected true to find the distance when the layers are connected.
 	 * @param multiCut true to find the distance when this is part of a multicut contact.
      * @param wideS widest polygon
@@ -510,13 +513,14 @@ public class DRC extends Listener
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
-	public static DRCTemplate getSpacingRule(Layer layer1, Layer layer2, boolean connected,
-                                             int multiCut, double wideS, double length, DRCTemplate.DRCMode techMode)
+	public static DRCTemplate getSpacingRule(Layer layer1, Geometric geo1, Layer layer2, Geometric geo2,
+                                             boolean connected, int multiCut, double wideS, double length,
+                                             DRCTemplate.DRCMode techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, length, techMode.mode()));
+        return (rules.getSpacingRule(tech, layer1, geo1, layer2, geo2, connected, multiCut, wideS, length, techMode.mode()));
 	}
 
 	/**

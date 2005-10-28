@@ -584,7 +584,7 @@ public class DesignRulesPanel extends JPanel
 		if (designRulesFactoryReset)
 		{
 			DRC.resetDRCDates();
-            DRCRules rules = curTech.getFactoryDesignRules();
+            DRCRules rules = curTech.getFactoryDesignRules(null);
             if (rules instanceof MOSRules)
 			    drRules = (MOSRules)rules;
 		}

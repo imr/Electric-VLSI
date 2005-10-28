@@ -247,8 +247,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("PP/NP.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "P-Select",       4.4,  null),
 		new DRCTemplate("PP/NP.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "N-Select",       4.4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "N-Select",       0,  null),
-//        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "N-Active",       2.6,  null),
-//        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "P-Active-Well",       2.6,  null),
+        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select", "P-Active",              2.6,  "N-Select-Metal-1-N-Well-Con"),
+        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select", "N-Active",             2.6,  "P-Select-Metal-1-P-Well-Con"),
 //        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "P-Active",       2.6,  null),
 
 		new DRCTemplate("5.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Poly-Cut",        null,            2,  null),
@@ -3895,7 +3895,7 @@ public class MoCMOS extends Technology
 							System.out.println("Warning: no arc '" + theRules[i].nodeName + "' in mocmos technology");
 							return null;
 						}
-					} else
+					} else if (theRules[i].ruleType != DRCTemplate.DRCRuleType.SPACING)
 					{
 						nty = this.findNodeProto(theRules[i].nodeName);
 						if (nty == null)
@@ -3985,6 +3985,8 @@ public class MoCMOS extends Technology
 						rules.unConList[index] = new Double(distance);
 						rules.conListRules[index] = rule;
 						rules.unConListRules[index] = rule;
+                        rules.conListNodes[index] = theRules[i].nodeName;
+                        rules.unConListNodes[index] = theRules[i].nodeName;
 						break;
 					case SPACINGM:
 						rules.conListMulti[index] = new Double(distance);
@@ -4005,10 +4007,12 @@ public class MoCMOS extends Technology
 					case CONSPA:
 						rules.conList[index] = new Double(distance);
 						rules.conListRules[index] = rule;
+                        rules.conListNodes[index] = theRules[i].nodeName;
 						break;
 					case UCONSPA:
 						rules.unConList[index] = new Double(distance);
 						rules.unConListRules[index] = rule;
+                        rules.unConListNodes[index] = theRules[i].nodeName;
 						break;
 					case CUTSPA:
 						specValues = nty.getSpecialValues();

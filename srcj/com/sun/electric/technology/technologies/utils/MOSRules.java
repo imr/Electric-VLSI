@@ -24,6 +24,7 @@
 package com.sun.electric.technology.technologies.utils;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
@@ -49,8 +50,10 @@ public class MOSRules implements DRCRules {
 	/** minimum width rules */									public String [] minWidthRules;
 	/** minimum distances when connected */						public Double [] conList;
 	/** minimum distance ruless when connected */				public String [] conListRules;
+	/** minimum distance ruless when connected */				public String [] conListNodes;
 	/** minimum distances when unconnected */					public Double [] unConList;
 	/** minimum distance rules when unconnected */				public String [] unConListRules;
+	/** minimum distance rules when unconnected */				public String [] unConListNodes;
 	/** minimum distances when connected (wide) */				public Double [] conListWide;
 	/** minimum distance rules when connected (wide) */			public String [] conListWideRules;
 	/** minimum distances when unconnected (wide) */			public Double [] unConListWide;
@@ -139,8 +142,10 @@ public class MOSRules implements DRCRules {
 		// allocate tables
 		conList = new Double[uTSize];
 		conListRules = new String[uTSize];
+		conListNodes = new String[uTSize];
 		unConList = new Double[uTSize];
 		unConListRules = new String[uTSize];
+		unConListNodes = new String[uTSize];
 
 		conListWide = new Double[uTSize];
 		conListWideRules = new String[uTSize];
@@ -341,21 +346,32 @@ public class MOSRules implements DRCRules {
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
-	public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
+	public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
+                                      Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length, int techMode)
 	{
 		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
-
+        String n1 = DRCTemplate.getSpacingCombinedName(layer1, geo1);
+        String n2 = DRCTemplate.getSpacingCombinedName(layer2, geo2);
 		double bestDist = -1;
 		String rule = null;
+
         if (connected)
         {
             double dist = conList[pIndex].doubleValue();
-            if (dist >= 0) { bestDist = dist;   rule = conListRules[pIndex]; }
+            boolean validName = true;
+            if (conListNodes[pIndex] != null &&
+                    (!n1.equals(conListNodes[pIndex]) && !n2.equals(conListNodes[pIndex])))
+                validName = false;
+            if (validName && dist >= 0) { bestDist = dist;   rule = conListRules[pIndex]; }
         } else
         {
             double dist = unConList[pIndex].doubleValue();
-            if (dist >= 0) { bestDist = dist;   rule = unConListRules[pIndex]; }
+            boolean validName = true;
+            if (unConListNodes[pIndex] != null &&
+                    (!n1.equals(unConListNodes[pIndex]) && !n2.equals(unConListNodes[pIndex])))
+                validName = false;
+            if (validName && dist >= 0) { bestDist = dist;   rule = unConListRules[pIndex]; }
          }
 
 		if (wideS > wideLimit.doubleValue())
@@ -434,8 +450,9 @@ public class MOSRules implements DRCRules {
     /**
 	 * Method to add a rule based on template
 	 * @param index
-	 * @param rule
-	 */
+     @param rule
+
+     */
 	public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase)
 	{
         if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)

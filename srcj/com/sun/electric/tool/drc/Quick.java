@@ -1383,7 +1383,7 @@ public class Quick
                         }
 
 						boolean edge = false;
-						DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, npoly, con, multiInt);
+						DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, npoly, ni, con, multiInt);
                         if (theRule == null)
                         {
 						    theRule = DRC.getEdgeRule(layer, nLayer, techMode);
@@ -1474,7 +1474,7 @@ public class Quick
 
 					// see how close they can get
                     boolean edge = false;
-                    DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, nPoly, con, multiInt);
+                    DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, nPoly, ai, con, multiInt);
                     if (theRule == null)
                     {
                         theRule = DRC.getEdgeRule(layer, nLayer, techMode);
@@ -4030,8 +4030,9 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private DRCTemplate getSpacingRule(Layer layer1, Poly poly1, Layer layer2, Poly poly2,
-                                            boolean con, int multi)
+	private DRCTemplate getSpacingRule(Layer layer1, Poly poly1, Geometric geo1,
+                                       Layer layer2, Poly poly2, Geometric geo2,
+                                       boolean con, int multi)
 	{
 		// if they are implant on the same layer, they connect
 		if (!con && layer1 == layer2)
@@ -4043,7 +4044,7 @@ public class Quick
 
         double[] values = layer1.getTechnology().getSpacingDistances(poly1, poly2);
 
-		return (DRC.getSpacingRule(layer1, layer2, con, multi, values[0], values[1], techMode));
+		return (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1], techMode));
 	}
 
     /**

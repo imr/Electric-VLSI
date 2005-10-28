@@ -349,7 +349,7 @@ public class ERCWellCheck
 					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
-						rule = DRC.getSpacingRule(waLayer, waLayer, con, -1, 0, 0, techMode);
+						rule = DRC.getSpacingRule(waLayer, null, waLayer, null, con, -1, 0, 0, techMode);
 						if (rule == null)
 							System.out.println("Replace this");
 						if (con)

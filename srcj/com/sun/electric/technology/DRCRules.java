@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.Geometric;
+
 import java.util.List;
 
 /**
@@ -34,7 +36,8 @@ public interface DRCRules
 	public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2, int techMode);
-    public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
+    public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
+                                      Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length, int techMode);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
     public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2,
