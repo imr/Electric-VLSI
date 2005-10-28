@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/27/05, SMR) Technology Editor produces proper Java.
+
 IMP: (10/27/05, GVG) More changes towards DRC deck handling. Import/Export of DRC deck under Tools->DRC.
 Typesafe enums for DRC options. Generic DTD for DRC rules and can be loaded using EntityResolver.resolveEntity.
 
@@ -802,7 +804,7 @@ IMP/MAN: (08/30/05, GVG) Changes in DRC documentation to deal with Bug #496
 IMP: (08/27/05, DN) Connections of NodeInst are sorted by port index. This speeds
     up PortInst.getConnections() method in case of cell instances with many exports.
 
-IMP/IMP: (08/27/05, GVG) Option under ERRORS in Explorer Tree to delete all loggers at once.
+IMP/MAN: (08/27/05, GVG) Option under ERRORS in Explorer Tree to delete all loggers at once.
 
 BUG: (08/26/05, SMR) When editing "down in place", double-clicks from explorer fail (Bug #506).
 FIX: In EditWindow.setCell(), must set in-place bit properly.

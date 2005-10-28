@@ -65,11 +65,13 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
+import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
 import com.sun.electric.tool.user.ui.*;
 
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -85,6 +87,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -511,11 +514,38 @@ public class EditMenu {
 			return true;
 		}
 	}
+	
+//	static void replaceMe(String a, String b, Set<WhatToSearch> whatToSearch, WindowContent content){
+//	   content.initTextSearch(a, true, true, whatToSearch);
+//	   // content.replaceText(b);
+//	   content.replaceAllText(b);
+//	}
 
     /**
      * Repeat the last Command
      */
-    public static void repeatLastCommand() {
+    public static void repeatLastCommand() {		
+//		Set<WhatToSearch> whatToSearch = new HashSet<WhatToSearch>();
+//		whatToSearch.add(WhatToSearch.EXPORT_NAME);
+//		whatToSearch.add(WhatToSearch.EXPORT_VAR);
+//		
+//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//		if (wf == null) return;
+//		
+//		String a= "^rxpad\\[1\\]\\[1\\]$";
+//		String b= "rxpad[1][F]";
+//		WindowContent content = wf.getContent();
+//		
+//		replaceMe(a,b, whatToSearch, content);
+//		a= "^rxpad\\[3\\]\\[1\\]$";
+//		b= "rxpad[3][F]";
+//		replaceMe(a,b, whatToSearch, content);
+//		a= "^rxpad\\[5\\]\\[1\\]$";
+//		b= "rxpad[5][F]";
+//		replaceMe(a,b, whatToSearch, content);
+//		a= "^rxpad\\[7\\]\\[1\\]$";
+//		b= "rxpad[7][F]";
+//		replaceMe(a,b, whatToSearch, content);
         AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
         if (lastActivated != null)
         {
@@ -595,6 +625,18 @@ public class EditMenu {
 			// special dialogs for double-clicking on known nodes
 			if (doubleClick)
 			{
+				// if double-clicked on a technology editing object, modify it
+				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+					nodeCount == 0 &&  textCount == 1 && theNode != null)
+				{
+					int opt = Manipulate.getOptionOnNode(theNode);
+					if (opt >= 0)
+					{
+						Manipulate.modifyObject(wnd, theNode, opt);
+						return;
+					}
+				}
+
 				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
 					nodeCount == 1 &&  textCount == 0 && theNode != null)
 				{
@@ -895,11 +937,31 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
+		// compute bounds for multi-page schematics
+		Rectangle2D thisPageBounds = null;
+    	if (curCell.isMultiPage())
+    	{
+	    	int curPage = wnd.getMultiPageNumber();
+	        Dimension d = new Dimension();
+	        int frameFactor = Cell.FrameDescription.getCellFrameInfo(curCell, d);
+	        if (frameFactor == 0 && curCell.isMultiPage())
+            {
+            	double offY = curPage * Cell.FrameDescription.MULTIPAGESEPARATION;
+				thisPageBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2+offY, d.getWidth(), d.getHeight());
+            }
+    	}
+
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
 		highlighter.clear();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+
+			// for multipage schematics, restrict to current page
+			if (thisPageBounds != null)
+			{
+				if (!thisPageBounds.contains(ni.getAnchorCenter())) continue;
+			}
 
 			// "select all" should not include the cell-center
 			if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
@@ -926,6 +988,12 @@ public class EditMenu {
 		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
+
+			// for multipage schematics, restrict to current page
+			if (thisPageBounds != null)
+			{
+				if (!thisPageBounds.contains(ai.getHeadLocation())) continue;
+			}
 			boolean hard = ai.isHardSelect();
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
@@ -937,7 +1005,14 @@ public class EditMenu {
 		{
 			Variable var = (Variable)it.next();
 			if (var.isAttribute())
+			{
+				// for multipage schematics, restrict to current page
+				if (thisPageBounds != null)
+				{
+					if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
+				}
 				highlighter.addText(curCell, curCell, var, null);
+			}
 		}
 		highlighter.finished();
 	}

@@ -69,14 +69,6 @@ public class SpecialProperties
 	 */
 	public static int doubleClickOnNode(EditWindow wnd, NodeInst ni)
 	{
-		// if double-clicked on a technology editing object, modify it
-		int opt = Manipulate.getOptionOnNode(ni);
-		if (opt >= 0)
-		{
-			Manipulate.modifyObject(wnd, ni, opt);
-			return 1;
-		}
-
 		// if double-clicked on a schematic resistor, show special dialog
 		if (ni.getProto() == Schematics.tech.resistorNode)
 		{

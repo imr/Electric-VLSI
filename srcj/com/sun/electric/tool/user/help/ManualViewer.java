@@ -141,6 +141,24 @@ public class ManualViewer extends EDialog
 		{
 			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference);
 //			theManual.loadPointers();
+		} else
+		{
+			if (preference != null)
+			{
+				String prefFileName = (String)preferenceMap.get(preference);
+			    if (prefFileName == null) System.out.println("No help for preference " + preference); else
+				{
+					for(int i=0; i<theManual.pageSequence.size(); i++)
+					{
+						PageInfo pi = (PageInfo)theManual.pageSequence.get(i);
+						if (pi.fileName.equals(prefFileName))
+						{
+							theManual.loadPage(i);
+							break;
+						}
+					}
+				}
+			}
 		}
 		theManual.setVisible(true);
 	}

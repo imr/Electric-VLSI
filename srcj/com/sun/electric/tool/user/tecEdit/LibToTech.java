@@ -2761,7 +2761,7 @@ public class LibToTech
 				buffWriter.println("\n\t\t// The GDS names");
 				for(int i=0; i<lList.length; i++)
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryGDSLayer(\"" + lList[i].gds +
-						"\");\t\t// " + lList[i].name);
+						"\", \"mosis\");\t\t// " + lList[i].name);
 				break;
 			}
 		}
