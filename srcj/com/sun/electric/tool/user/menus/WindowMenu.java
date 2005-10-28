@@ -46,7 +46,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.dialogs.SavedViews;
 import com.sun.electric.tool.user.ui.*;
 
 /**
@@ -60,7 +59,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: A       I K    PQ      XY 
+		// mnemonic keys available: A       I K    PQ       Y 
         MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
@@ -114,10 +113,10 @@ public class WindowMenu {
 
         //windowMenu.addMenuItem("Saved _Views...", null,
         //    new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
-        windowMenu.addMenuItem("Go To Previous View", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { goToPreviousSavedView(); } });
-        windowMenu.addMenuItem("Go To Next View", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { goToNextSavedView(); } });
+        windowMenu.addMenuItem("Go To Pre_vious Focus", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { goToPreviousSavedFocus(); } });
+        windowMenu.addMenuItem("Go To Ne_xt Focus", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { goToNextSavedFocus(); } });
 
         windowMenu.addSeparator();
 
@@ -664,20 +663,20 @@ public class WindowMenu {
     /**
      * Go to the previous saved view for the current Edit Window
      */
-    public static void goToPreviousSavedView() {
+    public static void goToPreviousSavedFocus() {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
-        EditWindowViewBrowser browser = wnd.getSavedViewBrowser();
+        EditWindowFocusBrowser browser = wnd.getSavedFocusBrowser();
         browser.goBack();
     }
 
     /**
      * Go to the previous saved view for the current Edit Window
      */
-    public static void goToNextSavedView() {
+    public static void goToNextSavedFocus() {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
-        EditWindowViewBrowser browser = wnd.getSavedViewBrowser();
+        EditWindowFocusBrowser browser = wnd.getSavedFocusBrowser();
         browser.goForward();
     }
 }

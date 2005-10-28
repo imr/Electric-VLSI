@@ -164,7 +164,7 @@ public class EditWindow extends JPanel
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
     /** Ruler Highlighter for this window */                private Highlighter rulerHighlighter;
 
-    /** navigate through saved views */                     private EditWindowViewBrowser viewBrowser;
+    /** navigate through saved views */                     private EditWindowFocusBrowser viewBrowser;
 
 	/** list of windows to redraw (gets synchronized) */	private static List<EditWindow> redrawThese = new ArrayList<EditWindow>();
 	/** list of window changes (synchronized) */			private static List<WindowChangeRequest> windowChangeRequests = new ArrayList<WindowChangeRequest>();
@@ -202,7 +202,7 @@ public class EditWindow extends JPanel
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
-        viewBrowser = new EditWindowViewBrowser(this);
+        viewBrowser = new EditWindowFocusBrowser(this);
 
 		sz = new Dimension(500, 500);
 		szHalfWidth = sz.width / 2;
@@ -2578,7 +2578,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(newoffx, oY);
 //        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
-        getSavedViewBrowser().updateCurrentView();
+		getSavedFocusBrowser().updateCurrentFocus();
         repaintContents(null, false);
     }
 
@@ -2604,7 +2604,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(oX, newoffy);
 //        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
-        getSavedViewBrowser().updateCurrentView();
+		getSavedFocusBrowser().updateCurrentFocus();
         repaintContents(null, false);
     }
 
@@ -2629,7 +2629,7 @@ public class EditWindow extends JPanel
 		}
 		setScreenBounds(bounds);
 		setScrollPosition();
-        getSavedViewBrowser().saveCurrentView();
+		getSavedFocusBrowser().saveCurrentFocus();
 		repaintContents(null, false);
 	}
 
@@ -2705,7 +2705,7 @@ public class EditWindow extends JPanel
                 return;
             }
         }
-        getSavedViewBrowser().saveCurrentView();
+		getSavedFocusBrowser().saveCurrentFocus();
 		repaint();
 	}
 
@@ -2713,7 +2713,7 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale / 2);
-        getSavedViewBrowser().saveCurrentView();
+		getSavedFocusBrowser().saveCurrentFocus();
 		repaintContents(null, false);
 	}
 
@@ -2721,7 +2721,7 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale * 2);
-        getSavedViewBrowser().saveCurrentView();
+		getSavedFocusBrowser().saveCurrentFocus();
 		repaintContents(null, false);
 	}
 
@@ -2735,7 +2735,7 @@ public class EditWindow extends JPanel
     /**
      * Get the Saved View Browser for this Edit Window
      */
-    public EditWindowViewBrowser getSavedViewBrowser() { return viewBrowser; }
+    public EditWindowFocusBrowser getSavedFocusBrowser() { return viewBrowser; }
 
 
     // ************************************* HIERARCHY TRAVERSAL *************************************
@@ -3639,7 +3639,7 @@ public class EditWindow extends JPanel
 		        new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
 		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 		setOffset(newOffset);
-        getSavedViewBrowser().updateCurrentView();
+		getSavedFocusBrowser().updateCurrentFocus();
 		repaintContents(null, false);
 	}
 }
