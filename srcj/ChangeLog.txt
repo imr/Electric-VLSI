@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
-IMP: (10/28/05, GVG) PP/NP.C.1 implemented in TSMC180 (Bug 703, 642, 689).
+IMP/MAN: (10/28/05, GVG) PP/NP.C.1 implemented in TSMC180 (Bug 703, 642, 689).
 This is a new type of SPACING rule where one of the layer must belong to P/N well nodes.
 
 IMP: (10/28/05, SMR) Changed the window "view" to a window "focus".
