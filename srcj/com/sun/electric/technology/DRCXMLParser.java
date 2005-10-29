@@ -103,10 +103,12 @@ public class DRCXMLParser {
             boolean nodeRule = qName.equals("NodeRule");
 
             if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return;
+
             String ruleName = "", layerNames = "", nodeNames = null;
             int when = DRCTemplate.DRCMode.ALL.mode();
             DRCTemplate.DRCRuleType type = DRCTemplate.DRCRuleType.NONE;
             double value = Double.NaN;
+            Double maxW = null, minLen = null;
 
             for (int i = 0; i < attributes.getLength(); i++)
             {
@@ -131,6 +133,10 @@ public class DRCXMLParser {
                 }
                 else if (attributes.getQName(i).equals("value"))
                     value = Double.parseDouble(attributes.getValue(i));
+                else if (attributes.getQName(i).equals("maxW"))
+                    maxW = Double.parseDouble(attributes.getValue(i));
+                else if (attributes.getQName(i).equals("minLen"))
+                    minLen = Double.parseDouble(attributes.getValue(i));
                 else
                     new Error("Invalid attribute in DRCXMLParser");
             }
@@ -141,8 +147,20 @@ public class DRCXMLParser {
                 String[] layers = TextUtils.parseLine(layerNames, ",");
                 for (int i = 0; i < layers.length; i++)
                 {
-                    DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, null);
-                    drcRules.add(tmp);
+                    if (nodeNames == null)
+                    {
+                        DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, null);
+                        drcRules.add(tmp);
+                    }
+                    else
+                    {
+                        String[] names = TextUtils.parseLine(nodeNames, ",");
+                        for (int j = 0; j < names.length; j++)
+                        {
+                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, names[j]);
+                            drcRules.add(tmp);
+                        }
+                    }
                 }
             }
             else if (nodeRule)
@@ -171,7 +189,11 @@ public class DRCXMLParser {
                     if (pair.length != 2) continue;
                     if (nodeNames == null)
                     {
-                        DRCTemplate tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, null);
+                        DRCTemplate tmp = null;
+                        if (maxW == null)
+                            tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, null);
+                        else
+                            tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], value, -1);
                         drcRules.add(tmp);
                     }
                     else
@@ -179,12 +201,18 @@ public class DRCXMLParser {
                         String[] names = TextUtils.parseLine(nodeNames, ",");
                         for (int j = 0; j < names.length; j++)
                         {
-                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, names[j]);
+                            DRCTemplate tmp = null;
+                            if (maxW == null)
+                                tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, names[j]);
+                            else
+                                System.out.println("When do I have this case?");
                             drcRules.add(tmp);
                         }
                     }
                 }
             }
+            else
+                System.out.println("Case not implemented in DRCXMLParser");
         }
 
         public void endDocument ()

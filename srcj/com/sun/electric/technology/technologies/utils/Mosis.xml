@@ -180,5 +180,18 @@
 
         <LayersRule ruleName="7.2 (Mosis)" layerNames="{Metal-1, Metal-1}" type="SPACING" when="DE|SU" value="3"/>
         <LayersRule ruleName="7.2 (Mosis)" layerNames="{Metal-1, Metal-1}" type="SPACING" when="SC" value="2"/>
+        <!-- Wide metals -->
+        <LayersRule ruleName="7.4 (Mosis)" layerNames="{Metal-1, Metal-1}" type="SPACINGW" when="DE|SU" value="6" maxW="100" minLen="0"/>
+        <LayersRule ruleName="7.4 (Mosis)" layerNames="{Metal-1, Metal-1}" type="SPACINGW" when="SC" value="4" maxW="100" minLen="0"/>
+
+        <!-- Metal contacts -->
+        <NodeRule ruleName="8.1 (Mosis)" type="CUTSIZE" when="DE" value="3" nodeName="Metal-1-Metal-2-Con"/>
+        <NodeRule ruleName="8.1 (Mosis)" type="NODSIZ" when="DE" value="5" nodeName="Metal-1-Metal-2-Con"/>
+        <NodeRule ruleName="8.1 (Mosis)" type="CUTSIZE" when="SU|SC" value="2" nodeName="Metal-1-Metal-2-Con"/>
+        <NodeRule ruleName="8.1 (Mosis)" type="NODSIZ" when="SU|SC" value="4" nodeName="Metal-1-Metal-2-Con"/>
+
+        <LayersRule ruleName="8.2 (Mosis)" layerNames="{Via1, Via1}" type="SPACING" when="ALL" value="3"/>
+
+        <LayerRule ruleName="8.3 (Mosis)" layerName="Metal-1" type="VIASUR" when="ALL" value="1" nodeName="Metal-1-Metal-2-Con"/>
     </Foundry>
 </DRCRules>
