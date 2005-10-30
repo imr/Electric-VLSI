@@ -549,7 +549,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2.6, "Metal-4-Metal-5-Con"),
         new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            2,  null),
         new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            2.6,  null),
-        new DRCTemplate("25.1", DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
+        new DRCTemplate("25.1", DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
 
