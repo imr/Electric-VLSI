@@ -110,7 +110,7 @@ public class DesignRulesTab extends PreferencePanel
 
         // Foundry
         String selectedFoundry = curTech.getSelectedFoundry();
-        for (Iterator<DRCTemplate.DRCMode> it = curTech.getFactories(); it.hasNext(); )
+        for (Iterator<DRCTemplate.DRCMode> it = curTech.getFactories().iterator(); it.hasNext(); )
         {
             DRCTemplate.DRCMode factory = it.next();
             defaultFoundryPulldown.addItem(factory.name());

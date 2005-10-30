@@ -310,10 +310,33 @@ public class DRCTemplate
         tech.setState(rules);
     }
 
+    /**
+     * Method to determine if rule is valid for this foundry, regarless if the bit is turn on
+     * @param tech
+     * @param foundry
+     * @param rule
+     * @return true if the rule is valid under this foundry
+     */
+    private static boolean isRuleValidInFoundry(Technology tech, DRCMode foundry, DRCTemplate rule)
+    {
+        // Direct reference in rule, then rule is valid
+        if ((rule.when & foundry.mode()) != 0) return true;
+        // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
+        List<DRCMode> list = tech.getFactories();
+        for (int i = 0; i < list.size(); i++)
+        {
+            DRCMode m = list.get(i);
+            if (m == foundry) continue;
+            if ((rule.when & m.mode()) != 0) return false; // belong to another foundry
+        }
+        return true;
+    }
+
     public static void exportDRCDeck(String fileName, Technology tech)
     {
         DRCTemplate[] rules = tech.getDRCDeck();
-        DRCTemplate.DRCMode foundry = tech.getFoundry();
+        DRCMode foundry = tech.getFoundry();
+
         try
         {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
@@ -328,7 +351,9 @@ public class DRCTemplate
 
             for (int i = 0; i < rules.length; i++)
             {
-                if ((rules[i].when & foundry.mode()) == 0) continue;
+//                if ((rules[i].when & foundry.mode()) == 0) continue;
+                if (!isRuleValidInFoundry(tech, foundry, rules[i])) continue;
+
                 String whenName = null;
                 for (DRCMode p : DRCMode.values())
                 {
@@ -353,15 +378,35 @@ public class DRCTemplate
                                 + " value=\"" + rules[i].value1 + "\""
                                 + "/>");
                         break;
+                    case VIASUR:
+                        out.println("\t\t<LayerRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " layerName=\"" + rules[i].name1 + "\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + "/>");
+                        break;
                     case UCONSPA:
                     case CONSPA:
                     case SPACING:
                     case SPACINGM:
+                    case SPACINGE:
                         out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
                                 + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
                                 + " type=\""+rules[i].ruleType+"\""
                                 + " when=\"" + whenName + "\""
                                 + " value=\"" + rules[i].value1 + "\""
+                                + "/>");
+                        break;
+                    case SPACINGW:
+                        out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
+                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
+                                + " type=\""+rules[i].ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " value=\"" + rules[i].value1 + "\""
+                                + " maxW=\"" + rules[i].maxWidth + "\""
+                                + " minLen=\"" + rules[i].minLength + "\""
                                 + "/>");
                         break;
                     case SURROUND:
@@ -387,6 +432,7 @@ public class DRCTemplate
                     case CUTSUR:
                     case CUTSPA:
                     case CUTSPA2D:
+                    case CUTSIZE:
                         out.println("\t\t<NodeRule ruleName=\"" + rules[i].ruleName + "\""
                                 + " type=\""+rules[i].ruleType+"\""
                                 + " when=\"" + whenName + "\""

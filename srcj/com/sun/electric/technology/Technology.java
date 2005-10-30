@@ -3283,9 +3283,9 @@ public class Technology implements Comparable<Technology>
 	 * Get an iterator over all of the Manufacturers.
 	 * @return an iterator over all of the Manufacturers.
 	 */
-	public Iterator<DRCTemplate.DRCMode> getFactories()
+	public List<DRCTemplate.DRCMode> getFactories()
 	{
-		return foundries.iterator();
+		return foundries;
 	}
 
 	/**

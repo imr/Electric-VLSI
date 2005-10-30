@@ -4450,7 +4450,7 @@ public class MoCMOS extends Technology
     	m.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
 	}
 	/**
-	 * Method to tell the current rule set for this Technology.
+	 * Method to tell the current rule set for this Technology if Mosis is the foundry.
 	 * @return the current rule set for this Technology:<BR>
 	 * 0: SCMOS rules<BR>
 	 * 1: Submicron rules (the default)<BR>
