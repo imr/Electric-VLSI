@@ -70,41 +70,31 @@ public class Undo
 	/**
 	 * Type is a typesafe enum class that describes the nature of a change.
 	 */
-	public static class Type
-	{
-		private final String name;
+    public enum Type
+    {
+		/** Describes a newly-created NodeInst. */							NODEINSTNEW,
+		/** Describes a deleted NodeInst. */								NODEINSTKILL,
+		/** Describes a changed NodeInst. */								NODEINSTMOD,
+		/** Describes a newly-created ArcInst. */							ARCINSTNEW,
+		/** Describes a deleted ArcInst. */									ARCINSTKILL,
+		/** Describes a changed ArcInst. */									ARCINSTMOD,
+		/** Describes a newly-created Export. */							EXPORTNEW,
+		/** Describes a deleted Export. */									EXPORTKILL,
+		/** Describes a changed Export. */									EXPORTMOD,
+		/** Describes a newly-created Cell. */								CELLNEW,
+		/** Describes a deleted Cell. */									CELLKILL,
+		/** Describes the creation of an arbitrary object. */				OBJECTNEW,
+		/** Describes the deletion of an arbitrary object. */				OBJECTKILL,
+		/** Describes the renaming of an arbitrary object. */				OBJECTRENAME,
+		/** Describes the redrawing of an arbitrary object. */				OBJECTREDRAW,
+		/** Describes the change of Variables on an object. */              VARIABLESMOD,
+		/** Describes a new library change */								LIBRARYNEW,
+		/** Describes a delete library change */							LIBRARYKILL,
+		/** Describes a Cell-group change */								CELLGROUPMOD,
+		/** Describes an other (non-undoable) change */						OTHERCHANGE;
+    }
 
-		private Type(String name) { this.name = name; }
-
-		/**
-		 * Returns a printable version of this Type.
-		 * @return a printable version of this Type.
-		 */
-		public String toString() { return name; }
-
-		/** Describes a newly-created NodeInst. */							public static final Type NODEINSTNEW = new Type("NodeInstNew");
-		/** Describes a deleted NodeInst. */								public static final Type NODEINSTKILL = new Type("NodeInstKill");
-		/** Describes a changed NodeInst. */								public static final Type NODEINSTMOD = new Type("NodeInstMod");
-		/** Describes a newly-created ArcInst. */							public static final Type ARCINSTNEW = new Type("ArcInstNew");
-		/** Describes a deleted ArcInst. */									public static final Type ARCINSTKILL = new Type("ArcInstKill");
-		/** Describes a changed ArcInst. */									public static final Type ARCINSTMOD = new Type("ArcInstMod");
-		/** Describes a newly-created Export. */							public static final Type EXPORTNEW = new Type("ExportNew");
-		/** Describes a deleted Export. */									public static final Type EXPORTKILL = new Type("ExportKill");
-		/** Describes a changed Export. */									public static final Type EXPORTMOD = new Type("ExportMod");
-		/** Describes a newly-created Cell. */								public static final Type CELLNEW = new Type("CellNew");
-		/** Describes a deleted Cell. */									public static final Type CELLKILL = new Type("CellKill");
-		/** Describes the creation of an arbitrary object. */				public static final Type OBJECTNEW = new Type("ObjectNew");
-		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
-		/** Describes the renaming of an arbitrary object. */				public static final Type OBJECTRENAME = new Type("ObjectRename");
-		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
-		/** Describes the change of Variables on an object. */              public static final Type VARIABLESMOD = new Type("VariablesMod");
-		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
-		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
-		/** Describes a Cell-group change */								public static final Type CELLGROUPMOD = new Type("CellGroupMod");
-		/** Describes an other (non-undoable) change */						public static final Type OTHERCHANGE = new Type("OtherChange");
-	}
-
-	/**
+    /**
 	 * The Change class describes a single change to the Electric database.
 	 * These objects are used to undo and redo changes.
 	 */
@@ -112,7 +102,7 @@ public class Undo
 	{
 		private ElectricObject obj;
 		private Type type;
-		private int i1;
+//		private int i1;
 		private Object o1;
 
 		Change(ElectricObject obj, Type type)
@@ -140,7 +130,7 @@ public class Undo
 		 * Method to get the first integer value associated with this Change.
 		 * @return the first integer value associated with this Change.
 		 */
-		public int getI1() { return i1; }
+//		public int getI1() { return i1; }
 		/**
 		 * Method to get the first Object associated with this Change.
 		 * @return the first Object associated with this Change.
