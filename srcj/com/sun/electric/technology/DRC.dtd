@@ -24,7 +24,8 @@
     when CDATA #REQUIRED
     value CDATA #REQUIRED
     maxW CDATA #IMPLIED
-    minLen CDATA #IMPLIED
+    minLen CDATA #IMPLIED    
+    nodeName CDATA #IMPLIED
  >
  <!ATTLIST NodeLayersRule
     ruleName CDATA #REQUIRED
