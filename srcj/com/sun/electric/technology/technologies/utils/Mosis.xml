@@ -211,7 +211,7 @@
         <LayerRule ruleName="9.3 (Mosis)" layerName="Metal-2" type="VIASUR" when="ALL" value="1" nodeName="Metal-1-Metal-2-Con"/>
         <!-- Wide metals -->
         <LayersRule ruleName="9.4 (Mosis)" layerNames="{Metal-2, Metal-2}" type="SPACINGW" when="DE" value="8" maxW="100" minLen="0"/>
-        <LayersRule ruleName="9.4 (Mosis)" layerNames="{Metal-2, Metal-2}" type="SPACINGW" when="SU|SC" value="4" maxW="100" minLen="0"/>
+        <LayersRule ruleName="9.4 (Mosis)" layerNames="{Metal-2, Metal-2}" type="SPACINGW" when="SU|SC" value="6" maxW="100" minLen="0"/>
 
         <LayerRule ruleName="11.1 (Mosis)" layerName="Polysilicon-2" type="MINWID" when="SU" value="7" />
         <LayerRule ruleName="11.1 (Mosis)" layerName="Polysilicon-2" type="MINWID" when="SC" value="3" />
