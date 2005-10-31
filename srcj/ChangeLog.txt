@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (10/31/05, SMR) Added Spice primitives (Amp and DiffAmp) are now visible.
+
 IMP: (10/31/05, SMR) IRSIM and ALS give better errors when no signal is selected (Bug #710).
 
 IMP: (10/31/05, SMR) Silicon compiler works when number of cells is less than

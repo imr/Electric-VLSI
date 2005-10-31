@@ -93,9 +93,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     /** the number of palette entries. */				private int menuX = -1, menuY = -1;
     /** the size of a palette entry. */					private int entrySize;
-    /** the list of objects in the palette. */			private List inPalette = new ArrayList();
+    /** the list of objects in the palette. */			private List<Object> inPalette = new ArrayList<Object>();
     /** the currently selected Node object. */			private Object highlightedNode;
-    /** to collect contacts that must be groups */      private HashMap elementsMap = new HashMap();
+    /** to collect contacts that must be groups */      private HashMap<Object,Object> elementsMap = new HashMap<Object,Object>();
     /** cached palette image */                         private Image paletteImage;
     /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
     /** Variables needed for drag-and-drop */			private DragSource dragSource = null;
@@ -129,7 +129,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         if (tech == Schematics.tech)
         {
-	        List list = null;
+	        List<Object> list = null;
 
             menuX = 2;
             menuY = 14;
@@ -139,7 +139,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.offpageNode);
 
 //          inPalette.add(Schematics.tech.globalNode);
-            list = new ArrayList();
+            list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.globalNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Signal", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.globalPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
             inPalette.add(list);
@@ -148,19 +148,19 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
             //  Resistor nodes
 //            inPalette.add(Schematics.tech.resistorNode);
-            list = new ArrayList();
+            list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.resistorNode, PrimitiveNode.Function.RESIST, 0, false, "Normal Resistor", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.resistorNode, PrimitiveNode.Function.PRESIST, 0, false, "Poly Resistor", 4.5));
             inPalette.add(list);
 
 	        // Capacitor nodes
-	        list = new ArrayList();
+	        list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.CAPAC, 0, false, "Normal Capacitor", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.ECAPAC, 0, false, "Electrolytic Capacitor", 4.5));
             inPalette.add(list);
 
 	        // 4-port transistors
-	        list = new ArrayList();
+	        list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, false, "nMOS 4-port", 4.5));
@@ -173,7 +173,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	        inPalette.add(list);
 
 	        // 3-port transistors
-	        list = new ArrayList();
+	        list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, "nMOS", 4.5));
@@ -199,7 +199,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.inductorNode);
 
 	        // Diode nodes
-	        list = new ArrayList();
+	        list = new ArrayList<Object>();
 	        list.add(Technology.makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODE, 0, false, "Normal Diode", 4.5));
 	        list.add(Technology.makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODEZ, 0, false, "Zener Diode", 4.5));
             inPalette.add(list);
@@ -208,27 +208,27 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, null, 4.5));
 
 	        // Flip Flop nodes
-            list = new ArrayList();
+            list = new ArrayList<Object>();
             inPalette.add(list);
-	        List subList = new ArrayList();
+	        List<Object> subList = new ArrayList<Object>();
 	        list.add(subList);
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0, false, "R-S master/slave", 4.5));
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0, false, "R-S positive", 4.5));
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0, false, "R-S negative", 4.5));
 	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList();
+	        subList = new ArrayList<Object>();
 	        list.add(subList);
 	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0, false, "J-K master/slave", 4.5));
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0, false, "J-K positive", 4.5));
 	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0, false, "J-K negative", 4.5));
 	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList();
+	        subList = new ArrayList<Object>();
 	        list.add(subList);
 	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0, false, "D master/slave", 4.5));
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0, false, "D positive", 4.5));
 	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0, false, "D negative", 4.5));
 	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList();
+	        subList = new ArrayList<Object>();
 	        list.add(subList);
 	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0, false, "T master/slave", 4.5));
             subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0, false, "T positive", 4.5));
@@ -300,14 +300,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
             ArcProto firstHighlightedArc = null;
             highlightedNode = null;
-            List arcList = new ArrayList();
-            List contactList = new ArrayList();
-            List groupContactList = new ArrayList();
-            List pinList = new ArrayList();
-            List transList = new ArrayList();
-            List wellList = new ArrayList();
+            List<ArcProto> arcList = new ArrayList<ArcProto>();
+            List<PrimitiveNode> contactList = new ArrayList<PrimitiveNode>();
+            List<Object> groupContactList = new ArrayList<Object>();
+            List<PrimitiveNode> pinList = new ArrayList<PrimitiveNode>();
+            List<Object> transList = new ArrayList<Object>();
+            List<Object> wellList = new ArrayList<Object>();
 
-            for(Iterator it = tech.getArcs(); it.hasNext(); )
+            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
             {
                 ArcProto ap = (ArcProto)it.next();
                 if (ap.isNotUsed()) continue;
@@ -323,7 +323,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add("Misc.");
             inPalette.add("Pure");
 
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
@@ -340,7 +340,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     boolean found = false;
 	                Object toAdd = np;
-                    List list = null;
+                    List<Object> list = null;
                     Object map = null;
 	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
                     {
@@ -371,7 +371,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         list = (List)elementsMap.get(map);
                         if (list == null)
                         {
-                            list = new ArrayList();
+                            list = new ArrayList<Object>();
                             elementsMap.put(map, list);
                             inPalette.add(list);
                         }
@@ -389,10 +389,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
 
 			// Sorting list elements and leaving !isSpecialNode() as default
-            for (Iterator it = elementsMap.keySet().iterator(); it.hasNext(); )
+            for (Iterator<Object> it = elementsMap.keySet().iterator(); it.hasNext(); )
             {
                 Object map = it.next();
-                List list = (List)elementsMap.get(map);
+                List<Object> list = (List)elementsMap.get(map);
 
 				// Only for more than 1
                 if (list.size() > 1)
@@ -502,7 +502,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             if (obj instanceof List)
             {
-                List list = (List)obj;
+                List<Object> list = (List)obj;
 	            // Getting first element
                 obj = list.get(0);
 	            if (obj instanceof List) obj = ((List)obj).get(0);
@@ -511,15 +511,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // Careful with this name
 					JPopupMenu menu = new JPopupMenu(getItemName(obj, true));
 
-					for (Iterator it = list.iterator(); it.hasNext();)
+					for (Iterator<Object> it = list.iterator(); it.hasNext();)
 					{
                         Object item = it.next();
 						if (item instanceof JSeparator)
 							menu.add((JSeparator)item);
 						else if (item instanceof List)
 						{
-							List subList = (List)item;
-							for (Iterator listIter = subList.iterator(); listIter.hasNext();)
+							List<Object> subList = (List)item;
+							for (Iterator<Object> listIter = subList.iterator(); listIter.hasNext();)
 							{
 								Object subItem = listIter.next();
 								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
@@ -548,7 +548,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             if (msg.equals("Cell"))
             {
                 JPopupMenu cellMenu = new JPopupMenu("Cells");
-                for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+                for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
                 {
                     Cell cell = (Cell)it.next();
                     menuItem = new JMenuItem(cell.describe(false));
@@ -622,7 +622,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } else if (msg.equals("Pure"))
             {
                 JPopupMenu pureMenu = new JPopupMenu("Pure");
-                for(Iterator it = Technology.getCurrent().getNodesSortedByName().iterator(); it.hasNext(); )
+                for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodesSortedByName().iterator(); it.hasNext(); )
                 {
                     PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;
@@ -643,11 +643,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (spiceLib == null)
                 {
                     // must read the Spice library from disk
-                    URL fileURL = LibFile.getLibFile(currentSpiceLib + ".txt");
+                    URL fileURL = LibFile.getLibFile(currentSpiceLib + ".jelib");
                     TechPalette.ReadSpiceLibrary job = new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
                 } else
                 {
-                    for(Iterator it = spiceLib.getCells(); it.hasNext(); )
+                    for(Iterator<Cell> it = spiceLib.getCells(); it.hasNext(); )
                     {
                         Cell cell = (Cell)it.next();
                         // only access to icons of those cells
@@ -757,12 +757,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public boolean doIt()
         {
-            Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.READABLEDUMP, false);
+            Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
             Undo.noUndoAllowed();
             if (lib == null) return false;
-            for(Iterator it = lib.getCells(); it.hasNext(); )
+            for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
             {
                 Cell cell = (Cell)it.next();
+                // only access to icons of those cells
+                if (cell.getView() != View.ICON) continue;
                 JMenuItem menuItem = new JMenuItem(cell.getName());
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                 cellMenu.add(menuItem);
@@ -972,13 +974,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         private int menuX;
         private int menuY;
         private int entrySize;
-        private List inPalette;
+        private List<Object> inPalette;
         private TechPalette palette;
         private Dimension size;
         private Image image;
         private Rectangle entryRect;
 
-        private PaintPalette(int menuX, int menuY, int entrySize, List inPalette, TechPalette palette, Dimension size) {
+        private PaintPalette(int menuX, int menuY, int entrySize, List<Object> inPalette, TechPalette palette, Dimension size) {
             this.menuX = menuX;
             this.menuY = menuY;
             this.entrySize = entrySize;
@@ -1109,7 +1111,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             PrimitiveNode np = (PrimitiveNode)ni.getProto();
             double largest = 0;
             PrimitiveNode.Function groupFunction = np.getGroupFunction();
-            for(Iterator it = np.getTechnology().getNodes(); it.hasNext(); )
+            for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
             {
                 PrimitiveNode otherNp = (PrimitiveNode)it.next();
                 if (otherNp.getGroupFunction() != groupFunction) continue;
@@ -1122,7 +1124,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             if (groupFunction == PrimitiveNode.Function.PIN)
             {
                 largest = 0;
-                for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )
+                for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )
                 {
                     ArcProto otherAp = (ArcProto)it.next();
                     if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
@@ -1163,7 +1165,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
                 // determine scale for rendering
                 double largest = 0;
-                for(Iterator it = ap.getTechnology().getArcs(); it.hasNext(); )
+                for(Iterator<ArcProto> it = ap.getTechnology().getArcs(); it.hasNext(); )
                 {
                     ArcProto otherAp = (ArcProto)it.next();
                     if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
