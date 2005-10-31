@@ -41,6 +41,8 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -1212,6 +1214,8 @@ public class Maker
 	private String setupForMaker()
 	{
 		Technology tech = Technology.getCurrent();
+		if (tech == Schematics.tech)
+			tech = User.getSchematicTechnology();
 		String layer1 = SilComp.getHorizRoutingArc();
 		String layer2 = SilComp.getVertRoutingArc();
 		layer1Arc = tech.findArcProto(layer1);

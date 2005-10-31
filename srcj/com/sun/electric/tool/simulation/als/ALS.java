@@ -37,6 +37,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.ToolMenu;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.io.BufferedWriter;
@@ -51,6 +52,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JOptionPane;
 
 /**
  * Class to control the ALS Simulator.
@@ -473,6 +476,12 @@ public class ALS extends Engine
 	public void setClock(double period)
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting a Clock on it",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		String [] parameters = new String[1];
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
@@ -544,6 +553,12 @@ public class ALS extends Engine
 	public void showSignalInfo()
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before displaying it",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
@@ -576,7 +591,8 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			System.out.println("Must select signals on which to clear stimuli");
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal on which to clear stimuli",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
@@ -826,6 +842,12 @@ public class ALS extends Engine
 	private void makeThemThus(int state)
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal on which to set stimuli",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		String [] parameters = new String[1];
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{

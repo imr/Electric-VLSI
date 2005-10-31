@@ -34,6 +34,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.io.BufferedWriter;
@@ -47,6 +48,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JOptionPane;
 
 /**
  * The Analyzer class is the top-level class for IRSIM simulation.
@@ -318,6 +321,12 @@ public class Analyzer extends Engine
 	public void setSignalHigh()
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it High",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		String [] parameters = new String[1];
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
@@ -335,6 +344,12 @@ public class Analyzer extends Engine
 	public void setSignalLow()
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it Low",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		String [] parameters = new String[1];
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
@@ -360,6 +375,12 @@ public class Analyzer extends Engine
 	public void setSignalX()
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it Undefined",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		String [] parameters = new String[1];
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
@@ -377,6 +398,12 @@ public class Analyzer extends Engine
 	public void showSignalInfo()
 	{
 		List<Signal> signals = ww.getHighlightedNetworkNames();
+		if (signals.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before displaying it",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
@@ -399,7 +426,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() != 1)
 		{
-			System.out.println("Must select a single signal on which to clear stimuli");
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a single signal on which to clear stimuli",
+				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		Signal sig = (Signal)signals.get(0);

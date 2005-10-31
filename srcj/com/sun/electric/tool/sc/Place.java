@@ -171,6 +171,9 @@ public class Place
 			return null;
 		}
 
+		// if there are fewer cells than rows, decrease the number of rows
+		if (numCl < place.numRows) place.numRows = numCl;
+
 		// create a cluster tree node for each cluster
 		ClusterTree nStart = null;
 		for (Iterator<Cluster> it = clusters.iterator(); it.hasNext(); )
