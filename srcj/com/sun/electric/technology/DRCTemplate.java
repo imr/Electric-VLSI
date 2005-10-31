@@ -97,7 +97,7 @@ public class DRCTemplate
         /** X contact cut surround rule */	CUTSURX (18),
         /** Y contact cut surround rule */	CUTSURY (19),
         /** arc surround rule */			ASURROUND (20),
-        /** minimum area rule */			AREA (21),
+        /** minimum area rule */			MINAREA (21),
         /** enclosed area rule */			ENCLOSEDAREA (22),
         /** extension rule */               EXTENSION (23),
         /** forbidden rule */               FORBIDDEN (24),
@@ -371,6 +371,7 @@ public class DRCTemplate
                 switch(rules[i].ruleType)
                 {
                     case MINWID:
+                    case MINAREA:
                         out.println("\t\t<LayerRule ruleName=\"" + rules[i].ruleName + "\""
                                 + " layerName=\"" + rules[i].name1 + "\""
                                 + " type=\""+rules[i].ruleType+"\""
@@ -392,11 +393,13 @@ public class DRCTemplate
                     case SPACING:
                     case SPACINGM:
                     case SPACINGE:
+                        String noName = (rules[i].nodeName != null) ? (" nodeName=\"" + rules[i].nodeName + "\"") : "";
                         out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
                                 + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
                                 + " type=\""+rules[i].ruleType+"\""
                                 + " when=\"" + whenName + "\""
                                 + " value=\"" + rules[i].value1 + "\""
+                                + noName
                                 + "/>");
                         break;
                     case SPACINGW:

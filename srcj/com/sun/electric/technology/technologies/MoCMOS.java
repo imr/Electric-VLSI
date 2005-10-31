@@ -398,12 +398,12 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("7.1",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-1",         null,            3,  null),
         new DRCTemplate("M1.W.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-1",         null,            2.3,  null),
-        new DRCTemplate("M1.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-1",         null,            20.2,  null),  // TSMC page 39
-        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-2",         null,            20.2,  null),  // TSMC page 39
-        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-3",         null,            20.2,  null),  // TSMC page 39
-        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-4",         null,            20.2,  null),  // TSMC page 39
-        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-5",         null,            20.2,  null),  // TSMC page 39
-        new DRCTemplate("M6.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.AREA,   "Metal-6",         null,            56.2,  null),  // TSMC page 39
+        new DRCTemplate("M1.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-1",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-2",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-3",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-4",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-5",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("M6.A.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-6",         null,            56.2,  null),  // TSMC page 39
 //        new DRCTemplate("AMS.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.SLOTSIZE,   "Metal-1",         null,            350,  null),  // TSMC page 78
 //        new DRCTemplate("AMS.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.SLOTSIZE,   "Metal-2",         null,            350,  null),  // TSMC page 78
 //        new DRCTemplate("AMS.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.SLOTSIZE,   "Metal-3",         null,            350,  null),  // TSMC page 78
@@ -3946,7 +3946,7 @@ public class MoCMOS extends Technology
 						rules.minWidthRules[layert1] = rule;
 						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
 						break;
-                    case AREA:
+                    case MINAREA:
 						rules.minArea[layert1] = new Double(distance);
 						rules.minAreaRules[layert1] = rule;
 						break;

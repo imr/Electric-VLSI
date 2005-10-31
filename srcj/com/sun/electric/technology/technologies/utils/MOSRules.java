@@ -659,13 +659,13 @@ public class MOSRules implements DRCRules {
             if (dist < 0) return null;
             return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
         }
-        if (type == DRCTemplate.DRCRuleType.AREA)
+        if (type == DRCTemplate.DRCRuleType.MINAREA)
         {
             int index = layer.getIndex();
             double dist = minArea[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.DRCRuleType.AREA, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.DRCRuleType.MINAREA, 0, 0, null, null, dist, -1));
         }
         if (type == DRCTemplate.DRCRuleType.SLOTSIZE)
         {

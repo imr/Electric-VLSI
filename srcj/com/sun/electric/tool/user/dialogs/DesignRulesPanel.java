@@ -310,7 +310,7 @@ public class DesignRulesPanel extends JPanel
         minSize = TextUtils.atof(minSizeText);
         minSizeRuleName = drLayerAreaRule.getText().trim();
 		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.AREA, foundry);
+            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINAREA, foundry);
 
         // pickup changes to layer min enclose area rule
         minSizeText = drLayerEnclosure.getText().trim();
@@ -416,7 +416,7 @@ public class DesignRulesPanel extends JPanel
 		}
 
         // Show min area
-        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.AREA, foundry);
+        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA, foundry);
 		if (lr != null)
 		{
 			drLayerArea.setText(TextUtils.formatDouble(lr.value1));

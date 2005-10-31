@@ -313,7 +313,7 @@ public class Quick
 				Layer layer = (Layer)it.next();
 
 				// Storing min areas
-				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.AREA,techMode);
+				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA,techMode);
 				if (minAreaRule != null)
 					minAreaLayerMap.put(layer, minAreaRule);
 

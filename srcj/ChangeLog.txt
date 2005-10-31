@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (10/30/05, GVG) TSMC1080.xml ready with all TSMC rules for 180nm tech
+
 IMP/MAN: (10/29/05, GVG) Mosis.xml ready with all Mosis rules for 180nm tech
 
 IMP/MAN: (10/28/05, GVG) PP/NP.C.1 implemented in TSMC180 (Bug 703, 642, 689).
