@@ -69,9 +69,9 @@ The Node Set may be parameterized with an arbitrary piece of Spice code.
 Truly advanced users may create their own Spice nodes by modifying the cells in the Spice library.
 <P>
 This example also shows the ability to add arbitrary text to the Spice deck, as shown in the lower-right.
-To create this text, use the "Add Spice Card" under the "Misc." button in the component menu.
-The command creates a piece of text that can be modified arbitrarily.
-Whatever the text says will be added to the Spice deck.
+To create this text, use the "Spice Code" or "Spice Declaration" entries under the "Misc." button in the component menu.
+These command create text that can be modified arbitrarily.
+Whatever the text says will be added to the Spice deck (declarations go near the top).
 <P>
 Another option that can be used when modeling transistors and other component is to set a specific Spice model to use for that component.
 To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tool / Simulation (Spice)</B>).
@@ -99,6 +99,9 @@ once for each different parameter combination.
 See <A HREF="chap06-08-06.html#chap06-08-06">Section 6-8-6</A> for more on parameters.
 <LI><B>Write Trans Sizes in Units</B> Requests that the Spice deck contain scalable size information
 instead of absolute size information.</LI>
+<LI><B>Write Subckt for Top Cell</B> Requests that a the top-level cell be written
+as a subcircuit, and a call made to it.
+The default is to write the top-level cell without a subcircuit wrapper.</LI>
 <LI><B>Run Program</B> Lets Electric run Spice automatically after the deck has been written.</LI>
 <LI><B>Spice Primitive Set</B> Switches between Spice primitive sets.
 Currently there are only two: "spiceparts" and "spicepartsG3".</LI>

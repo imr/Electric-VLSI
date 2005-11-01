@@ -90,12 +90,11 @@ Display
  Scaling and Panning
   Scaling                            =chap04-04-01
   Panning                            =chap04-04-02
-  Saving Views                       =chap04-04-03
+  Focus                              =chap04-04-03
  Layer Visibility                    =chap04-05
  Color
   Electric's Color Model             =chap04-06-01
-  Editing Colors                     =chap04-06-02
-  Editing Patterns                   =chap04-06-03
+  Editing Colors and Patterns        =chap04-06-02
  Grids and Alignment
   Drawing a Grid                     =chap04-07-01
   Aligning to a Grid                 =chap04-07-02

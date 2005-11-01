@@ -11,8 +11,8 @@ The gate declaration contains a name and a list of exported simulation nodes
 (which are referenced in a higher level model description).
 The format of this statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>gate <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">gate <I>name</I>(<I>signal1</I>, <I>signal2</I>,
 <I>signal3</I>, ... <I>signalN</I>)</TD></TR>
 <TR><TD><B>Example:</B></TD><TD>gate nor2(in1, in2, out) </TD></TR>
 <TR><TD></TD><TD>gate and3(a, b, c, output) </TD></TR>
@@ -31,11 +31,11 @@ statement represent one of many possible input conditions.
 If the logic states of all the input signals match the conditions specified in the <B>i:</B> statement,
 the simulator will schedule the outputs for updating (as specified in the corresponding <B>o:</B> statement).
 The logical truth table for a two input AND gate is shown below:
-<PRE>	
-   gate and2(in1, in2, output)  
-   i: in1=H in2=H  o: output=H 
-   i: in1=L        o: output=L 
-   i: in2=L        o: output=L 
+<PRE>
+   gate and2(in1, in2, output)
+   i: in1=H in2=H  o: output=H
+   i: in1=L        o: output=L
+   i: in2=L        o: output=L
    i:              o: output=X
 </PRE>
 The last line of the truth table represents a default condition in the event that none
@@ -51,8 +51,8 @@ the simulator schedules the corresponding output assignments and terminates the 
 Besides testing the logical values of a signal, the <B>i:</B> statement can also compare them numerically.
 The format of a signal references, which follow the <B>i:</B> statement, is show below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD><I>signal</I> &lt;operator&gt; <I>state_value</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%"><I>signal</I> &lt;operator&gt; <I>state_value</I></TD></TR>
 <TR><TD><B>or:</B></TD><TD><I>signal</I> &lt;operator&gt; <I>other_signal</I></TD></TR>
 <TR><TD><B>Operators:</B></TD><TD>=  Test if equal</TD></TR>
 <TR><TD></TD><TD>!  Test if not equal</TD></TR>
@@ -74,8 +74,8 @@ The signal references which follow the <B>o:</B> statement are used as registers
 It is possible to set a signal to a logic state and it is possible to perform mathematical operations on its contents.
 The format for signal references which follow the <B>o:</B> statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD><I>signal</I> [ &lt;operator&gt; <I>operand</I> [ @ &lt;strength&gt; ] ]</TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%"><I>signal</I> [ &lt;operator&gt; <I>operand</I> [ @ &lt;strength&gt; ] ]</TD></TR>
 <TR><TD><B>Operators:</B></TD><TD>=  equate signal to value of operand</TD></TR>
 <TR><TD></TD><TD>+  increment signal by value of operand</TD></TR>
 <TR><TD></TD><TD>-  decrement signal by value of operand</TD></TR>
@@ -105,8 +105,8 @@ a default strength of 2 (gate) is assigned to the output signal.
 The propagation delay time (switching speed) of a gate can be set with the <B>t:</B> statement.
 The format of this statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>t: &lt;mode&gt; = <I>value</I> { + &lt;mode&gt; = <I>value</I> ... }</TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">t: &lt;mode&gt; = <I>value</I> { + &lt;mode&gt; = <I>value</I> ... }</TD></TR>
 <TR><TD><B>Mode:</B></TD><TD>delta: fixed time delay in seconds</TD></TR>
 <TR><TD></TD><TD>linear: random time delay with uniform distribution</TD></TR>
 <TR><TD></TD><TD>random: probability function with values between 0 and 1.0</TD></TR>
@@ -126,11 +126,11 @@ Assuming that a 2 input NAND gate had timing characteristics of <I>t(lh)</I> = 1
 <I>t(hl)</I> = 3.0 nanoseconds,
 the gate description for the device would be as follows:
 <PRE>
-   gate nand2(in1, in2, output)  
-   t: delta=3.0e-9  
-   i: in1=H in2=H   o: output=L  
-   t: delta=1.0e-9  
-   i: in1=L         o: output=H  
+   gate nand2(in1, in2, output)
+   t: delta=3.0e-9
+   i: in1=H in2=H   o: output=L
+   t: delta=1.0e-9
+   i: in1=L         o: output=H
    i: in2=L         o: output=H
 </PRE>
 This example shows that when both inputs are high,
@@ -142,8 +142,8 @@ the output will go high after a delay of 1.0 nanosecond.
 The Delta timing distribution is used to specify a fixed, non-random delay.
 The format of a delta timing declaration is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>delta = <I>value</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">delta = <I>value</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>delta = 1.0</TD></TR>
 <TR><TD></TD><TD>delta = 2.5e-9</TD></TR>
 </TABLE></CENTER>
@@ -157,8 +157,8 @@ The value associated with the delta declaration represents the fixed time delay 
 The Linear timing distribution is used to specify a random delay period that has a uniform probability distribution.
 The format of a linear timing declaration is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>linear = <I>value</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">linear = <I>value</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>linear = 1.0</TD></TR>
 <TR><TD></TD><TD>linear = 2.0e-9</TD></TR>
 </TABLE></CENTER>
@@ -175,8 +175,8 @@ The random probability function enables the user to model things which occur on 
 (e.g. bit error rate, packet routing).
 The format for random probability declaration is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>random = <I>value</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">random = <I>value</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>random = 0.75</TD></TR>
 <TR><TD></TD><TD>random = 0.25</TD></TR>
 </TABLE></CENTER>
@@ -227,8 +227,8 @@ The <B>fanout</B> statement is used to selectively enable/disable fanout calcula
 for a gate when the database is being compiled.
 The format for a <B>fanout</B> statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>fanout = on</TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">fanout = on</TD></TR>
 <TR><TD><B>or:</B></TD><TD>fanout = off</TD></TR>
 </TABLE></CENTER>
 <P>
@@ -250,8 +250,8 @@ and not have them modified by the simulator at run time.
 The <B>load</B> statement is used to set the relative loading (capacitance) for an input or output signal.
 The format of a <B>load</B> statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>load <I>signal1</I> = <I>value</I> { <I>signal2</I> = <I>value</I> ... }</TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">load <I>signal1</I> = <I>value</I> { <I>signal2</I> = <I>value</I> ... }</TD></TR>
 <TR><TD><B>Example:</B></TD><TD>load in1=2.0  in2=1.5  in3=1.95</TD></TR>
 <TR><TD></TD><TD>load sa=2.5</TD></TR>
 </TABLE></CENTER>
@@ -271,8 +271,8 @@ The simulator, by default, assumes that all signals associated with gate primiti
 The <B>priority</B> statement is used to establish the scheduling priority for a gate primitive.
 The format for a <B>priority</B> statement is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>priority = <I>level</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">priority = <I>level</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>priority = 1</TD></TR>
 <TR><TD></TD><TD>priority = 7</TD></TR>
 </TABLE></CENTER>
@@ -293,8 +293,8 @@ specific requirement which demands priority readjustment.
 The <B>set</B> statement is used to initialize signals to specific logic states before the simulation run takes place.
 The format for the <B>set</B> statement is shown below: 
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>set <I>signal1</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">set <I>signal1</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
 <TR><TD></TD><TD><I>signal2</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
 <TR><TD><B>Example:</B></TD><TD>set input1=H@2 input2=L input3=X@0</TD></TR>
 <TR><TD></TD><TD>set count=4 multiplier=5 divisor=7@2</TD></TR>

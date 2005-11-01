@@ -65,7 +65,7 @@ all connecting regions on the same layer are merged into one complex polygon.
 This requires more processing, produces a smaller file, and generates more complex constructs.
 </LI>
 <LI>
-"Output Writes export Pins".
+"Output writes export Pins".
 This controls whether pins are written to the GDS file for each export.
 If checked, and there is a valid pin layer, then it is written.
 </LI>
@@ -85,6 +85,17 @@ This is the layer number to use when writing text.
 When exports are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.
 </LI>
+<LI>
+"Use NCC annotations for Exports".
+The network consistency checker (NCC)
+allows special circuit annotations to join two networks
+(see <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>).
+For example, two separate power networks may be joined higher in the circuit hierarchy,
+and the NCC needs to know this at the current level of design.
+This checkbox requests that the NCC annotations be used when exporting GDS.
+It enables external circuit analysis programs (such as Assura) to properly understand the circuit connectivity.
+</LI>
+
 </UL>
 
 <!-- TRAILER -->

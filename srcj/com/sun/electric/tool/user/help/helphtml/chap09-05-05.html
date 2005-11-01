@@ -20,8 +20,8 @@ gives a name and a list of exports
 (which are referenced in a higher level model description).
 The format of this statement is shown below: 
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>function <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">function <I>name</I>(<I>signal1</I>, <I>signal2</I>,
 <I>signal3</I>, ... <I>signalN</I>)</TD></TR>
 <TR><TD><B>Example:</B></TD><TD>function JK_FF(ck, j, k, out)</TD></TR>
 <TR><TD></TD><TD>function DFFLOP(data_in, clk, data_out)</TD></TR>
@@ -45,16 +45,16 @@ If any signal in the event driving list changes state, the function is called
 and the output values are recalculated.
 The format of an <B>i:</B> statement, which contains a list of event driving inputs, is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>i: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">i: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>i: b7 b6 b5 b4 b3 b2 b1 b0</TD></TR> 
 <TR><TD></TD><TD>i: input phi phi_bar set reset</TD></TR>
 </TABLE></CENTER>
 <P>
 The format of an <B>o:</B> statement which contains a list of output ports is shown below:
 <P>
-<CENTER><TABLE>
-<TR><TD><B>Format:</B></TD><TD>o: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">o: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
 <TR><TD><B>Example:</B></TD><TD>o: out1 out2 out3</TD></TR>
 <TR><TD></TD><TD>o: q q_bar</TD></TR>
 </TABLE></CENTER>
@@ -79,15 +79,15 @@ statements and can schedule events with values that are specified directly insid
 The specification for a 3 bit shift register (edge triggered) is shown below.
 This circuit uses a function primitive to model the operation of a D flip-flop:
 <PRE>
-   model main(input, ck, q2, q1, q0)  
-   stage0: DFFLOP(input, ck, q0)  
-   stage1: DFFLOP(q0, ck, q1)  
+   model main(input, ck, q2, q1, q0)
+   stage0: DFFLOP(input, ck, q0)
+   stage1: DFFLOP(q0, ck, q1)
    stage2: DFFLOP(q1, ck, q2)
 
-   function DFFLOP(data_in, clock, output)  
-   i: clock  
-   o: output  
-   t: delta=10e-9  
+   function DFFLOP(data_in, clock, output)
+   i: clock
+   o: output
+   t: delta=10e-9
    load clock=2.0
 </PRE>
 It should be noted that the clock is the only event driving input for the flip-flop function.

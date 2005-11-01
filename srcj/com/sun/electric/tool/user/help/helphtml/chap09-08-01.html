@@ -10,7 +10,7 @@ The format of the pad frame disk file is as follows:
 <CENTER><TABLE>
 <TR><TD><CODE>celllibrary LIBRARYFILE [copy]</CODE></TD><TD>; Identifies the file with the pads</TD></TR>
 <TR><TD><CODE>cell PADFRAMECELL</CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
-<TR><TD><CODE>views VIEWLIST</CODE></TD><TD>; List of views of Cell to be created</TD></TR>
+<TR><TD><CODE>views VIEWS</CODE></TD><TD>; A list of views to generate</TD></TR>
 <TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places cell in center of pad frame</TD></TR>
 <TR><TD><CODE>align PADCELL INPUTPORT OUTPUTPORT</CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
 <TR><TD><CODE>export PADCELL IOPORT [COREPORT]</CODE></TD><TD>; Defines exports on the pads</TD></TR>
@@ -23,15 +23,13 @@ as they identify the pad library and the pad frame cell.
 If the <U><CODE>celllibrary</CODE></U> line ends with the keyword <U><CODE>copy</CODE></U>,
 then cells from that library are copied into the library with the pad ring (by default, they are merely instantiated,
 creating a cross-library reference to the pads library).
+If there is a <U><CODE>views</CODE></U> statement, it identifies a list of views to generate
+(such as "sch" or "lay").
+Requesting multiple views will produce multiple pad frame cells.
+<P>
 The file may have only one <U><CODE>core</CODE></U> statement to place your top-level circuit inside of the pad frame.
 If there is no <U><CODE>core</CODE></U> statement,
 then pads are placed without any circuit in the middle.
-<P>
-By default, the Cell created will be a layout cell: PADFRAMECELL{lay}. To generate
-different or additional views, use the <U><CODE>views</CODE></U> keyword followed by a
-space-delimited list of view abbreviations, such as <CODE>sch</CODE> for schematic or
-lay for <CODE>layout</CODE>. Example:
-<CENTER><CODE>views lay sch</CODE></CENTER>
 <P>
 The <U><CODE>align</CODE></U> statement is used to identify connection points on the pads that will be used for placement.
 Each pad should have an input and an output port that define the edges of the pad.
@@ -44,12 +42,6 @@ A <U><CODE>gap</CODE></U> can be given in the placement that spreads the two pad
 For example, the statement:
 <CENTER><CODE>place padIn gap=100</CODE></CENTER>
 requests that the "padIn" pad be placed so that its input port is 100 units away from the previous pad's output port.
-<P>
-In general pads will be placed next to each other, but it can be desirable to place the first pad
-in a specific location, or for non-continguous pad frames, start a new section of the frame
-from a particular location.  Any <U><CODE>place</CODE></U> command can be annotated with
-the exact location of the placement with an x and y coordinate:
-<CENTER><CODE>place padIn x=100 y=100</CODE></CENTER>
 <P>
 If a core cell has been given, you can also indicate wiring between the pads and the core ports.
 This is done by having one or more <I>port associations</I> in the <U><CODE>place</CODE></U> statements.
@@ -83,31 +75,27 @@ and read with the <B>Pad Frame Generator...</B> command (in menu <B>Tool / Gener
 <P>
 <CENTER><TABLE>
 <TR><TD><CODE>; specify library with pads</CODE></TD>              <TD><CODE>; place the top edge of pads</CODE></TD></TR>
-<TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_gnd gnd_in=gnd</CODE></TD></TR>
-<TR><TD><CODE>; create a cell called "padframe"&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD><TD><CODE>place PAD_vdd m1m2=vdd</CODE></TD></TR>
-<TR><TD><CODE>cell padframe</CODE></TD>                            <TD></TD></TR>
-<TR><TD><CODE>; specify what views to create</CODE></TD>           <TD></TD></TR>
-<TR><TD><CODE>views lay sch</CODE></TD>                            <TD></TD></TR>
-<TR><TD></TD>                                                      <TD></TD></TR>
+<TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_gnd{lay} gnd_in=gnd</CODE></TD></TR>
+<TR><TD><CODE>; create a cell called "padframe"&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD><TD><CODE>place PAD_vdd{lay} m1m2=vdd</CODE></TD></TR>
 <TR><TD><CODE>cell padframe</CODE></TD>                            <TD></TD></TR>
 <TR><TD></TD>                                                      <TD><CODE>; place the right edge of pads</CODE></TD></TR>
 <TR><TD><CODE>; place this cell as the "core"</CODE></TD>	       <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD><CODE>core tool-PadFrame</CODE></TD>                       <TD><CODE>place PAD_corner</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in out=pulse</CODE></TD></TR>
-<TR><TD><CODE>; set the alignment of the pads</CODE></TD>          <TD><CODE>place PAD_spacer</CODE></TD></TR>
+<TR><TD><CODE>core tool-PadFrame</CODE></TD>                       <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=pulse</CODE></TD></TR>
+<TR><TD><CODE>; set the alignment of the pads</CODE></TD>          <TD><CODE>place PAD_spacer{lay}</CODE></TD></TR>
 <TR><TD><CODE>;  (with input and output export)</CODE></TD>        <TD></TD></TR>
-<TR><TD><CODE>align PAD_in          dvddL dvddR</CODE></TD>        <TD><CODE>; place the bottom edge of pads</CODE></TD></TR>
-<TR><TD><CODE>align PAD_out         dvddL dvddR</CODE></TD>        <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD><CODE>align PAD_vdd         dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_corner</CODE></TD></TR>
-<TR><TD><CODE>align PAD_gnd         dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out in=out1</CODE></TD></TR>
-<TR><TD><CODE>align PAD_corner      dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out in=out2</CODE></TD></TR>
-<TR><TD><CODE>align PAD_spacer      dvddL dvddR</CODE></TD>        <TD></TD></TR>
+<TR><TD><CODE>align PAD_in{lay}     dvddL dvddR</CODE></TD>        <TD><CODE>; place the bottom edge of pads</CODE></TD></TR>
+<TR><TD><CODE>align PAD_out{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>rotate c</CODE></TD></TR>
+<TR><TD><CODE>align PAD_vdd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD><CODE>align PAD_gnd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out1</CODE></TD></TR>
+<TR><TD><CODE>align PAD_corner{lay} dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out2</CODE></TD></TR>
+<TR><TD><CODE>align PAD_spacer{lay} dvddL dvddR</CODE></TD>        <TD></TD></TR>
 <TR><TD></TD>                                                      <TD><CODE>; place the left edge of pads</CODE></TD></TR>
 <TR><TD></TD>                                                      <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_corner</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in out=in1</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in out=in2</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in1</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in2</CODE></TD></TR>
 </TABLE></CENTER>
 <P>
 <TABLE><TR><TD><IMG SRC="fig09-16.png" ALT="Figure 9.16" BORDER=0></TD><TD>

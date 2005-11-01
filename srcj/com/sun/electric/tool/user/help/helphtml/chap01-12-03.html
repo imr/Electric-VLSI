@@ -27,12 +27,13 @@ Use the <B>Place Cell Instance</B> command (in menu <B>Cell</B>) and select "inv
 Then click to drop this inverter in the layout window.
 To view the contents of the inverter, highlight the inverter and use the <B>One Level Down</B> command
 (in menu <B>Cell / Expand Cell Instances</B>), or click on the "opened eye" icon in the toolbar.
+</TD></TR></TABLE>
+<P>
 The inverter instance is really just a node, and its contents are unavailable for editing.
 To extract the contents, so that the individual nodes and arcs are available for editing,
 use the <B>Extract Cell Instance</B> command (in menu <B>Cell</B>).
 Note that this command flattens makes a copy of the inverter cell inside of your NAND cell.
 Study the inverter until you understand what each piece represents.
-</TD></TR></TABLE>
 <P>
 <TABLE><TR><TD>
 Start by drawing your nMOS transistors.
@@ -41,6 +42,8 @@ N-diffusion is represented in Electric as green diffusion,
 surrounded by a dotted yellow N-select layer all within a hashed brown P-well background.
 This set of layers is conveniently provided as a 3-terminal transistor node in Electric.
 Move the mouse to the Components tab on the left side of the screen.
+</TD><TD><CENTER><IMG SRC="fig01-36.png" ALT="Figure 1.36"></CENTER></TD></TR></TABLE>
+<P>
 As you move the mouse over various nodes, their name will appear in the status area at the bottom of the screen.
 Click on the N-Transistor, and click again in the layout window to drop the transistor in place.
 To rotate the transistor so that the red polysilicon gate is oriented vertically,
@@ -48,7 +51,6 @@ use the <B>90 Degrees Counterclockwise</B> command (in menu <B>Edit / Rotate</B>
 There are two nMOS transistors in series in a 2-input NAND gate, so we would like to make each wider to compensate.
 Double-click on the transistor (or type Ctrl-I).
 In the node properties dialog, adjust the width to 12.
-</TD><TD><CENTER><IMG SRC="fig01-36.png" ALT="Figure 1.36"></CENTER></TD></TR></TABLE>
 <P>
 We need two transistors in series, so copy and paste the transistor you have drawn.
 You can also duplicate the selected object with the <B>Duplicate</B> command (in menu <B>Edit</B>) or just type Ctrl-M.
@@ -88,12 +90,12 @@ A quick way to connect many items that are touching is to use the "auto router".
 To do this, select all of the objects to be routed (click and drag a selection box over them) and use the <B>Auto-Stitch Highlighted Now</B>
 command (in menu <B>Tool / Routing</B>), or just type the F2 key.
 See <A HREF="chap09-06-02.html#chap09-06-02">Section 9-6-2</A> for more on auto-stitching.
+</TD><TD><CENTER><IMG SRC="fig01-37.png" ALT="Figure 1.37"></CENTER></TD></TR></TABLE>
 <P>
 Once the contacts are connected to the transistors; you will need a gap of only 1 unit between the metal and polysilicon.
 Use the design rule checker to ensure you are as close as possible but no closer.
 Using similar steps, draw two pMOS transistors in parallel and create contacts from the P-diffusion to Metal-1.
 At this point, your layout should look something like this.
-</TD><TD><CENTER><IMG SRC="fig01-37.png" ALT="Figure 1.37"></CENTER></TD></TR></TABLE>
 <P>
 Draw wires to connect the polysilicon gates, forming inputs "a" and "b", and the Metal-1 output node "y".
 Then add Metal-2 power and ground lines.

@@ -1,22 +1,37 @@
 <!-- NEED 6in -->
 
-<!-- HEADER 4-6-2: Editing Colors -->
+<!-- HEADER 4-6-2: Editing Colors and Patterns -->
 
 <!-- COMMAND Window/Color Schemes/Restore Default Colors -->
 <!-- COMMAND Window/Color Schemes/Black Background Colors -->
 <!-- COMMAND Window/Color Schemes/White Background Colors -->
 <!-- PREFERENCE Display/Colors -->
 
-The first color control is the "Colors" preferences
-(in menu <B>File / Preferences...</B>, "Display" section, "Colors" tab).
-The top half of the dialog lists all possible things that can have their color changed:
+The "Layers" preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
+control the appearance of layers and other display elements.
+The top of the dialog lists all possible things that can have their color changed:
 <UL>
-<LI>The transparent colors (all layers drawn transparently are listed).</LI>
-<LI>The opaque layers.</LI>
-<LI>Special colors such as the background, text, waveform windows, etc.</LI>
+<LI>The layers in each technology.</LI>
+<LI>Special colors such as the background, text, waveform windows, etc.
+(These are found at the bottom of the "Layer" list.)</LI>
 </UL>
 <P>
 <CENTER><IMG SRC="fig04-06.png" ALT="Figure 4.6"></CENTER>
+<P>
+Each layer has a color on the left and a pattern on the right.
+The color can be specified directly in the color picker, or it can be set to one of the
+transparent layers.
+If you change the color of a layer that has transparency assigned to it,
+the change will affects all layers assigned to that transparency.
+<P>
+You can draw in the pattern area to set a pattern,
+and you can choose from a set of predefined patterns by clicking on their image
+below the pattern-editing area.
+You can also choose an outline texture to draw.
+<P>
+The lower-right controls the appearance of the layer on the printed page.
+It lets you set an opacity which will control its appearance on the printed page.
 <P>
 When changing the background color,
 note that it must contrast with both the highlight color and the inverse of the highlight color
