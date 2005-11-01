@@ -368,7 +368,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     }
                     if (map != null)
                     {
-                        list = (List)elementsMap.get(map);
+                        list = (List<Object>)elementsMap.get(map);
                         if (list == null)
                         {
                             list = new ArrayList<Object>();
@@ -392,7 +392,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             for (Iterator<Object> it = elementsMap.keySet().iterator(); it.hasNext(); )
             {
                 Object map = it.next();
-                List<Object> list = (List)elementsMap.get(map);
+                List<Object> list = (List<Object>)elementsMap.get(map);
 
 				// Only for more than 1
                 if (list.size() > 1)
@@ -502,7 +502,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             if (obj instanceof List)
             {
-                List<Object> list = (List)obj;
+                List<Object> list = (List<Object>)obj;
 	            // Getting first element
                 obj = list.get(0);
 	            if (obj instanceof List) obj = ((List)obj).get(0);
@@ -518,7 +518,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							menu.add((JSeparator)item);
 						else if (item instanceof List)
 						{
-							List<Object> subList = (List)item;
+							List<Object> subList = (List<Object>)item;
 							for (Iterator<Object> listIter = subList.iterator(); listIter.hasNext();)
 							{
 								Object subItem = listIter.next();
@@ -644,18 +644,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     // must read the Spice library from disk
                     URL fileURL = LibFile.getLibFile(currentSpiceLib + ".jelib");
-                    TechPalette.ReadSpiceLibrary job = new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
+                    ReadSpiceLibrary job = new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
                 } else
                 {
-                    for(Iterator<Cell> it = spiceLib.getCells(); it.hasNext(); )
-                    {
-                        Cell cell = (Cell)it.next();
-                        // only access to icons of those cells
-                        if (cell.getView() != View.ICON) continue;
-                        menuItem = new JMenuItem(cell.getName());
-                        menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
-                        cellMenu.add(menuItem);
-                    }
+                    ReadSpiceLibrary.loadSpiceCells(spiceLib, panel, cellMenu);
                     cellMenu.show(panel, e.getX(), e.getY());
                 }
             } if (msg.equals("Export"))
@@ -760,7 +752,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
             Undo.noUndoAllowed();
             if (lib == null) return false;
-            for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+            loadSpiceCells(lib, panel, cellMenu);
+            cellMenu.show(panel, x, y);
+            return true;
+        }
+
+        public static void loadSpiceCells(Library lib, TechPalette panel, JPopupMenu cellMenu)
+        {
+            for(Iterator it = lib.getCells(); it.hasNext(); )
             {
                 Cell cell = (Cell)it.next();
                 // only access to icons of those cells
@@ -769,8 +768,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                 cellMenu.add(menuItem);
             }
-            cellMenu.show(panel, x, y);
-            return true;
         }
     }
 
