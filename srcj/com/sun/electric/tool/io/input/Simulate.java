@@ -165,6 +165,7 @@ public class Simulate extends Input
 				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCell);
 		        dialog.setVisible(true);
 				cell = dialog.getSelectedCell();
+				if (cell == null) return;
 			}
 		} else
 		{
