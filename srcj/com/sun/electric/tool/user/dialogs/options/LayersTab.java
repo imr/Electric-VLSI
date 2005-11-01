@@ -53,9 +53,9 @@ import javax.swing.event.ChangeListener;
  */
 public class LayersTab extends PreferencePanel
 {
-	private HashMap layerMap;
-	private HashMap transAndSpecialMap;
-	private HashMap colorMapMap;
+	private HashMap<Layer,ColorPatternPanel.Info> layerMap;
+	private HashMap<String,ColorPatternPanel.Info> transAndSpecialMap;
+	private HashMap<Technology,Color []> colorMapMap;
 	private ColorPatternPanel colorAndPatternPanel;
 
 	/** Creates new form LayerTab */
@@ -73,14 +73,14 @@ public class LayersTab extends PreferencePanel
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		layers.add(colorAndPatternPanel, gbc);
 
-		layerMap = new HashMap();
-		transAndSpecialMap = new HashMap();
-		colorMapMap = new HashMap();
+		layerMap = new HashMap<Layer,ColorPatternPanel.Info>();
+		transAndSpecialMap = new HashMap<String,ColorPatternPanel.Info>();
+		colorMapMap = new HashMap<Technology,Color []>();
 		layerName.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { layerSelected(); }
 		});
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			technology.addItem(tech.getTechName());
@@ -104,10 +104,10 @@ public class LayersTab extends PreferencePanel
 	public void init()
 	{
 		// make a map of all layers
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				layerName.addItem(layer.getName());
@@ -162,18 +162,18 @@ public class LayersTab extends PreferencePanel
 		layerName.removeAllItems();
 
 		// add all layers in the technology
-		for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = (Layer)lIt.next();
 			layerName.addItem(layer.getName());
 		}
 
 		// add special layer names
-		List specialList = new ArrayList();
-		for(Iterator it = transAndSpecialMap.keySet().iterator(); it.hasNext(); )
+		List<String> specialList = new ArrayList<String>();
+		for(Iterator<String> it = transAndSpecialMap.keySet().iterator(); it.hasNext(); )
 			specialList.add(it.next());
 		Collections.sort(specialList, TextUtils.STRING_NUMBER_ORDER);
-		for(Iterator it = specialList.iterator(); it.hasNext(); )
+		for(Iterator<String> it = specialList.iterator(); it.hasNext(); )
 		{
 			String name = (String)it.next();
 			layerName.addItem(name);
@@ -209,10 +209,10 @@ public class LayersTab extends PreferencePanel
 	public void term()
 	{
 		boolean changed = false;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);

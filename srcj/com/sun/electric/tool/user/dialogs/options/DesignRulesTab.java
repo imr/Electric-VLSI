@@ -168,10 +168,10 @@ public class DesignRulesTab extends PreferencePanel
                     new Technology.ResetDefaultWidthJob(null);
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
-                for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
                 {
                     Library lib = (Library)lIt.next();
-                    for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                     {
                         Cell cell = (Cell)cIt.next();
                         if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);

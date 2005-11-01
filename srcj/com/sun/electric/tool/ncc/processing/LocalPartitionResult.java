@@ -13,13 +13,13 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class LocalPartitionResult {
 	private static class GetNetObjs extends Strategy {
-		private ArrayList[] matches;
-		private ArrayList[] notMatches;
-		private void appendNetObjsFromCircuit(ArrayList[] lists, EquivRecord er) {
+		private ArrayList<NetObject>[] matches;
+		private ArrayList<NetObject>[] notMatches;
+		private void appendNetObjsFromCircuit(ArrayList<NetObject>[] lists, EquivRecord er) {
 			int i=0;
-			for (Iterator itC=er.getCircuits(); itC.hasNext(); i++) {
+			for (Iterator<Circuit> itC=er.getCircuits(); itC.hasNext(); i++) {
 				Circuit ckt = (Circuit) itC.next();
-				for (Iterator itN=ckt.getNetObjs(); itN.hasNext();) {
+				for (Iterator<NetObject> itN=ckt.getNetObjs(); itN.hasNext();) {
 					lists[i].add(itN.next());
 				}
 			}
@@ -30,8 +30,8 @@ public class LocalPartitionResult {
 			matches = new ArrayList[numDesigns];
 			notMatches = new ArrayList[numDesigns];
 			for (int i=0; i<numDesigns; i++) {
-				matches[i] = new ArrayList();
-				notMatches[i] = new ArrayList();
+				matches[i] = new ArrayList<NetObject>();
+				notMatches[i] = new ArrayList<NetObject>();
 			}
 		}
 		public LeafList doFor(EquivRecord er) {
@@ -42,17 +42,17 @@ public class LocalPartitionResult {
 				return super.doFor(er);
 			}
 		}
-		ArrayList[] getMatchedNetObjs() {return matches;}
-		ArrayList[] getNotMatchedNetObjs() {return notMatches;}
+		ArrayList<NetObject>[] getMatchedNetObjs() {return matches;}
+		ArrayList<NetObject>[] getNotMatchedNetObjs() {return notMatches;}
 	}
 	
 	private NccGlobals globals;
-    private List badPartRecs, badWireRecs;
+    private List<EquivRecord> badPartRecs, badWireRecs;
 
     private void prln(String s) {System.out.println(s);}
 	 
-    private List getNotBalancedEquivRecs(Iterator it) {
-    	List notBalanced = new ArrayList();
+    private List<EquivRecord> getNotBalancedEquivRecs(Iterator<EquivRecord> it) {
+    	List<EquivRecord> notBalanced = new ArrayList<EquivRecord>();
     	while (it.hasNext()) {
     		EquivRecord er = (EquivRecord) it.next();
         	if (!er.isBalanced())  notBalanced.add(er);
@@ -60,7 +60,7 @@ public class LocalPartitionResult {
     	return notBalanced;
     }
 
-    private void printCircuitContents(List notMatched, List matched, 
+    private void printCircuitContents(List<NetObject> notMatched, List<NetObject> matched, 
     		                          String cktName, String t) {
 		int numNetObjs = notMatched.size() + matched.size();
 		prln("      "+cktName+" has "+numNetObjs+" of these "+t+":");
@@ -69,12 +69,12 @@ public class LocalPartitionResult {
 			prln("        Too many "+t+"! I'll only print the first "+maxPrint);
 		}
 		int numPrint = 0;
-		for (Iterator it=notMatched.iterator(); it.hasNext(); numPrint++) {
+		for (Iterator<NetObject> it=notMatched.iterator(); it.hasNext(); numPrint++) {
 			if (numPrint>maxPrint)  break;
 			NetObject o = (NetObject) it.next();
 			prln("      * "+o.fullDescription());
 		}
-		for (Iterator it=matched.iterator(); it.hasNext(); numPrint++) {
+		for (Iterator<NetObject> it=matched.iterator(); it.hasNext(); numPrint++) {
 			if (numPrint>maxPrint)  break;
 			NetObject o = (NetObject) it.next();
 			prln("        "+o.fullDescription());
@@ -83,20 +83,20 @@ public class LocalPartitionResult {
 
     private void printBadRecord(EquivRecord r, String t) {
 		prln("    The "+t+" in this equivalence class share the following characteristics:");
-		List reasons = r.getPartitionReasonsFromRootToMe();
-		for (Iterator it=reasons.iterator(); it.hasNext();) {
+		List<String> reasons = r.getPartitionReasonsFromRootToMe();
+		for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
 			prln("      "+it.next());
 		}
-		List matched[] = getMatchedNetObjs(r);
-		List notMatched[] = getNotMatchedNetObjs(r);
+		List<NetObject> matched[] = getMatchedNetObjs(r);
+		List<NetObject> notMatched[] = getNotMatchedNetObjs(r);
 		for (int cktNdx=0; cktNdx<matched.length; cktNdx++) {
 			String cktName = globals.getRootCellNames()[cktNdx];
 			printCircuitContents(notMatched[cktNdx], matched[cktNdx], cktName, t);
 		}
 	}
 
-    private void printBadRecords(List badRecs, String t) {
-        for (Iterator it=badRecs.iterator(); it.hasNext();) {
+    private void printBadRecords(List<EquivRecord> badRecs, String t) {
+        for (Iterator<EquivRecord> it=badRecs.iterator(); it.hasNext();) {
     		printBadRecord((EquivRecord) it.next(), t);			
     	}
     }
@@ -139,7 +139,7 @@ public class LocalPartitionResult {
      * of er. Accumulate all NetObjects inside those EquivRecords that are 
      * matched(). 
      * @return ArrayLists, one per Circuit, of matched NetObjects. */
-    public ArrayList[] getMatchedNetObjs(EquivRecord er) {
+    public ArrayList<NetObject>[] getMatchedNetObjs(EquivRecord er) {
     	GetNetObjs gno = new GetNetObjs(globals);
     	gno.doFor(er);
     	return gno.getMatchedNetObjs();
@@ -149,7 +149,7 @@ public class LocalPartitionResult {
      * descendents of er. Accumulate all NetObjects inside those 
      * EquivRecords that are not matched().
      * @return ArrayLists, one per Circuit, of notMatched NetObjects. */ 
-    public ArrayList[] getNotMatchedNetObjs(EquivRecord er) {
+    public ArrayList<NetObject>[] getNotMatchedNetObjs(EquivRecord er) {
     	GetNetObjs gno = new GetNetObjs(globals);
     	gno.doFor(er);
     	return gno.getNotMatchedNetObjs();

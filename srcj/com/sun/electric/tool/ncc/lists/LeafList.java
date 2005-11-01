@@ -31,10 +31,8 @@ import java.util.Iterator;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class LeafList extends RecordList {
-	private static class SizeCompare implements Comparator {
-		public int compare(Object o1, Object o2){
-			EquivRecord s1 = (EquivRecord)o1;
-			EquivRecord s2 = (EquivRecord)o2;
+	private static class SizeCompare implements Comparator<EquivRecord> {
+		public int compare(EquivRecord s1, EquivRecord s2){
 			return s1.maxSize() - s2.maxSize();
 		}
 	}
@@ -52,7 +50,7 @@ public class LeafList extends RecordList {
 		StringBuffer diff = new StringBuffer(" offspring size differences: ");
 
 		boolean matchOK= true;
-		for (Iterator it= iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it= iterator(); it.hasNext();) {
 			EquivRecord g= (EquivRecord)it.next();
 			max.append(" " + g.maxSize());
 			diff.append(" " + g.maxSizeDiff());
@@ -65,7 +63,7 @@ public class LeafList extends RecordList {
 	 * matched nor mismatched. */
 	public LeafList selectActive(NccGlobals globals) {
 		LeafList out = new LeafList();
-		for (Iterator it=iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=iterator(); it.hasNext();) {
 			EquivRecord er= (EquivRecord) it.next();
 			if(er.isActive()) out.add(er);
 		}
@@ -77,7 +75,7 @@ public class LeafList extends RecordList {
 	/** @return a LeafList, possibly empty, of those that are matched. */
 	public LeafList selectMatched(NccGlobals globals) {
 		LeafList out= new LeafList();
-		for (Iterator it=iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=iterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if(er.isMatched())  out.add(er);
 		}

@@ -32,7 +32,7 @@ import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 
 class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
-	private HashSet enteredCells = new HashSet();
+	private HashSet<Cell> enteredCells = new HashSet<Cell>();
 
 	private void prln(String s) {System.out.println(s);}
 	private void printAnn(Cell cell) {
@@ -40,7 +40,7 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 		if (ann==null) return;
 		prln("  Cell: "+NccUtils.fullName(cell)+" annotations:");
 
-		for (Iterator it=ann.getAnnotationText(); it.hasNext();) {
+		for (Iterator<String> it=ann.getAnnotationText(); it.hasNext();) {
 			prln("    "+it.next());
 		}
 	}

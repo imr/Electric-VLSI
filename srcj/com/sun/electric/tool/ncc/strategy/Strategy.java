@@ -29,6 +29,7 @@ package com.sun.electric.tool.ncc.strategy;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
@@ -69,7 +70,7 @@ public abstract class Strategy {
 	
     protected Strategy(NccGlobals globals) {this.globals=globals;}
 
-	private LeafList apply(Iterator it){
+	private LeafList apply(Iterator<EquivRecord> it){
 		LeafList out= new LeafList();
 		while (it.hasNext()) {
 			EquivRecord jr= (EquivRecord)it.next();
@@ -87,7 +88,7 @@ public abstract class Strategy {
 	 * @return a LeafList of the new leaf EquivRecords */
     public LeafList doFor(RecordList r) {return doFor(r.iterator());}
 	
-    public LeafList doFor(Iterator it) {
+    public LeafList doFor(Iterator<EquivRecord> it) {
     	depth++;
     	LeafList out = apply(it);
     	depth--;
@@ -112,9 +113,9 @@ public abstract class Strategy {
 	 * @return a CircuitMap of offspring Circuits.
 	 * Returns an empty map if no offspring intended, and
 	 * returns the input input Circuit if method fails to split. */
-    public HashMap doFor(Circuit c){
+    public HashMap<Integer,List<NetObject>> doFor(Circuit c){
 		depth++;
-		HashMap codeToNetObjs = c.apply(this);
+		HashMap<Integer,List<NetObject>> codeToNetObjs = c.apply(this);
 		depth--;
 		return codeToNetObjs;
 	}
@@ -128,7 +129,7 @@ public abstract class Strategy {
 	//comments on the "code"th offspring of g
 	EquivRecord pickAnOffspring(Integer code, LeafList g, String label) {
 		int value = code.intValue();
-		for(Iterator it=g.iterator(); it.hasNext();){
+		for(Iterator<EquivRecord> it=g.iterator(); it.hasNext();){
 			EquivRecord er = (EquivRecord)it.next();
 			if(er.getValue()==value){
 				globals.status2(label+": "+ er.nameString());
@@ -142,7 +143,7 @@ public abstract class Strategy {
 
 	protected String offspringStats(LeafList el) {
 		int matched=0, mismatched=0, active=0;
-		for (Iterator it=el.iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=el.iterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if (er.isMismatched())  mismatched++;
 			else if (er.isMatched())  matched++;

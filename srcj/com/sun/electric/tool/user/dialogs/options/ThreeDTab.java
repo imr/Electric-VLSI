@@ -101,7 +101,7 @@ public class ThreeDTab extends PreferencePanel
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
-	protected HashMap threeDThicknessMap, threeDDistanceMap;
+	protected HashMap<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
 	private JPanel threeDSideView;
 
 	/**
@@ -120,10 +120,10 @@ public class ThreeDTab extends PreferencePanel
 		{
 			public void mouseClicked(MouseEvent evt) { threeDValuesChanged(false); }
 		});
-		threeDThicknessMap = new HashMap();
-		threeDDistanceMap = new HashMap();
+		threeDThicknessMap = new HashMap<Layer,GenMath.MutableDouble>();
+		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
         // Sorted by Height to be consistent with LayersTab
-		for(Iterator it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -160,7 +160,7 @@ public class ThreeDTab extends PreferencePanel
 			addMouseListener(this);
 			addMouseMotionListener(this);
 
-			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -197,7 +197,7 @@ public class ThreeDTab extends PreferencePanel
 
 			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
 			Layer selectedLayer = dialog.curTech.findLayer(layerName);
-			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -246,7 +246,7 @@ public class ThreeDTab extends PreferencePanel
 			if (Math.abs(yValue - evt.getY()) > 5)
 			{
 				int bestDist = dim.height;
-				for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+				for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 				{
 					Layer layer = (Layer)it.next();
 					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -330,7 +330,7 @@ public class ThreeDTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;

@@ -140,7 +140,7 @@ public class ActivityLogger {
      * @param savedHighlightsOffset the starting highlight offset (currently not used)
      */
     public static synchronized void logJobStarted(String jobName, Job.Type jobType, Cell upCell,
-                                                  List savedHighlights, Point2D savedHighlightsOffset) {
+                                                  List<Highlight> savedHighlights, Point2D savedHighlightsOffset) {
         if (out == null) return;
         if (!logJobs) return;
         printDelimeter(true);
@@ -157,11 +157,11 @@ public class ActivityLogger {
      * @param highlights a list of Highlight objects
      * @param offset the offset
      */
-    public static synchronized void logHighlights(List highlights, Point2D offset) {
+    public static synchronized void logHighlights(List<Highlight> highlights, Point2D offset) {
         if (out == null) return;
         if (highlights.size() == 0) return;
         out.println("Currently highlighted: ");
-        for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+        for (Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             out.println("    "+h.describe());
         }

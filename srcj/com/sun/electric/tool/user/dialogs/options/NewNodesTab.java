@@ -64,7 +64,7 @@ public class NewNodesTab extends PreferencePanel
 		double initialHei, hei;
 		Variable var;
 	}
-	private HashMap initialNewNodesPrimInfo;
+	private HashMap<PrimitiveNode,PrimNodeInfo> initialNewNodesPrimInfo;
 	private boolean newNodesDataChanging = false;
 	private Technology selectedTech;
 
@@ -75,12 +75,12 @@ public class NewNodesTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the PrimitiveNodes in the current Technology
-		initialNewNodesPrimInfo = new HashMap();
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		initialNewNodesPrimInfo = new HashMap<PrimitiveNode,PrimNodeInfo>();
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				PrimNodeInfo pni = new PrimNodeInfo();
@@ -133,7 +133,7 @@ public class NewNodesTab extends PreferencePanel
 			// reload the primitives
 			selectedTech = tech;
 			nodePrimitive.removeAllItems();
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				nodePrimitive.addItem(np.getName());
@@ -187,10 +187,10 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);

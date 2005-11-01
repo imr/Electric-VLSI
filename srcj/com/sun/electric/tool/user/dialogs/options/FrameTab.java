@@ -61,7 +61,7 @@ public class FrameTab extends PreferencePanel
 		Pref designerName;
 		Pref projectName;
 	}
-	private HashMap frameLibInfo;
+	private HashMap<Library,LibraryFrameInfo> frameLibInfo;
 	private boolean frameInfoUpdating = false;
 
 	/**
@@ -73,9 +73,9 @@ public class FrameTab extends PreferencePanel
 		Library curLib = Library.getCurrent();
 
 		// cache text in each library
-		frameLibInfo = new HashMap();
+		frameLibInfo = new HashMap<Library,LibraryFrameInfo>();
 		/*for(Library lib: Library.getVisibleLibraries())*/
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			LibraryFrameInfo lfi = new LibraryFrameInfo();
@@ -170,7 +170,7 @@ public class FrameTab extends PreferencePanel
 			User.setFrameProjectName(currValue);
 
 		// save per-library title box info
-		for(Iterator it = frameLibInfo.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = frameLibInfo.keySet().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);

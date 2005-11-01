@@ -121,7 +121,7 @@ public class ArcInfo extends Info
 		aIn.name = np.getName().substring(4);
 
 		// look at all nodes in the arc description cell
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Variable var = ni.getVar(OPTION_KEY);
@@ -132,8 +132,8 @@ public class ArcInfo extends Info
 			{
 				case ARCFUNCTION:
 					aIn.func = ArcProto.Function.UNKNOWN;
-					List allFuncs = ArcProto.Function.getFunctions();
-					for(Iterator fIt = allFuncs.iterator(); fIt.hasNext(); )
+					List<ArcProto.Function> allFuncs = ArcProto.Function.getFunctions();
+					for(Iterator<ArcProto.Function> fIt = allFuncs.iterator(); fIt.hasNext(); )
 					{
 						ArcProto.Function fun = (ArcProto.Function)fIt.next();
 						if (fun.toString().equalsIgnoreCase(str))
@@ -170,7 +170,7 @@ public class ArcInfo extends Info
 	{
 		// compute bounds of arc contents
 		Rectangle2D nonSpecBounds = null;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
@@ -194,7 +194,7 @@ public class ArcInfo extends Info
 			double yOff = -nonSpecBounds.getMaxY();
 			if (xOff != 0 || yOff != 0)
 			{
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					if (ni.getProto() == Generic.tech.cellCenterNode) continue;

@@ -144,7 +144,7 @@ public class Info
 	{
 		// don't create any nodes already there
 		for(int i=0; i < table.length; i++) table[i].ni = null;
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Variable var = ni.getVar(OPTION_KEY);
@@ -308,7 +308,7 @@ public class Info
 	static Library [] getDependentLibraries(Library lib)
 	{
 		// get list of dependent libraries
-		List dependentLibs = new ArrayList();
+		List<Library> dependentLibs = new ArrayList<Library>();
 		Variable var = lib.getVar(Info.DEPENDENTLIB_KEY);
 		if (var != null)
 		{
@@ -347,11 +347,11 @@ public class Info
 	{
 		// look backwards through libraries for the appropriate cells
 		int total = 0;
-		List npList = new ArrayList();
+		List<Cell> npList = new ArrayList<Cell>();
 		for(int i=dependentlibs.length-1; i>=0; i--)
 		{
 			Library olderlib = dependentlibs[i];
-			for(Iterator it = olderlib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = olderlib.getCells(); it.hasNext(); )
 			{
 				Cell np = (Cell)it.next();
 				if (!np.getName().startsWith(match)) continue;
@@ -361,7 +361,7 @@ public class Info
 				for(int j=i+1; j<dependentlibs.length; j++)
 				{
 					Library laterLib = dependentlibs[j];
-					for(Iterator oIt = laterLib.getCells(); oIt.hasNext(); )
+					for(Iterator<Cell> oIt = laterLib.getCells(); oIt.hasNext(); )
 					{
 						Cell lNp = (Cell)oIt.next();
 						if (!lNp.getName().equals(np.getName())) continue;
@@ -386,7 +386,7 @@ public class Info
 		if (var == null) return (Cell [])npList.toArray();
 
 		// build a new list with the sequence
-		List sequence = new ArrayList();
+		List<Cell> sequence = new ArrayList<Cell>();
 		String [] sequenceNames = (String [])var.getObject();
 		for(int i=0; i<sequenceNames.length; i++)
 		{
@@ -402,7 +402,7 @@ public class Info
 				npList.remove(foundCell);
 			}
 		}
-		for(Iterator it = npList.iterator(); it.hasNext(); )
+		for(Iterator<Cell> it = npList.iterator(); it.hasNext(); )
 			sequence.add(it.next());
 		Cell [] theCells = new Cell[sequence.size()];
 		for(int i=0; i<sequence.size(); i++)

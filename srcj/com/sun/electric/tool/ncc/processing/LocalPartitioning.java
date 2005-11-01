@@ -47,9 +47,9 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class LocalPartitioning {
     NccGlobals globals;
     /** return a Set of all the types of Pins we might encounter */
-	private Set partitionPartsUsingLocalInformation() {
+	private Set<PinType> partitionPartsUsingLocalInformation() {
 		globals.status2("Partition Parts using local information");
-		Set pinTypes = new HashSet();
+		Set<PinType> pinTypes = new HashSet<PinType>();
 		if (globals.getParts()==null) return pinTypes;
 		LeafList offspring = StratPartType.doYourJob(pinTypes, globals);
 		if (offspring.size()!=0) {
@@ -65,10 +65,10 @@ public class LocalPartitioning {
 		return pinTypes;
 	}
 
-	private void partitionWiresUsingLocalInformation(Set pinTypes) {
+	private void partitionWiresUsingLocalInformation(Set<PinType> pinTypes) {
 		globals.status2("Partition Wires using local information");
 		EquivRecord root = globals.getRoot();
-		for (Iterator it=pinTypes.iterator(); it.hasNext();) {
+		for (Iterator<PinType> it=pinTypes.iterator(); it.hasNext();) {
 			PinType pinType = (PinType) it.next();
 			LeafList offspring = 
 				StratCountPartPinsOnWires.doYourJob(globals, pinType);
@@ -85,7 +85,7 @@ public class LocalPartitioning {
     private void doYourJob2() {
         globals.status2("Begin partitioning based on local characteristics \n");
 
-		Set pinTypes = partitionPartsUsingLocalInformation();
+		Set<PinType> pinTypes = partitionPartsUsingLocalInformation();
 		if (NewLocalPartitionWires.useNewAlgorithm)
 			NewLocalPartitionWires.doYourJob(globals);
 		else

@@ -89,7 +89,7 @@ public abstract class Part extends NetObject {
     public boolean isDeleted() {return pins==DELETED;}
     
     public int numDistinctWires() {
-    	Set wires = new HashSet();
+    	Set<Wire> wires = new HashSet<Wire>();
     	for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
     	return wires.size();
     }
@@ -156,7 +156,7 @@ public abstract class Part extends NetObject {
 	 * This method is only used for sanity checking by StratCount.
 	 * @return the number of distinct Wires to which this Part is connected */
 	public int getNumWiresConnected() {
-		HashSet wires = new HashSet();
+		HashSet<Wire> wires = new HashSet<Wire>();
 		for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
 		return wires.size();
 	}

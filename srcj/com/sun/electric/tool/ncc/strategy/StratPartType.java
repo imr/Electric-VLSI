@@ -36,7 +36,7 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /* StratPartType partitions Part equivalence classes
  * based upon the Part's type. */
 public class StratPartType extends Strategy {
-	private Map typeCodeToTypeName = new HashMap();
+	private Map<Integer,String> typeCodeToTypeName = new HashMap<Integer,String>();
 	private Set pinTypes;
 	
     private StratPartType(Set pinTypes, NccGlobals globals) {
@@ -54,7 +54,7 @@ public class StratPartType extends Strategy {
 	}
 	
 	private void setReasons(LeafList offspring) {
-		for (Iterator it=offspring.iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
 			EquivRecord r = (EquivRecord) it.next();
 			int value = r.getValue();
 			String reason = "part type is "+

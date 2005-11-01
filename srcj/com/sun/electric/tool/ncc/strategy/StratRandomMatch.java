@@ -38,7 +38,7 @@ public class StratRandomMatch extends Strategy {
 	private static final Integer CODE_REST = new Integer(2);
     private StratRandomMatch(NccGlobals globals){super(globals);}
 
-	private EquivRecord findSmallestBalanced(Iterator frontier) {
+	private EquivRecord findSmallestBalanced(Iterator<EquivRecord> frontier) {
 		//LeafList frontier = StratFrontier.doYourJob(root, globals);
 		int minSz = Integer.MAX_VALUE;
 		EquivRecord minRec = null;
@@ -72,7 +72,7 @@ public class StratRandomMatch extends Strategy {
 	
 	public Integer doFor(NetObject n){
 		Circuit ckt = n.getParent();
-		Iterator ni = ckt.getNetObjs();
+		Iterator<NetObject> ni = ckt.getNetObjs();
 		Object first = ni.next();
 		return n==first ? CODE_FIRST : CODE_REST;
 	}

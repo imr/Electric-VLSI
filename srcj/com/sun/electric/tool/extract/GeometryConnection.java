@@ -67,7 +67,7 @@ public class GeometryConnection
             AffineTransform subTrans = cellA.rotateIn(cellA.translateIn());
 
             // Search in other cell possible neighbors
-            for(Iterator it = cellBProto.searchIterator(cellBounds); it.hasNext(); )
+            for(Iterator<Geometric> it = cellBProto.searchIterator(cellBounds); it.hasNext(); )
             {
                 Geometric nGeom = (Geometric)it.next();
 
@@ -92,11 +92,11 @@ public class GeometryConnection
     public static boolean searchInExportNetwork(Netlist netlist1, Network net1,
                                                 Netlist netlist2, Network net2)
     {
-        for (Iterator it = net1.getExports(); it.hasNext();)
+        for (Iterator<Export> it = net1.getExports(); it.hasNext();)
         {
             Export exp1 = (Export)it.next();
             Network tmpNet1 = netlist1.getNetwork(exp1.getOriginalPort());
-            for (Iterator otherIt = net2.getExports(); otherIt.hasNext();)
+            for (Iterator<Export> otherIt = net2.getExports(); otherIt.hasNext();)
             {
                 Export exp2 = (Export)otherIt.next();
                 Network tmpNet2 = netlist2.getNetwork(exp2.getOriginalPort());
@@ -142,7 +142,7 @@ public class GeometryConnection
 
             Set<Network> nets = null;
 
-            for(Iterator it = cell.searchIterator(geomBBnd); it.hasNext(); )
+            for(Iterator<Geometric> it = cell.searchIterator(geomBBnd); it.hasNext(); )
             {
                 Geometric nGeom = (Geometric)it.next();
                 System.out.println(nGeom.toString());
@@ -159,7 +159,7 @@ public class GeometryConnection
                          System.out.println("Found net");
                 else if (nets.size() == 1 && netsB.size() == 1)
                 {
-                    for (Iterator pIt = topCell.getPorts(); pIt.hasNext();)
+                    for (Iterator<PortProto> pIt = topCell.getPorts(); pIt.hasNext();)
                     {
                         PortProto port = (PortProto)pIt.next();
                         System.out.println("Port ");

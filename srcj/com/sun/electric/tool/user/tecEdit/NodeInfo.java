@@ -138,7 +138,7 @@ public class NodeInfo extends Info
 		NodeInfo nIn = new NodeInfo();
 
 		// look at all nodes in the arc description cell
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Variable var = ni.getVar(OPTION_KEY);
@@ -149,8 +149,8 @@ public class NodeInfo extends Info
 			{
 				case NODEFUNCTION:
 					nIn.func = PrimitiveNode.Function.UNKNOWN;
-					List allFuncs = PrimitiveNode.Function.getFunctions();
-					for(Iterator fIt = allFuncs.iterator(); fIt.hasNext(); )
+					List<PrimitiveNode.Function> allFuncs = PrimitiveNode.Function.getFunctions();
+					for(Iterator<PrimitiveNode.Function> fIt = allFuncs.iterator(); fIt.hasNext(); )
 					{
 						PrimitiveNode.Function fun = (PrimitiveNode.Function)fIt.next();
 						if (fun.toString().equalsIgnoreCase(str))
@@ -242,7 +242,7 @@ public class NodeInfo extends Info
 
 	private static void moveExample(Example ne, double dX, double dY)
 	{
-		for(Iterator it = ne.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = ne.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			ns.node.move(dX, dY);

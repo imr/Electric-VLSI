@@ -105,9 +105,9 @@ public class ViewChanges
 	 */
 	private static class FixOldMultiPageSchematics extends Job
 	{
-		private List multiPageCells;
+		private List<Cell> multiPageCells;
 
-		protected FixOldMultiPageSchematics(List multiPageCells)
+		protected FixOldMultiPageSchematics(List<Cell> multiPageCells)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.multiPageCells = multiPageCells;
@@ -116,7 +116,7 @@ public class ViewChanges
 
 		public boolean doIt()
 		{
-			for(Iterator it = multiPageCells.iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = multiPageCells.iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				int pageNo = TextUtils.atoi(cell.getView().getFullName().substring(15));
@@ -137,12 +137,12 @@ public class ViewChanges
 				// copy this page into the multipage cell
 				double dY = (pageNo - 1) * 1000;
 				List<Object> pasteList = new ArrayList<Object>();
-				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					pasteList.add(ni);
 				}
-				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)aIt.next();
 					pasteList.add(ai);
@@ -150,7 +150,7 @@ public class ViewChanges
 				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true, true);
 	
 				// also copy any variables on the cell
-				for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = (Variable)vIt.next();
 					if (!var.isDisplay()) continue;
@@ -178,7 +178,7 @@ public class ViewChanges
 		if (cell.getView() == newView) return;
 
 		// warn if there is already a cell with that view
-		for(Iterator it = cell.getLibrary().getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 		{
 			Cell other = (Cell)it.next();
 			if (other.getView() != newView) continue;
@@ -214,7 +214,7 @@ public class ViewChanges
 		{
 			cell.setView(newView);
 			cell.setTechnology(null);
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				if (wf.getContent().getCell() == cell)
@@ -295,8 +295,8 @@ public class ViewChanges
 	public static boolean skeletonizeCell(Cell curCell, Cell skeletonCell)
 	{
 		// place all exports in the new cell
-		HashMap newPortMap = new HashMap();
-		for(Iterator it = curCell.getPorts(); it.hasNext(); )
+		HashMap<Export,Export> newPortMap = new HashMap<Export,Export>();
+		for(Iterator<PortProto> it = curCell.getPorts(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 
@@ -367,7 +367,7 @@ public class ViewChanges
 		}
 
 		// copy the essential-bounds nodes if they exist
-		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -499,9 +499,9 @@ public class ViewChanges
 		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
 
 		// make a sorted list of exports
-		List exportList = new ArrayList();
-		for(Iterator it = curCell.getPorts(); it.hasNext(); )
-			exportList.add(it.next());
+		List<Export> exportList = new ArrayList<Export>();
+		for(Iterator<PortProto> it = curCell.getPorts(); it.hasNext(); )
+			exportList.add((Export)it.next());
 		if (reverseIconExportOrder)
 			Collections.reverse(exportList);
 
@@ -519,8 +519,8 @@ public class ViewChanges
 
 		// determine number of inputs and outputs
 		int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
-		HashMap portIndex = new HashMap();
-		for(Iterator it = exportList.iterator(); it.hasNext(); )
+		HashMap<Export,Integer> portIndex = new HashMap<Export,Integer>();
+		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			if (pp.isBodyOnly()) continue;
@@ -560,7 +560,7 @@ public class ViewChanges
 
 		// place pins around the Black Box
 		int total = 0;
-		for(Iterator it = exportList.iterator(); it.hasNext(); )
+		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
 			if (pp.isBodyOnly()) continue;
@@ -803,7 +803,7 @@ public class ViewChanges
 		if (newCell == null) return null;
 
 		// create the parts in this cell
-		HashMap newNodes = new HashMap();
+		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		buildSchematicNodes(oldCell, newCell, newNodes);
 		buildSchematicArcs(oldCell, newCell, newNodes);
 
@@ -811,7 +811,7 @@ public class ViewChanges
 //		makeArcsManhattan(newCell);
 
 		// set "fixed-angle" if reasonable
-		for(Iterator it = newCell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			Point2D headPt = ai.getHeadLocation();
@@ -842,10 +842,10 @@ public class ViewChanges
 		return newCell;
 	}
 	
-	private static void buildSchematicNodes(Cell cell, Cell newCell, HashMap newNodes)
+	private static void buildSchematicNodes(Cell cell, Cell newCell, HashMap<NodeInst,NodeInst> newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst mosNI = (NodeInst)it.next();
 			PrimitiveNode.Function type = getNodeType(mosNI);
@@ -912,7 +912,7 @@ public class ViewChanges
 			// reexport ports
 			if (schemNI != null)
 			{
-				for(Iterator eIt = mosNI.getExports(); eIt.hasNext(); )
+				for(Iterator<Export> eIt = mosNI.getExports(); eIt.hasNext(); )
 				{
 					Export mosPP = (Export)eIt.next();
 					PortInst schemPI = convertPort(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
@@ -943,9 +943,9 @@ public class ViewChanges
 	 * for each arc in cell, find the ends in the new technology, and
 	 * make a new arc to connect them in the new cell.
 	 */
-	private static void buildSchematicArcs(Cell cell, Cell newcell, HashMap newNodes)
+	private static void buildSchematicArcs(Cell cell, Cell newcell, HashMap<NodeInst,NodeInst> newNodes)
 	{
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst mosAI = (ArcInst)it.next();
 			NodeInst mosHeadNI = mosAI.getHeadPortInst().getNodeInst();
@@ -985,7 +985,7 @@ public class ViewChanges
 
 		// a transistor
 		int portNum = 1;
-		for(Iterator it = mosNI.getProto().getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = mosNI.getProto().getPorts(); it.hasNext(); )
 		{
 			PortProto pp = (PortProto)it.next();
 			if (pp == mosPP) break;
@@ -993,7 +993,7 @@ public class ViewChanges
 		}
 		if (portNum == 4) portNum = 3; else
 			if (portNum == 3) portNum = 1;
-		for(Iterator it = schemNI.getProto().getPorts(); it.hasNext(); )
+		for(Iterator<PortProto> it = schemNI.getProto().getPorts(); it.hasNext(); )
 		{
 			PortProto schemPP = (PortProto)it.next();
 			portNum--;
@@ -1008,14 +1008,14 @@ public class ViewChanges
 	private static void makeArcsManhattan(Cell newCell)
 	{
 		// copy the list of nodes in the cell
-		List nodesInCell = new ArrayList();
-		for(Iterator it = newCell.getNodes(); it.hasNext(); )
+		List<NodeInst> nodesInCell = new ArrayList<NodeInst>();
+		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
 			nodesInCell.add(it.next());
 
 		// examine all nodes and adjust them
 		double [] x = new double[MAXADJUST];
 		double [] y = new double[MAXADJUST];
-		for(Iterator it = nodesInCell.iterator(); it.hasNext(); )
+		for(Iterator<NodeInst> it = nodesInCell.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
@@ -1024,7 +1024,7 @@ public class ViewChanges
 
 			// see if this pin can be adjusted so that all wires are manhattan
 			int count = 0;
-			for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+			for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 			{
 				Connection con = (Connection)aIt.next();
 				ArcInst ai = con.getArc();
@@ -1092,7 +1092,7 @@ public class ViewChanges
 	{
 		private static boolean reverseIconExportOrder;
 		private Cell oldCell;
-		private HashMap convertedNodes;
+		private HashMap<NodeInst,NodeInst> convertedNodes;
 
 		protected MakeLayoutView(Cell oldCell)
 		{
@@ -1106,14 +1106,14 @@ public class ViewChanges
 			// find out which technology they want to convert to
 			Technology oldTech = oldCell.getTechnology();
 			int numTechs = 0;
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				if (tech.isScaleRelevant()) numTechs++;
 			}
 			String [] techNames = new String[numTechs];
 			int i=0;
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
@@ -1131,7 +1131,7 @@ public class ViewChanges
 			}
 
 			// convert the cell and all subcells
-			HashMap convertedCells = new HashMap();
+			HashMap<Cell,Cell> convertedCells = new HashMap<Cell,Cell>();
 			Cell newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
 			System.out.println("Cell " + newCell.describe(true) + " created with a " + newTech.getTechName() + " layout equivalent of " +
 				oldCell);
@@ -1147,10 +1147,10 @@ public class ViewChanges
 		 * old view type is "oldview" and the new view type is "nView".
 		 */
 		private Cell makeLayoutCells(Cell oldCell, String newCellName,
-			Technology oldTech, Technology newTech, View nView, HashMap convertedCells)
+			Technology oldTech, Technology newTech, View nView, HashMap<Cell,Cell> convertedCells)
 		{
 			// first convert the sub-cells
-			for(Iterator it = oldCell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 
@@ -1192,11 +1192,11 @@ public class ViewChanges
 		 * technology to use for the new cell is "newTech".
 		 */
 		private void makeLayoutParts(Cell oldCell, Cell newCell,
-			Technology oldTech, Technology newTech, View nView, HashMap convertedCells)
+			Technology oldTech, Technology newTech, View nView, HashMap<Cell,Cell> convertedCells)
 		{
 			// first convert the nodes
-			convertedNodes = new HashMap();
-			for(Iterator it = oldCell.getNodes(); it.hasNext(); )
+			convertedNodes = new HashMap<NodeInst,NodeInst>();
+			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				// handle sub-cells
@@ -1224,7 +1224,7 @@ public class ViewChanges
 			 * make a new arc to connect them in the new cell
 			 */
 			int badArcs = 0;
-			for(Iterator it = oldCell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = oldCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				// get the nodes and ports on the two ends of the arc
@@ -1320,7 +1320,7 @@ public class ViewChanges
 				Layer.Function fun = layer.getFunction();
 
 				// now search for that function in the other technology
-				for(Iterator it = newTech.getNodes(); it.hasNext(); )
+				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode oNp = (PrimitiveNode)it.next();
 					if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
@@ -1334,7 +1334,7 @@ public class ViewChanges
 			// see if one node in the new technology has the same function
 			int i = 0;
 			PrimitiveNode rNp = null;
-			for(Iterator it = newTech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				if (np.getFunction() == type)
@@ -1352,7 +1352,7 @@ public class ViewChanges
 				PrimitivePort pOldPp = (PrimitivePort)pOldNp.getPort(0);
 				ArcProto [] oldConnections = pOldPp.getConnections();
 
-				for(Iterator it = newTech.getNodes(); it.hasNext(); )
+				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode pNewNp = (PrimitiveNode)it.next();
 					if (pNewNp.getFunction() != type) continue;
@@ -1416,7 +1416,7 @@ public class ViewChanges
 			newNi.copyVarsFrom(ni);
 
 			// re-export any ports on the node
-			for(Iterator it = ni.getExports(); it.hasNext(); )
+			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
 				PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
@@ -1440,7 +1440,7 @@ public class ViewChanges
 			{
 				// determine the proper association of this node
 				ArcProto.Function type = oldAp.getFunction();
-				for(Iterator it = newTech.getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
 				{
 					ArcProto newAp = (ArcProto)it.next();
 					if (newAp.getFunction() == type) return newAp;
@@ -1448,7 +1448,7 @@ public class ViewChanges
 			}
 
 			// cannot figure it out from the function: find anything that can connect
-			HashSet possibleArcs = new HashSet();
+			HashSet<ArcProto> possibleArcs = new HashSet<ArcProto>();
 			ArcProto [] headArcs = headPp.getBasePort().getConnections();
 			ArcProto [] tailArcs = tailPp.getBasePort().getConnections();
 			for(int i=0; i < headArcs.length; i++)
@@ -1462,7 +1462,7 @@ public class ViewChanges
 					break;
 				}
 			}
-			for(Iterator it = newTech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				if (possibleArcs.contains(ap)) return ap;
@@ -1495,8 +1495,8 @@ public class ViewChanges
 			}
 
 			// associate by position in port list
-			Iterator oldPortIt = ni.getProto().getPorts();
-			Iterator newPortIt = newNi.getProto().getPorts();
+			Iterator<PortProto> oldPortIt = ni.getProto().getPorts();
+			Iterator<PortProto> newPortIt = newNi.getProto().getPorts();
 			while (oldPortIt.hasNext() && newPortIt.hasNext())
 			{
 				PortProto pp = (PortProto)oldPortIt.next();

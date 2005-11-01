@@ -61,15 +61,15 @@ public class LeafEquivRecords {
 
     // ----------------------------- private data -----------------------------
 	private NccGlobals globals;
-	private List matched = new ArrayList();
+	private List<EquivRecord> matched = new ArrayList<EquivRecord>();
 	// Contains all EquivRecords that haven't been matched
 	// This needs to be a linked list because we delete elements from the
 	// middle of the list.
-	private LinkedList notMatched = new LinkedList();
+	private LinkedList<EquivRecord> notMatched = new LinkedList<EquivRecord>();
 
 	private static class FindLeaves extends Strategy {
-		private List matched;
-		private List notMatched;
+		private List<EquivRecord> matched;
+		private List<EquivRecord> notMatched;
 		public LeafList doFor(EquivRecord j){
 			if (j.isLeaf()) {
 				EquivRecord er = (EquivRecord)j;
@@ -83,7 +83,7 @@ public class LeafEquivRecords {
 		}
 
 		// ------------------- intended interface ------------------------
-		public FindLeaves(List newMatched, List newNotMatched, EquivRecord er, 
+		public FindLeaves(List<EquivRecord> newMatched, List<EquivRecord> newNotMatched, EquivRecord er, 
 				          NccGlobals globals) {
 			super(globals);
 			matched = newMatched;
@@ -97,9 +97,9 @@ public class LeafEquivRecords {
 	// we need to remove that internal node and find the descendents that are
 	// leaves and add them to the appropriate lists.
 	private void processInternalEquivRecords() {
-		List newMatched = new ArrayList();
-		List newNotMatched = new ArrayList();
-		for (ListIterator it=notMatched.listIterator(); it.hasNext();) {
+		List<EquivRecord> newMatched = new ArrayList<EquivRecord>();
+		List<EquivRecord> newNotMatched = new ArrayList<EquivRecord>();
+		for (ListIterator<EquivRecord> it=notMatched.listIterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if (er.isLeaf()) {
 				LayoutLib.error(er.isMatched(), "notMatched list has matched");
@@ -127,7 +127,7 @@ public class LeafEquivRecords {
 	}
 
 	/** @return all leaf EquivRecords that haven't been matched */
-	public Iterator getNotMatched() {
+	public Iterator<EquivRecord> getNotMatched() {
 		processInternalEquivRecords();
 		return Collections.unmodifiableList(notMatched).iterator();
 	}
@@ -136,7 +136,7 @@ public class LeafEquivRecords {
 		return notMatched.size();
 	}
 	/** @return all matched leaf EquivRecords */
-	public Iterator getMatched() {
+	public Iterator<EquivRecord> getMatched() {
 		processInternalEquivRecords();
 		return Collections.unmodifiableList(matched).iterator();
 	}

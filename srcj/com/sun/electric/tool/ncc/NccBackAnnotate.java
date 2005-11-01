@@ -84,8 +84,8 @@ public class NccBackAnnotate {
             return;                     // no layout Cell
         sch = (lay == 1) ? 0 : 1;
 
-        HashMap backAnnotated = new HashMap();          // prevent duplicates
-        HashMap newArcNames = new HashMap();            // store all changes till end
+        HashMap<String,Network> backAnnotated = new HashMap<String,Network>();          // prevent duplicates
+        HashMap<ArcInst,String> newArcNames = new HashMap<ArcInst,String>();            // store all changes till end
         for (int i=0; i<equivs.equivNets[0].length; i++) {
             // get lay net name
             Network layNet = equivs.equivNets[lay][i].getNet();
@@ -104,7 +104,7 @@ public class NccBackAnnotate {
 
             // debug
             System.out.print("("+layNet.getParent().describe(false)+")lay:\t"+layName+"\t("+schNet.getParent().describe(false)+")sch:");
-            for (Iterator it = schNet.getNames(); it.hasNext();) {
+            for (Iterator<String> it = schNet.getNames(); it.hasNext();) {
                 System.out.print("\t"+(String)it.next());
             }
             System.out.println();
@@ -120,7 +120,7 @@ public class NccBackAnnotate {
             // if sch net name already in layout, skip
             Cell layCell = layNet.getParent();
             boolean skip = false;
-            for (Iterator it = layNet.getNetlist().getNetworks(); it.hasNext();) {
+            for (Iterator<Network> it = layNet.getNetlist().getNetworks(); it.hasNext();) {
                 net = (Network)it.next();
                 if (net.hasName(schName)) {
                     skip = true;
@@ -136,7 +136,7 @@ public class NccBackAnnotate {
                 continue;
 
             // name an arc on net if possible
-            Iterator arcIt = layNet.getArcs();
+            Iterator<ArcInst> arcIt = layNet.getArcs();
             if (arcIt.hasNext()) {
                 ArcInst ai = (ArcInst)arcIt.next();
                 //ai.setName(schName);
@@ -145,8 +145,8 @@ public class NccBackAnnotate {
                 backAnnotated.put(layCell.describe(false) + layName, layNet);
             }
         }
-        for (Iterator it = newArcNames.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<ArcInst,String>> it = newArcNames.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<ArcInst,String> entry = (Map.Entry<ArcInst,String>)it.next();
             ArcInst ai = (ArcInst)entry.getKey();
             String name = (String)entry.getValue();
             ai.setName(name);

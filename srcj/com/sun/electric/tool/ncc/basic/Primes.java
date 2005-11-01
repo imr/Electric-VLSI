@@ -31,7 +31,7 @@ import java.util.ArrayList;
  */
 public class Primes {
 	private static int trial = 3;
-	private static ArrayList primes = new ArrayList();
+	private static ArrayList<Integer> primes = new ArrayList<Integer>();
 	static {
 		primes.add(new Integer(2));
 	}

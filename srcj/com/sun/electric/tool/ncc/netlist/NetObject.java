@@ -55,7 +55,7 @@ public abstract class NetObject {
      * @return PART or WIRE or PORT */
     public abstract Type getNetObjType();
 
-    public abstract Iterator getConnected();
+    public abstract Iterator<NetObject> getConnected();
 
     // ---------- protected methods ----------
     protected static void error(boolean pred, String msg) {

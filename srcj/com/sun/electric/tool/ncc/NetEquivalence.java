@@ -49,7 +49,7 @@ public class NetEquivalence {
 	private int lastDesignHit;
 	
 	private boolean nameMatch(NetNameProxy prox, Network net) {
-		for (Iterator it=prox.leafNames(); it.hasNext();) {
+		for (Iterator<String> it=prox.leafNames(); it.hasNext();) {
 			String proxNm = (String) it.next();
 			if (net.hasName(proxNm)) return true;
 		}
@@ -81,7 +81,7 @@ public class NetEquivalence {
 		if (nc==null) return null;
 		if (nc.getCell()!=net.getParent())  return null;
 		if (!nc.getContext().equals(vc))  return null;
-		for (Iterator it=nc.getIndices(); it.hasNext();) {
+		for (Iterator<Integer> it=nc.getIndices(); it.hasNext();) {
 			int index = ((Integer)it.next()).intValue();
 			NetNameProxy prox = equivNets[designIndex][index];
 			if (nameMatch(prox, net)) {
@@ -152,7 +152,7 @@ public class NetEquivalence {
  * the hierarchy. */
 class InstancePathToNccContext {
 	private NccContext root;
-	private Map varToNccContext = new HashMap();
+	private Map<VarContext,NccContext> varToNccContext = new HashMap<VarContext,NccContext>();
 	private NccContext getNccContext(VarContext vc) {
 		NccContext nc = (NccContext) varToNccContext.get(vc);
 		if (nc==null) {
@@ -173,9 +173,9 @@ class InstancePathToNccContext {
 		nc.addNameProxyIndex(np, i);
 	}
 	/** @return List of instance names from the root to vc. */
-	private List instNames(VarContext vc) {
-		if (vc==VarContext.globalContext) return new ArrayList();
-		List names = instNames(vc.pop());
+	private List<String> instNames(VarContext vc) {
+		if (vc==VarContext.globalContext) return new ArrayList<String>();
+		List<String> names = instNames(vc.pop());
 		names.add(vc.getNodable().getName());
 		return names;
 	}
@@ -192,9 +192,9 @@ class InstancePathToNccContext {
 	/** @return NccContext associated with VarContext vc. If instance path
 	 * specified by vc isn't found then return null. */
 	public NccContext findNccContext(VarContext vc) {
-		List names = instNames(vc);
+		List<String> names = instNames(vc);
 		NccContext nc = root;
-		for (Iterator it=names.iterator(); it.hasNext();) {
+		for (Iterator<String> it=names.iterator(); it.hasNext();) {
 			String instNm = (String) it.next();
 			nc = nc.findChild(instNm);
 			if (nc==null)  return null;
@@ -211,8 +211,8 @@ class NccContext {
 	private VarContext context;
 	/** Parent of all NameProxy's at this point in the design hierarchy */ 
 	private Cell cell;
-	private Map nodableNameToChild = new HashMap();
-	private Set objectIndices = new HashSet();
+	private Map<String,NccContext> nodableNameToChild = new HashMap<String,NccContext>();
+	private Set<Integer> objectIndices = new HashSet<Integer>();
 	
 	public NccContext(VarContext vc) {context=vc;}
 	public void addChild(NccContext child) {
@@ -233,7 +233,7 @@ class NccContext {
 		cell = np.leafCell();
 		LayoutLib.error(cell==null, "NameProxy with no parent Cell?");
 	}
-	public Iterator getIndices() {return objectIndices.iterator();}
+	public Iterator<Integer> getIndices() {return objectIndices.iterator();}
 	public NccContext findChild(String instNm) {
 		return (NccContext) nodableNameToChild.get(instNm);
 	}

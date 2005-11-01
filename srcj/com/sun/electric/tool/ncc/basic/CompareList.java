@@ -36,11 +36,11 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
  * boolean that says whether it's safe to compare sizes in addition to 
  * topologies. */
 public class CompareList {
-	private final List cellContexts = new ArrayList();
+	private final List<CellContext> cellContexts = new ArrayList<CellContext>();
 	private boolean safeToCheckSizes;
 
-	private boolean hasSkipAnnotation(List cellCtxts) {
-		for (Iterator it=cellCtxts.iterator(); it.hasNext();) {
+	private boolean hasSkipAnnotation(List<CellContext> cellCtxts) {
+		for (Iterator<CellContext> it=cellCtxts.iterator(); it.hasNext();) {
 			Cell c = ((CellContext) it.next()).cell;
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
@@ -69,9 +69,9 @@ public class CompareList {
 	 * {A, B, B} then NCC might compare {A, B} and {A, B}. The second 
 	 * comparison is redundant. Worse, it confuses a lower layer of software 
 	 * which panics when it tries to create a second Subcircuit model for B. */ 
-	private void purgeUnnecessaryDuplicateCells(List compareList) {
-		Set cells = new HashSet();
-		for (Iterator it=compareList.iterator(); 
+	private void purgeUnnecessaryDuplicateCells(List<CellContext> compareList) {
+		Set<Cell> cells = new HashSet<Cell>();
+		for (Iterator<CellContext> it=compareList.iterator(); 
 		     it.hasNext() && compareList.size()>2;) {
 			Cell c = ((CellContext)it.next()).cell;
 			if (cells.contains(c))  it.remove();
@@ -79,8 +79,8 @@ public class CompareList {
 		}
 	}
 
-	private boolean safeToCompareSizes(List cellContexts, CellUsage use1, CellUsage use2) {
-		for (Iterator it=cellContexts.iterator(); it.hasNext();) {
+	private boolean safeToCompareSizes(List<CellContext> cellContexts, CellUsage use1, CellUsage use2) {
+		for (Iterator<CellContext> it=cellContexts.iterator(); it.hasNext();) {
 			Cell c = ((CellContext)it.next()).cell;
 			if (c.isSchematic()) {
 				if (use1.cellIsUsed(c) && !use1.cellIsUsedOnce(c)) return false;
@@ -113,14 +113,14 @@ public class CompareList {
 		boolean used1=false, used2=false;
 		
 		// add Cells with "joinGroup" annotations
-		Set compareSet = new HashSet();
-		Set additions = use1.getGroupAdditions(group);
+		Set<CellContext> compareSet = new HashSet<CellContext>();
+		Set<CellContext> additions = use1.getGroupAdditions(group);
 		if (!additions.isEmpty()) {used1=true; compareSet.addAll(additions);}
 		additions = use2.getGroupAdditions(group);
 		if (!additions.isEmpty()) {used2=true; compareSet.addAll(additions);}
 		
 		// add all Cells that are actually used
-		for (Iterator gi=group.getCells(); gi.hasNext();) {
+		for (Iterator<Cell> gi=group.getCells(); gi.hasNext();) {
 			Cell c = (Cell) gi.next();
 			if (use1.cellIsUsed(c)) {used1=true; compareSet.add(use1.getCellContext(c));}
 			if (use2.cellIsUsed(c)) {used2=true; compareSet.add(use2.getCellContext(c));}
@@ -154,13 +154,13 @@ public class CompareList {
 	// useful for debugging
 	public void printCells() {
 		System.out.print("Compare List contains:=");
-		for (Iterator it=iterator(); it.hasNext();) {
+		for (Iterator<CellContext> it=iterator(); it.hasNext();) {
 			CellContext cc = (CellContext) it.next();
 			System.out.print(" "+cc.cell.getName());
 		}
 		System.out.println();
 	}
-	public Iterator iterator() {return cellContexts.iterator();}
+	public Iterator<CellContext> iterator() {return cellContexts.iterator();}
 	public boolean empty() {return cellContexts.size()==0;}
 	public boolean isSafeToCheckSizes() {return safeToCheckSizes;}
 }

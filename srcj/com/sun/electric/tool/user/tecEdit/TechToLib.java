@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -74,8 +75,8 @@ public class TechToLib
 	 */
 	public static void makeLibFromTech()
 	{
-		List techs = new ArrayList();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		List<Technology> techs = new ArrayList<Technology>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.isNonStandard()) continue;
@@ -162,7 +163,7 @@ public class TechToLib
 
 		// create the layer node names
 		int layerTotal = tech.getNumLayers();
-		HashMap layerCells = new HashMap();
+		HashMap<Layer,Cell> layerCells = new HashMap<Layer,Cell>();
 
 		// create the layer nodes
 		System.out.println("Creating the layers...");
@@ -215,8 +216,8 @@ public class TechToLib
 		// create the arc cells
 		System.out.println("Creating the arcs...");
 		int arcTotal = 0;
-		HashMap arcCells = new HashMap();
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
@@ -285,7 +286,7 @@ public class TechToLib
 		// save the arc sequence
 		String [] arcSequence = new String[arcTotal];
 		int arcIndex = 0;
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
@@ -296,14 +297,14 @@ public class TechToLib
 		// create the node cells
 		System.out.println("Creating the nodes...");
 		int nodeTotal = 0;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = (PrimitiveNode)it.next();
 			if (!pnp.isNotUsed()) nodeTotal++;
 		}
 		String [] nodeSequence = new String[nodeTotal];
 		int nodeIndex = 0;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = (PrimitiveNode)it.next();
 			if (pnp.isNotUsed()) continue;
@@ -461,8 +462,8 @@ public class TechToLib
 //				}
 
 				// also draw ports
-				HashMap portNodes = new HashMap();
-				for(Iterator pIt = pnp.getPorts(); pIt.hasNext(); )
+				HashMap<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
+				for(Iterator<PortProto> pIt = pnp.getPorts(); pIt.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pIt.next();
 					Poly poly = tech.getShapeOfPort(oNi, pp);
@@ -486,7 +487,7 @@ public class TechToLib
 
 					// add in the "local" port connections (from this tech)
 					ArcProto [] connects = pp.getConnections();
-					List validConns = new ArrayList();
+					List<Cell> validConns = new ArrayList<Cell>();
 					for(int i=0; i<connects.length; i++)
 					{
 						if (connects[i].getTechnology() != tech) continue;
@@ -504,7 +505,7 @@ public class TechToLib
 					}
 
 					// connect the connected ports
-					for(Iterator oPIt = pnp.getPorts(); oPIt.hasNext(); )
+					for(Iterator<PortProto> oPIt = pnp.getPorts(); oPIt.hasNext(); )
 					{
 						PrimitivePort opp = (PrimitivePort)oPIt.next();
 						if (opp == pp) break;

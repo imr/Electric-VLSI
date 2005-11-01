@@ -46,7 +46,7 @@ public class SkillTab extends PreferencePanel
 {
 	private JList skillLayerList;
 	private DefaultListModel skillLayerModel;
-	private HashMap skillLayers;
+	private HashMap<Layer,String> skillLayers;
 	private Technology curTech;
 
 	/** Creates new form SkillTab */
@@ -79,10 +79,10 @@ public class SkillTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { skillClickLayer(); }
 		});
 		skillLayerModel.clear();
-		skillLayers = new HashMap();
+		skillLayers = new HashMap<Layer,String>();
 		curTech = Technology.getCurrent();
 		skillTechnology.setText("Skill layers for technology: " + curTech.getTechName());
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String skillLayerName = layer.getSkillLayer();
@@ -166,7 +166,7 @@ public class SkillTab extends PreferencePanel
         if (currBoolean != IOTool.isSkillGDSNameLimit())
             IOTool.setSkillGDSNameLimit(currBoolean);
 
-		for(Iterator it = skillLayers.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = skillLayers.keySet().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String layerName = (String)skillLayers.get(layer);

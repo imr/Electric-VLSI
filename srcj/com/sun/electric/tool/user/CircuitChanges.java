@@ -483,7 +483,7 @@ public class CircuitChanges
 
 		// make a set of selected nodes
 		HashSet<NodeInst> selectedNodes = new HashSet<NodeInst>();
-		for(Iterator it = selected.iterator(); it.hasNext(); )
+		for(Iterator<Geometric> it = selected.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) selectedNodes.add((NodeInst)geom);
@@ -491,7 +491,7 @@ public class CircuitChanges
 
 		// make a list of nodes at the ends of arcs that should be added to the list
 		List<NodeInst> addedNodes = new ArrayList<NodeInst>();
-		for(Iterator it = selected.iterator(); it.hasNext(); )
+		for(Iterator<Geometric> it = selected.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
 			if (!(geom instanceof ArcInst)) continue;
@@ -3417,7 +3417,7 @@ public class CircuitChanges
 			{
 				int cellsFound = 0;
 				String infstr = "";
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
 					if (cell == curCell || !cellsSeen.contains(cell)) continue;
@@ -3563,7 +3563,7 @@ public class CircuitChanges
 			if (newVersion == null) return false;
 
 			// change the display of old versions to the new one
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				WindowContent content = wf.getContent();
@@ -3619,7 +3619,7 @@ public class CircuitChanges
             System.out.println("Duplicated cell "+cell+". New cell is "+dupCell+".");
 
             // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
-            for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
                 if (ni.getProtoEquivalent() == cell) {
                     // this is the icon, duplicate it as well
@@ -3632,7 +3632,7 @@ public class CircuitChanges
                     System.out.println("  Also duplicated icon view, cell "+icon+". New cell is "+dupIcon+".");
 
                     // replace old icon(s) in duplicated cell
-                    for (Iterator it2 = dupCell.getNodes(); it2.hasNext(); ) {
+                    for (Iterator<NodeInst> it2 = dupCell.getNodes(); it2.hasNext(); ) {
                         NodeInst ni2 = (NodeInst)it2.next();
                         if (ni2.getProto() == icon) {
                             NodeInst newNi2 = ni2.replace(dupIcon, true, true);
@@ -3659,7 +3659,7 @@ public class CircuitChanges
             }
 
             // current cell was not duplicated: see if any displayed cell is
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				WindowContent content = wf.getContent();
@@ -3692,7 +3692,7 @@ public class CircuitChanges
         // prevent mixing cell-center and non-cell-center
         int nonCellCenterCount = 0;
         Highlight cellCenterHighlight = null;
-        for(Iterator it = highlighted.iterator(); it.hasNext(); )
+        for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
         {
         	Highlight h = (Highlight)it.next();
         	if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3734,7 +3734,7 @@ public class CircuitChanges
 			// get information about what is highlighted
 			int total = highlighted.size();
 			if (total <= 0) return false;
-			Iterator oit = highlighted.iterator();
+			Iterator<Highlight> oit = highlighted.iterator();
 			Highlight firstH = (Highlight)oit.next();
 			ElectricObject firstEObj = firstH.getElectricObject();
 			Cell cell = firstH.getCell();
@@ -3764,7 +3764,7 @@ public class CircuitChanges
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
 			boolean found = false;
-			for(Iterator it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3782,7 +3782,7 @@ public class CircuitChanges
 							{
 								NodeInst ni = ai.getPortInst(j).getNodeInst();
 								ArcInst oai = null;
-								for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+								for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 								{
 									Connection con = (Connection)pIt.next();
 									if (con.getArc() == ai) continue;
@@ -3804,7 +3804,7 @@ public class CircuitChanges
 			if (found)
 			{
 				// meets the test: make the special move to slide other orthogonal arcs
-				for(Iterator it = highlighted.iterator(); it.hasNext(); )
+				for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3826,7 +3826,7 @@ public class CircuitChanges
 						NodeInst ni = ai.getPortInst(j).getNodeInst();
 						niList[j] = ni;
 						ArcInst oai = null;
-						for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+						for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 						{
 							Connection con = (Connection)pIt.next();
 							if (con.getArc() != ai) { oai = con.getArc();   break; }
@@ -3864,7 +3864,7 @@ public class CircuitChanges
 
 			// special case if moving only arcs and they slide
 			boolean onlySlidable = true, foundArc = false;
-			for(Iterator it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3885,7 +3885,7 @@ public class CircuitChanges
 			}
 			if (foundArc && onlySlidable)
 			{
-				for(Iterator it = highlighted.iterator(); it.hasNext(); )
+				for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.EOBJ) continue;

@@ -62,7 +62,7 @@ public class StratHashParts extends Strategy {
     }
 	
 	// ------------------ intended interface -----------------
-	public static LeafList doYourJob(Iterator it, NccGlobals globals) {
+	public static LeafList doYourJob(Iterator<EquivRecord> it, NccGlobals globals) {
 		StratHashParts jhpa = new StratHashParts(globals);
 
 		// If no Parts suppress all StratHashParts messages

@@ -43,14 +43,14 @@ public class HierarchyInfo {
 	/** unique int assigned to the current compareList */
 	private int compareListID=0;
 	/** the Cells we've added to the current compareList */
-	private List cellsInCompareList = new ArrayList();
+	private List<Cell> cellsInCompareList = new ArrayList<Cell>();
 	/** flag indicating that we must remove SubcircuitInfo for all Cells in the 
 	 * current Cell Group. */
 	private boolean purgeCurrentCompareList;
 	/** information for all Cells in all the compareLists we've encountered 
 	 * so far */
-	private Map cellToSubcktInfo = new HashMap();
-	private Set cellsInSharedCellGroups;
+	private Map<Cell,SubcircuitInfo> cellToSubcktInfo = new HashMap<Cell,SubcircuitInfo>();
+	private Set<Cell> cellsInSharedCellGroups;
 
 	// ----------------------------- public methods ---------------------------
 	/** You must call this before you begin comparing Cells in a new 
@@ -87,11 +87,11 @@ public class HierarchyInfo {
 	 * pass. */
 	public void restrictSubcktDetection(CellContext cc1, CellContext cc2,
 			                            Set compareListCells) {
-		List compareLists = CompareLists.getCompareLists(cc1, cc2);
-		cellsInSharedCellGroups = new HashSet();
-		for (Iterator it=compareLists.iterator(); it.hasNext();) {
+		List<CompareList> compareLists = CompareLists.getCompareLists(cc1, cc2);
+		cellsInSharedCellGroups = new HashSet<Cell>();
+		for (Iterator<CompareList> it=compareLists.iterator(); it.hasNext();) {
 			CompareList compareList = (CompareList) it.next();
-			for (Iterator it2=compareList.iterator(); it2.hasNext();) {
+			for (Iterator<CellContext> it2=compareList.iterator(); it2.hasNext();) {
 				Cell c = ((CellContext)it2.next()).cell;
 				if (!compareListCells.contains(c)) cellsInSharedCellGroups.add(c);
 			}
@@ -118,7 +118,7 @@ public class HierarchyInfo {
 	 * through them when comparing from higher levels in the hierarchy. */
 	public void purgeCurrentCompareList() {
 		purgeCurrentCompareList = true;
-		for (Iterator it=cellsInCompareList.iterator(); it.hasNext();) {
+		for (Iterator<Cell> it=cellsInCompareList.iterator(); it.hasNext();) {
 			Cell c = (Cell) it.next();
 			LayoutLib.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
 			cellToSubcktInfo.remove(c);

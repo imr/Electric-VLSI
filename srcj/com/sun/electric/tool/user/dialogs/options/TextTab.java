@@ -72,7 +72,7 @@ public class TextTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		for (Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); )
+		for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); )
 		{
 			TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
 			textAnchor.addItem(pos);
@@ -349,7 +349,7 @@ public class TextTab extends PreferencePanel
 		if (textCellsChanged)
 		{
 			// redraw text cells
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				if (wf.getContent() instanceof TextWindow)

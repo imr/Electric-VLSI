@@ -67,7 +67,7 @@ public class CoverageTab extends PreferencePanel
 	public String getName() { return "Coverage"; }
 
 	private boolean layerDataChanging = false;
-    private HashMap layerAreaMap;
+    private HashMap<Layer,GenMath.MutableDouble> layerAreaMap;
     private DefaultListModel layerListModel;
     private JList layerJList;
 
@@ -77,19 +77,19 @@ public class CoverageTab extends PreferencePanel
 	 */
 	public void init()
 	{
-        layerAreaMap = new HashMap();
+        layerAreaMap = new HashMap<Layer,GenMath.MutableDouble>();
         layerListModel = new DefaultListModel();
 		layerJList = new JList(layerListModel);
 		layerJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listScrollList.setViewportView(layerJList);
 
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			technologySelection.addItem(tech.getTechName());
 	        double val = LayerCoverage.getWidth(tech);
 
-			for(Iterator it = tech.getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 	            val = layer.getAreaCoverage();
@@ -117,7 +117,7 @@ public class CoverageTab extends PreferencePanel
 		if (tech == null) return;
 		layerDataChanging = true;
 		layerListModel.clear();
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			GenMath.MutableDouble val = (GenMath.MutableDouble)layerAreaMap.get(layer);
@@ -242,10 +242,10 @@ public class CoverageTab extends PreferencePanel
 	        if (val != LayerCoverage.getDeltaY(tech)) LayerCoverage.setDeltaY(val, tech);
 		}
 
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			tech = (Technology)tIt.next();
-	        for(Iterator it = tech.getLayers(); it.hasNext(); )
+	        for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 	            Object obj = layerAreaMap.get(layer);

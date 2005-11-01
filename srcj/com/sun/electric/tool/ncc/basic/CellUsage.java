@@ -42,20 +42,20 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 /** Find all Cells used in the design. Collect information about Cell usage. */
 class CellUsage extends HierarchyEnumerator.Visitor {
 	// map from Cell to CellContext
-	private Map cellsInUse = new HashMap();
-	private List cellsInRevTopoOrder = new ArrayList();
-	private Map groupToAdditions = new HashMap();
+	private Map<Cell,CellContext> cellsInUse = new HashMap<Cell,CellContext>();
+	private List<Cell> cellsInRevTopoOrder = new ArrayList<Cell>();
+	private Map<Cell.CellGroup,Set<CellContext>> groupToAdditions = new HashMap<Cell.CellGroup,Set<CellContext>>();
 	private Cell root;
-	private Set singleUseCells;
+	private Set<Cell> singleUseCells;
 	
 	private void processCellGroupAdditions(CellContext cellCtxt) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cellCtxt.cell);
 		if (ann==null) return;
 		Cell.CellGroup group = ann.getGroupToJoin();
 		if (group==null) return;
-		Set additions = (Set) groupToAdditions.get(group);
+		Set<CellContext> additions = (Set<CellContext>) groupToAdditions.get(group);
 		if (additions==null) {
-			additions = new HashSet();
+			additions = new HashSet<CellContext>();
 			groupToAdditions.put(group, additions);					
 		}
 		additions.add(cellCtxt);
@@ -77,7 +77,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		return true;
 	}
 	
-	private void addUse(Set usedOnce, Set usedMoreThanOnce, Cell c) {
+	private void addUse(Set<Cell> usedOnce, Set<Cell> usedMoreThanOnce, Cell c) {
 		if (usedMoreThanOnce.contains(c)) return;
 		if (usedOnce.contains(c)) {
 			usedOnce.remove(c);
@@ -87,14 +87,14 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		}
 	}
 	private void findSingleUseCells() {
-		Map cellToUsedOnce = new HashMap();
-		Set usedMoreThanOnce = new HashSet();
+		Map<Cell,Set<Cell>> cellToUsedOnce = new HashMap<Cell,Set<Cell>>();
+		Set<Cell> usedMoreThanOnce = new HashSet<Cell>();
 		// For each Cell in the design: c in reverse topological order
-		for (Iterator it=cellsInReverseTopologicalOrder(); it.hasNext();) {
+		for (Iterator<Cell> it=cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell c = (Cell) it.next();
-			Set usedOnce = new HashSet();
+			Set<Cell> usedOnce = new HashSet<Cell>();
 			// For each child Cell of c: child 
-			for (Iterator ni=c.getNetlist(true).getNodables(); ni.hasNext();) {
+			for (Iterator<Nodable> ni=c.getNetlist(true).getNodables(); ni.hasNext();) {
 				NodeProto np = ((Nodable) ni.next()).getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;
@@ -105,9 +105,9 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 				// for icons with no schematic.
 				if (!cellToUsedOnce.containsKey(child))  continue;
 
-				Set childUsedOnce = (Set) cellToUsedOnce.get(child);
+				Set<Cell> childUsedOnce = (Set<Cell>) cellToUsedOnce.get(child);
 				// For each descendent of child instantiated exactly once by child
-				for (Iterator ci=childUsedOnce.iterator(); ci.hasNext();) {
+				for (Iterator<Cell> ci=childUsedOnce.iterator(); ci.hasNext();) {
 					addUse(usedOnce, usedMoreThanOnce, (Cell) ci.next());
 				}
 			}
@@ -115,7 +115,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			if (!it.hasNext()) {
 				// Cell c is the root.  Create set of all cells
 				// in the design that are instantiated exactly once.
-				singleUseCells = new HashSet();
+				singleUseCells = new HashSet<Cell>();
 				singleUseCells.add(c);
 				singleUseCells.addAll(usedOnce);
 			}
@@ -137,7 +137,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	public boolean cellIsUsed(Cell cell) {return cellsInUse.containsKey(cell);}
 	/** There is only one instance of this Cell in the design */
 	public boolean cellIsUsedOnce(Cell cell) {return singleUseCells.contains(cell);}
-	public Iterator cellsInReverseTopologicalOrder() {
+	public Iterator<Cell> cellsInReverseTopologicalOrder() {
 		return cellsInRevTopoOrder.iterator();
 	}
 	public CellContext getCellContext(Cell cell) {
@@ -145,9 +145,9 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		return (CellContext) cellsInUse.get(cell);
 	}
 	/** @return a Set of CellContexts to add to group */
-	public Set getGroupAdditions(Cell.CellGroup group) {
-		Set additions = (Set) groupToAdditions.get(group);
-		return additions!=null ? additions : new HashSet();
+	public Set<CellContext> getGroupAdditions(Cell.CellGroup group) {
+		Set<CellContext> additions = (Set<CellContext>) groupToAdditions.get(group);
+		return additions!=null ? additions : new HashSet<CellContext>();
 	}
 	public Cell getRoot() {return root;}
 } 

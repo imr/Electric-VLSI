@@ -67,7 +67,7 @@ public class TechnologyTab extends PreferencePanel
 
 	private JList schemPrimList;
 	private DefaultListModel schemPrimModel;
-	private HashMap schemPrimMap;
+	private HashMap<PrimitiveNode,String> schemPrimMap;
 	private boolean changingVHDL = false;
 
 	/**
@@ -95,7 +95,7 @@ public class TechnologyTab extends PreferencePanel
 		// Artwork
 		techArtworkArrowsFilled.setSelected(Artwork.isFilledArrowHeads());
 
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			technologyPopup.addItem(tech.getTechName());
@@ -115,8 +115,8 @@ public class TechnologyTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { schemClickPrim(); }
 		});
 		schemPrimModel.clear();
-		schemPrimMap = new HashMap();
-		for(Iterator it = Schematics.tech.getNodes(); it.hasNext(); )
+		schemPrimMap = new HashMap<PrimitiveNode,String>();
+		for(Iterator<PrimitiveNode> it = Schematics.tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np != Schematics.tech.andNode && np != Schematics.tech.orNode &&

@@ -59,13 +59,13 @@ public class ExportChecker {
 		}
 	}
 	private static class NoPortNameMatches {
-		private List unmatched = new LinkedList();
+		private List<NoPortNameMatch> unmatched = new LinkedList<NoPortNameMatch>();
 		public void add(Port port, int circuit, int circuitNoMatchingPort) {
 			unmatched.add(new NoPortNameMatch(port, circuit, 
 			                                  circuitNoMatchingPort));
 		}
 		public NoPortNameMatch removeFirst() {
-			Iterator it = unmatched.iterator();
+			Iterator<NoPortNameMatch> it = unmatched.iterator();
 			if (!it.hasNext()) return null;
 			NoPortNameMatch u = (NoPortNameMatch) it.next();
 			it.remove(); 
@@ -75,7 +75,7 @@ public class ExportChecker {
 		 * "port1 matches port2" and "port2 matches port1" */
 		public void removeMismatches(Port port1, int circuit1, 
 		                             Port port2, int circuit2) {
-			for (Iterator it=unmatched.iterator(); it.hasNext();) {
+			for (Iterator<NoPortNameMatch> it=unmatched.iterator(); it.hasNext();) {
 				NoPortNameMatch u = (NoPortNameMatch) it.next();
 				if ((u.port==port1 && u.circuitNoMatchingPort==circuit2) ||
 				    (u.port==port2 && u.circuitNoMatchingPort==circuit1)) { 
@@ -88,7 +88,7 @@ public class ExportChecker {
 	private NccGlobals globals;
 	/** The 0th element is null. The ith element maps every port of the 0th
 	 * design to the equivalent port of the ith design. */ 
-	private HashMap[] equivPortMaps;
+	private HashMap<Port,Port>[] equivPortMaps;
 	/** List of ports that can't be matched by name. This list is used to 
 	 * suggest possible repairs to the design. */ 
 	private NoPortNameMatches noPortNameMatches = new NoPortNameMatches();
@@ -104,11 +104,11 @@ public class ExportChecker {
 		} else {
 			globals.error(!portRec.isLeaf(),"globals ports must hold circuits");
 			int cellNdx = 0;
-			for (Iterator it=portRec.getCircuits(); it.hasNext(); cellNdx++) { 
+			for (Iterator<Circuit> it=portRec.getCircuits(); it.hasNext(); cellNdx++) { 
 				Circuit ckt = (Circuit) it.next();
 				portsPerCell[cellNdx] = new Port[ckt.numNetObjs()];
 				int portNdx = 0;
-				for (Iterator pit=ckt.getNetObjs(); pit.hasNext(); portNdx++) {
+				for (Iterator<NetObject> pit=ckt.getNetObjs(); pit.hasNext(); portNdx++) {
 					portsPerCell[cellNdx][portNdx] = (Port) pit.next();
 				}
 			}
@@ -117,11 +117,11 @@ public class ExportChecker {
 	}
 	
 	
-	private HashMap mapFromExportNameToPort(Port[] ports) {
-		HashMap map = new HashMap();
+	private HashMap<String,Port> mapFromExportNameToPort(Port[] ports) {
+		HashMap<String,Port> map = new HashMap<String,Port>();
 		for (int portNdx=0; portNdx<ports.length; portNdx++) {
 			Port p = ports[portNdx];
-			for (Iterator itN=p.getExportNames(); itN.hasNext();) {
+			for (Iterator<String> itN=p.getExportNames(); itN.hasNext();) {
 				map.put(itN.next(), p);
 			}
 		}
@@ -131,13 +131,13 @@ public class ExportChecker {
 	private void pr(String s) {System.out.print(s);}
 
 	private void printOneToManyError(String design1, String exports1,
-								     String design2, Set exports2) {
+								     String design2, Set<Port> exports2) {
 		prln("  A single network in: "+design1+" has Exports with names that "+
 			 "match multiple Exports in: "+design2);
 		prln("  However, the "+design2+
 		     " Exports are attached to more than one network.");
 		prln("    The "+design1+" Exports: "+exports1);
-		for (Iterator it=exports2.iterator(); it.hasNext();) {
+		for (Iterator<Port> it=exports2.iterator(); it.hasNext();) {
 			Port p2 = (Port) it.next();
 			prln("      matches the "+design2+" Exports: "+p2.exportNamesString());
 		}
@@ -146,18 +146,18 @@ public class ExportChecker {
 	 * circuit ckt2 that shares any of p1's export names. Return a map from 
 	 * ckt1 ports to matching ckt2 ports. If p1 has no matching port in ckt2
 	 * then record the mismatch in noPortNameMatches. */  
-	private boolean matchPortsByName(HashMap p1ToP2, Port[][] portsPerCell, 
+	private boolean matchPortsByName(HashMap<Port,Port> p1ToP2, Port[][] portsPerCell, 
 								     String[] designNames, int ckt1, int ckt2) {
 		boolean match = true;
-		HashMap exportName2ToPort2 = mapFromExportNameToPort(portsPerCell[ckt2]);
-		if (p1ToP2==null)  p1ToP2=new HashMap();
+		HashMap<String,Port> exportName2ToPort2 = mapFromExportNameToPort(portsPerCell[ckt2]);
+		if (p1ToP2==null)  p1ToP2=new HashMap<Port,Port>();
 		Port[] ckt1Ports = portsPerCell[ckt1];
         VarContext rootContexts[] = globals.getRootContexts();
         Cell rootCells[] = globals.getRootCells();        
 		for (int portNdx=0; portNdx<ckt1Ports.length; portNdx++) {
 			Port p1 = ckt1Ports[portNdx];
-			Set p2ports = new HashSet();
-			for (Iterator itN=p1.getExportNames(); itN.hasNext();) {
+			Set<Port> p2ports = new HashSet<Port>();
+			for (Iterator<String> itN=p1.getExportNames(); itN.hasNext();) {
 				String exportNm1 = (String) itN.next();
 				Port p = (Port) exportName2ToPort2.get(exportNm1);
 				if (p!=null)  p2ports.add(p);
@@ -220,8 +220,8 @@ public class ExportChecker {
 	}
 
 	private Map mapExportNameToPortIndex(SubcircuitInfo refCellInfo, 
-										 Map equivPortMap) {
-		Map exportNameToPortIndex = new HashMap();
+										 Map<Port,Port> equivPortMap) {
+		Map<String,Integer> exportNameToPortIndex = new HashMap<String,Integer>();
 		Port[] firstCktPorts = getFirstCktPorts();
 		for (int i=0; i<firstCktPorts.length; i++) {
 			Port firstCktPort = firstCktPorts[i];
@@ -231,7 +231,7 @@ public class ExportChecker {
 			Port equivPort = (Port) equivPortMap.get(firstCktPort);
 			// if export names don't match then there may be no equivPort
 			if (equivPort==null) continue; 
-			for (Iterator it=equivPort.getExportNames(); it.hasNext();) {
+			for (Iterator<String> it=equivPort.getExportNames(); it.hasNext();) {
 				exportNameToPortIndex.put(it.next(), new Integer(portNdx));
 			}
 		}
@@ -240,7 +240,7 @@ public class ExportChecker {
 
 	private Circuit getNthCircuit(EquivRecord er, int nth) {
 		LayoutLib.error(!er.isLeaf(), "only leaf EquivRecords have Circuits!");
-		Iterator it = er.getCircuits();
+		Iterator<Circuit> it = er.getCircuits();
 		for (int i=0; i<nth; i++) {
 			LayoutLib.error(!it.hasNext(), "EquivRec has no Circuit at index: "+nth);
 			it.next(); 
@@ -276,7 +276,7 @@ public class ExportChecker {
 	}
 
 	private void markPortForRenaming(Port p, NccCellAnnotations ann) {
-		for (Iterator it=p.getExportNames(); it.hasNext();) {
+		for (Iterator<String> it=p.getExportNames(); it.hasNext();) {
 			String name = (String) it.next();
 			if (ann.renameExport(name)) {p.setToBeRenamed();  return;}
 		}
@@ -380,7 +380,7 @@ public class ExportChecker {
 		boolean match=true;
 		for (int i=1; i<numCkts; i++) {
 			match &= matchPortsByName(null, portsPerCell, rootCellNames, i, 0);
-			HashMap p0ToPi = new HashMap();
+			HashMap<Port,Port> p0ToPi = new HashMap<Port,Port>();
 			match &= matchPortsByName(p0ToPi, portsPerCell, rootCellNames, 0, i);
 			equivPortMaps[i] = p0ToPi;
 		}
@@ -401,7 +401,7 @@ public class ExportChecker {
 		// cells. It's also reasonable to compare the same schematic Cell 
 		// with two different VarContexts. When this happens, don't create 
 		// two SubcircuitInfo's for the same cell.
-		Set doneCells = new HashSet();
+		Set<Cell> doneCells = new HashSet<Cell>();
 		doneCells.add(refCell);
 	
 		for (int i=1; i<equivPortMaps.length; i++) {
@@ -424,8 +424,8 @@ public class ExportChecker {
         VarContext rootContexts[] = globals.getRootContexts();
         Cell rootCells[] = globals.getRootCells();        
     	for (int i=1; i<equivPortMaps.length; i++) {
-    		HashMap portToPort = equivPortMaps[i];
-    		for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
+    		HashMap<Port,Port> portToPort = equivPortMaps[i];
+    		for (Iterator<Port> it=portToPort.keySet().iterator(); it.hasNext();) {
     			Port p0 = (Port) it.next();
     			Port pn = (Port) portToPort.get(p0);
     			// skip Ports that the user wants us to rename

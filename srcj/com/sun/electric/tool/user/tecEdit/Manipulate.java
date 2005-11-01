@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -225,13 +226,13 @@ public class Manipulate
 			// may have deleted layer cell in technology library
 			String layerName = np.getName().substring(6);
 			StringBuffer warning = null;
-			for(Iterator it = np.getLibrary().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = np.getLibrary().getCells(); it.hasNext(); )
 			{
 				Cell oNp = (Cell)it.next();
 				boolean isNode = false;
 				if (oNp.getName().startsWith("node-")) isNode = true; else
 					if (!oNp.getName().startsWith("arc-")) continue;
-				for(Iterator nIt = oNp.getNodes(); nIt.hasNext(); )
+				for(Iterator<NodeInst> nIt = oNp.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					Variable var = ni.getVar(Info.LAYER_KEY);
@@ -639,7 +640,7 @@ public class Manipulate
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 			getContentPane().add(allLibsPane, gbc);
 			allLibsModel.clear();
-			for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+			for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
 				allLibsModel.addElement(lib.getName());
@@ -723,7 +724,7 @@ public class Manipulate
 
 		// count the number of appropriate samples in the main example
 		int total = 0;
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			if (!doPorts)
@@ -783,7 +784,7 @@ public class Manipulate
 
 		// fill in sample associations
 		int k = 0;
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			if (!doPorts)
@@ -1002,7 +1003,7 @@ public class Manipulate
 		if (cell != null)
 		{
 			// validate the reference
-			for(Iterator it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 			{
 				Cell oCell = (Cell)it.next();
 				if (oCell == cell) return cell;
@@ -1263,11 +1264,11 @@ public class Manipulate
 	private static void modLayerStyle(EditWindow wnd, NodeInst ni)
 	{
 		String initialStyleName = Info.getValueOnNode(ni);
-		List outlines = EGraphics.Outline.getOutlines();
+		List<EGraphics.Outline> outlines = EGraphics.Outline.getOutlines();
 		String [] styleNames = new String[outlines.size()+1];
 		styleNames[0] = "Solid";
 		int i = 1;
-		for(Iterator it = outlines.iterator(); it.hasNext(); )
+		for(Iterator<EGraphics.Outline> it = outlines.iterator(); it.hasNext(); )
 		{
 			EGraphics.Outline o = (EGraphics.Outline)it.next();
 			styleNames[i++] = "Patterned/Outline=" + o.getName();
@@ -1326,11 +1327,11 @@ public class Manipulate
 		if (commaPos >= 0) initialFuncName = initialFuncName.substring(0, commaPos);
 
 		// make a list of all layer functions and extras
-		List funs = Layer.Function.getFunctions();
+		List<Layer.Function> funs = Layer.Function.getFunctions();
 		int [] extraBits = Layer.Function.getFunctionExtras();
 		String [] functionNames = new String[funs.size() + extraBits.length];
 		int j = 0;
-		for(Iterator it = funs.iterator(); it.hasNext(); )
+		for(Iterator<Layer.Function> it = funs.iterator(); it.hasNext(); )
 		{
 			Layer.Function fun = (Layer.Function)it.next();
 			functionNames[j++] = fun.toString();
@@ -1359,7 +1360,7 @@ public class Manipulate
 		} else
 		{
 			li.funExtra = 0;
-			for(Iterator it = funs.iterator(); it.hasNext(); )
+			for(Iterator<Layer.Function> it = funs.iterator(); it.hasNext(); )
 			{
 				Layer.Function fun = (Layer.Function)it.next();
 				if (fun.toString().equalsIgnoreCase(choice))
@@ -1393,7 +1394,7 @@ public class Manipulate
 		switch (forced)
 		{
 			case 1:		// clear pattern
-				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = ni.getParent().getNodes(); it.hasNext(); )
 				{
 					NodeInst pni = (NodeInst)it.next();
 					int opt = getOptionOnNode(pni);
@@ -1407,7 +1408,7 @@ public class Manipulate
 				new RedoLayerGraphicsJob(ni.getParent());
 				break;
 			case 2:		// invert pattern
-				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
+				for(Iterator<NodeInst> it = ni.getParent().getNodes(); it.hasNext(); )
 				{
 					NodeInst pni = (NodeInst)it.next();
 					int opt = getOptionOnNode(pni);
@@ -1638,15 +1639,15 @@ public class Manipulate
 	private static void modPort(EditWindow wnd, NodeInst ni)
 	{
 		// count the number of arcs in this technology
-		List allArcs = new ArrayList();
-		for(Iterator it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
+		List<Cell> allArcs = new ArrayList<Cell>();
+		for(Iterator<Cell> it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (cell.getName().startsWith("arc-")) allArcs.add(cell);
 		}
 
 		// make a set of those arcs which can connect to this port
-		HashSet connectSet = new HashSet();
+		HashSet<NodeProto> connectSet = new HashSet<NodeProto>();
 		Variable var = ni.getVar(Info.CONNECTION_KEY);
 		if (var != null)
 		{
@@ -1685,10 +1686,10 @@ public class Manipulate
 	private static class ModifyPortJob extends Job
 	{
 		private NodeInst ni;
-		private List allArcs;
+		private List<Cell> allArcs;
 		private PromptAt.Field [] fields;
 
-		private ModifyPortJob(NodeInst ni, List allArcs, PromptAt.Field [] fields)
+		private ModifyPortJob(NodeInst ni, List<Cell> allArcs, PromptAt.Field [] fields)
 		{
 			super("Change Port Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -1725,7 +1726,7 @@ public class Manipulate
 	private static void modArcFunction(EditWindow wnd, NodeInst ni)
 	{
 		String initialFuncName = Info.getValueOnNode(ni);
-		List funs = ArcProto.Function.getFunctions();
+		List<ArcProto.Function> funs = ArcProto.Function.getFunctions();
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
 		{
@@ -1784,7 +1785,7 @@ public class Manipulate
 	private static void modNodeFunction(EditWindow wnd, NodeInst ni)
 	{
 		String initialFuncName = Info.getValueOnNode(ni);
-		List funs = PrimitiveNode.Function.getFunctions();
+		List<PrimitiveNode.Function> funs = PrimitiveNode.Function.getFunctions();
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
 		{
@@ -1927,7 +1928,7 @@ public class Manipulate
 		public boolean doIt()
 		{
 			NodeInst patchNi = null;
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
@@ -1946,11 +1947,11 @@ public class Manipulate
 			setPatch(patchNi, li.desc);
 
 			// now do this to all layers in all cells!
-			for(Iterator cIt = cell.getLibrary().getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = cell.getLibrary().getCells(); cIt.hasNext(); )
 			{
 				Cell onp = (Cell)cIt.next();
 				if (!onp.getName().startsWith("arc-") && !onp.getName().startsWith("node-")) continue;
-				for(Iterator nIt = onp.getNodes(); nIt.hasNext(); )
+				for(Iterator<NodeInst> nIt = onp.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst cNi = (NodeInst)nIt.next();
 					if (getOptionOnNode(cNi) != Info.LAYERPATCH) continue;
@@ -1997,7 +1998,7 @@ public class Manipulate
 		// look at all nodes in the layer description cell
 		int patternCount = 0;
 		Rectangle2D patternBounds = null;
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Artwork.tech.boxNode || ni.getProto() == Artwork.tech.filledBoxNode)
@@ -2025,7 +2026,7 @@ public class Manipulate
 		}
 
 		// set the pattern
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Artwork.tech.boxNode && ni.getProto() != Artwork.tech.filledBoxNode) continue;
@@ -2354,7 +2355,7 @@ public class Manipulate
 
 		// allocate space for all arc fields
 		int tot = 1;
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
@@ -2381,7 +2382,7 @@ public class Manipulate
 		arcAntennas[0] = "Antenna";
 
 		tot = 1;
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			arcNames[tot] = ap.getName();
@@ -2424,13 +2425,13 @@ public class Manipulate
 
 		// allocate space for all node fields
 		int total = 1;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			NodeInst ni = NodeInst.makeDummyInstance(np);
 			Poly [] polys = tech.getShapeOfNode(ni);
 			int l = 0;
-			for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+			for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
 			{
 				PrimitivePort pp = (PrimitivePort)pIt.next();
 				int m = 0;
@@ -2462,7 +2463,7 @@ public class Manipulate
 		nodeConnections[0] = "Connections";
 
 		tot = 1;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			int base = tot;
@@ -2489,7 +2490,7 @@ public class Manipulate
 				}
 				tot++;
 			}
-			for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+			for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
 			{
 				PrimitivePort pp = (PrimitivePort)pIt.next();
 				nodePorts[base] = pp.getName();

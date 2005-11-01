@@ -79,8 +79,8 @@ public class LayerCoverageJob extends Job
 	public final static int IMPLANT = 2; // Coverage implants
 	public final static int NETWORK = 3; // List Geometry on Network function
 	private final int function;
-	private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
-	private HashMap originalPolygons = new HashMap(); // Storing initial nodes
+	private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+	private HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
 	private Highlighter highlighter; // To highlight new implants
 	private GeometryOnNetwork geoms;  // Valid only for network job
     private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
@@ -92,7 +92,7 @@ public class LayerCoverageJob extends Job
      * @param startJob if job has to run on thread
      * @param mode geometric algorithm to use: GeometryHandler.ALGO_QTREE, GeometryHandler.SWEEP or GeometryHandler.ALGO_MERGE
      */
-    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets, boolean startJob, int mode)
+    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet<Network> nets, boolean startJob, int mode)
     {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
@@ -112,9 +112,9 @@ public class LayerCoverageJob extends Job
         private Job parentJob;
 		private GeometryHandler tree;
         private int mode;
-		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+		private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 		private final int function;
-		private HashMap originalPolygons;
+		private HashMap<Layer,Set<PolyBase>> originalPolygons;
 		private Set netSet; // For network type, rest is null
         private Rectangle2D origBBox;
         private Area origBBoxArea;   // Area is always in coordinates of top cell
@@ -139,7 +139,7 @@ public class LayerCoverageJob extends Job
 			}
 		}
 
-		public LayerVisitor(Job job, GeometryHandler t, List delList, int func, HashMap original, Set netSet, Rectangle2D bBox)
+		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, int func, HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
 		{
             this.parentJob = job;
 			this.tree = t;
@@ -194,7 +194,7 @@ public class LayerCoverageJob extends Job
 
 			// Checking if any network is found
             boolean found = (netSet == null);
-            for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); )
+            for (Iterator<Network> it = netlist.getNetworks(); !found && it.hasNext(); )
             {
                 Network aNet = (Network)it.next();
                 Network parentNet = aNet;
@@ -210,7 +210,7 @@ public class LayerCoverageJob extends Job
 
 			// Traversing arcs
 
-			for (Iterator it = curCell.getArcs(); it.hasNext(); )
+			for (Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst arc = (ArcInst)it.next();
 				int width = netlist.getBusWidth(arc);
@@ -273,10 +273,10 @@ public class LayerCoverageJob extends Job
         {
             if (function != IMPLANT) return;
             // For coverage implants
-            Set polySet = (Set)originalPolygons.get(layer);
+            Set<PolyBase> polySet = (Set<PolyBase>)originalPolygons.get(layer);
             if (polySet == null)
             {
-                polySet = new HashSet();
+                polySet = new HashSet<PolyBase>();
                 originalPolygons.put(layer, polySet);
             }
             //map.put(pnode, pnode.clone());
@@ -307,7 +307,7 @@ public class LayerCoverageJob extends Job
             // Geometry outside contour
             if (!inside) return false;
 
-			for(Iterator pIt = node.getPortInsts(); !found && pIt.hasNext(); )
+			for(Iterator<PortInst> pIt = node.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				PortProto subPP = pi.getPortProto();
@@ -407,7 +407,7 @@ public class LayerCoverageJob extends Job
         this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers(),
                 curCell.getBounds());
 		this.function = func;
-		this.deleteList = new ArrayList(); // should only be used by IMPLANT
+		this.deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
 		this.highlighter = highlighter;
 		this.geoms = geoms; // Valid only for network
         this.bBox = bBox;
@@ -441,14 +441,14 @@ public class LayerCoverageJob extends Job
                     Point2D [] points;
 
 					// Need to detect if geometry was really modified
-					for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
+					for(Iterator<Layer> it = tree.getKeyIterator(); it.hasNext(); )
 					{
 						Layer layer = (Layer)it.next();
-						Collection set = tree.getObjects(layer, !isMerge, true);
+						Collection<Object> set = tree.getObjects(layer, !isMerge, true);
                         Set polySet = (function == IMPLANT) ? (Set)originalPolygons.get(layer) : null;
 
 						// Ready to create new implants.
-						for (Iterator i = set.iterator(); i.hasNext(); )
+						for (Iterator<Object> i = set.iterator(); i.hasNext(); )
 						{
                             if (mode == GeometryHandler.ALGO_QTREE)
                             {
@@ -508,9 +508,9 @@ public class LayerCoverageJob extends Job
 						}
 					}
 					if (highlighter != null) highlighter.finished();
-					for (Iterator it = deleteList.iterator(); it.hasNext(); )
+					for (Iterator<NodeInst> it = deleteList.iterator(); it.hasNext(); )
 					{
-						NodeInst node = (NodeInst)it .next();
+						NodeInst node = (NodeInst)it.next();
 						node.kill();
 					}
 					if (noNewNodes)
@@ -524,18 +524,18 @@ public class LayerCoverageJob extends Job
                     Rectangle2D bbox = curCell.getBounds();
 					double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
 					// Traversing tree with merged geometry and sorting layers per name first
-				    List list = new ArrayList(tree.getKeySet());
+				    List<Layer> list = new ArrayList<Layer>(tree.getKeySet());
 				    Collections.sort(list, Layer.layerSort);
 
-					for (Iterator it = list.iterator(); it.hasNext(); )
+					for (Iterator<Layer> it = list.iterator(); it.hasNext(); )
 					{
 						Layer layer = (Layer)it.next();
-						Collection set = tree.getObjects(layer, false, true);
+						Collection<Object> set = tree.getObjects(layer, false, true);
 						double layerArea = 0;
 						double perimeter = 0;
 
 						// Get all objects and sum the area
-						for (Iterator i = set.iterator(); i.hasNext(); )
+						for (Iterator<Object> i = set.iterator(); i.hasNext(); )
 						{
                             if (mode == GeometryHandler.ALGO_QTREE)
                             {
@@ -577,24 +577,24 @@ public class LayerCoverageJob extends Job
 	 */
 	public static class GeometryOnNetwork {
 	    public final Cell cell;
-	    protected Set nets;
+	    protected Set<Network> nets;
 	    private double lambda;
 		private boolean printable;
 
 	    // these lists tie together a layer, its area, and its half-perimeter
-	    private ArrayList layers;
-	    private ArrayList areas;
-	    private ArrayList halfPerimeters;
+	    private ArrayList<Layer> layers;
+	    private ArrayList<Double> areas;
+	    private ArrayList<Double> halfPerimeters;
 	    private double totalWire;
         private double totalArea;
 
-	    protected GeometryOnNetwork(Cell cell, Set nets, double lambda, boolean printable) {
+	    protected GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable) {
 	        this.cell = cell;
 	        this.nets = nets;
 	        this.lambda = lambda;
-	        layers = new ArrayList();
-	        areas = new ArrayList();
-	        halfPerimeters = new ArrayList();
+	        layers = new ArrayList<Layer>();
+	        areas = new ArrayList<Double>();
+	        halfPerimeters = new ArrayList<Double>();
 		    this.printable = printable;
 	        totalWire = 0;
             totalArea = 0;
@@ -650,7 +650,7 @@ public class LayerCoverageJob extends Job
             // nets is null for mode=AREA
             if (nets != null)
             {
-                for(Iterator it = nets.iterator(); it.hasNext(); )
+                for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
                 {
                     Network net = (Network)it.next();
                     System.out.println("For " + net + " in " + cell + ":");

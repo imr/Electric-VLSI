@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.ncc.strategy;
 import java.util.HashMap;
+import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
@@ -69,7 +70,7 @@ public class StratCheck extends Strategy {
         return el;
     }
     
-    public HashMap doFor(Circuit j){
+    public HashMap<Integer,List<NetObject>> doFor(Circuit j){
         j.checkMe((EquivRecord)recordParent);
         circuitParent= j;
         return super.doFor(j);

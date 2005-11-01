@@ -64,7 +64,8 @@ public class LogicalEffortTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Logical Effort"; }
 
-	private HashMap fanOut, convergence, maxIterations, gateCapacitance, wireCapRatio, diffToGateCapRatio, keeperSizeRatio;
+	private HashMap<Technology,Double> fanOut, convergence, gateCapacitance, wireCapRatio, diffToGateCapRatio, keeperSizeRatio;
+	private HashMap<Technology,Integer> maxIterations;
 	private boolean changingLE;
 
 	/**
@@ -75,14 +76,14 @@ public class LogicalEffortTab extends PreferencePanel
 	{
 		leUseLocalSettings.setSelected(LETool.isUseLocalSettings());
 
-		fanOut = new HashMap();
-		convergence = new HashMap();
-		maxIterations = new HashMap();
-		gateCapacitance = new HashMap();
-		wireCapRatio = new HashMap();
-		diffToGateCapRatio = new HashMap();
-		keeperSizeRatio = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		fanOut = new HashMap<Technology,Double>();
+		convergence = new HashMap<Technology,Double>();
+		maxIterations = new HashMap<Technology,Integer>();
+		gateCapacitance = new HashMap<Technology,Double>();
+		wireCapRatio = new HashMap<Technology,Double>();
+		diffToGateCapRatio = new HashMap<Technology,Double>();
+		keeperSizeRatio = new HashMap<Technology,Double>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			leTechnology.addItem(tech.getTechName());
@@ -184,7 +185,7 @@ public class LogicalEffortTab extends PreferencePanel
         boolean nowBoolean = leUseLocalSettings.isSelected();
 		if (LETool.isUseLocalSettings() != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
 
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 

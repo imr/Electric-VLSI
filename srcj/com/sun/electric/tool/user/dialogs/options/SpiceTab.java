@@ -69,8 +69,8 @@ public class SpiceTab extends PreferencePanel
 
 	private JList spiceCellList;
 	private DefaultListModel spiceCellListModel;
-	private HashMap spiceCellModelOptions;
-	private HashMap initialSpiceModelFiles;
+	private HashMap<Cell,Pref> spiceCellModelOptions;
+	private HashMap<Cell,Pref> initialSpiceModelFiles;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -170,12 +170,12 @@ public class SpiceTab extends PreferencePanel
 
 		// the last section has cell overrides
 		// gather all existing behave file information
-		initialSpiceModelFiles = new HashMap();
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		initialSpiceModelFiles = new HashMap<Cell,Pref>();
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				String behaveFile = "";
@@ -186,13 +186,13 @@ public class SpiceTab extends PreferencePanel
 		}
 
 		// make list of libraries
-		spiceCellModelOptions = new HashMap();
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		spiceCellModelOptions = new HashMap<Cell,Pref>();
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			spiceModelLibrary.addItem(lib.getName());
 
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				String modelFile = "";
@@ -241,7 +241,7 @@ public class SpiceTab extends PreferencePanel
 		if (lib == null) return;
 		spiceCellListModel.clear();
 		boolean notEmpty = false;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			spiceCellListModel.addElement(cell.noLibDescribe());
@@ -451,10 +451,10 @@ public class SpiceTab extends PreferencePanel
 		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
-		for(Iterator lIt = Library.getVisibleLibraries().iterator(); lIt.hasNext(); )
+		for(Iterator<Library> lIt = Library.getVisibleLibraries().iterator(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
-			for(Iterator it = lib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				Pref pref = (Pref)spiceCellModelOptions.get(cell);

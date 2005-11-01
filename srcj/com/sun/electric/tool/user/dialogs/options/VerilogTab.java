@@ -66,7 +66,7 @@ public class VerilogTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Verilog"; }
 
-	private HashMap initialVerilogBehaveFiles;
+	private HashMap<Cell,Pref> initialVerilogBehaveFiles;
 	private JList verilogCellList;
 	private DefaultListModel verilogCellListModel;
 
@@ -80,12 +80,12 @@ public class VerilogTab extends PreferencePanel
 		verDefWireTrireg.setSelected(Simulation.getVerilogUseTrireg());
 
 		// gather all existing behave file information
-		initialVerilogBehaveFiles = new HashMap();
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		initialVerilogBehaveFiles = new HashMap<Cell,Pref>();
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				String behaveFile = "";
@@ -97,7 +97,7 @@ public class VerilogTab extends PreferencePanel
 
 		// make list of libraries
 		/*for(Library lib: Library.getVisibleLibraries()) verLibrary.addItem(lib.getName());*/
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			verLibrary.addItem(lib.getName());
@@ -191,7 +191,7 @@ public class VerilogTab extends PreferencePanel
 		if (lib == null) return;
 		verilogCellListModel.clear();
 		boolean notEmpty = false;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			verilogCellListModel.addElement(cell.noLibDescribe());
@@ -253,11 +253,11 @@ public class VerilogTab extends PreferencePanel
 		if (currBoolean != Simulation.getVerilogUseTrireg())
 			Simulation.setVerilogUseTrireg(currBoolean);
 
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
 			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				Pref pref = (Pref)initialVerilogBehaveFiles.get(cell);

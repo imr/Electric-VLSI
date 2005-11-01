@@ -80,12 +80,12 @@ public class SubcircuitInfo {
 	 * next level up.
 	 * <p> Build a map from export names to port index */ 
 	private void processReferencePorts(String[] portNames, 
-	                                   Map exportNameToPortIndex, 
+	                                   Map<String,Integer> exportNameToPortIndex, 
 	                                   Port[] refPorts) {
 		for (int i=0; i<refPorts.length; i++) {
 			Integer portIndex = new Integer(i);
 			Port port = refPorts[i];
-			for (Iterator it=port.getExportNames(); it.hasNext();) {
+			for (Iterator<String> it=port.getExportNames(); it.hasNext();) {
 				String exportName = (String) it.next();
 				if (portNames[i]==null) portNames[i] = exportName;
 				exportNameToPortIndex.put(exportName, portIndex);
@@ -96,20 +96,20 @@ public class SubcircuitInfo {
 	
 	// -------------------------- private data -------------------------
 	private final ReferenceInfo shared;
-	private final Map exportNameToPortIndex;
+	private final Map<String,Integer> exportNameToPortIndex;
 	
 	// -------------------------- public methods -----------------------
 	/** Create the first SubcircuitInfo for the reference Cell */
 	public SubcircuitInfo(String name, int ID, Port[] refPorts) {
 		String[] portNames = new String[refPorts.length];
-		exportNameToPortIndex = new HashMap();
+		exportNameToPortIndex = new HashMap<String,Integer>();
 		processReferencePorts(portNames, exportNameToPortIndex, refPorts);
 		this.shared = new ReferenceInfo(name, ID, portNames);	                      	
 	}
 	/** Create SubcircuitInfos for all the rest of the Cells in the
 	 * CellGroup */
 	public SubcircuitInfo(SubcircuitInfo referenceInfo, 
-	                      Map exportNameToPortIndex) {
+	                      Map<String,Integer> exportNameToPortIndex) {
 		this.shared = referenceInfo.shared;;
 		this.exportNameToPortIndex = exportNameToPortIndex;
 	}

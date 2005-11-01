@@ -58,7 +58,7 @@ public class ScaleTab extends PreferencePanel
 
 	private JList unitsTechnologyList;
 	private DefaultListModel unitsTechnologyModel;
-	private HashMap unitValues;
+	private HashMap<Technology,Double> unitValues;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -77,10 +77,10 @@ public class ScaleTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { unitsClickTechnology(); }
 		});
 		unitsTechnologyModel.clear();
-		unitValues = new HashMap();
+		unitValues = new HashMap<Technology,Double>();
 		int wantIndex = 0;
 		int index = 0;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!tech.isScaleRelevant()) continue;
@@ -150,7 +150,7 @@ public class ScaleTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator it = unitValues.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Technology> it = unitValues.keySet().iterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			Double scaleValue = (Double)unitValues.get(tech);

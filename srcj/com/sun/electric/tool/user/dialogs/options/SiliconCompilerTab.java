@@ -59,7 +59,7 @@ public class SiliconCompilerTab extends PreferencePanel
 		numRows.setText(Integer.toString(SilComp.getNumberOfRows()));
 
 		// the arc information
-		for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			horizRoutingArc.addItem(ap.getName());

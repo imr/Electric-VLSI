@@ -112,7 +112,7 @@ public class LayerInfo extends Info
 	void generate(Cell np)
 	{
 		NodeInst stippleNode = null, patClearNode = null, patInvertNode = null, patCopyNode = null, patPasteNode = null, patchNode = null;
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			int opt = Manipulate.getOptionOnNode(ni);
@@ -240,7 +240,7 @@ public class LayerInfo extends Info
 		// look at all nodes in the layer description cell
 		int patternCount = 0;
 		Rectangle2D patternBounds = null;
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Variable var = ni.getVar(OPTION_KEY);
@@ -259,8 +259,8 @@ public class LayerInfo extends Info
 						extras = str.substring(commaPos+1);
 						str = str.substring(0, commaPos);
 					}
-					List allFuncs = Layer.Function.getFunctions();
-					for(Iterator fIt = allFuncs.iterator(); fIt.hasNext(); )
+					List<Layer.Function> allFuncs = Layer.Function.getFunctions();
+					for(Iterator<Layer.Function> fIt = allFuncs.iterator(); fIt.hasNext(); )
 					{
 						Layer.Function fun = (Layer.Function)fIt.next();
 						if (fun.getName().equalsIgnoreCase(str))
@@ -381,7 +381,7 @@ public class LayerInfo extends Info
 
 		// construct the pattern
 		int [] newPat = new int[16];
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Artwork.tech.filledBoxNode) continue;

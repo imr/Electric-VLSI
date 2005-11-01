@@ -97,7 +97,7 @@ public class ProjectManagementTab extends PreferencePanel
 		userListPane.setViewportView(userList);
 		userList.clearSelection();
 		userModel.clear();
-		for(Iterator it = Project.getUsers(); it.hasNext(); )
+		for(Iterator<String> it = Project.getUsers(); it.hasNext(); )
 		{
 			String user = (String)it.next();
 			userModel.addElement(user);
@@ -524,7 +524,7 @@ public class ProjectManagementTab extends PreferencePanel
 	private void reloadUsers()
 	{
 		userModel.clear();
-		for(Iterator it = Project.getUsers(); it.hasNext(); )
+		for(Iterator<String> it = Project.getUsers(); it.hasNext(); )
 		{
 			String userName = (String)it.next();
 			userModel.addElement(userName);

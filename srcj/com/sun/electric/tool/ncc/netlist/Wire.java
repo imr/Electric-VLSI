@@ -33,10 +33,10 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 public class Wire extends NetObject{
-	private static final ArrayList DELETED = null;
+	private static final ArrayList<Part> DELETED = null;
 
 	// ---------- private data -------------
-    private ArrayList parts = new ArrayList();
+    private ArrayList<Part> parts = new ArrayList<Part>();
 	private Port port;  	  // usually null because most Wires have no Port
 	private WireNameProxy nameProxy;
 	
@@ -45,7 +45,7 @@ public class Wire extends NetObject{
 	public Wire(WireNameProxy name){nameProxy = name;}
 	public String getName() {return nameProxy.getName();}
 	public WireNameProxy getNameProxy() {return nameProxy;}
-	public Iterator getParts() {return parts.iterator();}
+	public Iterator<Part> getParts() {return parts.iterator();}
 	public Iterator getConnected() {return getParts();}
 
     /** add a Part to this Wire
@@ -66,12 +66,12 @@ public class Wire extends NetObject{
     
     /** Remove deleted Parts. Remove duplicate Parts. Minimize storage use. */
     public void putInFinalForm() {
-    	Set goodParts = new HashSet();
-    	for (Iterator it=getParts(); it.hasNext();) {
+    	Set<Part> goodParts = new HashSet<Part>();
+    	for (Iterator<Part> it=getParts(); it.hasNext();) {
     		Part p = (Part) it.next();
     		if (!p.isDeleted())  goodParts.add(p);
     	}
-    	parts = new ArrayList();
+    	parts = new ArrayList<Part>();
     	parts.addAll(goodParts);
     	parts.trimToSize();
     }
@@ -91,7 +91,7 @@ public class Wire extends NetObject{
 	 * @param parent the wire's parent */
     public void checkMe(Circuit parent){
     	error(getParent()!=parent, "wrong parent");
-        for (Iterator it=getParts(); it.hasNext();) {
+        for (Iterator<Part> it=getParts(); it.hasNext();) {
             NetObject nn=(NetObject)it.next();
             error(!(nn instanceof Part), "expecting only parts");
             Part pp=(Part)nn;
@@ -109,7 +109,7 @@ public class Wire extends NetObject{
     public boolean touches(Port p) {return port==p;}
     public Integer computeHashCode(){
         int sum= 0;
-        for (Iterator it=getParts(); it.hasNext();) {
+        for (Iterator<Part> it=getParts(); it.hasNext();) {
             Part pp= (Part) it.next();
             sum += pp.getHashFor(this);
         }
@@ -141,7 +141,7 @@ public class Wire extends NetObject{
         s += ": ";
         
 		int i=0;
-        for (Iterator it=getParts(); it.hasNext() && i<maxParts; i++){
+        for (Iterator<Part> it=getParts(); it.hasNext() && i<maxParts; i++){
             Part p = (Part)it.next();
             String cc = p.instanceDescription();
             s += " (" + cc + " Port: " + p.connectionDescription(this)+") ";

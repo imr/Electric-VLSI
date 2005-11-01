@@ -68,7 +68,7 @@ public class EquivRecord {
 	 
 	// At any given time only one of this lists is non-null
 	private RecordList offspring;
-	private List circuits;
+	private List<Circuit> circuits;
 
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
@@ -77,11 +77,11 @@ public class EquivRecord {
 	/** For a leaf record, apply strategy to build one Map for each Circuit
 	 * @param js
 	 * @return list of Maps */
-	private ArrayList getOneMapPerCircuit(Strategy js) {
-		ArrayList mapPerCkt = new ArrayList();
-		for (Iterator it=getCircuits(); it.hasNext();) {
+	private ArrayList<HashMap<Integer,List<NetObject>>> getOneMapPerCircuit(Strategy js) {
+		ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt = new ArrayList<HashMap<Integer,List<NetObject>>>();
+		for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 			Circuit ckt = (Circuit)it.next();
-			HashMap codeToNetObjs = js.doFor(ckt);
+			HashMap<Integer,List<NetObject>> codeToNetObjs = js.doFor(ckt);
 			mapPerCkt.add(codeToNetObjs);
 		}
 		return mapPerCkt;
@@ -90,10 +90,10 @@ public class EquivRecord {
 	/** Get all the keys of all the maps.
 	 * @param mapPerCkt list of maps
 	 * @return the set of all keys from all the maps */
-	private Set getKeysFromAllMaps(ArrayList mapPerCkt) {
-		Set keys = new HashSet();
-		for (Iterator it=mapPerCkt.iterator(); it.hasNext();) {
-			HashMap map = (HashMap) it.next();
+	private Set<Integer> getKeysFromAllMaps(ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt) {
+		Set<Integer> keys = new HashSet<Integer>();
+		for (Iterator<HashMap<Integer,List<NetObject>>> it=mapPerCkt.iterator(); it.hasNext();) {
+			HashMap<Integer,List<NetObject>> map = (HashMap<Integer,List<NetObject>>) it.next();
 			keys.addAll(map.keySet());
 		}
 		return keys;    	
@@ -107,12 +107,12 @@ public class EquivRecord {
 	 * (Integer -> ArrayList of NetObjects)
 	 * @param key check each map for a List of NetObjects at this key 
 	 * @return a EquivRecord */
-	private EquivRecord makeEquivRecForKey(ArrayList mapPerCkt, Integer key, NccGlobals globals) {
-		List ckts = new ArrayList();
-		for (Iterator it=mapPerCkt.iterator(); it.hasNext();) {
-			HashMap map = (HashMap) it.next();
-			ArrayList netObjs = (ArrayList) map.get(key);
-			if (netObjs==null)  netObjs = new ArrayList();
+	private EquivRecord makeEquivRecForKey(ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt, Integer key, NccGlobals globals) {
+		List<Circuit> ckts = new ArrayList<Circuit>();
+		for (Iterator<HashMap<Integer,List<NetObject>>> it=mapPerCkt.iterator(); it.hasNext();) {
+			HashMap<Integer,List<NetObject>> map = (HashMap<Integer,List<NetObject>>) it.next();
+			ArrayList<NetObject> netObjs = (ArrayList<NetObject>) map.get(key);
+			if (netObjs==null)  netObjs = new ArrayList<NetObject>();
 			ckts.add(Circuit.please(netObjs));
 		}
 		return EquivRecord.newLeafRecord(key.intValue(), ckts, globals);												 	
@@ -127,9 +127,9 @@ public class EquivRecord {
 	}
 
 	private LeafList applyToLeaf(Strategy js) {
-		ArrayList mapPerCkt = getOneMapPerCircuit(js);
+		ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt = getOneMapPerCircuit(js);
 		
-		Set keys = getKeysFromAllMaps(mapPerCkt);
+		Set<Integer> keys = getKeysFromAllMaps(mapPerCkt);
 		
 		error(keys.size()==0, "must have at least one key");
 		
@@ -140,7 +140,7 @@ public class EquivRecord {
 		circuits = null;
 		offspring = new RecordList();
 		
-		for (Iterator it=keys.iterator(); it.hasNext();) {
+		for (Iterator<Integer> it=keys.iterator(); it.hasNext();) {
 			Integer key = (Integer) it.next();
 			EquivRecord er = makeEquivRecForKey(mapPerCkt, key, js.globals); 
 			addOffspring(er);
@@ -154,7 +154,7 @@ public class EquivRecord {
 
 	private LeafList applyToInternal(Strategy js) {
 		LeafList offspring = new LeafList();
-		for (Iterator it=getOffspring(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=getOffspring(); it.hasNext();) {
 			EquivRecord jr= (EquivRecord) it.next();
 			offspring.addAll(js.doFor(jr));
 		}
@@ -181,7 +181,7 @@ public class EquivRecord {
 	 * @return the int value that distinguished this EquivRecord */
 	public int getValue(){return value;}
 
-	public Iterator getCircuits() {return circuits.iterator();}
+	public Iterator<Circuit> getCircuits() {return circuits.iterator();}
 
 	public int numCircuits() {return circuits.size();}
 
@@ -194,9 +194,9 @@ public class EquivRecord {
 	 * A leaf record can only hold one kind of NetObject. 
 	 * @return PART, WIRE, or PORT */
 	public NetObject.Type getNetObjType() {
-		for (Iterator ci=getCircuits(); ci.hasNext();) {
+		for (Iterator<Circuit> ci=getCircuits(); ci.hasNext();) {
 			Circuit c = (Circuit) ci.next();
-			Iterator ni = c.getNetObjs();
+			Iterator<NetObject> ni = c.getNetObjs();
 			if (ni.hasNext()) {
 				NetObject no = (NetObject) ni.next();
 				return no.getNetObjType();
@@ -210,7 +210,7 @@ public class EquivRecord {
 	 * @return number of NetObjects */
 	public int numNetObjs() {
 		int sum = 0;
-		for (Iterator ci=getCircuits(); ci.hasNext();) {
+		for (Iterator<Circuit> ci=getCircuits(); ci.hasNext();) {
 			Circuit c = (Circuit) ci.next();
 			sum += c.numNetObjs();
 		}
@@ -223,7 +223,7 @@ public class EquivRecord {
 	public String sizeString() {
 	    if(numCircuits() == 0) return "0";
 	    String s= "";
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit jc= (Circuit) it.next();
 	        s= s + " " + jc.numNetObjs() ;
 	    }
@@ -236,7 +236,7 @@ public class EquivRecord {
 	public int maxSizeDiff() {
 	    int out= 0;
 	    int max= maxSize();
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit j= (Circuit) it.next();
 	        int diff= max-j.numNetObjs();
 	        if(diff > out)out= diff;
@@ -250,7 +250,7 @@ public class EquivRecord {
 	 * leaf record */
 	public int maxSize() {
 	    int out= 0;
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit j= (Circuit)it.next();;
 	        out = Math.max(out, j.numNetObjs());
 	    }
@@ -262,7 +262,7 @@ public class EquivRecord {
 	 * @return true if this leaf record is still in play, false otherwise */
 	public boolean isActive() {
 	    error(numCircuits()==0, "leaf record with no circuits?");
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit c = (Circuit) it.next();
 	        if (c.numNetObjs()==0) return false; // mismatched
 	        if (c.numNetObjs()>1)  return true;  // live
@@ -274,7 +274,7 @@ public class EquivRecord {
 	public boolean isBalanced() {
 		boolean first = true;
 		int sz = 0;
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit c = (Circuit) it.next();
 	        if (first) {
 	        	sz = c.numNetObjs();
@@ -289,7 +289,7 @@ public class EquivRecord {
 	/** isMatched is a special case of balanced.
 	 * @return true if every Circuit has one NetObject */
 	public boolean isMatched() {
-		for (Iterator it=getCircuits(); it.hasNext();) {
+		for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 			Circuit c = (Circuit) it.next();
 			if (c.numNetObjs()!=1) return false;
 		}
@@ -301,7 +301,7 @@ public class EquivRecord {
 	public boolean isMismatched() {
 		// It's impossible for all Circuits to be zero sized so we only
 		// need to find the first zero sized.
-	    for (Iterator it=getCircuits(); it.hasNext();) {
+	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
 	        Circuit c = (Circuit) it.next();
 			if (c.numNetObjs()==0) return true;
 	    }
@@ -309,7 +309,7 @@ public class EquivRecord {
 	}
 
 	/** get offspring of internal record */
-	public Iterator getOffspring() {return offspring.iterator();}
+	public Iterator<EquivRecord> getOffspring() {return offspring.iterator();}
 
 	public int numOffspring() {return offspring.size();}
 
@@ -348,11 +348,11 @@ public class EquivRecord {
 	 * to the user. */
 	public void setPartitionReason(String s) {partitionReason=s;}
 	public String getPartitionReason() {return partitionReason;}
-	public List getPartitionReasonsFromRootToMe() {
+	public List<String> getPartitionReasonsFromRootToMe() {
 		if (wireSignature!=null) {
 			return wireSignature.getReasons();
 		} else {
-			LinkedList reasons = new LinkedList();
+			LinkedList<String> reasons = new LinkedList<String>();
 			for (EquivRecord r=this; r!=null; r=r.getParent()) {
 				String reason = r.getPartitionReason();
 				if (reason!=null) reasons.addFirst(reason);
@@ -368,12 +368,12 @@ public class EquivRecord {
 	 * @param ckts Circuits belonging to Equivalence Record
 	 * @param globals used for generating random numbers
 	 * @return the new EquivRecord */
-	public static EquivRecord newLeafRecord(int key, List ckts, NccGlobals globals) {
+	public static EquivRecord newLeafRecord(int key, List<Circuit> ckts, NccGlobals globals) {
 		EquivRecord r = new EquivRecord();
-		r.circuits = new ArrayList();
+		r.circuits = new ArrayList<Circuit>();
 		r.value = key;
 		r.randCode = globals.getRandom();
-		for (Iterator it=ckts.iterator(); it.hasNext();) {
+		for (Iterator<Circuit> it=ckts.iterator(); it.hasNext();) {
 			r.addCircuit((Circuit)it.next());
 		}
 		error(r.maxSize()==0, 
@@ -384,11 +384,11 @@ public class EquivRecord {
 	 * EquivRecord tree
 	 * @param offspring 
 	 * @return the new EquivRecord or null if there are no offspring */
-	public static EquivRecord newRootRecord(List offspring) {
+	public static EquivRecord newRootRecord(List<EquivRecord> offspring) {
 		if (offspring.size()==0) return null;
 		EquivRecord r = new EquivRecord();
 		r.offspring = new RecordList();
-		for (Iterator it=offspring.iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
 			r.addOffspring((EquivRecord) it.next());
 		}
 		return r;		

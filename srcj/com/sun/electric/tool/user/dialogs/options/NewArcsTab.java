@@ -70,7 +70,7 @@ public class NewArcsTab extends PreferencePanel
 		int initialAngleIncrement, angleIncrement;
 		PrimitiveNode initialPin, pin;
 	}
-	private HashMap initialNewArcsPrimInfo;
+	private HashMap<ArcProto,PrimArcInfo> initialNewArcsPrimInfo;
 	private boolean newArcsDataChanging = false;
 	private Technology selectedTech;
 
@@ -81,12 +81,12 @@ public class NewArcsTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the ArcProtos in the current Technology
-		initialNewArcsPrimInfo = new HashMap();
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		initialNewArcsPrimInfo = new HashMap<ArcProto,PrimArcInfo>();
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				PrimArcInfo pai = new PrimArcInfo();
@@ -165,14 +165,14 @@ public class NewArcsTab extends PreferencePanel
 			selectedTech = tech;
 			arcProtoList.removeAllItems();
 			arcPin.removeAllItems();
-			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				arcProtoList.addItem(ap.getName());
 			}
 
 			// setup popup of possible pins
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				arcPin.addItem(np.getName());
@@ -251,10 +251,10 @@ public class NewArcsTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
-			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);

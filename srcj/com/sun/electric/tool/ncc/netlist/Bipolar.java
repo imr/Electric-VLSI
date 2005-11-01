@@ -77,8 +77,8 @@ public class Bipolar extends Part {
 		}
 	}
 
-	private static final Set PIN_TYPE_SET = new HashSet();
-	private static final Map TYPE_TO_PINTYPE_ARRAY = new HashMap();
+	private static final Set<BipolarPinType> PIN_TYPE_SET = new HashSet<BipolarPinType>();
+	private static final Map<Type,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<Type,PinType[]>();
 	static {
 		for (int t=0; t<2; t++) {
 			Type type = t==0 ? Type.NPN : Type.PNP;

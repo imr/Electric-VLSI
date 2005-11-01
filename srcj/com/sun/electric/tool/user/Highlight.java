@@ -873,7 +873,7 @@ public class Highlight
 				{
 					// only show name if port is wired (because all other situations already show the port)
 					boolean wired = false;
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						if (con.getPortInst().getPortProto() == pp) { wired = true;   break; }
@@ -930,7 +930,7 @@ public class Highlight
                     int busWidth = pp.getNameKey().busWidth();
 
                     HashSet<Geometric> markObj = new HashSet<Geometric>();
-                    for(Iterator it = cell.getArcs(); it.hasNext(); )
+                    for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = (ArcInst)it.next();
                         if (!netlist.sameNetwork(no, epp, ai)) continue;
@@ -943,7 +943,7 @@ public class Highlight
                     // draw lines along all of the arcs on the network
                     Stroke origStroke = g2.getStroke();
                     g2.setStroke(dashedLine);
-                    for(Iterator it = cell.getArcs(); it.hasNext(); )
+                    for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = (ArcInst)it.next();
                         if (!markObj.contains(ai)) continue;
@@ -954,7 +954,7 @@ public class Highlight
 
                     // draw dots in all connected nodes
                     g2.setStroke(solidLine);
-                    for(Iterator it = cell.getNodes(); it.hasNext(); )
+                    for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                     {
                         NodeInst oNi = (NodeInst)it.next();
                         if (oNi == originalNI) continue;
@@ -964,7 +964,7 @@ public class Highlight
                         	if (oNi.getNumExports() > 0)
                         	{
                         		// could be connected by exports...check
-                        		for(Iterator eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
+                        		for(Iterator<PortProto> eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
                         		{
                         			PortProto oPp = (PortProto)eIt.next();
                         			if (netlist.sameNetwork(no, epp, oNi, oPp)) { connected = true;   break; }
@@ -978,7 +978,7 @@ public class Highlight
 
                         // connect the center dots to the input arcs
                         Point2D nodeCenter = oNi.getTrueCenter();
-                        for(Iterator pIt = oNi.getConnections(); pIt.hasNext(); )
+                        for(Iterator<Connection> pIt = oNi.getConnections(); pIt.hasNext(); )
                         {
                             Connection con = (Connection)pIt.next();
                             ArcInst ai = con.getArc();

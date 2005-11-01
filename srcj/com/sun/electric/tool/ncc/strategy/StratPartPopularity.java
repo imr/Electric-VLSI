@@ -49,7 +49,7 @@ public class StratPartPopularity extends Strategy {
 	}
 	
 	private void setReasons(LeafList offspring) {
-		for (Iterator it=offspring.iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
 			EquivRecord r = (EquivRecord) it.next();
 			int value = r.getValue();
 			String reason = "part has "+value+" different Wires attached";

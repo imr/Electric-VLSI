@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
+import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -51,7 +52,7 @@ import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
  */
 class NccRandom {
 	private Random randGen = new Random(204);
-	private HashSet randoms = new HashSet();
+	private HashSet<Integer> randoms = new HashSet<Integer>();
 
 	public int next() {
 		while (true) {
@@ -100,13 +101,13 @@ public class NccGlobals {
 		return null;
 	}	
 	
-	private void countNetObjs(int[] counts, Iterator it) {
+	private void countNetObjs(int[] counts, Iterator<EquivRecord> it) {
 		while (it.hasNext()) {
 			EquivRecord er = (EquivRecord) it.next();
 			error(!er.isLeaf(), "Must be leaf");
 			int numCkts = er.numCircuits();
 			error(counts.length!=numCkts, "different number of Circuits");
-			Iterator it2 = er.getCircuits();
+			Iterator<Circuit> it2 = er.getCircuits();
 			for (int i=0; i<numCkts; i++) {
 				counts[i] += ((Circuit) it2.next()).numNetObjs(); 
 			}
@@ -120,12 +121,12 @@ public class NccGlobals {
     	return counts;
 	}
 	
-	private EquivRecord buildEquivRec(int code, List nccNets) {
+	private EquivRecord buildEquivRec(int code, List<NccNetlist> nccNets) {
 		boolean atLeastOneNetObj = false;
-		List ckts = new ArrayList();
-		for (Iterator it=nccNets.iterator(); it.hasNext();) {
+		List<Circuit> ckts = new ArrayList<Circuit>();
+		for (Iterator<NccNetlist> it=nccNets.iterator(); it.hasNext();) {
 			NccNetlist nets = (NccNetlist) it.next();
-			List netObjs = getNetObjs(code, nets);
+			List<NetObject> netObjs = getNetObjs(code, nets);
 			if (netObjs.size()!=0)  atLeastOneNetObj = true;
 			ckts.add(Circuit.please(netObjs));
 		}
@@ -148,12 +149,12 @@ public class NccGlobals {
 	public void prln(String s) {System.out.println(s); System.out.flush();}
 	public void pr(String s) {System.out.print(s); System.out.flush();}
 
-	public void setInitialNetlists(List nccNets) {
+	public void setInitialNetlists(List<NccNetlist> nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
 		wires = buildEquivRec(CODE_WIRE, nccNets);
 		ports = buildEquivRec(CODE_PORT, nccNets);
 
-		List el = new ArrayList();
+		List<EquivRecord> el = new ArrayList<EquivRecord>();
 		if (parts!=null) el.add(parts); 
 		if (wires!=null) el.add(wires); 
 		if (ports!=null) el.add(ports);
@@ -163,7 +164,7 @@ public class NccGlobals {
 		rootContexts = new VarContext[nccNets.size()];
 		cantBuildNetlist = new boolean[nccNets.size()];
 		int i=0;
-		for (Iterator it=nccNets.iterator(); it.hasNext(); i++) {
+		for (Iterator<NccNetlist> it=nccNets.iterator(); it.hasNext(); i++) {
 			NccNetlist nl = (NccNetlist) it.next();
 			rootCells[i] = nl.getRootCell();
 			rootContexts[i] = nl.getRootContext();
@@ -226,10 +227,10 @@ public class NccGlobals {
 			equivNets[i] = new NetNameProxy[numMatched];
 		}
 		int wireNdx = 0;
-		for (Iterator it=wireLeafRecs.getMatched(); it.hasNext(); wireNdx++) {
+		for (Iterator<EquivRecord> it=wireLeafRecs.getMatched(); it.hasNext(); wireNdx++) {
 			EquivRecord er = (EquivRecord) it.next();
 			int cktNdx = 0;
-			for (Iterator cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
+			for (Iterator<Circuit> cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
 				Circuit ckt = (Circuit) cit.next();
 				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
 				Wire w = (Wire) ckt.getNetObjs().next();

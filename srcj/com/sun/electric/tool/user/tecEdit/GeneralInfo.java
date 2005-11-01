@@ -90,7 +90,7 @@ public class GeneralInfo extends Info
 		// create and initialize the GRAPHICS structure
 		GeneralInfo gi = new GeneralInfo();
 
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			int opt = Manipulate.getOptionOnNode(ni);

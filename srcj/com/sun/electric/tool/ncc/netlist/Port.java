@@ -39,15 +39,15 @@ public class Port extends NetObject {
     // ---------- private data -------------
 	private Wire wire;
 	/** name of each Export attached to Wire */    
-	private List names = new ArrayList();
+	private List<String> names = new ArrayList<String>();
 	/** type of each Export attached to Wire */
-	private List types = new ArrayList();
+	private List<PortCharacteristic> types = new ArrayList<PortCharacteristic>();
 	/** true if user indicates he wants NCC to choose the correct name based 
 	 * upon topological equivalence */
 	private boolean toBeRenamed = false;
     
     // ---------- public methods ----------
-	public Port(String name, Object type, Wire w) {
+	public Port(String name, PortCharacteristic type, Wire w) {
 		wire = w;
 		names.add(name);
 		types.add(type);
@@ -57,7 +57,7 @@ public class Port extends NetObject {
 		return (String) names.iterator().next();
 	}
 	public Type getNetObjType() {return Type.PORT;}
-	public Iterator getConnected() {return (new ArrayList()).iterator();}
+	public Iterator<NetObject> getConnected() {return (new ArrayList<NetObject>()).iterator();}
 	
 	public void addExport(String nm, PortCharacteristic type) {
 		names.add(nm);
@@ -66,8 +66,8 @@ public class Port extends NetObject {
 	/** @return the type of Export. If a Wire has multiple Exports of
 	 * different types then return the most common type. */
 	public PortCharacteristic getType() {
-		Map typeToCount = new HashMap();
-		for (Iterator it=types.iterator(); it.hasNext();) {
+		Map<PortCharacteristic,Integer> typeToCount = new HashMap<PortCharacteristic,Integer>();
+		for (Iterator<PortCharacteristic> it=types.iterator(); it.hasNext();) {
 			PortCharacteristic t = (PortCharacteristic) it.next();
 			Integer count = (Integer) typeToCount.get(t);
 			int c = count!=null ? count.intValue() : 0;
@@ -75,7 +75,7 @@ public class Port extends NetObject {
 		}
 		int popularCount = 0;
 		PortCharacteristic popularType = null;
-		for (Iterator it=typeToCount.keySet().iterator(); it.hasNext();) {
+		for (Iterator<PortCharacteristic> it=typeToCount.keySet().iterator(); it.hasNext();) {
 			PortCharacteristic t = (PortCharacteristic) it.next();
 			int count = ((Integer) typeToCount.get(t)).intValue();
 			if (count>popularCount ||
@@ -100,14 +100,14 @@ public class Port extends NetObject {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ ");
 		// Sort the names
-		for (Iterator it=(new TreeSet(names)).iterator(); it.hasNext();) {
+		for (Iterator<String> it=(new TreeSet<String>(names)).iterator(); it.hasNext();) {
 			if (sb.length()>2)  sb.append(", ");
 			sb.append((String) it.next());
 		}
 		sb.append(" }");
 		return sb.toString();
 	}
-	public Iterator getExportNames() {return names.iterator();}
+	public Iterator<String> getExportNames() {return names.iterator();}
 	public boolean isDeleted() {return false;}
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}

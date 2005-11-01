@@ -105,7 +105,7 @@ public class StratCheckSizes extends Strategy {
 	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;
 	private Part minWidPart, maxWidPart, minLenPart, maxLenPart;
-	private List mismatches = new ArrayList();
+	private List<Mismatch> mismatches = new ArrayList<Mismatch>();
     private int cktNdx, minWidNdx, maxWidNdx, minLenNdx, maxLenNdx;
 	
     private StratCheckSizes(NccGlobals globals) {
@@ -125,10 +125,8 @@ public class StratCheckSizes extends Strategy {
     				                          maxLength, maxLenPart, maxLenNdx));
     	}
     }
-    private static class MismatchComparator implements Comparator {
-    	public int compare(Object o1, Object o2) {
-    		Mismatch m1 = (Mismatch) o1;
-    		Mismatch m2 = (Mismatch) o2;
+    private static class MismatchComparator implements Comparator<Mismatch> {
+    	public int compare(Mismatch m1, Mismatch m2) {
     		double diff = m1.relErr() - m2.relErr();
     		if (diff==0) return 0;
     		return diff<0 ? 1 : -1;
@@ -138,7 +136,7 @@ public class StratCheckSizes extends Strategy {
     	if (mismatches.size()==0) return; // no news is good news
     	Collections.sort(mismatches, new MismatchComparator());
     	System.out.println("  There are "+mismatches.size()+" size mismatches.");
-    	for (Iterator it=mismatches.iterator(); it.hasNext();) {
+    	for (Iterator<Mismatch> it=mismatches.iterator(); it.hasNext();) {
     		Mismatch m = (Mismatch) it.next();
     		System.out.print(m.toString());
     	}
@@ -173,8 +171,8 @@ public class StratCheckSizes extends Strategy {
 		return new LeafList();
 	}
 	
-    public HashMap doFor(Circuit c){
-        HashMap result = super.doFor(c);
+    public HashMap<Integer,List<NetObject>> doFor(Circuit c){
+        HashMap<Integer,List<NetObject>> result = super.doFor(c);
         cktNdx++;
         return result;
     }    

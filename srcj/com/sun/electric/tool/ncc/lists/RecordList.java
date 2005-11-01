@@ -31,16 +31,16 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class RecordList {
-	protected List content = new ArrayList(); 
+	protected List<EquivRecord> content = new ArrayList<EquivRecord>(); 
 	protected void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
 
 	public RecordList() {}
 	public EquivRecord get(int ndx) {return (EquivRecord) content.get(ndx);}
-	public void add(Object x) {content.add(x);}
+	public void add(EquivRecord x) {content.add(x);}
 	public void addAll(RecordList x) {content.addAll(x.content);}
-	public Iterator iterator(){return content.iterator();}
+	public Iterator<EquivRecord> iterator(){return content.iterator();}
 	public void clear(){content.clear();}
 	public int size(){return content.size();}
 

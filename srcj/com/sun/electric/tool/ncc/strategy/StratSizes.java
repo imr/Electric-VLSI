@@ -64,7 +64,7 @@ class OutlierRecord {
 	}
 	private double[] computeAverageWidthLength(Circuit c) {
 		double totLen=0, totWid=0;
-		for (Iterator it=c.getNetObjs(); it.hasNext();) {
+		for (Iterator<NetObject> it=c.getNetObjs(); it.hasNext();) {
 			Part p = (Part) it.next();
 			totLen += getLength(p);
 			totWid += getWidth(p);
@@ -96,7 +96,7 @@ class OutlierRecord {
 		
 		Part worstPart = null;
 		double worstDeviation = 0; 
-		for (Iterator it=c.getNetObjs(); it.hasNext();) {
+		for (Iterator<NetObject> it=c.getNetObjs(); it.hasNext();) {
 			Part p = (Part) it.next();
 			double deviation = computeWidthLengthDeviation(avgWid, avgLen, p);
 			if (deviation>worstDeviation) {
@@ -109,7 +109,7 @@ class OutlierRecord {
 	private Part findClosestSizedPart(Circuit c, Part outlier) {
 		Part bestPart = null;
 		double bestMismatch = Double.MAX_VALUE; 
-		for (Iterator it=c.getNetObjs(); it.hasNext();) {
+		for (Iterator<NetObject> it=c.getNetObjs(); it.hasNext();) {
 			Part p = (Part) it.next();
 			double mismatch = computeWidthLengthMismatch(outlier, p);
 			if (mismatch<bestMismatch) {
@@ -121,7 +121,7 @@ class OutlierRecord {
 	}
 	public OutlierRecord(EquivRecord r) {
 		parts = new Part[r.numCircuits()];
-		Iterator it = r.getCircuits();
+		Iterator<Circuit> it = r.getCircuits();
 
 		// find outlier of 0th Circuit
 		Outlier outlier = findOutlier((Circuit) it.next());
@@ -162,7 +162,7 @@ public class StratSizes extends Strategy {
 
 	private OutlierRecord findOutlierRecordWithLargestDeviation() {
 		OutlierRecord furthestOut = null;
-		Iterator frontier = globals.getPartLeafEquivRecs().getNotMatched();
+		Iterator<EquivRecord> frontier = globals.getPartLeafEquivRecs().getNotMatched();
 		while (frontier.hasNext()) {
 			EquivRecord r = (EquivRecord) frontier.next();
 			if (!r.isBalanced())  continue;

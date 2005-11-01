@@ -50,7 +50,7 @@ public class CompareLists {
 	// the A CellContext is in "compared" but the B CellContext isn't. 
 	private boolean alreadyCompared(Set compared, CompareList compareList) {
 		int num=0, numComp=0;
-		for (Iterator it=compareList.iterator(); it.hasNext();) {
+		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) {
 			CellContext cc = (CellContext) it.next();
 			if (compared.contains(cc.cell)) {
 				numComp++;
@@ -64,11 +64,11 @@ public class CompareLists {
 		return numComp>0;
 	}
 
-	private List getCompareLists(CellUsage use1, CellUsage use2) {
-		Set compared = new HashSet();
+	private List<CompareList> getCompareLists(CellUsage use1, CellUsage use2) {
+		Set<Cell> compared = new HashSet<Cell>();
 
-		List compareLists = new ArrayList();
-		for (Iterator it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
+		List<CompareList> compareLists = new ArrayList<CompareList>();
+		for (Iterator<Cell> it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
 			// RKao debug
 			//System.out.println("seed cell: "+cell.getName());
@@ -85,7 +85,7 @@ public class CompareLists {
 
 			if (compareList.empty()) continue;
 			
-			for (Iterator it2=compareList.iterator(); it2.hasNext();) {
+			for (Iterator<CellContext> it2=compareList.iterator(); it2.hasNext();) {
 				CellContext cc = (CellContext) it2.next();
 				compared.add(cc.cell);
 			}
@@ -93,13 +93,13 @@ public class CompareLists {
 		}
 		return compareLists;
 	}
-	private List getCompareLists1(CellContext cc1, CellContext cc2) {
+	private List<CompareList> getCompareLists1(CellContext cc1, CellContext cc2) {
 		CellUsage use1 = CellUsage.getCellUsage(cc1);
 		CellUsage use2 = CellUsage.getCellUsage(cc2);
 		return getCompareLists(use1, use2);
 	}
 	
-	public static List getCompareLists(CellContext cc1, CellContext cc2) {
+	public static List<CompareList> getCompareLists(CellContext cc1, CellContext cc2) {
 		return (new CompareLists()).getCompareLists1(cc1, cc2);
 	}
 }

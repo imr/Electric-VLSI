@@ -54,7 +54,7 @@ public class StratDebug2 extends Strategy {
 	}
 	
 	private boolean hasRKstuff(Circuit ckt) {
-		for (Iterator it=ckt.getNetObjs(); it.hasNext();) {
+		for (Iterator<NetObject> it=ckt.getNetObjs(); it.hasNext();) {
 			NetObject no = (NetObject) it.next();
 			String name = no.getName();
 			if (name.indexOf("/rks_")!=-1) return true;
@@ -64,7 +64,7 @@ public class StratDebug2 extends Strategy {
 	}
 	
 	private boolean hasRKstuff(EquivRecord er) {
-		for (Iterator it=er.getCircuits(); it.hasNext();) {
+		for (Iterator<Circuit> it=er.getCircuits(); it.hasNext();) {
 			Circuit ckt = (Circuit) it.next();
 			if (hasRKstuff(ckt)) return true;			
 		}
@@ -76,8 +76,8 @@ public class StratDebug2 extends Strategy {
 		if (er.isLeaf()) {
 			if (hasRKstuff(er)) {
 				globals.status2(er.nameString());
-				List reasons = er.getPartitionReasonsFromRootToMe();
-				for (Iterator it=reasons.iterator(); it.hasNext();) {
+				List<String> reasons = er.getPartitionReasonsFromRootToMe();
+				for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
 					globals.status2("   "+it.next());
 				}
 				super.doFor(er);
@@ -88,7 +88,7 @@ public class StratDebug2 extends Strategy {
 		return new LeafList();
 	}
 	
-	public HashMap doFor(Circuit c) {
+	public HashMap<Integer,List<NetObject>> doFor(Circuit c) {
 		globals.status2(" "+c.nameString());
 		return super.doFor(c);
 	}

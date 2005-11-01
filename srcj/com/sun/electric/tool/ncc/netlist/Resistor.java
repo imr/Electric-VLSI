@@ -52,16 +52,16 @@ public class Resistor extends Part {
 		}
 		public String description() {return type.getName();}
 	}
-	private static final Set PIN_TYPES = new HashSet();
-	private static final Map TYPE_TO_PINTYPE = new HashMap();
+	private static final Set<ResistorPinType> PIN_TYPES = new HashSet<ResistorPinType>();
+	private static final Map<PartType,ResistorPinType> TYPE_TO_PINTYPE = new HashMap<PartType,ResistorPinType>();
 	static {
-		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
 			PartType t = (PartType) it.next();
 			PIN_TYPES.add(new ResistorPinType(t));
 		}
 	}
 	static {
-		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
 			PartType t = (PartType) it.next();
 			TYPE_TO_PINTYPE.put(t, new ResistorPinType(t));
 		}

@@ -36,7 +36,7 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
 
 public class Circuit {
     private EquivRecord myParent;
-    private ArrayList netObjs = new ArrayList();
+    private ArrayList<NetObject> netObjs = new ArrayList<NetObject>();
 
     private Circuit(){}
 
@@ -45,33 +45,33 @@ public class Circuit {
 	}
 
 	// ---------------------- public methods ------------------
-	public static Circuit please(List netObjs){
+	public static Circuit please(List<NetObject> netObjs){
 		Circuit ckt = new Circuit();
-		for (Iterator it=netObjs.iterator(); it.hasNext();) {
+		for (Iterator<NetObject> it=netObjs.iterator(); it.hasNext();) {
 			ckt.adopt((NetObject)it.next());
 		}
 		return ckt;
 	}
 	/** Remove deleted NetObjects. Minimize storage used. */
 	public void putInFinalForm() {
-		Set goodObjs = new HashSet();
-		for (Iterator it=netObjs.iterator(); it.hasNext();) {
+		Set<NetObject> goodObjs = new HashSet<NetObject>();
+		for (Iterator<NetObject> it=netObjs.iterator(); it.hasNext();) {
 			NetObject n = (NetObject) it.next();
 			if (n.isDeleted()) continue;
 			error(goodObjs.contains(n), "duplicate NetObj in Circuit!???");
 			goodObjs.add(n);
 			if (n instanceof Wire)  ((Wire)n).putInFinalForm();
 		}
-		netObjs = new ArrayList();
+		netObjs = new ArrayList<NetObject>();
 		netObjs.addAll(goodObjs);
 		netObjs.trimToSize();
 	}
     
-	public Iterator getNetObjs() {return netObjs.iterator();}
+	public Iterator<NetObject> getNetObjs() {return netObjs.iterator();}
 	public int numNetObjs() {return netObjs.size();}
 	public int numUndeletedNetObjs() {
 		int count = 0;
-		for (Iterator it=getNetObjs(); it.hasNext();) {
+		for (Iterator<NetObject> it=getNetObjs(); it.hasNext();) {
 			NetObject n = (NetObject) it.next();
 			if (!n.isDeleted()) count++;
 		}
@@ -102,15 +102,15 @@ public class Circuit {
 		myParent= (EquivRecord)p;
 	}
 	
-	public HashMap apply(Strategy js){
-		HashMap codeToNetObjs = new HashMap();
-		for (Iterator it=getNetObjs(); it.hasNext();) {
+	public HashMap<Integer,List<NetObject>> apply(Strategy js){
+		HashMap<Integer,List<NetObject>> codeToNetObjs = new HashMap<Integer,List<NetObject>>();
+		for (Iterator<NetObject> it=getNetObjs(); it.hasNext();) {
 			NetObject no= (NetObject)it.next();
 			Integer code = js.doFor(no);
 			error(code==null, "null is no longer a legal code");
-			ArrayList ns = (ArrayList) codeToNetObjs.get(code);
+			ArrayList<NetObject> ns = (ArrayList<NetObject>) codeToNetObjs.get(code);
 			if(ns==null) {
-				ns = new ArrayList();
+				ns = new ArrayList<NetObject>();
 				codeToNetObjs.put(code, ns);
 			} 
 			ns.add(no);

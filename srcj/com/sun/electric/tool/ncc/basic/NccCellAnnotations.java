@@ -302,7 +302,7 @@ public class NccCellAnnotations {
 	 * that the user expects to be connected by the Cell's parent. */  
 	public Iterator<List<NamePattern>> getExportsConnected() {return exportsConnByParent.iterator();}
 	
-	public Iterator getAnnotationText() {return annotText.iterator();}
+	public Iterator<String> getAnnotationText() {return annotText.iterator();}
 	public Cell.CellGroup getGroupToJoin() {return groupToJoin;}
 	public boolean flattenInstance(String instName) {
 		for (Iterator<NamePattern> it=flattenInstances.iterator(); it.hasNext();) {

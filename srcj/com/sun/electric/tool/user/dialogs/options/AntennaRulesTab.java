@@ -63,7 +63,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 	private JList antennaArcList;
 	private DefaultListModel antennaArcListModel;
-	private HashMap antennaOptions;
+	private HashMap<ArcProto,Pref> antennaOptions;
 	private boolean antennaRatioChanging = false;
 	private boolean empty;
 
@@ -83,12 +83,12 @@ public class AntennaRulesTab extends PreferencePanel
 		});
 		antMaxRatio.getDocument().addDocumentListener(new AntennaRatioDocumentListener(this));
 
-		antennaOptions = new HashMap();
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		antennaOptions = new HashMap<ArcProto,Pref>();
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			this.technologySelection.addItem(tech.getTechName());
-			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)it.next();
 				ArcProto.Function fun = ap.getFunction();
@@ -112,7 +112,7 @@ public class AntennaRulesTab extends PreferencePanel
 		if (tech == null) return;
 		empty = true;
 		antennaArcListModel.clear();
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			Pref pref = (Pref)antennaOptions.get(ap);
@@ -191,7 +191,7 @@ public class AntennaRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator it = antennaOptions.keySet().iterator(); it.hasNext(); )
+		for(Iterator<ArcProto> it = antennaOptions.keySet().iterator(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			Pref pref = (Pref)antennaOptions.get(ap);

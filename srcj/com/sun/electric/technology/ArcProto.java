@@ -87,7 +87,7 @@ public class ArcProto implements Comparable<ArcProto>
 		 * Method to return a List of all ArcProto functions.
 		 * @return a List of all ArcProto functions.
 		 */
-		public static List getFunctions() { return allFunctions; }
+		public static List<Function> getFunctions() { return allFunctions; }
 
 		/** Describes an arc with unknown type. */
 		public static final Function UNKNOWN = new Function("unknown", "UNKNOWN", 0, 0);

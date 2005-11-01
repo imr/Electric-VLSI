@@ -49,12 +49,12 @@ class Passed {
 		}
 		public int hashCode() {return c1.hashCode()*c2.hashCode();}
 	}
-	private Set passed = new HashSet();
+	private Set<Pair> passed = new HashSet<Pair>();
 	public synchronized void setPassed(Cell c1, Cell c2) {passed.add(new Pair(c1, c2));}
 	public synchronized boolean getPassed(Cell c1, Cell c2) {
 		return passed.contains(new Pair(c1, c2));
 	}
-	public synchronized void clear() {passed = new HashSet();}
+	public synchronized void clear() {passed = new HashSet<Pair>();}
 }
 
 /** Run NCC hierarchically. By default, treat every Cell with both a layout and
@@ -67,22 +67,22 @@ public class NccBottomUp {
 
 	/** Prefer a schematic reference cell because mismatch diagnostics
 	 * will be easier for the user to understand. */
-	private CellContext selectAndRemoveReferenceCellContext(List cellCtxts) {
-		for (Iterator it=cellCtxts.iterator(); it.hasNext();) {
+	private CellContext selectAndRemoveReferenceCellContext(List<CellContext> cellCtxts) {
+		for (Iterator<CellContext> it=cellCtxts.iterator(); it.hasNext();) {
 			CellContext cc = (CellContext) it.next();
 			if (cc.cell.isSchematic()) {
 				it.remove();
 				return cc;
 			}
 		}
-		Iterator it=cellCtxts.iterator(); 
+		Iterator<CellContext> it=cellCtxts.iterator(); 
 		CellContext refCell = (CellContext) it.next();
 		it.remove();
 		return refCell;
 	}
 
 	private boolean hasBlackBoxAnnotation(CompareList compareList) {
-		for (Iterator it=compareList.iterator(); it.hasNext();) {
+		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) {
 			Cell c = ((CellContext) it.next()).cell;
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
@@ -127,11 +127,11 @@ public class NccBottomUp {
 							   			        NccOptions options,
 												Aborter aborter) {
 		// build our own list because we need to modify it
-		List cellCntxts = new ArrayList();
+		List<CellContext> cellCntxts = new ArrayList<CellContext>();
 		// build Set of Cells because we need to exclude them from subcircuit 
 		// detection
-		Set compareListCells = new HashSet();
-		for (Iterator it=compareList.iterator(); it.hasNext();) { 
+		Set<Cell> compareListCells = new HashSet<Cell>();
+		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) { 
 			CellContext cc = (CellContext) it.next();
 		    cellCntxts.add(cc);
 		    compareListCells.add(cc.cell);
@@ -148,7 +148,7 @@ public class NccBottomUp {
 
 		NccResult result = new NccResult(true, true, true, null);
 		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
-		for (Iterator it=cellCntxts.iterator(); it.hasNext();) {
+		for (Iterator<CellContext> it=cellCntxts.iterator(); it.hasNext();) {
 			CellContext thisCC = (CellContext) it.next();
 			if (blackBoxAnn || 
 			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
@@ -179,8 +179,8 @@ public class NccBottomUp {
 		return result;
 	}
 	
-	private boolean hasNotSubcircuitAnnotation(List cellContextsInGroup) {
-		for (Iterator it=cellContextsInGroup.iterator(); it.hasNext();) {
+	private boolean hasNotSubcircuitAnnotation(List<CellContext> cellContextsInGroup) {
+		for (Iterator<CellContext> it=cellContextsInGroup.iterator(); it.hasNext();) {
 			Cell c = ((CellContext) it.next()).cell;
 			NccCellAnnotations anns = NccCellAnnotations.getAnnotations(c);
 			if (anns==null) continue;
@@ -195,12 +195,12 @@ public class NccBottomUp {
 		return false;
 	}
 	
-	private NccResult processCompareLists(List compareLists,
+	private NccResult processCompareLists(List<CompareList> compareLists,
 	                                      NccOptions options, 
 										  Aborter aborter) {
 		NccResult result = new NccResult(true, true, true, null);
 		HierarchyInfo hierInfo = new HierarchyInfo();
-		for (Iterator it=compareLists.iterator(); it.hasNext();) {
+		for (Iterator<CompareList> it=compareLists.iterator(); it.hasNext();) {
 			CompareList compareList = (CompareList) it.next();
 
 			boolean blackBoxAnn = hasBlackBoxAnnotation(compareList);
@@ -245,7 +245,7 @@ public class NccBottomUp {
 
 	private NccResult compareCells(CellContext cc1, CellContext cc2, 
 								   NccOptions options, Aborter aborter) {
-		List compareLists = CompareLists.getCompareLists(cc1, cc2);
+		List<CompareList> compareLists = CompareLists.getCompareLists(cc1, cc2);
 		return processCompareLists(compareLists, options, aborter);
 	}
 

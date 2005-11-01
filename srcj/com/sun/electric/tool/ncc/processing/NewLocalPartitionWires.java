@@ -93,8 +93,8 @@ public class NewLocalPartitionWires {
 		private Map pinTypeToPinTypeCount = new HashMap();
 		// Note: id isn't supposed to be used by equals()
 		private Integer id;
-		private List getListOfPinTypeCounts() {
-			List l = new ArrayList();
+		private List<PinTypeCount> getListOfPinTypeCounts() {
+			List<PinTypeCount> l = new ArrayList<PinTypeCount>();
 			for (Iterator it=pinTypeToPinTypeCount.keySet().iterator(); 
 			     it.hasNext();) {
 				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(it.next());
@@ -141,17 +141,17 @@ public class NewLocalPartitionWires {
 			this.id = new Integer(id);
 		}
 		public Integer getID() {return id;}
-		public List getReasons() {
-			List pinTypeCounts = getListOfPinTypeCounts();
+		public List<String> getReasons() {
+			List<PinTypeCount> pinTypeCounts = getListOfPinTypeCounts();
 			
 			Collections.sort(pinTypeCounts, new PinTypeCompare());
 			
-			List pinTypeDescrs = new ArrayList();
+			List<String> pinTypeDescrs = new ArrayList<String>();
 
 			if (pinTypeCounts.size()==0) {
 				pinTypeDescrs.add("disconnected");
 			} else {
-				for (Iterator it=pinTypeCounts.iterator(); it.hasNext();) {
+				for (Iterator<PinTypeCount> it=pinTypeCounts.iterator(); it.hasNext();) {
 					String descr = ((PinTypeCount) it.next()).description();
 					pinTypeDescrs.add(descr);
 				}

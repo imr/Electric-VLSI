@@ -63,7 +63,7 @@ public class CIFTab extends PreferencePanel
 	private JList cifLayersList;
 	private DefaultListModel cifLayersModel;
 	private boolean changingCIF = false;
-	private HashMap cifLayerInfo;
+	private HashMap<Layer,String> cifLayerInfo;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -86,12 +86,12 @@ public class CIFTab extends PreferencePanel
 		{
 			public void mouseClicked(MouseEvent evt) { cifClickLayer(); }
 		});
-		cifLayerInfo = new HashMap();
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		cifLayerInfo = new HashMap<Layer,String>();
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator it = tech.getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				String str = layer.getName();
@@ -116,7 +116,7 @@ public class CIFTab extends PreferencePanel
 		if (tech == null) return;
 
 		cifLayersModel.clear();
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String str = (String)cifLayerInfo.get(layer);
@@ -204,10 +204,10 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				String str = (String)cifLayerInfo.get(layer);

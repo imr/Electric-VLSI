@@ -793,7 +793,7 @@ public class Project extends Listener
 		return usersMap.size();
 	}
 
-	public static Iterator getUsers()
+	public static Iterator<String> getUsers()
 	{
 		ensureUserList();
 		return usersMap.keySet().iterator();

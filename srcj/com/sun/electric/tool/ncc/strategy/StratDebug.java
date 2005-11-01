@@ -59,8 +59,8 @@ public class StratDebug extends Strategy {
 		if (er.isLeaf()) {
 			if (!er.isBalanced() && er.getNetObjType()!=Part.Type.PORT) {
 				globals.status2(er.nameString());
-				List reasons = er.getPartitionReasonsFromRootToMe();
-				for (Iterator it=reasons.iterator(); it.hasNext();) {
+				List<String> reasons = er.getPartitionReasonsFromRootToMe();
+				for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
 					globals.status2("   "+it.next());
 				}
 				super.doFor(er);
@@ -71,7 +71,7 @@ public class StratDebug extends Strategy {
 		return new LeafList();
 	}
 	
-	public HashMap doFor(Circuit c) {
+	public HashMap<Integer,List<NetObject>> doFor(Circuit c) {
 		globals.status2(" "+c.nameString());
 		return super.doFor(c);
 	}

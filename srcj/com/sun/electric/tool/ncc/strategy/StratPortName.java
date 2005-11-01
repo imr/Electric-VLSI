@@ -48,7 +48,7 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class StratPortName extends Strategy {
 	private int numWiresProcessed;
 	private int numEquivProcessed;
-	private Map theMap;
+	private Map<Wire,Integer> theMap;
 	private boolean doneOne;
 	
 	private StratPortName(NccGlobals globals) {super(globals);}
@@ -60,7 +60,7 @@ public class StratPortName extends Strategy {
 		StratPortName wn = new StratPortName(globals);
 		wn.preamble();
         //LeafList front = StratFrontier.doYourJob(globals.getWires(), globals);
-		Iterator frontier = globals.getWireLeafEquivRecs().getNotMatched();
+		Iterator<EquivRecord> frontier = globals.getWireLeafEquivRecs().getNotMatched();
 		LeafList ll = new LeafList();
 		while (frontier.hasNext()) ll.add(frontier.next());
 
@@ -87,10 +87,10 @@ public class StratPortName extends Strategy {
 	 * printTheMap is a debug routine that exhibits the map.
 	 * @param m the Map to exhibit
 	 */
-	private void printTheMap(Map m){
+	private void printTheMap(Map<Wire,Integer> m){
 		globals.status2("  printing an EquivRecord map of size= " + m.size());
 		if(m.size() == 0)return;
-		for (Iterator it=m.keySet().iterator(); it.hasNext();) {
+		for (Iterator<Wire> it=m.keySet().iterator(); it.hasNext();) {
 			Wire w= (Wire)it.next();
 			Object oo= m.get(w);
 			if(oo == null){
@@ -101,15 +101,15 @@ public class StratPortName extends Strategy {
 			}
 		}
 	}
-	private Map getMapFromExportNamesToWires(Circuit wires){
-		Map out = new HashMap();
-		for (Iterator it=wires.getNetObjs(); it.hasNext();) {
+	private Map<String,Wire> getMapFromExportNamesToWires(Circuit wires){
+		Map<String,Wire> out = new HashMap<String,Wire>();
+		for (Iterator<NetObject> it=wires.getNetObjs(); it.hasNext();) {
 			NetObject n= (NetObject)it.next();
 			error(!(n instanceof Wire), "getExportMap expects only Wires");
 			Wire w= (Wire)n;
 			Port p = w.getPort();
 			if (p!=null && !p.getToBeRenamed()) {
-				for (Iterator ni=p.getExportNames(); ni.hasNext();) {
+				for (Iterator<String> ni=p.getExportNames(); ni.hasNext();) {
 					String exportNm = (String) ni.next();
 					error(out.containsKey(exportNm),
 						  "different wires have the same export name?");
@@ -125,25 +125,25 @@ public class StratPortName extends Strategy {
 	 * based on matching export names.
 	 * @return a map of Wires to Integers
 	 */
-	private Map getWireExportMap(EquivRecord er){
+	private Map<Wire,Integer> getWireExportMap(EquivRecord er){
 		//step 1 - get the string maps from the circuits
-		List mapPerCkt = new ArrayList(); //to hold the circuit's maps
-		Set keys = new HashSet();
-		for (Iterator ci=er.getCircuits(); ci.hasNext();) {
-			Map exportToWire = getMapFromExportNamesToWires((Circuit)ci.next());
+		List<Map<String,Wire>> mapPerCkt = new ArrayList<Map<String,Wire>>(); //to hold the circuit's maps
+		Set<String> keys = new HashSet<String>();
+		for (Iterator<Circuit> ci=er.getCircuits(); ci.hasNext();) {
+			Map<String,Wire> exportToWire = getMapFromExportNamesToWires((Circuit)ci.next());
 			mapPerCkt.add(exportToWire);
 			keys.addAll(exportToWire.keySet());
 		}
 		//keys now holds all possible Strings that are names
-		if (keys.size()==0)  return new HashMap(); //no ports
-		HashMap out = new HashMap();
+		if (keys.size()==0)  return new HashMap<Wire,Integer>(); //no ports
+		HashMap<Wire,Integer> out = new HashMap<Wire,Integer>();
 		int i= 0;
-		for (Iterator ki=keys.iterator(); ki.hasNext();) {
+		for (Iterator<String> ki=keys.iterator(); ki.hasNext();) {
 			String key = (String)ki.next();
 			//check that all maps have this key
-			List wires = new ArrayList();
-			for (Iterator hi=mapPerCkt.iterator(); hi.hasNext();) {
-				Map map = (Map)hi.next();
+			List<Wire> wires = new ArrayList<Wire>();
+			for (Iterator<Map<String,Wire>> hi=mapPerCkt.iterator(); hi.hasNext();) {
+				Map<String,Wire> map = (Map<String,Wire>)hi.next();
 				if(map.containsKey(key)){
 					Wire w= (Wire)map.get(key);
 					wires.add(w);
@@ -153,7 +153,7 @@ public class StratPortName extends Strategy {
 			if(wires.size() == mapPerCkt.size()){
 				//yes it does
 				i++;
-				for (Iterator hi= wires.iterator(); hi.hasNext();) {
+				for (Iterator<Wire> hi= wires.iterator(); hi.hasNext();) {
 					Wire w= (Wire)hi.next();
 					out.put(w, new Integer(i));
 				}

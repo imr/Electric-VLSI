@@ -69,10 +69,10 @@ import javax.swing.KeyStroke;
 public class KeyBindingManager {
 
     // ----------------------------- object stuff ---------------------------------
-    /** Hash table of lists all key bindings */     private HashMap inputMap;
+    /** Hash table of lists all key bindings */     private HashMap<KeyStroke,Set<String>> inputMap;
     /** Hash table of all actions */                private HashMap<String,Object> actionMap;
     /** last prefix key pressed */                  private KeyStroke lastPrefix;
-    /** Hash table of hash of lists of prefixed key bindings */ private HashMap prefixedInputMapMaps;
+    /** Hash table of hash of lists of prefixed key bindings */ private HashMap<KeyStroke,HashMap<KeyStroke,Set<String>>> prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
     /** where to store Preferences */               private Preferences prefs;
     /** prefix on pref key, if desired */           private String prefPrefix;
@@ -89,9 +89,9 @@ public class KeyBindingManager {
      * on a Component.
      */
     public KeyBindingManager(String prefPrefix, Preferences prefs) {
-        inputMap = new HashMap();
+        inputMap = new HashMap<KeyStroke,Set<String>>();
         actionMap = new HashMap<String,Object>();
-        prefixedInputMapMaps = new HashMap();
+        prefixedInputMapMaps = new HashMap<KeyStroke,HashMap<KeyStroke,Set<String>>>();
         lastPrefix = null;
         prefixAction = new PrefixAction(this);
         this.prefs = prefs;
@@ -263,12 +263,12 @@ public class KeyBindingManager {
             return false;
         }
 
-        HashMap inputMapToUse = inputMap;
+        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
 
         // check if we should use prefixed key map instead of regular inputMap
         if (lastPrefix != null) {
             // get input map based on prefix key
-            inputMapToUse = (HashMap)prefixedInputMapMaps.get(lastPrefix);
+            inputMapToUse = (HashMap<KeyStroke,Set<String>>)prefixedInputMapMaps.get(lastPrefix);
             if (inputMapToUse == null) { lastPrefix = null; return false; }
         }
 
@@ -278,9 +278,9 @@ public class KeyBindingManager {
         boolean actionPerformed = false;
         boolean prefixActionPerformed = false;
         // get set of action strings, iterate over them
-        Set keyBindingList = (Set)inputMapToUse.get(stroke);
+        Set<String> keyBindingList = (Set<String>)inputMapToUse.get(stroke);
         if (keyBindingList != null) {
-            for (Iterator it = keyBindingList.iterator(); it.hasNext(); ) {
+            for (Iterator<String> it = keyBindingList.iterator(); it.hasNext(); ) {
                 String actionDesc = (String)it.next();
 
                 // get KeyBinding object from action map, activate its action
@@ -407,13 +407,13 @@ public class KeyBindingManager {
      */
     public synchronized void removeKeyBinding(String actionDesc, KeyStrokePair k) {
 
-        HashMap inputMapToUse = inputMap;
+        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
         // if prefix stroke exists, remove one prefixAction key string
         // (may be more than one if more than one binding has prefixStroke as it's prefix)
         if (k.getPrefixStroke() != null) {
-            List list = (List)inputMap.get(k.getPrefixStroke());
+            List<String> list = (List<String>)inputMap.get(k.getPrefixStroke());
             if (list != null) {
-                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                for (Iterator<String> it = list.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
                     if (str.equals(PrefixAction.actionDesc)) {
                         list.remove(str);
@@ -422,7 +422,7 @@ public class KeyBindingManager {
                 }
             }
             // get input map to use
-            inputMapToUse = (HashMap)prefixedInputMapMaps.get(k.getPrefixStroke());
+            inputMapToUse = (HashMap<KeyStroke,Set<String>>)prefixedInputMapMaps.get(k.getPrefixStroke());
         }
         // remove stroke
         if (inputMapToUse != null) {
@@ -464,7 +464,7 @@ public class KeyBindingManager {
         if (keys != null) {
             // get new iterator each time, because removeKeyStrokePair modifies the list
             while(true) {
-                Iterator it = keys.getKeyStrokePairs();
+                Iterator<KeyStrokePair> it = keys.getKeyStrokePairs();
                 if (!it.hasNext()) break;
                 KeyStrokePair pair = (KeyStrokePair)it.next();
                 removeKeyBinding(actionDesc, pair);
@@ -474,7 +474,7 @@ public class KeyBindingManager {
         //prefs.remove(actionDesc);
         prefs.remove(prefPrefix+actionDesc);
         // add in default key bindings
-        for (Iterator it = keys.getDefaultKeyStrokePairs(); it.hasNext(); ) {
+        for (Iterator<KeyStrokePair> it = keys.getDefaultKeyStrokePairs(); it.hasNext(); ) {
             KeyStrokePair k = (KeyStrokePair)it.next();
             addKeyBinding(actionDesc, k);
         }
@@ -535,42 +535,42 @@ public class KeyBindingManager {
      * @param pair the KeyStrokePair
      * @return a list of conflicting <code>KeyBindings</code>.  Empty list if no conflicts.
      */
-    public synchronized List getConflictingKeyBindings(KeyStrokePair pair) {
+    public synchronized List<KeyBindings> getConflictingKeyBindings(KeyStrokePair pair) {
 
-        List conflicts = new ArrayList();               // list of actual KeyBindings
-        List conflictsStrings = new ArrayList();        // list of action strings
+        List<KeyBindings> conflicts = new ArrayList<KeyBindings>();               // list of actual KeyBindings
+        List<String> conflictsStrings = new ArrayList<String>();        // list of action strings
 
-        HashMap inputMapToUse = inputMap;
+        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
 
         if (pair.getPrefixStroke() != null) {
             // check if conflicts with any single key Binding
-            Set set = (Set)inputMap.get(pair.getPrefixStroke());
+            Set<String> set = (Set<String>)inputMap.get(pair.getPrefixStroke());
             if (set != null) {
-                for (Iterator it = set.iterator(); it.hasNext(); ) {
+                for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
                     if (str.equals(PrefixAction.actionDesc)) continue;
                     // add to conflicts
                     conflictsStrings.add(str);
                 }
             }
-            inputMapToUse = (HashMap)prefixedInputMapMaps.get(pair.getPrefixStroke());
+            inputMapToUse = (HashMap<KeyStroke,Set<String>>)prefixedInputMapMaps.get(pair.getPrefixStroke());
         }
         // find stroke conflicts
         if (inputMapToUse != null) {
-            Set set = (Set)inputMapToUse.get(pair.getStroke());
+            Set<String> set = (Set<String>)inputMapToUse.get(pair.getStroke());
             if (set != null) {
-                for (Iterator it = set.iterator(); it.hasNext(); ) {
+                for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
 
                     if (str.equals(PrefixAction.actionDesc)) {
                         // find all string associated with prefix in prefix map
                         // NOTE: this condition is never true if prefixStroke is valid
                         // and we are using a prefixed map...prefixActions are only in primary inputMap.
-                        HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(pair.getStroke());
+                        HashMap<KeyStroke,Set<String>> prefixMap = (HashMap<KeyStroke,Set<String>>)prefixedInputMapMaps.get(pair.getStroke());
                         if (prefixMap != null) {
-                            for (Iterator it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
+                            for (Iterator<Set<String>> it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
                                 // all existing prefixStroke,stroke combos conflict, so add them all
-                                List prefixList = (List)it2.next(); // this is a set of strings
+                                List<String> prefixList = (List<String>)it2.next(); // this is a set of strings
                                 conflictsStrings.addAll(prefixList);
                             }
                         }
@@ -581,13 +581,13 @@ public class KeyBindingManager {
             }
         }
         // get all KeyBindings from ActionMap
-        for (Iterator it = conflictsStrings.iterator(); it.hasNext(); ) {
+        for (Iterator<String> it = conflictsStrings.iterator(); it.hasNext(); ) {
             ActionListener action = (ActionListener)actionMap.get((String)it.next());
             if (action == null) continue;
             if (action instanceof PrefixAction) continue;
             KeyBindings keys = (KeyBindings)action;
             KeyBindings conflicting = new KeyBindings(keys.getActionDesc());
-            for (Iterator it2 = keys.getKeyStrokePairs(); it2.hasNext(); ) {
+            for (Iterator<KeyStrokePair> it2 = keys.getKeyStrokePairs(); it2.hasNext(); ) {
                 // Unfortunately, any keyBinding can map to this action, including
                 // ones that don't actually conflict.  So we need to double check
                 // if binding really conflicts.
@@ -656,8 +656,8 @@ public class KeyBindingManager {
      * associated actions.
      */
     public synchronized void deleteEmptyBindings() {
-        Set keys = actionMap.keySet();
-        for (Iterator it = keys.iterator(); it.hasNext(); ) {
+        Set<String> keys = actionMap.keySet();
+        for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
             String key = (String)it.next();
             ActionListener action = (ActionListener)actionMap.get(key);
             if (action instanceof KeyBindings) {
@@ -685,10 +685,10 @@ public class KeyBindingManager {
         if (pair == null) return null;
 
         // warn if conflicting key bindings created
-        List conflicts = getConflictingKeyBindings(pair);
+        List<KeyBindings> conflicts = getConflictingKeyBindings(pair);
         if (conflicts.size() > 0) {
             System.out.println("WARNING: Key binding for "+actionDesc+" [ " +pair.toString()+" ] conflicts with:");
-            for (Iterator it = conflicts.iterator(); it.hasNext(); ) {
+            for (Iterator<KeyBindings> it = conflicts.iterator(); it.hasNext(); ) {
                 KeyBindings k = (KeyBindings)it.next();
                 System.out.println("  > "+k.getActionDesc()+" [ "+k.bindingsToString()+" ]");
             }
@@ -698,26 +698,26 @@ public class KeyBindingManager {
         KeyStroke prefixStroke = pair.getPrefixStroke();
         KeyStroke stroke = pair.getStroke();
 
-        HashMap inputMapToUse = inputMap;
+        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
         if (prefixStroke != null) {
             // find HashMap based on prefixAction
-            inputMapToUse = (HashMap)prefixedInputMapMaps.get(prefixStroke);
+            inputMapToUse = (HashMap<KeyStroke,Set<String>>)prefixedInputMapMaps.get(prefixStroke);
             if (inputMapToUse == null) {
-                inputMapToUse = new HashMap();
+                inputMapToUse = new HashMap<KeyStroke,Set<String>>();
                 prefixedInputMapMaps.put(prefixStroke, inputMapToUse);
             }
             // add prefix action to primary input map
-            Set set = (Set)inputMap.get(prefixStroke);
+            Set<String> set = (Set<String>)inputMap.get(prefixStroke);
             if (set == null) {
-                set = new HashSet();
+                set = new HashSet<String>();
                 inputMap.put(prefixStroke, set);
             }
             set.add(PrefixAction.actionDesc);
         }
         // add stroke to input map to use
-        Set set = (Set)inputMapToUse.get(stroke);
+        Set<String> set = (Set<String>)inputMapToUse.get(stroke);
         if (set == null) {
-            set = new HashSet();
+            set = new HashSet<String>();
             inputMapToUse.put(stroke, set);
         }
         set.add(actionDesc);
@@ -761,7 +761,7 @@ public class KeyBindingManager {
      * @param actionDesc the action description associated with these bindings
      * @return a list of KeyStrokePairs
      */
-    private synchronized List getBindingsFromPrefs(String actionDesc) {
+    private synchronized List<KeyStrokePair> getBindingsFromPrefs(String actionDesc) {
         if (prefs == null) return null;
         if (actionDesc == null || actionDesc.equals("")) return null;
 
@@ -776,8 +776,8 @@ public class KeyBindingManager {
         KeyBindings k = new KeyBindings(actionDesc);
         k.addKeyBindings(keys);
         if (debugPrefs) System.out.println("  turned into: "+k.describe());
-        List bindings = new ArrayList();
-        for (Iterator it = k.getKeyStrokePairs(); it.hasNext(); ) {
+        List<KeyStrokePair> bindings = new ArrayList<KeyStrokePair>();
+        for (Iterator<KeyStrokePair> it = k.getKeyStrokePairs(); it.hasNext(); ) {
             bindings.add((KeyStrokePair)it.next());
         }
         return bindings;
@@ -792,8 +792,8 @@ public class KeyBindingManager {
         initialized = true;
         if (prefs == null) return;
         // try to see if binding saved in preferences for each action
-        for (Iterator it = actionMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<String,Object>> it = actionMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String,Object> entry = (Map.Entry<String,Object>)it.next();
             String actionDesc = (String)entry.getKey();
             if (actionDesc == null || actionDesc.equals("")) continue;
             // clear current bindings
@@ -803,18 +803,18 @@ public class KeyBindingManager {
             KeyBindings bindings = (KeyBindings)entry.getValue();
             bindings.clearKeyBindings();
             // look up bindings in prefs
-            List keyPairs = getBindingsFromPrefs(bindings.getActionDesc());
+            List<KeyStrokePair> keyPairs = getBindingsFromPrefs(bindings.getActionDesc());
             if (keyPairs == null) {
                 // no entry found, use default settings
                 bindings.setUsingDefaultKeys(true);
-                for (Iterator it2 = bindings.getDefaultKeyStrokePairs(); it2.hasNext(); ) {
+                for (Iterator<KeyStrokePair> it2 = bindings.getDefaultKeyStrokePairs(); it2.hasNext(); ) {
                     KeyStrokePair pair = (KeyStrokePair)it2.next();
                     addKeyBinding(actionDesc, pair);
                 }
             } else {
                 // otherwise, add bindings found
                 bindings.setUsingDefaultKeys(false);
-                for (Iterator it2 = keyPairs.iterator(); it2.hasNext(); ) {
+                for (Iterator<KeyStrokePair> it2 = keyPairs.iterator(); it2.hasNext(); ) {
                     KeyStrokePair pair = (KeyStrokePair)it2.next();
                     addKeyBinding(actionDesc, pair);
                 }

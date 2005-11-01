@@ -24,11 +24,11 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 public class PartTypeTable {
 	private int numTypes = 0;
 	private int log2NumTypes;
-	private ArrayList types = new ArrayList();
-	private HashMap nameToType = new HashMap();
+	private ArrayList<PartType> types = new ArrayList<PartType>();
+	private HashMap<String,PartType> nameToType = new HashMap<String,PartType>();
 	/** Long type names are used only to identify transistors when NCC creates
 	 *  the net lists. */
-	private HashMap longNameToType = new HashMap();
+	private HashMap<String,PartType> longNameToType = new HashMap<String,PartType>();
 	private void add(String typeName, String longTypeName) {
 		PartType t = new PartType(numTypes++, typeName);
 		LayoutLib.error(nameToType.containsKey(typeName), 
@@ -47,7 +47,7 @@ public class PartTypeTable {
 		}
 	}
 	public int log2NumTypes() {return log2NumTypes;}
-	public Iterator iterator() {return types.iterator();}
+	public Iterator<PartType> iterator() {return types.iterator();}
 	public PartType get(String nm) {return (PartType) nameToType.get(nm);}
 	public PartType getTypeFromLongName(String nm) {
 		return (PartType) longNameToType.get(nm);

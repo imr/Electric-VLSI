@@ -82,8 +82,8 @@ public class StratPrint extends Strategy {
 						(j.numNetObjs()<MAX_LINES ? "" : " starts with"));
 
 		int count= 0;
-		HashMap codeToNetObjs = new HashMap();
-		for (Iterator it=j.getNetObjs(); it.hasNext();) {
+		HashMap<Integer,NetObject> codeToNetObjs = new HashMap<Integer,NetObject>();
+		for (Iterator<NetObject> it=j.getNetObjs(); it.hasNext();) {
 			NetObject n= (NetObject) it.next();
 			codeToNetObjs.put(CODE_NO_CHANGE, n);
 			/*if (count<MAX_LINES) */globals.status2(n.fullDescription());

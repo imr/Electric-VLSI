@@ -47,11 +47,11 @@ import java.awt.event.MouseEvent;
  */
 public class ParasiticTab extends PreferencePanel {
 
-	private HashMap layerResistanceOptions;
-	private HashMap layerCapacitanceOptions;
-	private HashMap layerEdgeCapacitanceOptions;
-	private HashMap techMinResistance, techMinCapacitance, techGateLengthShrink;
-	private HashMap techIncludeGateInResistance, techIncludeGroundNetwork;
+	private HashMap<Layer,Pref> layerResistanceOptions;
+	private HashMap<Layer,Pref> layerCapacitanceOptions;
+	private HashMap<Layer,Pref> layerEdgeCapacitanceOptions;
+	private HashMap<Technology,Pref> techMinResistance, techMinCapacitance, techGateLengthShrink;
+	private HashMap<Technology,Pref> techIncludeGateInResistance, techIncludeGroundNetwork;
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private boolean changing;
@@ -84,15 +84,15 @@ public class ParasiticTab extends PreferencePanel {
 			public void mouseClicked(MouseEvent evt) { layerListClick(); }
 		});
 
-		layerResistanceOptions = new HashMap();
-		layerCapacitanceOptions = new HashMap();
-		layerEdgeCapacitanceOptions = new HashMap();
-		techMinResistance = new HashMap();
-		techMinCapacitance = new HashMap();
-		techGateLengthShrink = new HashMap();
-		techIncludeGateInResistance = new HashMap();
-		techIncludeGroundNetwork = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		layerResistanceOptions = new HashMap<Layer,Pref>();
+		layerCapacitanceOptions = new HashMap<Layer,Pref>();
+		layerEdgeCapacitanceOptions = new HashMap<Layer,Pref>();
+		techMinResistance = new HashMap<Technology,Pref>();
+		techMinCapacitance = new HashMap<Technology,Pref>();
+		techGateLengthShrink = new HashMap<Technology,Pref>();
+		techIncludeGateInResistance = new HashMap<Technology,Pref>();
+		techIncludeGroundNetwork = new HashMap<Technology,Pref>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			techSelection.addItem(tech.getTechName());
@@ -102,7 +102,7 @@ public class ParasiticTab extends PreferencePanel {
 			techIncludeGateInResistance.put(tech, Pref.makeBooleanPref(null, null, tech.isGateIncluded()));
 			techIncludeGroundNetwork.put(tech, Pref.makeBooleanPref(null, null, tech.isGroundNetIncluded()));
 
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				layerResistanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getResistance()));
@@ -164,7 +164,7 @@ public class ParasiticTab extends PreferencePanel {
 		includeGround.setSelected(pref.getBoolean());
 
 		layerListModel.clear();
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			layerListModel.addElement(layer.getName());
@@ -221,9 +221,9 @@ public class ParasiticTab extends PreferencePanel {
 	private static class ParasiticLayerDocumentListener implements DocumentListener
 	{
 		private ParasiticTab dialog;
-		private HashMap map;
+		private HashMap<Layer,Pref> map;
 
-		ParasiticLayerDocumentListener(HashMap map, ParasiticTab dialog)
+		ParasiticLayerDocumentListener(HashMap<Layer,Pref> map, ParasiticTab dialog)
 		{
 			this.dialog = dialog;
 			this.map = map;
@@ -286,7 +286,7 @@ public class ParasiticTab extends PreferencePanel {
 	{
 		ParasiticTool.setMaxDistance(Double.parseDouble(maxDistValue.getText()));
 
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 
@@ -307,7 +307,7 @@ public class ParasiticTab extends PreferencePanel {
 			if (pref != null && pref.getBooleanFactoryValue() != pref.getBoolean())
 				tech.setGroundNetIncluded(pref.getBoolean());
 			
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				Pref resistancePref = (Pref)layerResistanceOptions.get(layer);
@@ -338,10 +338,10 @@ public class ParasiticTab extends PreferencePanel {
 			"Are you sure you want to reset all layers to their default resistance and capacitance values?",
 			"Factory Reset", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (ret == JOptionPane.YES_OPTION) {
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
-				for (Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+				for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer layer = (Layer)lIt.next();
 					layer.resetToFactoryParasitics();

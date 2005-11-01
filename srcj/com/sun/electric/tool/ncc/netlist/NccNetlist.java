@@ -71,7 +71,9 @@ public class NccNetlist {
 	private final NccGlobals globals;
 	private final Cell rootCell;
 	private final VarContext rootContext;
-	private ArrayList wires, parts, ports;
+	private ArrayList<Wire> wires;
+	private ArrayList<Part> parts;
+	private ArrayList<Port> ports;
 	private boolean exportAssertionFailures;
 	private boolean exportGlobalConflicts;
 	private boolean badTransistorType;
@@ -103,12 +105,16 @@ public class NccNetlist {
 			}
 		}
 		// if there are net list errors then make net list look empty
-		if (cantBuildNetlist()) 
-            wires = parts = ports = new ArrayList();
+		if (cantBuildNetlist())
+		{
+            wires = new ArrayList<Wire>();
+			parts = new ArrayList<Part>();
+			ports = new ArrayList<Port>();
+		}
 	}
-	public ArrayList getWireArray() {return wires;}
-	public ArrayList getPartArray() {return parts;}
-	public ArrayList getPortArray() {return ports;}
+	public ArrayList<Wire> getWireArray() {return wires;}
+	public ArrayList<Part> getPartArray() {return parts;}
+	public ArrayList<Port> getPortArray() {return ports;}
 	public boolean cantBuildNetlist() {
 		return exportAssertionFailures || exportGlobalConflicts ||
 		       badTransistorType || userAbort;
@@ -122,7 +128,7 @@ class UserAbort extends RuntimeException {}
 
 /** map from netID to NCC Wire */
 class Wires {
-	private final ArrayList wires = new ArrayList();
+	private final ArrayList<Wire> wires = new ArrayList<Wire>();
 	private final String pathPrefix; 
 	private void growIfNeeded(int ndx) {
 		while(ndx>wires.size()-1) wires.add(null);
@@ -131,12 +137,12 @@ class Wires {
 	 * sets of net IDs that should point to the same Wire.
 	 * @param mergedNetIDs contains sets of net IDs that must be merged
 	 * into the same Wire. */
-	public Wires(TransitiveRelation mergedNetIDs, CellInfo info, 
+	public Wires(TransitiveRelation<Integer> mergedNetIDs, CellInfo info, 
 	             String pathPrefix) {
 		this.pathPrefix = pathPrefix;
-		for (Iterator it=mergedNetIDs.getSetsOfRelatives(); it.hasNext();) {
-			Set relatives = (Set) it.next();
-			Iterator ni = relatives.iterator();
+		for (Iterator<Set<Integer>> it=mergedNetIDs.getSetsOfRelatives(); it.hasNext();) {
+			Set<Integer> relatives = (Set<Integer>) it.next();
+			Iterator<Integer> ni = relatives.iterator();
 			if (!ni.hasNext()) continue;
 			int netId = ((Integer)ni.next()).intValue();
 			Wire w = get(netId, info);
@@ -160,11 +166,11 @@ class Wires {
 	}
 	// return non-null entries of wires array
 	// Eliminate duplicated Wires.
-	public ArrayList getWireArray() {
-		Set wireSet = new HashSet();
+	public ArrayList<Wire> getWireArray() {
+		Set<Wire> wireSet = new HashSet<Wire>();
 		wireSet.addAll(wires);
 		wireSet.remove(null);
-		ArrayList nonNullWires = new ArrayList();
+		ArrayList<Wire> nonNullWires = new ArrayList<Wire>();
 		nonNullWires.addAll(wireSet);
 		return nonNullWires;
 	}
@@ -193,10 +199,10 @@ class NccCellInfo extends CellInfo {
 	// violates the invariant that no two Ports may have the same name. I 
 	// believe it's better to preserve the invariant by discarding the global 
 	// "gnd" if there is already an Export named "gnd".
-	public Iterator getExportsAndGlobals() {
+	public Iterator<ExportGlobal> getExportsAndGlobals() {
 		HashMap nameToExport = new HashMap();
 		// first collect all exports
-		for (Iterator it=getCell().getPorts(); it.hasNext();) {
+		for (Iterator<PortProto> it=getCell().getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			int[] expNetIDs = getExportNetIDs(e);
 			for (int i=0; i<expNetIDs.length; i++) {
@@ -302,9 +308,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** map from netID to Wire */	 
 	private Wires wires;
 	/** all Parts in the net list */ 
-	private final ArrayList parts = new ArrayList();
+	private final ArrayList<Part> parts = new ArrayList<Part>();
 	/** all ports in the net list */ 
-	private final ArrayList ports = new ArrayList();
+	private final ArrayList<Port> ports = new ArrayList<Port>();
 	/** treat these Cells as primitives */
 	private final HierarchyInfo hierarchicalCompareInfo;
 	/** generate only hierarchical comparison information */
@@ -349,14 +355,14 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void createPortsFromExports(NccCellInfo rootInfo) {
-		HashSet portSet = new HashSet();
-		for (Iterator it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
+		HashSet<Port> portSet = new HashSet<Port>();
+		for (Iterator<ExportGlobal> it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = (ExportGlobal) it.next();
 			Wire wire = wires.get(eg.netID, rootInfo);
 			portSet.add(wire.addExport(eg.name, eg.type));
 		}
 		
-		for (Iterator it=portSet.iterator(); it.hasNext();) 
+		for (Iterator<Port> it=portSet.iterator(); it.hasNext();) 
 			ports.add(it.next());
 	}
 	
@@ -747,9 +753,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	// ---------------------- intended public interface -----------------------
-	public ArrayList getWireList() {return wires.getWireArray();}
-	public ArrayList getPartList() {return parts;}
-	public ArrayList getPortList() {return ports;}
+	public ArrayList<Wire> getWireList() {return wires.getWireArray();}
+	public ArrayList<Part> getPartList() {return parts;}
+	public ArrayList<Port> getPortList() {return ports;}
 	/** Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
 	 * If not then this netlist isn't valid. */
 	public boolean exportAssertionFailures() {return exportAssertionFailures;}

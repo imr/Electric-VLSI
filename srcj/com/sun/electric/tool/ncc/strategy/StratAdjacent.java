@@ -38,7 +38,7 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class StratAdjacent extends Strategy {
 	private int numEquivProcessed;
 	private int numAdjacentUnique;
-	private Set adjacent = new HashSet();
+	private Set<EquivRecord> adjacent = new HashSet<EquivRecord>();
 
 	private StratAdjacent(NccGlobals globals) {super(globals);}
 	
@@ -56,7 +56,7 @@ public class StratAdjacent extends Strategy {
     //summarize at the end
     private LeafList summary(){
 		LeafList offspring = new LeafList();
-		for (Iterator it=adjacent.iterator(); it.hasNext();) {
+		for (Iterator<EquivRecord> it=adjacent.iterator(); it.hasNext();) {
 			offspring.add((EquivRecord)it.next());
 		}
 
@@ -81,11 +81,11 @@ public class StratAdjacent extends Strategy {
 	 * mismatched
 	 * @return Set of adjacent EquivRecords */
 	private void addAdjacentEquivRecs(EquivRecord er){
-		for (Iterator ci=er.getCircuits(); ci.hasNext();) {
+		for (Iterator<Circuit> ci=er.getCircuits(); ci.hasNext();) {
 			Circuit jc= (Circuit) ci.next();
-			for (Iterator ni=jc.getNetObjs(); ni.hasNext();) {
+			for (Iterator<NetObject> ni=jc.getNetObjs(); ni.hasNext();) {
 				NetObject netObj= (NetObject)ni.next();
-				for (Iterator it=netObj.getConnected(); it.hasNext();) {
+				for (Iterator<NetObject> it=netObj.getConnected(); it.hasNext();) {
 					//for each adjacent NetObject
 					netObj = (NetObject)it.next();
 					EquivRecord sg = netObj.getParent().getParent();

@@ -35,7 +35,7 @@ public class NccResult {
 	private boolean topologyMatch;
 	private boolean sizeMatch;
 	private NccGlobals globalData;
-    private List comparisonMismatches;
+    private List<NccComparisonMismatches> comparisonMismatches;
 
 	public NccResult(boolean exportNameMatch, boolean topologyMatch, 
 			         boolean sizeMatch, NccGlobals globalData) {
@@ -43,7 +43,7 @@ public class NccResult {
 		this.topologyMatch = topologyMatch;
 		this.sizeMatch = sizeMatch;
 		this.globalData = globalData;
-        comparisonMismatches = new LinkedList();
+        comparisonMismatches = new LinkedList<NccComparisonMismatches>();
 	}
 	/** Use this method to avoid holding the global data for two comparisons
 	 * at the same time. */

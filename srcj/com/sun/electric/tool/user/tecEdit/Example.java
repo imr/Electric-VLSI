@@ -44,10 +44,10 @@ import java.util.Iterator;
  */
 public class Example
 {
-	List      samples;				/* head of list of samples in example */
-	Sample    studySample;			/* sample under analysis */
-	double    lx, hx, ly, hy;		/* bounding box of example */
-	Example   nextExample;			/* next example in list */
+	List<Sample> samples;				/* head of list of samples in example */
+	Sample       studySample;			/* sample under analysis */
+	double       lx, hx, ly, hy;		/* bounding box of example */
+	Example      nextExample;			/* next example in list */
 
 	/**
 	 * Method to parse the node examples in cell "np" and return a list of
@@ -56,8 +56,8 @@ public class Example
 	 */
 	static Example getExamples(Cell np, boolean isNode)
 	{
-		HashMap nodeExamples = new HashMap();
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		HashMap<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
@@ -70,14 +70,14 @@ public class Example
 		}
 
 		Example neList = null;
-		for(Iterator it = np.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (nodeExamples.get(ni) != null) continue;
 
 			// get a new cluster of nodes
 			Example ne = new Example();
-			ne.samples = new ArrayList();
+			ne.samples = new ArrayList<Sample>();
 			ne.nextExample = neList;
 			neList = ne;
 
@@ -97,7 +97,7 @@ public class Example
 				foundOne = false;
 
 				// begin to search the area so far
-				for(Iterator oIt = np.searchIterator(soFar); oIt.hasNext(); )
+				for(Iterator<Geometric> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
 					Geometric geom = (Geometric)oIt.next();
 					if (geom == null) break;

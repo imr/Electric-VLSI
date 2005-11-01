@@ -78,7 +78,7 @@ public class NccJob extends Job {
 	/** If one Cell is a schematprlnst
 	 * @return null if not schematic or layout Cells */ 
 	private CellContext[] getTwoCellsFromTwoWindows() {
-		List cellCtxts = NccUtils.getCellContextsFromWindows();
+		List<CellContext> cellCtxts = NccUtils.getCellContextsFromWindows();
 		if (cellCtxts.size()<2) {
 			prln("Two Cells aren't open in two windows");
 			return null;

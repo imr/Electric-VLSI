@@ -71,7 +71,7 @@ public class RoutingTab extends PreferencePanel
 		}
 
 		// initialize the "default arc" setting
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
 			routTechnology.addItem(tech.getTechName());
@@ -130,7 +130,7 @@ public class RoutingTab extends PreferencePanel
 		if (tech == null) return;
 
 		routDefaultArc.removeAllItems();
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
 			routDefaultArc.addItem(ap.getName());

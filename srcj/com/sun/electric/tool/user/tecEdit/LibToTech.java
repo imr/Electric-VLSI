@@ -781,7 +781,7 @@ public class LibToTech
 			// get width and polygon count information
 			double maxWid = -1, hWid = -1;
 			int count = 0;
-			for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
@@ -804,7 +804,7 @@ public class LibToTech
 			int layerIndex = 0;
 			for(int k=0; k<2; k++)
 			{
-				for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+				for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 				{
 					Sample ns = (Sample)it.next();
 					if (ns.layer == null) continue;
@@ -949,7 +949,7 @@ public class LibToTech
 
 			// count the number of ports on this node
 			int portCount = 0;
-			for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				if (ns.layer == Generic.tech.portNode) portCount++;
@@ -967,7 +967,7 @@ public class LibToTech
 			// fill the port structures
 			int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
 			int i = 0;
-			for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				if (ns.layer != Generic.tech.portNode) continue;
@@ -1075,7 +1075,7 @@ public class LibToTech
 					ArcInst ai1 = ((Connection)ns.node.getConnections().next()).getArc();
 					Network net1 = netList.getNetwork(ai1, 0);
 					int j = 0;
-					for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+					for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 					{
 						Sample oNs = (Sample)oIt.next();
 						if (oNs == ns) break;
@@ -1239,7 +1239,7 @@ public class LibToTech
 
 			// count the number of layers on the node
 			int layerCount = 0;
-			for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				if (ns.values != null && ns.layer != Generic.tech.portNode &&
@@ -1371,7 +1371,7 @@ public class LibToTech
 			// extract width offset information from highlight box
 			double lX = 0, hX = 0, lY = 0, hY = 0;
 			boolean found = false;
-			for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				if (ns.layer != null) continue;
@@ -1465,14 +1465,14 @@ public class LibToTech
 		for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
 		{
 			// clear associations for every sample "ns" in the example "ne"
-			for(Iterator it = ne.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = ne.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				ns.assoc = null;
 			}
 
 			// associate every sample "ns" in the example "ne"
-			for(Iterator it = ne.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = ne.samples.iterator(); it.hasNext(); )
 			{
 				Sample ns = (Sample)it.next();
 				if (ns.assoc != null) continue;
@@ -1488,7 +1488,7 @@ public class LibToTech
 				// count number of similar layers in original example "neList"
 				int total = 0;
 				Sample nsFound = null;
-				for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+				for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 				{
 					Sample nsList = (Sample)oIt.next();
 					if (nsList.layer != ns.layer) continue;
@@ -1524,7 +1524,7 @@ public class LibToTech
 
 					// search the original for that port
 					boolean found = false;
-					for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+					for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 					{
 						Sample nsList = (Sample)oIt.next();
 						if (nsList.layer == Generic.tech.portNode)
@@ -1553,7 +1553,7 @@ public class LibToTech
 
 				// count the number of this layer in example "ne"
 				int i = 0;
-				for(Iterator oIt = ne.samples.iterator(); oIt.hasNext(); )
+				for(Iterator<Sample> oIt = ne.samples.iterator(); oIt.hasNext(); )
 				{
 					Sample nsList = (Sample)oIt.next();
 					if (nsList.layer == ns.layer) i++;
@@ -1569,18 +1569,18 @@ public class LibToTech
 				}
 
 				// make a list of samples on this layer in original
-				List mainList = new ArrayList();
+				List<Sample> mainList = new ArrayList<Sample>();
 				i = 0;
-				for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+				for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 				{
 					Sample nsList = (Sample)oIt.next();
 					if (nsList.layer == ns.layer) mainList.add(nsList);
 				}
 
 				// make a list of samples on this layer in example "ne"
-				List thisList = new ArrayList();
+				List<Sample> thisList = new ArrayList<Sample>();
 				i = 0;
-				for(Iterator oIt = ne.samples.iterator(); oIt.hasNext(); )
+				for(Iterator<Sample> oIt = ne.samples.iterator(); oIt.hasNext(); )
 				{
 					Sample nsList = (Sample)oIt.next();
 					if (nsList.layer == ns.layer) thisList.add(nsList);
@@ -1623,17 +1623,17 @@ public class LibToTech
 			}
 
 			// final check: make sure every sample in original example associates
-			for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+			for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 			{
 				Sample nsList = (Sample)oIt.next();
 				nsList.assoc = null;
 			}
-			for(Iterator oIt = ne.samples.iterator(); oIt.hasNext(); )
+			for(Iterator<Sample> oIt = ne.samples.iterator(); oIt.hasNext(); )
 			{
 				Sample ns = (Sample)oIt.next();
 				ns.assoc.assoc = ns;
 			}
-			for(Iterator oIt = neList.samples.iterator(); oIt.hasNext(); )
+			for(Iterator<Sample> oIt = neList.samples.iterator(); oIt.hasNext(); )
 			{
 				Sample nsList = (Sample)oIt.next();
 				if (nsList.assoc == null)
@@ -1664,12 +1664,10 @@ public class LibToTech
 		}
 	}
 
-	private static class SampleCoordAscending implements Comparator
+	private static class SampleCoordAscending implements Comparator<Sample>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(Sample s1, Sample s2)
 		{
-			Sample s1 = (Sample)o1;
-			Sample s2 = (Sample)o2;
 			if (s1.xPos != s2.xPos) return (int)(s1.xPos - s2.xPos);
 			if (s1.yPos != s2.yPos) return (int)(s1.yPos - s2.yPos);
 			return s1.node.getName().compareTo(s2.node.getName());
@@ -1738,7 +1736,7 @@ public class LibToTech
 	{
 		// count the number of real layers in the node
 		int count = 0;
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
@@ -1746,7 +1744,7 @@ public class LibToTech
 
 		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
 		count = 0;
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			Rectangle2D nodeBounds = getBoundingBox(ns.node);
@@ -1884,7 +1882,7 @@ public class LibToTech
 
 		// count the number of real layers in the node
 		int count = 0;
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
@@ -1894,7 +1892,7 @@ public class LibToTech
 		count = 0;
 
 		// look at every sample "ns" in the main example "neList"
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			
@@ -1926,7 +1924,7 @@ public class LibToTech
 			{
 				// count number of samples associated with the main sample
 				int total = 0;
-				for(Iterator oIt = ne.samples.iterator(); oIt.hasNext(); )
+				for(Iterator<Sample> oIt = ne.samples.iterator(); oIt.hasNext(); )
 				{
 					Sample nso = (Sample)oIt.next();
 					if (nso.assoc == ns)
@@ -2355,7 +2353,7 @@ public class LibToTech
 	private static Sample needHighlightLayer(Example neList, Cell np)
 	{
 		// find the highlight layer
-		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
+		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
 			if (ns.layer == null) return ns;
@@ -2399,7 +2397,7 @@ public class LibToTech
 		{
 			// count number of samples equivalent to the main sample
 			int total = 0;
-			for(Iterator it = ne.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = ne.samples.iterator(); it.hasNext(); )
 			{
 				Sample nso = (Sample)it.next();
 				if (nso.assoc == ns)
@@ -2421,7 +2419,7 @@ public class LibToTech
 
 			// fill the list of samples
 			int fill = 0;
-			for(Iterator it = ne.samples.iterator(); it.hasNext(); )
+			for(Iterator<Sample> it = ne.samples.iterator(); it.hasNext(); )
 			{
 				Sample nso = (Sample)it.next();
 				if (nso.assoc == ns) nsList[fill++] = nso;
@@ -2945,7 +2943,7 @@ public class LibToTech
 		LayerInfo [] lList, GeneralInfo gi)
 	{
 		// make abbreviations for each node
-		HashSet abbrevs = new HashSet();
+		HashSet<String> abbrevs = new HashSet<String>();
 		for(int i=0; i<nList.length; i++)
 		{
 			String ab = makeabbrev(nList[i].name, false);

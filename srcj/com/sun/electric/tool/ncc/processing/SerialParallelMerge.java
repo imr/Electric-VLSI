@@ -33,6 +33,7 @@ import java.util.Set;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.netlist.Mos;
+import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
@@ -68,9 +69,9 @@ public class SerialParallelMerge {
 		EquivRecord wires = globals.getWires();
 		if (wires!=null) {
 			// don't blow up if no wires
-			for (Iterator it=wires.getCircuits(); it.hasNext();) {
+			for (Iterator<Circuit> it=wires.getCircuits(); it.hasNext();) {
 				Circuit ckt = (Circuit) it.next();
-				for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
+				for (Iterator<NetObject> ni=ckt.getNetObjs(); ni.hasNext();) {
 					Wire w = (Wire) ni.next();
 					if (Mos.joinOnWire(w)) numMerged++;
 				}

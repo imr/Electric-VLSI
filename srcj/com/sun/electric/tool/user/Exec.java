@@ -136,7 +136,7 @@ public class Exec extends Thread {
     //private ExecProcessReader outReader;
     //private ExecProcessReader errReader;
     private Process p = null;
-    private final ArrayList finishedListeners;    // list of listeners waiting for process to finish
+    private final ArrayList<FinishedListener> finishedListeners;    // list of listeners waiting for process to finish
 
     /**
      * Execute an external process.
@@ -159,7 +159,7 @@ public class Exec extends Thread {
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
-        this.finishedListeners = new ArrayList();
+        this.finishedListeners = new ArrayList<FinishedListener>();
         setName(command);
     }
 
@@ -180,7 +180,7 @@ public class Exec extends Thread {
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
-        this.finishedListeners = new ArrayList();
+        this.finishedListeners = new ArrayList<FinishedListener>();
         setName(exec[0]);
     }
 
@@ -226,12 +226,12 @@ public class Exec extends Thread {
             System.out.println("Process finished [exit: "+exitVal+"]: "+com.toString());
             synchronized(finishedListeners) {
                 FinishedEvent e = new FinishedEvent(this, com.toString(), dir, exitVal);
-                ArrayList copy = new ArrayList();
+                ArrayList<FinishedListener> copy = new ArrayList<FinishedListener>();
                 // make copy cause listeners may want to remove themselves if process finished
-                for (Iterator it = finishedListeners.iterator(); it.hasNext(); ) {
+                for (Iterator<FinishedListener> it = finishedListeners.iterator(); it.hasNext(); ) {
                     copy.add(it.next());
                 }
-                for (Iterator it = copy.iterator(); it.hasNext(); ) {
+                for (Iterator<FinishedListener> it = copy.iterator(); it.hasNext(); ) {
                     FinishedListener l = (FinishedListener)it.next();
                     l.processFinished(e);
                 }

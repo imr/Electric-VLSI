@@ -72,7 +72,7 @@ public class StratHashWires extends Strategy {
 	}
 
 	// --------------- intended interface ------------------	
-	public static LeafList doYourJob(Iterator it, NccGlobals globals){
+	public static LeafList doYourJob(Iterator<EquivRecord> it, NccGlobals globals){
 		// if no Wires suppress all StratHashWires messages
 		if (!it.hasNext()) return new LeafList();											
 											

@@ -55,13 +55,15 @@ public class NccEngine {
 	private NccGlobals globals;
 
 	// ----------------------- private methods --------------------------------
-	private List buildNccNetlists(List cells, List contexts, List netlists, 
+	private List<NccNetlist> buildNccNetlists(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists, 
 	                              boolean blackBox, HierarchyInfo hierInfo) {
 		globals.error(cells.size()!=contexts.size() || 
 					  contexts.size()!=netlists.size(),
 					  "number of cells, contexts, and netlists must be the same");										
-		List nccLists = new ArrayList();
-		Iterator itCell, itCon, itNet;
+		List<NccNetlist> nccLists = new ArrayList<NccNetlist>();
+		Iterator<Cell> itCell;
+		Iterator<VarContext> itCon;
+		Iterator<Netlist> itNet;
 		for (itCell=cells.iterator(),
 			 itCon=contexts.iterator(),
 			 itNet=netlists.iterator(); itCell.hasNext();) {
@@ -80,7 +82,7 @@ public class NccEngine {
 		// don't blow up if no parts or wires
 		if (rec==null) return counts;
 		int i=0;
-		for (Iterator it=rec.getCircuits(); it.hasNext(); i++) {
+		for (Iterator<Circuit> it=rec.getCircuits(); it.hasNext(); i++) {
 			Circuit ckt = (Circuit) it.next();
 			counts[i] = ckt.numNetObjs();
 		}
@@ -199,8 +201,8 @@ public class NccEngine {
 		return netlistErrors;
 	}
 */    
-	private NccResult areEquivalent(List cells, List contexts, 
-					  		        List netlists, HierarchyInfo hierInfo,
+	private NccResult areEquivalent(List<Cell> cells, List<VarContext> contexts, 
+					  		        List<Netlist> netlists, HierarchyInfo hierInfo,
 					  		        boolean blackBox, 
 					  		        NccOptions options, Aborter aborter) {
 		globals = new NccGlobals(options, aborter);
@@ -211,7 +213,7 @@ public class NccEngine {
 		// black boxing is implemented by building netlists that are empty 
 		// except for their Exports.
 		Date before = new Date();
-		List nccNetlists = 
+		List<NccNetlist> nccNetlists = 
 			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
 		Date after = new Date();
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
@@ -230,20 +232,20 @@ public class NccEngine {
 									  boolean blackBox,
 									  NccOptions options,
 									  Aborter aborter) {
-		ArrayList cells = new ArrayList();
+		ArrayList<Cell> cells = new ArrayList<Cell>();
 		cells.add(cell1);
 		cells.add(cell2);
-		ArrayList contexts = new ArrayList();
+		ArrayList<VarContext> contexts = new ArrayList<VarContext>();
 		contexts.add(context1);
 		contexts.add(context2);
-		ArrayList netlists = new ArrayList();
+		ArrayList<Netlist> netlists = new ArrayList<Netlist>();
 		netlists.add(cell1.getNetlist(true));
 		netlists.add(cell2.getNetlist(true));
 				
 		return compareMany(cells, contexts, netlists, hierInfo, blackBox, 
 		                   options, aborter);
 	}
-	private static NccResult compareMany(List cells, List contexts, List netlists,
+	private static NccResult compareMany(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists,
 									     HierarchyInfo hierCompInfo,
 									     boolean blackBox, 
 									     NccOptions options, Aborter aborter) {
@@ -267,7 +269,7 @@ public class NccEngine {
 	 * use the Cell's current netlist. 
 	 * @param options NCC options
 	 */
-	public static NccResult compare(List cells, List contexts, List netlists,
+	public static NccResult compare(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists,
 	                                HierarchyInfo hierCompInfo, 
 	                                NccOptions options, Aborter aborter) {
 		return compareMany(cells, contexts, netlists, hierCompInfo, false, 

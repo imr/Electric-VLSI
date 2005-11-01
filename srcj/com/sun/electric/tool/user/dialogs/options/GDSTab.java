@@ -65,7 +65,7 @@ public class GDSTab extends PreferencePanel
 	private JList gdsLayersList;
 	private DefaultListModel gdsLayersModel;
 	private boolean changingGDS = false;
-	private HashMap layerMap;
+	private HashMap<Layer,String> layerMap;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -96,12 +96,12 @@ public class GDSTab extends PreferencePanel
 		{
 			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
 		});
-		layerMap = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		layerMap = new HashMap<Layer,String>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				String str = layer.getName();
@@ -131,7 +131,7 @@ public class GDSTab extends PreferencePanel
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
 		gdsLayersModel.clear();
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String str = (String)layerMap.get(layer);
@@ -275,10 +275,10 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = (Technology)tIt.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				String str = (String)layerMap.get(layer);
@@ -289,7 +289,7 @@ public class GDSTab extends PreferencePanel
 				if (!oldNumbers.equals(numbers))
 				{
 					String currentGDSNumbers = "";
-					for(Iterator it = numbers.getLayers(); it.hasNext(); )
+					for(Iterator<Integer> it = numbers.getLayers(); it.hasNext(); )
 					{
 						Integer layVal = (Integer)it.next();
 						int layNum = layVal.intValue() & 0xFFFF;

@@ -41,9 +41,9 @@ public class KeyStrokePair {
     /** prefix KeyStroke */                 private KeyStroke prefixStroke;
     /** primary KeyStroke */                private KeyStroke stroke;
 
-    /** cache of defined KeyStrokePairs */  private static HashMap cache = new HashMap();
+    /** cache of defined KeyStrokePairs */  private static HashMap<KeyStrokePair,KeyStrokePair> cache = new HashMap<KeyStrokePair,KeyStrokePair>();
     /** separator for toString() */         private static final String sep = ", ";
-    /** list of special keyStrokes */       private static List specialKeyStrokes = new ArrayList();
+    /** list of special keyStrokes */       private static List<KeyStroke> specialKeyStrokes = new ArrayList<KeyStroke>();
 
     private KeyStrokePair() {}
 
