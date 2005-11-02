@@ -98,7 +98,7 @@ public class DRCTemplate
         /** Y contact cut surround rule */	CUTSURY (19),
         /** arc surround rule */			ASURROUND (20),
         /** minimum area rule */			MINAREA (21),
-        /** enclosed area rule */			ENCLOSEDAREA (22),
+        /** enclosed area rule */			MINENCLOSEDAREA (22),
         /** extension rule */               EXTENSION (23),
         /** forbidden rule */               FORBIDDEN (24),
         /** layer combination rule */       COMBINATION (25),
@@ -334,7 +334,7 @@ public class DRCTemplate
 
     public static void exportDRCDeck(String fileName, Technology tech)
     {
-        DRCTemplate[] rules = tech.getDRCDeck();
+        List<DRCTemplate> rules = tech.getDRCDeck();
         DRCMode foundry = tech.getFoundry();
 
         try
@@ -347,18 +347,19 @@ public class DRCTemplate
             out.println("-->");
             out.println("<!DOCTYPE DRCRules SYSTEM \"DRC.dtd\">");
             out.println("<DRCRules>");
-            out.println("\t<Foundry name=\"" + foundry.name() + "\">");
+            out.println("    <Foundry name=\"" + foundry.name() + "\">");
 
-            for (int i = 0; i < rules.length; i++)
+            for (int i = 0; i < rules.size(); i++)
             {
+                DRCTemplate rule = rules.get(i);
 //                if ((rules[i].when & foundry.mode()) == 0) continue;
-                if (!isRuleValidInFoundry(tech, foundry, rules[i])) continue;
+                if (!isRuleValidInFoundry(tech, foundry, rule)) continue;
 
                 String whenName = null;
                 for (DRCMode p : DRCMode.values())
                 {
                     if (p == DRCMode.NONE || p == DRCMode.MOSIS || p == DRCMode.TSMC || p == DRCMode.ST) continue;
-                    if ((p.mode() & rules[i].when) != 0)
+                    if ((p.mode() & rule.when) != 0)
                     {
                         if (whenName == null) // first element
                             whenName = "";
@@ -368,24 +369,25 @@ public class DRCTemplate
                     }
                 }
                 if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
-                switch(rules[i].ruleType)
+                switch(rule.ruleType)
                 {
                     case MINWID:
                     case MINAREA:
-                        out.println("\t\t<LayerRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " layerName=\"" + rules[i].name1 + "\""
-                                + " type=\""+rules[i].ruleType+"\""
+                    case MINENCLOSEDAREA:
+                        out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerName=\"" + rule.name1 + "\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
+                                + " value=\"" + rule.value1 + "\""
                                 + "/>");
                         break;
                     case VIASUR:
-                        out.println("\t\t<LayerRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " layerName=\"" + rules[i].name1 + "\""
-                                + " type=\""+rules[i].ruleType+"\""
+                        out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerName=\"" + rule.name1 + "\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
-                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + " value=\"" + rule.value1 + "\""
+                                + " nodeName=\"" + rule.nodeName + "\""
                                 + "/>");
                         break;
                     case UCONSPA:
@@ -393,42 +395,43 @@ public class DRCTemplate
                     case SPACING:
                     case SPACINGM:
                     case SPACINGE:
-                        String noName = (rules[i].nodeName != null) ? (" nodeName=\"" + rules[i].nodeName + "\"") : "";
-                        out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
-                                + " type=\""+rules[i].ruleType+"\""
+                    case COMBINATION:
+                        String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
+                        out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
+                                + " value=\"" + rule.value1 + "\""
                                 + noName
                                 + "/>");
                         break;
                     case SPACINGW:
-                        out.println("\t\t<LayersRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
-                                + " type=\""+rules[i].ruleType+"\""
+                        out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
-                                + " maxW=\"" + rules[i].maxWidth + "\""
-                                + " minLen=\"" + rules[i].minLength + "\""
+                                + " value=\"" + rule.value1 + "\""
+                                + " maxW=\"" + rule.maxWidth + "\""
+                                + " minLen=\"" + rule.minLength + "\""
                                 + "/>");
                         break;
                     case SURROUND:
                     case ASURROUND:
-                        out.println("\t\t<NodeLayersRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " layerNames=\"{" + rules[i].name1 + "," + rules[i].name2 + "}\""
-                                + " type=\""+rules[i].ruleType+"\""
+                        out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
-                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + " value=\"" + rule.value1 + "\""
+                                + " nodeName=\"" + rule.nodeName + "\""
                                 + "/>");
                         break;
                     case TRAWELL:
                     case TRAPOLY:
                     case TRAACTIVE:
-                        out.println("\t\t<NodeRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " type=\""+rules[i].ruleType+"\""
+                        out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
+                                + " value=\"" + rule.value1 + "\""
                                 + "/>");
                         break;
                     case NODSIZ:
@@ -436,15 +439,15 @@ public class DRCTemplate
                     case CUTSPA:
                     case CUTSPA2D:
                     case CUTSIZE:
-                        out.println("\t\t<NodeRule ruleName=\"" + rules[i].ruleName + "\""
-                                + " type=\""+rules[i].ruleType+"\""
+                        out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                                + " type=\""+rule.ruleType+"\""
                                 + " when=\"" + whenName + "\""
-                                + " value=\"" + rules[i].value1 + "\""
-                                + " nodeName=\"" + rules[i].nodeName + "\""
+                                + " value=\"" + rule.value1 + "\""
+                                + " nodeName=\"" + rule.nodeName + "\""
                                 + "/>");
                         break;
                     default:
-                        System.out.println("Case not implemented " + rules[i].ruleType);
+                        System.out.println("Case not implemented " + rule.ruleType);
                         ;
                 }
             }

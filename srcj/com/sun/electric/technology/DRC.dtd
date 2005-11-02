@@ -12,7 +12,7 @@
  <!ATTLIST LayerRule
     ruleName CDATA #REQUIRED
     layerName CDATA #REQUIRED
-    type (MINWID | MINAREA | VIASUR) #REQUIRED
+    type (MINWID | MINAREA | MINENCLOSEDAREA | VIASUR) #REQUIRED
     when CDATA #REQUIRED
     value CDATA #REQUIRED
     nodeName CDATA #IMPLIED
@@ -20,12 +20,13 @@
  <!ATTLIST LayersRule
     ruleName CDATA #REQUIRED
     layerNames CDATA #REQUIRED
-    type (CONSPA | UCONSPA | SPACING | SPACINGM | SPACINGW | SPACINGE) #REQUIRED
+    type (CONSPA | UCONSPA | SPACING | SPACINGM | SPACINGW | SPACINGE | COMBINATION) #REQUIRED
     when CDATA #REQUIRED
     value CDATA #REQUIRED
     maxW CDATA #IMPLIED
     minLen CDATA #IMPLIED    
     nodeName CDATA #IMPLIED
+    multiCut (true | false) "false"
  >
  <!ATTLIST NodeLayersRule
     ruleName CDATA #REQUIRED

@@ -3471,7 +3471,7 @@ public class Technology implements Comparable<Technology>
      * Method to get the DRC deck containing rules
      * @return
      */
-    public DRCTemplate [] getDRCDeck() { return new DRCTemplate [0]; }
+    public List<DRCTemplate> getDRCDeck() { return null; }
 
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.

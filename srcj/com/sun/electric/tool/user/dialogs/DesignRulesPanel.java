@@ -317,7 +317,7 @@ public class DesignRulesPanel extends JPanel
         minSize = TextUtils.atof(minSizeText);
         minSizeRuleName = drLayerEAreaRule.getText().trim();
 		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.ENCLOSEDAREA, foundry);
+            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry);
     }
 
 	/**
@@ -428,7 +428,7 @@ public class DesignRulesPanel extends JPanel
 		}
 
         // Show min enclosure area
-        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.ENCLOSEDAREA, foundry);
+        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry);
 		if (lr != null)
 		{
 			drLayerEnclosure.setText(TextUtils.formatDouble(lr.value1));
