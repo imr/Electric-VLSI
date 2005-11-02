@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -1247,7 +1248,7 @@ public class EditMenu {
 			System.out.println("Cannot remove selected signals from the waveform window: no waveform window is associated with this cell");
 			return;
 		}
-		Set nets = wnd.getHighlighter().getHighlightedNetworks();
+		Set<Network> nets = wnd.getHighlighter().getHighlightedNetworks();
 		ww.removeSignals(nets, wwLoc.getContext());
 	}
 

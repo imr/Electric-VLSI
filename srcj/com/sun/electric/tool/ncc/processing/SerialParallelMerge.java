@@ -88,12 +88,12 @@ public class SerialParallelMerge {
 	 * parallel merges are performed.
 	 * @param parts Collection of Parts to merge in parallel
 	 * @return the count of Parts actually merged */
-	private int parallelMergeAllCandidatesInSet(Collection parts) {
+	private int parallelMergeAllCandidatesInSet(Collection<Part> parts) {
 		int numMerged = 0;
 		// Linked list allows O(1) remove()
-		LinkedList pts = new LinkedList(parts);
+		LinkedList<Part> pts = new LinkedList<Part>(parts);
 		while (true) {
-			Iterator it= pts.iterator();
+			Iterator<Part> it= pts.iterator();
 			if (!it.hasNext()) break;
 			Part first= (Part)it.next();
 			it.remove();			
@@ -108,10 +108,10 @@ public class SerialParallelMerge {
 		return numMerged;
 	}
 	
-	private int parallelMergeEachSetInMap(Map map) {
+	private int parallelMergeEachSetInMap(Map<Integer,Set<Part>> map) {
 		int numMerged = 0;
-		for(Iterator it=map.keySet().iterator(); it.hasNext();){
-			Set j= (Set) map.get(it.next());
+		for(Iterator<Integer> it=map.keySet().iterator(); it.hasNext();){
+			Set<Part> j= (Set<Part>) map.get(it.next());
 			numMerged += parallelMergeAllCandidatesInSet(j);
 		}
 		return numMerged;
@@ -121,15 +121,15 @@ public class SerialParallelMerge {
 	// Tricky: Set removes duplicate Parts on Wire.parts list
     private int parallelMergePartsOnWire(Wire w) {
     	if (w.isDeleted()) return 0;
-		HashMap  map = new HashMap();
+		HashMap<Integer,Set<Part>>  map = new HashMap<Integer,Set<Part>>();
 		
-		for (Iterator it=w.getParts(); it.hasNext();) {
+		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
 			Part p = (Part)it.next();
 			if (p.isDeleted()) continue;
 			Integer code = p.hashCodeForParallelMerge();
-			Set set = (Set) map.get(code);
+			Set<Part> set = (Set<Part>) map.get(code);
 			if (set==null) {
-				set= new HashSet();
+				set= new HashSet<Part>();
 				map.put(code,set);
 			}
 			set.add(p);
@@ -142,9 +142,9 @@ public class SerialParallelMerge {
 		EquivRecord er = globals.getWires();
 		if (er!=null) {
 			// don't blow up if no wires
-			for (Iterator it=er.getCircuits(); it.hasNext();) {
+			for (Iterator<Circuit> it=er.getCircuits(); it.hasNext();) {
 				Circuit ckt = (Circuit) it.next();
-				for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
+				for (Iterator<NetObject> ni=ckt.getNetObjs(); ni.hasNext();) {
 					Wire w = (Wire) ni.next();
 					numMerged += parallelMergePartsOnWire(w);
 				}
@@ -156,7 +156,7 @@ public class SerialParallelMerge {
 	
 	private int countUndeletedParts(EquivRecord parts) {
 		int numParts = 0;
-		for (Iterator it=parts.getCircuits(); it.hasNext();) {
+		for (Iterator<Circuit> it=parts.getCircuits(); it.hasNext();) {
 			Circuit ckt = (Circuit) it.next();
 			numParts += ckt.numUndeletedNetObjs();
 		}
@@ -194,7 +194,7 @@ public class SerialParallelMerge {
 
 	private static void putInFinalForm(EquivRecord er) {
 		if (er==null) return;
-		for (Iterator it=er.getCircuits(); it.hasNext();) {
+		for (Iterator<Circuit> it=er.getCircuits(); it.hasNext();) {
 			((Circuit)it.next()).putInFinalForm();
 		}
 	}

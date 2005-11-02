@@ -79,10 +79,8 @@ public class NewLocalPartitionWires {
 	}
 	
 	// Sort PinTypeCounts by PinType name
-	private static class PinTypeCompare implements Comparator {
-		public int compare(Object o1, Object o2) {
-			PinTypeCount c1 = (PinTypeCount) o1;
-			PinTypeCount c2 = (PinTypeCount) o2;
+	private static class PinTypeCompare implements Comparator<PinTypeCount> {
+		public int compare(PinTypeCount c1, PinTypeCount c2) {
 			String n1 = c1.pinType.description();
 			String n2 = c2.pinType.description();
 			return TextUtils.STRING_NUMBER_ORDER.compare(n1, n2);
@@ -90,12 +88,12 @@ public class NewLocalPartitionWires {
 	}
 	
 	public static class Signature {
-		private Map pinTypeToPinTypeCount = new HashMap();
+		private Map<PinType,PinTypeCount> pinTypeToPinTypeCount = new HashMap<PinType,PinTypeCount>();
 		// Note: id isn't supposed to be used by equals()
 		private Integer id;
 		private List<PinTypeCount> getListOfPinTypeCounts() {
 			List<PinTypeCount> l = new ArrayList<PinTypeCount>();
-			for (Iterator it=pinTypeToPinTypeCount.keySet().iterator(); 
+			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
 			     it.hasNext();) {
 				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(it.next());
 				l.add(c);
@@ -105,7 +103,7 @@ public class NewLocalPartitionWires {
 		
 		public int hashCode() {
 			int code = 0;
-			for (Iterator it=pinTypeToPinTypeCount.keySet().iterator(); 
+			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
 				 it.hasNext();) {
 				PinType t = (PinType) it.next();
 				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(t);
@@ -118,7 +116,7 @@ public class NewLocalPartitionWires {
 			Signature s2 = (Signature) o;
 			if (pinTypeToPinTypeCount.size()!=s2.pinTypeToPinTypeCount.size())
 				return false;
-			for (Iterator it=pinTypeToPinTypeCount.keySet().iterator(); 
+			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
 			     it.hasNext();) {
 				PinType t = (PinType) it.next();
 				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(t);
@@ -161,7 +159,7 @@ public class NewLocalPartitionWires {
 		}
 	}
 	private static class ComputeSignatures extends Strategy {
-		private Map wireToSignature = new HashMap();
+		private Map<Wire,Signature> wireToSignature = new HashMap<Wire,Signature>();
 		private Signature disconnectedWireSignature = new Signature();
 
 		// Set signatures for Wires with nothing attached 
@@ -174,7 +172,7 @@ public class NewLocalPartitionWires {
 		// Compute signatures for all Wires attached to PortInsts
 		private void doFor(Part p) {
 			int pinNdx=0;
-			for (Iterator itw=p.getConnected(); itw.hasNext(); pinNdx++) {
+			for (Iterator<Wire> itw=p.getConnected(); itw.hasNext(); pinNdx++) {
 				Wire w = (Wire) itw.next();
 				PinType t = p.getPinTypeOfNthPin(pinNdx);
 				Signature s = (Signature) wireToSignature.get(w);
@@ -197,7 +195,7 @@ public class NewLocalPartitionWires {
 		
 		private ComputeSignatures(NccGlobals globs) {super(globs);}
 		
-		private Map doYourJob2() {
+		private Map<Wire,Signature> doYourJob2() {
 			EquivRecord root = globals.getRoot();
 			
 			// don't blow up if no Parts Wires or Ports
@@ -207,17 +205,17 @@ public class NewLocalPartitionWires {
 		}
 		
 		// Calculate a signature for each Wire
-		public static Map doYourJob(NccGlobals globs) {
+		public static Map<Wire,Signature> doYourJob(NccGlobals globs) {
 			return (new ComputeSignatures(globs)).doYourJob2();
 		}
 	}
 	
 	// If two Signatures are != but are .equals() then discard one of them.
 	// Assign each remaining Signature a unique Integer ID.
-	private void cannonizeSignatures(Map wireToSignature) {
-		Map signatures = new HashMap();
+	private void cannonizeSignatures(Map<Wire,Signature> wireToSignature) {
+		Map<Signature,Signature> signatures = new HashMap<Signature,Signature>();
 		int sigID = 0;
-		for (Iterator it=wireToSignature.keySet().iterator(); it.hasNext();) {
+		for (Iterator<Wire> it=wireToSignature.keySet().iterator(); it.hasNext();) {
 			Wire w = (Wire) it.next();
 			Signature s = (Signature) wireToSignature.get(w);
 
@@ -233,9 +231,9 @@ public class NewLocalPartitionWires {
 	}
 	
 	private static class LocalPartitionWires extends Strategy {
-		private Map wireToSignature;
+		private Map<Wire,Signature> wireToSignature;
 
-		private LocalPartitionWires(Map wireToSignature, NccGlobals globals) {
+		private LocalPartitionWires(Map<Wire,Signature> wireToSignature, NccGlobals globals) {
 			super(globals);
 			this.wireToSignature = wireToSignature;
 		}
@@ -246,7 +244,7 @@ public class NewLocalPartitionWires {
 			return s.getID();
 		}
 		
-		public static void doYourJob(Map wireToSignature, NccGlobals globs) {
+		public static void doYourJob(Map<Wire,Signature> wireToSignature, NccGlobals globs) {
 			(new LocalPartitionWires(wireToSignature, globs))
 				.doFor(globs.getWires());
 		}
@@ -254,7 +252,7 @@ public class NewLocalPartitionWires {
 
 	// Add a signature to each Wire partition
 	private static class SignPartitions extends Strategy {
-		private Map wireToSignature;
+		private Map<Wire,Signature> wireToSignature;
 		// Pass signature from doFor(NetObject) to doFor(EquivRecord)
 		private Signature lastSignature;
 		
@@ -267,11 +265,11 @@ public class NewLocalPartitionWires {
 			lastSignature = (Signature) wireToSignature.get(no); 
 			return Strategy.CODE_NO_CHANGE;
 		}
-		private SignPartitions(Map wireToSignature, NccGlobals globs) {
+		private SignPartitions(Map<Wire,Signature> wireToSignature, NccGlobals globs) {
 			super(globs);
 			this.wireToSignature = wireToSignature;
 		}
-		public static void doYourJob(Map wireToSignature, NccGlobals globs) {
+		public static void doYourJob(Map<Wire,Signature> wireToSignature, NccGlobals globs) {
 			(new SignPartitions(wireToSignature, globs))
 				.doFor(globs.getWires());
 		}
@@ -283,7 +281,7 @@ public class NewLocalPartitionWires {
 		EquivRecord wires = globals.getWires();
 		if (wires==null) return; // don't blow up if no Wires
 		
-		Map wireToSignature = ComputeSignatures.doYourJob(globals);
+		Map<Wire,Signature> wireToSignature = ComputeSignatures.doYourJob(globals);
 		cannonizeSignatures(wireToSignature);
 		
 		LocalPartitionWires.doYourJob(wireToSignature, globals);

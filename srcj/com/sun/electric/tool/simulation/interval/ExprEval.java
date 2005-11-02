@@ -38,15 +38,14 @@ import java.util.LinkedList;
 
 public class ExprEval {
 
-    private LinkedList el = new LinkedList();
-    //private LinkedList<Expr> el = new LinkedList<Expr>();
+    private LinkedList<Expr> el = new LinkedList<Expr>();
     private boolean printDetailed = false;
     boolean hasBoth = false;
 
     public void printAll( boolean detailed )
     {
 		printDetailed = detailed;
-		for(Iterator itr = el.iterator(); itr.hasNext();) {
+		for(Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
 			Expr e = (Expr)itr.next();
 			//if (bp->_opref <= 0 || !detailed && (bp->_opref <= 1 || bp->isConst())) continue;
 			System.out.println(/*"[" + e._opref + "] " +*/ (e.name != null ? e.name : "_") + "." + e.id + " = " + e);
@@ -56,7 +55,7 @@ public class ExprEval {
 
     public void calcAll()
     {
-		for (Iterator itr = el.iterator(); itr.hasNext();) {
+		for (Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
 			Expr e = (Expr)itr.next();
 			//if (bp->_opref == 0) continue;
 			e.calcVal();
@@ -70,7 +69,7 @@ public class ExprEval {
     {
 		hasBoth = false;
 		//setFpu( true );
-		for (Iterator itr = el.iterator(); itr.hasNext();) {
+		for (Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
 			Expr e = (Expr)itr.next();
 			//if (bp->_opref == 0) continue;
 			e.calcInterval();

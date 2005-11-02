@@ -37,6 +37,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -56,7 +57,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 	}
 
 	private void createArcs(FlatInfo info) {
-		for (Iterator it = info.getCell().getArcs(); it.hasNext();) {
+		for (Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();) {
 			ArcInst ai = (ArcInst) it.next();
 
 			// find flat PortInst and location
@@ -81,7 +82,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 
 		if (parentInst == null) return; // root Cell has no parent
 
-		for (Iterator it = info.getCell().getPorts(); it.hasNext();) {
+		for (Iterator<PortProto> it = info.getCell().getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			PortInst hierPort = e.getOriginalPort();
 			PortInst flatPort = info.getFlatPort(hierPort);
@@ -94,7 +95,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 	// Add the root's Exports to the Flattened Cell
 	private void addRootExportsToFlatCell(FlatInfo info) {
 		Cell root = info.getCell();
-		for (Iterator it = root.getPorts(); it.hasNext();) {
+		for (Iterator<PortProto> it = root.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			PortInst p = info.getFlatPort(e.getOriginalPort());
 			Export eRoot = Export.newInstance(flatCell, p, e.getName());
@@ -155,7 +156,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 				NodeInst ni2 =
 					NodeInst.newInstance(np, new Point2D.Double(0, 0), 1, 1, flatCell);
 //				ni2.setPositionFromTransform(at);
-				for (Iterator it = ni.getPortInsts(); it.hasNext();) {
+				for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext();) {
 					PortInst pi = (PortInst) it.next();
 					PortInst pi2 = ni2.findPortInst(pi.getPortProto().getName());
 					info.mapHierPortToFlatPort(pi, pi2);
@@ -167,7 +168,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 }
 
 class FlatInfo extends HierarchyEnumerator.CellInfo {
-	private Map hierPortToFlatPort = new HashMap();
+	private Map<PortInst,PortInst> hierPortToFlatPort = new HashMap<PortInst,PortInst>();
 
 	public void mapHierPortToFlatPort(PortInst hier, PortInst flat) {
 		hierPortToFlatPort.put(hier, flat);

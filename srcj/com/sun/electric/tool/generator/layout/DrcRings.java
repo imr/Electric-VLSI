@@ -50,8 +50,8 @@ public class DrcRings {
 		
         double spacing = stdCell.getDRCRingSpacing();
 		// record original gates to avoid putting DrcRings around DrcRings
-		ArrayList gates = new ArrayList();
-		for (Iterator it=gallery.getNodes(); it.hasNext();) {
+		ArrayList<NodeInst> gates = new ArrayList<NodeInst>();
+		for (Iterator<NodeInst> it=gallery.getNodes(); it.hasNext();) {
 			 gates.add(it.next()); 
 		} 
 		

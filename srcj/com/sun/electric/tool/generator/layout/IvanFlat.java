@@ -37,6 +37,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -85,7 +86,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 	
 	void writeExports(HierarchyEnumerator.CellInfo info) {
 		Cell rootCell = info.getCell();
-		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
+		for (Iterator<PortProto> it=rootCell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			Network net = info.getNetlist().getNetwork(e, 0);
 			int netId = info.getNetID(net);
@@ -142,7 +143,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void dumpVariables(NodeInst ni) {
-		for (Iterator it=ni.getVariables(); it.hasNext();) {
+		for (Iterator<Variable> it=ni.getVariables(); it.hasNext();) {
 			Variable v = (Variable)it.next();
 			System.out.println("    "+v.getKey()+" = "+v.getObject());
 		}

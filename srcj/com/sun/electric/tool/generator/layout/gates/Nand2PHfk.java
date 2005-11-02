@@ -66,7 +66,7 @@ public class Nand2PHfk {
 											  0, 0, -1, 1, 0, nand);
 		NodeInst inv1 = LayoutLib.newNodeInst(Inv.makePart(1, stdCell),
 											  0, 0, 1, 1, 0, nand);
-		ArrayList l = new ArrayList();
+		ArrayList<NodeInst> l = new ArrayList<NodeInst>();
 		l.add(inv2i);
 		l.add(pms1);
 		l.add(invK);

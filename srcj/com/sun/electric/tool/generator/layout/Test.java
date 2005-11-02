@@ -52,7 +52,7 @@ public class Test extends Job {
 		System.out.println("num net indices: "+numNetIndices);
 		for (int i=0; i<numNetIndices; i++) {
 			Network jn = nl.getNetwork(i);
-			Iterator ni = jn.getNames();
+			Iterator<String> ni = jn.getNames();
 			if (ni.hasNext()) {
 				System.out.println("    net: "+((String)ni.next()));
 			} else {

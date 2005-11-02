@@ -1093,7 +1093,7 @@ public class ToolMenu {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
 
-        HashSet nets = (HashSet)wnd.getHighlighter().getHighlightedNetworks();
+        HashSet<Network> nets = (HashSet<Network>)wnd.getHighlighter().getHighlightedNetworks();
         if (nets.isEmpty())
         {
             System.out.println("No network in " + cell + " selected");

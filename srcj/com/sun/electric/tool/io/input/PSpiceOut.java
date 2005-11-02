@@ -81,7 +81,7 @@ public class PSpiceOut extends Simulate
 		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 		AnalogSignal [] signals = null;
-		List [] values = null;
+		List<Double> [] values = null;
 		int numSignals = 0;
 		for(;;)
 		{
@@ -124,7 +124,7 @@ public class PSpiceOut extends Simulate
 						signals[i-1] = new AnalogSignal(sd);
 						signals[i-1].setSignalName((String)signalNames.get(i));
 					}
-					values[i] = new ArrayList();
+					values[i] = new ArrayList<Double>();
 				}
 				continue;
 			}

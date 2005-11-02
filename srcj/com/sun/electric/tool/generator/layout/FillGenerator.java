@@ -193,10 +193,10 @@ class MetalLayer implements VddGndStraps {
 	private final int layerNum;
 	private final PrimitiveNode pin;
 	private final ArcProto metal;
-	private ArrayList vddPorts = new ArrayList();
-	private ArrayList gndPorts = new ArrayList();
-	private ArrayList vddCenters = new ArrayList();
-	private ArrayList gndCenters = new ArrayList();
+	private ArrayList<PortInst> vddPorts = new ArrayList<PortInst>();
+	private ArrayList<PortInst> gndPorts = new ArrayList<PortInst>();
+	private ArrayList<Double> vddCenters = new ArrayList<Double>();
+	private ArrayList<Double> gndCenters = new ArrayList<Double>();
 
 	private void buildGnd(MetalFloorplan plan, Cell cell) {
 		double pinX, pinY;
@@ -817,7 +817,7 @@ class FillCell {
 }
 
 class Router {
-	private HashMap portMap = new HashMap();
+	private HashMap<String,List<PortInst>> portMap = new HashMap<String,List<PortInst>>();
 	private String makeKey(PortInst pi) {
 		String x = ""+LayoutLib.roundCenterX(pi);
 		String y = ""+LayoutLib.roundCenterY(pi);
@@ -837,34 +837,34 @@ class Router {
 		}
 		return null;
 	}
-	private void connectPorts(List ports) {
-		for (Iterator it=ports.iterator(); it.hasNext(); ) {
+	private void connectPorts(List<PortInst> ports) {
+		for (Iterator<PortInst> it=ports.iterator(); it.hasNext(); ) {
 			PortInst first = (PortInst) it.next();
 			double width = LayoutLib.widestWireWidth(first);
 			it.remove();
-			for (Iterator it2=ports.iterator(); it2.hasNext();) {
+			for (Iterator<PortInst> it2=ports.iterator(); it2.hasNext();) {
 				PortInst pi = (PortInst) it2.next();
 				ArcProto a = findCommonArc(first, pi);
 				if (a!=null)  LayoutLib.newArcInst(a, width, first, pi);
 			}
 		}
 	}
-	private Router(ArrayList ports) {
-		for (Iterator it=ports.iterator(); it.hasNext();) {
+	private Router(ArrayList<PortInst> ports) {
+		for (Iterator<PortInst> it=ports.iterator(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			String key = makeKey(pi);
-			List l = (List) portMap.get(key);
+			List<PortInst> l = (List<PortInst>) portMap.get(key);
 			if (l==null) {
-				l = new LinkedList();
+				l = new LinkedList<PortInst>();
 				portMap.put(key, l);
 			}
 			l.add(pi);
 		}
-		for (Iterator it=portMap.keySet().iterator(); it.hasNext();) {
-			connectPorts((List)portMap.get(it.next()));
+		for (Iterator<String> it=portMap.keySet().iterator(); it.hasNext();) {
+			connectPorts((List<PortInst>)portMap.get(it.next()));
 		}
 	}
-	public static void connectCoincident(ArrayList ports) {
+	public static void connectCoincident(ArrayList<PortInst> ports) {
 		new Router(ports);
 	}
 }
@@ -885,7 +885,7 @@ class TiledCell {
 		return n==0 ? gndNm : gndNm+"_"+n;
 	}
 
-	private static class OrderPortInstsByName implements Comparator {
+	private static class OrderPortInstsByName implements Comparator<PortInst> {
 		private String base(String s) {
 			int under = s.indexOf("_");
 			if (under==-1) return s;
@@ -897,9 +897,7 @@ class TiledCell {
 			String num = s.substring(under+1, s.length());
 			return Integer.parseInt(num);
 		}
-		public int compare(Object o1, Object o2) {
-			PortInst p1 = (PortInst) o1;
-			PortInst p2 = (PortInst) o2;
+		public int compare(PortInst p1, PortInst p2) {
 			String n1 = p1.getPortProto().getName();
 			String n2 = p2.getPortProto().getName();
 			String base1 = base(n1);
@@ -913,12 +911,12 @@ class TiledCell {
 			}
 		}
 	}
-	private ArrayList getAllPortInsts(Cell cell) {
+	private ArrayList<PortInst> getAllPortInsts(Cell cell) {
 		// get all the ports
-		ArrayList ports = new ArrayList();
-		for (Iterator it=cell.getNodes(); it.hasNext();) {
+		ArrayList<PortInst> ports = new ArrayList<PortInst>();
+		for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst) it.next();
-			for (Iterator pIt=ni.getPortInsts(); pIt.hasNext();) {
+			for (Iterator<PortInst> pIt=ni.getPortInsts(); pIt.hasNext();) {
 				PortInst pi = (PortInst) pIt.next();
 				ports.add(pi);
 			}
@@ -938,10 +936,10 @@ class TiledCell {
 	}
 	/** return a list of all PortInsts of ni that aren't connected to 
 	 * something. */
-	private ArrayList getUnconnectedPortInsts(int orientation, NodeInst ni) {
+	private ArrayList<PortInst> getUnconnectedPortInsts(int orientation, NodeInst ni) {
 		Rectangle2D bounds = ni.findEssentialBounds();
-		ArrayList ports = new ArrayList();
-		for (Iterator it=ni.getPortInsts(); it.hasNext();) {
+		ArrayList<PortInst> ports = new ArrayList<PortInst>();
+		for (Iterator<PortInst> it=ni.getPortInsts(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			Iterator conns = pi.getConnections();
 			if (!conns.hasNext() && orientation(bounds,pi)==orientation) {
@@ -950,10 +948,10 @@ class TiledCell {
 		}
 		return ports;
 	}
-	private void exportPortInsts(List ports, Cell tiled,
+	private void exportPortInsts(List<PortInst> ports, Cell tiled,
 								 StdCellParams stdCell) {
 		Collections.sort(ports, new OrderPortInstsByName());
-		for (Iterator it=ports.iterator(); it.hasNext();) {
+		for (Iterator<PortInst> it=ports.iterator(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			PortProto pp = (PortProto) pi.getPortProto();
 			PortCharacteristic role = pp.getCharacteristic(); 
@@ -1000,7 +998,7 @@ class TiledCell {
 			for (int row=0; row<rows.length; row++) {
 				for (int col=0; col<rows[row].length; col++) {
 					if (orientation!=INTERIOR || row==col) {
-						List ports = 
+						List<PortInst> ports = 
 							getUnconnectedPortInsts(orientation, rows[row][col]);
 						exportPortInsts(ports, tiled, stdCell);
 					} 
@@ -1053,7 +1051,7 @@ class TiledCell {
 			}
 			y += cellH;
 		}
-		ArrayList portInsts = getAllPortInsts(tiled);
+		ArrayList<PortInst> portInsts = getAllPortInsts(tiled);
 		Router.connectCoincident(portInsts);
 		exportUnconnectedPortInsts(rows, plans, tiled, stdCell);
 		addEssentialBounds(cellW, cellH, numX, numY, tiled);

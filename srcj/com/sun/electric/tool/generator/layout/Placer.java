@@ -40,8 +40,8 @@ class Placer {
 	private Cell part;
 	private double rowHeight;
 	
-	private ArrayList buildInsts = new ArrayList();
-	private ArrayList buildNets = new ArrayList();
+	private ArrayList<Inst> buildInsts = new ArrayList<Inst>();
+	private ArrayList<Net> buildNets = new ArrayList<Net>();
 	
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
@@ -58,9 +58,10 @@ class Placer {
 	private static class PermChecker implements PermutationAction {
 		int[] bestPermutation = null;
 		double bestCost = Double.MAX_VALUE;
-		ArrayList insts, nets;
+		ArrayList<Inst> insts;
+		ArrayList<Net> nets;
 		double leftX;
-		ArrayList permInsts = new ArrayList();
+		ArrayList<Inst> permInsts = new ArrayList<Inst>();
 		long nbChecked, maxPerms;
 		
 		private void abutLeftRight(int[] permutation) {
@@ -153,13 +154,13 @@ class Placer {
 			return prune;
 		}
 		private double getBestCost() {return bestCost;}
-		private ArrayList getBestPermutation() {
-			ArrayList best = new ArrayList();
+		private ArrayList<Inst> getBestPermutation() {
+			ArrayList<Inst> best = new ArrayList<Inst>();
 			for (int i=0; i<bestPermutation.length; i++)
 				best.add(insts.get(bestPermutation[i]));
 			return best;
 		}
-		PermChecker(ArrayList insts, ArrayList nets, double leftX,
+		PermChecker(ArrayList<Inst> insts, ArrayList<Net> nets, double leftX,
 					int maxPerms) {
 			this.insts=insts;  this.nets=nets;  this.leftX=leftX;
 			this.maxPerms=maxPerms; nbChecked=0;
@@ -169,13 +170,13 @@ class Placer {
 	}
 	
 	// ------------------------ Private methods ------------------------
-	private static void updateElectric(ArrayList insts, double rowHeight) {
+	private static void updateElectric(ArrayList<Inst> insts, double rowHeight) {
 		for (int i=0; i<insts.size(); i++) {
 			((Inst)insts.get(i)).updateElectric(rowHeight);
 		}
 	}
 	
-	private static void abutLeftRight(double leftX, ArrayList insts) {
+	private static void abutLeftRight(double leftX, ArrayList<Inst> insts) {
 		double pX=leftX, nX=leftX;
 		for (int i=0; i<insts.size(); i++) {
 			Inst inst = (Inst) insts.get(i);
@@ -196,14 +197,14 @@ class Placer {
 		}
 	}
 	
-	private static double getCostX(ArrayList nets) {
+	private static double getCostX(ArrayList<Net> nets) {
 		double cost = 0;
 		for (int i=0; i<nets.size(); i++) {
 			cost += ((Net)nets.get(i)).getCostX();
 		}
 		return cost;
 	}
-	private static double getCost2row(ArrayList nets) {
+	private static double getCost2row(ArrayList<Net> nets) {
 		double cost = 0;
 		for (int i=0; i<nets.size(); i++) {
 			cost += ((Net)nets.get(i)).getCost2row();
@@ -213,7 +214,7 @@ class Placer {
 	
 	// Any ports to the right of maxX are unplaced. Compute the cost as
 	// if they are all at maxX.
-	private static double getPlacedCostX(ArrayList nets, double maxX) {
+	private static double getPlacedCostX(ArrayList<Net> nets, double maxX) {
 		double cost = 0;
 		for (int i=0; i<nets.size(); i++) {
 			cost += ((Net)nets.get(i)).getPlacedCostX(maxX);
@@ -262,11 +263,11 @@ class Placer {
 	}
 	
 	// try every permutation: exponential
-	private static ArrayList exhaustive(ArrayList insts, ArrayList nets,
+	private static ArrayList<Inst> exhaustive(ArrayList<Inst> insts, ArrayList<Net> nets,
 										double leftX, int maxPerms) {
 		PermChecker checker = new PermChecker(insts, nets, leftX, maxPerms);
 		int nbGates = insts.size();
-		if (nbGates==0) return new ArrayList();
+		if (nbGates==0) return new ArrayList<Inst>();
 		if (VERBOSE) {
 			System.out.print("Number of gates: "+nbGates);
 			System.out.println(", Number of permutations: "+
@@ -278,7 +279,7 @@ class Placer {
 	
 	// The distance between ties should be no more than maxDist.  The
 	// distance from the edge to the closest tie should be maxDist/2.
-	private static ArrayList insertWellTies(ArrayList insts,
+	private static ArrayList<Inst> insertWellTies(ArrayList<Inst> insts,
 											StdCellParams stdCell, Cell part) {
 		// In order to patch right most well gaps, add a full height dummy
 		// instance at the end.  Remove it after we're done.
@@ -372,10 +373,10 @@ class Placer {
 		return insts;
 	}
 	
-	private static ArrayList threeRegionPlace(ArrayList insts, ArrayList nets,
+	private static ArrayList<Inst> threeRegionPlace(ArrayList<Inst> insts, ArrayList<Net> nets,
 											  int maxPerms) {
-		ArrayList nInsts=new ArrayList(),  pInsts=new ArrayList(),
-			pnInsts=new ArrayList();
+		ArrayList<Inst> nInsts=new ArrayList<Inst>(),  pInsts=new ArrayList<Inst>(),
+			pnInsts=new ArrayList<Inst>();
 		for (int i=0; i<insts.size(); i++) {
 			Inst inst = (Inst) insts.get(i);
 			if (inst.isN()) {
@@ -386,7 +387,7 @@ class Placer {
 				pnInsts.add(inst);
 			}
 		}
-		ArrayList allInsts = new ArrayList(pnInsts);
+		ArrayList<Inst> allInsts = new ArrayList<Inst>(pnInsts);
 		allInsts.addAll(nInsts);
 		allInsts.addAll(pInsts);
 		abutLeftRight(0, allInsts);
@@ -394,7 +395,7 @@ class Placer {
 		Inst lastFull = (Inst) pnInsts.get(pnInsts.size()-1);
 		double rightFullX = lastFull.getX() + lastFull.getWidth();
 		
-		ArrayList ans = new ArrayList(exhaustive(pnInsts, nets, 0, maxPerms));
+		ArrayList<Inst> ans = new ArrayList<Inst>(exhaustive(pnInsts, nets, 0, maxPerms));
 		ans.addAll(exhaustive(nInsts, nets, rightFullX, maxPerms));
 		ans.addAll(exhaustive(pInsts, nets, rightFullX, maxPerms));
 		
@@ -410,7 +411,7 @@ class Placer {
 		int type;           // P, N, or PN
 		NodeInst nodeInst;  // allows us to position the part instance
 		
-		ArrayList ports = new ArrayList();
+		ArrayList<Port> ports = new ArrayList<Port>();
 		
 		Inst(int type, double width, NodeInst nodeInst) {
 			error(type!=P && type!=N && type!=PN, "Placer.Inst: bad type: "+type);
@@ -462,7 +463,7 @@ class Placer {
 	}
 	
 	public static class Net {
-		ArrayList ports = new ArrayList();
+		ArrayList<Port> ports = new ArrayList<Port>();
 		
 		int nbPorts() {return ports.size();}
 		Port getPort(int i) {return (Port) ports.get(i);}
@@ -538,9 +539,9 @@ class Placer {
 		return net;
 	}
 	
-	public ArrayList place1row() {
+	public ArrayList<NodeInst> place1row() {
 		int maxPerms = stdCell.getNbPlacerPerms();
-		ArrayList insts = threeRegionPlace(buildInsts, buildNets, maxPerms);
+		ArrayList<Inst> insts = threeRegionPlace(buildInsts, buildNets, maxPerms);
 		abutLeftRight(0, insts);
 		double threeRegCost = getCostX(buildNets);
 		
@@ -561,7 +562,7 @@ class Placer {
 		Inst rightInst = (Inst) insts.get(insts.size()-1);
 		stdCell.addEssentialBounds(0, rightInst.getMaxX(), part);
 		
-		ArrayList nodeInsts = new ArrayList();
+		ArrayList<NodeInst> nodeInsts = new ArrayList<NodeInst>();
 		for (int i=0; i<insts.size(); i++) {
 			nodeInsts.add(((Inst)insts.get(i)).getNodeInst());
 		}

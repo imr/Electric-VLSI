@@ -48,9 +48,9 @@ public class Gallery {
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
-	ArrayList readLayoutCells(Library lib) {
-		ArrayList cells = new ArrayList();
-		Iterator it = lib.getCells();
+	ArrayList<Cell> readLayoutCells(Library lib) {
+		ArrayList<Cell> cells = new ArrayList<Cell>();
+		Iterator<Cell> it = lib.getCells();
 		View layView = View.findView("layout");
 		while (it.hasNext()) {
 			Cell c = (Cell) it.next();
@@ -61,25 +61,25 @@ public class Gallery {
 		return cells;
 	}
 
-	void sortCellsByName(ArrayList facets) {
-		Collections.sort(facets, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				String n1 = ((Cell)o1).getName();
-				String n2 = ((Cell)o2).getName();
+	void sortCellsByName(ArrayList<Cell> facets) {
+		Collections.sort(facets, new Comparator<Cell>() {
+			public int compare(Cell c1, Cell c2) {
+				String n1 = c1.getName();
+				String n2 = c2.getName();
 				return n1.compareTo(n2);
 			}
 		});
 	}
 
-	void printCells(ArrayList facets) {
+	void printCells(ArrayList<Cell> facets) {
 		for (int i=0; i<facets.size(); i++) {
 			Cell p = (Cell) facets.get(i);
 			System.out.println(p.getName());
 		}
 	}
 
-	ArrayList addOneInstOfEveryCell(ArrayList cells, Cell gallery) {
-		ArrayList insts = new ArrayList();
+	ArrayList<NodeInst> addOneInstOfEveryCell(ArrayList<Cell> cells, Cell gallery) {
+		ArrayList<NodeInst> insts = new ArrayList<NodeInst>();
 		for (int i=0; i<cells.size(); i++) {
 			Cell c = (Cell) cells.get(i);
 			NodeInst ni = LayoutLib.newNodeInst(c, 0, 0, 0,
@@ -97,7 +97,7 @@ public class Gallery {
 		return LayoutLib.getBounds(ni).getHeight();
 	}
 
-	double[] getRow(ArrayList row, ListIterator it) {
+	double[] getRow(ArrayList<NodeInst> row, ListIterator<NodeInst> it) {
 		double x = 0;
 		double highestAboveCenter = Double.MIN_VALUE;
 		double lowestBelowCenter = Double.MIN_VALUE;
@@ -114,7 +114,7 @@ public class Gallery {
 		return new double[] {highestAboveCenter, lowestBelowCenter};
 	}
 
-	void placeRow(ArrayList row, double centerY, Cell gallery) {
+	void placeRow(ArrayList<NodeInst> row, double centerY, Cell gallery) {
 		double curLeftX = 0;
 		//System.out.println("Row at: "+y);
 		for (int i=0; i<row.size(); i++) {
@@ -142,10 +142,10 @@ public class Gallery {
 		}
 	}
 
-	void placeInstsOnPage(ArrayList insts, Cell gallery) {
+	void placeInstsOnPage(ArrayList<NodeInst> insts, Cell gallery) {
 		double topY = 0;
-		for (ListIterator it=insts.listIterator(); it.hasNext();) {
-			ArrayList row = new ArrayList();
+		for (ListIterator<NodeInst> it=insts.listIterator(); it.hasNext();) {
+			ArrayList<NodeInst> row = new ArrayList<NodeInst>();
 			double[] hiLo = getRow(row, it);
 			double highestAboveCenter = hiLo[0];
 			double lowestBelowCenter = hiLo[1];
@@ -166,13 +166,13 @@ public class Gallery {
 	}
 
 	Cell makeGallery1() {
-		ArrayList cells = readLayoutCells(lib);
+		ArrayList<Cell> cells = readLayoutCells(lib);
 		System.out.println("Gallery contains: " + cells.size() + " Cells");
 
 		sortCellsByName(cells);
 
 		Cell gallery = Cell.newInstance(lib, "gallery{lay}");
-		ArrayList insts = addOneInstOfEveryCell(cells, gallery);
+		ArrayList<NodeInst> insts = addOneInstOfEveryCell(cells, gallery);
 
 		placeInstsOnPage(insts, gallery);
 

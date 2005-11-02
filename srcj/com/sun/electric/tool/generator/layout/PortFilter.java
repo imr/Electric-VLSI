@@ -88,8 +88,8 @@ public abstract class PortFilter {
      * that after filter() is called ports.hasNext()==false;
      * @return all PortInsts in ports except those excluded by
      * skipPort() */
-    public final Iterator filter(Iterator ports) {
-	ArrayList filtered = new ArrayList();
+    public final Iterator<PortInst> filter(Iterator<PortInst> ports) {
+	ArrayList<PortInst> filtered = new ArrayList<PortInst>();
 	while (ports.hasNext()) {
 	    PortInst pi = (PortInst) ports.next();
 	    if (!skipPort(pi)) filtered.add(pi);

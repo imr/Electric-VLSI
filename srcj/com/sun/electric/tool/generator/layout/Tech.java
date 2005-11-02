@@ -102,7 +102,7 @@ public class Tech {
 	private static int nbLay;
 	private static ArcProto[] layers;
 	private static PrimitiveNode[] vias;
-	private static HashMap viaMap = new HashMap();
+	private static HashMap<Integer,PrimitiveNode> viaMap = new HashMap<Integer,PrimitiveNode>();
 	private static Technology tech;
 
     // Gilda: gate length depending on foundry
@@ -545,7 +545,7 @@ public class Tech {
 	 */
 	public static PrimitiveNode findNode(PrimitiveNode.Function type, 
 	                                     ArcProto[] arcs, Technology tech) {
-		for (Iterator it=tech.getNodes(); it.hasNext();) {
+		for (Iterator<PrimitiveNode> it=tech.getNodes(); it.hasNext();) {
 			PrimitiveNode pn = (PrimitiveNode) it.next();
 			boolean found = true;
 			if (pn.getFunction() == type) {

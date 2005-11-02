@@ -200,7 +200,7 @@ class NccCellInfo extends CellInfo {
 	// believe it's better to preserve the invariant by discarding the global 
 	// "gnd" if there is already an Export named "gnd".
 	public Iterator<ExportGlobal> getExportsAndGlobals() {
-		HashMap nameToExport = new HashMap();
+		HashMap<String,ExportGlobal> nameToExport = new HashMap<String,ExportGlobal>();
 		// first collect all exports
 		for (Iterator<PortProto> it=getCell().getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
@@ -214,7 +214,7 @@ class NccCellInfo extends CellInfo {
 				nameToExport.put(nm, eg);
 			}
 		}
-		List expGlob = new ArrayList();
+		List<ExportGlobal> expGlob = new ArrayList<ExportGlobal>();
 		expGlob.addAll(nameToExport.values());
 
 		// next collect all the globals
@@ -323,33 +323,33 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		for (int i=0; i<depth; i++)	 sp.append(" ");
 		return sp.toString();
 	}
-	private void addMatchingNetIDs(List netIDs, NamePattern pattern, 
+	private void addMatchingNetIDs(List<Integer> netIDs, NamePattern pattern, 
 	                               NccCellInfo rootInfo) {
-		for (Iterator it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
+		for (Iterator<ExportGlobal> it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = (ExportGlobal) it.next();
 			if (pattern.matches(eg.name)) netIDs.add(new Integer(eg.netID));			 								
 		}
 	}
-	private void doExportsConnAnnot(TransitiveRelation mergedNetIDs,
-	                                List connected, NccCellInfo rootInfo) {
-		List netIDs = new ArrayList();
-		for (Iterator it=connected.iterator(); it.hasNext();) {
+	private void doExportsConnAnnot(TransitiveRelation<Integer> mergedNetIDs,
+	                                List<NamePattern> connected, NccCellInfo rootInfo) {
+		List<Integer> netIDs = new ArrayList<Integer>();
+		for (Iterator<NamePattern> it=connected.iterator(); it.hasNext();) {
 			addMatchingNetIDs(netIDs, (NamePattern) it.next(), rootInfo);
 		}
 		for (int i=1; i<netIDs.size(); i++) {
 			mergedNetIDs.theseAreRelated(netIDs.get(0), netIDs.get(i));
 		}
 	}
-	private void doExportsConnAnnots(TransitiveRelation mergedNetIDs,
+	private void doExportsConnAnnots(TransitiveRelation<Integer> mergedNetIDs,
 	                                 NccCellInfo rootInfo) {
 		NccCellAnnotations ann = rootInfo.getAnnotations();
 		if (ann==null) return;
-		for (Iterator it=ann.getExportsConnected(); it.hasNext();) {
-			doExportsConnAnnot(mergedNetIDs, (List)it.next(), rootInfo);					                                     
+		for (Iterator<List<NamePattern>> it=ann.getExportsConnected(); it.hasNext();) {
+			doExportsConnAnnot(mergedNetIDs, (List<NamePattern>)it.next(), rootInfo);					                                     
 		}
 	}
 	private void initWires(NccCellInfo rootInfo) {
-		TransitiveRelation mergedNetIDs = new TransitiveRelation();
+		TransitiveRelation<Integer> mergedNetIDs = new TransitiveRelation<Integer>();
 		doExportsConnAnnots(mergedNetIDs, rootInfo);
 		wires = new Wires(mergedNetIDs, rootInfo, pathPrefix);
 	}
@@ -574,13 +574,13 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	private void pr(String s) {System.out.print(s);}
 	private void prln(String s) {System.out.println(s);}
-	private void printExports(HashSet exportNames) {
+	private void printExports(HashSet<ExportGlobal> exportNames) {
 		pr("{ ");
-		for (Iterator it=exportNames.iterator(); it.hasNext();)
+		for (Iterator<ExportGlobal> it=exportNames.iterator(); it.hasNext();)
 			pr(((ExportGlobal)it.next()).name+" ");
 		pr("}");
 	}
-	private void printExportAssertionFailure(HashMap wireToExportGlobals,
+	private void printExportAssertionFailure(HashMap<Wire,HashSet<ExportGlobal>> wireToExportGlobals,
 	                                         NccCellInfo info) {
 		String instPath = 
 			NccNameProxy.removePrefix(pathPrefix, 
@@ -590,10 +590,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			 cellName+" fails. Instance path is: "+instPath);
 		prln("    The exports are connected to "+
 		     wireToExportGlobals.size()+" different networks");
-		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext();) {
+		for (Iterator<Wire> it=wireToExportGlobals.keySet().iterator(); it.hasNext();) {
 			Wire w = (Wire) it.next();
 			pr("    On network: "+w.getName()+" are exports: ");
-			printExports((HashSet) wireToExportGlobals.get(w));
+			printExports((HashSet<ExportGlobal>) wireToExportGlobals.get(w));
 			prln("");
 		}
 		// The GUI should put the following into one box
@@ -604,14 +604,14 @@ class Visitor extends HierarchyEnumerator.Visitor {
         Object[][] items = new Object[wireToExportGlobals.keySet().size()][];
         String[][] names = new String[wireToExportGlobals.keySet().size()][];
         int j = 0;
-		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext(); j++) {
-			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(it.next());
+		for (Iterator<Wire> it=wireToExportGlobals.keySet().iterator(); it.hasNext(); j++) {
+			HashSet<ExportGlobal> exportGlobals = (HashSet<ExportGlobal>) wireToExportGlobals.get(it.next());
            
             items[j] = new Object[exportGlobals.size()];
             names[j] = new String[exportGlobals.size()];
             int i = 0;
 			// The GUI should put the following on one line
-			for (Iterator it2=exportGlobals.iterator(); it2.hasNext(); i++) {
+			for (Iterator<ExportGlobal> it2=exportGlobals.iterator(); it2.hasNext(); i++) {
 				ExportGlobal eg = (ExportGlobal) it2.next();
                 names[j][i] = eg.name;
 				if (eg.isExport())
@@ -622,24 +622,24 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
         cm.addExportAssertionFailure(cell,context,items, names);
 	}
-	private void matchExports(HashMap wireToExportGlobals, NamePattern pattern,
+	private void matchExports(HashMap<Wire,HashSet<ExportGlobal>> wireToExportGlobals, NamePattern pattern,
 							  NccCellInfo info) {
-		for (Iterator it=info.getExportsAndGlobals(); it.hasNext();) {
+		for (Iterator<ExportGlobal> it=info.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = (ExportGlobal) it.next();
 			if (!pattern.matches(eg.name)) continue;
 			Wire wire = wires.get(eg.netID, info);
-			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(wire);
+			HashSet<ExportGlobal> exportGlobals = (HashSet<ExportGlobal>) wireToExportGlobals.get(wire);
 			if (exportGlobals==null) {
-				exportGlobals = new HashSet();
+				exportGlobals = new HashSet<ExportGlobal>();
 				wireToExportGlobals.put(wire, exportGlobals);
 			}
 			exportGlobals.add(eg);
 		}
 	}
-	private boolean exportAssertionFailure(List patterns, NccCellInfo info) {
+	private boolean exportAssertionFailure(List<NamePattern> patterns, NccCellInfo info) {
 		// map from Wire to Set of Export Names
-		HashMap wireToExportGlobals = new HashMap();
-		for (Iterator it=patterns.iterator(); it.hasNext();) {
+		HashMap<Wire,HashSet<ExportGlobal>> wireToExportGlobals = new HashMap<Wire,HashSet<ExportGlobal>>();
+		for (Iterator<NamePattern> it=patterns.iterator(); it.hasNext();) {
 			matchExports(wireToExportGlobals, (NamePattern) it.next(), info);
 		}
 		if (wireToExportGlobals.size()<=1) return false;
@@ -650,8 +650,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		NccCellAnnotations ann = info.getAnnotations();
 		if (ann==null) return false;
 		boolean gotError = false;
-		for (Iterator it=ann.getExportsConnected(); it.hasNext();) 
-			gotError |= exportAssertionFailure((List)it.next(), info);
+		for (Iterator<List<NamePattern>> it=ann.getExportsConnected(); it.hasNext();) 
+			gotError |= exportAssertionFailure((List<NamePattern>)it.next(), info);
 		return gotError;	                                      	
 	}
 	
@@ -659,7 +659,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Cell cell = info.getCell();
 		Wire[] pins = new Wire[subcktInfo.numPorts()];
 
-		for (Iterator it=info.getExportsAndGlobals(); it.hasNext();) {
+		for (Iterator<ExportGlobal> it=info.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = (ExportGlobal) it.next();
 			Wire wire = wires.get(eg.netID, info);
 			int pinNdx = subcktInfo.getPortIndex(eg.name);

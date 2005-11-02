@@ -154,14 +154,14 @@ public class Mos extends Part {
 			return type.hashCode() + (isCapacitor?1:0) + (numSeries<<1);
 		}
 	}
-	private static final Map PIN_TYPE_SETS = new HashMap();
-	private static final Map TYPE_TO_PINTYPE_ARRAY = new HashMap();
+	private static final Map<PinTypeSetKey,Set<PinType>> PIN_TYPE_SETS = new HashMap<PinTypeSetKey,Set<PinType>>();
+	private static final Map<PinTypeSetKey,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<PinTypeSetKey,PinType[]>();
 	
-	public synchronized Set getPinTypes() {
+	public synchronized Set<PinType> getPinTypes() {
 		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
-		Set pinTypes = (Set) PIN_TYPE_SETS.get(key);
+		Set<PinType> pinTypes = (Set<PinType>) PIN_TYPE_SETS.get(key);
 		if (pinTypes==null) {
-			pinTypes = new HashSet();
+			pinTypes = new HashSet<PinType>();
 			pinTypes.add(new DiffType(type, numSeries(), isCapacitor()));
 
 			int maxHeight = (numSeries()+1) / 2;
@@ -199,7 +199,7 @@ public class Mos extends Part {
 	/** Generate arrays of pin coefficients on demand. Share these arrays
 	 * between identically sized Transistors */
 	private static class CoeffGen {
-		private static ArrayList coeffArrays = new ArrayList();
+		private static ArrayList<int[]> coeffArrays = new ArrayList<int[]>();
 		private static void ensureListEntry(int numPins) {
 			while (coeffArrays.size()-1<numPins)  coeffArrays.add(null);
 		}
@@ -407,8 +407,8 @@ public class Mos extends Part {
 		//if (w.isGlobal()) return false;
 		
 		// Use Set to remove duplicate Parts
-		Set trans = new HashSet();
-		for (Iterator it=w.getParts(); it.hasNext();) {
+		Set<Mos> trans = new HashSet<Mos>();
+		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
 			Part p = (Part) it.next();
 			if (p.isDeleted()) continue;
 			if (!(p instanceof Mos)) return false;
@@ -419,7 +419,7 @@ public class Mos extends Part {
 		}
 		if (trans.size()!=2) return false;
 
-		Iterator it = trans.iterator();
+		Iterator<Mos> it = trans.iterator();
 		Mos ta = (Mos) it.next();
 		Mos tb = (Mos) it.next();
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");

@@ -77,7 +77,7 @@ public class Bipolar extends Part {
 		}
 	}
 
-	private static final Set<BipolarPinType> PIN_TYPE_SET = new HashSet<BipolarPinType>();
+	private static final Set<PinType> PIN_TYPE_SET = new HashSet<PinType>();
 	private static final Map<Type,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<Type,PinType[]>();
 	static {
 		for (int t=0; t<2; t++) {
@@ -99,7 +99,7 @@ public class Bipolar extends Part {
 	}
 
 
-	public Set getPinTypes() {return PIN_TYPE_SET;}
+	public Set<PinType> getPinTypes() {return PIN_TYPE_SET;}
 	public PinType getPinTypeOfNthPin(int n) {
 		PinType[] pinTypeArray = (PinType[]) TYPE_TO_PINTYPE_ARRAY.get(type);
 		return pinTypeArray[n];

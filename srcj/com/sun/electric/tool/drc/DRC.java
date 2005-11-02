@@ -55,8 +55,8 @@ import java.util.prefs.Preferences;
 public class DRC extends Listener
 {
 	/** the DRC tool. */								protected static DRC tool = new DRC();
-	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
-	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
+	/** overrides of rules for each technology. */		private static HashMap<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
+	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
     private static final Variable.Key DRC_LAST_GOOD_DATE = Variable.newKey("DRC_last_good_drc_date");
@@ -119,10 +119,10 @@ public class DRC extends Listener
 		Cell cell = geom.getParent();
 		synchronized (cellsToCheck)
 		{
-			HashSet cellSet = (HashSet)cellsToCheck.get(cell);
+			HashSet<Geometric> cellSet = (HashSet<Geometric>)cellsToCheck.get(cell);
 			if (cellSet == null)
 			{
-				cellSet = new HashSet();
+				cellSet = new HashSet<Geometric>();
 				cellsToCheck.put(cell, cellSet);
 			}
 			cellSet.add(geom);
@@ -148,17 +148,17 @@ public class DRC extends Listener
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
 		Cell cellToCheck = curLib.getCurCell();
-		HashSet cellSet = null;
+		HashSet<Geometric> cellSet = null;
 
 		// get a cell to check
 		synchronized (cellsToCheck)
 		{
 			if (cellToCheck != null)
-				cellSet = (HashSet)cellsToCheck.get(cellToCheck);
+				cellSet = (HashSet<Geometric>)cellsToCheck.get(cellToCheck);
 			if (cellSet == null && cellsToCheck.size() > 0)
 			{
 				cellToCheck = (Cell)cellsToCheck.keySet().iterator().next();
-				cellSet = (HashSet)cellsToCheck.get(cellToCheck);
+				cellSet = (HashSet<Geometric>)cellsToCheck.get(cellToCheck);
 			}
 			if (cellSet != null)
 				cellsToCheck.remove(cellToCheck);
@@ -176,7 +176,7 @@ public class DRC extends Listener
 		{
 			Geometric [] objectsToCheck = new Geometric[cellSet.size()];
 			int i = 0;
-			for(Iterator it = cellSet.iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = cellSet.iterator(); it.hasNext(); )
 				objectsToCheck[i++] = (Geometric)it.next();
 			new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
 		}
@@ -377,10 +377,10 @@ public class DRC extends Listener
 	 */
 	public static void resetDRCDates()
 	{
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				DRC.cleanDRCDateAndBits(cell);

@@ -52,7 +52,7 @@ public class Resistor extends Part {
 		}
 		public String description() {return type.getName();}
 	}
-	private static final Set<ResistorPinType> PIN_TYPES = new HashSet<ResistorPinType>();
+	private static final Set<PinType> PIN_TYPES = new HashSet<PinType>();
 	private static final Map<PartType,ResistorPinType> TYPE_TO_PINTYPE = new HashMap<PartType,ResistorPinType>();
 	static {
 		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
@@ -144,7 +144,7 @@ public class Resistor extends Part {
 		return Part.RESISTOR + (type.getOrdinal() << tw);
 	}
 	
-	public Set getPinTypes() {return PIN_TYPES;}
+	public Set<PinType> getPinTypes() {return PIN_TYPES;}
 	
 	// Both pins of resistor have same PinType
 	public PinType getPinTypeOfNthPin(int n) {

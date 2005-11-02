@@ -43,7 +43,7 @@ public abstract class TrackRouter {
 	// connections to avoid overlapping metal. This was done because I
 	// initially understood that Electric doesn't report parasitics
 	// correctly when metal overlaps. This rumor may not be true.
-	private List vias = new ArrayList();
+	private List<ViaStack> vias = new ArrayList<ViaStack>();
 	// lastPos is a Cursor into vias that makes insertion more
 	// efficient. The next point of insertion is often very close to the
 	// last point of insertion.
@@ -73,7 +73,7 @@ public abstract class TrackRouter {
 			return;
 		PortInst prevPort = prev.getPort1();
 		PortInst nextPort = next.getPort1();
-		for (Iterator it = LayoutLib.getArcInstsOnPortInst(prevPort);
+		for (Iterator<ArcInst> it = LayoutLib.getArcInstsOnPortInst(prevPort);
 			it.hasNext();
 			) {
 			ArcInst ai = (ArcInst) it.next();
@@ -179,8 +179,8 @@ public abstract class TrackRouter {
     public void setEndsExtend(boolean b) { endsExtend = b; }
     public boolean getEndsExtend() { return endsExtend; }
 
-	public void connect(ArrayList nodeInsts, String portNm) {
-		ArrayList ports = new ArrayList();
+	public void connect(ArrayList<NodeInst> nodeInsts, String portNm) {
+		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (int i=0; i<nodeInsts.size(); i++) {
 			PortInst p = ((NodeInst) nodeInsts.get(i)).findPortInst(portNm);
 			if (p!=null)  ports.add(p);
@@ -189,17 +189,17 @@ public abstract class TrackRouter {
 	}
 
 	public void connect(NodeInst[] nodeInsts, String portNm) {
-		ArrayList a = new ArrayList();
+		ArrayList<NodeInst> a = new ArrayList<NodeInst>();
 		for (int i=0; i<nodeInsts.length; i++)  a.add(nodeInsts[i]);
 		connect(a, portNm);
 	}
 
-	public void connect(ArrayList ports) {
+	public void connect(ArrayList<PortInst> ports) {
 		for (int i=0; i<ports.size(); i++)  connect((PortInst)ports.get(i));
 	}
 
 	public void connect(PortInst[] ports) {
-		ArrayList p = new ArrayList();
+		ArrayList<PortInst> p = new ArrayList<PortInst>();
 		for (int i=0; i<ports.length; i++)  p.add(ports[i]);
 		connect(p);
 	}

@@ -219,7 +219,7 @@ public class ExportChecker {
 		return portsPerCell[0];
 	}
 
-	private Map mapExportNameToPortIndex(SubcircuitInfo refCellInfo, 
+	private Map<String,Integer> mapExportNameToPortIndex(SubcircuitInfo refCellInfo, 
 										 Map<Port,Port> equivPortMap) {
 		Map<String,Integer> exportNameToPortIndex = new HashMap<String,Integer>();
 		Port[] firstCktPorts = getFirstCktPorts();
@@ -407,7 +407,7 @@ public class ExportChecker {
 		for (int i=1; i<equivPortMaps.length; i++) {
 			if (doneCells.contains(rootCells[i])) continue;
 			doneCells.add(rootCells[i]);
-			Map exportNameToPortIndex = 
+			Map<String,Integer> exportNameToPortIndex = 
 				mapExportNameToPortIndex(refCellInfo, equivPortMaps[i]);
 			SubcircuitInfo subInf = 
 				new SubcircuitInfo(refCellInfo, exportNameToPortIndex);

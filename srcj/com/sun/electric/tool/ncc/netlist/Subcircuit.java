@@ -82,8 +82,8 @@ public class Subcircuit extends Part {
 		return Part.SUBCIRCUIT + 
 		       (subcircuitInfo.getID() << Part.TYPE_FIELD_WIDTH);
 	}
-	public Set<SubcircuitPinType> getPinTypes() {
-		Set<SubcircuitPinType> types = new HashSet<SubcircuitPinType>();
+	public Set<PinType> getPinTypes() {
+		Set<PinType> types = new HashSet<PinType>();
 		// Assume that each pin on a subcircuit is unique. That is no
 		// pins are interchangable.
 		for (int i=0; i<pins.length; i++) {

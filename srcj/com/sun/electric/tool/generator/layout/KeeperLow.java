@@ -43,7 +43,7 @@ public class KeeperLow {
 
 	public static Cell makePart(Cell schem, VarContext context,
 								StdCellParams stdCell) {
-		Iterator nodes = schem.getNodes();
+		Iterator<NodeInst> nodes = schem.getNodes();
 
 		// extract size information
 		double szNmos = -1, szK = -1, szI = -1;
@@ -74,7 +74,7 @@ public class KeeperLow {
 		NodeInst invI =LayoutLib.newNodeInst(invIProto, 0, 0, 0, 0, 0, keep);
 		NodeProto nmosProto = Nms1.makePart(szNmos, stdCell);
 		NodeInst nmos = LayoutLib.newNodeInst(nmosProto, 0, 0, 0, 0, 0, keep);
-		ArrayList l = new ArrayList();
+		ArrayList<NodeInst> l = new ArrayList<NodeInst>();
 		l.add(nmos);
 		l.add(invK);
 		l.add(invI);

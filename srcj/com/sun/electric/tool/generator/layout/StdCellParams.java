@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -67,7 +68,7 @@ public class StdCellParams {
 				top = center + width / 2;
 			}
 		}
-		private ArrayList blockages = new ArrayList();
+		private ArrayList<Blockage> blockages = new ArrayList<Blockage>();
 		private double space;
 
 		TrackBlockages(double space) {
@@ -155,8 +156,8 @@ public class StdCellParams {
 	private static final double m1OverhangsDiffCont = 2;
 	private static final double m1Space = 3;
 
-	private ArrayList nmosTracks = new ArrayList();
-	private ArrayList pmosTracks = new ArrayList();
+	private ArrayList<Double> nmosTracks = new ArrayList<Double>();
+	private ArrayList<Double> pmosTracks = new ArrayList<Double>();
 //	private int botNmosTrack, topNmosTrack, botPmosTrack, topPmosTrack;
 	private Library schemLib = null;
 	private Library layoutLib = null;
@@ -913,7 +914,7 @@ public class StdCellParams {
 	/** Given an array of NodeInsts in a row, add wells to both ends of
 	    the row to bring the row to minX and maxX. */
 	public void addWellsForRow(
-		ArrayList row,
+		ArrayList<NodeInst> row,
 		double minX,
 		double maxX,
 		Cell cell) {
@@ -1178,7 +1179,7 @@ public class StdCellParams {
 		double loX, loY, hiX, hiY;
 		loX = loY = Double.MAX_VALUE;
 		hiX = hiY = Double.MIN_VALUE;
-		for (Iterator it=cell.getNodes(); it.hasNext();) {
+		for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
 			Rectangle2D b = ((NodeInst) it.next()).getBounds();
 			loX = Math.min(loX, b.getMinX());
 			loY = Math.min(loY, b.getMinY());
@@ -1191,9 +1192,9 @@ public class StdCellParams {
 		                      DEF_SIZE, DEF_SIZE, 0, cell);
 	}
 
-	public HashMap getSchemTrackAssign(Cell schem) {
-		HashMap schAsgn = new HashMap();
-		for (Iterator it = schem.getPorts(); it.hasNext();) {
+	public HashMap<String,Object> getSchemTrackAssign(Cell schem) {
+		HashMap<String,Object> schAsgn = new HashMap<String,Object>();
+		for (Iterator<PortProto> it = schem.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			Object val = e.getVar("ATTR_track");
 			String key = e.getName();
@@ -1205,10 +1206,10 @@ public class StdCellParams {
 		return schAsgn;
 	}
 
-	public void validateTrackAssign(HashMap asgn, Cell s) {
-		HashMap trkToExp = new HashMap();
-		for (Iterator it = asgn.keySet().iterator(); it.hasNext();) {
-			Object k = it.next();
+	public void validateTrackAssign(HashMap<String,Object> asgn, Cell s) {
+		HashMap<Object,String> trkToExp = new HashMap<Object,String>();
+		for (Iterator<String> it = asgn.keySet().iterator(); it.hasNext();) {
+			String k = it.next();
 			Object v = asgn.get(k);
 			// check types of key and value
 			error(!(k instanceof String),
@@ -1227,7 +1228,7 @@ public class StdCellParams {
 			  ". Only: "+max+" PMOS tracks are available in this cell.");
 			*/
 
-			Object oldK = trkToExp.get(v);
+			String oldK = trkToExp.get(v);
 			if (oldK != null) {
 				// Issue warning if two exports assigned to the same track
 				System.out.println(

@@ -112,7 +112,7 @@ public abstract class Part extends NetObject {
     }
 
 	/** Return a set of all the different pin types for this part */
-	public abstract Set getPinTypes();
+	public abstract Set<PinType> getPinTypes();
 	
 	public Integer computeHashCode(){
         int sum= 0;

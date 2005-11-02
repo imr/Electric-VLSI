@@ -47,7 +47,7 @@ public class KeeperHigh {
 								StdCellParams stdCell) {
 		Netlist netlist = schem.getNetlist(false);
 
-		Iterator nodes = schem.getNodes();
+		Iterator<NodeInst> nodes = schem.getNodes();
 
 		// extract size information
 		double szMc = -1, szPmos = -1, szK = -1, szI = -1;
@@ -66,7 +66,7 @@ public class KeeperHigh {
 					szI = StdCellParams.getSize(ni, context);
 				} else {
 					System.out.println("Unrecognized net: ");
-					Iterator it = net.getNames();
+					Iterator<String> it = net.getNames();
 					while (it.hasNext()) {
 						System.out.println((String) it.next());
 					}
@@ -94,7 +94,7 @@ public class KeeperHigh {
 		NodeProto mcProto = Inv.makePart(szMc, stdCell);
 		NodeInst mc = LayoutLib.newNodeInst(mcProto, 0, 0, 0, 0, 0, keep);
 
-		ArrayList l = new ArrayList();
+		ArrayList<NodeInst> l = new ArrayList<NodeInst>();
 		l.add(mc);
 		l.add(pmos);
 		l.add(invK);

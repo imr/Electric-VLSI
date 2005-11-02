@@ -24,6 +24,7 @@
 package com.sun.electric.tool.ncc.processing;
 
 import java.util.HashMap;
+import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -91,7 +92,7 @@ public class ReportHashCodeFailure {
 			return new LeafList();
 		}
 	
-		public HashMap doFor(Circuit c) {
+		public HashMap<Integer,List<NetObject>> doFor(Circuit c) {
 			prln("      Cell "+globals.getRootCellNames()[cktNdx]+
 				 " has "+c.numNetObjs()+" mismatched objects");
 			cktNdx++;
@@ -162,7 +163,7 @@ public class ReportHashCodeFailure {
 			return new LeafList();
 		}
 	
-		public HashMap doFor(Circuit c) {return super.doFor(c);}
+		public HashMap<Integer,List<NetObject>> doFor(Circuit c) {return super.doFor(c);}
 
 		public Integer doFor(NetObject n) {
 			prln("      "+n.fullDescription());
