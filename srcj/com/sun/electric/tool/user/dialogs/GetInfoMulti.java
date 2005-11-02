@@ -60,8 +60,10 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -260,7 +262,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 	private void loadMultiInfo()
 	{
-        // update current window
+       // update current window
         EditWindow curWnd = EditWindow.getCurrent();
         if ((wnd != curWnd) && (curWnd != null)) {
             if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
@@ -290,7 +292,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		double ySizeLow = Double.MAX_VALUE, ySizeHigh = -Double.MAX_VALUE;
 		double widthLow = Double.MAX_VALUE, widthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
-		listModel.clear();
+		List<String> displayList = new ArrayList<String>();
 		for(Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
@@ -336,7 +338,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					widthHigh = Math.max(widthHigh, trueWidth);
 					description = "Arc " + ai.describe(true);
 				}
-				listModel.addElement(description);
+				displayList.add(description);
 			} else if (h.getType() == Highlight.Type.TEXT)
 			{
 				String description = "Text: unknown";
@@ -361,21 +363,32 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						textList.add(h);
 					}
 				}
-				listModel.addElement(description);
+				displayList.add(description);
 			} else if (h.getType() == Highlight.Type.LINE)
 			{
 				Point2D pt1 = h.getLineStart();
 				Point2D pt2 = h.getLineEnd();
 				String description = "Line from (" + pt1.getX() + "," + pt1.getY() + ") to (" +
 					pt2.getX() + "," + pt2.getY() + ")";
-				listModel.addElement(description);
+				displayList.add(description);
 			} else if (h.getType() == Highlight.Type.BBOX)
 			{
 				Rectangle2D bounds = h.getBounds();
 				String description = "Area from " + bounds.getMinX() + "<=X<=" + bounds.getMaxX() +
 					" and " + bounds.getMinY() + "<=Y<=" + bounds.getMaxY();
-				listModel.addElement(description);
+				displayList.add(description);
 			}
+		}
+
+		// for some reason, clearing the listmodel and reloading takes too long
+listModel = new DefaultListModel();
+list = new JList(listModel);
+list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+listPane.setViewportView(list);
+		for(Iterator<String> it = displayList.iterator(); it.hasNext(); )
+		{
+			String message = (String)it.next();
+			listModel.addElement(message);
 		}
 
 		// with exactly 2 objects, show the distance between them
@@ -408,7 +421,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				int change = currentChangeTypes[c];
 				JPanel onePanel = new JPanel();
 				onePanel.setLayout(new GridBagLayout());
-//				GridBagConstraints gbc;   JLabel lab;
 	            String msg = null;
 				switch (change)
 				{
@@ -638,12 +650,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 	private static class SortMultipleHighlights implements Comparator<Highlight>
 	{
-/*5*/	public int compare(Highlight h1, Highlight h2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(Highlight h1, Highlight h2)
 		{
-//4*/		Highlight h1 = (Highlight)o1;
-//4*/		Highlight h2 = (Highlight)o2;
-
 			// if the types are different, order by types
 			if (h1.getType() != h2.getType())
 			{
@@ -665,11 +673,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			if (type1 != type2) return type1 - type2;
 
 			// sort on the object name
-			String s1 = e1.toString();
-			if (e1 instanceof Geometric) s1 = ((Geometric)e1).describe(false);
-			String s2 = e2.toString();
-			if (e2 instanceof Geometric) s2 = ((Geometric)e2).describe(false);
-			return s1.compareToIgnoreCase(s2);
+			String s1 = null, s2 = null;
+			if (e1 instanceof Geometric) s1 = ((Geometric)e1).describe(false); else
+				s1 = e1.toString();
+			if (e2 instanceof Geometric) s2 = ((Geometric)e2).describe(false); else
+				s2 = e2.toString();
+			return TextUtils.canonicString(s1).compareTo(TextUtils.canonicString(s2));
 		}
 	}
 	
@@ -1289,19 +1298,21 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void removeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeActionPerformed
 	{//GEN-HEADEREND:event_removeActionPerformed
 		int [] items = list.getSelectedIndices();
-		List<Highlight> newList = new ArrayList<Highlight>();
-		for(int i=0; i<highlightList.size(); i++)
+		List<Integer> indices = new ArrayList<Integer>();
+		for(int i=0; i<items.length; i++) indices.add(new Integer(items[i]));
+		Collections.sort(indices, new Comparator<Integer>()
 		{
-			int j = 0;
-			for( ; j<items.length; j++)
-				if (i == items[j]) break;
-			if (j < items.length) continue;
-			newList.add(highlightList.get(i));
+			public int compare(Integer c1, Integer c2) { return c2.compareTo(c1); }
+		});
+		for(Iterator<Integer>it = indices.iterator(); it.hasNext(); )
+		{
+			Integer index = (Integer)it.next();
+			highlightList.remove(index.intValue());
 		}
         if (wnd != null) {
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();
-            highlighter.setHighlightList(newList);
+            highlighter.setHighlightList(highlightList);
             highlighter.finished();
         }
 	}//GEN-LAST:event_removeActionPerformed
@@ -1314,20 +1325,18 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed
 	{//GEN-HEADEREND:event_removeOthersActionPerformed
 		int [] items = list.getSelectedIndices();
-		List<Highlight> newList = new ArrayList<Highlight>();
-		for(int i=0; i<highlightList.size(); i++)
+		Set<Integer> keepIndices = new HashSet<Integer>();
+		for(int i=0; i<items.length; i++) keepIndices.add(new Integer(items[i]));
+		int len = highlightList.size();
+		for(int i=len-1; i>=0; i--)
 		{
-			int j = 0;
-			for( ; j<items.length; j++)
-				if (i == items[j]) break;
-			if (j >= items.length) continue;
-			newList.add(highlightList.get(i));
+			if (keepIndices.contains(new Integer(i))) continue;
+			highlightList.remove(i);
 		}
-		highlightList = newList;
         if (wnd != null) {
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();
-            highlighter.setHighlightList(newList);
+            highlighter.setHighlightList(highlightList);
             highlighter.finished();
         }
 	}//GEN-LAST:event_removeOthersActionPerformed
@@ -1336,9 +1345,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-		//theDialog = null;
-        //Highlight.removeHighlightListener(this);
-		//dispose();
+
+		// clear the list of highlights so that this dialog doesn't trap memory
+		highlightList.clear();
+//		theDialog = null;
+//		if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+//		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

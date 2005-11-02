@@ -178,8 +178,9 @@ import java.util.Map;
  */
 public class PixelDrawing
 {
-	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE = 5;
-	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD = 5;
+	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
+	/** Text larger than this is granular. */						public static final int MAXIMUMTEXTSIZE = 100;
+	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
 
 	private static class PolySeg
 	{
@@ -2172,10 +2173,14 @@ public class PixelDrawing
 				{
 					for(int i=1; i<o.getThickness(); i++)
 					{
-						drawPatLine(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
-						drawPatLine(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
-						drawPatLine(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
-						drawPatLine(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
+						if (lX+i < sz.width)
+							drawPatLine(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
+						if (hY-i >= 0)
+							drawPatLine(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
+						if (hX-i >= 0)
+							drawPatLine(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
+						if (lY+i < sz.height)
+							drawPatLine(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
 					}
 				}
 			}
@@ -2971,6 +2976,7 @@ public class PixelDrawing
 		boolean underline = false;
 		int rotation = 0;
 		int greekScale = 0;
+		int shiftUp = 0;
 		if (descript != null)
 		{
 			rotation = descript.getRotation().getIndex();
@@ -2993,6 +2999,14 @@ public class PixelDrawing
 					greekScale *= 2;
 				}
 			}
+
+			// prevent exceedingly large text
+			while (size > MAXIMUMTEXTSIZE)
+			{
+				size /= 2;
+				shiftUp++;
+			}
+
 			italic = descript.isItalic();
 			bold = descript.isBold();
 			underline = descript.isUnderline();
@@ -3010,22 +3024,6 @@ public class PixelDrawing
             if (rect.x >= sz.width || rect.x + rect.width < 0 || rect.y >= sz.height || rect.y + rect.height < 0)
                 return;
         }
-//		int boxedWidth = -1, boxedHeight = -1;
-//		if (style == Poly.Type.TEXTBOX)
-//		{
-//			boxedWidth = (int)rect.getWidth();
-//			boxedHeight = (int)rect.getHeight();
-//            //  drawBounds.getWidth() > 0 initial window
-//            if (drawBounds != null && drawBounds.getWidth() > 0) {
-//                // clip if not within bounds
-//                Rectangle2D dbBounds = wnd.screenToDatabase(rect);
-//                if (wnd.isInPlaceEdit() && dbBounds != null) {
-//                    AffineTransform xOut = wnd.getInPlaceTransformOut();
-//                    GenMath.transformRect(dbBounds, xOut);
-//                }
-//                if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-//            }
-//        }
 
 		// create RenderInfo
 		long startTime = 0;
@@ -3058,28 +3056,20 @@ public class PixelDrawing
         if (renderInfo.bounds.getMinX() >= sz.width || renderInfo.bounds.getMaxX() < 0 ||
             renderInfo.bounds.getMinY() >= sz.height || renderInfo.bounds.getMaxY() < 0)
                 return;
-//        if (drawBounds != null && drawBounds.getWidth() > 0) {
-//            Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
-//            if (wnd.isInPlaceEdit() && dbBounds != null) {
-//                AffineTransform xOut = wnd.getInPlaceTransformOut();
-//                GenMath.transformRect(dbBounds, xOut);
-//            }
-//            if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-//        }
 
 		// render the text
 		Raster ras = renderText(renderInfo);
 		if (DEBUGRENDERTIMING) renderTextTime += (System.currentTimeMillis() - startTime);
 		if (ras == null) return;
-		Point pt = getTextCorner(ras.getWidth(), ras.getHeight(), style, rect, rotation);
+		int rasWidth = (int)renderInfo.rasBounds.getWidth() << shiftUp;
+		int rasHeight = (int)renderInfo.rasBounds.getHeight() << shiftUp;
+		Point pt = getTextCorner(rasWidth, rasHeight, style, rect, rotation);
 		int atX = pt.x;
 		int atY = pt.y;
 		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
 		byte [] samples = dbb.getData();
 
 		int sx, ex;
-		int rasWidth = ras.getWidth();
-		int rasHeight = ras.getHeight();
 		switch (rotation)
 		{
 			case 0:			// no rotation
@@ -3096,11 +3086,11 @@ public class PixelDrawing
 					int baseIndex = 0;
 					if (layerBitMap == null) baseIndex = trueY * sz.width; else
 						row = layerBitMap[trueY];
-					int samp = y * rasWidth + sx;
+					int samp = (y>>shiftUp) * textImageWidth;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int alpha = samples[samp++] & 0xFF;
+						int alpha = samples[samp + (x>>shiftUp)] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3144,7 +3134,7 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int alpha = samples[x * rasWidth + y] & 0xFF;
+						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3190,7 +3180,7 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int alpha = samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)] & 0xFF;
+						int alpha = samples[(rasHeight-(y>>shiftUp)-1) * textImageWidth + (rasWidth-(x>>shiftUp)-1)] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3233,7 +3223,7 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX - x;
-						int alpha = samples[x * rasWidth + y] & 0xFF;
+						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
@@ -3306,10 +3296,8 @@ public class PixelDrawing
 			lm = font.getLineMetrics(msg, frc);
 
 			// figure bounding box of text
-			//Rectangle rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
 			Rectangle2D rasRect = gv.getLogicalBounds();
 			int width = (int)rasRect.getWidth();
-
 			int height = (int)(lm.getHeight()+0.5);
 			if (width <= 0 || height <= 0) return false;
 			int fontStyle = font.getStyle();
@@ -3329,7 +3317,6 @@ public class PixelDrawing
                         // convert the text to a GlyphVector
                         gv = font.createGlyphVector(frc, msg);
                         lm = font.getLineMetrics(msg, frc);
-                        //rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
                         rasRect = gv.getLogicalBounds();
                         height = (int)(lm.getHeight()+0.5);
                         if (height <= 0) return false;
@@ -3348,7 +3335,6 @@ public class PixelDrawing
             {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), width, height);
             }
-
             return true;
         }
     }
@@ -3453,6 +3439,10 @@ public class PixelDrawing
         return renderText(renderInfo);
     }
 
+	private static int textImageWidth = 0, textImageHeight = 0;
+	private static BufferedImage textImage = null;
+	private static Graphics2D textImageGraphics;
+
     private static Raster renderText(RenderTextInfo renderInfo) {
 
         Font theFont = renderInfo.font;
@@ -3467,7 +3457,22 @@ public class PixelDrawing
 	    if (width <= 0 || height <= 0)
 		    return null;
 
-		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+		// if the new image is larger than what is saved, must rebuild
+		if (width > textImageWidth || height > textImageHeight)
+			textImage = null;
+		if (textImage == null)
+		{
+			// create a new text buffer
+			textImageWidth = width;
+			textImageHeight = height;
+			textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+			textImageGraphics = textImage.createGraphics();
+		} else
+		{
+			// clear and reuse the existing text buffer
+			textImageGraphics.setColor(Color.BLACK);
+			textImageGraphics.fillRect(0, 0, width, height);
+		}
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();

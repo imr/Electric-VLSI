@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/2/05, SMR) Redisplay slow when zoomed far in (Bug #719).
+FIX: Text drawing is slow when the font is very large.  Large fonts are
+     reduced in size and scaled up.  Also did other text optimizations in
+     PixelDrawing.java.
+
+BUG: (11/2/05, SMR) Thick outlines around layers may crash.
+FIX: In PixelDrawing.drawBox(), check coordinates of thick outlines.
+
+BUG: (11/2/05, SMR) Multi-object properties dialog has slow performance (Bug #718).
+FIX: In GetInfoMulti.java, optimized "Remove" and "Remove All" buttons,
+     also rebuild scroll list instead of clearing it.
+
+BUG: (11/2/05, SMR) "Show Network" highlights too much information (Bug #716).
+FIX: In NetworkHighlighter.java, removed highlighting of cell instances and exports.
+     Reduced arc highlighting to a single line.
+
 BUG: (11/01/05, SMR) Cancelling the cell selection after reading simulation data
      does not cancel the operation (Bug #711).
 FIX: In Simulate.plotSimulationResults(), abort if cell is null.
