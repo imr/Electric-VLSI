@@ -115,17 +115,17 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     /** Current list of Wire/Part equiv. classes with mismatches */
     private EquivRecord mismEqRecs[][];
     /** Mismatched NetObjects in current EquivRecords */
-    private ArrayList[] mismNetObjs[][];
+    private ArrayList<NetObject>[] mismNetObjs[][];
     /** Matched NetObjects in current EquivRecords */    
-    private ArrayList[] matchedNetObjs[][];
+    private ArrayList<NetObject>[] matchedNetObjs[][];
     /** Vector of currently selected equiv. class TreeNode objects */
-    private Vector curEqRecNodes = new Vector();
+    private Vector<TreeNode> curEqRecNodes = new Vector<TreeNode>();
     /** Vector of equiv. class TreeNode objects that should be displayed */
-    private Vector curEqRecNodesToDisplay = new Vector();
+    private Vector<TreeNode> curEqRecNodesToDisplay = new Vector<TreeNode>();
     /** Vector of currently selected exclusive TreeNode objects 
       Exclusive nodes are those requiring exclusive access to the right pane.
       All nodes except for EquivRecord and TITLE are exclusive. */
-    private Vector curExlusiveNodes = new Vector(); 
+    private Vector<TreeNode> curExlusiveNodes = new Vector<TreeNode>(); 
     
     public ComparisonsPane() {
         super(JSplitPane.HORIZONTAL_SPLIT);
@@ -152,7 +152,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     }
     
     /** Set the current set of mismatches to the provided one */
-    public void setMismatches(List misms) {
+    public void setMismatches(List<NccComparisonMismatches> misms) {
         mismatches = 
             (NccComparisonMismatches[])misms.toArray(new NccComparisonMismatches[0]);
         // allocate arrays of for tables
@@ -396,7 +396,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         // get equiv. classes to be displayed
         curEqRecNodesToDisplay.clear();
         int i = 0;
-        for (Iterator it=curEqRecNodes.iterator(); it.hasNext() && i<MAX_CONCUR_EQ_RECS;) {
+        for (Iterator<TreeNode> it=curEqRecNodes.iterator(); it.hasNext() && i<MAX_CONCUR_EQ_RECS;) {
             TreeNode eqRecNode = (TreeNode)it.next();
             if (curEqRecNodesToDisplay.contains(eqRecNode)) continue; // skip if already displayed
             curEqRecNodesToDisplay.add(eqRecNode);
@@ -406,7 +406,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         EquivClassSplitPane rightSplPane = rightSplPanes[curEqRecNodesToDisplay.size()-1]; 
         i = 0;
         // fill pane with data row by row 
-        for (Iterator it=curEqRecNodesToDisplay.iterator(); it.hasNext(); i++) {
+        for (Iterator<TreeNode> it=curEqRecNodesToDisplay.iterator(); it.hasNext(); i++) {
             TreeNode eqRecNode = (TreeNode)it.next();
             String partitionTitle = eqRecNode.getParent().getShortName() + " : "
                                   + eqRecNode.getShortName();
@@ -435,9 +435,9 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         EquivRecord eqRec = mismEqRecs[node.compNdx][node.eclass];
         LocalPartitionResult lpr = mismatches[node.compNdx].getLocalPartitionResult();
         
-        ArrayList[] mism = lpr.getNotMatchedNetObjs(eqRec);
+        ArrayList<NetObject>[] mism = lpr.getNotMatchedNetObjs(eqRec);
         mismNetObjs[node.compNdx][node.eclass] = mism;
-        ArrayList[] matched = lpr.getMatchedNetObjs(eqRec);
+        ArrayList<NetObject>[] matched = lpr.getMatchedNetObjs(eqRec);
         matchedNetObjs[node.compNdx][node.eclass] = matched;
         
         String href = "<a style=\"text-decoration: none\" href=\"";
@@ -520,7 +520,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         String href = "<a style=\"text-decoration: none\" href=\"";
         StringBuffer html = new StringBuffer(256);
         int cell = 0;
-        for (Iterator it2=eqRec.getCircuits(); it2.hasNext(); cell++) {
+        for (Iterator<Circuit> it2=eqRec.getCircuits(); it2.hasNext(); cell++) {
             int ndx = (cell + swap)%2;
             StringBuffer curCellText = pane.getCellPlainTextBuffer(row,ndx);
             curCellText.setLength(0);
@@ -531,7 +531,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             Circuit ckt = (Circuit) it2.next();
             int len = ckt.numNetObjs();
 
-            Iterator it3=ckt.getNetObjs();
+            Iterator<NetObject> it3=ckt.getNetObjs();
             for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
                 String descr = cleanNetObjectName(
                            ((NetObject) it3.next()).instanceDescription());
@@ -613,19 +613,19 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             EquivRecord eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
             int c = 0, k = 0;
             Circuit ckt = null;
-            for (Iterator it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
+            for (Iterator<Circuit> it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
                 if (c == cellNdx) {
                     ckt = (Circuit) it.next(); 
                     break;
                 }
-            for (Iterator it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
+            for (Iterator<NetObject> it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
                 if (k == line) {
                     partOrWire = (NetObject)it.next();
                     break;
                 }
         } else { // in case of LP, get the NetObjeect from the array
-            ArrayList[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
-            ArrayList[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+            ArrayList<NetObject>[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+            ArrayList<NetObject>[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
             if (line >= mism[cellNdx].size()) 
                 partOrWire = (NetObject)matched[cellNdx].get(line - mism[cellNdx].size());
             else

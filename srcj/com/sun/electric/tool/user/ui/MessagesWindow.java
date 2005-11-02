@@ -78,7 +78,7 @@ import javax.swing.SwingUtilities;
 public class MessagesWindow
 	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
-	private ArrayList history;
+	private ArrayList<String> history;
 	private JTextField entry;
 	private JTextArea info;
 	private Container contentFrame;
@@ -107,7 +107,7 @@ public class MessagesWindow
 			jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
 		}
 		contentFrame.setLayout(new BorderLayout());
-		history = new ArrayList();
+		history = new ArrayList<String>();
 
 		entry = new JTextField();
 		entry.addActionListener(this);

@@ -101,8 +101,8 @@ public class LEPin {
     //----------------------------------UTILITY FUNCTIONS---------------------------------
 
     /** Return list of specified pins */
-    protected static ArrayList getPinListType(List pins, LEPin.Dir dir) {
-        ArrayList typepins = new ArrayList();
+    protected static ArrayList<LEPin> getPinListType(List<LEPin> pins, LEPin.Dir dir) {
+        ArrayList<LEPin> typepins = new ArrayList<LEPin>();
         for (int i=0; i<pins.size(); i++) {
             if ( ((LEPin)pins.get(i)).getDir() == dir)
                 typepins.add((LEPin)pins.get(i));
@@ -111,17 +111,17 @@ public class LEPin {
     }
     
     /** Return list of bidirectional pins; */
-    protected static ArrayList getInoutPins(List pins) {
+    protected static ArrayList<LEPin> getInoutPins(List<LEPin> pins) {
 		return getPinListType(pins, LEPin.Dir.INOUT);
 	}
 
     /** Return list of input pins; */
-    protected static ArrayList getInputPins(List pins) {
+    protected static ArrayList<LEPin> getInputPins(List<LEPin> pins) {
 		return getPinListType(pins, LEPin.Dir.INPUT);
 	}
 
     /** Return list of output pins; */
-    protected static ArrayList getOutputPins(List pins) {
+    protected static ArrayList<LEPin> getOutputPins(List<LEPin> pins) {
 		return getPinListType(pins, LEPin.Dir.OUTPUT);
 	}
 

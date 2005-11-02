@@ -49,11 +49,11 @@ public class LayerTab extends JPanel
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
-	private HashMap highlighted;
-	private List layersInList;
+	private HashMap<Layer,Boolean> highlighted;
+	private List<Layer> layersInList;
 	private boolean loading;
 
-	private static HashMap visibility;
+	private static HashMap<Layer,Boolean> visibility;
 
 	/**
 	 * Constructor creates a new panel for the Layers tab.
@@ -120,7 +120,7 @@ public class LayerTab extends JPanel
         if (!makeCurrent) cur = Technology.findTechnology((String)technology.getSelectedItem());
 		loading = true;
 		technology.removeAllItems();
-        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = (Technology)it.next();
             if (tech == Generic.tech) continue;
@@ -130,11 +130,11 @@ public class LayerTab extends JPanel
 		loading = false;
 
 		// cache visibility
-		visibility = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		visibility = new HashMap<Layer,Boolean>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -168,10 +168,10 @@ public class LayerTab extends JPanel
 
 		// cache dimming
 		boolean noDimming = true;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				if (layer.isDimmed()) noDimming = false;
@@ -179,11 +179,11 @@ public class LayerTab extends JPanel
 		}
 
 		// cache highlighting
-		highlighted = new HashMap();
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		highlighted = new HashMap<Layer,Boolean>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -195,8 +195,8 @@ public class LayerTab extends JPanel
 		Technology tech = Technology.getCurrent();
 		technology.setSelectedItem(tech.getTechName());
 		layerListModel.clear();
-		layersInList = new ArrayList();
-		for(Iterator it = tech.getLayersSortedByHeight().iterator(); it.hasNext(); )
+		layersInList = new ArrayList<Layer>();
+		for(Iterator<Layer> it = tech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -363,10 +363,10 @@ public class LayerTab extends JPanel
 		// see if anything was highlighted
 		boolean changed = false;
 		boolean anyHighlighted = false;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
                 Boolean layerHighlighted = (Boolean)highlighted.get(layer.getNonPseudoLayer());
@@ -375,10 +375,10 @@ public class LayerTab extends JPanel
 		}
 
 		// update visibility and highlighting
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				Boolean layerVis = (Boolean)visibility.get(layer.getNonPseudoLayer());
@@ -425,10 +425,10 @@ public class LayerTab extends JPanel
 		}
 
 		// recompute visibility of primitive nodes and arcs
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nIt.next();
 				Technology.NodeLayer [] layers = np.getLayers();
@@ -440,7 +440,7 @@ public class LayerTab extends JPanel
 				}
 				np.setNodeInvisible(invisible);
 			}
-			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)aIt.next();
 				Technology.ArcLayer [] layers = ap.getLayers();
@@ -505,7 +505,7 @@ public class LayerTab extends JPanel
 		}
 
 		// make sure all other visibility panels are in sync
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			LayerTab lt = wf.getLayersTab();

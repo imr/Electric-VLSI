@@ -56,7 +56,7 @@ class ExportMismatchTable extends ExportTable {
         boolean topoOK = result.isTopologyMatch();
         int row = 0;
         
-        for (Iterator it = result.getExportMismatches().iterator(); it.hasNext() && row<height;) {
+        for (Iterator<ExportMismatch> it = result.getExportMismatches().iterator(); it.hasNext() && row<height;) {
             ExportMismatch em = (ExportMismatch)it.next();
             if (topoOK && em.isValidOnlyWhenTopologyMismatch()) continue;
             mismatches[row] = em;
@@ -112,9 +112,9 @@ class MismatchTableModel extends ExportTableModel {
                 html.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 int lineNdx = cellNdx*10000;
                 if (mismatches[row] instanceof ExportMismatch.MultiMatch) {
-                    List ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
+                    List<Port> ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
                     // each Port has a list of Exports which are printed as hyperlinked list
-                    for (Iterator it=ports.iterator(); it.hasNext();) {
+                    for (Iterator<Port> it=ports.iterator(); it.hasNext();) {
                         appendNameOf((Port)it.next(), html, lineNdx, false, null);
                         if (it.hasNext()) html.append("<br>" + LSEP);
                         lineNdx++;
@@ -245,9 +245,9 @@ class MismatchTableModel extends ExportTableModel {
             
         // find what to highlight 
         if (em instanceof ExportMismatch.MultiMatch) {
-            List ports = ((ExportMismatch.MultiMatch)em).getAll(col);
+            List<Port> ports = ((ExportMismatch.MultiMatch)em).getAll(col);
             int i;
-            Iterator it;
+            Iterator<Port> it;
             // go to the necessary line
             for (it=ports.iterator(), i=0; it.hasNext()&&i<line; i++,it.next());
             Port port = (Port)it.next();

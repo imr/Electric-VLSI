@@ -49,7 +49,7 @@ public class MeasureListener
 	public static MeasureListener theOne = new MeasureListener();
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
     private static boolean measuring = false;               // true if drawing measure line
-    private static List lastHighlights = new ArrayList();
+    private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
 	private Point2D dbStart;                 // start of measure in database units
 
 	private MeasureListener() {}
@@ -78,7 +78,7 @@ public class MeasureListener
             Point2D end = dbPoint;
             Highlighter highlighter = wnd.getRulerHighlighter();
 
-            for (Iterator it = lastHighlights.iterator(); it.hasNext(); ) {
+            for (Iterator<Highlight> it = lastHighlights.iterator(); it.hasNext(); ) {
                 Highlight h = (Highlight)it.next();
                 highlighter.remove(h);
             }
@@ -109,7 +109,7 @@ public class MeasureListener
         if (measuring)
 		{
             Highlighter highlighter = wnd.getRulerHighlighter();
-            for (Iterator it = lastHighlights.iterator(); it.hasNext(); )
+            for (Iterator<Highlight> it = lastHighlights.iterator(); it.hasNext(); )
 			{
                 Highlight h = (Highlight)it.next();
                 highlighter.remove(h);

@@ -183,7 +183,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		 * Method to return a List of all cells in this Group, sorted by View.
 		 * @return a List of all cells in this Group, sorted by View.
 		 */
-		public List getCellsSortedByView()
+		public List<Cell> getCellsSortedByView()
 		{
 			synchronized(cells)
 			{

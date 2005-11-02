@@ -87,7 +87,7 @@ public class SizeListener
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		List geomList = highlighter.getHighlightedEObjs(true, true);
+		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
 		if (geomList.size() != 1)
 		{
@@ -233,7 +233,7 @@ public class SizeListener
 
 			// determine default size
 			double xS = 0, yS = 0;
-			for(Iterator it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && nodes)
@@ -302,7 +302,7 @@ public class SizeListener
 			if (dialog.nodes)
 				yS = TextUtils.atof(dialog.ySize.getText());
 			boolean didSomething = false;
-			for(Iterator it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
+			for(Iterator<Geometric> it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && dialog.nodes)

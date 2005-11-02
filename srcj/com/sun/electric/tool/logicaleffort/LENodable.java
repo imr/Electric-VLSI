@@ -55,7 +55,7 @@ public class LENodable {
     }
 
     // --------- Definition fields ----------
-    /** list of pins */                     private List pins; // do not point to networks
+    /** list of pins */                     private List<LEPin> pins; // do not point to networks
     /** nodable */                          private Nodable no;
     /** gate type */                        private Type type;
     /** output Network */                   private Network outputNet;
@@ -82,7 +82,7 @@ public class LENodable {
     public LENodable(Nodable no, Type type, Variable mfactorVar, Variable suVar, Variable parallelGroupVar) {
         this.no = no;
         this.type = type;
-        pins = new ArrayList();
+        pins = new ArrayList<LEPin>();
         this.outputNet = null;
         this.mfactorVar = mfactorVar;
         this.suVar = suVar;
@@ -94,7 +94,7 @@ public class LENodable {
 
     protected LENodable copy() {
         LENodable copy = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             copy.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
@@ -125,7 +125,7 @@ public class LENodable {
     protected Type getType() { return type; }
 
     /** Get the pins */
-    protected List getPins() { return pins; }
+    protected List<LEPin> getPins() { return pins; }
 
     float getMfactor() { return mfactor; }
 
@@ -168,7 +168,7 @@ public class LENodable {
     protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister.NetlisterConstants constants) {
         LENodable instance = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
         // copy pins
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
@@ -335,7 +335,7 @@ public class LENodable {
     }
 
     protected void printPins() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             System.out.println("Pin "+pin.getName()+", le="+pin.getLE()+", dir="+pin.getDir()+" on network "+pin.getNetwork());
         }

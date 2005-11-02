@@ -69,17 +69,17 @@ public class LENetlister1 extends LENetlister {
     // ALL GATES SAME DELAY
     /** Netlister constants */                  protected NetlisterConstants constants;
 
-    /** all networks */                         private HashMap allNets;
-    /** all instances (LEGATES, not loads) */   private HashMap allInstances;
+    /** all networks */                         private HashMap<String,Net> allNets;
+    /** all instances (LEGATES, not loads) */   private HashMap<String,Instance> allInstances;
 
     /** Sizer */                                private LESizer sizer;
     /** Job we are part of */                   private Job job;
     /** Where to direct output */               private PrintStream out;
-    /** Mapping between NodeInst and Instance */private List instancesMap;
+    /** Mapping between NodeInst and Instance */private List<Instance> instancesMap;
 
     /** True if we got aborted */               private boolean aborted;
     /** for logging errors */                   private ErrorLogger errorLogger;
-    /** record definition errors so no multiple warnings */ private HashMap lePortError;
+    /** record definition errors so no multiple warnings */ private HashMap<Export,Export> lePortError;
     /** The top level cell netlisted */         private Cell topLevelCell;
 
     private static final boolean DEBUG = false;
@@ -91,12 +91,12 @@ public class LENetlister1 extends LENetlister {
         constants = null;
         topLevelCell = null;
 
-        allNets = new HashMap();
-        allInstances = new HashMap();
+        allNets = new HashMap<String,Net>();
+        allInstances = new HashMap<String,Instance>();
 
         this.job = job;
-        this.instancesMap = new ArrayList();
-        this.lePortError = new HashMap();
+        this.instancesMap = new ArrayList<Instance>();
+        this.lePortError = new HashMap<Export,Export>();
         this.out = new PrintStream((OutputStream)System.out);
 
         errorLogger = null;
@@ -153,10 +153,10 @@ public class LENetlister1 extends LENetlister {
      */
     public void updateSizes() {
         // iterator over all LEGATEs
-        Set allEntries = allInstances.entrySet();
-        for (Iterator it = allEntries.iterator(); it.hasNext();) {
+        Set<Map.Entry<String,Instance>> allEntries = allInstances.entrySet();
+        for (Iterator<Map.Entry<String,Instance>> it = allEntries.iterator(); it.hasNext();) {
 
-            Map.Entry entry = (Map.Entry)it.next();
+            Map.Entry<String,Instance> entry = (Map.Entry<String,Instance>)it.next();
             Instance inst = (Instance)entry.getValue();
             Nodable no = inst.getNodable();
             NodeInst ni = no.getNodeInst();
@@ -200,7 +200,7 @@ public class LENetlister1 extends LENetlister {
 	 * @return the new instance added, null if error
 	 */
 	protected Instance addInstance(String name, Instance.Type type, float leSU,
-		float leX, ArrayList pins, Nodable no)
+		float leX, ArrayList<Pin> pins, Nodable no)
 	{
 		if (allInstances.containsKey(name)) {
 			out.println("Error: Instance "+name+" already exists.");
@@ -210,7 +210,7 @@ public class LENetlister1 extends LENetlister {
 		Instance instance = new Instance(name, type, leSU, leX, no);
 
 		// create each net if necessary, from pin.
-		Iterator iter = pins.iterator();
+		Iterator<Pin> iter = pins.iterator();
 		while (iter.hasNext()) {
 			Pin pin = (Pin)iter.next();
 			String netname = pin.getNetName();
@@ -237,9 +237,9 @@ public class LENetlister1 extends LENetlister {
 	}
 
     //public HashMap getInstancesMap() { return instancesMap; }
-    protected HashMap getAllInstances() { return allInstances; }
+    protected HashMap<String,Instance> getAllInstances() { return allInstances; }
 
-    protected HashMap getAllNets() { return allNets; }
+    protected HashMap<String,Net> getAllNets() { return allNets; }
 
     /** return number of gates sized */
     protected int getNumGates() { return allInstances.size(); }
@@ -383,9 +383,9 @@ public class LENetlister1 extends LENetlister {
 
         // If got to this point, this is either an LEGATE or an LEWIRE
         // Both require us to build an instance.
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
 		Netlist netlist = info.getNetlist();
-		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
+		for (Iterator<PortProto> ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
             // Note default 'le' value should be one
             float le = getLE(ni, type, pp, info);
@@ -529,12 +529,12 @@ public class LENetlister1 extends LENetlister {
 
 
     public void printStatistics() {
-        Collection instances = getAllInstances().values();
+        Collection<Instance> instances = getAllInstances().values();
         float totalsize = 0f;
         float instsize = 0f;
         int numLEGates = 0;
         int numLEWires = 0;
-        for (Iterator it = instances.iterator(); it.hasNext();) {
+        for (Iterator<Instance> it = instances.iterator(); it.hasNext();) {
             Instance inst = (Instance)it.next();
             totalsize += inst.getLeX();
             if (inst.getType() == Instance.Type.LEGATE || inst.getType() == Instance.Type.LEKEEPER) {
@@ -559,9 +559,9 @@ public class LENetlister1 extends LENetlister {
      * if type is null, uses all types
      */
     public float getTotalSize(Instance.Type type) {
-        Collection instances = getAllInstances().values();
+        Collection<Instance> instances = getAllInstances().values();
         float totalsize = 0f;
-        for (Iterator it = instances.iterator(); it.hasNext();) {
+        for (Iterator<Instance> it = instances.iterator(); it.hasNext();) {
             Instance inst = (Instance)it.next();
             if (type == null)
                 totalsize += inst.getLeX();
@@ -577,7 +577,7 @@ public class LENetlister1 extends LENetlister {
             no = Netlist.getNodableFor((NodeInst)no, 0);
         }
         Instance inst = null;
-        for (Iterator it = instancesMap.iterator(); it.hasNext(); ) {
+        for (Iterator<Instance> it = instancesMap.iterator(); it.hasNext(); ) {
             Instance instance = (Instance)it.next();
             if (instance.getNodable() == no) {
                 if (instance.getContext().getInstPath(".").equals(context.getInstPath("."))) {
@@ -602,12 +602,12 @@ public class LENetlister1 extends LENetlister {
         Pin out = (Pin)inst.getOutputPins().get(0);
         Net net = out.getNet();
 
-        ArrayList gatesDrivenPins = new ArrayList();
-        ArrayList loadsDrivenPins = new ArrayList();
-        ArrayList wiresDrivenPins = new ArrayList();
-        ArrayList gatesFightingPins = new ArrayList();
+        ArrayList<Pin> gatesDrivenPins = new ArrayList<Pin>();
+        ArrayList<Pin> loadsDrivenPins = new ArrayList<Pin>();
+        ArrayList<Pin> wiresDrivenPins = new ArrayList<Pin>();
+        ArrayList<Pin> gatesFightingPins = new ArrayList<Pin>();
 
-        for (Iterator it = net.getAllPins().iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = net.getAllPins().iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance in = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
@@ -626,19 +626,19 @@ public class LENetlister1 extends LENetlister {
 
         float totalLoad = 0f;
         System.out.println("  -------------------- Gates Driven ("+gatesDrivenPins.size()+") --------------------");
-        for (Iterator it = gatesDrivenPins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = gatesDrivenPins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Loads Driven ("+loadsDrivenPins.size()+") --------------------");
-        for (Iterator it = loadsDrivenPins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = loadsDrivenPins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Wires Driven ("+wiresDrivenPins.size()+") --------------------");
-        for (Iterator it = wiresDrivenPins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = wiresDrivenPins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Gates Fighting ("+gatesFightingPins.size()+") --------------------");
-        for (Iterator it = gatesFightingPins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = gatesFightingPins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("*** Total Load: "+TextUtils.formatDouble(totalLoad, 2));

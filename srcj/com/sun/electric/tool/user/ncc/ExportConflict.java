@@ -125,7 +125,7 @@ public abstract class ExportConflict {
         private String createDescription(Network net) {
             StringBuffer buf = new StringBuffer(10);
             buf.append("{");
-            for (Iterator it = net.getNames(); it.hasNext();) {
+            for (Iterator<String> it = net.getNames(); it.hasNext();) {
                 buf.append(" " + (String)it.next());
                 if (it.hasNext()) buf.append(",");
             }

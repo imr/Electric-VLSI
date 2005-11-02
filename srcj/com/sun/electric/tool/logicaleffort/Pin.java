@@ -107,8 +107,8 @@ public class Pin {
     //----------------------------------UTILITY FUNCTIONS---------------------------------
 
     /** Return list of specified pins */
-    protected static ArrayList getPinListType(ArrayList pins, Pin.Dir dir) {
-        ArrayList typepins = new ArrayList();
+    protected static ArrayList<Pin> getPinListType(ArrayList<Pin> pins, Pin.Dir dir) {
+        ArrayList<Pin> typepins = new ArrayList<Pin>();
         for (int i=0; i<pins.size(); i++) {
             if ( ((Pin)pins.get(i)).getDir() == dir)
                 typepins.add((Pin)pins.get(i));
@@ -117,17 +117,17 @@ public class Pin {
     }
     
     /** Return list of bidirectional pins; */
-    protected static ArrayList getInoutPins(ArrayList pins) {
+    protected static ArrayList<Pin> getInoutPins(ArrayList<Pin> pins) {
 		return getPinListType(pins, Pin.Dir.INOUT);
 	}
 
     /** Return list of input pins; */
-    protected static ArrayList getInputPins(ArrayList pins) {
+    protected static ArrayList<Pin> getInputPins(ArrayList<Pin> pins) {
 		return getPinListType(pins, Pin.Dir.INPUT);
 	}
 
     /** Return list of output pins; */
-    protected static ArrayList getOutputPins(ArrayList pins) {
+    protected static ArrayList<Pin> getOutputPins(ArrayList<Pin> pins) {
 		return getPinListType(pins, Pin.Dir.OUTPUT);
 	}
 

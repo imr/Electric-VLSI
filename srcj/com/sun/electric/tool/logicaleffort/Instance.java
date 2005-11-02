@@ -48,7 +48,7 @@ public class Instance {
     /** step-up assigned to this gate */            private float leSU;
     /** size (drive strength) of this gate */       private float leX;
     /** used for levelizing the design */           private int level;
-    /** all other pins of Instance */               private ArrayList pins;
+    /** all other pins of Instance */               private ArrayList<Pin> pins;
 
     /** Context */                                  private VarContext context;
     /** parallel group number (0 is no group) */    private int parallelGroup;
@@ -80,14 +80,14 @@ public class Instance {
         this.no = no;
         this.parallelGroup = 0;
         this.mfactor = 1;
-        pins = new ArrayList();
+        pins = new ArrayList<Pin>();
     }
         
     /** Return list of bidirectional pins; */
-    protected ArrayList getAllPins() { return pins; }
+    protected ArrayList<Pin> getAllPins() { return pins; }
 
     /** Get output pins */
-    protected ArrayList getOutputPins() { return Pin.getOutputPins(pins); }
+    protected ArrayList<Pin> getOutputPins() { return Pin.getOutputPins(pins); }
         
     /** Get input pins */
     protected ArrayList getInputPins() { return Pin.getInputPins(pins); }
@@ -149,7 +149,7 @@ public class Instance {
     protected void setMfactor(double m) { mfactor = m; }
 
     /** Set the pin list */
-    protected void setPins(ArrayList pins) { 
+    protected void setPins(ArrayList<Pin> pins) { 
         this.pins = pins;
 
         if (!isLeGate()) return;
@@ -158,7 +158,7 @@ public class Instance {
         // check that there is only one output pin for an leGate
         int outputPinCount = 0;
         StringBuffer err = new StringBuffer("LETool leGate '"+name+"' error: more than one output pin: ");
-        for (Iterator it = pins.iterator(); it.hasNext();) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext();) {
             Pin p = (Pin)it.next();
             if (p.getDir() == Pin.Dir.OUTPUT) {
                 outputPinCount++;

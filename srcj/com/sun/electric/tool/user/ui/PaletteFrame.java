@@ -102,7 +102,7 @@ public class PaletteFrame implements MouseListener
         Technology cur = Technology.getCurrent();
         if (!makeCurrent) cur = Technology.findTechnology((String)techSelector.getSelectedItem());
         techSelector.removeAllItems();
-        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = (Technology)it.next();
             if (tech == Generic.tech) continue;

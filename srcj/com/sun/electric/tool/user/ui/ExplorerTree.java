@@ -224,13 +224,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static synchronized void rebuildExplorerTreeByName(DefaultMutableTreeNode libraryExplorerTree)
 	{
 		/*for(Library lib: Library.getVisibleLibraries())*/
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				for(Iterator eit = lib.getCells(); eit.hasNext(); )
+				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 				{
 					Cell cell = (Cell)eit.next();
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
@@ -244,7 +244,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static boolean addTechnologyLibraryToTree(Library lib, DefaultMutableTreeNode libTree)
 	{
 		boolean techLib = false;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (cell.isInTechnologyLibrary())
@@ -264,7 +264,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		libTree.add(arcTree);
 		libTree.add(nodeTree);
 		libTree.add(miscTree);
-		HashSet allCells = new HashSet();
+		HashSet<Cell> allCells = new HashSet<Cell>();
 		Cell [] layerCells = LayerInfo.getLayerCells(lib);
 		for(int i=0; i<layerCells.length; i++)
 		{
@@ -283,7 +283,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			allCells.add(nodeCells[i]);
 			nodeTree.add(new DefaultMutableTreeNode(nodeCells[i]));
 		}
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (allCells.contains(cell)) continue;
@@ -295,13 +295,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
 	{
 		/*for(Library lib: Library.getVisibleLibraries())*/
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				for(Iterator eit = lib.getCells(); eit.hasNext(); )
+				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 				{
 					Cell cell = (Cell)eit.next();
 	
@@ -309,8 +309,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (cell.isIcon()) continue;
 					if (cell.getView().isTextView()) continue;
 	
-			        HashSet addedCells = new HashSet();
-					for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+			        HashSet<Cell> addedCells = new HashSet<Cell>();
+					for(Iterator<Cell> vIt = cell.getVersions(); vIt.hasNext(); )
 					{
 						Cell cellVersion = (Cell)vIt.next();
 						Iterator insts = cellVersion.getInstancesOf();
@@ -335,8 +335,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static void createHierarchicalExplorerTree(Cell cell, DefaultMutableTreeNode cellTree)
 	{
 		// see what is inside
-		HashMap cellCount = new HashMap();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		HashMap<Cell,DBMath.MutableInteger> cellCount = new HashMap<Cell,DBMath.MutableInteger>();
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -357,7 +357,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		}
 
 		// show what is there
-		for(Iterator it = cellCount.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Cell> it = cellCount.keySet().iterator(); it.hasNext(); )
 		{
 			Cell subCell = (Cell)it.next();
 			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellCount.get(subCell);
@@ -372,26 +372,26 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByGroups(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		HashSet cellsSeen = new HashSet();
+		HashSet<Cell> cellsSeen = new HashSet<Cell>();
 		/*for(Library lib: Library.getVisibleLibraries())*/
-		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				for(Iterator eit = lib.getCells(); eit.hasNext(); )
+				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 				{
 					Cell cell = (Cell)eit.next();
 					cellsSeen.remove(cell);
 				}
-				for(Iterator eit = lib.getCells(); eit.hasNext(); )
+				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 				{
 					Cell cell = (Cell)eit.next();
 					if (cell.getNewestVersion() != cell) continue;
 					Cell.CellGroup group = cell.getCellGroup();
 					int numNewCells = 0;
-					for(Iterator gIt = group.getCells(); gIt.hasNext(); )
+					for(Iterator<Cell> gIt = group.getCells(); gIt.hasNext(); )
 					{
 						Cell cellInGroup = (Cell)gIt.next();
 						if (cellInGroup.getNewestVersion() == cellInGroup) numNewCells++;
@@ -402,9 +402,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						continue;
 					}
 	
-					List cellsInGroup = group.getCellsSortedByView();
+					List<Cell> cellsInGroup = group.getCellsSortedByView();
 					DefaultMutableTreeNode groupTree = null;
-					for(Iterator gIt = cellsInGroup.iterator(); gIt.hasNext(); )
+					for(Iterator<Cell> gIt = cellsInGroup.iterator(); gIt.hasNext(); )
 					{
 						Cell cellInGroup = (Cell)gIt.next();
 	                    if ((cellInGroup.getNumVersions() > 1) && (cellInGroup.getNewestVersion() != cellInGroup)) continue;
@@ -442,7 +442,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		}
 		if (cell.getNumVersions() > 1)
 		{
-			for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+			for(Iterator<Cell> vIt = cell.getVersions(); vIt.hasNext(); )
 			{
 				Cell oldVersion = (Cell)vIt.next();
 				if (oldVersion == cell) continue;
@@ -476,7 +476,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell.CellGroup group = cell.getCellGroup();
 				Cell mainSchematic = group.getMainSchematics();
 				int numSchematics = 0;
-				for(Iterator gIt = group.getCells(); gIt.hasNext(); )
+				for(Iterator<Cell> gIt = group.getCells(); gIt.hasNext(); )
 				{
 					Cell cellInGroup = (Cell)gIt.next();
 					if (cellInGroup.isSchematic()) numSchematics++;
@@ -658,7 +658,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
                 Cell.CellGroup cg = (Cell.CellGroup)nodeInfo;
                 int status = -1; // hasn't changed , status = 1 -> major change, status = 0 -> minor change
-                for (Iterator it = cg.getCells(); status != 1 && it.hasNext();)
+                for (Iterator<Cell> it = cg.getCells(); status != 1 && it.hasNext();)
                 {
                     Cell c = (Cell) it.next();
                     if (c.isModified(true))
@@ -729,7 +729,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			return this;
 		}
 
-		private HashMap iconGroups = new HashMap();
+		private HashMap<View,IconGroup> iconGroups = new HashMap<View,IconGroup>();
 
 		private IconGroup findIconGroup(View view)
 		{
@@ -942,7 +942,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				tree.currentSelectedObject = newSelection;
 
 				// update highlighting to match this selection
-				for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+				for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 				{
 					WindowFrame wf = (WindowFrame)it.next();
 					if (wf.getExplorerTab() == tree)
@@ -1064,7 +1064,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 				JMenu subMenu = new JMenu("Change View");
 				menu.add(subMenu);
-				for(Iterator it = View.getOrderedViews().iterator(); it.hasNext(); )
+				for(Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
 				{
 					View view = (View)it.next();
 					if (cell.getView() == view) continue;
@@ -1500,8 +1500,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				List sweeps = ww.getSweepSignals();
-				for(Iterator it = sweeps.iterator(); it.hasNext(); )
+				List<WaveformWindow.SweepSignal> sweeps = ww.getSweepSignals();
+				for(Iterator<WaveformWindow.SweepSignal> it = sweeps.iterator(); it.hasNext(); )
 				{
 					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)it.next();
 					ss.setIncluded(include);
@@ -1617,10 +1617,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             String name = JOptionPane.showInputDialog(tree, "Name of cell to search","");
 			if (name == null) return;
             System.out.println("Searching cell name like " + name);
-            for (Iterator it = Library.getLibraries(); it.hasNext();)
+            for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
             {
                 Library lib = (Library)it.next();
-                for (Iterator cIt = lib.getCells(); cIt.hasNext();)
+                for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();)
                 {
                     Cell cell = (Cell)cIt.next();
                     if (cell.getName().indexOf(name) != -1)

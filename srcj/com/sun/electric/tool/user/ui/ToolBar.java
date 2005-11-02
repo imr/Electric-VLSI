@@ -710,7 +710,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         JPopupMenu popup = new JPopupMenu();
         JMenuItem m;
 
-        HashMap listed = new HashMap();
+        HashMap<Cell,Cell> listed = new HashMap<Cell,Cell>();
         //for (int i=0; i<history.getHistory().size(); i++) {
         for (int i=history.getHistory().size()-1; i > -1; i--) {
             EditWindow.CellHistory entry = (EditWindow.CellHistory)history.getHistory().get(i);
@@ -804,7 +804,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         if (source instanceof JInternalFrame) {
             // associate go back and forward states with that frame's window
             WindowFrame useFrame = null;
-            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame frame = (WindowFrame)it.next();
                 if (frame.generatedEvent(e)) {
                     useFrame = frame;

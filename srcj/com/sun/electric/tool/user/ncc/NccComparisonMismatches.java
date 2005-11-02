@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
+import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 
@@ -57,23 +58,23 @@ public class NccComparisonMismatches {
     /** Contexts of the two cells  */   private VarContext[] contexts;
     /** Summary of the two cells   */   private CellSummary summary;
     
-    /** Export mismatches          */   private List exportMismatches;
+    /** Export mismatches          */   private List<ExportMismatch> exportMismatches;
     /** Part/Wire mismatches (local partitioning) */
                                         private LocalPartitionResult lpResult;
     
     /** Part/Wire mismatches (hashcode partitioning) */                                        
                                         private EquivRecord[] hashMismEqvRecrds;    
-    /** Transistor size mismatches */   private List sizeMismatches;
+    /** Transistor size mismatches */   private List<StratCheckSizes.Mismatch> sizeMismatches;
     /** Some export mismatches are duplicated when suggestions are added.
      *  Suggestions are given only when topology match. 
      *  This variable holds the total number of mismatches without suggestions
      *  which were duplicated by their corresponding suggestions */
                                         private int numExportsValidOnlyWhenTopologyMismatch;
                                         
-    /** Export Assertion Failures */    private List exportAssertionFailures;
-    /** Network Export Conflicts  */    private List networkExportConflicts;
-    /** Charact Export Conflicts  */    private List charactExportConflicts;
-    /** Unrecognized MOSes        */    private List unrecognizedParts;
+    /** Export Assertion Failures */    private List<ExportAssertionFailures> exportAssertionFailures;
+    /** Network Export Conflicts  */    private List<ExportConflict.NetworkConflict> networkExportConflicts;
+    /** Charact Export Conflicts  */    private List<ExportConflict.CharactConflict> charactExportConflicts;
+    /** Unrecognized MOSes        */    private List<UnrecognizedPart> unrecognizedParts;
     /** print hash code errors? */      private boolean printHashFailures;  
     
     public NccComparisonMismatches() {
@@ -85,12 +86,12 @@ public class NccComparisonMismatches {
         numExportsValidOnlyWhenTopologyMismatch = 0;
         lpResult = null;
         
-        exportMismatches = new LinkedList();
-        sizeMismatches = new LinkedList();
-        exportAssertionFailures = new LinkedList();
-        networkExportConflicts = new LinkedList();
-        charactExportConflicts = new LinkedList();
-        unrecognizedParts = new LinkedList();
+        exportMismatches = new LinkedList<ExportMismatch>();
+        sizeMismatches = new LinkedList<StratCheckSizes.Mismatch>();
+        exportAssertionFailures = new LinkedList<ExportAssertionFailures>();
+        networkExportConflicts = new LinkedList<ExportConflict.NetworkConflict>();
+        charactExportConflicts = new LinkedList<ExportConflict.CharactConflict>();
+        unrecognizedParts = new LinkedList<UnrecognizedPart>();
     }
     
     /** 
@@ -120,9 +121,9 @@ public class NccComparisonMismatches {
             hashMismEqvRecrds = new EquivRecord[parts.numNotMatched() 
                                               + wires.numNotMatched()];
             int i=0;
-            for (Iterator it=parts.getNotMatched(); it.hasNext(); i++)
+            for (Iterator<EquivRecord> it=parts.getNotMatched(); it.hasNext(); i++)
                 hashMismEqvRecrds[i] = (EquivRecord)it.next();
-            for (Iterator it=wires.getNotMatched(); it.hasNext(); i++)
+            for (Iterator<EquivRecord> it=wires.getNotMatched(); it.hasNext(); i++)
                 hashMismEqvRecrds[i] = (EquivRecord)it.next();
         }
         
@@ -213,7 +214,7 @@ public class NccComparisonMismatches {
      * This method returns the list of export mismatches
      * @return list of export mismatches 
      */
-    public List getExportMismatches() {
+    public List<ExportMismatch> getExportMismatches() {
         return exportMismatches;
     }
     
@@ -259,10 +260,10 @@ public class NccComparisonMismatches {
         return exportMismatches.size();
     }
 
-    public List getSizeMismatches() {
+    public List<StratCheckSizes.Mismatch> getSizeMismatches() {
         return sizeMismatches;
     }
-    public void setSizeMismatches(List sizeMismatches) {
+    public void setSizeMismatches(List<StratCheckSizes.Mismatch> sizeMismatches) {
         this.sizeMismatches = sizeMismatches;
     }
     
@@ -271,27 +272,27 @@ public class NccComparisonMismatches {
         exportAssertionFailures.add(
                 new ExportAssertionFailures(cell, context, items, names));
     }
-    public List getExportAssertionFailures() {
+    public List<ExportAssertionFailures> getExportAssertionFailures() {
         return exportAssertionFailures;
     }
     
     public void addNetworkExportConflict(ExportConflict.NetworkConflict conf) {
         networkExportConflicts.add(conf);
     }
-    public List getNetworkExportConflicts() {
+    public List<ExportConflict.NetworkConflict> getNetworkExportConflicts() {
         return networkExportConflicts;
     }
     public void addCharactExportConflict(ExportConflict.CharactConflict conf) {
         charactExportConflicts.add(conf);
     }
-    public List getCharactExportConflicts() {
+    public List<ExportConflict.CharactConflict> getCharactExportConflicts() {
         return charactExportConflicts;
     }
     
     public void addUnrecognizedPart(UnrecognizedPart mos) {
         unrecognizedParts.add(mos);
     }
-    public List getUnrecognizedParts() {
+    public List<UnrecognizedPart> getUnrecognizedParts() {
         return unrecognizedParts;
     }
     

@@ -103,7 +103,7 @@ public class LETool extends Listener {
         Object val = null;
         if ( (ni instanceof NodeInst) && (ni.getNameKey().busWidth() > 1)) {
             Name name = ni.getNameKey();
-            ArrayList sizes = new ArrayList();
+            ArrayList<Object> sizes = new ArrayList<Object>();
             for (int i=0; i<name.busWidth(); i++) {
                 Nodable no = Netlist.getNodableFor((NodeInst)ni, i);
                 Variable var = getLEDRIVE(ni, context.push(no));
@@ -397,7 +397,7 @@ public class LETool extends Listener {
         
         public boolean doIt() {
             // delete last job, if any
-            for (Iterator it = Job.getAllJobs(); it.hasNext(); ) {
+            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext(); ) {
                 Job job = (Job)it.next();
                 if (job instanceof AnalyzeCell) {
                     job.remove();
@@ -515,8 +515,8 @@ public class LETool extends Listener {
     public static void printResults(Nodable no, VarContext context) {
         // iterate through LE jobs from most recent until we
         // find info for 'no'
-        Iterator it = Job.getAllJobs();
-        Stack stack = new Stack();
+        Iterator<Job> it = Job.getAllJobs();
+        Stack<Job> stack = new Stack<Job>();
         while (it.hasNext()) {
             Job job = (Job)it.next();
             if (job instanceof AnalyzeCell) stack.push(job);
@@ -574,10 +574,10 @@ public class LETool extends Listener {
      * Clears stored "LEDRIVE_" sizes on all nodes in a Cell.
      */
     private static void clearStoredSizes(Cell cell) {
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
-            clearStoredSizes((Nodable)it.next());
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            clearStoredSizes((NodeInst)it.next());
         }
-        for (Iterator it = cell.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = cell.getVariables(); it.hasNext(); ) {
             Variable var = (Variable)it.next();
             String name = var.getKey().getName();
             if (name.startsWith("LEDRIVE_")) {
@@ -590,14 +590,14 @@ public class LETool extends Listener {
      * Clears stored "LEDRIVE_" sizes for all cells in a Library.
      */
     private static void clearStoredSizes(Library lib) {
-        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             clearStoredSizes((Cell)it.next());
         }
     }
 
     // delete all vars that start with "LEDRIVE_"
     private static void clearStoredSizes(Nodable no) {
-        for (Iterator it = no.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
             Variable var = (Variable)it.next();
             String name = var.getKey().getName();
             if (name.startsWith("LEDRIVE_")) {

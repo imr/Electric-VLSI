@@ -3309,7 +3309,7 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
-	public List getSweepSignals() { return sweepSignals; }
+	public List<SweepSignal> getSweepSignals() { return sweepSignals; }
 
 	private void removeMainTimePanel()
 	{

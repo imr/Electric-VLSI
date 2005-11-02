@@ -64,11 +64,11 @@ import java.util.Map;
 public class ReadableDump extends Output
 {
 	private int nodeInstError, portProtoError, arcInstError, typeError;
-	private LinkedHashMap cellOrdering = new LinkedHashMap();
-	private HashMap cellGrouping;
-	private HashMap nodeMap;
-	private HashMap arcMap;
-	private HashMap portMap;
+	private LinkedHashMap<Cell,Integer> cellOrdering = new LinkedHashMap<Cell,Integer>();
+	private HashMap<Cell,DBMath.MutableInteger> cellGrouping;
+	private HashMap<NodeInst,Integer> nodeMap;
+	private HashMap<ArcInst,Integer> arcMap;
+	private HashMap<Export,Integer> portMap;
 //	private int cellNumber;
 //	private Cell [] cells;
 
@@ -105,13 +105,13 @@ public class ReadableDump extends Output
 		gatherReferencedObjects(lib, true);
 
 		// determine proper library order
-		cellGrouping = new HashMap();
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		cellGrouping = new HashMap<Cell,DBMath.MutableInteger>();
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library oLib = (Library)lIt.next();
 			if (oLib == lib) continue;
 			if (!objInfo.containsKey(oLib)) continue;
-			for(Iterator it = oLib.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = oLib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				if (!objInfo.containsKey(cell)) continue;
@@ -125,7 +125,7 @@ public class ReadableDump extends Output
 // 			Cell cell = (Cell)it.next();
 // 			if (cell.getNumUsagesIn() == 0) textRecurse(cell);
 // 		}
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			if (!cellOrdering.containsKey(cell)) textRecurse(lib, cell);
@@ -133,9 +133,9 @@ public class ReadableDump extends Output
 // 			if (mi == null || mi.intValue() < 0) textRecurse(cell);
 		}
 		int cellNumber = 0;
-		for (Iterator it = cellOrdering.entrySet().iterator(); it.hasNext(); )
+		for (Iterator<Map.Entry<Cell,Integer>> it = cellOrdering.entrySet().iterator(); it.hasNext(); )
 		{
-			Map.Entry e = (Map.Entry)it.next();
+			Map.Entry<Cell,Integer> e = (Map.Entry<Cell,Integer>)it.next();
 			e.setValue(new Integer(cellNumber++));
 		}
 // 		if (cellNumber > 0)
@@ -155,19 +155,19 @@ public class ReadableDump extends Output
 // 		}
 
 		// determine cell groupings
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			cellGrouping.put(cell, new DBMath.MutableInteger(0));
 		}
 		int cellGroup = 0;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellGrouping.get(cell);
 			if (mi == null || mi.intValue() != 0) continue;
 			cellGroup++;
-			for(Iterator gIt = cell.getCellGroup().getCells(); gIt.hasNext(); )
+			for(Iterator<Cell> gIt = cell.getCellGroup().getCells(); gIt.hasNext(); )
 			{
 				Cell oCell = (Cell)gIt.next();
 				mi = (DBMath.MutableInteger)cellGrouping.get(oCell);
@@ -176,14 +176,14 @@ public class ReadableDump extends Output
 		}
 
 		int toolCount = 0;
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (!objInfo.containsKey(tool)) continue;
 			toolCount++;
 		}
 		int techCount = 0;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
@@ -194,7 +194,7 @@ public class ReadableDump extends Output
 		printWriter.println("****library: \"" + lib.getName() + "\"");
 		printWriter.println("version: " + Version.getVersion());
 		printWriter.println("aids: " + toolCount);
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			if (!objInfo.containsKey(tool)) continue;
@@ -203,14 +203,14 @@ public class ReadableDump extends Output
 		}
 //		printWriter.println("userbits: " + lib.lowLevelGetUserBits());
 		printWriter.println("techcount: " + techCount);
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!objInfo.containsKey(tech)) continue;
 			printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
 			writeMeaningPrefs(tech);
 		}
-		for(Iterator it = View.getViews(); it.hasNext(); )
+		for(Iterator<View> it = View.getViews(); it.hasNext(); )
 		{
 			View v = (View)it.next();
 			if (!objInfo.containsKey(v)) continue;
@@ -229,9 +229,9 @@ public class ReadableDump extends Output
 		writeVars(lib, null);
 
 		// write the rest of the database
-		for (Iterator cIt = cellOrdering.entrySet().iterator(); cIt.hasNext(); )
+		for (Iterator<Map.Entry<Cell,Integer>> cIt = cellOrdering.entrySet().iterator(); cIt.hasNext(); )
 		{
-			Map.Entry entry = (Map.Entry)cIt.next();
+			Map.Entry<Cell,Integer> entry = (Map.Entry<Cell,Integer>)cIt.next();
 			Cell cell = (Cell)entry.getKey();
 // 		for(int i = 0; i < cellNumber; i++)
 // 		{
@@ -276,21 +276,21 @@ public class ReadableDump extends Output
 			printWriter.println("userbits: " + (cell.lowLevelGetUserbits() & ELIBConstants.CELL_BITS));
 
 			// count and number the nodes, arcs, and ports
-			nodeMap = new HashMap();
-			arcMap = new HashMap();
-			portMap = new HashMap();
+			nodeMap = new HashMap<NodeInst,Integer>();
+			arcMap = new HashMap<ArcInst,Integer>();
+			portMap = new HashMap<Export,Integer>();
 			int nodeCount = 0, arcCount = 0, portCount = 0;
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				nodeMap.put(ni, new Integer(nodeCount++));
 			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				arcMap.put(ai, new Integer(arcCount++));
 			}
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				portMap.put(pp, new Integer(portCount++));
@@ -302,7 +302,7 @@ public class ReadableDump extends Output
 			writeVars(cell, cell);
 
 			// write the nodes in this cell
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -352,19 +352,19 @@ public class ReadableDump extends Output
 				printWriter.println("userbits: " + ni.getD().getElibBits());
 				writeVars(ni, cell);
 
-				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+				for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
-					ArrayList sortedConnections = new ArrayList();
-					ArrayList sortedExports = new ArrayList();
-					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+					ArrayList<Connection> sortedConnections = new ArrayList<Connection>();
+					ArrayList<Export> sortedExports = new ArrayList<Export>();
+					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
 						Connection con = (Connection)aIt.next();
 						if (con.getPortInst().getPortProto() == pp)
 							sortedConnections.add(con);
 					}
 					Collections.sort(sortedConnections, CONNECTIONS_ORDER);
-					for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 					{
 						Export e = (Export)eIt.next();
 						if (e.getOriginalPort().getPortProto() == pp)
@@ -373,14 +373,14 @@ public class ReadableDump extends Output
 					Collections.sort(sortedExports, EXPORTS_ORDER);
 					if (sortedConnections.size() > 0 || sortedExports.size() > 0)
 						printWriter.println("*port: " + pp.getName());
-					for(Iterator aIt = sortedConnections.iterator(); aIt.hasNext(); )
+					for(Iterator<Connection> aIt = sortedConnections.iterator(); aIt.hasNext(); )
 					{
 						Connection con = (Connection)aIt.next();
 						Integer aIndex = (Integer)arcMap.get(con.getArc());
 						if (aIndex == null) aIndex = new Integer(-1);
 						printWriter.println("arc: " + aIndex.intValue());
 					}
-					for(Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
+					for(Iterator<Export> eIt = sortedExports.iterator(); eIt.hasNext(); )
 					{
 						Export e = (Export)eIt.next();
 						Integer pIndex = (Integer)portMap.get(e);
@@ -392,7 +392,7 @@ public class ReadableDump extends Output
 
 			// write the portprotos in this cell
 			int poc = 0;
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				printWriter.println("**porttype: " + poc);
@@ -411,7 +411,7 @@ public class ReadableDump extends Output
 			}
 
 			// write the arcs in this cell
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				Integer arcIndex = (Integer)arcMap.get(ai);
@@ -462,7 +462,7 @@ public class ReadableDump extends Output
 	 */
 	private void textRecurse(Library lib, Cell cell)
 	{
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -498,7 +498,7 @@ public class ReadableDump extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
+			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
                 for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
@@ -531,7 +531,7 @@ public class ReadableDump extends Output
 		printWriter.println("variables: " + count + "");
 
 		// write the variables
-		for(Iterator it = obj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			writeVar(obj, var, curCell);
@@ -541,11 +541,11 @@ public class ReadableDump extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
+			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
 				if (pi.getNumVariables() == 0) continue;
-				for (Iterator it = pi.getVariables(); it.hasNext(); )
+				for (Iterator<Variable> it = pi.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
 						writeVar(pi, var, curCell);
@@ -619,10 +619,10 @@ public class ReadableDump extends Output
 	private void writeMeaningPrefs(Object obj)
 	{
 		// count the number of variables
-		List prefs = Pref.getMeaningVariables(obj);
+		List<Pref> prefs = Pref.getMeaningVariables(obj);
 		if (prefs.size() == 0) return;
 		printWriter.println("variables: " + prefs.size());
-		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		for(Iterator<Pref> it = prefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			Object varObj = pref.getValue();

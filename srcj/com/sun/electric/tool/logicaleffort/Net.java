@@ -43,7 +43,7 @@ public class Net {
 	// --------------------- private variables -------------------------------
 
 	/** name of net */                              private String name;
-    /** list of pins on network */                  private ArrayList pins;
+    /** list of pins on network */                  private ArrayList<Pin> pins;
 	///** list of nodes in wire network */            private ArrayList wireNodes;
 	///** list of wires in wire network */            private ArrayList wireConnections;
 
@@ -59,14 +59,14 @@ public class Net {
 	protected Net(String name)
 	{
 		this.name = name;
-        pins = new ArrayList();
+        pins = new ArrayList<Pin>();
 	}
 
     /**
      * Returns true if this net is driven by a sizeable gate.
      */
     protected boolean isDrivenBySizeableGate() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
@@ -80,7 +80,7 @@ public class Net {
      * Returns true if this net is driven by a static gate (non-sizeable).
      */
     protected boolean isDrivenByStaticGate() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
@@ -95,7 +95,7 @@ public class Net {
      * fixed size gate.
      */
     protected boolean isDrivenByGate() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
@@ -110,7 +110,7 @@ public class Net {
      * Returns true if this net drives a sizeable gate.
      */
     protected boolean drivesSizableGate() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
@@ -124,7 +124,7 @@ public class Net {
      * Returns true if this net drives a static gate.
      */
     protected boolean drivesStaticGate() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
@@ -138,7 +138,7 @@ public class Net {
      * Returns true if this net drives a load or a wire
      */ 
     protected boolean drivesLoad() {
-        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
@@ -154,7 +154,7 @@ public class Net {
     protected void addPin(Pin pin) { pins.add(pin); pin.setNet(this); }
     
     /** Get a list of pins attached to the net */
-    protected ArrayList getAllPins() { return pins; }
+    protected ArrayList<Pin> getAllPins() { return pins; }
     
     /** Get output pins */
     protected ArrayList getOutputPins() { return Pin.getOutputPins(pins); }

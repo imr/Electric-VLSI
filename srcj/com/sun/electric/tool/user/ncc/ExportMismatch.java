@@ -164,7 +164,7 @@ public abstract class ExportMismatch {
          * @param listIndex  Cell index
          * @param portSet  Ports to add
          */
-        public void add(int listIndex, Set portSet) {
+        public void add(int listIndex, Set<Port> portSet) {
             ports[listIndex].addAll(portSet);
         }
         
@@ -173,7 +173,7 @@ public abstract class ExportMismatch {
          * @param index  Cell index
          * @return the list with all Posrt for the Cell with the given index 
          */
-        public ArrayList getAll(int index) {
+        public ArrayList<Port> getAll(int index) {
             return ports[index];
         }
     }

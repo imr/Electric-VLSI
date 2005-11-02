@@ -218,7 +218,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			sb.redoStatusBar();
 		} else
 		{
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				StatusBar sb = wf.getFrame().getStatusBar();
@@ -324,7 +324,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 return;
             }
 			NodeInst theNode = null;
-            for(Iterator hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
+            for(Iterator<Highlight> hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
             {
                 Highlight h = (Highlight)hIt.next();
                 if (h.getType() == Highlight.Type.EOBJ)

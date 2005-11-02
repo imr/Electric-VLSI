@@ -69,7 +69,7 @@ public class CurveListener
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		List geomList = highlighter.getHighlightedEObjs(true, true);
+		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
 		if (geomList.size() != 1)
 		{
@@ -109,7 +109,7 @@ public class CurveListener
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		List geomList = highlighter.getHighlightedEObjs(true, true);
+		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
 		if (geomList.size() != 1)
 		{

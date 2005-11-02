@@ -166,7 +166,7 @@ public class WindowFrame extends Observable
 	 */
 	public static void show3DHighlight()
 	{
-        for(Iterator it = getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
             wf.setChanged();
@@ -203,7 +203,7 @@ public class WindowFrame extends Observable
 	 */
 	public static void updateTechnologyLists()
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.paletteTab.loadTechnologies(false);
@@ -505,7 +505,7 @@ public class WindowFrame extends Observable
 	 */
 	public static void wantToOpenCurrentLibrary(boolean openLib)
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.openLibraryInExplorerTree(Library.getCurrent(), new TreePath(wf.rootNode), openLib);
@@ -554,7 +554,7 @@ public class WindowFrame extends Observable
      */
 	public static void wantToRedoLibraryTree()
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
@@ -570,7 +570,7 @@ public class WindowFrame extends Observable
             });
             return;
         }
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
@@ -586,7 +586,7 @@ public class WindowFrame extends Observable
             });
             return;
         }
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
             wf.wantToRedoErrorTree = true;
@@ -613,7 +613,7 @@ public class WindowFrame extends Observable
 		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
-		HashSet expanded = new HashSet();
+		HashSet<Object> expanded = new HashSet<Object>();
 		recursivelyCache(expanded, new TreePath(rootNode), true);
 
 		// get the new library tree part
@@ -638,7 +638,7 @@ public class WindowFrame extends Observable
 		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
 
-	private void recursivelyCache(HashSet expanded, TreePath path, boolean cache)
+	private void recursivelyCache(HashSet<Object> expanded, TreePath path, boolean cache)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
 		int numChildren = node.getChildCount();
@@ -746,7 +746,7 @@ public class WindowFrame extends Observable
     public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
         synchronized(windowList) {
             if ((curWindowFrame == null) && makeNewFrame) {
-                for (Iterator it = windowList.iterator(); it.hasNext(); ) {
+                for (Iterator<WindowFrame> it = windowList.iterator(); it.hasNext(); ) {
                     // get last in list
                     curWindowFrame = (WindowFrame)it.next();
                 }
@@ -824,7 +824,7 @@ public class WindowFrame extends Observable
 
 	public static void removeLibraryReferences(Library lib)
 	{
-		for (Iterator it = getWindows(); it.hasNext(); )
+		for (Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -908,7 +908,7 @@ public class WindowFrame extends Observable
 	public static void wantToRedoTitleNames()
 	{
 		// rebuild window titles
-		for (Iterator it = getWindows(); it.hasNext(); )
+		for (Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
 			WindowFrame w = (WindowFrame)it.next();
 			WindowContent content = w.getContent();
@@ -1157,12 +1157,12 @@ public class WindowFrame extends Observable
 	static class WindowsEvents extends WindowAdapter
 	{
         /** A weak reference to the WindowFrame */
-		WeakReference wf;
+		WeakReference<WindowFrame> wf;
 
 		WindowsEvents(WindowFrame wf)
 		{
 			super();
-			this.wf = new WeakReference(wf);
+			this.wf = new WeakReference<WindowFrame>(wf);
 		}
 
 		public void windowActivated(WindowEvent evt)
@@ -1182,12 +1182,12 @@ public class WindowFrame extends Observable
 	static class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
-		WeakReference wf;
+		WeakReference<WindowFrame> wf;
 
 		InternalWindowsEvents(WindowFrame wf)
 		{
 			super();
-			this.wf = new WeakReference(wf);
+			this.wf = new WeakReference<WindowFrame>(wf);
 		}
 
 		public void internalFrameClosing(InternalFrameEvent evt)
@@ -1209,7 +1209,7 @@ public class WindowFrame extends Observable
         private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
 
         private void updateLibraryTrees() {
-            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame frame = (WindowFrame)it.next();
                 frame.wantToRedoLibraryTree = true;
                 frame.redoExplorerTreeIfRequested();

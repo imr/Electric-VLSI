@@ -65,7 +65,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
     private Library library;
     private JScrollPane scrollPane;
     private JList cellJList;
-    private Map viewPortMap;    // key: library. Object: Integer
+    private Map<Library,Rectangle> viewPortMap;    // key: library. Object: Integer
     private JPopupMenu cellPopup;
     private PaletteFrame.PlaceNodeListener lastPlaceNodeListener = null;
 
@@ -75,7 +75,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
      */
     public LibraryPalette(Dimension preferredSize) {
         library = null;
-        viewPortMap = new HashMap();
+        viewPortMap = new HashMap<Library,Rectangle>();
         initComponents(preferredSize);
         Undo.addDatabaseChangeListener(this);
     }
@@ -117,8 +117,8 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
             return;
         }
 
-        List cellList = new ArrayList();
-        for (Iterator it = library.getCells(); it.hasNext(); ) {
+        List<Cell> cellList = new ArrayList<Cell>();
+        for (Iterator<Cell> it = library.getCells(); it.hasNext(); ) {
             cellList.add(it.next());
         }
         cellJList.setListData(cellList.toArray());

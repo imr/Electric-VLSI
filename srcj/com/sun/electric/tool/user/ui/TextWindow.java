@@ -195,7 +195,7 @@ public class TextWindow
 	 */
 	public static void saveAllTextWindows()
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -404,7 +404,7 @@ public class TextWindow
 	 */
 	public static String [] getEditedText(Cell cell)
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -438,7 +438,7 @@ public class TextWindow
 	 */
 	public static void updateText(Cell cell, String [] strings)
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();

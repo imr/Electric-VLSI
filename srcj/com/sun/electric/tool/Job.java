@@ -616,7 +616,7 @@ public abstract class Job implements ActionListener, Runnable {
 	}
 
     /** get all jobs iterator */
-    public static Iterator getAllJobs() { return databaseChangesThread.getAllJobs(); }
+    public static Iterator<Job> getAllJobs() { return databaseChangesThread.getAllJobs(); }
     
     /** get status */
     public String getStatus() {

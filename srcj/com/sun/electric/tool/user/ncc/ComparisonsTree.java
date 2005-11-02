@@ -169,9 +169,9 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 int size = lpRes.badPartEquivRecCount() + lpRes.badWireEquivRecCount();
                 mismEqRecs = new EquivRecord[size];
                 int i = 0;
-                for (Iterator it=lpRes.getBadPartEquivRecs(); it.hasNext();)
+                for (Iterator<EquivRecord> it=lpRes.getBadPartEquivRecs(); it.hasNext();)
                     mismEqRecs[i++] = (EquivRecord)it.next();
-                for (Iterator it=lpRes.getBadWireEquivRecs(); it.hasNext();)
+                for (Iterator<EquivRecord> it=lpRes.getBadWireEquivRecs(); it.hasNext();)
                     mismEqRecs[i++] = (EquivRecord)it.next();                
             } else if (isHashChecked) {  // hashcode parts/wires entries
                 mismEqRecs = cm.getHashMismatchedEquivRecords();
@@ -306,7 +306,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             // limit output size
             if (count > MAX_CLASSES) { truncated = true; continue;}
             
-            List reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
+            List<String> reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
             StringBuffer nodeName = new StringBuffer("#"+ count + " [");
             int size;
             if (isHashChecked)
@@ -321,7 +321,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
             nodeName.append(size + "]");
             
-            Iterator it = null;
+            Iterator<String> it = null;
             String reas = null;            
             if (! isHashChecked) {  // don't process reasons for hash code classes
                 it = reasons.iterator();
@@ -573,7 +573,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (count > len) break;
 
             LocalPartitionResult lpRes = null ; // LP result
-            ArrayList[] mism = null; // list of mismatched NetObjects from LP result  
+            ArrayList<NetObject>[] mism = null; // list of mismatched NetObjects from LP result  
             if (!isHashPrinted) {
                 // get LP result and lists of matched and mismatched NetObjects
                 lpRes = mismatches[compNdx].getLocalPartitionResult(); 
@@ -589,9 +589,9 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             String instDescr = null;
             if (isHashPrinted) {
                 // for each of the two compared Cells
-                for (Iterator it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
+                for (Iterator<Circuit> it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
                     Circuit ckt = (Circuit) it.next();
-                    Iterator it2=ckt.getNetObjs();
+                    Iterator<NetObject> it2=ckt.getNetObjs();
                     if (it2.hasNext()) {
                         instDescr = ((NetObject) it2.next()).instanceDescription();
                         descr[cell] = createFirstWireOverview(instDescr, it2.hasNext());

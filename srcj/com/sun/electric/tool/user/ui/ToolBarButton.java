@@ -34,6 +34,8 @@ import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
@@ -61,7 +63,7 @@ import javax.swing.plaf.ButtonUI;
  */
 public class ToolBarButton extends AbstractButton implements Accessible, ActionListener {
     
-    /** Hash table of arraylists for all buttons */     private static HashMap allButtons = new HashMap(15);
+    /** Hash table of arraylists for all buttons */     private static HashMap<String,List<ToolBarButton>> allButtons = new HashMap<String,List<ToolBarButton>>(15);
     /** Dummy object for listener for updating */       public static ToolBarButton updater = new ToolBarButton(null, null);
     /** Name of ToolBarButton */                        private String name;
     /** Tool bar button logger */                       private static final ButtonLogger buttonLogger = new ButtonLogger();
@@ -111,12 +113,12 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         b.addActionListener(buttonLogger);
 
         // add to book-keeping
-        ArrayList buttonGroup;
+        ArrayList<ToolBarButton> buttonGroup;
         if (!allButtons.containsKey(text)) {
-            buttonGroup = new ArrayList();
+            buttonGroup = new ArrayList<ToolBarButton>();
             allButtons.put(text, buttonGroup);
         } else {
-            buttonGroup = (ArrayList)allButtons.get(text);
+            buttonGroup = (ArrayList<ToolBarButton>)allButtons.get(text);
         }
         buttonGroup.add(b);
         return b;
@@ -139,9 +141,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         if (source instanceof ToolBarButton) name = ((ToolBarButton)source).getName(); else
             name = source.getText();
         //System.out.println("ActionPerformed on Button "+name+", state is "+source.isSelected());
-        ArrayList list = (ArrayList)allButtons.get(name);
+        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
         if (list == null) return;
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
+        for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
             AbstractButton b = (AbstractButton)it.next();
             if (b == source) continue;
             String name2;
@@ -160,9 +162,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @param icon the new icon for the buttons
      */
     public static void setIconForButton(String name, Icon icon) {
-        ArrayList list = (ArrayList)allButtons.get(name);
+        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
         if (list == null) return;
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
+        for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
             AbstractButton b = (AbstractButton)it.next();
             b.setIcon(icon);
         }
@@ -175,7 +177,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @return the state of the button
      */
     public static boolean getButtonState(String name) {
-        ArrayList list = (ArrayList)allButtons.get(name);
+        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
         if (list == null || list.size() == 0) return false;
         AbstractButton b = (AbstractButton)list.get(0);
         return b.isSelected();
@@ -186,7 +188,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @param name the name of the button
      */
     public static void doClick(String name) {
-        ArrayList list = (ArrayList)allButtons.get(name);
+        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
         if (list == null) return;
         AbstractButton b = (AbstractButton)list.get(0);
         b.doClick();

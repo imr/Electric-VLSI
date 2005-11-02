@@ -34,24 +34,24 @@ import java.io.PrintStream;
 public class LENetwork {
 
     /** Name */                             private String name;
-    /** List of pins on network */          private List pins;
-    /** List of networks on network */      private List networks;
+    /** List of pins on network */          private List<LEPin> pins;
+    /** List of networks on network */      private List<LENetwork> networks;
 
     protected LENetwork(String name) {
         this.name = name;
-        pins = new ArrayList();
-        networks = new ArrayList();
+        pins = new ArrayList<LEPin>();
+        networks = new ArrayList<LENetwork>();
     }
 
     protected void add(LEPin pin) { pins.add(pin); }
     protected void add(LENetwork net) { networks.add(net); }
 
     protected String getName() { return name; }
-    protected Iterator getSubNets() { return networks.iterator(); }
+    protected Iterator<LENetwork> getSubNets() { return networks.iterator(); }
 
-    protected List getAllPins() {
-        List allpins = new ArrayList(pins);
-        for (Iterator it = networks.iterator(); it.hasNext(); ) {
+    protected List<LEPin> getAllPins() {
+        List<LEPin> allpins = new ArrayList<LEPin>(pins);
+        for (Iterator<LENetwork> it = networks.iterator(); it.hasNext(); ) {
             LENetwork net = (LENetwork)it.next();
             allpins.addAll(net.getAllPins());
         }
@@ -64,12 +64,12 @@ public class LENetwork {
 
     protected void print(String header, PrintStream out) {
         out.println(header+"Network "+name+", connects to: ");
-        for (Iterator it = pins.iterator(); it.hasNext();) {
+        for (Iterator<LEPin> it = pins.iterator(); it.hasNext();) {
             LEPin pin = (LEPin)it.next();
             LENodable leno = pin.getInstance();
             out.println(header+"  "+leno.printOneLine(""));
         }
-        for (Iterator it = networks.iterator(); it.hasNext(); ) {
+        for (Iterator<LENetwork> it = networks.iterator(); it.hasNext(); ) {
             LENetwork net = (LENetwork)it.next();
             net.print(header+"  ", out);
         }

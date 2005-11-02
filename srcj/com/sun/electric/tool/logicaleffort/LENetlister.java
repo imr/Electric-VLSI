@@ -146,7 +146,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
      * @return the netlister constants settings, or null if none found
      */
     protected NetlisterConstants getSettings(Cell cell) {
-        for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
+        for (Iterator<NodeInst> instIt = cell.getNodes(); instIt.hasNext();) {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.isIconOfParent()) continue;
             if (!(ni.getProto() instanceof Cell)) continue;
@@ -219,9 +219,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
 
         // first we need to find the LESettings Cell
         Cell settings = null;
-        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
-            for (Iterator it2 = lib.getCells(); it2.hasNext(); ) {
+            for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
                 Cell c = (Cell)it2.next();
                 if (c.getVar(ATTR_LESETTINGS) != null) {
                     settings = c;

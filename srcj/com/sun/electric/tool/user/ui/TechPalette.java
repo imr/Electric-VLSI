@@ -759,7 +759,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public static void loadSpiceCells(Library lib, TechPalette panel, JPopupMenu cellMenu)
         {
-            for(Iterator it = lib.getCells(); it.hasNext(); )
+            for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
             {
                 Cell cell = (Cell)it.next();
                 // only access to icons of those cells

@@ -67,7 +67,7 @@ public class PolyQTree extends GeometryHandler
 	 */
 	public void print()
 	{
-		for (Iterator it = getIterator(); it.hasNext();)
+		for (Iterator<PolyQNode> it = getIterator(); it.hasNext();)
 		{
 			PolyQNode root = (PolyQNode)(it.next());
 			if (root != null)
@@ -84,7 +84,7 @@ public class PolyQTree extends GeometryHandler
 	 */
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
-		Set objSet = new HashSet();
+		Set<PolyNode> objSet = new HashSet<PolyNode>();
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root != null)
@@ -93,9 +93,9 @@ public class PolyQTree extends GeometryHandler
 			root.getLeafObjects(objSet, modified, simple);
 
 			// Checking if element must be replaced
-			Set toRemove = new HashSet();
-			Set toAdd  = new HashSet();
-			for (Iterator it = objSet.iterator(); it.hasNext();)
+			Set<PolyNode> toRemove = new HashSet<PolyNode>();
+			Set<PolyNode> toAdd  = new HashSet<PolyNode>();
+			for (Iterator<PolyNode> it = objSet.iterator(); it.hasNext();)
 			{
 				PolyNode node = (PolyNode)it.next();
 				//if (!modified || (modified && !node.isOriginal()))
@@ -134,11 +134,11 @@ public class PolyQTree extends GeometryHandler
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
 
-		Set removedElems = new HashSet();
+		Set<PolyNode> removedElems = new HashSet<PolyNode>();
 		if (!root.findAndRemoveObjects(rootBox, obj, areaBB, fasterAlgorithm, removedElems))
 		{
 			// Add removed elements. They overlap with new element.
-			for (Iterator it = removedElems.iterator(); it.hasNext(); )
+			for (Iterator<PolyNode> it = removedElems.iterator(); it.hasNext(); )
 			{
 				PolyNode node = (PolyNode)it.next();
 				obj.add(node);
@@ -156,9 +156,9 @@ public class PolyQTree extends GeometryHandler
 	{
 		PolyQTree other = (PolyQTree)subMerge;
 
-		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
+		for(Iterator<Layer> it = other.layers.keySet().iterator(); it.hasNext();)
 		{
-			Object layer = it.next();
+			Layer layer = it.next();
 			Set set = (Set)other.getObjects(layer, false, false);
 
 			for(Iterator i = set.iterator(); i.hasNext(); )
@@ -255,7 +255,7 @@ public class PolyQTree extends GeometryHandler
 		{
 			PathIterator pi = getPathIterator(null);
 			double coords[] = new double[6];
-			List pointList = new ArrayList();
+			List<Point2D> pointList = new ArrayList<Point2D>();
             Point2D lastMoveTo = null;
 
 			while (!pi.isDone()) {
@@ -284,7 +284,7 @@ public class PolyQTree extends GeometryHandler
 		public double getPerimeter()
 		{
 			double [] coords = new double[6];
-			List pointList = new ArrayList();
+			List<Point2D> pointList = new ArrayList<Point2D>();
 			double perimeter = 0;
             PathIterator pi = getPathIterator(null);
 
@@ -339,10 +339,10 @@ public class PolyQTree extends GeometryHandler
 					        (p1.equals(edge.p2) && p2.equals(edge.p1)));
 				}
 			}
-			HashMap edges = new HashMap();
+			HashMap<PolyEdge,PolyEdge> edges = new HashMap<PolyEdge,PolyEdge>();
 			PathIterator pi = getPathIterator(null);
 			double [] coords = new double[6];
-			List pointList = new ArrayList();
+			List<Point2D> pointList = new ArrayList<Point2D>();
 
 			while (!pi.isDone()) {
 				switch (pi.currentSegment(coords)) {
@@ -410,7 +410,7 @@ public class PolyQTree extends GeometryHandler
 			}
 			// @TODO: GVG Missing part. Run more robust tests
             double [] coords = new double[6];
-			List pointList = new ArrayList();
+			List<Point2D> pointList = new ArrayList<Point2D>();
 			double area = 0;
             PathIterator pi = getPathIterator(null);
 
@@ -482,16 +482,16 @@ public class PolyQTree extends GeometryHandler
 		{
 			original |= 1 << 0;
 		}
-		private Collection getSimpleObjects(boolean simple)
+		private Collection<PolyNode> getSimpleObjects(boolean simple)
 		{
-			Set set = new HashSet();
+			Set<PolyNode> set = new HashSet<PolyNode>();
             // Possible not connected loops
             double [] coords = new double[6];
-            List pointList = new ArrayList();
+            List<Point2D> pointList = new ArrayList<Point2D>();
             PathIterator pi = getPathIterator(null);
-            List polyList = new ArrayList();
+            List<GeneralPath> polyList = new ArrayList<GeneralPath>();
             boolean isSingular = isSingular();
-            List toDelete = new ArrayList();
+            List<GeneralPath> toDelete = new ArrayList<GeneralPath>();
 
             while (!pi.isDone()) {
                 switch (pi.currentSegment(coords)) {
@@ -510,7 +510,7 @@ public class PolyQTree extends GeometryHandler
                             // Search possible inner loops
                             if (!simple && !isSingular)
                             {
-                                Iterator it = polyList.iterator();
+                                Iterator<GeneralPath> it = polyList.iterator();
                                 while (it.hasNext())
                                 {
                                     GeneralPath pn = (GeneralPath)it.next();
@@ -542,7 +542,7 @@ public class PolyQTree extends GeometryHandler
                 }
                 pi.next();
             }
-            for (Iterator it = polyList.iterator(); it.hasNext();)
+            for (Iterator<GeneralPath> it = polyList.iterator(); it.hasNext();)
             {
                 GeneralPath pn = (GeneralPath)it.next();
                 PolyNode node = new PolyNode(pn);
@@ -556,15 +556,15 @@ public class PolyQTree extends GeometryHandler
          */
 		public List getSortedLoops()
 		{
-			Collection set = getSimpleObjects(true);
-			List list = new ArrayList(set);
+			Collection<PolyNode> set = getSimpleObjects(true);
+			List<PolyNode> list = new ArrayList<PolyNode>(set);
 			Collections.sort(list);
 			return (list);
 		}
 	}
 	private static class PolyQNode
     {
-		private Set nodes; // If Set, no need to check whether they are duplicated or not. Java will do it for you
+		private Set<PolyNode> nodes; // If Set, no need to check whether they are duplicated or not. Java will do it for you
 		private PolyQNode[] children;
 
 		/**
@@ -625,12 +625,12 @@ public class PolyQTree extends GeometryHandler
 		 * @param modified True if no original elements should be considered
 		 * @param simple True if simple elements should be retrieved
 		 */
-		protected void getLeafObjects(Set set, boolean modified, boolean simple)
+		protected void getLeafObjects(Set<PolyNode> set, boolean modified, boolean simple)
 		{
 			if (nodes != null)
 			{
 				// Not sure how efficient this is
-				for (Iterator it = nodes.iterator(); it.hasNext();)
+				for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 				{
 					PolyNode node = (PolyNode)it.next();
 					if (!modified || (modified && !node.isOriginal()))
@@ -655,7 +655,7 @@ public class PolyQTree extends GeometryHandler
 		protected void print()
 		{
 			if (nodes == null) return;
-			for (Iterator it = nodes.iterator(); it.hasNext();)
+			for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 				System.out.println("Area " + it.next());
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
@@ -708,7 +708,7 @@ public class PolyQTree extends GeometryHandler
 		 * Removes from tree all objects overlapping with obj. Returns the overlapping region.
 		 */
 		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB,
-		                                       boolean fasterAlgorithm, Set removedElems)
+		                                       boolean fasterAlgorithm, Set<PolyNode> removedElems)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -742,9 +742,9 @@ public class PolyQTree extends GeometryHandler
 			}
 			else if (nodes != null)
 			{
-				Set deleteSet = new HashSet();
+				Set<PolyNode> deleteSet = new HashSet<PolyNode>();
 
-				for (Iterator it = nodes.iterator(); it.hasNext();)
+				for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 				{
 					PolyNode node = (PolyNode)it.next();
 
@@ -838,7 +838,7 @@ public class PolyQTree extends GeometryHandler
 			}
 			if (nodes == null)
 			{
-				nodes = new HashSet();
+				nodes = new HashSet<PolyNode>();
 			}
 			boolean inserted = false;
 
@@ -865,7 +865,7 @@ public class PolyQTree extends GeometryHandler
 					children[i] = new PolyQNode();
 					Rectangle2D bb = getBox(x, y, w, h, centerX, centerY, i);
 
-					for (Iterator it = nodes.iterator(); it.hasNext();)
+					for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 					{
 						PolyNode node = (PolyNode)it.next();
 

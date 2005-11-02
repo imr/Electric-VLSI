@@ -120,7 +120,7 @@ public class LocalPartitionResult {
     /** @return Iterator over all bad Part EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */   
-    public Iterator getBadPartEquivRecs() {return badPartRecs.iterator();}
+    public Iterator<EquivRecord> getBadPartEquivRecs() {return badPartRecs.iterator();}
     /** @return number of all bad Part EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */       
@@ -129,7 +129,7 @@ public class LocalPartitionResult {
     /** @return Iterator over all bad Wire EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */   
-    public Iterator getBadWireEquivRecs() {return badWireRecs.iterator();}
+    public Iterator<EquivRecord> getBadWireEquivRecs() {return badWireRecs.iterator();}
     /** @return number of all bad Wire EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */       

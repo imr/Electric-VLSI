@@ -39,10 +39,10 @@ import java.util.Map;
 public class CachedCell {
 
     /** source cell */                  private Cell cell;
-    /** map of Nodable to LENodable */  private Map lenodables;
-    /** map of CachedCell instances */  private Map cellnodables; // key: Nodable, Object: CellNodable
+    /** map of Nodable to LENodable */  private Map<Nodable,LENodable> lenodables;
+    /** map of CachedCell instances */  private Map<Nodable,CellNodable> cellnodables; // key: Nodable, Object: CellNodable
     /** this cell or subcells contains le gates */  private boolean containsSizableGates;
-    /** local networks */               private Map localNetworks; // key: Network, Object: LENetwork
+    /** local networks */               private Map<Network,LENetwork> localNetworks; // key: Network, Object: LENetwork
     /** if this cell's nodes and subcell's nodes can be fully evaluated as if this cell was the top level */
                                         private Boolean contextFree;
     /** list of all cached nodables */  //private List allCachedNodables;
@@ -57,15 +57,15 @@ public class CachedCell {
 
     protected CachedCell(Cell cell, Netlist netlist) {
         this.cell = cell;
-        lenodables = new HashMap();
-        localNetworks = new HashMap();
-        cellnodables = new HashMap();
+        lenodables = new HashMap<Nodable,LENodable>();
+        localNetworks = new HashMap<Network,LENetwork>();
+        cellnodables = new HashMap<Nodable,CellNodable>();
         //allCachedNodables = new ArrayList();
         containsSizableGates = false;
         contextFree = null;
         if (netlist != null) {
             // populate local networks
-            for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+            for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
                 Network jnet = (Network)it.next();
                 LENetwork net = new LENetwork(jnet.describe(false));
                 if (localNetworks.containsKey(jnet))
@@ -83,7 +83,7 @@ public class CachedCell {
     protected CellNodable getCellNodable(Nodable no) { return (CellNodable)cellnodables.get(no); }
     protected Iterator getCellNodables() { return cellnodables.values().iterator(); }
 
-    protected Map getLocalNetworks() { return localNetworks; }
+    protected Map<Network,LENetwork> getLocalNetworks() { return localNetworks; }
 
     //protected List getAllCachedNodables() { return allCachedNodables; }
 
@@ -95,7 +95,7 @@ public class CachedCell {
     protected void add(Nodable no, LENodable leno) {
         if (leno.isLeGate()) containsSizableGates = true;
         // hook up gate to local networks
-        for (Iterator it = leno.getPins().iterator(); it.hasNext(); ) {
+        for (Iterator<LEPin> it = leno.getPins().iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             Network jnet = pin.getNetwork();
             LENetwork net = (LENetwork)localNetworks.get(jnet);
@@ -146,8 +146,8 @@ public class CachedCell {
 
         //System.out.println("Importing to "+cell.describe()+" from "+no.getName()+":");
         // map subCell networks to this cell's networks through global network id's
-        for (Iterator it = subCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<Network,LENetwork>> it = subCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Network,LENetwork> entry = (Map.Entry<Network,LENetwork>)it.next();
             Network subJNet = (Network)entry.getKey();
             LENetwork subLENet = (LENetwork)entry.getValue();
             Network localJNet = subCellInfo.getNetworkInParent(subJNet);
@@ -187,15 +187,15 @@ public class CachedCell {
 
     private boolean isContextFreeRecurse(VarContext context, float mfactor, LENetlister2.NetlisterConstants constants) {
         // check LENodables
-        for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
+        for (Iterator<LENodable> it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             boolean b = leno.setOnlyContext(context, null, mfactor, 0, constants);
             if (DEBUG) System.out.println("  gate "+leno.getName()+" cached: "+b+", leX="+leno.leX+", ID="+leno.hashCode());
             if (!b) return false;
         }
         // check cached cell instances
-        for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<Nodable,CellNodable>> it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Nodable,CellNodable> entry = (Map.Entry<Nodable,CellNodable>)it.next();
             Nodable no = (Nodable)entry.getKey();
             CellNodable ceno = (CellNodable)entry.getValue();
             // see if any mfactor var is evaluatable
@@ -230,9 +230,9 @@ public class CachedCell {
     private CachedCell copy() {
         CachedCell copy = new CachedCell(cell, null);
         // copy all subcell structures
-        Map origSubNetsToCopySubNets = new HashMap();
-        for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        Map<LENetwork,LENetwork> origSubNetsToCopySubNets = new HashMap<LENetwork,LENetwork>();
+        for (Iterator<Map.Entry<Nodable,CellNodable>> it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Nodable,CellNodable> entry = (Map.Entry<Nodable,CellNodable>)it.next();
             Nodable no = (Nodable)entry.getKey();
             CellNodable ceno = (CellNodable)entry.getValue();
             CellNodable cenoCopy = new CellNodable();
@@ -244,8 +244,8 @@ public class CachedCell {
             copy.cellnodables.put(no, cenoCopy);
             // build table of original subnets to copied subnets, so we
             // can update subnet links when we copy local networks
-            for (Iterator nit = ceno.subCell.localNetworks.entrySet().iterator(); nit.hasNext(); ) {
-                Map.Entry netentry = (Map.Entry)nit.next();
+            for (Iterator<Map.Entry<Network,LENetwork>> nit = ceno.subCell.localNetworks.entrySet().iterator(); nit.hasNext(); ) {
+                Map.Entry<Network,LENetwork> netentry = (Map.Entry<Network,LENetwork>)nit.next();
                 Network jnet = (Network)netentry.getKey();
                 LENetwork origNet = (LENetwork)netentry.getValue();
                 LENetwork copyNet = (LENetwork)cenoCopy.subCell.localNetworks.get(jnet);
@@ -254,12 +254,12 @@ public class CachedCell {
         }
         // create new networks
         // add on subnets, because they are the connectivity to subcells.
-        for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<Network,LENetwork>> it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Network,LENetwork> entry = (Map.Entry<Network,LENetwork>)it.next();
             Network jnet = (Network)entry.getKey();
             LENetwork net = (LENetwork)entry.getValue();
             LENetwork netCopy = new LENetwork(net.getName());
-            for (Iterator nit = net.getSubNets(); nit.hasNext(); ) {
+            for (Iterator<LENetwork> nit = net.getSubNets(); nit.hasNext(); ) {
                 LENetwork subnet = (LENetwork)nit.next();
                 // find copy of subnet in cellnodables copy
                 LENetwork copySubNet = (LENetwork)origSubNetsToCopySubNets.get(subnet);
@@ -270,7 +270,7 @@ public class CachedCell {
             copy.localNetworks.put(jnet, netCopy);
         }
         // copy all lenodables: this sets pins of local networks.
-        for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
+        for (Iterator<LENodable> it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             LENodable lenoCopy = leno.copy();
             copy.add(leno.getNodable(), lenoCopy);
@@ -287,18 +287,18 @@ public class CachedCell {
      */
     protected void printContents(String indent, PrintStream out) {
         out.println(indent+"CachedCell "+cell.describe(true)+" contents:");
-        for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
+        for (Iterator<LENodable> it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             out.println(leno.printOneLine(indent+"  "));
         }
-        for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<Network,LENetwork>> it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Network,LENetwork> entry = (Map.Entry<Network,LENetwork>)it.next();
             Network jnet = (Network)entry.getKey();
             LENetwork net = (LENetwork)entry.getValue();
             net.print(indent+"  ", out);
         }
-        for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
+        for (Iterator<Map.Entry<Nodable,CellNodable>> it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Nodable,CellNodable> entry = (Map.Entry<Nodable,CellNodable>)it.next();
             Nodable no = (Nodable)entry.getKey();
             CellNodable ceno = (CellNodable)entry.getValue();
             //ceno.subCell.printContents(indent+"  ", out);

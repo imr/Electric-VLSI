@@ -118,7 +118,7 @@ public class LESizer {
             if (verbose) System.out.println(":");
             
 			// iterate through each instance
-			Iterator instancesIter = netlist.getAllInstances().values().iterator();
+			Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 
 			while (instancesIter.hasNext()) {
 				Instance instance = (Instance)instancesIter.next();
@@ -128,7 +128,7 @@ public class LESizer {
 				if (instance.isLeGate()) {
 					
 					// get output pin (do not iterate over all output pins, does not make sense)
-					ArrayList outputPins = instance.getOutputPins();
+					ArrayList<Pin> outputPins = instance.getOutputPins();
                     if (outputPins.size() != 1) {
                         // error
                         continue;
@@ -137,12 +137,12 @@ public class LESizer {
                     Net net = outputPin.getNet();
                     
                     // now find all pins connected to this net
-                    ArrayList netpins = net.getAllPins();
+                    ArrayList<Pin> netpins = net.getAllPins();
 
                     // find all drivers in same group, of same type (LEGATe or LEKEEPER)
-                    List drivers = new ArrayList();
-                    List arrayedDrivers = new ArrayList();
-                    for (Iterator it = netpins.iterator(); it.hasNext(); ) {
+                    List<Instance> drivers = new ArrayList<Instance>();
+                    List<Instance> arrayedDrivers = new ArrayList<Instance>();
+                    for (Iterator<Pin> it = netpins.iterator(); it.hasNext(); ) {
                         Pin pin = (Pin)it.next();
                         // only interested in drivers
                         if (pin.getDir() != Pin.Dir.OUTPUT) continue;
@@ -177,12 +177,12 @@ public class LESizer {
                     // if this is an LEKEEPER, we need to find smallest gate (or group)
                     // that also drives this net, it is assumed that will have to overpower this keeper
                     if (instance.getType() == Instance.Type.LEKEEPER) {
-                        Map drivingGroups = new HashMap();
+                        Map<String,List<Instance>> drivingGroups = new HashMap<String,List<Instance>>();
 
                         float smallestX = 0;
 
                         // iterate over all drivers on net
-                        for (Iterator it = netpins.iterator(); it.hasNext(); ) {
+                        for (Iterator<Pin> it = netpins.iterator(); it.hasNext(); ) {
                             Pin pin = (Pin)it.next();
                             // only interested in drivers
                             if (pin.getDir() != Pin.Dir.OUTPUT) continue;
@@ -199,9 +199,9 @@ public class LESizer {
                                     if (inst.getLeX() < smallestX) smallestX = inst.getLeX();
                                 }
                                 // add to group to sum up drive strength later
-                                ArrayList groupList = (ArrayList)drivingGroups.get(integer.toString());
+                                ArrayList<Instance> groupList = (ArrayList<Instance>)drivingGroups.get(integer.toString());
                                 if (groupList == null) {
-                                    groupList = new ArrayList();
+                                    groupList = new ArrayList<Instance>();
                                     drivingGroups.put(integer.toString(), groupList);
                                 }
                                 groupList.add(inst);
@@ -209,13 +209,13 @@ public class LESizer {
                         }
 
                         // find smallest total size of groups
-                        Set keys = drivingGroups.keySet();
-                        for (Iterator it = keys.iterator(); it.hasNext(); ) {
-                            ArrayList groupList = (ArrayList)drivingGroups.get(it.next());
+                        Set<String> keys = drivingGroups.keySet();
+                        for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
+                            ArrayList<Instance> groupList = (ArrayList<Instance>)drivingGroups.get(it.next());
                             if (groupList == null) continue;            // skip empty groups
                             // get size
                             float sizeX = 0;
-                            for (Iterator it2 = groupList.iterator(); it2.hasNext(); ) {
+                            for (Iterator<Instance> it2 = groupList.iterator(); it2.hasNext(); ) {
                                 Instance inst = (Instance)it2.next();
                                 sizeX += inst.getLeX();
                             }
@@ -249,7 +249,7 @@ public class LESizer {
 
                         // compute total le*X (totalcap)
                         float totalcap = 0;
-                        Iterator netpinsIter = netpins.iterator();
+                        Iterator<Pin> netpinsIter = netpins.iterator();
                         int numLoads = 0;
                         while (netpinsIter.hasNext()) {
                             Pin netpin = (Pin)netpinsIter.next();
@@ -341,7 +341,7 @@ public class LESizer {
 
         List endNets = new ArrayList();
 
-        Iterator netIter = netlist.getAllNets().values().iterator();
+        Iterator<Net> netIter = netlist.getAllNets().values().iterator();
         while (netIter.hasNext()) {
             Net net = (Net)netIter.next();
 
@@ -363,16 +363,16 @@ public class LESizer {
 	{
 		out.println("Instances in design are:");
 		        
-		Iterator instancesIter = netlist.getAllInstances().values().iterator();
+		Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 		while (instancesIter.hasNext()) {
 			Instance instance = (Instance)instancesIter.next();
 			String instanceName = instance.getName();
             StringBuffer buf = new StringBuffer();
 			out.println("\t"+instanceName+" ==> "+TextUtils.formatDouble(instance.getLeX(), 3)+"x");
-			ArrayList pins = instance.getAllPins();
+			ArrayList<Pin> pins = instance.getAllPins();
 			
 			// now print out pinname ==> netname
-			Iterator pinsIter = pins.iterator();
+			Iterator<Pin> pinsIter = pins.iterator();
 			while (pinsIter.hasNext()) {
 				Pin pin = (Pin)pinsIter.next();
 				out.println("\t\t"+pin.getName()+" ==> "+pin.getNetName());
@@ -391,7 +391,7 @@ public class LESizer {
 			FileWriter fileWriter = new FileWriter(filename); // throws IOException
 			
 			// iterate through all instances
-			Iterator instancesIter = netlist.getAllInstances().values().iterator();
+			Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 			while (instancesIter.hasNext()) {
 				Instance instance = (Instance)instancesIter.next();
 				String instanceName = instance.getName();
@@ -444,7 +444,7 @@ public class LESizer {
         // inv1
         Pin pin_a = new Pin("A", Pin.Dir.INPUT, (float)1.0, "nand1_out");
         Pin pin_y = new Pin("Y", Pin.Dir.OUTPUT, (float)1.0, "inv1_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_a);
         pins.add(pin_y);
         netlist.addInstance("inv1", Instance.Type.LEGATE, su, (float)1.0, pins, null);
@@ -454,7 +454,7 @@ public class LESizer {
         // inv2
         Pin pin_a = new Pin("A", Pin.Dir.INPUT, (float)1.0, "pu_out");
         Pin pin_y = new Pin("Y", Pin.Dir.OUTPUT, (float)1.0, "inv2_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_a);
         pins.add(pin_y);
         netlist.addInstance("inv2", Instance.Type.LEGATE, su, (float)1.0, pins, null);
@@ -464,7 +464,7 @@ public class LESizer {
         // inv3
         Pin pin_a = new Pin("A", Pin.Dir.INPUT, (float)1.0, "nand1_out");
         Pin pin_y = new Pin("Y", Pin.Dir.OUTPUT, (float)1.0, "inv3_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_a);
         pins.add(pin_y);
         netlist.addInstance("inv3", Instance.Type.LEGATE, su, (float)1.0, pins, null);
@@ -475,7 +475,7 @@ public class LESizer {
         Pin pin_a = new Pin("A", Pin.Dir.INPUT, (float)1.333, "inv2_out");
         Pin pin_b = new Pin("B", Pin.Dir.INPUT, (float)1.333, "pd_out");
         Pin pin_y = new Pin("Y", Pin.Dir.OUTPUT, (float)2.0, "nand1_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_a);
         pins.add(pin_b);
         pins.add(pin_y);
@@ -486,7 +486,7 @@ public class LESizer {
         // pu
         Pin pin_g = new Pin("G", Pin.Dir.INPUT, (float)0.667, "nand1_out");
         Pin pin_d = new Pin("D", Pin.Dir.OUTPUT, (float)0.667, "pu_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_g);
         pins.add(pin_d);
         netlist.addInstance("pu", Instance.Type.LEGATE, su, (float)1.0, pins, null);
@@ -496,7 +496,7 @@ public class LESizer {
         // pd
         Pin pin_g = new Pin("G", Pin.Dir.INPUT, (float)0.333, "inv3_out");
         Pin pin_d = new Pin("D", Pin.Dir.OUTPUT, (float)0.333, "pd_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_g);
         pins.add(pin_d);
         netlist.addInstance("pd", Instance.Type.LEGATE, su, (float)1.0, pins, null);
@@ -505,7 +505,7 @@ public class LESizer {
         {
         // cap1
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pd_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_c);
         netlist.addInstance("cap1", Instance.Type.LOAD, su, (float)0.0, pins, null);
         }
@@ -513,7 +513,7 @@ public class LESizer {
         {
         // cap2
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pu_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_c);
         netlist.addInstance("cap2", Instance.Type.LOAD, su, (float)0.0, pins, null);
         }
@@ -521,7 +521,7 @@ public class LESizer {
         {
         // cap3
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "inv1_out");
-        ArrayList pins = new ArrayList();
+        ArrayList<Pin> pins = new ArrayList<Pin>();
         pins.add(pin_c);
         netlist.addInstance("cap3", Instance.Type.LOAD, su, (float)100.0, pins, null);
         }

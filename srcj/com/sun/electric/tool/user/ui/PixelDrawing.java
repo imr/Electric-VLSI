@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * This class manages an offscreen display for an associated EditWindow.
@@ -273,7 +274,7 @@ public class PixelDrawing
 		private byte [][] bitMap;
 		private byte [] compositeRow;
 	}
-	/** the map from layers to Patterned Opaque bitmaps */	private HashMap patternedOpaqueLayers;
+	/** the map from layers to Patterned Opaque bitmaps */	private HashMap<Layer,PatternedOpaqueLayer> patternedOpaqueLayers;
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
@@ -282,7 +283,7 @@ public class PixelDrawing
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
-	/** list of cell expansions. */							private static HashMap expandedCells = null;
+	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
@@ -318,7 +319,7 @@ public class PixelDrawing
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
 		numBytesPerRow = (sz.width + 7) / 8;
-		patternedOpaqueLayers = new HashMap();
+		patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
 		renderedWindow = true;
 
 		curTech = null;
@@ -344,7 +345,7 @@ public class PixelDrawing
 		total = sz.height * sz.width;
         opaqueData = new int[total];
 		numBytesPerRow = (sz.width + 7) / 8;
-		patternedOpaqueLayers = new HashMap();
+		patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
         
 		curTech = null;
 		initForTechnology();
@@ -389,7 +390,7 @@ public class PixelDrawing
 	 */
 	public static void clearSubCellCache()
 	{
-		expandedCells = new HashMap();
+		expandedCells = new HashMap<ExpandedCellKey,ExpandedCellInfo>();
 	}
 
 	/**
@@ -448,7 +449,7 @@ public class PixelDrawing
 
 		// see if any layers are being highlighted/dimmed
 		highlightingLayers = false;
-		for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer.isDimmed())
@@ -480,7 +481,7 @@ public class PixelDrawing
 			{
 				// reset cached cell counts
 				numberToReconcile = SINGLETONSTOADD;
-				for(Iterator it = expandedCells.values().iterator(); it.hasNext(); )
+				for(Iterator<ExpandedCellInfo> it = expandedCells.values().iterator(); it.hasNext(); )
 				{
 					ExpandedCellInfo count = (ExpandedCellInfo)it.next();
 					count.instanceCount = 0;
@@ -565,7 +566,7 @@ public class PixelDrawing
 		}
 
 		// erase the patterned opaque layer bitmaps
-		for(Iterator it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
+		for(Iterator<Map.Entry<Layer,PatternedOpaqueLayer>> it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
 		{
 			PatternedOpaqueLayer pol = (PatternedOpaqueLayer)it.next();
 			byte [][] layerBitMap = pol.bitMap;
@@ -624,7 +625,7 @@ public class PixelDrawing
 
 			// adjust the colors if any of the transparent layers are dimmed
 			boolean dimmedTransparentLayers = false;
-			for(Iterator it = curTech.getLayers(); it.hasNext(); )
+			for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				if (!layer.isDimmed()) continue;
@@ -638,7 +639,7 @@ public class PixelDrawing
 				int numTransparents = curTech.getNumTransparentLayers();
 				boolean [] dimLayer = new boolean[numTransparents];
 				for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
-				for(Iterator it = curTech.getLayers(); it.hasNext(); )
+				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 				{
 					Layer layer = (Layer)it.next();
 					if (layer.isDimmed()) continue;
@@ -923,7 +924,7 @@ public class PixelDrawing
         renderTextTime = 0;
 
         // draw all arcs
-		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
+		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)arcs.next();
 
@@ -939,7 +940,7 @@ public class PixelDrawing
 		}
 
 		// draw all nodes
-		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
 
@@ -1026,7 +1027,7 @@ public class PixelDrawing
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
 			{
-				List path = wnd.getInPlaceEditNodePath();
+				List<NodeInst> path = wnd.getInPlaceEditNodePath();
 				if (path != null)
 				{
 					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
@@ -1117,7 +1118,7 @@ public class PixelDrawing
 		if (canDrawText && topLevel && User.isTextVisibilityOnExport())
 		{
 			int exportDisplayLevel = User.getExportDisplayLevel();
-			Iterator it = ni.getExports();
+			Iterator<Export> it = ni.getExports();
 			while (it.hasNext())
 			{
 				Export e = (Export)it.next();
@@ -1222,13 +1223,13 @@ public class PixelDrawing
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
 		boolean[] shownPorts = new boolean[numPorts];
-		for(Iterator it = ni.getConnections(); it.hasNext();)
+		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
 			Connection con = (Connection) it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
-		for(Iterator it = ni.getExports(); it.hasNext();)
+		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
 			Export exp = (Export) it.next();
 			PortInst pi = exp.getOriginalPort();
@@ -1299,9 +1300,9 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawTinyLayers(Iterator layerIterator, int x, int y)
+	private void drawTinyLayers(Iterator<Layer> layerIterator, int x, int y)
 	{
-		for(Iterator it = layerIterator; it.hasNext(); )
+		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer == null) continue;
@@ -1337,9 +1338,9 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawTinyArc(Iterator layerIterator, Point head, Point tail)
+	private void drawTinyArc(Iterator<Layer> layerIterator, Point head, Point tail)
 	{
-		for(Iterator it = layerIterator; it.hasNext(); )
+		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer == null) continue;
@@ -1466,7 +1467,7 @@ public class PixelDrawing
 	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans)
 	{
 		// look for subcells
-		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -1519,7 +1520,7 @@ public class PixelDrawing
 		// if not expanded, but viewing this cell in-place, expand it
 		if (!expanded)
 		{
-			List path = wnd.getInPlaceEditNodePath();
+			List<NodeInst> path = wnd.getInPlaceEditNodePath();
 			if (path != null)
 			{
 				for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
@@ -1562,10 +1563,10 @@ public class PixelDrawing
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return;
 
-		List keys = new ArrayList();
-		for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
+		List<ExpandedCellKey> keys = new ArrayList<ExpandedCellKey>();
+		for(Iterator<ExpandedCellKey> it = expandedCells.keySet().iterator(); it.hasNext(); )
 			keys.add(it.next());
-		for(Iterator it = keys.iterator(); it.hasNext(); )
+		for(Iterator<ExpandedCellKey> it = keys.iterator(); it.hasNext(); )
 		{
             ExpandedCellKey expansionKey = (ExpandedCellKey)it.next();
             if (expansionKey.cell == cell)
@@ -1618,7 +1619,7 @@ public class PixelDrawing
 		}
 
 		// copy the patterned opaque layers
-		for(Iterator it = srcOffscreen.patternedOpaqueLayers.keySet().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = srcOffscreen.patternedOpaqueLayers.keySet().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			PatternedOpaqueLayer polSrc = (PatternedOpaqueLayer)srcOffscreen.patternedOpaqueLayers.get(layer);
