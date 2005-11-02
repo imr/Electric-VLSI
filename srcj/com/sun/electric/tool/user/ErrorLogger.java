@@ -44,9 +44,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -77,17 +75,16 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger implements ActionListener, DatabaseChangeListener {
-
-    private static final int ERRORTYPEGEOM      = 1;
-    private static final int ERRORTYPEEXPORT    = 2;
-    private static final int ERRORTYPELINE      = 3;
-    private static final int ERRORTYPETHICKLINE = 4;
-    private static final int ERRORTYPEPOINT     = 5;
+public class ErrorLogger implements ActionListener, DatabaseChangeListener
+{
+    private enum ErrorLoggerType
+    {
+        ERRORTYPEGEOM, ERRORTYPEEXPORT , ERRORTYPELINE, ERRORTYPETHICKLINE, ERRORTYPEPOINT
+    };
 
     private static class ErrorHighlight
     {
-        int         type;
+        ErrorLoggerType         type;
         Geometric   geom;
         Export      pp;
         boolean     showgeom;
@@ -110,8 +107,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
         public boolean isValid() {
-            if (type == ERRORTYPEEXPORT) return pp.isLinked();
-            if (type == ERRORTYPEGEOM) return geom.isLinked();
+            if (type == ErrorLoggerType.ERRORTYPEEXPORT) return pp.isLinked();
+            if (type == ErrorLoggerType.ERRORTYPEGEOM) return geom.isLinked();
 	        //return true;
 	        return (cell.isLinked()); // Still have problems with minAre DRC errors
         }
@@ -120,7 +117,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /**
      * Create a Log of a single message.
      */
-    public static class MessageLog implements Comparable<MessageLog> {
+    public static class MessageLog implements Comparable<MessageLog>, Serializable {
         private String message;
         private int    sortKey;
         private int    index;
@@ -138,7 +135,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	    /**
 		 * Compare objects lexicographically based on string comparator CASE_INSENSITIVE_ORDER
 		 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
-		 * @param o1
+		 * @param log1
 		 * @return Returns a negative integer, zero, or a positive integer as the
 		 * first message has smaller than, equal to, or greater than the second lexicographically
 		 */
@@ -156,7 +153,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
         {
             ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ERRORTYPEGEOM;
+            eh.type = ErrorLoggerType.ERRORTYPEGEOM;
             eh.geom = geom;
             eh.showgeom = showit;
             eh.cell = cell;
@@ -170,7 +167,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public void addExport(Export pp, boolean showit, Cell cell, VarContext context)
         {
             ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ERRORTYPEEXPORT;
+            eh.type = ErrorLoggerType.ERRORTYPEEXPORT;
             eh.pp = pp;
             eh.showgeom = showit;
             eh.cell = cell;
@@ -184,7 +181,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public void addLine(double x1, double y1, double x2, double y2, Cell cell)
         {
             ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ERRORTYPELINE;
+            eh.type = ErrorLoggerType.ERRORTYPELINE;
             eh.x1 = x1;
             eh.y1 = y1;
             eh.x2 = x2;
@@ -206,8 +203,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                 int prev = i-1;
                 if (i == 0) prev = points.length-1;
                 ErrorHighlight eh = new ErrorHighlight();
-                if (thick) eh.type = ERRORTYPETHICKLINE; else
-                    eh.type = ERRORTYPELINE;
+                if (thick) eh.type = ErrorLoggerType.ERRORTYPETHICKLINE; else
+                    eh.type = ErrorLoggerType.ERRORTYPELINE;
                 eh.x1 = points[prev].getX();
                 eh.y1 = points[prev].getY();
                 eh.x2 = points[i].getX();
@@ -226,7 +223,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public void addPoint(double x, double y, Cell cell)
         {
             ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ERRORTYPEPOINT;
+            eh.type = ErrorLoggerType.ERRORTYPEPOINT;
             eh.x1 = x;
             eh.y1 = y;
             eh.cell = cell;
@@ -244,7 +241,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
-                if (eh.type == ERRORTYPEGEOM) total++;
+                if (eh.type == ErrorLoggerType.ERRORTYPEGEOM) total++;
             }
             return total;
         }
@@ -260,7 +257,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
-                if (eh.type != ERRORTYPEGEOM) continue;
+                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
                 if (total == index) return eh;
                 total++;
             }
@@ -276,7 +273,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	        for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = (ErrorHighlight)it.next();
-                if (eh.type != ERRORTYPEGEOM) continue;
+                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
 		        if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
 		            eh1found = true;
 		        if (!eh2found && eh.cell == cell2 && eh.geom == geo2)
@@ -321,7 +318,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                 for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
                 {
                     ErrorHighlight eh = (ErrorHighlight)it.next();
-                    if (eh.type == ERRORTYPEGEOM)
+                    if (eh.type == ErrorLoggerType.ERRORTYPEGEOM)
                     {
                         if (geom1 == null) geom1 = eh.geom; else
                             if (geom2 == null) geom2 = eh.geom;
@@ -492,12 +489,17 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         logger.persistent = persistent;
         logger.alreadyExplained = false;
         logger.sortKeysToGroupNames = null;
+        addErrorLogger(logger);
+        return logger;
+    }
+
+    private static void addErrorLogger(ErrorLogger logger)
+    {
         synchronized(allLoggers) {
             if (currentLogger == null) currentLogger = logger;
             allLoggers.add(logger);
         }
         Undo.addDatabaseChangeListener(logger);
-        return logger;
     }
 
     /**
@@ -655,10 +657,30 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         WindowFrame.wantToRedoErrorTree();
     }
 
+    public static void load()
+    {
+        String fileName = OpenFile.chooseInputFile(FileType.TEXT, "Read ErrorLogger");
+        try {
+        FileInputStream inputStream = new FileInputStream(fileName);
+            ObjectInputStream in = new ObjectInputStream(inputStream);
+            ErrorLogger logger = (ErrorLogger)in.readObject();
+            addErrorLogger(logger);
+        } catch (Exception e)
+		{
+			System.out.println("Error loading " + fileName);
+			return;
+		}
+    }
+
     public void save() {
 	    PrintStream buffWriter = null;
 	    String filePath = null;
+
 	    try {
+//            FileOutputStream outputStream = new FileOutputStream("ErrorLoggerSave.log");
+//            ObjectOutputStream out = new ObjectOutputStream(outputStream);
+//            out.writeObject(this);
+
 		    filePath = OpenFile.chooseOutputFile(FileType.TEXT, null, "ErrorLoggerSave.txt");
             if (filePath == null) return; // cancel operation
 		    buffWriter = new PrintStream(new FileOutputStream(filePath));
