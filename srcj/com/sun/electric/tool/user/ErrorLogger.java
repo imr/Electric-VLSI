@@ -286,7 +286,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         /**
          * Method to describe error "elv".
          */
-        public String getMessage() { return message; }
+        public String getMessage() { return "(#"+index+") "+message; }
 
         /**
          * Returns true if this error log is still valid
