@@ -346,7 +346,7 @@ public class MoCMOS extends Technology
 		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("ActCon NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",        6,"Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",        6, "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("PP/NP.E.1,PP.C.3,PP/NP.E.4 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       1.8,  "Metal-1-N-Active-Con")); // PP.C.3&PP/NP.E.4=1.8 PP/NP.C.1=2.6
         theRules.add(new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.4,"Metal-1-N-Active-Con"));
 
