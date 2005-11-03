@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -51,12 +52,22 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
+import java.net.URL;
+import java.net.URLConnection;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.SAXParser;
+
+import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXParseException;
 
 /**
  * Class for logging errors.
@@ -120,9 +131,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
         private String message;
         private int    sortKey;
-        private int    index;
-        private Cell    logCell;                // cell associated with log (not really used)
-        private List<ErrorHighlight>   highlights;
+        protected int    index;
+        protected Cell    logCell;                // cell associated with log (not really used)
+        protected List<ErrorHighlight>   highlights;
 
         private MessageLog(String message, Cell cell, int sortKey) {
             this.message = message;
@@ -286,7 +297,30 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         /**
          * Method to describe error "elv".
          */
-        public String getMessage() { return "["+index+"] "+message; }
+        public String getMessage()
+        {
+            return "["+index+"] "+message;
+        }
+
+        protected void xmlDescription(PrintStream msg)
+        {
+            String className = this.getClass().getSimpleName();
+            msg.append("\t<" + className + " message=\"" + message + "\" "
+                    + "logCell=\"" + logCell.describe(false) + "\">\n");
+            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            {
+                ErrorHighlight eh = it.next();
+                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
+                msg.append("\t\t<"+eh.type+" ");
+                if (!eh.showgeom)
+                {
+                    if (eh.geom instanceof NodeInst)
+                        msg.append("geom=\"" + ((NodeInst)eh.geom).getD().name + "\"");
+                }
+                msg.append(" />\n");
+            }
+            msg.append("\n\t</" + className + ">\n");
+        }
 
         /**
          * Returns true if this error log is still valid
@@ -448,7 +482,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 	private boolean alreadyExplained;
     private int errorLimit;
     private List<MessageLog> allErrors;
-	private List<MessageLog> allWarnings;
+	private List<WarningLog> allWarnings;
     private int currentLogNumber;
     private boolean limitExceeded;
     private String errorSystem;
@@ -480,7 +514,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList<MessageLog>();
-	    logger.allWarnings = new ArrayList<MessageLog>();
+	    logger.allWarnings = new ArrayList<WarningLog>();
         logger.limitExceeded = false;
         logger.currentLogNumber = -1;
         logger.errorSystem = system;
@@ -561,7 +595,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         }
 
         // create a new ErrorLog object
-        MessageLog el = new WarningLog(message, cell, sortKey);
+        WarningLog el = new WarningLog(message, cell, sortKey);
 
         // store information about the error
         el.highlights = new ArrayList<ErrorHighlight>();
@@ -615,21 +649,21 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
      * @param cell the cell for which errors will be removed
      */
     public synchronized void clearLogs(Cell cell) {
-       ArrayList<MessageLog> trimmedLogs = new ArrayList<MessageLog>();
+       ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
         for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
-            if (log.logCell != cell) trimmedLogs.add(log);
+            if (log.logCell != cell) errLogs.add(log);
         }
-        allErrors = trimmedLogs;
+        allErrors = errLogs;
 
-	    trimmedLogs = new ArrayList<MessageLog>();
+	    ArrayList<WarningLog> warndLogs = new ArrayList<WarningLog>();
         // Warnings
-        for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
-            MessageLog log = (MessageLog)it.next();
-            if (log.logCell != cell) trimmedLogs.add(log);
+        for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
+            WarningLog log = (WarningLog)it.next();
+            if (log.logCell != cell) warndLogs.add(log);
         }
-        allWarnings = trimmedLogs;
+        allWarnings = warndLogs;
         currentLogNumber = getNumLogs()-1;
     }
 
@@ -659,12 +693,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 
     public static void load()
     {
-        String fileName = OpenFile.chooseInputFile(FileType.TEXT, "Read ErrorLogger");
+        String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
         try {
-        FileInputStream inputStream = new FileInputStream(fileName);
-            ObjectInputStream in = new ObjectInputStream(inputStream);
-            ErrorLogger logger = (ErrorLogger)in.readObject();
-            addErrorLogger(logger);
+            XMLParser parser = new XMLParser();
+            parser.process(TextUtils.makeURLToFile(fileName));
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);
@@ -676,12 +708,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 	    PrintStream buffWriter = null;
 	    String filePath = null;
 
-	    try {
-//            FileOutputStream outputStream = new FileOutputStream("ErrorLoggerSave.log");
-//            ObjectOutputStream out = new ObjectOutputStream(outputStream);
-//            out.writeObject(this);
-
-		    filePath = OpenFile.chooseOutputFile(FileType.TEXT, null, "ErrorLoggerSave.txt");
+	    try
+        {
+		    filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
             if (filePath == null) return; // cancel operation
 		    buffWriter = new PrintStream(new FileOutputStream(filePath));
 
@@ -691,15 +720,43 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 			return;
 		}
 
+        // Creating header
+        buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        buffWriter.println();
+        buffWriter.println("<!DOCTYPE ErrorLogger");
+        buffWriter.println(" [");
+        buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
+        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM)* >");
+        buffWriter.println(" <!ELEMENT WarningLog ANY >");
+        buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
+        buffWriter.println("<!ATTLIST ErrorLogger");
+        buffWriter.println("    errorSystem CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST MessageLog");
+        buffWriter.println("    message CDATA #REQUIRED");
+        buffWriter.println("    logCell CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST WarningLog");
+        buffWriter.println("    message CDATA #REQUIRED");
+        buffWriter.println("    logCell CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST ERRORTYPEGEOM");
+        buffWriter.println("    geom CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" ]>");
+        buffWriter.println();
+        String className = this.getClass().getSimpleName();
+        buffWriter.println("<" + className + " errorSystem=\"" + errorSystem + "\">");
 	    for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
-		    buffWriter.println(log.getMessage());
+            log.xmlDescription(buffWriter);
         }
         // Warnings
-        for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
-            MessageLog log = (MessageLog)it.next();
-		    buffWriter.println(log.getMessage());
+        for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
+            WarningLog log = (WarningLog)it.next();
+            log.xmlDescription(buffWriter);
         }
+        buffWriter.println("</" + className + ">");
     }
 
     public String describe() {
@@ -735,9 +792,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             MessageLog el = (MessageLog)it.next();
             el.index = ++errs;
         }
-	    for(Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); )
+	    for(Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); )
         {
-            MessageLog el = (MessageLog)it.next();
+            WarningLog el = (WarningLog)it.next();
             el.index = ++errs;
         }
 
@@ -929,7 +986,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
-	    for (Iterator<MessageLog> it = allWarnings.iterator(); it.hasNext(); ) {
+	    for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
         return copy.iterator();
@@ -1064,5 +1121,86 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 //         return true;
 //     }
 
+    private static class XMLParser
+    {
+        public void process(URL fileURL)
+        {
+            try
+            {
+                // Factory call
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                factory.setNamespaceAware(true);
+                factory.setValidating(true);
+                // create the parser
+                SAXParser parser = factory.newSAXParser();
+                URLConnection urlCon = fileURL.openConnection();
+                InputStream inputStream = urlCon.getInputStream();
+                System.out.println("Parsing XML file \"" + fileURL + "\"");
+                parser.parse(inputStream, new XMLHandler());
 
+                System.out.println("End Parsing XML file ...");
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        private class XMLHandler extends DefaultHandler
+        {
+            XMLHandler()
+            {
+            }
+
+            public InputSource resolveEntity (String publicId, String systemId) throws IOException, SAXException
+            {
+                URL fileURL = this.getClass().getResource("DRC.dtd");
+                URLConnection urlCon = fileURL.openConnection();
+                InputStream inputStream = urlCon.getInputStream();
+                return new InputSource(inputStream);
+            }
+
+            public void startElement (String uri, String localName, String qName, Attributes attributes)
+            {
+                boolean layerRule = qName.equals("LayerRule");
+                boolean layersRule = qName.equals("LayersRule");
+                boolean nodeLayersRule = qName.equals("NodeLayersRule");
+                boolean nodeRule = qName.equals("NodeRule");
+
+                if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return;
+
+                String ruleName = "", layerNames = "", nodeNames = null;
+
+                for (int i = 0; i < attributes.getLength(); i++)
+                {
+                    if (attributes.getQName(i).equals("ruleName"))
+                        ruleName = attributes.getValue(i);
+                    else if (attributes.getQName(i).startsWith("layerName"))
+                        layerNames = attributes.getValue(i);
+                    else if (attributes.getQName(i).startsWith("nodeName"))
+                        nodeNames = attributes.getValue(i);
+                    else
+                        new Error("Invalid attribute in XMLParser");
+                }
+            }
+
+            public void fatalError(SAXParseException e)
+            {
+                System.out.println("Parser Fatal Error");
+                e.printStackTrace();
+            }
+
+            public void warning(SAXParseException e)
+            {
+                System.out.println("Parser Warning");
+                e.printStackTrace();
+            }
+
+            public void error(SAXParseException e)
+            {
+                System.out.println("Parser Error");
+                e.printStackTrace();
+            }
+        }
+    }
 }
