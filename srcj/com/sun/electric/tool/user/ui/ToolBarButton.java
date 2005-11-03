@@ -63,7 +63,7 @@ import javax.swing.plaf.ButtonUI;
  */
 public class ToolBarButton extends AbstractButton implements Accessible, ActionListener {
     
-    /** Hash table of arraylists for all buttons */     private static HashMap<String,List<ToolBarButton>> allButtons = new HashMap<String,List<ToolBarButton>>(15);
+    /** Hash table of arraylists for all buttons */     private static HashMap<String,List<AbstractButton>> allButtons = new HashMap<String,List<AbstractButton>>(15);
     /** Dummy object for listener for updating */       public static ToolBarButton updater = new ToolBarButton(null, null);
     /** Name of ToolBarButton */                        private String name;
     /** Tool bar button logger */                       private static final ButtonLogger buttonLogger = new ButtonLogger();
@@ -113,12 +113,12 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         b.addActionListener(buttonLogger);
 
         // add to book-keeping
-        ArrayList<ToolBarButton> buttonGroup;
+        ArrayList<AbstractButton> buttonGroup;
         if (!allButtons.containsKey(text)) {
-            buttonGroup = new ArrayList<ToolBarButton>();
+            buttonGroup = new ArrayList<AbstractButton>();
             allButtons.put(text, buttonGroup);
         } else {
-            buttonGroup = (ArrayList<ToolBarButton>)allButtons.get(text);
+            buttonGroup = (ArrayList<AbstractButton>)allButtons.get(text);
         }
         buttonGroup.add(b);
         return b;
