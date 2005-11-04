@@ -380,16 +380,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			}
 		}
 
-		// for some reason, clearing the listmodel and reloading takes too long
-listModel = new DefaultListModel();
-list = new JList(listModel);
-list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-listPane.setViewportView(list);
-		for(Iterator<String> it = displayList.iterator(); it.hasNext(); )
-		{
-			String message = (String)it.next();
-			listModel.addElement(message);
-		}
+		// reload the list (much more efficient than clearing and reloading if it is already displayed)
+		list.setListData(displayList.toArray());
 
 		// with exactly 2 objects, show the distance between them
 		if (nodeList.size() + arcList.size() == 2)
