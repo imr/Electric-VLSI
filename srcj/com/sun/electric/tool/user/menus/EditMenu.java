@@ -85,6 +85,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -139,12 +140,16 @@ public class EditMenu {
 
 		MenuBar.MenuItem undo = editMenu.addMenuItem("_Undo", KeyStroke.getKeyStroke('Z', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
-        Undo.addPropertyChangeListener(new MenuCommands.MenuEnabler(undo, Undo.propUndoEnabled));
+		PropertyChangeListener undoLis = new MenuCommands.MenuEnabler(undo, Undo.propUndoEnabled);
+        Undo.addPropertyChangeListener(undoLis);
+		TextWindow.addTextUndoListener(undoLis);
         undo.setEnabled(Undo.getUndoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
 		MenuBar.MenuItem redo = editMenu.addMenuItem("Re_do", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
-        Undo.addPropertyChangeListener(new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled));
+		PropertyChangeListener redoLis = new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled);
+        Undo.addPropertyChangeListener(redoLis);
+		TextWindow.addTextRedoListener(redoLis);
         redo.setEnabled(Undo.getRedoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
         KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0);
@@ -474,7 +479,20 @@ public class EditMenu {
 				new ActionListener() { public void actionPerformed(ActionEvent e) { removeFromWaveformCommand(); }});
     }
 
-    public static void undoCommand() { new UndoCommand(); }
+    public static void undoCommand()
+	{
+		// handle undo in text windows specially
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)wf.getContent();
+			tw.undo();
+			return;
+		}
+
+		// do database undo
+		new UndoCommand();
+	}
 
 	/**
 	 * This class implement the command to undo the last change.
@@ -495,7 +513,20 @@ public class EditMenu {
 		}
 	}
 
-    public static void redoCommand() { new RedoCommand(); }
+    public static void redoCommand()
+	{
+		// handle redo in text windows specially
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)wf.getContent();
+			tw.redo();
+			return;
+		}
+
+		// do database redo
+		new RedoCommand();
+	}
 
 	/**
 	 * This class implement the command to undo the last change (Redo).
@@ -943,20 +974,18 @@ public class EditMenu {
 			if ((ni.getProto() instanceof Cell) && cellsAreHard) hard = true;
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
-			if (ni.isInvisiblePinWithText())
+			if (!ni.isInvisiblePinWithText())
+				highlighter.addElectricObject(ni, curCell);
+            if (User.isTextVisibilityOnNode())
 			{
+				if (ni.isUsernamed())
+					highlighter.addText(ni, curCell, null, ni.getNameKey());
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = (Variable)vIt.next();
 					if (var.isDisplay())
-					{
 						highlighter.addText(ni, curCell, var, null);
-						break;
-					}
 				}
-			} else
-			{
-				highlighter.addElectricObject(ni, curCell);
 			}
 		}
 		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
@@ -972,20 +1001,39 @@ public class EditMenu {
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
 			highlighter.addElectricObject(ai, curCell);
+            if (User.isTextVisibilityOnArc())
+			{
+				if (ai.isUsernamed())
+					highlighter.addText(ai, curCell, null, ai.getNameKey());
+				for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					if (var.isDisplay())
+						highlighter.addText(ai, curCell, var, null);
+				}
+			}
+		}
+		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+		{
+			Export pp = it.next();
+			highlighter.addText(pp, curCell, null, null);
 		}
 
 		// Selecting annotations
-		for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
+        if (User.isTextVisibilityOnCell())
 		{
-			Variable var = (Variable)it.next();
-			if (var.isAttribute())
+			for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
 			{
-				// for multipage schematics, restrict to current page
-				if (thisPageBounds != null)
+				Variable var = (Variable)it.next();
+				if (var.isAttribute())
 				{
-					if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
+					// for multipage schematics, restrict to current page
+					if (thisPageBounds != null)
+					{
+						if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
+					}
+					highlighter.addText(curCell, curCell, var, null);
 				}
-				highlighter.addText(curCell, curCell, var, null);
 			}
 		}
 		highlighter.finished();
