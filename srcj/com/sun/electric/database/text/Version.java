@@ -252,7 +252,7 @@ public class Version implements Comparable<Version>
     /**
      * Compares two <code>Version</code> objects numerically.
      *
-     * @param o the object to be compared.
+     * @param v the object to be compared.
      * @return the result of comparison.
      */
 /*5*/public int compareTo(Version v) {

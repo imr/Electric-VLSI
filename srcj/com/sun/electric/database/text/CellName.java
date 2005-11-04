@@ -123,8 +123,8 @@ public class CellName implements Comparable<CellName>
 
     /**
      * Compares two <code>CellName</code> objects.
-     * @param   o   the CellName to be compared.
-     * @return	the result of comparison.
+     * @param that the CellName to be compared.
+     * @return the result of comparison.
      */
 /*5*/public int compareTo(CellName that) {
 //4*/public int compareTo(Object o) {

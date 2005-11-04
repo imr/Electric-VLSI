@@ -183,6 +183,7 @@
             <exclude name="Hack_stack.txt"/>
 	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
+        	<exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
@@ -275,7 +276,7 @@
 
     <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
-        <javadoc destdir="apidoc" private="false" use="true" source="1.4" maxmemory="200m">
+        <javadoc destdir="apidoc" private="false" use="true" source="1.5" maxmemory="400m">
         	<packageset dir=".">
         		<include name="com/sun/electric/**"/>
         		<exclude name="com/sun/electric/plugins/**"/>

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (11/4/05, SMR) New icons in the toolbar.
+
+IMP: (11/4/05, SMR) Ant scripts updated to exclude Sun menus from build,
+     Javadoc cleaned up
+
 IMP/MAN: (11/3/05, GVG) XML format for ErrorLogger (bug #715). You can save and restore errorloggers
 from disk.
 
