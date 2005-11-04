@@ -147,10 +147,10 @@ public class Quick
 		/** netlist of this cell */										Netlist netlist;
 	};
 	private HashMap checkProtos = null;
-	private HashMap networkLists = null;
-	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
-	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
-	private HashMap slotSizeLayerMap = new HashMap();    // For max length checking
+	private HashMap<Network,Integer []> networkLists = null;
+	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
+	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
+	private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
     private DRC.CheckDRCLayoutJob job; // Reference to running job
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
@@ -3836,9 +3836,9 @@ public class Quick
             {
                 // Pins don't generate polygons
                 // Search for another arc and try to crop it with that geometry
-                List drcLayers = new ArrayList(1);
+                List<Layer.Function> drcLayers = new ArrayList<Layer.Function>(1);
                 drcLayers.add(lay.getFunction());
-                List arcPolys = new ArrayList(1);
+                List<Poly[]> arcPolys = new ArrayList<Poly[]>(1);
                 int totalPolys = 0;
                 for (Iterator it = ni.getConnections(); it.hasNext(); )
                 {
@@ -3853,7 +3853,7 @@ public class Quick
                 int destPos = 0;
                 for (int j = 0; j < arcPolys.size(); j++)
                 {
-                    Poly[] arcs = (Poly[])arcPolys.get(j);
+                    Poly[] arcs = arcPolys.get(j);
                     System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
                     destPos += arcs.length;
                 }

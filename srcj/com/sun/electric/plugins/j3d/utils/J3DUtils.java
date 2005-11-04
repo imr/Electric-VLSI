@@ -265,7 +265,7 @@ public final class J3DUtils
 
         Object[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
 
-        List knotList = null;
+        List<J3DUtils.ThreeDDemoKnot> knotList = null;
         try {
             LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
             int response = -1;
@@ -285,7 +285,7 @@ public final class J3DUtils
                 }
                 String[] stringValues = parseValues(line, 0);
                 double[] values = convertValues(stringValues);
-                if (knotList == null) knotList = new ArrayList();
+                if (knotList == null) knotList = new ArrayList<J3DUtils.ThreeDDemoKnot>();
                 knotList.add(view3D.moveAndRotate(values));
             }
         } catch (Exception e)
@@ -879,9 +879,9 @@ public final class J3DUtils
 	{
         double height = thickness + distance;
         double [] coords = new double[6];
-		java.util.List topList = new ArrayList();
-		java.util.List bottomList = new ArrayList();
-        java.util.List shapes = new ArrayList();
+		java.util.List<Point3d> topList = new ArrayList<Point3d>();
+		java.util.List<Point3d> bottomList = new ArrayList<Point3d>();
+        java.util.List<Shape3D> shapes = new ArrayList<Shape3D>();
 
 		while (!pIt.isDone())
 		{
@@ -1151,7 +1151,7 @@ public final class J3DUtils
         return values;
     }
 
-    public static void get3DColorsInTab(DefaultListModel colorLayerModel, HashMap transAndSpecialMap)
+    public static void get3DColorsInTab(DefaultListModel colorLayerModel, HashMap<String,GenMath.MutableInteger> transAndSpecialMap)
     {
             // 3D Stuff
         int color = get3DColorInstanceCell();

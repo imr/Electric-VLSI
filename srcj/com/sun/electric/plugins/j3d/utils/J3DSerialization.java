@@ -39,11 +39,11 @@ public class J3DSerialization implements Serializable
 {
     static final long serialVersionUID = 8621126756329190786L;
 
-    public List list;
+    public List<J3DUtils.ThreeDDemoKnot> list;
     public Matrix4d matrix;
     public Boolean useView;
 
-    public J3DSerialization(Boolean useView, List l, Transform3D t)
+    public J3DSerialization(Boolean useView, List<J3DUtils.ThreeDDemoKnot> l, Transform3D t)
     {
         this.useView = useView;
         list = l;

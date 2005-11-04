@@ -104,7 +104,7 @@ public class View3DWindow extends JPanel
     // For demo cases
     //KBRotPosScaleSplinePathInterpolator kbSplineInter;
     //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
-    private Map interpolatorMap = new HashMap();
+    private Map<TransformGroup,Interpolator> interpolatorMap = new HashMap<TransformGroup,Interpolator>();
     private J3DKeyCollision keyBehavior;
 
     /** the window frame containing this editwindow */      private WindowFrame wf;
@@ -113,9 +113,9 @@ public class View3DWindow extends JPanel
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
-	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
+	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap<ElectricObject,List<Shape3D>> electricObjectMap = new HashMap<ElectricObject,List<Shape3D>>();
     private boolean oneTransformPerNode = false;
-    /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
+    /** Map with object transformation for individual moves */ private HashMap<Shape3D,TransformGroup> transformGroupMap = new HashMap<Shape3D,TransformGroup>();
     /** To detect max number of nodes */                    private boolean reachLimit = false;
     /** To ask question only once */                        private boolean alreadyChecked = false;
     /** Job reference */                                    private Job job;
@@ -592,7 +592,7 @@ public class View3DWindow extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		List list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
+		List<Shape3D> list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
 		electricObjectMap.put(ai, list);
 	}
 
@@ -613,7 +613,7 @@ public class View3DWindow extends JPanel
 		// Skipping Special nodes
         if (NodeInst.isSpecialNode(no)) return;
 
-		List list = null;
+		List<Shape3D> list = null;
 		if (!(nProto instanceof PrimitiveNode))
 		{
 			// Cell
@@ -626,7 +626,7 @@ public class View3DWindow extends JPanel
 			values[0] *= scale3D;
 			values[1] *= scale3D;
 			Poly pol = new Poly(rect);
-            list = new ArrayList(1);
+            list = new ArrayList<Shape3D>(1);
 
             if (transform.getType() != AffineTransform.TYPE_IDENTITY)
 			    pol.transform(transform);
@@ -636,13 +636,13 @@ public class View3DWindow extends JPanel
 		else
         {
             Poly[] polys = tech.getShapeOfNode(no, null, null, true, true, null);
-            List boxList = null;
+            List<Shape3D> boxList = null;
 
             // Special case for transistors
             if (nProto.getFunction().isTransistor())
             {
                 int[] active = new int[2];
-                boxList = new ArrayList(4);
+                boxList = new ArrayList<Shape3D>(4);
 
                 // Merge active regions
                 for (int i = 0; i < polys.length; i++)
@@ -695,8 +695,8 @@ public class View3DWindow extends JPanel
 				double dist = (layer.getDistance() + layer.getThickness()) * scale3D;
 				double distPoly = (polys[poly].getLayer().getDistance()) * scale3D;
                 Point2D pointDist, pointClose;
-                List topList = new ArrayList();
-		        List bottomList = new ArrayList();
+                List<Point3d> topList = new ArrayList<Point3d>();
+		        List<Point3d> bottomList = new ArrayList<Point3d>();
                 int center, right;
 
 	            if (dist1 > dist2)
@@ -763,11 +763,11 @@ public class View3DWindow extends JPanel
 	 * @param transform
 	 * @param objTrans
 	 */
-	private List addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
+	private List<Shape3D> addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
 	{
 		if (polys == null) return (null);
 
-		List list = new ArrayList();
+		List<Shape3D> list = new ArrayList<Shape3D>();
 		for(int i = 0; i < polys.length; i++)
 		{
 			Poly poly = polys[i];
@@ -1121,10 +1121,10 @@ public class View3DWindow extends JPanel
             NodeInst ni = (NodeInst)it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
-            List list = (List)electricObjectMap.get(ni);
+            List<Shape3D> list = (List<Shape3D>)electricObjectMap.get(ni);
             for (int i = 0; i < list.size(); i++)
             {
-                Shape3D obj = (Shape3D)list.get(i);
+                Shape3D obj = list.get(i);
                 TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
 
                 grp.getTransform(currXform);
@@ -1369,7 +1369,7 @@ public class View3DWindow extends JPanel
     private void setInterpolator()
     {
         Transform3D yAxis = new Transform3D();
-        List polys = new ArrayList();
+        List<J3DUtils.ThreeDDemoKnot> polys = new ArrayList<J3DUtils.ThreeDDemoKnot>();
 
         double [] zValues = new double[2];
         cell.getZValues(zValues);
@@ -1448,7 +1448,7 @@ public class View3DWindow extends JPanel
             return null;
         }
 
-        Map interMap = new HashMap(1);
+        Map<TransformGroup,BranchGroup> interMap = new HashMap<TransformGroup,BranchGroup>(1);
         for (Iterator it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
@@ -1495,7 +1495,7 @@ public class View3DWindow extends JPanel
      * @param interMap
      * @return
      */
-    public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap, boolean useView)
+    public Map<TransformGroup,BranchGroup> addInterpolatorPerGroup(List knotList, TransformGroup grp, Map<TransformGroup,BranchGroup> interMap, boolean useView)
     {
         if (knotList == null || knotList.size() < 2)
         {
@@ -1504,7 +1504,7 @@ public class View3DWindow extends JPanel
         }
 
         if (interMap == null)
-            interMap = new HashMap(1);
+            interMap = new HashMap<TransformGroup,BranchGroup>(1);
         if (grp == null)
         {
             if (!useView) grp = objTrans;

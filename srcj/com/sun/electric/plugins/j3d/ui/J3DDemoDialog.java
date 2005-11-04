@@ -33,6 +33,8 @@ import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DSerialization;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.BranchGroup;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -49,8 +51,8 @@ import java.io.ObjectOutputStream;
 public class J3DDemoDialog extends EDialog
 {
     private View3DWindow view3D = null;
-    private List knots = new ArrayList();
-    private Map interMap;
+    private List<J3DUtils.ThreeDDemoKnot> knots = new ArrayList<J3DUtils.ThreeDDemoKnot>();
+    private Map<TransformGroup,BranchGroup> interMap;
 
     /**
      * Method to open demo dialog. If filename is not null, it will load the demo
