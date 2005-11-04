@@ -772,6 +772,7 @@ public class Analyzer extends Engine
 	private void saveVectorFile()
 	{
 		String fileName = OpenFile.chooseOutputFile(FileType.IRSIMVECTOR, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
+		if (fileName == null) return;
 		try
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
