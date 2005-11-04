@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
@@ -41,6 +42,8 @@ import java.awt.Graphics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -58,10 +61,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 /**
  * This class defines a text window for displaying text cells.
@@ -76,6 +83,7 @@ public class TextWindow
 	/** true if the text in the window is closing. */		private boolean finishing;
 	private JTextArea textArea;
 	private JScrollPane scrollPane;
+	private UndoManager undo = new UndoManager();
 
 	/**
 	 * Factory method to create a new TextWindow with a given cell, in a given WindowFrame.
@@ -99,11 +107,72 @@ public class TextWindow
 
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
 		textArea.getDocument().addDocumentListener(twDocumentListener);
+		textArea.getDocument().addUndoableEditListener(new MyUndoableEditListener());
 		textArea.addFocusListener(twDocumentListener);
 
 //		textArea.requestFocus();
 //		textArea.setSelectionStart(0);
 //		textArea.setSelectionEnd(0);
+	}
+
+	private class MyUndoableEditListener implements UndoableEditListener
+	{
+		public void undoableEditHappened(UndoableEditEvent e)
+		{
+			// Remember the edit and update the menus
+			undo.addEdit(e.getEdit());
+			updateUndoRedo();
+		}
+	}
+
+	private static PropertyChangeListener undoListener, redoListener;
+
+	public static void addTextUndoListener(PropertyChangeListener l) { undoListener = l; }
+
+	public static void addTextRedoListener(PropertyChangeListener l) { redoListener = l; }
+
+	private void updateUndoRedo()
+	{
+		TopLevel tl = TopLevel.getCurrentJFrame();
+		PropertyChangeEvent un = new PropertyChangeEvent(tl, Undo.propUndoEnabled, null, new Boolean(undo.canUndo()));
+		PropertyChangeEvent re = new PropertyChangeEvent(tl, Undo.propRedoEnabled, null, new Boolean(undo.canRedo()));
+		if (tl != null)
+		{
+			tl.getToolBar().propertyChange(un);
+			tl.getToolBar().propertyChange(re);
+		}
+		if (undoListener != null) undoListener.propertyChange(un);
+		if (redoListener != null) redoListener.propertyChange(re);
+	}
+
+	/**
+	 * Method to undo changes to text in this TextWindow.
+	 */
+	public void undo()
+	{
+		try
+		{
+			undo.undo();
+			updateUndoRedo();
+		} catch (CannotUndoException e)
+		{
+			System.out.println("Cannot undo");
+		}
+	} 
+
+	/**
+	 * Method to redo changes to text in this TextWindow.
+	 */
+	public void redo()
+	{
+		try
+		{
+			undo.redo();
+			updateUndoRedo();
+		} catch (CannotUndoException e)
+		{
+			System.out.println("Cannot redo");
+		}
 	}
 
 	/**
