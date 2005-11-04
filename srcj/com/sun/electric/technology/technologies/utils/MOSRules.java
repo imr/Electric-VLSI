@@ -210,7 +210,7 @@ public class MOSRules implements DRCRules {
 
     /**
      * Method to return overhang of poly in transistors along the gate
-     * @return
+     * @return the overhang of poly in transistors along the gate.
      */
     public double getPolyOverhang()
     {

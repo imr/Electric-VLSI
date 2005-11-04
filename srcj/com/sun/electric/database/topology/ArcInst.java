@@ -1148,7 +1148,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
     /**
      * Compares ArcInsts by their Cells and names.
-     * @param obj the other ArcInst.
+     * @param that the other ArcInst.
      * @return a comparison between the ArcInsts.
      */
 /*5*/public int compareTo(ArcInst that)

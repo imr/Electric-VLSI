@@ -386,7 +386,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 
     /**
      * Compares PrimtivePorts by their PrimitiveNodes and definition order.
-     * @param obj the other PrimitivePort.
+     * @param that the other PrimitivePort.
      * @return a comparison between the PrimitivePorts.
      */
 /*5*/public int compareTo(PrimitivePort that)

@@ -95,8 +95,8 @@ public abstract class ExportMismatch {
     
     /**
      * Set compared Cells (designs). 
-     * @param name1  new first design Cell 
-     * @param name2  new second design Cell
+     * @param cell1  new first design Cell 
+     * @param cell2  new second design Cell
      */
     public void setCells(Cell cell1, Cell cell2) {
         cells[0] = cell1;
@@ -115,8 +115,8 @@ public abstract class ExportMismatch {
 
     /**
      * Set Contexts of the compared Cells (designs). 
-     * @param name1  new Context for the first Cell 
-     * @param name2  new Context for the second Cell
+     * @param cnxt1  new Context for the first Cell 
+     * @param cnxt2  new Context for the second Cell
      */
     public void setContexts(VarContext cnxt1, VarContext cnxt2) {
         contexts[0] = cnxt1;

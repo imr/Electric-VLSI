@@ -1992,7 +1992,6 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	/**
 	 * Method to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
-	 * @return unique diplicate index for this arc.
 	 */
 	public void addArc(ArcInst ai)
 	{
@@ -2019,8 +2018,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 
 	/**
 	 * Method to return unique autoname for ArcInst in this cell.
-	 * @param basename base name of autoname
-	 * @return autoname
+	 * @return a unique autoname for ArcInst in this cell.
 	 */
 	public Name getArcAutoname()
 	{
@@ -4194,13 +4192,11 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 
     /**
      * Compares Cells by their Libraries and CellNames.
-     * @param obj the other Cell.
+     * @param that the other Cell.
      * @return a comparison between the Cells.
      */
-/*5*/public int compareTo(Cell that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(Cell that)
 	{
-//4*/	Cell that = (Cell)obj;
 		if (this.lib != that.lib)
 		{
 			int cmp = this.lib.compareTo(that.lib);

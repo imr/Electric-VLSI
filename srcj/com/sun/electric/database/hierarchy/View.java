@@ -372,8 +372,8 @@ public class View implements Comparable<View>
 
     /**
      * Compares two <code>View</code> objects.
-     * @param   o   the View to be compared.
-     * @return	the result of comparison.
+     * @param that the View to be compared.
+     * @return the result of comparison.
      */
 /*5*/public int compareTo(View that)
 //4*/public int compareTo(Object o)

@@ -390,7 +390,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * If this ImmutableNideInst has Variable on PortInst with the same key as new, the old variable will not be in new
      * ImmutableNodeInst.
      * @param portProtoId PortProtoId of port instance.
-	 * @param var additional Variable.
 	 * @return ImmutableNodeInst with additional Variable.
 	 * @throws NullPointerException if var is null
 	 */

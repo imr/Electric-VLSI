@@ -1351,8 +1351,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 	}
 
     /**
-     * Method to compute longest edge
-     * @return
+     * Method to compute longest edge.
+     * @return the longest edge in this PolyBase.
      */
     public double getMaxLength()
     {
@@ -1438,7 +1438,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * Method to return the bounds of this Poly.
 	 * Nobody really uses this, but it is necessary for the implementation of Shape.
 	 * @return the bounds of this Poly.
-     * @Deprecated this is only implemented because Poly extends Shape. You should
+     * @deprecated this is only implemented because Poly extends Shape. You should
      * be using getBounds2D() instead.
 	 */
 	public Rectangle getBounds()

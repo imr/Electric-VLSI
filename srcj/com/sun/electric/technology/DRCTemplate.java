@@ -471,7 +471,7 @@ public class DRCTemplate
        /** Method to build combined name in special spacing rules
      * @param layer
      * @param geo
-     * @return
+     * @return combined name in special spacing rules
      */
     public static String getSpacingCombinedName(Layer layer, Geometric geo)
     {

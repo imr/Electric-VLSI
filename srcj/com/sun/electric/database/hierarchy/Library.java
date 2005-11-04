@@ -142,7 +142,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 * This method is a factory to create new libraries.
 	 * A Library has both a name and a file.
      * @param libId ID of new Library. 
-	 * @param libName the name of the library (for example, "gates").
+	 * @param legalName the name of the library (for example, "gates").
 	 * Library names must be unique, and they must not contain spaces.
 	 * @param libFile the URL to the disk file (for example "/home/strubin/gates.elib").
 	 * If the Library is being created, the libFile can be null.
@@ -969,8 +969,8 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 
     /**
      * Compares two <code>Library</code> objects.
-     * @param   o   the Library to be compared.
-     * @return	the result of comparison.
+     * @param that the Library to be compared.
+     * @return the result of comparison.
      */
 /*5*/public int compareTo(Library that)
 //4*/public int compareTo(Object o)
@@ -1028,7 +1028,6 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 
     /**
      * Method to save isExpanded status of NodeInsts in this Library to Preferences.
-     * @return
      */
     public static void saveExpandStatus() throws BackingStoreException {
             for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {

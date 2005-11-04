@@ -169,8 +169,8 @@ public class Network {
     
     /**
      * Add names of this net to two Collections. One for exported, and other for unexported names.
-     * @exportedNames Collection for exported names.
-     * @unexportedNames Collection for unexported names.
+     * @param exportedNames Collection for exported names.
+     * @param unexportedNames Collection for unexported names.
      */
     public void fillNames(Collection<String> exportedNames, Collection<String> unexportedNames) {
         for (int i = 0; i < names.length; i++) {

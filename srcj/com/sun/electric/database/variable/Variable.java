@@ -87,7 +87,7 @@ public class Variable
 
 		/**
 		 * Compares Variable Keys by their names.
-		 * @param obj the other Variable Key.
+		 * @param that the other Variable Key.
 		 * @return a comparison between the Variable Keys.
 		 */
 /*5*/	public int compareTo(Key that)
@@ -283,7 +283,7 @@ public class Variable
 
     /**
 	 * Checks invariant of this Variable.
-     * @param true if paramerer flag is allowed on this Variable
+     * @param paramAllowed true if paramerer flag is allowed on this Variable
 	 * @throws AssertionError or NullPointerException if invariant is broken.
 	 */
 	public void check(boolean paramAllowed) {
@@ -373,7 +373,7 @@ public class Variable
     
     /**
      * Returns thread-independent element of array value of this Variable.
-     * @param specified index of array
+     * @param index index of array
      * @return element of array value.
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
@@ -384,7 +384,7 @@ public class Variable
     
     /**
      * Returns element of array value of this Variable in current thread.
-     * @param specified index of array
+     * @param index index of array
      * @return element of array value.
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
@@ -846,7 +846,7 @@ public class Variable
 	/**
 	 * Returns Variable which differs from this Variable by text font.
 	 * @param f the text font of new Variable.
-	 * @eturn Variable which differs from this Variable by text font.
+	 * @return Variable which differs from this Variable by text font.
 	 */
 	public Variable withFace(int f) { return withTextDescriptor(getTextDescriptor().withFace(f)); }
 
@@ -873,7 +873,7 @@ public class Variable
 
 	/**
 	 * Returns Variable which differs from this Variable by dislay part.
-	 * @param d the text display part of new Variable.
+	 * @param dispPos the text display part of new Variable.
      * @return Variable which differs from this Variable by dislay part.
      * @throws NullPointerException if dispPos is null
 	 */

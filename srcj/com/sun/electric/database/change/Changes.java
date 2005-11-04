@@ -93,7 +93,7 @@ public interface Changes
 	/**
 	 * Method to announce a change to an Export.
 	 * @param pp the Export that moved.
-	 * @param oD the old contents of the Export.
+	 * @param oldD the old contents of the Export.
 	 */
 	void modifyExport(Export pp, ImmutableExport oldD);
 

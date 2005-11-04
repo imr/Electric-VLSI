@@ -230,8 +230,8 @@ public class PolyQTree extends GeometryHandler
 		}
 
         /**
-         * Method to calculate longest edge
-         * @return
+         * Method to calculate longest edge.
+         * @return the length of the longest edge in this PolyQTree.
          */
         public double getMaxLength()
         {

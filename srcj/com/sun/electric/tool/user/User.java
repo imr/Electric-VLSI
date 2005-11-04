@@ -110,7 +110,7 @@ public class User extends Listener
 	/**
 	 * Method to handle a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oD the old contents of the NodeInst.
+	 * @param oldD the old contents of the NodeInst.
 	 */
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oldD)
 	{

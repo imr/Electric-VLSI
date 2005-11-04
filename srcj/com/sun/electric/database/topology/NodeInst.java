@@ -2692,7 +2692,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
    /**
      * Compares NodeInsts by their Cells and names.
-     * @param obj the other NodeInst.
+     * @param that the other NodeInst.
      * @return a comparison between the NodeInsts.
      */
 /*5*/public int compareTo(NodeInst that)

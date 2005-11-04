@@ -266,8 +266,9 @@ public class EGraphics extends Observable
 
 	/**
 	 * Method to create a graphics object.
-	 * @param displayMethod the way to show this EGraphics on a display (SOLID, PATTERNED, OUTLINEPAT).
-	 * @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, OUTLINEPAT).
+	 * @param displayPatterned true if drawn with a pattern on the display.
+	 * @param printPatterned true if drawn with a pattern on a printer.
+	 * @param outlineWhenPatterned the outline texture to use when patterned.
 	 * @param transparentLayer the transparent layer number (0 for none).
 	 * @param red the red component of this EGraphics.
 	 * @param green the green component of this EGraphics.

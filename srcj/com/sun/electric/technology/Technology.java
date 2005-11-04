@@ -3469,7 +3469,7 @@ public class Technology implements Comparable<Technology>
 
     /**
      * Method to get the DRC deck containing rules
-     * @return
+     * @return the DRC deck containing rules.
      */
     public List<DRCTemplate> getDRCDeck() { return null; }
 
@@ -3973,7 +3973,7 @@ public class Technology implements Comparable<Technology>
 
     /**
      * Method to retrieve cached rules
-     * @return
+     * @return cached design rules.
      */
     public DRCRules getCachedRules() {return cachedRules;}
 
@@ -3995,7 +3995,7 @@ public class Technology implements Comparable<Technology>
      * @param layers
      * @param geoms
      * @param ignoreCenterCuts
-     * @return
+     * @return true if one of the polysilicon polygons is covered by a vth layer.
      */
     public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, 
                                          Geometric[] geoms, boolean ignoreCenterCuts) { return false; }

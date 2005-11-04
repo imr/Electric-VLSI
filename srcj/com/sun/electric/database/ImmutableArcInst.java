@@ -257,14 +257,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param name name of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
-     * @param tailPortProtoId PortProtoId on tail end of this ImmutableArcInst.
+     * @param tailPortId PortProtoId on tail end of this ImmutableArcInst.
      * @param tailLocation Location of tail end of this ImmutableArcInst.
      * @param headNodeId NodeId on head end of this ImmutableArcInst.
-     * @param headPortProtoId PortProtoId on head end of this ImmutableArcInst.
+     * @param headPortId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
      * @param width the width of this ImmutableArcInst.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
-     * @param userBits flag bits of this ImmutableNodeInst.
+     * @param flags flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
      * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
      * @throws IllegalArgumentException if name is not valid, or width is bad.
@@ -379,7 +379,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
 	/**
 	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by user bits.
-	 * @param arcBits flag bits of this ImmutableArcInst.
+	 * @param flags flag bits of this ImmutableArcInst.
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by user bits.
 	 */
 	public ImmutableArcInst withFlags(int flags) {

@@ -1170,7 +1170,7 @@ public class FileMenu {
      * @param icon
      * @param options
      * @param initialValue
-     * @return
+     * @return the return value of the JOptionPane choice.
      * @throws HeadlessException
      */
     public static int showFileMenuOptionDialog(Component parentComponent,

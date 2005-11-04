@@ -143,7 +143,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	/**
 	 * Returns TextDescriptor which differs from this TextDescriptor by text font.
 	 * @param f the text font of new TextDescriptor.
-	 * @eturn TextDescriptor which differs from this TextDescriptor by text font.
+	 * @return TextDescriptor which differs from this TextDescriptor by text font.
 	 */
 	public TextDescriptor withFace(int f) {
         if (getFace() == f) return this;
@@ -168,7 +168,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 
 	/**
 	 * Returns TextDescriptor which differs from this TextDescriptor by dislay part.
-	 * @param d the text display part of new TextDescriptor.
+	 * @param dispPos the text display part of new TextDescriptor.
      * @return TextDescriptor which differs from this TextDescriptor by dislay part.
      * @throws NullPointerException if dispPos is null
 	 */

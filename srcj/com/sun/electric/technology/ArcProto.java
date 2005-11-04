@@ -929,7 +929,7 @@ public class ArcProto implements Comparable<ArcProto>
 
     /**
      * Compares ArcProtos by their Technologies and definition order.
-     * @param obj the other ArcProto.
+     * @param that the other ArcProto.
      * @return a comparison between the ArcProto.
      */
 /*5*/public int compareTo(ArcProto that)

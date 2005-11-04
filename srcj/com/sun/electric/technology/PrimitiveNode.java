@@ -103,13 +103,13 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
         /**
          * Method to tell whether this function describes a capacitor (normal or electrolytic).
-         * @return
+         * @return true if this function describes a capacitor (normal or electrolytic).
          */
         public boolean isCapacitor() {return (this == CAPAC || this == ECAPAC);}
 
         /**
-         * Method to tell whether this function describes a resistor (normal or poly resistor)
-         * @return
+         * Method to tell whether this function describes a resistor (normal or poly resistor).
+         * @return true if this function describes a resistor (normal or poly resistor).
          */
         public boolean isResistor() {return (this == RESIST || this == PRESIST);}
 
@@ -1415,7 +1415,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
     /**
      * Compares PrimtiveNodes by their Technologies and definition order.
-     * @param obj the other PrimitiveNode.
+     * @param that the other PrimitiveNode.
      * @return a comparison between the PrimitiveNodes.
      */
 /*5*/public int compareTo(PrimitiveNode that)

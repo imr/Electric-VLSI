@@ -4628,24 +4628,14 @@ public class CircuitChanges
 	/**
 	 * Method to recursively copy cells between libraries.
 	 * @param fromCell the original cell being copied.
-	 * @param toName the name to give the cell in the destination library.
 	 * @param toLib the destination library to copy the cell.
-	 * @param toView the view to give the cell in the destination library.
 	 * @param verbose true to display extra information.
 	 * @param move true to move instead of copy (delete after copying).
-	 * @param subDescript a String describing the nature of this copy (empty string initially).
-	 * @param schematicRelatedView true to copy a schematic related view.  Typically this is true,
-	 * meaning that if copying an icon, also copy the schematic.  If already copying the example icon,
-	 * this is set to false so that we don't get into a loop.
 	 * @param allRelatedViews true to copy all related views (schematic cell with layout, etc.)
 	 * If false, only schematic/icon relations are copied.
-	 * @param allRelatedViewsThisLevel true to copy related views for this
-	 * level of invocation only (but further recursion will use "allRelatedViews").
 	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
-	 * @param existing a Set of Cells that have already been copied to the desitnation library
-	 * and need not be copied again.
 	 */
 	public static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move,
         boolean allRelatedViews, boolean copySubCells, boolean useExisting)

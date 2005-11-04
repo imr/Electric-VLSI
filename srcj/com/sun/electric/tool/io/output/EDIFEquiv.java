@@ -263,8 +263,6 @@ public class EDIFEquiv {
      * For 'F', an association between internal FigureGroup names and external names is declared.
      * For 'V', an association between internal Variable names and external names is declared.  You
      * can also specify a string to be append to all matching Variable values.
-     *
-     * @param file the configuration file
      */
     public EDIFEquiv() {
         equivsByNodeProto = new HashMap<Object,NodeEquivalence>();
@@ -646,8 +644,8 @@ public class EDIFEquiv {
         public Port getExtPort() { return extPort; }
         /**
          * Translate the location of the electric port to the external port
-         * @param point
-         * @return
+         * @param point the location of the port in Electric.
+         * @return the location of the port in EDIF.
          */
         public Point2D translateElecToExt(Point2D point, AffineTransform niPureRotation) {
             Point2D elecPoint = new Point2D.Double(elecPort.loc.getX(), elecPort.loc.getY());
@@ -661,8 +659,8 @@ public class EDIFEquiv {
         }
         /**
          * Translate the location of the external port to the electric port
-         * @param point
-         * @return
+         * @param point the location of the port in EDIF.
+         * @return the location of the port in Electric.
          */
         public Point2D translateExtToElec(Point2D point, AffineTransform niPureRotation) {
             Point2D elecPoint = new Point2D.Double(elecPort.loc.getX(), elecPort.loc.getY());

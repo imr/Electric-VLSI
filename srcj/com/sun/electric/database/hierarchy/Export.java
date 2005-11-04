@@ -373,7 +373,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 	/**
 	 * Low-level access method to unlink this Export from its cell.
-	 * @return collection of deleted PortInsts of this Export.
 	 */
 	public void lowLevelUnlink()
 	{
@@ -385,7 +384,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 	/**
 	 * Method to change the origin of this Export to another place in the Cell.
-	 * @param newPi the new PortInst in the cell that will hold this Export.
+	 * @param d the new PortInst in the cell that will hold this Export.
 	 */
 	public void lowLevelModify(ImmutableExport d)
 	{
@@ -604,7 +603,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * the special key Export.EXPORT_NAME.
 	 * If varKey doesn't select any text descriptor, no action is performed.
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special name.
 	 * @param td new value TextDescriptor
 	 */
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
@@ -710,7 +709,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
     /**
      * Compares Exports by their Cells and names.
-     * @param obj the other Export.
+     * @param that the other Export.
      * @return a comparison between the Exports.
      */
 /*5*/public int compareTo(Export that)

@@ -308,7 +308,6 @@ public final class CellId implements NodeProtoId
 
 	/**
 	 * Method to check invariants in all Libraries.
-	 * @return true if invariants are valid
 	 */
 	public static void checkInvariants() {
         int numCellIds;
