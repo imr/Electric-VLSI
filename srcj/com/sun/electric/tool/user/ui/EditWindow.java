@@ -1187,7 +1187,7 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to store a new "in-place" text editing object on this EditWindow.
-	 * @param tc the Listener that is now sitting on top of this EditWindow.
+	 * @param tl the Listener that is now sitting on top of this EditWindow.
 	 */
 	public void addInPlaceTextObject(GetInfoText.EditInPlaceListener tl)
 	{
@@ -1197,7 +1197,7 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to remove a "in-place" text editing object from this EditWindow.
-	 * @param tc the Listener that is no longer sitting on top of this EditWindow.
+	 * @param tl the Listener that is no longer sitting on top of this EditWindow.
 	 */
 	public void removeInPlaceTextObject(GetInfoText.EditInPlaceListener tl)
 	{

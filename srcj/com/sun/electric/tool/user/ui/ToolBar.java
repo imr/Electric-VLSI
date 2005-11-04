@@ -162,7 +162,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     public static Cursor zoomOutCursor = readCursor("CursorZoomOut.gif", 6, 6);
 	public static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
 	public static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
-	public static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
+	public static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 8);
 	public static Cursor measureCursor = readCursor("CursorMeasure.gif", 0, 0);
 
     public static final ImageIcon selectSpecialIconOn = Resources.getResource(ToolBar.class, "ButtonSelectSpecialOn.gif");
@@ -337,6 +337,9 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// setup object/area selector to current setting
 		if (getSelectMode() == SelectMode.AREA) areaButton.setSelected(true);
+
+		// a separator
+		toolbar.addSeparator();
 
 		// the "Special select mode" button
         // this is a true toggle button, default is no special select
@@ -747,10 +750,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         }
     }
 
-	public void setSaveLibraryButton(boolean value)
-	{
-		saveLibraryButton.setEnabled(value);
-	}
+//	public void setSaveLibraryButton(boolean value)
+//	{
+//		saveLibraryButton.setEnabled(value);
+//	}
     // ----------------------------------------------------------------------------
 
     /**
