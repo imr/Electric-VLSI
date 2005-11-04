@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
-IMP/MAN: (11/2/05. GVG) Adding index to ErrorLogger.Message so it would be easier to
+IMP/MAN: (11/3/05, GVG) XML format for ErrorLogger (bug #715). You can save and restore errorloggers
+from disk.
+
+IMP/MAN: (11/2/05, GVG) Adding index to ErrorLogger.Message so it would be easier to
 exchange information about DRC errors (Bug #729). This affects all ErrorLogger instances.
 
 BUG: (11/2/05, SMR) Redisplay slow when zoomed far in (Bug #719).

@@ -1621,18 +1621,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             String name = JOptionPane.showInputDialog(tree, "Name of cell to search","");
 			if (name == null) return;
             System.out.println("Searching cell name like " + name);
-            for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
-            {
-                Library lib = (Library)it.next();
-                for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();)
-                {
-                    Cell cell = (Cell)cIt.next();
-                    if (cell.getName().indexOf(name) != -1)
-                    {
-                        System.out.println("\t" + cell + " in " + lib);
-                    }
-                }
-            }
+            Cell cell = Library.findCellInLibraries(name, null);
+            if (cell != null)
+                System.out.println("\t" + cell + " in " + cell.getLibrary());
         }
 	}
 }

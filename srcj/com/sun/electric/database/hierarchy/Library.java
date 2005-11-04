@@ -1041,6 +1041,25 @@ public class Library extends ElectricObject_ implements Comparable<Library>
             }
     }
 
+    public static Cell findCellInLibraries(String name, View view)
+    {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
+        {
+            Library lib = (Library)it.next();
+            for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();)
+            {
+                Cell cell = (Cell)cIt.next();
+                if (cell.getName().indexOf(name) != -1)
+                {
+                    // Either first match in name or check that view matches
+                    if (view == null || cell.getView() == view)
+                        return cell;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
 	 * Method to find the Cell with the given name in this Library.
 	 * @param name the name of the desired Cell.

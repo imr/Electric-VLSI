@@ -31,7 +31,10 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
@@ -189,7 +192,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         /**
          * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
          */
-        public void addLine(double x1, double y1, double x2, double y2, Cell cell)
+        public ErrorHighlight addLine(double x1, double y1, double x2, double y2, Cell cell)
         {
             ErrorHighlight eh = new ErrorHighlight();
             eh.type = ErrorLoggerType.ERRORTYPELINE;
@@ -200,6 +203,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             eh.cell = cell;
             eh.context = null;
             highlights.add(eh);
+            return eh;
         }
 
         /**
@@ -306,20 +310,39 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         {
             String className = this.getClass().getSimpleName();
             msg.append("\t<" + className + " message=\"" + message + "\" "
-                    + "logCell=\"" + logCell.describe(false) + "\">\n");
+                    + "cellName=\"" + logCell.describe(false) + "\">\n");
             for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
                 ErrorHighlight eh = it.next();
-                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
-                msg.append("\t\t<"+eh.type+" ");
-                if (!eh.showgeom)
+
+                switch (eh.type)
                 {
-                    if (eh.geom instanceof NodeInst)
-                        msg.append("geom=\"" + ((NodeInst)eh.geom).getD().name + "\"");
+                    case ERRORTYPEGEOM:
+                        if (eh.showgeom)
+                        {
+                            msg.append("\t\t<"+eh.type+" ");
+                            if (eh.geom instanceof NodeInst)
+                                msg.append("geomName=\"" + ((NodeInst)eh.geom).getD().name + "\" ");
+                            else
+                                msg.append("geomName=\"" + ((ArcInst)eh.geom).getD().name + "\" ");
+                            msg.append("cellName=\"" + eh.cell.describe(false) + "\"");
+                            msg.append(" />\n");
+                        }
+                        break;
+                    case ERRORTYPELINE:
+                    case ERRORTYPETHICKLINE:
+                        msg.append("\t\t<"+eh.type+" ");
+                        msg.append("p1=\"(" + eh.x1 + "," + eh.y1 + ")\" ");
+                        msg.append("p2=\"(" + eh.x2 + "," + eh.y2 + ")\" ");
+                        msg.append("center=\"(" + eh.cX + "," + eh.cY + ")\" ");
+                        msg.append("cellName=\"" + eh.cell.describe(false) + "\"");
+                        msg.append(" />\n");
+                        break;
+                    default:
+                        System.out.println("Not implemented in xmlDescription");
                 }
-                msg.append(" />\n");
             }
-            msg.append("\n\t</" + className + ">\n");
+            msg.append("\t</" + className + ">\n");
         }
 
         /**
@@ -726,22 +749,30 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
         buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM)* >");
+        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPETHICKLINE)* >");
         buffWriter.println(" <!ELEMENT WarningLog ANY >");
         buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
+        buffWriter.println(" <!ELEMENT ERRORTYPETHICKLINE ANY>");
         buffWriter.println("<!ATTLIST ErrorLogger");
         buffWriter.println("    errorSystem CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST MessageLog");
         buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println("    logCell CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST WarningLog");
         buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println("    logCell CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST ERRORTYPEGEOM");
-        buffWriter.println("    geom CDATA #REQUIRED");
+        buffWriter.println("    geomName CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST ERRORTYPETHICKLINE");
+        buffWriter.println("    p1 CDATA #REQUIRED");
+        buffWriter.println("    p2 CDATA #REQUIRED");
+        buffWriter.println("    center CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" ]>");
         buffWriter.println();
@@ -1148,40 +1179,111 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 
         private class XMLHandler extends DefaultHandler
         {
+            private ErrorLogger logger = null;
+            private MessageLog currentLog = null;
+
             XMLHandler()
             {
             }
 
             public InputSource resolveEntity (String publicId, String systemId) throws IOException, SAXException
             {
-                URL fileURL = this.getClass().getResource("DRC.dtd");
-                URLConnection urlCon = fileURL.openConnection();
-                InputStream inputStream = urlCon.getInputStream();
-                return new InputSource(inputStream);
+                System.out.println("It shouldn't reach this point!");
+                return null;
+            }
+
+            /**
+             * Method to finish the logger including counting of elements.
+             * @throws SAXException
+             */
+            public void endDocument () throws SAXException
+            {
+                logger.termLogging(true);
             }
 
             public void startElement (String uri, String localName, String qName, Attributes attributes)
             {
-                boolean layerRule = qName.equals("LayerRule");
-                boolean layersRule = qName.equals("LayersRule");
-                boolean nodeLayersRule = qName.equals("NodeLayersRule");
-                boolean nodeRule = qName.equals("NodeRule");
+                boolean loggerBody = qName.equals("ErrorLogger");
+                boolean errorLogBody = qName.equals("MessageLog");
+                boolean warnLogBody = qName.equals("WarningLog");
+                boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
+                boolean thickTypeBody = qName.equals("ERRORTYPETHICKLINE");
 
-                if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return;
+                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !thickTypeBody) return;
 
-                String ruleName = "", layerNames = "", nodeNames = null;
+                String message = "", cellName = null, geomName = null, viewName = null;
+                Point2D p1 = null, p2 = null, center = null;
 
                 for (int i = 0; i < attributes.getLength(); i++)
                 {
-                    if (attributes.getQName(i).equals("ruleName"))
-                        ruleName = attributes.getValue(i);
-                    else if (attributes.getQName(i).startsWith("layerName"))
-                        layerNames = attributes.getValue(i);
-                    else if (attributes.getQName(i).startsWith("nodeName"))
-                        nodeNames = attributes.getValue(i);
+                    if (attributes.getQName(i).equals("errorSystem"))
+                    {
+                        // Ignore the rest of the attribute and generate the logger
+                        logger = ErrorLogger.newInstance(attributes.getValue(i), true);
+                        return;
+                    }
+                    else if (attributes.getQName(i).startsWith("message"))
+                        message = attributes.getValue(i);
+                    else if (attributes.getQName(i).startsWith("cell"))
+                    {
+                        String[] names = TextUtils.parseLine(attributes.getValue(i), "{}");
+                        cellName = names[0];
+                        viewName = names[1];
+                    }
+                    else if (attributes.getQName(i).startsWith("geom"))
+                        geomName = attributes.getValue(i);
+                    else if (attributes.getQName(i).startsWith("p1"))
+                    {
+                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        double x = Double.parseDouble(points[0]);
+                        double y = Double.parseDouble(points[1]);
+                        p1 = new Point2D.Double(x, y);
+                    }
+                    else if (attributes.getQName(i).startsWith("p2"))
+                    {
+                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        double x = Double.parseDouble(points[0]);
+                        double y = Double.parseDouble(points[1]);
+                        p2 = new Point2D.Double(x, y);
+                    }
+                    else if (attributes.getQName(i).startsWith("center"))
+                    {
+                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        double x = Double.parseDouble(points[0]);
+                        double y = Double.parseDouble(points[1]);
+                        center = new Point2D.Double(x, y);
+                    }
                     else
                         new Error("Invalid attribute in XMLParser");
                 }
+                View view = View.findView(viewName);
+                Cell cell = Library.findCellInLibraries(cellName, view);
+                if (errorLogBody)
+                {
+                    int sortLayer = cell.hashCode();
+                    currentLog = logger.logError(message, cell, sortLayer);
+                }
+                else if (warnLogBody)
+                {
+                    int sortLayer = cell.hashCode();
+                    currentLog = logger.logWarning(message, cell, sortLayer);
+                }
+                else if (geoTypeBody)
+                {
+                    Geometric geom = cell.findNode(geomName);
+                    if (geom == null) // try arc instead
+                        geom = cell.findArc(geomName);
+                    currentLog.addGeom(geom, true, cell, null);
+                }
+                else if (thickTypeBody)
+                {
+                    ErrorHighlight eh = currentLog.addLine(p1.getX(), p1.getY(), p2.getX(), p2.getY(), cell);
+                    eh.type = ErrorLoggerType.valueOf(qName);
+                    eh.cX = center.getX();
+                    eh.cY = center.getY();
+                }
+                else
+                    new Error("Invalid attribute in XMLParser");
             }
 
             public void fatalError(SAXParseException e)
