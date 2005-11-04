@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/4/05, SMR) Changes in text-only cells are not undoable (Bug #324, #503).
+FIX: Added undo tracking when editing text cells, incorporated it into undo commands.
+
+IMP: (11/4/05, SMR) "mocmos" technology has ports on pure-layer nodes extending to the node edges
+     (were inset on some pure-layer node ports).
+
+BUG: Select-All doesn't include text on arcs (Bug #530).
+FIX: In EditMenu.doSelection(), include text.
+
 IMP: (11/4/05, SMR) New icons in the toolbar.
 
 IMP: (11/4/05, SMR) Ant scripts updated to exclude Sun menus from build,
@@ -30,6 +39,8 @@ FIX: In GetInfoMulti.java, optimized "Remove" and "Remove All" buttons,
 BUG: (11/2/05, SMR) "Show Network" highlights too much information (Bug #716).
 FIX: In NetworkHighlighter.java, removed highlighting of cell instances and exports.
      Reduced arc highlighting to a single line.
+
+************************* Everything below here was announced in the 8.03 release *********************************
 
 BUG: (11/01/05, SMR) Cancelling the cell selection after reading simulation data
      does not cancel the operation (Bug #711).
