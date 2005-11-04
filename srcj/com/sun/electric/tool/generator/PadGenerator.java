@@ -639,7 +639,10 @@ public class PadGenerator
 
             // get cell
             String cellname = pad.cellname;
-            if (view != null) cellname = cellname + "{" + view.getAbbreviation() + "}";
+			if (!cellname.endsWith("}"))
+			{
+				if (view != null) cellname = cellname + "{" + view.getAbbreviation() + "}";
+			}
             Cell cell = cellLib.findNodeProto(cellname);
             if (cell == null) {
                 err("Could not create pad Cell: " + cellname);
