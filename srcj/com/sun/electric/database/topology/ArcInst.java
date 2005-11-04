@@ -91,11 +91,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/** bounds after transformation. */					private Rectangle2D visBounds;
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
-	/** the tail shrinkage is from 0 to 90 */			/*package*/byte tailShrink;
 	/** tail connection of this arc instance */			private final TailConnection tailEnd;
 
 	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
-	/** the head shrinkage is from 0 to 90 */			/*package*/byte headShrink;
 	/** head connection of this arc instance */			private final HeadConnection headEnd;
 
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
@@ -408,7 +406,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         EPoint tail = d.tailLocation;
 		if (dTailX != 0 || dTailY != 0)
 			tail = new EPoint(tail.getX() + dTailX, tail.getY() + dTailY);
-         EPoint head = d.headLocation;
+        EPoint head = d.headLocation;
         if (dHeadX != 0 || dHeadY != 0)
             head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
 		lowLevelModify(d.withWidth(d.width + dWidth).withLocations(tail, head));
@@ -462,6 +460,23 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public ImmutableArcInst getD() { return d; }
     
     /**
+     * Modifies persistend data of this ArcInst.
+     * @param newD new persistent data.
+     * @return true if persistent data was modified.
+     */
+    private boolean setD(ImmutableArcInst newD) {
+        checkChanging();
+        ImmutableArcInst oldD = d;
+        if (newD == oldD) return false;
+        d = newD;
+        if (parent != null) {
+            parent.setBatchModified();
+            Undo.modifyArcInst(this, oldD);
+        }
+        return true;
+    }
+
+    /**
      * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
@@ -473,12 +488,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        checkChanging();
-        ImmutableArcInst oldD = d;
-        d = oldD.withVariable(var);
-        if (d == oldD) return;
-        if (parent != null)
-            Undo.modifyArcInst(this, oldD);
+        setD(d.withVariable(var));
     }
 
 	/**
@@ -487,12 +497,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void delVar(Variable.Key key)
 	{
-		checkChanging();
-        ImmutableArcInst oldD = d;
-        d = d.withoutVariable(key);
-        if (d == oldD) return;
-		if (parent != null)
-			Undo.modifyArcInst(this, oldD);
+        setD(d.withoutVariable(key));
 	}
     
 	/**
@@ -506,14 +511,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		headPortInst.getNodeInst().addConnection(headEnd);
 		tailPortInst.getNodeInst().addConnection(tailEnd);
 
-//		// add this arc to the cell
-//		this.duplicate = parent.addArc(this);
-//		parent.linkArc(this);
-
-		// update end shrinkage information
-		headPortInst.updateShrinkage();
-		tailPortInst.updateShrinkage();		
-		
 		// fill in the geometry
 		updateGeometric();
 
@@ -535,9 +532,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		parent.removeArc(this);
 		parent.unLinkArc(this);
 
-		// update end shrinkage information
-		headPortInst.updateShrinkage();
-		tailPortInst.updateShrinkage();
 		if (Main.getDebug()) parent.checkInvariants();
 	}
 
@@ -555,14 +549,17 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             parent.removeArc(this);
 
 		// now make the change
+        ImmutableArcInst oldD = d;
         this.d = d;
+        if (d != oldD)
+            parent.setBatchModified();
         if (renamed)
             parent.addArc(this);
 		updateGeometric();
 
 		// update end shrinkage information
-		headPortInst.updateShrinkage();
-		tailPortInst.updateShrinkage();
+		headPortInst.getNodeInst().updateShrinkage();
+		tailPortInst.getNodeInst().updateShrinkage();
 
 		// reinsert in the R-Tree structure
 		parent.linkArc(this);
@@ -660,15 +657,17 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (real.isHeadExtended())
 		{
 			extendH = width/2;
-			if (real.headShrink != 0)
-				extendH = getExtendFactor(width, real.headShrink);
+            byte headShrink = real.getHeadPortInst().getNodeInst().shrink;
+			if (headShrink != 0)
+				extendH = getExtendFactor(width, headShrink);
 		}
 		double extendT = 0;
 		if (real.isTailExtended())
 		{
 			extendT = width/2;
-			if (real.tailShrink != 0)
-				extendT = getExtendFactor(width, real.tailShrink);
+            byte tailShrink = real.getTailPortInst().getNodeInst().shrink;
+			if (tailShrink != 0)
+				extendT = getExtendFactor(width, tailShrink);
 		}
 
 		// make the polygon
@@ -1115,10 +1114,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == ARC_NAME) {
-        	checkChanging();
-            ImmutableArcInst oldD = d;
-			d = d.withNameDescriptor(td);
-            if (parent != null) Undo.modifyArcInst(this, oldD);
+			setD(d.withNameDescriptor(td));
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -1522,6 +1518,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			if (repair)
 			{
 				d = d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY()));
+                parent.setBatchModified();
 				updateGeometric();
 			}
 			errorCount++;
@@ -1543,6 +1540,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			if (repair)
 			{
 				d = d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation);
+                parent.setBatchModified();
 				updateGeometric();
 			}
 			errorCount++;

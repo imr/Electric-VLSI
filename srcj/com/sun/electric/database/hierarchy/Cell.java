@@ -27,6 +27,9 @@ import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -936,6 +939,23 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; Undo.otherChange(this); }
+
+	/*
+	 * Low-level method to backup this Cell to ImmutableCell.
+     * @return ImmutableCell which is the backup of this Cell.
+	 */
+    public ImmutableCell backup() {
+        ImmutableNodeInst[] n = new ImmutableNodeInst[nodes.size()];
+        for (int i = 0; i < nodes.size(); i++)
+            n[i] = nodes.get(i).getD();
+        ImmutableArcInst[] a = new ImmutableArcInst[arcs.size()];
+        for (int i = 0; i < arcs.size(); i++)
+            a[i] = arcs.get(i).getD();
+        ImmutableExport[] e = new ImmutableExport[exports.length];
+        for (int i = 0; i < exports.length; i++)
+            e[i] = exports[i].getD();
+        return new ImmutableCell(cellId, cellName, cellGroup, lib, creationDate, revisionDate, tech, userBits, n, a, e, getImmutable());
+    }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -3586,6 +3606,12 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         if (majorChange) return modified == 1;
         // only minor change
         return modified == 0;
+    }
+
+    /**
+	 * Method to set if cell has been modified in the batch job.
+	 */
+	public void setBatchModified() {
     }
 
     /**

@@ -108,13 +108,4 @@ public class HeadConnection extends Connection
 	{
 		return "HeadConnection " + arc.describe(true);
 	}
-
-	/**
-	 * Method to set the shrinkage happening because of angled arcs on this HeadConnection.
-	 * @param endShrink the shrinkage for this HeadConnection.
-	 */
-	void setEndShrink(byte endShrink)
-	{
-		arc.headShrink = endShrink;
-	}
 }

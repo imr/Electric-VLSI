@@ -108,13 +108,4 @@ public class TailConnection extends Connection
 	{
 		return "TailConnection " + arc.describe(true);
 	}
-
-	/**
-	 * Method to set the shrinkage happening because of angled arcs on this TailConnection.
-	 * @param endShrink the shrinkage for this TailConnection.
-	 */
-	void setEndShrink(byte endShrink)
-	{
-		arc.tailShrink = endShrink;
-	}
 }

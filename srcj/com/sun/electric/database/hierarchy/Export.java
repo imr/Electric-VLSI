@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
@@ -40,7 +41,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
@@ -66,7 +66,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
-public class Export extends ElectricObject_ implements PortProto, Comparable<Export>
+public class Export extends ElectricObject implements PortProto, Comparable<Export>
 {
 	/** Special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
 
@@ -352,7 +352,10 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	{
 		assert isLinked();
 		parent.moveExport(portIndex, newName.toString());
+        ImmutableExport oldD = d;
         d = d.withName(newName);
+        if (d != oldD)
+            parent.setBatchModified();
 	}
 
 	/**
@@ -393,7 +396,10 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
             origNode.removeExport(this);
         }
 
+        ImmutableExport oldD = d;
         this.d = d;
+        if (d != oldD)
+            parent.setBatchModified();
         
 		// create the new linkage
         if (moved) {
@@ -512,6 +518,46 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
      */
     public ImmutableExport getD() { return d; }
     
+    /**
+     * Modifies persistend data of this Export.
+     * @param newD new persistent data.
+     * @return true if persistent data was modified.
+     */
+    private boolean setD(ImmutableExport newD) {
+        checkChanging();
+        ImmutableExport oldD = d;
+        if (newD == oldD) return false;
+        d = newD;
+        if (parent != null) {
+            parent.setBatchModified();
+            Undo.modifyExport(this, oldD);
+        }
+        return true;
+    }
+
+    /**
+     * Returns persistent data of this ElectricObject.
+     * @return persistent data of this ElectricObject.
+     */
+    public ImmutableElectricObject getImmutable() { return d; }
+    
+    /**
+     * Method to add a Variable on this Export.
+     * It may add repaired copy of this Variable in some cases.
+     * @param var Variable to add.
+     */
+    public void addVar(Variable var) {
+        setD(d.withVariable(var));
+    }
+
+	/**
+	 * Method to delete a Variable from this Export.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+        setD(d.withoutVariable(key));
+	}
     
     /** Method to return PortProtoId of this Export.
      * PortProtoId identifies Export independently of threads.
@@ -564,11 +610,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == EXPORT_NAME) {
-        	checkChanging();
-            ImmutableExport oldD = d;
-			d = d.withNameDescriptor(td);
-            if (d != oldD)
-                Undo.modifyExport(this, oldD);
+			setD(d.withNameDescriptor(td));
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -734,11 +776,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 */
 	public void setCharacteristic(PortCharacteristic characteristic)
 	{
-		checkChanging();
-        ImmutableExport oldD = d;
-        d = d.withCharacteristic(characteristic);
-        if (d != oldD)
-            Undo.modifyExport(this, oldD); 
+        setD(d.withCharacteristic(characteristic));
 	}
 
 	/**
@@ -814,11 +852,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
 	public void setAlwaysDrawn(boolean b) {
-        checkChanging();
-        ImmutableExport oldD = d;
-        d = d.withAlwaysDrawn(b);
-        if (d != oldD)
-            Undo.modifyExport(this, oldD);
+        setD(d.withAlwaysDrawn(b));
     }
 
 	/**
@@ -835,11 +869,7 @@ public class Export extends ElectricObject_ implements PortProto, Comparable<Exp
      * @param b true if this Export exists only in the body of a cell.
 	 */
 	public void setBodyOnly(boolean b) {
-        checkChanging();
-        ImmutableExport oldD = d;
-        d = d.withBodyOnly(b);
-        if (d != oldD)
-            Undo.modifyExport(this, oldD);
+        setD(d.withBodyOnly(b));
     }
 
 	/**

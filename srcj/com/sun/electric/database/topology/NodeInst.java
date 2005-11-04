@@ -131,6 +131,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
 	/** True, if this NodeInst is wiped. */                 private boolean wiped;
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
+	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
     
 	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 
@@ -862,6 +863,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public ImmutableNodeInst getD() { return d; }
     
     /**
+     * Modifies persistend data of this NodeInst.
+     * @param newD new persistent data.
+     * @return true if persistent data was modified.
+     */
+    private boolean setD(ImmutableNodeInst newD) {
+        checkChanging();
+        ImmutableNodeInst oldD = d;
+        if (newD == oldD) return false;
+        d = newD;
+        if (parent != null) {
+            parent.setBatchModified();
+            Undo.modifyNodeInst(this, oldD);
+        }
+        return true;
+    }
+
+    /**
      * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
@@ -873,14 +891,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withVariable(var);
-        if (d == oldD) return;
-		// check for side-effects of the change
-        checkPossibleVariableEffects(var.getKey());
-        if (parent != null)
-            Undo.modifyNodeInst(this, oldD);
+        if (setD(d.withVariable(var)))
+            // check for side-effects of the change
+            checkPossibleVariableEffects(var.getKey());
     }
 
     /**
@@ -890,12 +903,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param var Variable to add.
      */
     void addVar(PortProtoId portProtoId, Variable var) {
-        checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withPortInst(portProtoId, d.getPortInst(portProtoId).withVariable(var));
-        if (d == oldD) return;
-        if (parent != null)
-            Undo.modifyNodeInst(this, oldD);
+        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withVariable(var)));
     }
 
 	/**
@@ -904,14 +912,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public void delVar(Variable.Key key)
 	{
-		checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withoutVariable(key);
-        if (d == oldD) return;
-		// check for side-effects of the change
-		checkPossibleVariableEffects(key);
-		if (parent != null)
-			Undo.modifyNodeInst(this, oldD);
+        if (setD(d.withoutVariable(key)))
+            // check for side-effects of the change
+            checkPossibleVariableEffects(key);
 	}
     
 	/**
@@ -921,12 +924,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	void delVar(PortProtoId portProtoId, Variable.Key key)
 	{
-		checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key));
-        if (d == oldD) return;
-		if (parent != null)
-			Undo.modifyNodeInst(this, oldD);
+        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key)));
 	}
     
 	/**
@@ -935,12 +933,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	void delVars(PortProtoId portProtoId)
 	{
-		checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withPortInst(portProtoId, ImmutablePortInst.EMPTY);
-        if (d == oldD) return;
-		if (parent != null)
-			Undo.modifyNodeInst(this, oldD);
+        setD(d.withPortInst(portProtoId, ImmutablePortInst.EMPTY));
 	}
     
     /**
@@ -987,7 +980,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 parent.removeNodeName(this);
             
             // make the change
+            ImmutableNodeInst oldD = this.d;
             this.d = d;
+            if (d != oldD)
+                parent.setBatchModified();
             if (renamed)
                 parent.addNodeName(this);
             
@@ -2241,6 +2237,57 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
+	 * Method to update the "end shrink" factors on all arcs on a PortInst.
+	 * This is a number from 0 to 90, where
+	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+	 * indicate that the end should be shortened to account for this angle of connection.
+	 * Small values are shortened almost to nothing, whereas large values are shortened
+	 * very little (and a value of 90 indicates no shortening at all).
+	 */
+ 	void updateShrinkage()
+	{
+		// quit now if we don't have to worry about this kind of nodeinst
+		if (!(protoType instanceof PrimitiveNode) || !((PrimitiveNode)protoType).isArcsShrink()) return;
+        assert getNumPortInsts() == 1;
+
+        int ang0 = -1;
+        int ang1 = -1;
+
+		// gather the angles of the nodes/arcs
+		for (Iterator<Connection> it = getConnections(); it.hasNext(); ) {
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+
+			// ignore zero-size arcs
+			if (ai.getWidth() == 0) continue;
+
+			// compute the angle
+			int angle = ai.getAngle();
+			angle %= 1800;
+            if (angle == ang0 || angle == ang1) continue;
+            if (ang0 < 0)
+                ang0 = angle;
+            else if (ang1 < 0)
+                ang1 = angle;
+            else {
+                shrink = 0;
+                return;		// give up if too many angles
+            }
+		}
+
+        // only one angle
+        if (ang1 < 0) {
+            shrink = 0;
+            return;
+        }
+        
+        int ang = Math.abs(ang0 - ang1);
+        if (ang > 900) ang = 1800 - ang;
+        shrink = (byte)((ang + 5) / 10);
+        if (shrink == 0 && ang != 0) shrink = 1;
+	}
+    
+	/**
 	 * Method to tell whether this NodeInst is a pin that is "inline".
 	 * An inline pin is one that connects in the middle between two arcs.
 	 * The arcs must line up such that the pin can be removed and the arcs replaced with a single
@@ -2331,6 +2378,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		connections.add(pos, c);
         
 		computeWipeState();
+        updateShrinkage();
 		redoGeometric();
 	}
 
@@ -2350,6 +2398,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         check();
         
 		computeWipeState();
+        updateShrinkage();
 		redoGeometric();
 	}
 
@@ -2511,17 +2560,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == NODE_NAME) {
-        	checkChanging();
-            ImmutableNodeInst oldD = d;
-			d = d.withNameDescriptor(td);
-            if (parent != null) Undo.modifyNodeInst(this, oldD);
+			setD(d.withNameDescriptor(td));
             return;
         }
         if (varKey == NODE_PROTO) {
-        	checkChanging();
-            ImmutableNodeInst oldD = d;
-			d = d.withProtoDescriptor(td);
-            if (parent != null) Undo.modifyNodeInst(this, oldD);
+			setD(d.withProtoDescriptor(td));
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -3057,6 +3100,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (repair)
 			{
                 d = d.withSize(width, height);
+                parent.setBatchModified();
 				redoGeometric();
 			}
 //			warningCount++;
@@ -3121,17 +3165,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param ni the other NodeInst to copy.
 	 */
 	public void copyStateBits(NodeInst ni) {
-        checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits);
-        if (parent != null) Undo.modifyNodeInst(this, oldD);
+        setD(d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits));
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
-        checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withFlag(flag, value);
-        if (parent != null) Undo.modifyNodeInst(this, oldD);
+        setD(d.withFlag(flag, value));
     }
    
 	/**
@@ -3253,10 +3291,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param value the Technology-specific value to store on this NodeInst.
 	 */
 	public void setTechSpecific(int value) {
-        checkChanging();
-        ImmutableNodeInst oldD = d;
-        d = d.withTechSpecific(value);
-        if (parent != null) Undo.modifyNodeInst(this, oldD);
+        setD(d.withTechSpecific(value));
     }
 
 	/**

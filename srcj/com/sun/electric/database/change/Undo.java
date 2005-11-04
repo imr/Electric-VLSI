@@ -83,8 +83,6 @@ public class Undo
 		/** Describes a changed Export. */									EXPORTMOD,
 		/** Describes a newly-created Cell. */								CELLNEW,
 		/** Describes a deleted Cell. */									CELLKILL,
-		/** Describes the creation of an arbitrary object. */				OBJECTNEW,
-		/** Describes the deletion of an arbitrary object. */				OBJECTKILL,
 		/** Describes the renaming of an arbitrary object. */				OBJECTRENAME,
 		/** Describes the redrawing of an arbitrary object. */				OBJECTREDRAW,
 		/** Describes the change of Variables on an object. */              VARIABLESMOD,
@@ -94,7 +92,7 @@ public class Undo
 		/** Describes an other (non-undoable) change */						OTHERCHANGE;
     }
 
-    /**
+	/**
 	 * The Change class describes a single change to the Electric database.
 	 * These objects are used to undo and redo changes.
 	 */
@@ -102,7 +100,6 @@ public class Undo
 	{
 		private ElectricObject obj;
 		private Type type;
-//		private int i1;
 		private Object o1;
 
 		Change(ElectricObject obj, Type type)
@@ -121,16 +118,6 @@ public class Undo
 		 * @return the type of this Change.
 		 */
 		public Type getType() { return type; }
-		/**
-		 * Method to set the type of this Change.
-		 * @param type the new type of this Change.
-		 */
-//		private void setType(Type type) { this.type = type; }
-		/**
-		 * Method to get the first integer value associated with this Change.
-		 * @return the first integer value associated with this Change.
-		 */
-//		public int getI1() { return i1; }
 		/**
 		 * Method to get the first Object associated with this Change.
 		 * @return the first Object associated with this Change.
@@ -156,7 +143,7 @@ public class Undo
 				}
 			}
 			if (type == Type.NODEINSTNEW || type == Type.ARCINSTNEW || type == Type.EXPORTNEW ||
-				type == Type.CELLNEW || type == Type.OBJECTNEW)
+				type == Type.CELLNEW/* || type == Type.LIBRARYNEW*/)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
@@ -164,7 +151,7 @@ public class Undo
 					listener.newObject(obj);
 				}
 			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
-				type == Type.CELLKILL || type == Type.OBJECTKILL)
+				type == Type.CELLKILL/* || type == Type.LIBRARYKILL*/)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
@@ -333,45 +320,6 @@ public class Undo
 				cell.lowLevelSetCellGroup(oldGroup);
 				return;
 			}
-			if (type == Type.OBJECTNEW)
-			{
-				// args: addr, type
-//				switch (c->p1&VTYPE)
-//				{
-//					case VVIEW:
-//						// find the view
-//						view = (VIEW *)c->entryaddr;
-//						lastv = NOVIEW;
-//						for(v = el_views; v != NOVIEW; v = v->nextview)
-//						{
-//							if (v == view) break;
-//							lastv = v;
-//						}
-//						if (v != NOVIEW)
-//						{
-//							// delete the view
-//							if (lastv == NOVIEW) el_views = v->nextview; else
-//								lastv->nextview = v->nextview;
-//						}
-//						break;
-//				}
-				type = Type.OBJECTKILL;
-				return;
-			}
-			if (type == Type.OBJECTKILL)
-			{
-				// args: addr, type
-//				switch (c->p1&VTYPE)
-//				{
-//					case VVIEW:
-//						view = (VIEW *)c->entryaddr;
-//						view->nextview = el_views;
-//						el_views = view;
-//						break;
-//				}
-				type = Type.OBJECTNEW;
-				return;
-			}
 			if (type == Type.OBJECTRENAME)
 			{
                  if (obj instanceof Cell)
@@ -445,10 +393,6 @@ public class Undo
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL)
-			{
-				cell = obj.whichCell();
-				if (cell != null) lib = cell.getLibrary();
 			} else if (type == Type.OBJECTREDRAW)
             {
                 return;
@@ -585,14 +529,6 @@ public class Undo
 //				Cell.CellGroup group = (Cell.CellGroup)o1;
 				return cell + " moved to group";
 			}
-			if (type == Type.OBJECTNEW)
-			{
-				return "Created new object " + obj;
-			}
-			if (type == Type.OBJECTKILL)
-			{
-				return "Deleted object " + obj;
-			}
 			if (type == Type.OBJECTRENAME)
 			{
 				return "Renamed object " + obj + " (was " + o1 + ")";
@@ -674,7 +610,7 @@ public class Undo
 				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLGROUPMOD)
 				{
 					cell++;
-				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
+				} else if (ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
 				} else if (ch.getType() == Type.VARIABLESMOD)
@@ -946,8 +882,6 @@ public class Undo
 	 * <LI>EXPORTMOD takes o1=oldD.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
-	 * <LI>OBJECTNEW takes nothing.
-	 * <LI>OBJECTKILL takes nothing.
 	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLESMOD takes o1=oldImmutable.
@@ -1067,7 +1001,7 @@ public class Undo
 		if (!recordChange()) return;
 		Cell cell = obj.whichCell();
 		if (cell != null) cell.checkInvariants();
-		Type type = Type.OBJECTNEW;
+		Type type = null;
 		if (obj instanceof Cell) type = Type.CELLNEW;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTNEW;
@@ -1093,7 +1027,7 @@ public class Undo
 //		// always broadcast library changes
 //		if (!recordChange() && !(obj instanceof Library)) return;
 		if (!recordChange()) return;
-		Type type = Type.OBJECTKILL;
+		Type type = null;
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;

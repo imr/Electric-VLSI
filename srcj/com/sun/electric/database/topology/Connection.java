@@ -112,10 +112,4 @@ public abstract class Connection
 	 * @return HEADEND if this Connection is on the head; TAILEND if this Connection is on the head.
 	 */
 	public abstract int getEndIndex();
-
-	/**
-	 * Method to set the shrinkage happening because of angled arcs on this Connection.
-	 * @param endShrink the shrinkage for this Connection.
-	 */
-	/*package*/ abstract void setEndShrink(byte endShrink);
 }
