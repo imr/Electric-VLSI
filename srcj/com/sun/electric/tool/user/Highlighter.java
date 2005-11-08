@@ -1626,7 +1626,7 @@ public class Highlighter implements DatabaseChangeListener {
 		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
 
 		// this is the distance from an object that is necessary for a "direct hit"
-		double directHitDist = 0;
+		double directHitDist = Double.MIN_VALUE;
 		if (wnd != null)
 		{
 			Point2D extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
@@ -1856,7 +1856,7 @@ public class Highlighter implements DatabaseChangeListener {
 			double dist = distToNode(bounds, ni, wnd);
 
 			// direct hit
-			if (dist < directHitDist)
+			if (dist <= directHitDist)
 			{
 				Highlight h = new Highlight(Highlight.Type.EOBJ, null, geom.getParent());
 				ElectricObject eobj = geom;
@@ -1933,7 +1933,7 @@ public class Highlighter implements DatabaseChangeListener {
 			double dist = distToArc(bounds, ai, wnd);
 
 			// direct hit
-			if (dist < directHitDist)
+			if (dist <= directHitDist)
 			{
 				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
 				return h;

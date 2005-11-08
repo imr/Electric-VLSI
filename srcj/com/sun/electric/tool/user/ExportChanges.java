@@ -536,8 +536,10 @@ public final class ExportChanges
             // disallow port action if lock is on
             if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
+long start = System.currentTimeMillis();
             int num = reExportNodes(nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
             System.out.println(num+" ports exported.");
+long end = System.currentTimeMillis(); System.out.println("Took "+(end-start)+" milliseconds");
             return true;
         }
     }

@@ -143,7 +143,7 @@ public class MimicStitch
 		if (lastActivity.numDeletedArcs == 1 && Routing.isMimicStitchCanUnstitch())
 		{
 			ArcProto ap = lastActivity.deletedArcs[0].getProto();
-			ro_mimicdelete(ap, lastActivity);
+			mimicdelete(ap, lastActivity);
 			lastActivity.numDeletedArcs = 0;
 			return;
 		}
@@ -239,7 +239,7 @@ public class MimicStitch
 	 * Method to mimic the unrouting of an arc that ran from nodes[0]/ports[0] to
 	 * nodes[1]/ports[1] with type "typ".
 	 */
-	private static void ro_mimicdelete(ArcProto typ, Routing.Activity activity)
+	private static void mimicdelete(ArcProto typ, Routing.Activity activity)
 	{
 		// determine length of deleted arc
 		Point2D pt0 = activity.deletedArcs[0].getHeadLocation();
@@ -257,17 +257,27 @@ public class MimicStitch
 			// arc must be of the same type
 			if (ai.getProto() != typ) continue;
 
-			// arc must connect to the same type of node/port
-			int match = 0;
-			if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
-				ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
-				ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
-				ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) match = 1;
-			if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
-				ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
-				ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
-				ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) match = -1;
-			if (match == 0) continue;
+			// arc must connect to the same type of node
+			if (Routing.isMimicStitchMatchNodeType())
+			{
+				boolean match = false;
+				if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
+					ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto()) match = true;
+				if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
+					ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto()) match = true;
+				if (!match) continue;
+			}
+
+			// arc must connect to the same type of port
+			if (Routing.isMimicStitchMatchPorts())
+			{
+				boolean match = false;
+				if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
+					ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) match = true;
+				if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
+					ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) match = true;
+				if (!match) continue;
+			}
 
 			// must be the same length and angle
 			Point2D end0 = ai.getHeadLocation();

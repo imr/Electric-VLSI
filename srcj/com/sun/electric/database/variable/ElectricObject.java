@@ -45,6 +45,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -807,7 +808,7 @@ public abstract class ElectricObject // extends Observable implements Observer
         }
         return newName;
     }
-    
+
 	private static String uniqueObjectNameLow(String name, Cell cell, Class cls)
 	{
 		// first see if the name is unique
@@ -847,8 +848,6 @@ public abstract class ElectricObject // extends Observable implements Observer
 			}
 		}
 
-		char separateChar = '_';
-
 		// break the string into a list of ArrayName objects
 		List<ArrayName> names = new ArrayList<ArrayName>();
 		boolean inBracket = false;
@@ -879,6 +878,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			}
 		}
 
+		char separateChar = '_';
 		for(Iterator<ArrayName> it = names.iterator(); it.hasNext(); )
 		{
 			ArrayName an = (ArrayName)it.next();
@@ -899,7 +899,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 					// find the range of characters in square brackets
 					int startPos = index.lastIndexOf('[', endPos);
 					if (startPos < 0) break;
-	
+
 					// see if there is a comma in the bracketed expression
 					int i = index.indexOf(',', startPos);
 					if (i >= 0 && i < endPos)
@@ -912,7 +912,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 						}
 						break;
 					}
-	
+
 					// see if there is a colon in the bracketed expression
 					i = index.indexOf(':', startPos);
 					if (i >= 0 && i < endPos)
@@ -938,7 +938,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 							}
 							if (indexAdjusted) break;
 						}
-	
+
 						// this bracketed expression cannot be incremented: move on
 						if (startPos > 0 && index.charAt(startPos-1) == ']')
 						{
@@ -947,7 +947,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 						}
 						break;
 					}
-	
+
 					// see if this bracketed expression is a pure number
 					String bracketedExpression = index.substring(startPos+1, endPos);
 					if (TextUtils.isANumber(bracketedExpression))
@@ -965,14 +965,14 @@ public abstract class ElectricObject // extends Observable implements Observer
 						}
 						if (indexAdjusted) break;
 					}
-	
+
 					// remember the first index that could be incremented in a pinch
 					if (possibleStart < 0)
 					{
 						possibleStart = startPos;
 						possibleEnd = endPos;
 					}
-	
+
 					// this bracketed expression cannot be incremented: move on
 					if (startPos > 0 && index.charAt(startPos-1) == ']')
 					{
@@ -981,7 +981,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 					}
 					break;
 				}
-	
+
 				// if there was a possible place to increment, do it
 				if (!indexAdjusted && possibleStart >= 0)
 				{
@@ -1012,7 +1012,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 				String base = an.baseName;
 				int startPos = base.length();
 				int endPos = base.length();
-	
+
 				// if there is a numeric part at the end, increment that
 				String localSepString = String.valueOf(separateChar);
 				while (startPos > 0 && TextUtils.isDigit(base.charAt(startPos-1))) startPos--;
@@ -1025,11 +1025,11 @@ public abstract class ElectricObject // extends Observable implements Observer
 					nextIndex = TextUtils.atoi(base.substring(startPos)) + 1;
 					localSepString = "";
 				}
-	
+
 				// find the unique index to use
 				String prefix = base.substring(0, startPos) + localSepString;
-				int uniqueIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
-				an.baseName = prefix + uniqueIndex + base.substring(endPos);
+				nextIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+				an.baseName = prefix + nextIndex + base.substring(endPos);
 			}
 		}
 		StringBuffer result = new StringBuffer();
