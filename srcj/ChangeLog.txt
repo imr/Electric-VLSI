@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/7/05, SMR) Mimic arc deletion does not work right (Bug #488).
+FIX: In MimicStitch.mimicdelete(), use same node/port matching rules as arc creation.
+
+BUG: (11/7/05, SMR) Area-selection is not a valid way to select "auto stitch in area" (Bug #725).
+FIX: In Highlighter.checkOutObject(), allow direct hit to match at <=, not < and in
+     Highlighter.findAllInArea(), initialize direct hit distance to a small value, not zero.
+
 BUG: (11/4/05, SMR) Changes in text-only cells are not undoable (Bug #324, #503).
 FIX: Added undo tracking when editing text cells, incorporated it into undo commands.
 
