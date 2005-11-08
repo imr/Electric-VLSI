@@ -23,22 +23,22 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Cursor;
@@ -46,22 +46,23 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.EventListener;
-import java.util.List;
 import java.util.Iterator;
-import javax.swing.JLabel;
+import java.util.List;
+
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 /**
@@ -273,7 +274,7 @@ public class SizeListener
 	}
 
 	/**
-	 * Class to create an array in a new thread.
+	 * Class to resize objects in a new thread.
 	 */
 	private static class ResizeStuff extends Job
 	{
@@ -316,7 +317,6 @@ public class SizeListener
 						if (y > x) x = y; else y = x;
 					}
 					ni.resize(x - ni.getXSize(), y - ni.getYSize());
-//					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
 					didSomething = true;
 				} else if (geom instanceof ArcInst && !dialog.nodes)
 				{
@@ -343,9 +343,9 @@ public class SizeListener
 
 	public void mouseMoved(MouseEvent evt)
 	{
-		farthestPoint = null;
-		showHighlight(evt, (EditWindow)evt.getSource());
-		farthestPoint = null;
+//		farthestPoint = null;
+//		showHighlight(evt, (EditWindow)evt.getSource());
+//		farthestPoint = null;
 	}
 
 	public void mouseDragged(MouseEvent evt)
@@ -418,7 +418,6 @@ public class SizeListener
 				Point2D newSize = getNewNodeSize(evt, newCenter);
 				SizeOffset so = ni.getSizeOffset();
 				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
-//				AffineTransform trans = NodeInst.rotateAbout(ni.getAngle(), newCenter.getX(), newCenter.getY(), newSize.getX(), newSize.getY());
 
 				double stretchedLowX = newCenter.getX() - newSize.getX()/2 + so.getLowXOffset();
 				double stretchedHighX = newCenter.getX() + newSize.getX()/2 - so.getHighXOffset();
@@ -656,17 +655,9 @@ public class SizeListener
 			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
             double dWid = newWidth - stretchNode.getXSize();
-//			double dWid = stretchNode.getXSizeWithMirror();
-//			if (dWid < 0) dWid = -newWidth - dWid; else
-//				dWid = newWidth - dWid;
             double dHei = newHeight - stretchNode.getYSize();
-//			double dHei = stretchNode.getYSizeWithMirror();
-//			if (dHei < 0) dHei = -newHeight - dHei; else
-//				dHei = newHeight - dHei;
 			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
 				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, Orientation.IDENT);
-//			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
-//				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, 0);
 			return true;
 		}
 	}

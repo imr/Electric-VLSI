@@ -992,7 +992,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             // draw the menu entries
             // create an EditWindow for rendering nodes and arcs
             // ?if (wnd != null) wnd.finished();
-            EditWindow wnd = EditWindow.CreateElectricDoc(null, null);
+            EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
             Undo.removeDatabaseChangeListener(wnd.getHighlighter());
             wnd.setScreenSize(new Dimension(entrySize, entrySize));
 

@@ -59,12 +59,11 @@ import javax.swing.KeyStroke;
 public class CellMenu {
 
     protected static void addCellMenu(MenuBar menuBar) {
-//        MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
         /****************************** THE CELL MENU ******************************/
 
-		// mnemonic keys available:  B       J      Q       YZ
+		// mnemonic keys available:  B     H J      Q       YZ
         MenuBar.Menu cellMenu = MenuBar.makeMenu("_Cell");
         menuBar.add(cellMenu);
 
@@ -102,11 +101,22 @@ public class CellMenu {
 
         cellMenu.addSeparator();
 
-        cellMenu.addMenuItem("_Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-        cellMenu.addMenuItem("Down _Hierarchy In Place", KeyStroke.getKeyStroke('D', 0),
+        // mnemonic keys available: ABC E GHIJ LMNO QRSTUV XYZ
+        MenuBar.Menu downHierarchySubMenu = MenuBar.makeMenu("_Down Hierarchy");
+        cellMenu.add(downHierarchySubMenu);
+		downHierarchySubMenu.addMenuItem("_Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(false, false); }});
+		downHierarchySubMenu.addMenuItem("Down Hierarchy, Keep _Focus", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(true, false); }});
+		downHierarchySubMenu.addMenuItem("Down Hierarchy, New _Window", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(false, true); }});
+		downHierarchySubMenu.addMenuItem("Down Hierarchy, _Keep Focus, New Window", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(true, true); }});
+		downHierarchySubMenu.addSeparator();
+		downHierarchySubMenu.addMenuItem("Down Hierarchy In _Place", KeyStroke.getKeyStroke('D', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
-        cellMenu.addMenuItem("_Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
+
+		cellMenu.addMenuItem("_Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
         cellMenu.addSeparator();
@@ -377,11 +387,13 @@ public class CellMenu {
 
     /**
      * This command pushes down the hierarchy
+     * @param keepFocus true to keep the zoom and scale in the new window.
+     * @param newWindow true to create a new window for the cell.
      */
-    private static void downHierCommand() {
+    private static void downHierCommand(boolean keepFocus, boolean newWindow) {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
-        curEdit.downHierarchy(false);
+        curEdit.downHierarchy(keepFocus, newWindow, false);
     }
 
     /**
@@ -391,7 +403,7 @@ public class CellMenu {
     {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
-        curEdit.downHierarchy(true);
+        curEdit.downHierarchy(false, false, true);
     }
 
     /**

@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.menus.FileMenu;
 
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
@@ -122,7 +123,7 @@ public class WindowFrame extends Observable
 			tWnd.fillScreen();
 		} else
 		{
-			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame);
+			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame, null);
 			Dimension sz = frame.finishWindowFrameInformation(eWnd, cell);
 
 			// make sure the edit window has the right size
@@ -463,7 +464,10 @@ public class WindowFrame extends Observable
 			if (!(getContent() instanceof EditWindow))
 			{
 				getContent().finished();
-				content = EditWindow.CreateElectricDoc(cell, this);
+				Component c = js.getLeftComponent();
+				if (sideBarOnLeft) c = js.getRightComponent();
+				Dimension sz = c.getSize();
+				content = EditWindow.CreateElectricDoc(cell, this, sz);
 				int i = js.getDividerLocation();
 				if (sideBarOnLeft) js.setRightComponent(content.getPanel()); else
 					js.setLeftComponent(content.getPanel());

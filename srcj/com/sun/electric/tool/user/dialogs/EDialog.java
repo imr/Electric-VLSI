@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.Main;
 
@@ -70,7 +71,7 @@ public class EDialog extends JDialog
 
 		thisClass = this.getClass();
 		Point pt = (Point)locations.get(thisClass);
-		if (pt == null) pt = new Point(100, 50);
+		if (pt == null) pt = new Point(User.getDefaultWindowXPos()+100, User.getDefaultWindowYPos()+50);
 		setLocation(pt.x, pt.y);
 
 		addComponentListener(new MoveComponentListener());

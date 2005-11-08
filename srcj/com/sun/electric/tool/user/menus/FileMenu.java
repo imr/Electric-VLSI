@@ -1153,7 +1153,7 @@ public class FileMenu {
                 continue;
             }
             if (ret == 1) continue;
-            if (ret == 2) return true;
+            if (ret == 2 || ret == -1) return true;
             if (ret == 3) break;
         }
         if (saveCancelled) return true;
@@ -1170,7 +1170,7 @@ public class FileMenu {
      * @param icon
      * @param options
      * @param initialValue
-     * @return the return value of the JOptionPane choice.
+     * @return the return value of the JOptionPane choice.  Returns -1 if aborted
      * @throws HeadlessException
      */
     public static int showFileMenuOptionDialog(Component parentComponent,
@@ -1190,7 +1190,6 @@ public class FileMenu {
 
         pane.selectInitialValue();
         pane.setToolTipText(toolTipMessage);
-        ;
         dialog.setVisible(true);
         dialog.dispose();
 

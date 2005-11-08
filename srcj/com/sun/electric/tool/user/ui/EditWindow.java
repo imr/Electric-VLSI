@@ -193,7 +193,7 @@ public class EditWindow extends JPanel
 	// ************************************* CONSTRUCTION *************************************
 
     // constructor
-    private EditWindow(Cell cell, WindowFrame wf)
+    private EditWindow(Cell cell, WindowFrame wf, Dimension approxSZ)
 	{
         this.cell = cell;
         this.pageNumber = 0;
@@ -204,7 +204,8 @@ public class EditWindow extends JPanel
 		inPlaceDisplay = false;
         viewBrowser = new EditWindowFocusBrowser(this);
 
-		sz = new Dimension(500, 500);
+		sz = approxSZ;
+		if (sz == null) sz = new Dimension(500, 500);
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
 		setSize(sz.width, sz.height);
@@ -273,11 +274,12 @@ public class EditWindow extends JPanel
 	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
 	 * @param cell the cell in this EditWindow.
 	 * @param wf the WindowFrame that this EditWindow lives in.
+	 * @param approxSZ the approximate size of this EditWindow (in pixels).
 	 * @return the new EditWindow.
 	 */
-	public static EditWindow CreateElectricDoc(Cell cell, WindowFrame wf)
+	public static EditWindow CreateElectricDoc(Cell cell, WindowFrame wf, Dimension approxSZ)
 	{
-		EditWindow ui = new EditWindow(cell, wf);
+		EditWindow ui = new EditWindow(cell, wf, approxSZ);
 		return ui;
 	}
 
@@ -2549,7 +2551,6 @@ public class EditWindow extends JPanel
         	int min = (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
         	int max = (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
             rightScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
-            //System.out.println("model is "+rightScrollBar.getModel());
             rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
             rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
         }
@@ -2754,8 +2755,11 @@ public class EditWindow extends JPanel
 
     /** 
      * Push into an instance (go down the hierarchy)
+     * @param keepFocus true to keep the zoom and scale in the new window.
+     * @param newWindow true to create a new window for the cell.
+     * @param inPlace true to descend "in-place" showing the higher levels.
      */
-    public void downHierarchy(boolean inPlace)
+    public void downHierarchy(boolean keepFocus, boolean newWindow, boolean inPlace)
     {
         // get highlighted
         Highlight h = highlighter.getOneHighlight();
@@ -2861,18 +2865,31 @@ public class EditWindow extends JPanel
         // do the descent
         boolean redisplay = true;
         if (inPlaceDisplay) redisplay = false;
+		if (keepFocus) redisplay = false;
+		EditWindow newWND = this;
+		if (newWindow)
+		{
+			WindowFrame newWF = WindowFrame.createEditWindow(schCell);
+			newWND = (EditWindow)newWF.getContent();
+		}
+
         if (desiredNO != null)
         {
-        	setCell(schCell, cellVarContext.push(desiredNO), true, redisplay, inPlace);
+			newWND.setCell(schCell, cellVarContext.push(desiredNO), true, redisplay, inPlace);
         } else
         {
 	        if (pi != null)
-	            setCell(schCell, cellVarContext.push(pi), true, redisplay, inPlace);
+				newWND.setCell(schCell, cellVarContext.push(pi), true, redisplay, inPlace);
 	        else
-	            setCell(schCell, cellVarContext.push(ni), true, redisplay, inPlace);
+				newWND.setCell(schCell, cellVarContext.push(ni), true, redisplay, inPlace);
         }
-		PixelDrawing.clearSubCellCache();
+		if (keepFocus)
+		{
+			newWND.setScale(scale);
+			newWND.setOffset(new Point2D.Double(offx - ni.getAnchorCenterX(), offy - ni.getAnchorCenterY()));
+		}
         if (!redisplay) fullRepaint();
+		PixelDrawing.clearSubCellCache();
 
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null)
@@ -2881,8 +2898,8 @@ public class EditWindow extends JPanel
             if (schExport != null)
             {
                 PortInst origPort = schExport.getOriginalPort();
-                highlighter.addElectricObject(origPort, schCell);
-                highlighter.finished();
+				newWND.highlighter.addElectricObject(origPort, schCell);
+				newWND.highlighter.finished();
             }
         }
     }
@@ -3244,8 +3261,6 @@ public class EditWindow extends JPanel
             cellHistory.remove(0);
             cellHistoryLocation--;
         }
-
-        //System.out.println("Adding to History at location="+cellHistoryLocation+", cellHistory.size()="+cellHistory.size());
     }
 
     /** Records current cell state into history
@@ -3257,8 +3272,6 @@ public class EditWindow extends JPanel
         if (cellHistoryLocation < 0) return;
 
         CellHistory current = (CellHistory)cellHistory.get(cellHistoryLocation);
-
-        //System.out.println("Updating cell history state of location="+cellHistoryLocation+", cell "+cell);
 
         current.offset = new Point2D.Double(offx, offy);
         current.scale = scale;
@@ -3294,8 +3307,6 @@ public class EditWindow extends JPanel
             if (location == 0)
                 getPanel().firePropertyChange(propGoBackEnabled, true, false);
         }
-
-        //System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());
 
         // get cell history to go to
         CellHistory history = (CellHistory)cellHistory.get(location);
@@ -3594,7 +3605,7 @@ public class EditWindow extends JPanel
 		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{
-			EditWindow w = EditWindow.CreateElectricDoc(null, null);
+			EditWindow w = EditWindow.CreateElectricDoc(null, null, null);
 			int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
 			int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
 			w.setScreenSize(new Dimension(iw, ih));

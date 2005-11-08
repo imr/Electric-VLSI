@@ -48,6 +48,7 @@ public class MeasureListener
 {
 	public static MeasureListener theOne = new MeasureListener();
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
+	private static double lastValidMeasuredDistanceX = 0, lastValidMeasuredDistanceY = 0;
     private static boolean measuring = false;               // true if drawing measure line
     private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
 	private Point2D dbStart;                 // start of measure in database units
@@ -56,7 +57,7 @@ public class MeasureListener
 
 	public static Dimension2D getLastMeasuredDistance()
 	{
-		Dimension2D dim = new Dimension2D.Double(lastMeasuredDistanceX, lastMeasuredDistanceY);
+		Dimension2D dim = new Dimension2D.Double(lastValidMeasuredDistanceX, lastValidMeasuredDistanceY);
 		return dim;
 	}
 
@@ -65,6 +66,8 @@ public class MeasureListener
     }
 
     private void startMeasure(Point2D dbStart) {
+		lastValidMeasuredDistanceX = lastMeasuredDistanceX;
+		lastValidMeasuredDistanceY = lastMeasuredDistanceY;
         this.dbStart = dbStart;
         measuring = true;
         lastHighlights.clear();

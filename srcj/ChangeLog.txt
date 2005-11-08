@@ -4,6 +4,23 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (11/8/05, SMR) Dialogs move with the main display (Bug #581).
+
+BUG: (11/8/05, SMR) Cells do not fill the screen when first edited (Bug #562).
+FIX: In EditWindow.java, use true screen size instead of 500x500.
+
+BUG/MAN: (11/8/05, SMR) Interactive sizing always stretches to farthest corner (Bug #558).
+FIX: Must click to start sizing, and it remembers the farthest corner.
+
+IMP/MAN: (11/8/05, SMR) Added "Down Hierarchy" commands to keep the focus and
+     edit in a new window (Bug #732).
+
+BUG: (11/8/05, SMR) Aborting the "quit" dialog with an ESCAPE quits anyway.
+FIX: In FileMenu.preventLoss(), handle dialog aborts.
+
+BUG: (11/8/05, SMR) "Last measured distance" is wrong.
+FIX: In MeasureListener, define it as the last valid distance (ignores part aborted by right-click).
+
 BUG: (11/7/05, SMR) Mimic arc deletion does not work right (Bug #488).
 FIX: In MimicStitch.mimicdelete(), use same node/port matching rules as arc creation.
 

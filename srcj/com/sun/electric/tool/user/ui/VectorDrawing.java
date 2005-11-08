@@ -1252,7 +1252,7 @@ public class VectorDrawing
 		if (greekHei <= 0) greekHei = 1;
 
 		// construct the offscreen buffers for the greeked cell image
-		EditWindow fadeWnd = EditWindow.CreateElectricDoc(vsc.subCell, null);
+		EditWindow fadeWnd = EditWindow.CreateElectricDoc(vsc.subCell, null, null);
 		fadeWnd.setScreenSize(new Dimension(greekWid, greekHei));
 		fadeWnd.setScale(greekScale);
 		Point2D cellCtr = new Point2D.Double(ownBounds.getCenterX(), ownBounds.getCenterY());
