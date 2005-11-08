@@ -127,7 +127,7 @@ public class Quick
 		int multiplier;
 		int offset;
 	};
-	private HashMap checkInsts = null;
+	private HashMap<NodeInst,CheckInst> checkInsts = null;
 
 
 	/**
@@ -143,21 +143,21 @@ public class Quick
 		/** true if this cell has been checked */						boolean cellChecked;
 		/** true if this cell has parameters */							boolean cellParameterized;
 		/** true if this cell or subcell has parameters */				boolean treeParameterized;
-		/** list of instances in a particular parent */					List nodesInCell;
+		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
 		/** netlist of this cell */										Netlist netlist;
 	};
-	private HashMap checkProtos = null;
-	private HashMap<Network,Integer []> networkLists = null;
+	private HashMap<Cell,CheckProto> checkProtos = null;
+	private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
 	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
 	private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
     private DRC.CheckDRCLayoutJob job; // Reference to running job
-	private HashMap cellsMap = new HashMap(); // for cell caching
-    private HashMap nodesMap = new HashMap(); // for node caching
+	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
+    private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to caching current extra bits
     private int mergeMode = GeometryHandler.ALGO_SWEEP; // .ALGO_QTREE;
     private DRCTemplate.DRCMode techMode = DRCTemplate.DRCMode.NONE;       /** To control different rules for ST and TSMC technologies */
-    private Map od2Layers = new HashMap(3);  /** to control OD2 combination in the same die according to foundries */
+    private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
 	public Quick(DRC.CheckDRCLayoutJob job, int mode)
 	{
@@ -181,7 +181,7 @@ public class Quick
 		/** distance from instance 1 to instance 2 */	double dx, dy;
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	};
-	private List instanceInteractionList = new ArrayList();
+	private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
 
 
 	/**
@@ -193,7 +193,7 @@ public class Quick
 		Poly poly;
 		NodeInst ni;
 	};
-	private List exclusionList = new ArrayList();
+	private List<DRCExclusion> exclusionList = new ArrayList<DRCExclusion>();
 
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
@@ -206,8 +206,8 @@ public class Quick
 	/** total errors found in all threads. */					private int totalMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
-	/** for tracking cells that need to clean good DRC vars */	private HashMap cleanDRCDate = new HashMap();
+	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodDRCDate = new HashMap<Cell,Date>();
+	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
 	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 	/** Top cell for DRC */                                     private Cell topCell;
@@ -218,8 +218,8 @@ public class Quick
 
 	/* for tracking which layers interact with which nodes */
 	private Technology layerInterTech = null;
-	private HashMap layersInterNodes = null;
-	private HashMap layersInterArcs = null;
+	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
+	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
 
     public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                        Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
@@ -321,8 +321,8 @@ public class Quick
 	    }
 
 		// initialize all cells for hierarchical network numbering
-		checkProtos = new HashMap();
-		checkInsts = new HashMap();
+		checkProtos = new HashMap<Cell,CheckProto>();
+		checkInsts = new HashMap<NodeInst,CheckInst>();
 
 		// initialize cells in tree for hierarchical network numbering
 		Netlist netlist = cell.getNetlist(false);
@@ -343,7 +343,7 @@ public class Quick
 
 		// now allocate space for hierarchical network arrays
 		//int totalNetworks = 0;
-		networkLists = new HashMap();
+		networkLists = new HashMap<Network,Integer[]>();
 		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
 		{
 			Map.Entry e = (Map.Entry)it.next();
@@ -370,7 +370,7 @@ public class Quick
 				// ignore documentation icons
 				if (ni.isIconOfParent()) continue;
 
-				CheckInst ci = (CheckInst)checkInsts.get(ni);
+				CheckInst ci = checkInsts.get(ni);
 				CheckProto ocp = getCheckProto((Cell)np);
 				ci.offset = ocp.totalPerCell;
 			}
@@ -387,7 +387,7 @@ public class Quick
 				CheckProto ocp = getCheckProto((Cell)np);
 				if (ocp.timeStamp != checkTimeStamp)
 				{
-					CheckInst ci = (CheckInst)checkInsts.get(ni);
+					CheckInst ci = checkInsts.get(ni);
 					ocp.timeStamp = checkTimeStamp;
 					ocp.totalPerCell += subCP.hierInstanceCount * ci.multiplier;
 				}
@@ -398,7 +398,7 @@ public class Quick
 		checkTimeStamp = 0;
 		checkNetNumber = 1;
 
-		HashMap enumeratedNets = new HashMap();
+		HashMap<Network,Integer> enumeratedNets = new HashMap<Network,Integer>();
 		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
 			Network net = (Network)nIt.next();
@@ -471,11 +471,11 @@ public class Quick
 	 */
 	private static class UpdateDRCDates extends Job
 	{
-		HashMap goodDRCDate;
-		HashMap cleanDRCDate;
+		HashMap<Cell,Date> goodDRCDate;
+		HashMap<Cell,Cell> cleanDRCDate;
         Technology tech;
 
-		protected UpdateDRCDates(Technology tech, HashMap goodDRCDate, HashMap cleanDRCDate)
+		protected UpdateDRCDates(Technology tech, HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate)
 		{
 			super("Remember DRC Successes and/or Delete Obsolete Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.tech = tech;
@@ -563,7 +563,7 @@ public class Quick
 			if (cp.cellChecked && !cp.cellParameterized) continue;
 
 			// recursively check the subcell
-			CheckInst ci = (CheckInst)checkInsts.get(ni);
+			CheckInst ci = checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 			int retval = checkThisCell((Cell)np, localIndex, subBounds, validVersion);
 			if (retval < 0)
@@ -970,7 +970,7 @@ public class Quick
         AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
 		// get network numbering for the instance
-		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		CheckInst ci = checkInsts.get(ni);
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
         boolean errorFound = false;
 
@@ -1058,7 +1058,7 @@ public class Quick
 					AffineTransform subUpTrans = ni.translateOut(ni.rotateOut());
 					subUpTrans.preConcatenate(upTrans);
 
-					CheckInst ci = (CheckInst)checkInsts.get(ni);
+					CheckInst ci = checkInsts.get(ni);
 
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
@@ -1166,7 +1166,7 @@ public class Quick
 
 		AffineTransform upTrans = oNi.translateOut(oNi.rotateOut());
 
-		CheckInst ci = (CheckInst)checkInsts.get(oNi);
+		CheckInst ci = checkInsts.get(oNi);
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 		// determine if original object has multiple contact cuts
@@ -1269,7 +1269,7 @@ public class Quick
 					subBound.setRect(bounds);
 					DBMath.transformRect(subBound, rTransI);
 
-					CheckInst ci = (CheckInst)checkInsts.get(ni);
+					CheckInst ci = checkInsts.get(ni);
 					int localIndex = cellGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 					AffineTransform subTrans = ni.translateOut(ni.rotateOut());
@@ -1964,7 +1964,7 @@ public class Quick
 		AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
 		// get network numbering information for this instance
-		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		CheckInst ci = checkInsts.get(ni);
 		if (ci == null) return false;
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
@@ -2039,7 +2039,7 @@ public class Quick
 		if (nodeInstPolyList == null) return false;
 		int tot = nodeInstPolyList.length;
 
-		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		CheckInst ci = checkInsts.get(ni);
 		if (ci == null) return false;
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
@@ -2240,7 +2240,7 @@ public class Quick
 	 */
 	private final CheckProto getCheckProto(Cell cell)
 	{
-		return (CheckProto) checkProtos.get(cell);
+		return checkProtos.get(cell);
 	}
 
 	/**
@@ -2254,10 +2254,10 @@ public class Quick
 
 		// number all of the instances in this cell
 		checkTimeStamp++;
-		List subCheckProtos = new ArrayList();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		List<CheckProto> subCheckProtos = new ArrayList<CheckProto>();
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
 
@@ -2269,11 +2269,11 @@ public class Quick
 			{
 				cp.timeStamp = checkTimeStamp;
 				cp.instanceCount = 0;
-				cp.nodesInCell = new ArrayList();
+				cp.nodesInCell = new ArrayList<CheckInst>();
 				subCheckProtos.add(cp);
 			}
 
-			CheckInst ci = (CheckInst)checkInsts.get(ni);
+			CheckInst ci = checkInsts.get(ni);
 			ci.localIndex = cp.instanceCount++;
 			cp.nodesInCell.add(ci);
 		}
@@ -2325,17 +2325,17 @@ public class Quick
 			if (ni.isIconOfParent()) continue;
 
 			// compute the index of this instance
-			CheckInst ci = (CheckInst)checkInsts.get(ni);
+			CheckInst ci = checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 			// propagate down the hierarchy
 			Cell subCell = (Cell)np;
 			CheckProto subCP = getCheckProto(subCell);
 
-			HashMap subEnumeratedNets = new HashMap();
-			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			HashMap<Network,Integer> subEnumeratedNets = new HashMap<Network,Integer>();
+			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 				Export subPP = (Export)pi.getPortProto();
 				Network net = cp.netlist.getNetwork(ni, subPP, 0);
 				if (net == null) continue;
@@ -2624,7 +2624,7 @@ public class Quick
 			return 0;
 
 		// Select/well regions
-        HashMap selectMergeMap = new HashMap();
+        HashMap<Cell,GeometryHandler> selectMergeMap = new HashMap<Cell,GeometryHandler>();
 
 			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
@@ -2682,8 +2682,8 @@ public class Quick
 
 		// Select/well regions
 		GeometryHandler	selectMerge = GeometryHandler.createGeometryHandler(mergeMode, 0, cell.getBounds()); //new PolyQTree(cell.getBounds());
-		HashMap notExportedNodes = new HashMap();
-		HashMap checkedNodes = new HashMap();
+		HashMap<NodeInst,NodeInst> notExportedNodes = new HashMap<NodeInst,NodeInst>();
+		HashMap<NodeInst,NodeInst> checkedNodes = new HashMap<NodeInst,NodeInst>();
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
@@ -3216,7 +3216,7 @@ public class Quick
     private Poly[] getShapeOfGeometric(Geometric geom, Layer layer)
     {
         Poly [] primPolyList = null;
-        List drcLayers = new ArrayList(1);
+        List<Layer.Function> drcLayers = new ArrayList<Layer.Function>(1);
         drcLayers.add(layer.getFunction());
 
         if (geom instanceof NodeInst)
@@ -3445,7 +3445,7 @@ public class Quick
 		Rectangle2D polyBnd = poly.getBounds2D();
         Area polyArea = new Area(poly);
         boolean found = polyArea.isEmpty();
-		List checkExtraPoints = new ArrayList();
+		List<Point2D> checkExtraPoints = new ArrayList<Point2D>();
 
         found = checkThisCellExtensionRule(geom, layer, poly, null, cell, polyArea, polyBnd, minOverlapRule,
                 found, checkExtraPoints);
@@ -3484,7 +3484,7 @@ public class Quick
 
     private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, List drcLayers, Cell cell, Area polyArea,
                                                Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
-                                               List checkExtraPoints)
+                                               List<Point2D> checkExtraPoints)
     {
         boolean[] founds = new boolean[4];
 
@@ -3508,12 +3508,12 @@ public class Quick
 				DBMath.transformRect(polyBnd, cellDownTrans);
 				polyArea.transform(cellDownTrans);
 				poly.transform(cellDownTrans);
-				List newExtraPoints = new ArrayList();
+				List<Point2D> newExtraPoints = new ArrayList<Point2D>();
 				found = checkThisCellExtensionRule(geom, layer, poly, drcLayers, (Cell)np, polyArea, polyBnd, minOverlapRule,
 				        found, newExtraPoints);
-				for (Iterator it = newExtraPoints.iterator(); it.hasNext();)
+				for (Iterator<Point2D> it = newExtraPoints.iterator(); it.hasNext();)
 				{
-					Point2D point = (Point2D)it.next();
+					Point2D point = it.next();
 					cellUpTrans.transform(point, point);
 					checkExtraPoints.add(point);
 				}
@@ -3682,7 +3682,7 @@ public class Quick
 				subBounds.setRect(bounds);
 				DBMath.transformRect(subBounds, rTransI);
 
-				CheckInst ci = (CheckInst)checkInsts.get(ni);
+				CheckInst ci = checkInsts.get(ni);
 				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 				boolean ret = activeOnTransistorRecurse(subBounds,
@@ -4098,10 +4098,10 @@ public class Quick
 	                job.cell, null, -1);
         }
 
-		layersInterNodes = new HashMap();
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		layersInterNodes = new HashMap<PrimitiveNode, boolean[]>();
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
             if (np.isNotUsed()) continue;
 			boolean [] layersInNode = new boolean[numLayers];
             Arrays.fill(layersInNode, false);
@@ -4123,10 +4123,10 @@ public class Quick
 		}
 
 		// build the arc table
-		layersInterArcs = new HashMap();
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		layersInterArcs = new HashMap<ArcProto, boolean[]>();
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			boolean [] layersInArc = new boolean[numLayers];
 			for(int i=0; i<numLayers; i++) layersInArc[i] = false;
 
@@ -4237,8 +4237,8 @@ public class Quick
 		if (exclusionList.size() > 0)
 		{
 			// determine the bounding box of the error
-			List polyList = new ArrayList(2);
-			List geomList = new ArrayList(2);
+			List<PolyBase> polyList = new ArrayList<PolyBase>(2);
+			List<Geometric> geomList = new ArrayList<Geometric>(2);
 			polyList.add(poly1); geomList.add(geom1);
 			if (poly2 != null)
 			{
@@ -4411,12 +4411,12 @@ public class Quick
 		private GeometryHandler mainMerge;
 		private GeometryHandler otherTypeMerge;
 		private Layer polyLayer;
-		private HashMap notExportedNodes;
-		private HashMap checkedNodes;
+		private HashMap<NodeInst,NodeInst> notExportedNodes;
+		private HashMap<NodeInst,NodeInst> checkedNodes;
         private int mode; // geometrical merge algorithm
 
-		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap notExportedNodes,
-		                           HashMap checkedNodes, int mode)
+		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
+		                           HashMap<NodeInst,NodeInst> checkedNodes, int mode)
 		{
 			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
@@ -4425,7 +4425,7 @@ public class Quick
             this.mode = mode;
 		}
 
-		public QuickAreaEnumerator(HashMap notExportedNodes, HashMap checkedNodes, int mode)
+		public QuickAreaEnumerator(HashMap<NodeInst,NodeInst> notExportedNodes, HashMap<NodeInst,NodeInst> checkedNodes, int mode)
 		{
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
@@ -4652,13 +4652,13 @@ public class Quick
 	// Extra functions to check area
 	private class CheckAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-        HashMap mainMergeMap = new HashMap();
-        private HashMap otherTypeMergeMap;
-        private HashMap doneCells = new HashMap(); // Mark if cells are done already.
+        HashMap<Cell,GeometryHandler> mainMergeMap = new HashMap<Cell,GeometryHandler>();
+        private HashMap<Cell,GeometryHandler> otherTypeMergeMap;
+        private HashMap<Cell,Cell> doneCells = new HashMap<Cell,Cell>(); // Mark if cells are done already.
 		private Layer polyLayer;
         private int mode; // geometrical merge algorithm
 
-		public CheckAreaEnumerator(HashMap selectMergeMap, int mode)
+		public CheckAreaEnumerator(HashMap<Cell,GeometryHandler> selectMergeMap, int mode)
 		{
             this.otherTypeMergeMap = selectMergeMap;
             this.mode = mode;
@@ -4676,8 +4676,8 @@ public class Quick
 			if (job != null && job.checkAbort()) return false;
 
             Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)(mainMergeMap.get(cell));
-            GeometryHandler thisOtherMerge = (GeometryHandler)(otherTypeMergeMap.get(cell));
+	        GeometryHandler thisMerge = mainMergeMap.get(cell);
+            GeometryHandler thisOtherMerge = otherTypeMergeMap.get(cell);
             boolean firstTime = false;
 
             if (thisMerge == null)
@@ -4731,8 +4731,8 @@ public class Quick
 
             if (!done)
             {
-                GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(info.getCell());
-                GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(info.getCell());
+                GeometryHandler thisMerge = mainMergeMap.get(info.getCell());
+                GeometryHandler thisOtherMerge = otherTypeMergeMap.get(info.getCell());
 
                 thisMerge.postProcess(true);
                 thisOtherMerge.postProcess(true);

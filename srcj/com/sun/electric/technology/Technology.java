@@ -847,7 +847,7 @@ public class Technology implements Comparable<Technology>
      * @param list nodes that will be removed in a remove job.
      * @return true if node is not in used
      */
-    public boolean cleanUnusedNodesInLibrary(NodeInst ni, List list) {return false;}
+    public boolean cleanUnusedNodesInLibrary(NodeInst ni, List<Geometric> list) {return false;}
 
 	/****************************** LAYERS ******************************/
 
@@ -3906,7 +3906,7 @@ public class Technology implements Comparable<Technology>
                     obj = null;
                 else if (obj instanceof List)
                 {
-                    List<Object> l = (List)obj;
+                    List<Object> l = (List<Object>)obj;
                     Object o = l.get(0);
                     if (o instanceof NodeInst)
                     {
