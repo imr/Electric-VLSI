@@ -270,8 +270,6 @@ public class ScanChainXML {
      */
     public void addCellToFlatten(String libName, String cellName) {
         System.out.println("Warning: addCellToFlatten() optimization is no longer supported.");
-        return;
-/*
         Library lib = Library.findLibrary(libName);
         if (lib == null) {
             System.out.println("Did not find library "+libName+" for flattening cell "+cellName);
@@ -283,7 +281,6 @@ public class ScanChainXML {
             return;
         }
         cellsToFlatten.put(cell, cell);
-*/
     }
 
     /**
