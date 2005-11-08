@@ -44,7 +44,7 @@ import java.io.*;
 public class ScanChainXML {
 
     private static final boolean DEBUG = false;
-    private static final boolean FLAT = true;
+    private static final boolean FLAT = false;
     private static final boolean REDUCE = true;
 
     // --------------------------- Scan Chain Primitives -----------------------------
