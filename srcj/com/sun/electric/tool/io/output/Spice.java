@@ -29,14 +29,10 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -47,10 +43,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.FileType;
@@ -70,6 +63,9 @@ import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.awt.geom.AffineTransform;
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -112,6 +108,7 @@ public class Spice extends Topology
 	/** Spice type: 2, 3, H, P, etc */				private int spiceEngine;
 	/** those cells that have overridden models */	private HashSet<Cell> modelOverrides = new HashSet<Cell>();
     /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
+    /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
 
     /** map of "parameterized" cells that are not covered by Topology */    private Map<Cell,Cell> uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
@@ -334,6 +331,11 @@ public class Spice extends Topology
 			writeHeader(topCell);
 		}
 
+        if (Simulation.isParasiticsUseExemptedNetsFile()) {
+            String headerPath = TextUtils.getFilePath(topCell.getLibrary().getLibFile());
+            exemptedNets = new ExemptedNets(new File(headerPath + File.separator + "exemptedNets.txt"));
+        }
+
 		// gather all global signal names
 /*
 		if (USE_GLOBALS)
@@ -397,10 +399,16 @@ public class Spice extends Topology
             infstr.append(" M=" + formatParam(value.toString()));
     }
 
+    /** Called at the end of the enter cell phase of hierarchy enumeration */
+    protected void enterCell(HierarchyEnumerator.CellInfo info) {
+        if (exemptedNets != null)
+            exemptedNets.setExemptedNets(info);
+    }
+
 	/**
 	 * Method to write cellGeom
 	 */
-	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
+	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
 		if (cell == topCell && USE_GLOBALS) {
             Netlist netList = cni.getNetList();
@@ -467,6 +475,7 @@ public class Spice extends Topology
 
             double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
             //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
+            HashMap exemptedNetsFound = new HashMap();
             for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
                 ArcInst ai = (ArcInst)ait.next();
                 boolean ignoreArc = false;
@@ -505,16 +514,29 @@ public class Spice extends Topology
                     ignoreArc = true;
                 }
 
-                // if only extracting nets containing name 'extractMe', ignore if name not found
-                if (Simulation.isSpiceExtractMeNetsOnly() && ignoreArc == false) {
-                    // check if any net name contains 'extractMe'
+                if (Simulation.isParasiticsUseExemptedNetsFile()) {
                     Network net = netList.getNetwork(ai, 0);
-                    ignoreArc = true;
-                    for (Iterator<String> it = net.getNames(); it.hasNext(); ) {
-                        String str = (String)it.next();
-                        if (str.toLowerCase().indexOf("extractme") != -1) {
-                            ignoreArc = false;
-                            break;
+                    // ignore nets in exempted nets file
+                    if (Simulation.isParasiticsIgnoreExemptedNets()) {
+                        // check if this net is exempted
+                        if (exemptedNets.isExempted(info.getNetID(net))) {
+                            ignoreArc = true;
+                            cap = 0;
+                            if (!exemptedNetsFound.containsKey(net)) {
+                                System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
+                                exemptedNetsFound.put(net, net);
+                                cap = exemptedNets.getReplacementCap(cell, net);
+                            }
+                        }
+                    // extract only nets in exempted nets file
+                    } else {
+                        if (exemptedNets.isExempted(info.getNetID(net)) && ignoreArc == false) {
+                            if (!exemptedNetsFound.containsKey(net)) {
+                                System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
+                                exemptedNetsFound.put(net, net);
+                            }
+                        } else {
+                            ignoreArc = true;
                         }
                     }
                 }
@@ -813,7 +835,7 @@ public class Spice extends Topology
 				if (pp == null) continue;
 
 				if (cs.isGlobal()) continue;
-				multiLinePrint(true, "** PORT " + cs.getName() + "\n");
+				//multiLinePrint(true, "** PORT " + cs.getName() + "\n");
 			}
 		}
 
@@ -1004,6 +1026,7 @@ public class Spice extends Topology
                         continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
+                    String partName = "R";
 					if (resistVar != null)
 					{
 						extra = resistVar.describe(context, ni);
@@ -1012,8 +1035,24 @@ public class Spice extends Topology
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
 						}
-					}
-					writeTwoPort(ni, "R", extra, cni, netList, context, segmentedNets);
+					} else {
+                        if (fun == PrimitiveNode.Function.PRESIST) {
+                            partName = "XR";
+                            double width = ni.getYSize();
+                            double length = ni.getXSize();
+                            SizeOffset offset = ni.getSizeOffset();
+                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
+                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
+                            extra = " L='"+length+"*LAMBDA' W='"+width+"*LAMBDA'";
+                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
+                                extra = "rppo1rpo"+extra;
+                            }
+                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
+                                extra = "rnpo1rpo"+extra;
+                            }
+                        }
+                    }
+					writeTwoPort(ni, partName, extra, cni, netList, context, segmentedNets);
 				} else if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
@@ -1080,6 +1119,7 @@ public class Spice extends Topology
 
 			// get model information
 			String modelName = null;
+            String defaultBulkName = null;
 			Variable modelVar = ni.getVar(SPICE_MODEL_KEY);
 			if (modelVar != null) modelName = modelVar.getObject().toString();
 
@@ -1093,6 +1133,7 @@ public class Spice extends Topology
 			{
 				modelChar = "M";
 				biasCs = cni.getCellSignal(groundNet);
+                defaultBulkName = "gnd";
 				if (modelName == null) modelName = "N";
 			} else if (fun == PrimitiveNode.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
 			{
@@ -1111,6 +1152,7 @@ public class Spice extends Topology
 			{
 				modelChar = "M";
 				biasCs = cni.getCellSignal(powerNet);
+                defaultBulkName = "vdd";
 				if (modelName == null) modelName = "P";
 			} else if (fun == PrimitiveNode.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
 			{
@@ -1187,6 +1229,9 @@ public class Spice extends Topology
                         biasName = segmentedNets.getNetName(ni.getTransistorBiasPort());
                 }
                 infstr.append(" " + biasName);
+            } else {
+                if (cell.getView() == View.LAYOUT && defaultBulkName != null)
+                    infstr.append(" " + defaultBulkName);
             }
 			if (modelName != null) infstr.append(" " + modelName);
 
@@ -1325,10 +1370,10 @@ public class Spice extends Topology
                     // write caps
                     multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
                     for (Iterator<SegmentedNets.NetInfo> it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); ) {
-                        SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
-                        if (info.cap > cell.getTechnology().getMinCapacitance()) {
-                            if (info.netName.equals("gnd")) continue;           // don't write out caps from gnd to gnd
-                            multiLinePrint(false, "C" + capCount + " " + info.netName + " 0 " + TextUtils.formatDouble(info.cap, 2) + "fF\n");
+                        SegmentedNets.NetInfo netInfo = (SegmentedNets.NetInfo)it.next();
+                        if (netInfo.cap > cell.getTechnology().getMinCapacitance()) {
+                            if (netInfo.netName.equals("gnd")) continue;           // don't write out caps from gnd to gnd
+                            multiLinePrint(false, "C" + capCount + " " + netInfo.netName + " 0 " + TextUtils.formatDouble(netInfo.cap, 2) + "fF\n");
                             capCount++;
                         }
                     }
@@ -1455,7 +1500,6 @@ public class Spice extends Topology
                 }
             }
         }
-
 
 		// now we're finished writing the subcircuit.
 		if (cell != topCell || useCDL || Simulation.isSpiceWriteSubcktTopCell())
@@ -1935,6 +1979,132 @@ public class Spice extends Topology
                 System.out.println("Back-annotated "+resCount+" R's and "+capCount+" C's in cell "+cell.describe(false));
             }
             return true;
+        }
+    }
+
+    /**
+     * These are nets that are either extracted when nothing else is extracted,
+     * or not extracted during extraction.  They are specified via the top level
+     * net cell + name, any traversal of that net down the hierarchy is also not extracted.
+     */
+    private static class ExemptedNets {
+        private HashMap netsByCell;         // key: cell, value: List of ExemptedNets.Net objects
+        private Set exemptedNetIDs;
+
+        private static class Net {
+            private String name;
+            private double replacementCap;
+        }
+
+        private ExemptedNets(File file) {
+            netsByCell = new HashMap();
+            exemptedNetIDs = new TreeSet();
+
+            try {
+                FileReader reader = new FileReader(file);
+                BufferedReader br = new BufferedReader(reader);
+                String line;
+                int lineno = 1;
+                System.out.println("Using exempted nets file "+file.getAbsolutePath());
+                while ((line = br.readLine()) != null) {
+                    processLine(line, lineno);
+                    lineno++;
+                }
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+                return;
+            }
+        }
+
+        private void processLine(String line, int lineno) {
+            if (line == null) return;
+            if (line.trim().equals("")) return;
+            String parts[] = line.trim().split("\\s+");
+            if (parts.length < 3) {
+                System.out.println("Error on line "+lineno+": Expected 'LibraryName CellName NetName', but was "+line);
+                return;
+            }
+            Cell cell = getCell(parts[0], parts[1]);
+            if (cell == null) return;
+            double cap = 0;
+            if (parts.length > 3) {
+                try {
+                    cap = Double.parseDouble(parts[3]);
+                } catch (NumberFormatException e) {
+                    System.out.println("Error on line "+lineno+" "+e.getMessage());
+                }
+            }
+
+            List list = (List)netsByCell.get(cell);
+            if (list == null) {
+                list = new ArrayList();
+                netsByCell.put(cell, list);
+            }
+            Net n = new Net();
+            n.name = parts[2];
+            n.replacementCap = cap;
+            list.add(n);
+        }
+
+        private Cell getCell(String library, String cell) {
+            Library lib = Library.findLibrary(library);
+            if (lib == null) {
+                System.out.println("Could not find library "+library);
+                return null;
+            }
+            Cell c = lib.findNodeProto(cell);
+            if (c == null) {
+                System.out.println("Could not find cell "+cell+" in library "+library);
+                return null;
+            }
+            return c;
+        }
+
+        /**
+         * Get the netIDs for all exempted nets in the cell specified by the CellInfo
+         * @param info
+         */
+        private void setExemptedNets(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+            List netNames = (List)netsByCell.get(cell);
+            if (netNames == null) return;               // nothing for this cell
+            for (Iterator it = netNames.iterator(); it.hasNext(); ) {
+                Net n = (Net)it.next();
+                String netName = n.name;
+                Network net = findNetwork(info, netName);
+                if (net == null) {
+                    System.out.println("Cannot find network "+netName+" in cell "+cell.describe(true));
+                    continue;
+                }
+                // get the global ID
+                System.out.println("Specified exemption of net "+cell.describe(false)+"  "+netName);
+                int netID = info.getNetID(net);
+                exemptedNetIDs.add(new Integer(netID));
+            }
+        }
+
+        private Network findNetwork(HierarchyEnumerator.CellInfo info, String name) {
+            for (Iterator it = info.getNetlist().getNetworks(); it.hasNext(); ) {
+                Network net = (Network)it.next();
+                if (net.hasName(name)) return net;
+            }
+            return null;
+        }
+
+        private boolean isExempted(int netID) {
+            return exemptedNetIDs.contains(new Integer(netID));
+        }
+
+        private double getReplacementCap(Cell cell, Network net) {
+            List netNames = (List)netsByCell.get(cell);
+            if (netNames == null) return 0;               // nothing for this cell
+            for (Iterator it = netNames.iterator(); it.hasNext(); ) {
+                Net n = (Net)it.next();
+                if (net.hasName(n.name)) {
+                    return n.replacementCap;
+                }
+            }
+            return 0;
         }
     }
 

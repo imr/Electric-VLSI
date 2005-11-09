@@ -92,7 +92,7 @@ public class MOSSIM extends Topology
 	/**
 	 * Method to write cellGeom
 	 */
-	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
+	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
 		// initialize instance counter
 		int inst = 1;

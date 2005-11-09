@@ -107,8 +107,11 @@ public abstract class Topology extends Output
 	/** Abstract method called after traversal */
 	protected abstract void done();
 
+    /** Called at the end of the enter cell phase of hierarchy enumeration */
+    protected void enterCell(HierarchyEnumerator.CellInfo info) { }
+
 	/** Abstract method to write CellGeom to disk */
-	protected abstract void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context);
+	protected abstract void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info);
 
 	/** Abstract method to convert a network name to one that is safe for this format */
 	protected abstract String getSafeNetName(String name, boolean bus);
@@ -203,6 +206,7 @@ public abstract class Topology extends Output
 				}
 				return false;
 			}
+            outGeom.enterCell(info);
 			return true;
 		}
 
@@ -230,7 +234,7 @@ public abstract class Topology extends Output
 				cni = getCellNetInfo(mci.currentInstanceParametizedName);
 */
 			}
-			outGeom.writeCellTopology(cell, cni, info.getContext());
+			outGeom.writeCellTopology(cell, cni, info.getContext(), (MyCellInfo)info);
 		}
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 

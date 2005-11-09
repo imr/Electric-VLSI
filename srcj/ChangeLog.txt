@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN (11/9/05, JKG) Added "exemptedNets" capability and options to simple parasitic extraction
+    for spice netlister. Updated manual (Parasitic Extraction), but did not update
+    manual picture.
+
 BUG: (11/9/05, SMR) Menus are not accessable through mnemonic keys (Bug #730).
 FIX: In EditWindow.paintComponent(), do not request focus.
 

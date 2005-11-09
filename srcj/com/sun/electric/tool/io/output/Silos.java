@@ -172,7 +172,7 @@ public class Silos extends Topology
 	/**
 	 * Method to write cellGeom
 	 */
-	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
+	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
 		// Read a behavior file if it is available
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
