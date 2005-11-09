@@ -257,7 +257,7 @@ public final class J3DUtils
      * @param view3D
      * @return list with knot points. Null if operation was cancelled
      */
-    public static List readDemoDataFromFile(View3DWindow view3D)
+    public static List<J3DUtils.ThreeDDemoKnot> readDemoDataFromFile(View3DWindow view3D)
     {
         String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
 

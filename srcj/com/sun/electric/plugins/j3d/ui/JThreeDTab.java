@@ -67,9 +67,10 @@ public class JThreeDTab extends ThreeDTab
 	private boolean initial3DTextChanging = false;
 	protected JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
-	public HashMap threeDThicknessMap, threeDDistanceMap, transparencyMap;
+	public HashMap<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
+    public HashMap<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
-    private static final HashMap modeMap = new HashMap(5);
+    private static final HashMap<J3DTransparencyOption,J3DTransparencyOption> modeMap = new HashMap<J3DTransparencyOption,J3DTransparencyOption>(5);
 
     // Filling the data
     static {
@@ -123,9 +124,9 @@ public class JThreeDTab extends ThreeDTab
 		{
 			public void mouseClicked(MouseEvent evt) { threeDValuesChanged(false); }
 		});
-		threeDThicknessMap = new HashMap();
-		threeDDistanceMap = new HashMap();
-        transparencyMap = new HashMap();
+		threeDThicknessMap = new HashMap<Layer,GenMath.MutableDouble>();
+		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
+        transparencyMap = new HashMap<Layer,J3DAppearance>();
         // Sorted by Height to be consistent with LayersTab
 		for(Iterator it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
@@ -240,9 +241,9 @@ public class JThreeDTab extends ThreeDTab
     {
         if (!set) initial3DTextChanging = true;
         else if (initial3DTextChanging) return;
-		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-        J3DAppearance app = (J3DAppearance)transparencyMap.get(layer);
+		GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
+		GenMath.MutableDouble height = threeDDistanceMap.get(layer);
+        J3DAppearance app = transparencyMap.get(layer);
         TransparencyAttributes ta = app.getTransparencyAttributes();
         if (set)
         {
@@ -283,9 +284,9 @@ public class JThreeDTab extends ThreeDTab
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-			GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-            J3DAppearance newApp = (J3DAppearance)transparencyMap.get(layer);
+			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
+			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
+            J3DAppearance newApp = transparencyMap.get(layer);
             J3DAppearance oldApp = (J3DAppearance)layer.getGraphics().get3DAppearance();
             oldApp.setTransparencyAndRenderingAttributes(newApp.getTransparencyAttributes(), newApp.getRenderingAttributes().getDepthBufferEnable());
 			if (thickness.doubleValue() != layer.getThickness())

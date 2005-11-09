@@ -25,6 +25,7 @@
 package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -877,13 +878,13 @@ public class View3DWindow extends JPanel
         if (o == view2D.getWindowFrame())
         {
             Highlighter highlighter2D = view2D.getHighlighter();
-            List geomList = highlighter2D.getHighlightedEObjs(true, true);
+            List<Geometric> geomList = highlighter2D.getHighlightedEObjs(true, true);
 
             for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
             {
                 ElectricObject eobj = (ElectricObject)hIt.next();
 
-                List list = (List)electricObjectMap.get(eobj);
+                List<Shape3D> list = electricObjectMap.get(eobj);
 
                 if (list == null || list.size() == 0) continue;
 
@@ -1440,7 +1441,7 @@ public class View3DWindow extends JPanel
      * defined in input list
      * @param knotList list with knot data. If null, search for data attached to nodes
      */
-    public Map addInterpolator(List knotList)
+    public Map<TransformGroup,BranchGroup> addInterpolator(List<J3DUtils.ThreeDDemoKnot> knotList)
     {
         if (knotList != null && knotList.size() < 2)
         {
@@ -1454,7 +1455,7 @@ public class View3DWindow extends JPanel
             NodeInst ni = (NodeInst)it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
-            List tmpList = knotList;
+            List<J3DUtils.ThreeDDemoKnot> tmpList = knotList;
             if (tmpList == null)
             {
                 tmpList = J3DUtils.readDemoDataFromFile(this);

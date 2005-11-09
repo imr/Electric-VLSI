@@ -45,7 +45,7 @@ public class J3DViewDialog extends EDialog
 {
     private View3DWindow view3D = null;
     private J3DClientApp socketJob = null;
-    private List knots = new ArrayList();
+    private List<J3DUtils.ThreeDDemoKnot> knots = new ArrayList<J3DUtils.ThreeDDemoKnot>();
     private Map interMap;
 
     public static void create3DViewDialog(java.awt.Frame parent)

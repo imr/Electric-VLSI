@@ -60,7 +60,7 @@ public class JThreeDSideView extends JPanel
     implements MouseMotionListener, MouseListener
 {
     private static Layer currentLayerSelected = null;
-    private HashMap layerPolyhedra = null;
+    private HashMap<Layer,Shape3DTab> layerPolyhedra = null;
     double lowHeight = Double.MAX_VALUE, highHeight = Double.MIN_VALUE;
     private PickCanvas pickCanvas;
     private JThreeDTab parentDialog;
@@ -180,7 +180,7 @@ public class JThreeDSideView extends JPanel
         nodesGroup.setCapability(TransformGroup.ENABLE_PICK_REPORTING);
         objTrans.addChild(nodesGroup);
 
-        layerPolyhedra = new HashMap(parentDialog.getTech().getNumLayers());
+        layerPolyhedra = new HashMap<Layer,Shape3DTab>(parentDialog.getTech().getNumLayers());
         for(Iterator it = parentDialog.getTech().getLayers(); it.hasNext(); )
         {
             Layer layer = (Layer)it.next();
@@ -224,11 +224,11 @@ public class JThreeDSideView extends JPanel
         if (currentLayerSelected != null)
         {
             // For this shape, its appareance has to be set back to normal
-            shape = (Shape3DTab)layerPolyhedra.get(currentLayerSelected);
+            shape = layerPolyhedra.get(currentLayerSelected);
             if (shape != null) // is null if previous shape belongs to another dialog (another tech)
                 shape.shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
-        shape = (Shape3DTab)layerPolyhedra.get(layer);
+        shape = layerPolyhedra.get(layer);
         if (shape != null)
             shape.shape.setAppearance(J3DAppearance.highligtApp);
         else
@@ -238,7 +238,7 @@ public class JThreeDSideView extends JPanel
 
     public void updateZValues(Layer layer, double thickness, double distance)
     {
-        Shape3DTab shape = (Shape3DTab)layerPolyhedra.get(layer);
+        Shape3DTab shape = layerPolyhedra.get(layer);
 
         if (J3DUtils.updateZValues(shape.shape, (float)shape.origDist,  (float)(shape.origDist+shape.origThick),
                 (float)distance, (float)(distance+thickness)))

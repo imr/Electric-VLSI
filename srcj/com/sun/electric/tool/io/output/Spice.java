@@ -475,7 +475,7 @@ public class Spice extends Topology
 
             double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
             //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
-            HashMap exemptedNetsFound = new HashMap();
+            HashMap<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
             for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
                 ArcInst ai = (ArcInst)ait.next();
                 boolean ignoreArc = false;
@@ -1489,14 +1489,14 @@ public class Spice extends Topology
                 }
                 // connect all nets in list of nets to connect
                 String name = null;
-                int i=0;
+//                int i=0;
                 for (Iterator<Network> it2 = netsToConnect.iterator(); it2.hasNext(); ) {
                     Network net = (Network)it2.next();
                     if (name != null) {
                         multiLinePrint(false, "R"+name+" "+name+" "+net.getName()+" 0.001\n");
                     }
                     name = net.getName();
-                    i++;
+//                    i++;
                 }
             }
         }
@@ -1988,8 +1988,8 @@ public class Spice extends Topology
      * net cell + name, any traversal of that net down the hierarchy is also not extracted.
      */
     private static class ExemptedNets {
-        private HashMap netsByCell;         // key: cell, value: List of ExemptedNets.Net objects
-        private Set exemptedNetIDs;
+        private HashMap<Cell,List<Net>> netsByCell;         // key: cell, value: List of ExemptedNets.Net objects
+        private Set<Integer> exemptedNetIDs;
 
         private static class Net {
             private String name;
@@ -1997,8 +1997,8 @@ public class Spice extends Topology
         }
 
         private ExemptedNets(File file) {
-            netsByCell = new HashMap();
-            exemptedNetIDs = new TreeSet();
+            netsByCell = new HashMap<Cell,List<Net>>();
+            exemptedNetIDs = new TreeSet<Integer>();
 
             try {
                 FileReader reader = new FileReader(file);
@@ -2035,9 +2035,9 @@ public class Spice extends Topology
                 }
             }
 
-            List list = (List)netsByCell.get(cell);
+            List<Net> list = netsByCell.get(cell);
             if (list == null) {
-                list = new ArrayList();
+                list = new ArrayList<Net>();
                 netsByCell.put(cell, list);
             }
             Net n = new Net();

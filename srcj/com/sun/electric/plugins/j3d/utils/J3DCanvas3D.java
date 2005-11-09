@@ -69,7 +69,7 @@ public class J3DCanvas3D extends Canvas3D  {
         }
     }
 
-    List inputFiles = new ArrayList();
+    List<String> inputFiles = new ArrayList<String>();
     public void saveMovie(String filename)
     {
         Class movieClass = Resources.getJMFJ3DClass("JMFImageToMovie");

@@ -26,6 +26,8 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.technology.Layer;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -40,8 +42,8 @@ import java.util.Observable;
 public class J3DAppearance extends Appearance
         implements Observer
 {
-    private static final HashMap graphics3DTransModePrefs = new HashMap(); // NONE is the default
-    private static final HashMap graphics3DTransFactorPrefs = new HashMap(); // 0 is the default
+    private static final HashMap<Layer,Pref> graphics3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
+    private static final HashMap<Layer,Pref> graphics3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
     private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
     private static final float JAPP_DEFAULT_FACTOR = 0.2f;
 
