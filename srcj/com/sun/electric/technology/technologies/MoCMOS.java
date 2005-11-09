@@ -3802,9 +3802,7 @@ public class MoCMOS extends Technology
 	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules)
 	{
         if (deckRules != null)
-        {
             theRules = deckRules;
-        }
 
 		MOSRules rules = new MOSRules(this);
 

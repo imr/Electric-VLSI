@@ -61,6 +61,9 @@ public class DRCTemplate
         /** only applies if there are 2-3 metal layers in process */		M23 (03),
         /** only applies if there are 4-6 metal layers in process */		M456 (034),
         /** only applies if there are 5-6 metal layers in process */		M56 (030),
+        /** only applies if there are 7 metal layers in process */		    M7 (0100000),
+        /** only applies if there are 8 metal layers in process */		    M8 (0200000),
+        /** only applies if there are 9 metal layers in process */		    M9 (0400000),
 
         /** only applies if alternate contact rules are in effect */		AC (040),
         /** only applies if alternate contact rules are not in effect */	NAC (0100),
@@ -459,7 +462,7 @@ public class DRCTemplate
                         ;
                 }
             }
-            out.println("\t</Foundry>");
+            out.println("    </Foundry>");
             out.println("</DRCRules>");
             out.close();
         } catch (Exception e)
@@ -517,10 +520,10 @@ public class DRCTemplate
 
         private class DRCXMLHandler extends DefaultHandler
         {
-            private List drcRules = null;
+            private List<DRCTemplate> drcRules = null;
             private DRCTemplate.DRCMode foundry = DRCTemplate.DRCMode.NONE;
 
-            DRCXMLHandler(List drcList)
+            DRCXMLHandler(List<DRCTemplate> drcList)
             {
                 this.drcRules = drcList;
             }

@@ -1634,7 +1634,8 @@ public class ToolMenu {
     }
 
     public static void exportDRCDeck() {
-        String fileName = OpenFile.chooseOutputFile(FileType.XML, "Save XML DRC deck", null);
+        String fileName = OpenFile.chooseOutputFile(FileType.XML,
+                "Save XML DRC deck for foundry '" + Technology.getCurrent().getFoundry() + "'", null);
         if (fileName == null) return;
         DRCTemplate.exportDRCDeck(fileName, Technology.getCurrent());
     }

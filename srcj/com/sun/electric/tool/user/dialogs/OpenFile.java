@@ -215,7 +215,7 @@ public class OpenFile
 	 */
 	public static String chooseOutputFile(FileType [] types, String title, String defaultFile)
 	{
-		if (title != null)
+		if (title == null)
 		{
 			if (types != null) title = "Write " + types[0].getDescription(); else
 				title = "Write file";
