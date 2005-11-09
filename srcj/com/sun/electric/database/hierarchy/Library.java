@@ -240,8 +240,8 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 						if (subCell.getLibrary() == this)
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Reopening " + toString() + " failed. Cannot " + reason + " " + toString() + " because one of its cells (" +
-								subCell.describe(true) + ") is being used (by " + cell.libDescribe() + ")",
+								"Library close failed. Cannot " + reason + " " + toString() + " because one of its cells (" +
+								subCell.noLibDescribe() + ") is being used (by " + cell.libDescribe() + ")",
 								"Close library", JOptionPane.ERROR_MESSAGE);
 							 referenced = true;
 							 break;

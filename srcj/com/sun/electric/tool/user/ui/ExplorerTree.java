@@ -1009,7 +1009,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						menu.add(menuItem);
 						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)tree.currentSelectedObject); } });
 
-						menuItem = new JMenuItem("Cancel Check-Out");
+						menuItem = new JMenuItem("Rollback and Release Check-Out");
 						menu.add(menuItem);
 						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)tree.currentSelectedObject); } });
 					}

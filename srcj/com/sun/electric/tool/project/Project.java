@@ -91,6 +91,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -110,6 +111,14 @@ import javax.swing.table.TableModel;
  */
 public class Project extends Listener
 {
+	/**
+	 * There are two levels of security: low and medium.
+	 * Medium security manages a list of user names/passwords and requires logging-in.
+	 * It is only "medium" becuase the passwords are badly encrypted, and it is easy to add user names.
+	 * Low security simply uses the user's name without questioning it.
+	 */
+	public static final boolean LOWSECURITY    = true;
+
 	public static final int NOTMANAGED         = 0;
 	public static final int CHECKEDIN          = 1;
 	public static final int CHECKEDOUTTOYOU    = 2;
@@ -612,7 +621,6 @@ public class Project extends Listener
 		if (pl.allCells.size() == 0) return false;
 		return true;
 	}
-
 	
 	/**
 	 * Method to return the status of a Cell in Project Management.
@@ -667,6 +675,10 @@ public class Project extends Listener
 		checkIn(cell);
 	}
 
+	/**
+	 * Method to check a cell back into the repository.
+	 * @param cell the Cell to check back in.
+	 */
 	public static void checkIn(Cell cell)
 	{
 		pmActive = true;
@@ -684,10 +696,14 @@ public class Project extends Listener
 		checkOut(cell);
 	}
 
-	public static void checkOut(Cell oldVers)
+	/**
+	 * Method to check a cell out of the repository.
+	 * @param cell the Cell to check-out.
+	 */
+	public static void checkOut(Cell cell)
 	{
 		pmActive = true;
-		new CheckOutJob(oldVers);
+		new CheckOutJob(cell);
 	}
 
 	/**
@@ -700,14 +716,15 @@ public class Project extends Listener
 		cancelCheckOut(cell);
 	}
 
-	public static void cancelCheckOut(Cell oldVers)
+	/**
+	 * Method to cancel the check-out of a cell.
+	 * @param cell the Cell whose check-out should be cancelled.
+	 */
+	public static void cancelCheckOut(Cell cell)
 	{
 		pmActive = true;
 
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-			"Cancel all changes to the checked-out " + oldVers + " and revert to the checked-in version?");
-		if (response != JOptionPane.YES_OPTION) return;
-		new CancelCheckOutJob(oldVers);
+		new CancelCheckOutJob(cell);
 	}
 
 	/**
@@ -758,12 +775,20 @@ public class Project extends Listener
 		examineHistory(cell);
 	}
 
-	public static void examineHistory(Cell oldVers)
+	/**
+	 * Method to examine the history of a cell.
+	 * @param cell the Cell to examine.
+	 */
+	public static void examineHistory(Cell cell)
 	{
 		pmActive = true;
-		new ShowHistory(oldVers);
+		new ShowHistory(cell);
 	}
 
+	/**
+	 * Method to prompt for all libraries in the repository and
+	 * choose one to retrieve.
+	 */
 	public static void getALibrary()
 	{
 		pmActive = true;
@@ -779,49 +804,180 @@ public class Project extends Listener
 	}
 
 	/**
+	 * Method to add all libraries to the repository.
+	 */
+	public static void addAllLibraries()
+	{
+		if (getRepositoryLocation().length() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Before entering libraries, set a repository location in the 'Project Management' tab under General Preferences",
+				"Must Setup Project Management", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+		// verify that projects are to be built
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			"Are you sure you want to enter libraries into the repository?");
+		if (response != JOptionPane.YES_OPTION) return;
+
+		Set<Library> libList = new HashSet<Library>();
+		for(Iterator<Library>it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			if (isLibraryManaged(lib)) continue;
+			libList.add(lib);
+		}
+		new AddLibraryJob(libList);
+		addALibrary(null);
+	}
+
+	/**
 	 * Method to add a library to the repository.
+	 * Finds dependent libraries and asks if they, too, should be added.
+	 * @param lib the Library to add to the repository.
 	 */
 	public static void addALibrary(Library lib)
 	{
-		new AddLibraryJob(lib);
+		if (getRepositoryLocation().length() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Before entering a library, set a repository location in the 'Project Management' tab under General Preferences",
+				"Must Setup Project Management", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+		// verify that project is to be built
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			"Are you sure you want to enter this library into the repository?");
+		if (response != JOptionPane.YES_OPTION) return;
+
+		// prepare a list of libraries to add to the repository
+		Set<Library> yesList = new HashSet<Library>();
+		yesList.add(lib);
+
+		// include dependent libraries
+		Set<Library> noList = new HashSet<Library>();
+		includeDependentLibraries(lib, yesList, noList);
+
+		// add them to the repository
+		new AddLibraryJob(yesList);
 		pmActive = true;
 	}
 
+	/**
+	 * Method to recursively check library contents to make sure all dependent libraries are
+	 * considered for inclusion in the repository.
+	 * @param lib the Library being added to the repository.
+	 * @param yesList a set of libraries that will be added.
+	 * @param noList a set of libraries that will not be added.
+	 */
+	private static void includeDependentLibraries(Library lib, Set<Library>yesList, Set<Library>noList)
+	{
+		// see if dependent libraries should also be added
+		for(Iterator<Cell>it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			for(Iterator<NodeInst>nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				if (ni.getProto() instanceof Cell)
+				{
+					Cell subCell = (Cell)ni.getProto();
+					Library oLib = subCell.getLibrary();
+					if (oLib == lib) continue;
+
+					// external library found: see if it is in the "yes" or "no" lists
+					if (yesList.contains(oLib)) continue;
+					if (noList.contains(oLib)) continue;
+
+					// see if it is already managed
+					if (isLibraryManaged(oLib)) continue;
+
+					// ask the user if this library should also be added to the repository
+					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+						"Do you also want to add dependent library " + oLib.getName() + " to the repository?");
+					if (response == JOptionPane.YES_OPTION)
+					{
+						yesList.add(oLib);
+						includeDependentLibraries(oLib, yesList, noList);
+					} else
+					{
+						noList.add(oLib);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to return the number of users in the user database.
+	 * @return the number of users in the user database.
+	 */
 	public static int getNumUsers()
 	{
 		ensureUserList();
 		return usersMap.size();
 	}
 
+	/**
+	 * Method to return an Iterator over the users in the user database.
+	 * @return an Iterator over the users in the user database.
+	 */
 	public static Iterator<String> getUsers()
 	{
 		ensureUserList();
 		return usersMap.keySet().iterator();
 	}
 
+	/**
+	 * Method to tell whether a user name is in the user database.
+	 * @param user the user name.
+	 * @return true if the user name is in the user database.
+	 */
 	public static boolean isExistingUser(String user)
 	{
 		ensureUserList();
 		return usersMap.get(user) != null;
 	}
 
+	/**
+	 * Method to remove a user name from the user database.
+	 * @param user the user name to remove from the user database.
+	 */
 	public static void deleteUser(String user)
 	{
 		usersMap.remove(user);
 		saveUserList();
 	}
 
+	/**
+	 * Method to add a user to the user database.
+	 * @param user the user name to add.
+	 * @param encryptedPassword the encrypted password for the user.
+	 */
 	public static void addUser(String user, String encryptedPassword)
 	{
 		usersMap.put(user, encryptedPassword);
 		saveUserList();
 	}
 
+	/**
+	 * Method to return the encrypted password associated with a given user.
+	 * @param user the user name.
+	 * @return the user's encrypted password (null if not found).
+	 */
 	public static String getEncryptedPassword(String user)
 	{
 		return (String)usersMap.get(user);
 	}
 
+	/**
+	 * Method to change a user's encrypted password.
+	 * @param user the user name.
+	 * @param newEncryptedPassword the new encrypted password for the user.
+	 */
 	public static void changeEncryptedPassword(String user, String newEncryptedPassword)
 	{
 		usersMap.put(user, newEncryptedPassword);
@@ -1523,6 +1679,10 @@ public class Project extends Listener
 				return false;
 			}
 
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
+			if (response != JOptionPane.YES_OPTION) return false;
+
 			// replace former usage with new version
 			getCellFromRepository(former, lib, false);
 			if (former.cell == null)
@@ -2147,136 +2307,134 @@ public class Project extends Listener
 			return true;
 		}
 	}
+
 	/**
 	 * This class adds the current library to the Project Management repository.
 	 */
 	private static class AddLibraryJob extends Job
 	{
-		private Library lib;
+		private Set<Library> libList;
 
-		protected AddLibraryJob(Library lib)
+		protected AddLibraryJob(Set<Library> libList)
 		{
 			super("Add Library", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.lib = lib;
+			this.libList = libList;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			if (getRepositoryLocation().length() == 0)
+			for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Before entering a library, set a repository location in the 'Project Management' tab under General Preferences",
-					"Must Setup Project Management", JOptionPane.INFORMATION_MESSAGE);
-					return false;
+				Library aLib = (Library)it.next();
+				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(aLib);
+				if (pl.allCells.size() != 0) continue;
+
+				if (!addLibraryNow(aLib, pl)) return false;
 			}
 
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			if (pl.allCells.size() != 0)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"This library is already in the repository",
-					"Error Adding Library", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-
-			// verify that a project is to be built
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-				"Are you sure you want to enter this library into the repository?");
-			if (response != JOptionPane.YES_OPTION) return false;
-
-			// get path prefix for cell libraries
-			String libraryname = lib.getName();
-
-			// create the top-level directory for this library
-			pl.projDirectory = Project.getRepositoryLocation() + File.separator + libraryname;
-			File dir = new File(pl.projDirectory);
-			if (dir.exists())
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Repository directory '" + pl.projDirectory + "' already exists",
-					"Error Adding Library", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-			if (!dir.mkdir())
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Could not create repository directory '" + pl.projDirectory + "'",
-					"Error Adding Library", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-			System.out.println("Making repository directory '" + pl.projDirectory + "'...");
-
-			// turn off all tools
-			setChangeStatus(true);
-
-			// make libraries for every cell
-			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-			{
-				Cell cell = (Cell)it.next();
-
-				ProjectCell pc = new ProjectCell();
-				pc.cellName = cell.getName();
-				pc.cellView = cell.getView();
-				pc.cellVersion = cell.getVersion();
-				pc.owner = "";
-				pc.lastOwner = getCurrentUserName();
-				pc.comment = "Initial checkin";
-				pc.libType = FileType.JELIB;
-				pc.cell = cell;
-				pc.latestVersion = true;
-				pc.projLib = pl;
-
-				// ignore old unused cell versions
-				if (cell.getNewestVersion() != cell)
-				{
-					if (cell.getNumUsagesIn() == 0) continue;
-					System.out.println("Warning: including old version of " + cell);
-					pc.latestVersion = false;
-				}
-
-				// link the cell into the project lists
-				pl.addProjectCell(pc);
-				pl.byCell.put(cell, pc);
-
-				if (writeCell(cell, pc)) System.out.println("Error writing cell file"); else
-				{
-					// write the cell to disk in its own library
-					System.out.println("Entering " + cell);
-
-					// mark this cell "checked in" and locked
-					markLocked(cell, true);
-				}
-			}
-
-			// create the project file
-			String projfile = pl.projDirectory + File.separator + PROJECTFILE;
-			lib.newVar(PROJPATHKEY, projfile);
-			try
-			{
-				PrintStream buffWriter = new PrintStream(new FileOutputStream(projfile));
-				for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
-				{
-					ProjectCell pc = (ProjectCell)it.next();
-					buffWriter.println("::" + pc.cellName + ":" + pc.cellVersion + "-" +
-						pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0] + ":" +
-						pc.owner + ":" + pc.lastOwner + ":" + pc.comment);
-				}
-				buffWriter.close();
-			} catch (IOException e)
-			{
-				System.out.println("Error creating " + projfile);
-			}
-
-			// restore tool state
-			setChangeStatus(false);
-
-			// advise the user of this library
+			// advise the user of these libraries
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"The current library has been checked-into the repository and marked appropriately.",
-				"Library Added", JOptionPane.INFORMATION_MESSAGE);
+				"Libraries have been checked-into the repository and marked appropriately.",
+				"Libraries Added", JOptionPane.INFORMATION_MESSAGE);
 			return true;
 		}
+	}
+
+	/**
+	 * Method to check a library into the repository.
+	 * @param lib the library to add to the repository.
+	 * @param pl the ProjectLibrary associated with the library.
+	 * @return false on error.
+	 */
+	private static boolean addLibraryNow(Library lib, ProjectLibrary pl)
+	{
+		// get path prefix for cell libraries
+		String libraryname = lib.getName();
+
+		// create the top-level directory for this library
+		pl.projDirectory = Project.getRepositoryLocation() + File.separator + libraryname;
+		File dir = new File(pl.projDirectory);
+		if (dir.exists())
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Repository directory '" + pl.projDirectory + "' already exists",
+				"Error Adding Library", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		if (!dir.mkdir())
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Could not create repository directory '" + pl.projDirectory + "'",
+				"Error Adding Library", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		System.out.println("Making repository directory '" + pl.projDirectory + "'...");
+
+		// turn off all tools
+		setChangeStatus(true);
+
+		// make libraries for every cell
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+
+			ProjectCell pc = new ProjectCell();
+			pc.cellName = cell.getName();
+			pc.cellView = cell.getView();
+			pc.cellVersion = cell.getVersion();
+			pc.owner = "";
+			pc.lastOwner = getCurrentUserName();
+			pc.comment = "Initial checkin";
+			pc.libType = FileType.JELIB;
+			pc.cell = cell;
+			pc.latestVersion = true;
+			pc.projLib = pl;
+
+			// ignore old unused cell versions
+			if (cell.getNewestVersion() != cell)
+			{
+				if (cell.getNumUsagesIn() == 0) continue;
+				System.out.println("Warning: including old version of " + cell);
+				pc.latestVersion = false;
+			}
+
+			// link the cell into the project lists
+			pl.addProjectCell(pc);
+			pl.byCell.put(cell, pc);
+
+			if (writeCell(cell, pc)) System.out.println("Error writing cell file"); else
+			{
+				// write the cell to disk in its own library
+				System.out.println("Entering " + cell);
+
+				// mark this cell "checked in" and locked
+				markLocked(cell, true);
+			}
+		}
+
+		// create the project file
+		String projfile = pl.projDirectory + File.separator + PROJECTFILE;
+		lib.newVar(PROJPATHKEY, projfile);
+		try
+		{
+			PrintStream buffWriter = new PrintStream(new FileOutputStream(projfile));
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
+			{
+				ProjectCell pc = (ProjectCell)it.next();
+				buffWriter.println("::" + pc.cellName + ":" + pc.cellVersion + "-" +
+					pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0] + ":" +
+					pc.owner + ":" + pc.lastOwner + ":" + pc.comment);
+			}
+			buffWriter.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error creating " + projfile);
+		}
+
+		// restore tool state
+		setChangeStatus(false);
+		return true;
 	}
 
 	/**

@@ -672,6 +672,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
 			// show ports
 			NodeProto np = shownNode.getProto();
+			List<String> portMessages = new ArrayList<String>();
 			for(Iterator<PortInst> it = shownNode.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
@@ -705,13 +706,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					if (e.getOriginalPort() == pi) { moreInfo = true;   break; }
 				}
 				if (moreInfo) description += ":";
-				listModel.addElement(description);
+				portMessages.add(description);
 				portObjects.add(null);
 
 				// mention if it is highlighted
 				if (pp == shownPort)
 				{
-					listModel.addElement("  Highlighted port");
+					portMessages.add("  Highlighted port");
 					portObjects.add(null);
 				}
 
@@ -723,7 +724,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					ArcInst ai = con.getArc();
 					description = "  Connected at (" + con.getLocation().getX() + "," + con.getLocation().getY() +
 						") to " + ai;
-					listModel.addElement(description);
+					portMessages.add(description);
 					portObjects.add(ai);
 				}
 
@@ -733,12 +734,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					Export e = (Export)eIt.next();
 					if (e.getOriginalPort() != pi) continue;
 					description = "  Available as " + e.getCharacteristic().getName() + " export '" + e.getName() + "'";
-					listModel.addElement(description);
+					portMessages.add(description);
 					portObjects.add(null);
 				}
 			}
 			see.setEnabled(true);
-            listPane.setViewportView(list);
+			list.setListData(portMessages.toArray());
             list.setSelectedIndex(0);
             listClick();
 		}

@@ -206,7 +206,7 @@ public class FileMenu {
 
         fileMenu.addSeparator();
 
-        // mnemonic keys available:  B DEFG  JK MN PQ ST VWXYZ
+        // mnemonic keys available:   C EFG  JK MN PQ ST VWXYZ
 		MenuBar.Menu projectSubMenu = MenuBar.makeMenu("Project Management");
 		fileMenu.add(projectSubMenu);
 		projectSubMenu.addMenuItem("_Update", null,
@@ -216,7 +216,7 @@ public class FileMenu {
 		projectSubMenu.addMenuItem("Check _In This Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInThisCell(); } });
 		projectSubMenu.addSeparator();
-		projectSubMenu.addMenuItem("_Cancel Check-Out", null,
+		projectSubMenu.addMenuItem("Roll_back and Release Check-Out", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOutThisCell(); } });
 		projectSubMenu.addMenuItem("_Add This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisCell(); } });
@@ -229,6 +229,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.getALibrary(); } });
 		projectSubMenu.addMenuItem("Add Current _Library To Repository", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisLibrary(); } });
+		projectSubMenu.addMenuItem("Ad_d All Libraries To Repository", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addAllLibraries(); } });
 
         fileMenu.addSeparator();
 
