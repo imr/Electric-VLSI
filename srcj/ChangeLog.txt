@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/9/05, DN) Exception writing Spice netlist in hierarchy enumerator (Bug #663).
+FIX: In NetSchem.calcDrawnWidth set bus width to widest connected bus or export.
+
 IMP: (11/8/05, SMR) Dialogs move with the main display (Bug #581).
 
 BUG: (11/8/05, SMR) Cells do not fill the screen when first edited (Bug #562).

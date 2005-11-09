@@ -954,9 +954,40 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         ImmutableExport[] e = new ImmutableExport[exports.length];
         for (int i = 0; i < exports.length; i++)
             e[i] = exports[i].getD();
-        return new ImmutableCell(cellId, cellName, cellGroup, lib, creationDate, revisionDate, tech, userBits, n, a, e, getImmutable());
+        return new ImmutableCell(cellId, cellName, cellGroup, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
+                tech, userBits, n, a, e, getImmutable());
     }
 
+	/*
+	 * Low-level method to check consistency of backup of this Cell.
+     * @param backup backup of this Cell.
+     * @return true if backup is consistence with this Cell.
+	 */
+    public boolean checkBackup(ImmutableCell backup) {
+        if (cellId != backup.cellId) return false;
+        if (cellName != backup.cellName) return false;
+        if (cellGroup != backup.cellGroup) return false;
+        if (lib.getId() != backup.libId) return false;
+        if (creationDate.getTime() != backup.creationDate) return false;
+        if (revisionDate.getTime() != backup.revisionDate) return false;
+        if (tech != backup.tech) return false;
+        if (userBits != backup.userBits) return false;
+        int numNodes = nodes.size();
+        if (numNodes != backup.nodes.length) return false;
+        for (int i = 0; i < numNodes; i++)
+            if (nodes.get(i).getD() != backup.nodes[i]) return false;
+        int numArcs = arcs.size();
+        if (numArcs != backup.arcs.length) return false;
+        for (int i = 0; i < numArcs; i++)
+            if (arcs.get(i).getD() != backup.arcs[i]) return false;
+        int numExports = exports.length;
+        if (numExports != backup.exports.length) return false;
+        for (int i = 0; i < numExports; i++)
+            if (exports[i].getD() != backup.exports[i]) return false;
+        if (getImmutable() != backup.vars) return false;
+        return true;
+    }
+    
 	/****************************** GRAPHICS ******************************/
 
 	/**

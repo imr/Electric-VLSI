@@ -45,9 +45,9 @@ public class ImmutableCell {
 	/** CellId of this Cell. */                                     public final CellId cellId;
 	/** The CellName of the Cell. */								public final CellName cellName;
 	/** The CellGroup this Cell belongs to. */						public final Cell.CellGroup cellGroup;
-	/** The library this Cell belongs to. */						public final Library lib;
-	/** The date this Cell was created. */							public final Date creationDate;
-	/** The date this Cell was last modified. */					public final Date revisionDate;
+	/** The library this Cell belongs to. */						public final LibId libId;
+	/** The date this Cell was created. */							public final long creationDate;
+	/** The date this Cell was last modified. */					public final long revisionDate;
 	/** This Cell's Technology. */									public final Technology tech;
 	/** Internal flag bits. */										public final int userBits;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
@@ -57,14 +57,14 @@ public class ImmutableCell {
     /** Cell Variables. */                                          public final ImmutableElectricObject vars;
 
     /** Creates a new instance of ImmutableCell */
-    public ImmutableCell(CellId cellId, CellName cellName, Cell.CellGroup cellGroup, Library lib, Date creationDate, Date revisionDate, Technology tech, int userBits,
+    public ImmutableCell(CellId cellId, CellName cellName, Cell.CellGroup cellGroup, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
             ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, ImmutableElectricObject vars) {
         this.cellId = cellId;
         this.cellName = cellName;
         this.cellGroup = cellGroup;
-        this.lib = lib;
-        this.creationDate = (Date)creationDate.clone();
-        this.revisionDate = (Date)revisionDate.clone();
+        this.libId = libId;
+        this.creationDate = creationDate;
+        this.revisionDate = revisionDate;
         this.tech = tech;
         this.userBits = userBits;
         this.nodes = nodes;

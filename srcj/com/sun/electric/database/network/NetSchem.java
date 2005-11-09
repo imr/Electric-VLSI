@@ -829,11 +829,15 @@ class NetSchem extends NetCell {
 			int oldWidth = drawnWidths[drawn];
 			if (oldWidth < 0) {
 				drawnNames[drawn] = name;
-				drawnWidths[drawn] = name.busWidth();
+				drawnWidths[drawn] = newWidth;
 				continue;
 			}
 			if (oldWidth != newWidth) {
                 reportDrawnWidthError((Export)cell.getPort(i), null, drawnNames[drawn].toString(), name.toString());
+                if (oldWidth < newWidth) {
+                    drawnNames[drawn] = name;
+                    drawnWidths[drawn] = newWidth;
+                }
             }
 		}
 		for (int i = 0; i < numArcs; i++) {
@@ -851,6 +855,10 @@ class NetSchem extends NetCell {
 			}
 			if (oldWidth != newWidth) {
                 reportDrawnWidthError(null, ai, drawnNames[drawn].toString(), name.toString());
+                if (oldWidth < newWidth) {
+                    drawnNames[drawn] = name;
+                    drawnWidths[drawn] = newWidth;
+                }
             }
 		}
 		ArcProto busArc = Schematics.tech.bus_arc;

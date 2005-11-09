@@ -68,6 +68,7 @@ import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableCell;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -290,6 +291,8 @@ public class DebugMenus {
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
+	    dimaMenu.addMenuItem("Backup cells", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { backupCells(); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,
@@ -1603,6 +1606,36 @@ public class DebugMenus {
 
 	// ---------------------- Dima's Stuff MENU -----------------
 
+    private static void backupCells() {
+        int cellCount = 0;
+        long startTime = System.currentTimeMillis();
+        ArrayList<ImmutableCell> cellBackups = new ArrayList<ImmutableCell>();
+        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
+                Cell cell = cit.next();
+                int cellIndex = cell.getCellIndex();
+                while (cellBackups.size() <= cellIndex) cellBackups.add(null);
+                assert cellBackups.get(cellIndex) == null;
+                cellBackups.set(cellIndex, cell.backup());
+                cellCount++;
+            }
+        }
+        long backTime = System.currentTimeMillis();
+        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
+                Cell cell = cit.next();
+                int cellIndex = cell.getCellIndex();
+                if (!cell.checkBackup(cellBackups.get(cellIndex)))
+                    System.out.println(cell + " has wrong backup");
+                cellBackups.set(cellIndex, cell.backup());
+            }
+        }
+        long checkTime = System.currentTimeMillis();
+        System.out.println(cellCount + " cells: backup in " + (backTime - startTime) + "msec check in " + (checkTime - backTime) + "msec");
+    }
+    
 	private static int[] objs;
 	private static int[] vobjs;
 	private static int[] vobjs1;
