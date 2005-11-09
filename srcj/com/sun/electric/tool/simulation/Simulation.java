@@ -1515,10 +1515,14 @@ public class Simulation extends Listener
     public static boolean isParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBoolean(); }
     public static void setParasiticsExtractPowerGround(boolean b) { cacheParasiticsExtractPowerGround.setBoolean(b); }
 
-    public static Pref cacheSpiceExtractMeNetsOnly = Pref.makeBooleanPref("SpiceExtractMeNetsOnly", tool.prefs, false);
-    public static boolean isSpiceExtractMeNetsOnly() { return cacheSpiceExtractMeNetsOnly.getBoolean(); }
-    public static void setSpiceExtractMeNetsOnly(boolean b) { cacheSpiceExtractMeNetsOnly.setBoolean(b); }
+    public static Pref cacheParasiticsUseExemptedNetsFile = Pref.makeBooleanPref("UseExemptedNetsFile", tool.prefs, false);
+    public static boolean isParasiticsUseExemptedNetsFile() { return cacheParasiticsUseExemptedNetsFile.getBoolean(); }
+    public static void setParasiticsUseExemptedNetsFile(boolean b) { cacheParasiticsUseExemptedNetsFile.setBoolean(b); }
 
+    public static Pref cacheParasiticsIgnoreExemptedNets = Pref.makeBooleanPref("IgnoreExemptedNets", tool.prefs, true);
+    public static boolean isParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBoolean(); }
+    public static void setParasiticsIgnoreExemptedNets(boolean b) { cacheParasiticsIgnoreExemptedNets.setBoolean(b); }
+    
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
 //    static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
 	/**

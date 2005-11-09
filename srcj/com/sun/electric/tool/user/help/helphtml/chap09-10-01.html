@@ -38,6 +38,25 @@ the expanded Spice file, but it makes the file larger.</LI>
 transfers schematic net names to layout net names after NCC completes and matches.
 This allows one to probe networks in layout with the same name as in the schematics,
 making it easier to compare schematic simulations against layout simulations.</LI>
+<LI>"Use exemptedNets.txt file"
+looks for the file 'exemptedNets.txt' in your library directory. This file specifies
+nets that are exempted from simple parasitic extraction.  There are two ways these
+nets are treated, depending on subsequent setting: if "Extract everything except
+exempted nets" is selected, all networks are extracted except the ones in the
+exempted nets file. If "Extract only exempted nets", only the nets in the exempted
+nets file are extracted.  All nets connected to this net in subcircuits are also
+treated the same way.</LI>
 </UL>
-
+<P>
+Exempted Nets file format. One line per network. A network is specified by
+a library name, call name, and net name.  When nets are not extracted, a
+lumped capacitance value may be specified to use on the network.  This last
+argument is optional (0 if not specified) and ignored when the exempted nets
+are the only nets extracted.
+<pre><code>
+libraryName cellName netName [replacementCapValue]
+Example:
+myLib myCell{lay} net@0
+myLib myCell{lay} in_a
+</pre></code>
 <!-- TRAILER -->
