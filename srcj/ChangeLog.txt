@@ -4,6 +4,29 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/9/05, SMR) Menus are not accessable through mnemonic keys (Bug #730).
+FIX: In EditWindow.paintComponent(), do not request focus.
+
+BUG: (11/9/05, SMR) Node Properties takes too long when there are many ports (Bug #736).
+FIX: In GetInfoNode.showProperList(), use "setListData" to load the list.
+
+IMP/MAN: (11/9/05, SMR) Project management now uses user names without asking
+     for accounts to be created.  Higher-level of security can be had by changing
+     Project.LOWSECURITY to false (Bug #737).
+
+BUG: (11/9/05, SMR) Library closing gives cryptic error messages (Bug #739).
+FIX: Better message in Library.kill().
+
+IMP/MAN: (11/9/05, SMR) Project management menu now has "Add All Libraries to
+     Repository" (Bug #740).
+
+IMP: (11/9/05, SMR) Adding a library to the repository now asks if dependent
+     libraries should also be added (Bug #742).
+
+IMP/MAN: (11/9/05, SMR) Project management command "Cancel Checkout" is now
+     "Rollback and Release Checkout" (in explorer and in menus).  The command
+     checks sensibility before confirming the operation (Bug #743).
+
 BUG: (11/9/05, DN) Exception writing Spice netlist in hierarchy enumerator (Bug #663).
 FIX: In NetSchem.calcDrawnWidth set bus width to widest connected bus or export.
 
