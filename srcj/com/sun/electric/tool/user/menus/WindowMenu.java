@@ -46,6 +46,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.*;
 
 /**
@@ -59,7 +60,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: A       I K    PQ       Y 
+		// mnemonic keys available: A         K    PQ       Y 
         MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
@@ -71,12 +72,12 @@ public class WindowMenu {
         m = windowMenu.addMenuItem("Zoom _Out", KeyStroke.getKeyStroke('0', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
-        m = windowMenu.addMenuItem("_Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
+        m = windowMenu.addMenuItem("Zoom _In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 
 		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY 
-        MenuBar.Menu specialZoomSubMenu = MenuBar.makeMenu("_Special Zoom");
+        MenuBar.Menu specialZoomSubMenu = MenuBar.makeMenu("Special _Zoom");
         windowMenu.add(specialZoomSubMenu);
         m = specialZoomSubMenu.addMenuItem("Focus on _Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
@@ -111,12 +112,14 @@ public class WindowMenu {
         centerSubMenu.addMenuItem("_Cursor", KeyStroke.getKeyStroke('5', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
 
-        //windowMenu.addMenuItem("Saved _Views...", null,
+        //windowMenu.addMenuItem("Saved Views...", null,
         //    new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
         windowMenu.addMenuItem("Go To Pre_vious Focus", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { goToPreviousSavedFocus(); } });
         windowMenu.addMenuItem("Go To Ne_xt Focus", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { goToNextSavedFocus(); } });
+        windowMenu.addMenuItem("_Set Focus...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SetFocus.showSetFocusDialog(); } });
 
         windowMenu.addSeparator();
 

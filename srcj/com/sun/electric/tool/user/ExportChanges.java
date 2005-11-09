@@ -494,6 +494,54 @@ public final class ExportChanges
     }
 
 	/**
+	 * Method to reexport the selected port on other nodes in the cell.
+	 */
+	public static void reExportSelectedPort()
+	{
+		// make sure there is a current cell
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
+		if (highlighter == null) return;
+		Highlight high = highlighter.getOneHighlight();
+		if (high == null || high.getType() != Highlight.Type.EOBJ || !(high.getElectricObject() instanceof PortInst))
+		{
+            System.out.println("Must first select a single node and its port");
+            return;
+        }
+		PortInst pi = (PortInst)high.getElectricObject();
+		PortProto pp = pi.getPortProto();
+		NodeInst ni = pi.getNodeInst();
+
+		// make a list of ports to reexport
+		List<PortInst> queuedExports = new ArrayList<PortInst>();
+		Cell cell = ni.getParent();
+		for(Iterator<NodeInst>it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst oNi = (NodeInst)it.next();
+			if (oNi.getProto() != ni.getProto()) continue;
+			boolean unexported = true;
+			for(Iterator<Export> eIt = oNi.getExports(); eIt.hasNext(); )
+			{
+				Export e = (Export)eIt.next();
+				if (e.getOriginalPort().getPortProto() == pp)
+				{
+					unexported = false;
+					break;
+				}
+			}
+			if (unexported)
+			{
+				PortInst oPi = oNi.findPortInstFromProto(pp);
+				queuedExports.add(oPi);
+			}
+		}
+
+		// create job
+        ReExportPorts job = new ReExportPorts(cell, queuedExports, true, false, false, null);
+	}
+
+	/**
 	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
 	 * Only works for power and ground ports.
 	 */
@@ -536,10 +584,10 @@ public final class ExportChanges
             // disallow port action if lock is on
             if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
-long start = System.currentTimeMillis();
+//long start = System.currentTimeMillis();
             int num = reExportNodes(nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
             System.out.println(num+" ports exported.");
-long end = System.currentTimeMillis(); System.out.println("Took "+(end-start)+" milliseconds");
+//long end = System.currentTimeMillis(); System.out.println("Took "+(end-start)+" milliseconds");
             return true;
         }
     }

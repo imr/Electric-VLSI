@@ -45,7 +45,9 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
@@ -64,6 +66,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the User Interface tool.
@@ -76,10 +79,12 @@ public class User extends Listener
 	/** key of Variable holding cell frame information. */				public static final Variable.Key FRAME_SIZE = Variable.newKey("FACET_schematic_page_size");
 	/** key of Variable holding cell company name. */					public static final Variable.Key FRAME_COMPANY_NAME = Variable.newKey("USER_drawing_company_name");
 	/** key of Variable holding cell designer name. */					public static final Variable.Key FRAME_DESIGNER_NAME = Variable.newKey("USER_drawing_designer_name");
+	/** key of Variable holding user who last changed the cell. */		public static final Variable.Key FRAME_LAST_CHANGED_BY = Variable.newKey("USER_drawing_last_changed_by");
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
+	private boolean undoRedo;
 
 	/**
 	 * The constructor sets up the User tool.
@@ -400,6 +405,11 @@ public class User extends Listener
 		TextWindow.saveAllTextWindows();
 	}
 
+	public void startBatch(Tool t, boolean undoRedo)
+	{
+		this.undoRedo = undoRedo;
+	}
+
 	/**
 	 * Daemon Method called when a batch of changes ends.
 	 */
@@ -412,6 +422,58 @@ public class User extends Listener
 		{
 			Cell cell = (Cell)it.next();
 			markCellForRedraw(cell, true);
+		}
+
+		// update "last designer" field
+		if (!undoRedo)
+		{
+			String userName = System.getProperty("user.name");
+			List<Cell> updateLastDesigner = new ArrayList<Cell>();
+	
+			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+	
+				// see if the "last designer" should be changed on the cell
+				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);
+				if (var != null)
+				{
+					String lastDesigner = (String)var.getObject();
+					if (lastDesigner.equals(userName)) continue;
+				}
+	
+				// must update the "last designer" on this cell
+				updateLastDesigner.add(cell);
+			}
+	
+			if (updateLastDesigner.size() > 0)
+			{
+				// change the "last designer" on these cells
+				new SetLastDesigner(updateLastDesigner);
+			}
+		}
+	}
+
+	private static class SetLastDesigner extends Job
+	{
+		private List<Cell> updateLastDesigner;
+
+		protected SetLastDesigner(List<Cell> updateLastDesigner)
+		{
+			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.updateLastDesigner = updateLastDesigner;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			String userName = System.getProperty("user.name");
+			for(Iterator<Cell> it = updateLastDesigner.iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				cell.newVar(FRAME_LAST_CHANGED_BY, userName);
+			}
+			return true;
 		}
 	}
 

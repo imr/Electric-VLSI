@@ -1559,8 +1559,12 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*6/15);
 				addLine(point0, point1);
 
-				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*9/15);
-				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*9/15);
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*8/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*8/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*10/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*10/15);
 				addLine(point0, point1);
 
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*12/15);
@@ -1568,27 +1572,44 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				addLine(point0, point1);
 
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe(false) + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Cell: " + cell.describe(false) + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
 
 				String projectName = User.getFrameProjectName();
 				Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
 				if (pVar != null) projectName = (String)pVar.getObject();
-				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*10.5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, projectName);
+				if (projectName.length() > 0)
+				{
+					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*11/15);
+					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Project: " + projectName);
+				}
 
 				String designerName = User.getFrameDesignerName();
 				Variable dVar = cell.getLibrary().getVar(User.FRAME_DESIGNER_NAME, String.class);
 				if (dVar != null) designerName = (String)dVar.getObject();
 				dVar = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
 				if (dVar != null) designerName = (String)dVar.getObject();
-				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7.5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, designerName);
+				if (designerName.length() > 0)
+				{
+					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*9/15);
+					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Designer: " + designerName);
+				}
+
+				Variable lVar = cell.getVar(User.FRAME_LAST_CHANGED_BY, String.class);
+				if (lVar != null)
+				{
+					String lastChangeByName = (String)lVar.getObject();
+					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7/15);
+					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Last Changed By: " + lastChangeByName);
+				}
 
 				String companyName = User.getFrameCompanyName();
 				Variable cVar = cell.getLibrary().getVar(User.FRAME_COMPANY_NAME, String.class);
 				if (cVar != null) companyName = (String)cVar.getObject();
-				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, companyName);
+				if (companyName.length() > 0)
+				{
+					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
+					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Company: " + companyName);
+				}
 
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*3/15);
 				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Created: " + TextUtils.formatDate(cell.getCreationDate()));

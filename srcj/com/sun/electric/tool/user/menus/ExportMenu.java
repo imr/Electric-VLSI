@@ -43,7 +43,7 @@ public class ExportMenu {
 
         /****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available:  B   F  IJK     Q   UV XY 
+		// mnemonic keys available:  B   F  IJK     Q   UV  Y 
         MenuBar.Menu exportMenu = MenuBar.makeMenu("E_xport");
         menuBar.add(exportMenu);
 
@@ -62,6 +62,8 @@ public class ExportMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(false); } });
         exportMenu.addMenuItem("Re-Export Hi_ghlighted Area, With Wired Ports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(true); } });
+        exportMenu.addMenuItem("Re-E_xport Selected Port on All Nodes", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelectedPort(); } });
         exportMenu.addMenuItem("Re-Export _Power and Ground", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportPowerAndGround(); } });
 

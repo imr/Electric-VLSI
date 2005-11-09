@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (11/9/05, SMR) New command: "Window / Set Focus..." lets you control
+     the window zoom and pan (Bug #722).
+
+IMP/MAN: (11/9/05, SMR) Now have "Export /Re-Export Selected Port on All Nodes"
+     which takes a single node/port selection and re-exports that port on all
+     similar node/port combinations in the cell (Bug #660).
+
+IMP/MAN: (11/9/05, SMR) Now have "Last Changed By" field in title box (Bug #609).
+
+IMP: (11/9/05, SMR) Auto stitching now considers highlighted area more precisely (Bug #725).
+
 IMP/MAN (11/9/05, JKG) Added "exemptedNets" capability and options to simple parasitic extraction
     for spice netlister. Updated manual (Parasitic Extraction), but did not update
     manual picture.

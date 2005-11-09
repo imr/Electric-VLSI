@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -123,11 +124,14 @@ public class AutoStitch
 	{
 		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
 		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
+		Rectangle2D limitBound = null;
 		if (highlighted)
 		{
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd == null) return;
-			List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+			Highlighter hl = wnd.getHighlighter();
+			List<Geometric> highs = hl.getHighlightedEObjs(true, true);
+			limitBound = hl.getHighlightedArea(wnd);
 			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				ElectricObject eObj = (ElectricObject)it.next();
@@ -249,7 +253,7 @@ public class AutoStitch
 				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
 				break;
 			}
-			count += checkStitching(ni, arcCount, nodeBounds, arcLayers, stayInside, netlist);
+			count += checkStitching(ni, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
 		}
 
 		// now run through the arcinsts to be checked for stitching
@@ -268,7 +272,7 @@ public class AutoStitch
 				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
 				break;
 			}
-			count += checkStitching(ai, arcCount, nodeBounds, arcLayers, stayInside, netlist);
+			count += checkStitching(ai, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
 		}
 
 		// report results
@@ -455,10 +459,10 @@ public class AutoStitch
 	}
 
 	/**
-	 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
+	 * Method to check an object for possible stitching to neighboring objects.
 	 */
 	private static int checkStitching(Geometric geom, HashMap<ArcProto, Integer> arcCount, HashMap<NodeInst, Rectangle2D[]> nodeBounds,
-		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist)
+		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
 	{
 		Cell cell = geom.getParent();
 		NodeInst ni = null;
@@ -488,12 +492,12 @@ public class AutoStitch
 				if (ni == null)
 				{
 					// compare arc "geom" against arc "oAi"
-					count += compareTwoArcs((ArcInst)geom, oAi, stayInside, netlist);
+					count += compareTwoArcs((ArcInst)geom, oAi, stayInside, netlist, limitBound);
 					continue;
 				} else
 				{
 					// compare node "ni" against arc "oAi"
-					count += compareNodeWithArc(ni, oAi, stayInside, netlist);
+					count += compareNodeWithArc(ni, oAi, stayInside, netlist, limitBound);
 				}
 			} else
 			{
@@ -509,19 +513,19 @@ public class AutoStitch
 				if (ni == null)
 				{
 					// compare arc "geom" against node "oNi"
-					count += compareNodeWithArc(oNi, (ArcInst)geom, stayInside, netlist);
+					count += compareNodeWithArc(oNi, (ArcInst)geom, stayInside, netlist, limitBound);
 					continue;
 				}
 
 				// compare node "ni" against node "oNi"
-				count += compareTwoNodes(ni, oNi, arcCount, nodeBounds, arcLayers, stayInside, netlist);
+				count += compareTwoNodes(ni, oNi, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
 			}
 		}
 		return count;
 	}
 
 	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap<ArcProto, Integer> arcCount,
-		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist)
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
 	{
 		int count = 0;
 
@@ -646,7 +650,7 @@ public class AutoStitch
 							}
 
 							// pass it on to the next test
-							connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, arcLayers, stayInside);
+							connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, arcLayers, stayInside, limitBound);
 							if (connected) {
                                 Integer c = (Integer)arcCount.get(ap);
                                 if (c == null) c = new Integer(0);
@@ -782,7 +786,7 @@ public class AutoStitch
 						}
 
 						// pass it on to the next test
-						connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist, nodeBounds, arcLayers, stayInside);
+						connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist, nodeBounds, arcLayers, stayInside, limitBound);
 						if (connected) {
                             Integer c = (Integer)arcCount.get(ap);
                             if (c == null) c = new Integer(0);
@@ -800,7 +804,7 @@ public class AutoStitch
 		return count;
 	}
 
-	private static int compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Netlist nl)
+	private static int compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
 		// if connected, stop now
 		if (ai1.getProto() != ai2.getProto()) return 0;
@@ -839,14 +843,14 @@ public class AutoStitch
 				double y = intersection.getCenterY();
 
 				// run the wire
-				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside);
+				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside, limitBound);
 				return 1;
 			}
 		}
 		return 0;
 	}
 
-	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl)
+	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
 		if (ni.getProto() instanceof Cell) return 0;
 		Network arcNet = nl.getNetwork(ai, 0);
@@ -899,7 +903,7 @@ public class AutoStitch
 				PortInst pi = ni.findPortInstFromProto(bestPp);
 				Network nodeNet = nl.getNetwork(pi);
 				if (arcNet == nodeNet) continue;
-				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside);
+				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside, limitBound);
 				return 1;
 			}
 		}
@@ -907,7 +911,7 @@ public class AutoStitch
 	}
 
 	private static boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
-		Cell cell, Point2D ctr, PolyMerge stayInside)
+		Cell cell, Point2D ctr, PolyMerge stayInside, Rectangle2D limitBound)
 	{
 		// make sure this pair of networks isn't already scheduled for connection
 		if (intendedPairs.contains(net1, net2)) return false;
@@ -953,7 +957,7 @@ public class AutoStitch
 	 * connections made (0 if none).
 	 */
 	private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist,
-		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside)
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Rectangle2D limitBound)
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
@@ -1021,7 +1025,7 @@ public class AutoStitch
 				{
 					// not a geometric primitive: look for ports that touch
 					Poly oPoly = oNi.getShapeOfPort(mPp);
-					if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
+					if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
 						return true;
 				} else
 				{
@@ -1048,7 +1052,7 @@ public class AutoStitch
 
 						// transform the polygon and pass it on to the next test
 						oPoly.transform(trans);
-						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
+						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
 							return true;
 					}
 				}
@@ -1095,7 +1099,7 @@ public class AutoStitch
 						{
 							// transformed the polygon and pass it on to the next test
 							Poly oPoly = oNi.getShapeOfPort(rPp);
-							if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
+							if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
 								return true;
 						}
 					}
@@ -1146,7 +1150,7 @@ public class AutoStitch
 
 					// transformed the polygon and pass it on to the next test
 					oPoly.transform(trans);
-					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist))
+					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
 						return true;
 				}
 			}
@@ -1163,7 +1167,7 @@ public class AutoStitch
 	 */
 	private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, Network oNet,
 		NodeInst ni, PortProto pp, Poly poly, Network net,
-		ArcProto ap, PolyMerge stayInside, Netlist netlist)
+		ArcProto ap, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
 	{
 		// find the bounding boxes of the polygons
 		if (poly.separation(oPoly) > 0) return false;
@@ -1208,6 +1212,13 @@ public class AutoStitch
 			portCenter.setLocation(tPortCenter);
 		}
 
+		// reject connection if it is out of the limit bounds
+		if (limitBound != null)
+		{
+			if (!GenMath.pointInRect(portCenter, limitBound) && !GenMath.pointInRect(oPortCenter, limitBound))
+				return false;
+		}
+
 		// find some dummy position to help run the arc
 		double x = (oPortCenter.getX() + portCenter.getX()) / 2;
 		double y = (oPortCenter.getY() + portCenter.getY()) / 2;
@@ -1215,7 +1226,7 @@ public class AutoStitch
 		// run the wire
         PortInst pi = ni.findPortInstFromProto(pp);
         PortInst opi = oNi.findPortInstFromProto(opp);
-        return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside);
+        return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, limitBound);
 //        Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y), stayInside);
 //        if (route.size() == 0) return false;
 //        allRoutes.add(route);
