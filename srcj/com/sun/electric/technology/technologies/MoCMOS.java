@@ -3814,9 +3814,7 @@ public class MoCMOS extends Technology
 
 		// load the DRC tables from the explanation table
 		rules.wideLimit = new Double(WIDELIMIT);
-        // Read the deck
-//        if (Main.LOCALDEBUGFLAG && Main.getDebug() || theRules == null)
-//            setRulesSet();
+        int numMetals = getNumMetals();
 
 		for(int pass=0; pass<2; pass++)
 		{
@@ -3857,7 +3855,7 @@ public class MoCMOS extends Technology
 				}
 				if ((when&(DRCTemplate.DRCMode.M2.mode()|DRCTemplate.DRCMode.M3.mode()|DRCTemplate.DRCMode.M4.mode()|DRCTemplate.DRCMode.M5.mode()|DRCTemplate.DRCMode.M6.mode())) != 0)
 				{
-					switch (getNumMetal())
+					switch (numMetals)
 					{
 						case 2:  if ((when&DRCTemplate.DRCMode.M2.mode()) == 0) goodrule = false;   break;
 						case 3:  if ((when&DRCTemplate.DRCMode.M3.mode()) == 0) goodrule = false;   break;
@@ -3967,10 +3965,10 @@ public class MoCMOS extends Technology
 					if (!goodrule) continue;
 				}
 				String ruleName = rule.ruleName;
-//				String extraString = metal + proc;
-//				if (extraString.length() > 0 && ruleName.indexOf(extraString) == -1)
-//					ruleName += ", " +  extraString;
-//				rule.ruleName = new String(ruleName);
+				String extraString = metal + proc;
+				if (extraString.length() > 0 && ruleName.indexOf(extraString) == -1)
+					ruleName += ", " +  extraString;
+				rule.ruleName = new String(ruleName);
 
 				// set the rule
 				double [] specValues;
