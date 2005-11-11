@@ -4,6 +4,25 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/11/05, SMR) "Set Focus" command does not make changes that are browsable (Bug #746).
+FIX: Improved "SetFocus.java" to use the focus browser.
+
+BUG: (11/11/05, SMR) Crashes when adding all libraries to the repository (Bug #740).
+FIX: Now adds libraries just once (was adding them twice).
+
+IMP: (11/11/05, SMR) Adding libraries to repository has "Yes to All" option
+     for also adding dependent libraries (Bug #742).
+
+BUG: (11/11/05, SMR) Adding fill library to the repository takes too long (Bug #749).
+FIX: Improved skeletonization speed.
+
+BUG: (11/11/05, SMR) Checking out cells marks them as modified (Bug #748).
+FIX: Cell changes must be done without change control to avoid other changes.
+
+BUG: (11/10/05, SMR) Crash when drawing upside-down text (rotated 180).
+FIX: In PixelDrawing.drawText, 180 degree case should use the index:
+     ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp)
+
 IMP/MAN: (11/9/05, SMR) New command: "Window / Set Focus..." lets you control
      the window zoom and pan (Bug #722).
 

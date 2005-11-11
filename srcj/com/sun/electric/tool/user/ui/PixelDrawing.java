@@ -3180,7 +3180,8 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int alpha = samples[(rasHeight-(y>>shiftUp)-1) * textImageWidth + (rasWidth-(x>>shiftUp)-1)] & 0xFF;
+						int index = ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp);
+						int alpha = samples[index] & 0xFF;
 						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{

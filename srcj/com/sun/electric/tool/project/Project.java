@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -54,6 +55,7 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -66,6 +68,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -355,6 +358,38 @@ public class Project extends Listener
 		}
 
 		/**
+		 * Method to lock a set of project files.
+		 * @param projectFiles the set of project files.
+		 * @return true on error.  Also prints error message.
+		 */
+		private static boolean lockManyProjectFiles(Set<ProjectLibrary> projectFiles)
+		{
+			List<ProjectLibrary> didThem = new ArrayList<ProjectLibrary>();
+			for(Iterator<ProjectLibrary> it = projectFiles.iterator(); it.hasNext(); )
+			{
+				ProjectLibrary pl = (ProjectLibrary)it.next();
+				if (pl.tryLockProjectFile())
+				{
+					// failed
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cannot lock the project file for library " + pl.lib.getName() +
+						".  It may be in use by another user, or it may be damaged.",
+						"Access Error", JOptionPane.ERROR_MESSAGE);
+
+					// unlock those already locked
+					for(Iterator<ProjectLibrary> uIt = didThem.iterator(); uIt.hasNext(); )
+					{
+						ProjectLibrary uPl = (ProjectLibrary)uIt.next();
+						uPl.releaseProjectFileLock(false);
+					}
+					return true;
+				}
+				didThem.add(pl);
+			}
+			return false;
+		}
+
+		/**
 		 * Method to lock this project file.
 		 * @return true on error (no project file, cannot lock it).
 		 */
@@ -439,6 +474,18 @@ public class Project extends Listener
 			{
 				System.out.println("Unable to unlock and close project file");
 				lock = null;
+			}
+		}
+		/**
+		 * Method to unlock a set of project files.
+		 * @param projectFiles the set of project files.
+		 */
+		private static void releaseManyProjectFiles(Set<ProjectLibrary> projectFiles)
+		{
+			for(Iterator<ProjectLibrary> it = projectFiles.iterator(); it.hasNext(); )
+			{
+				ProjectLibrary pl = (ProjectLibrary)it.next();
+				pl.releaseProjectFileLock(true);
 			}
 		}
 
@@ -830,7 +877,6 @@ public class Project extends Listener
 			libList.add(lib);
 		}
 		new AddLibraryJob(libList);
-		addALibrary(null);
 	}
 
 	/**
@@ -859,7 +905,7 @@ public class Project extends Listener
 
 		// include dependent libraries
 		Set<Library> noList = new HashSet<Library>();
-		includeDependentLibraries(lib, yesList, noList);
+		includeDependentLibraries(lib, yesList, noList, false);
 
 		// add them to the repository
 		new AddLibraryJob(yesList);
@@ -872,8 +918,9 @@ public class Project extends Listener
 	 * @param lib the Library being added to the repository.
 	 * @param yesList a set of libraries that will be added.
 	 * @param noList a set of libraries that will not be added.
+	 * @param yesToAll true if dependent libraries should be included without asking.
 	 */
-	private static void includeDependentLibraries(Library lib, Set<Library>yesList, Set<Library>noList)
+	private static void includeDependentLibraries(Library lib, Set<Library>yesList, Set<Library>noList, boolean yesToAll)
 	{
 		// see if dependent libraries should also be added
 		for(Iterator<Cell>it = lib.getCells(); it.hasNext(); )
@@ -896,15 +943,23 @@ public class Project extends Listener
 					if (isLibraryManaged(oLib)) continue;
 
 					// ask the user if this library should also be added to the repository
-					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-						"Do you also want to add dependent library " + oLib.getName() + " to the repository?");
-					if (response == JOptionPane.YES_OPTION)
+					int ret = 0;
+					if (!yesToAll)
 					{
-						yesList.add(oLib);
-						includeDependentLibraries(oLib, yesList, noList);
-					} else
+						String [] options = {"Yes", "No", "Yes to All"};
+						ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+							"Do you also want to add dependent library " + oLib.getName() + " to the repository?",
+							"Add Dependent Library To Repository",
+							JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, "Yes");		
+					}
+					if (ret == 1)
 					{
 						noList.add(oLib);
+					} else
+					{
+						if (ret == 2) yesToAll = true;
+						yesList.add(oLib);
+						includeDependentLibraries(oLib, yesList, noList, yesToAll);
 					}
 				}
 			}
@@ -1142,14 +1197,15 @@ public class Project extends Listener
 
 	/****************************** LISTENER SUPPORT ******************************/
 
+	private static boolean alwaysCheckOut = false;
+
 	private static void detectIllegalChanges()
 	{
 		if (!pmActive) return;
 		if (fCheckList.size() == 0) return;
 
-		int undoneCells = 0;
 		int lowBatch = Integer.MAX_VALUE;
-		String errorMsg = "";
+		List<Cell> cellsThatChanged = new ArrayList<Cell>();
 		for(Iterator<FCheck> it = fCheckList.iterator(); it.hasNext(); )
 		{
 			FCheck f = (FCheck)it.next();
@@ -1159,17 +1215,34 @@ public class Project extends Listener
 			// make sure cell is checked-out
 			if (cell.getVar(PROJLOCKEDKEY) != null)
 			{
-				if (undoneCells != 0) errorMsg += ", ";
-				errorMsg += cell.describe(true);
-				undoneCells++;
+				cellsThatChanged.add(cell);
 				if (f.batchNumber < lowBatch) lowBatch = f.batchNumber;
 			}
 		}
 		fCheckList.clear();
 
-		if (undoneCells > 0)
+		if (cellsThatChanged.size() > 0)
 		{
-			new UndoBatchesJob(lowBatch, errorMsg);
+			// construct an error message
+			boolean undoChange = true;
+			if (alwaysCheckOut) undoChange = false; else
+			{
+				String errorMsg = "";
+				for(Iterator<Cell> it = cellsThatChanged.iterator(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					if (errorMsg.length() > 0) errorMsg += ", ";
+					errorMsg += cell.describe(true);
+				}
+				String [] options = {"Yes", "No", "Always"};
+				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Cannot change unchecked-out cells: " + errorMsg +
+						".  Do you want to check them out?", "Change Blocked by Checked-in Cells",
+					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, "No");
+				if (ret == 0) undoChange = false;
+				if (ret == 2) { alwaysCheckOut = true;   undoChange = false; }
+			}
+			new UndoBatchesJob(lowBatch, cellsThatChanged, undoChange);
 		}
 	}
 
@@ -1180,19 +1253,28 @@ public class Project extends Listener
 	private static class UndoBatchesJob extends Job
 	{
 		private int lowestBatch;
-		private String errorMsg;
+		private List<Cell> cellsThatChanged;
+		private boolean undoChange;
 
-		protected UndoBatchesJob(int lowestBatch, String errorMsg)
+		protected UndoBatchesJob(int lowestBatch, List<Cell> cellsThatChanged, boolean undoChange)
 		{
 			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lowestBatch = lowestBatch;
-			this.errorMsg = errorMsg;
+			this.cellsThatChanged = cellsThatChanged;
+			this.undoChange = undoChange;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			System.out.println("Cannot change unchecked-out cells: " + errorMsg);
+			if (!undoChange)
+			{
+				// check out the cells
+				List<Cell> newCells = checkOutCells(cellsThatChanged);
+				if (newCells != null) return true;
+			}
+
+			// undo the change
 			ignoreChanges = true;
 			for(;;)
 			{
@@ -1298,154 +1380,17 @@ public class Project extends Listener
 
 		public boolean doIt()
 		{
-			Library lib = oldVers.getLibrary();
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+			// make a list of just this cell
+			List<Cell> oneCell = new ArrayList<Cell>();
+			oneCell.add(oldVers);
 
-			// make sure there is a valid user name
-			if (needUserName()) return false;
-
-			if (pl.lockProjectFile()) return false;
-
-			// make a list of newer versions of this cell
-			List<ProjectCell> newerProjectCells = new ArrayList<ProjectCell>();
-			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
-			{
-				ProjectCell pc = (ProjectCell)it.next();
-				if (pc.cellName.equals(oldVers.getName()) && pc.cellView == oldVers.getView())
-				{
-					if (pc.cellVersion > oldVers.getVersion()) newerProjectCells.add(pc);
-				}
-			}
-			for(Iterator<ProjectCell> it = newerProjectCells.iterator(); it.hasNext(); )
-			{
-				ProjectCell pc = (ProjectCell)it.next();
-				if (pc.owner.length() == 0)
-				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"A more recent version of this cell is in the repository.  Do an update first.",
-						"Check-Out Error", JOptionPane.ERROR_MESSAGE);
-					pl.releaseProjectFileLock(true);
-					return false;
-				}
-			}
-			for(Iterator<ProjectCell> it = newerProjectCells.iterator(); it.hasNext(); )
-			{
-				ProjectCell pc = (ProjectCell)it.next();
-				{
-					if (pc.owner.equals(getCurrentUserName()))
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"You already checked-out this cell, but the changes are not in the current library.  Checking it out again.",
-							"Check-Out Warning", JOptionPane.WARNING_MESSAGE);
-						pl.removeProjectCell(pc);
-						if (pc.cell != null) pl.byCell.remove(pc.cell);
-					} else
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot check-out cell.  It is checked-out to '" + pc.owner + "'",
-							"Check-Out Error", JOptionPane.ERROR_MESSAGE);
-						pl.releaseProjectFileLock(true);
-						return false;
-					}
-				}
-			}
-
-			// find this in the project file
-			Cell newVers = null;
-			boolean worked = false;
-			ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
-			if (pc == null)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"This cell is not in the project.  You must add it to the project before being able to check it out and in.",
-					"Check Out Error", JOptionPane.ERROR_MESSAGE);
-			} else
-			{
-				// see if it is available
-				if (pc.owner.length() != 0)
-				{
-					if (pc.owner.equals(getCurrentUserName()))
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"This cell is already checked out to you.",
-							"Check Out Error", JOptionPane.ERROR_MESSAGE);
-						markLocked(oldVers, false);
-					} else
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot check this cell out because it is already checked out to '" + pc.owner + "'",
-							"Check Out Error", JOptionPane.ERROR_MESSAGE);
-					}
-				} else
-				{
-					// make sure we have the latest version
-					if (pc.cellVersion > oldVers.getVersion())
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot check out " + oldVers +
-							" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
-							pc.cellVersion + ").  Do an 'update' first",
-							"Check Out Error", JOptionPane.ERROR_MESSAGE);
-					} else
-					{
-						// prevent tools (including this one) from seeing the change
-						setChangeStatus(true);
-
-						// make new version
-						newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
-
-						if (newVers == null)
-						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Error making new version of cell",
-								"Check Out Error", JOptionPane.ERROR_MESSAGE);
-						} else
-						{
-							// replace former usage with new version
-							if (useNewestVersion(oldVers, newVers))
-							{
-								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-									"Error replacing instances of new " + oldVers,
-									"Check Out Error", JOptionPane.ERROR_MESSAGE);
-							} else
-							{
-								// update record for the cell
-								ProjectCell newPC = new ProjectCell();
-								newPC.cell = newVers;
-								newPC.latestVersion = true;
-								newPC.cellName = pc.cellName;
-								newPC.cellVersion = newVers.getVersion();
-								newPC.cellView = pc.cellView;
-								newPC.comment = "CHECKED OUT";
-								newPC.lastOwner = "";
-								newPC.libType = pc.libType;
-								newPC.owner = getCurrentUserName();
-								newPC.projLib = pl;
-								pc.latestVersion = false;
-								pc.cell = null;
-
-								pl.byCell.remove(oldVers);
-								pl.byCell.put(newVers, newPC);
-								pl.addProjectCell(newPC);
-								markLocked(newVers, false);
-								worked = true;
-							}
-						}
-
-						// restore tool state
-						lib.setChanged();
-
-						setChangeStatus(false);
-					}
-				}
-			}
-
-			// relase project file lock
-			pl.releaseProjectFileLock(true);
+			// check out the cell
+			List<Cell> newCells = checkOutCells(oneCell);
 
 			// if it worked, print dependencies and display
-			if (worked)
+			if (newCells != null && newCells.size() > 0)
 			{
+				Cell newVers = (Cell)newCells.get(0);
 				System.out.println("Cell " + newVers.describe(true) + " checked out for your use");
 
 				// advise of possible problems with other checkouts higher up in the hierarchy
@@ -1597,6 +1542,199 @@ public class Project extends Listener
 			}
 			return true;
 		}
+	}
+
+	/**
+	 * Method to check out a list of Cells.
+	 * @param cellsToCheckOut the List of Cells to check out.
+	 * @return a List of new versions of the Cells.
+	 * Returns null on error.
+	 */
+	private static List<Cell> checkOutCells(List<Cell> cellsToCheckOut)
+	{
+		// make a list of project libraries that are affected
+		Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
+		for(Iterator<Cell>it = cellsToCheckOut.iterator(); it.hasNext(); )
+		{
+			Cell oldVers = (Cell)it.next();
+			Library lib = oldVers.getLibrary();
+			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+			projectLibs.add(pl);
+		}
+
+		// make sure there is a valid user name
+		if (needUserName()) return null;
+
+		// lock access to the project files
+		if (ProjectLibrary.lockManyProjectFiles(projectLibs)) return null;
+
+		// see if there is a newer version of a cell
+		for(Iterator<Cell>cIt = cellsToCheckOut.iterator(); cIt.hasNext(); )
+		{
+			Cell oldVers = (Cell)cIt.next();
+			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(oldVers.getLibrary());
+			ProjectCell newestProjectCell = null;
+			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
+			{
+				ProjectCell pc = (ProjectCell)it.next();
+				if (pc.cellName.equals(oldVers.getName()) && pc.cellView == oldVers.getView())
+				{
+					if (pc.cellVersion > oldVers.getVersion())
+					{
+						if (newestProjectCell == null || newestProjectCell.cellVersion < pc.cellVersion)
+							newestProjectCell = pc;
+					}
+				}
+			}
+			if (newestProjectCell != null)
+			{
+				if (newestProjectCell.owner.length() == 0)
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"A more recent version of cell " + oldVers.describe(false) + " is in the repository.  Do an update first.",
+						"Check-Out Error", JOptionPane.ERROR_MESSAGE);
+					ProjectLibrary.releaseManyProjectFiles(projectLibs);
+					return null;
+				}
+				if (newestProjectCell.owner.equals(getCurrentUserName()))
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.",
+						"Check-Out Warning", JOptionPane.ERROR_MESSAGE);
+					ProjectLibrary.releaseManyProjectFiles(projectLibs);
+					return null;
+				} else
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.owner + "'",
+						"Check-Out Error", JOptionPane.ERROR_MESSAGE);
+					ProjectLibrary.releaseManyProjectFiles(projectLibs);
+					return null;
+				}
+			}
+
+			// find this cell in the project file
+			ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
+			if (pc == null)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cell " + oldVers.describe(false) + " is not in the project.  You must add it to the project before being able to check it out and in.",
+					"Check Out Error", JOptionPane.ERROR_MESSAGE);
+				ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				return null;
+			}
+
+			// see if it is available
+			if (pc.owner.length() != 0)
+			{
+				if (pc.owner.equals(getCurrentUserName()))
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cell " + oldVers.describe(false) + " is already checked out to you.",
+						"Check Out Error", JOptionPane.ERROR_MESSAGE);
+					markLocked(oldVers, false);
+				} else
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.owner + "'",
+						"Check Out Error", JOptionPane.ERROR_MESSAGE);
+				}
+				ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				return null;
+			}
+
+			// make sure we have the latest version
+			if (pc.cellVersion > oldVers.getVersion())
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cannot check out cell " + oldVers.describe(false) +
+					" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
+					pc.cellVersion + ").  Do an 'update' first",
+					"Check Out Error", JOptionPane.ERROR_MESSAGE);
+				ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				return null;
+			}
+		}
+
+		// prevent tools (including this one) from seeing the changes
+		setChangeStatus(true);
+
+		// make new version
+		List<Cell> newCells = new ArrayList<Cell>();
+		for(Iterator<Cell>cIt = cellsToCheckOut.iterator(); cIt.hasNext(); )
+		{
+			Cell oldVers = (Cell)cIt.next();
+			boolean worked = false;
+			Cell newVers = bumpVersion(oldVers);
+			if (newVers != null)
+			{
+				newCells.add(newVers);
+				worked = true;
+			}
+		}
+
+		setChangeStatus(false);
+
+		// relase project file lock
+		ProjectLibrary.releaseManyProjectFiles(projectLibs);
+
+		// report the cells that have been created
+		return newCells;
+	}
+
+	/**
+	 * Method to "bump" the version of a Cell by duplicating it.
+	 * The cell then has a new version number.  The new Cell replaces
+	 * the old Cell, and the old one is deleted.
+	 * @param oldVers the old Cell.
+	 * @return the new Cell (null on error).
+	 */
+	private static Cell bumpVersion(Cell oldVers)
+	{
+		Library lib = oldVers.getLibrary();
+		ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+		ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
+		Cell newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
+		if (newVers == null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Error making new version of cell " + oldVers.describe(false),
+				"Check Out Error", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+
+		// replace former usage with new version
+		if (useNewestVersion(oldVers, newVers))
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Error replacing instances of cell " + oldVers.describe(false),
+				"Check Out Error", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+
+		// update record for the cell
+		ProjectCell newPC = new ProjectCell();
+		newPC.cell = newVers;
+		newPC.latestVersion = true;
+		newPC.cellName = pc.cellName;
+		newPC.cellVersion = newVers.getVersion();
+		newPC.cellView = pc.cellView;
+		newPC.comment = "CHECKED OUT";
+		newPC.lastOwner = "";
+		newPC.libType = pc.libType;
+		newPC.owner = getCurrentUserName();
+		newPC.projLib = pl;
+		pc.latestVersion = false;
+		pc.cell = null;
+
+		pl.byCell.remove(oldVers);
+		pl.byCell.put(newVers, newPC);
+		pl.addProjectCell(newPC);
+		markLocked(newVers, false);
+
+		// restore tool state
+		lib.setChanged();
+		return newVers;
 	}
 
 	/**
@@ -2203,12 +2341,24 @@ public class Project extends Listener
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
 
-			// get all recent cells
-			String userName = getCurrentUserName();
+			// make a list of the most recent cells that are not checked-out
+			List<ProjectCell> cellsToGet = new ArrayList<ProjectCell>();
+			String lastName = "";
 			for(Iterator<ProjectCell> it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
-				if (!pc.latestVersion) continue;
+				String name = pc.describe();
+				if (pc.owner.length() > 0) continue;
+				if (name.equals(lastName)) cellsToGet.remove(cellsToGet.size()-1);
+				cellsToGet.add(pc);
+				lastName = name;
+			}
+
+			// check them out
+			String userName = getCurrentUserName();
+			for(Iterator<ProjectCell> it = cellsToGet.iterator(); it.hasNext(); )
+			{
+				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cell == null)
 				{
 					getCellFromRepository(pc, lib, true);
@@ -2257,6 +2407,7 @@ public class Project extends Listener
 				Library lib = (Library)lIt.next();
 				if (lib.isHidden()) continue;
 				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+				if (pl.projDirectory == null) continue;
 				if (!pl.lockProjectFile()) pl.releaseProjectFileLock(false);
 
 				// add ProjectCells that need to be updated to the list
@@ -2402,7 +2553,6 @@ public class Project extends Listener
 			// link the cell into the project lists
 			pl.addProjectCell(pc);
 			pl.byCell.put(cell, pc);
-
 			if (writeCell(cell, pc)) System.out.println("Error writing cell file"); else
 			{
 				// write the cell to disk in its own library
@@ -2949,7 +3099,9 @@ public class Project extends Listener
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
+		NetworkTool.setInformationOutput(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();
@@ -3078,16 +3230,56 @@ public class Project extends Listener
 						{
 							System.out.println("WARNING: " + oldCell + " is checked-out to " + pc.owner);
 						}
+						continue;
 					} else
 					{
 						// the cell is not in the library
-						if (pc.owner.equals(Project.getCurrentUserName()))
+						if (!pc.owner.equals(Project.getCurrentUserName()))
+							continue;
+
+						System.out.println("WARNING: Cell " + pl.lib.getName() + ":" + pc.describe() +
+							" is checked-out to you but is missing from this library.  Re-building it.");
+						// prevent tools (including this one) from seeing the changes
+						setChangeStatus(true);
+
+						oldCell = pl.lib.findNodeProto(pc.describe());
+						Library lib = oldCell.getLibrary();
+						String newName = oldCell.getName() + ";" + pc.cellVersion + "{" + pc.cellView.getAbbreviation() + "}";
+						if (oldCell != null)
 						{
-							System.out.println("WARNING: Cell " + pl.lib.getName() + ":" + pc.describe() +
-								" is checked-out to you but is missing from this library.  Do another check-out to edit it.");
+							Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);
+							if (newVers == null)
+							{
+								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+									"Error making new version of cell " + oldCell.describe(false),
+									"Check Out Error", JOptionPane.ERROR_MESSAGE);
+								setChangeStatus(false);
+								continue;
+							}
+
+							// replace former usage with new version
+							if (useNewestVersion(oldCell, newVers))
+							{
+								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+									"Error replacing instances of cell " + oldCell.describe(false),
+									"Check Out Error", JOptionPane.ERROR_MESSAGE);
+								setChangeStatus(false);
+								continue;
+							}
+							pl.byCell.remove(oldCell);
+							pc.cell = newVers;
+							pl.byCell.put(newVers, pc);
+							markLocked(newVers, false);
+						} else
+						{
+							// the cell never existed before: create it
+							Cell newVers = Cell.makeInstance(lib, newName);
+							pl.byCell.remove(oldCell);
+							pc.cell = newVers;
+							pl.byCell.put(newVers, pc);
 						}
+						setChangeStatus(false);
 					}
-					continue;
 				}
 			}
 			versionToGet.put(cellName, pc);
@@ -3122,7 +3314,9 @@ public class Project extends Listener
 		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
 			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
 		String tempLibName = getTempLibraryName();
+		NetworkTool.setInformationOutput(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();
@@ -3248,7 +3442,21 @@ public class Project extends Listener
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			if (wf.getContent().getCell() != oldCell) continue;
+			double scale = 1;
+			Point2D offset = null;
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				scale = wnd.getScale();
+				offset = wnd.getOffset();
+			}
 			wf.getContent().setCell(newCell, VarContext.globalContext);
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				wnd.setScale(scale);
+				wnd.setOffset(offset);
+			}
 		}
 
 		// update explorer tree
@@ -3308,7 +3516,7 @@ public class Project extends Listener
 
 		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
-		boolean error = Output.writeLibrary(fLib, pc.libType, false);
+		boolean error = Output.writeLibrary(fLib, pc.libType, false, true);
 		if (error)
 		{
 			System.out.println("Could not save library with " + cell + " in it");
@@ -3507,6 +3715,12 @@ public class Project extends Listener
 	{
 		if (getCurrentUserName().length() == 0)
 		{
+			if (LOWSECURITY)
+			{
+				setCurrentUserName(System.getProperty("user.name"));
+				return false;
+			}
+			
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"You must select a user first (in the 'Project Management' panel of the Preferences dialog)",
 				"No Valid User", JOptionPane.ERROR_MESSAGE);

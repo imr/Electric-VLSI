@@ -109,6 +109,7 @@ public class NetworkTool extends Listener
 
 	/** the Network tool. */						private static final NetworkTool tool = new NetworkTool();
 	/** flag for debug print. */					static boolean debug = false;
+	/** flag for information print. */				static boolean showInfo = true;
 
 	/** NetCells. */								private static NetCell[] cells;
 	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
@@ -208,7 +209,7 @@ public class NetworkTool extends Listener
         }
         long endTime = System.currentTimeMillis();
         float finalTime = (endTime - startTime) / 1000F;
-		if (ncell != 0 && reload)
+		if (ncell != 0 && reload && showInfo)
 			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
 
 		synchronized(mutex) {
@@ -239,6 +240,16 @@ public class NetworkTool extends Listener
 			redoNetworkNumbering(true);
 		}
     }
+
+	/**
+	 * Method to set the level of information that is displayed.
+	 * When libraries are being read "quietly", no information should be output.
+	 * @param infoOutput true for normal information output, false for quiet.
+	 */
+	public static void setInformationOutput(boolean infoOutput)
+	{
+		showInfo = infoOutput;
+	}
 
 	/****************************** PUBLIC METHODS ******************************/
 

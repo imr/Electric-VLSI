@@ -452,7 +452,7 @@ public class ReadableDump extends Output
 		
 		// clean up and return
 		lib.clearChanged();
-		System.out.println(filePath + " written");
+		if (!quiet) System.out.println(filePath + " written");
 		return false;
 	}
 

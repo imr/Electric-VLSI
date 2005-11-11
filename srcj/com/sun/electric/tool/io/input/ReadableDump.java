@@ -379,7 +379,7 @@ public class ReadableDump extends LibraryFiles
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Text: Doing contents of " + cell + " in " + lib);
 		cellsConstructed++;
-		progress.setProgress(cellsConstructed * 100 / totalCells);
+		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
 
 		// now fill in the nodes
 		double lambda = cellLambda[cellIndex];

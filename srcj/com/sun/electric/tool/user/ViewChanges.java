@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -313,8 +314,6 @@ public class ViewChanges
 			subRot.transform(center, center);
 			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
 				skeletonCell, newOrient, null, 0);
-//			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-//				skeletonCell, newAng, null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -342,15 +341,26 @@ public class ViewChanges
 			System.out.println("Sorry, a deadlock aborted skeletonization (network information unavailable).  Please try again");
 			return true;
 		}
+
+		// map exports in the original cell to networks
+		HashMap<Export,Network> netMap = new HashMap<Export,Network>();
+		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+		{
+			Export e = (Export)it.next();
+			Network net = netlist.getNetwork(e, 0);
+			netMap.put(e, net);
+		}
+
 		int numPorts = curCell.getNumPorts();
 		for(int i=0; i<numPorts; i++)
 		{
 			Export pp = (Export)curCell.getPort(i);
+			Network net = (Network)netMap.get(pp);
 			for(int j=i+1; j<numPorts; j++)
 			{
 				Export oPp = (Export)curCell.getPort(j);
-				if (!netlist.sameNetwork(pp.getOriginalPort().getNodeInst(), pp.getOriginalPort().getPortProto(),
-					oPp.getOriginalPort().getNodeInst(), oPp.getOriginalPort().getPortProto())) continue;
+				Network oNet = (Network)netMap.get(oPp);
+				if (net != oNet) continue;
 
 				Export newPp = (Export)newPortMap.get(pp);
 				Export newOPp = (Export)newPortMap.get(oPp);
@@ -363,6 +373,7 @@ public class ViewChanges
 					return true;
 				}
 				newAI.setFixedAngle(false);
+				break;
 			}
 		}
 

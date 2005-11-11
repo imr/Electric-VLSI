@@ -100,11 +100,11 @@ public class ProjectManagementTab extends PreferencePanel
 		initialUserName = Project.getCurrentUserName();
 		if (Project.LOWSECURITY)
 		{
-			if (initialUserName.length() == 0) initialUserName = "NOBODY LOGGED IN";
+			if (initialUserName.length() == 0) initialUserName = System.getProperty("user.name");
 			userName.setText(initialUserName);
 		} else
 		{
-			if (initialUserName.length() == 0) initialUserName = System.getProperty("user.name");
+			if (initialUserName.length() == 0) initialUserName = "NOBODY LOGGED IN";
 			currentUserLabel.setText("Logged-in user: " + initialUserName);
 
 			userModel = new DefaultListModel();

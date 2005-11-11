@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
@@ -199,6 +200,8 @@ public class SetFocus extends EDialog
 		Dimension sz = wnd.getSize();
 		wnd.setOffset(new Point2D.Double(xC, yC));
 		wnd.setScale(sz.getWidth() / across);
+		EditWindowFocusBrowser fb = wnd.getSavedFocusBrowser();
+		fb.updateCurrentFocus();
 		wnd.repaintContents(null, false);
 		closeDialog(null);
 	}//GEN-LAST:event_ok

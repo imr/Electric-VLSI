@@ -165,7 +165,7 @@ public abstract class LibraryFiles extends Input
 		boolean formerQuiet = Undo.changesQuiet(true);
 		try {
 			// show progress
-			startProgressDialog("library", fileURL.getFile());
+			if (!quick) startProgressDialog("library", fileURL.getFile());
 
 			Cell.setAllowCircularLibraryDependences(true);
 			Pref.initMeaningVariableGathering();
@@ -199,7 +199,7 @@ public abstract class LibraryFiles extends Input
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done instantiating data for all libraries");
 		} finally {
-			stopProgressDialog();
+			if (!quick) stopProgressDialog();
 			Cell.setAllowCircularLibraryDependences(false);
 		}
 		Undo.changesQuiet(formerQuiet);
@@ -471,9 +471,10 @@ public abstract class LibraryFiles extends Input
         if (elib != null)
         {
             // read the external library
-            String oldNote = progress.getNote();
+            String oldNote = null;
             if (progress != null)
             {
+				oldNote = progress.getNote();
                 progress.setProgress(0);
                 progress.setNote("Reading referenced library " + legalLibName + "...");
             }
@@ -481,8 +482,11 @@ public abstract class LibraryFiles extends Input
 			// get the library name
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
             elib = readALibrary(externalURL, elib, eLibName, importType);
-            progress.setProgress((int)(byteCount * 100 / fileLength));
-            progress.setNote(oldNote);
+            if (progress != null)
+            {
+	            progress.setProgress((int)(byteCount * 100 / fileLength));
+	            progress.setNote(oldNote);
+            }
         }
 
         if (elib == null)
@@ -561,8 +565,11 @@ public abstract class LibraryFiles extends Input
 
 	public static void cleanupLibraryInput()
 	{
-		progress.setNote("Constructing cell contents...");
-		progress.setProgress(0);
+		if (progress != null)
+		{
+			progress.setNote("Constructing cell contents...");
+			progress.setProgress(0);
+		}
 
 		// Compute technology of new cells
 		Set<Cell> uncomputedCells = new HashSet<Cell>();

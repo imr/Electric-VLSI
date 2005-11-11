@@ -1019,7 +1019,7 @@ public class ELIB extends LibraryFiles
 			}
 		}
 		cellsConstructed++;
-		progress.setProgress(cellsConstructed * 100 / totalCells);
+		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
 
 		double lambda = cellLambda[cellIndex];
 		NodeInst [] oldNodes = null;

@@ -701,7 +701,7 @@ public class FileMenu {
                 lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
             }
 
-            boolean error = Output.writeLibrary(lib, type, compatibleWith6);
+            boolean error = Output.writeLibrary(lib, type, compatibleWith6, false);
             if (error) return false;
             return true;
         }
@@ -1319,7 +1319,7 @@ public class FileMenu {
             }
             URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
             lib.setLibFile(newLibURL);
-            boolean error = Output.writeLibrary(lib, type, false);
+            boolean error = Output.writeLibrary(lib, type, false, false);
             if (error) {
                 System.out.println("Error saving "+lib);
                 retValue = false;

@@ -348,7 +348,7 @@ public class DebugMenus {
     		URL outURL = TextUtils.makeURLToFile(fileName);
     		lib.setLibFile(outURL);
     		lib.setName(TextUtils.getFileNameWithoutExtension(outURL));
-    		Output.writeLibrary(lib, FileType.JELIB, false);
+    		Output.writeLibrary(lib, FileType.JELIB, false, false);
             return true;
         }
     }

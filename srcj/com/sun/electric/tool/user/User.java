@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
@@ -408,6 +409,10 @@ public class User extends Listener
 	public void startBatch(Tool t, boolean undoRedo)
 	{
 		this.undoRedo = undoRedo;
+
+		// project management tool runs quietly
+		Undo.ChangeBatch batch = Undo.getCurrentBatch();
+		if (batch != null && batch.getTool() == Project.getProjectTool()) this.undoRedo = true;
 	}
 
 	/**
@@ -433,7 +438,7 @@ public class User extends Listener
 			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-	
+
 				// see if the "last designer" should be changed on the cell
 				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);
 				if (var != null)
@@ -441,7 +446,11 @@ public class User extends Listener
 					String lastDesigner = (String)var.getObject();
 					if (lastDesigner.equals(userName)) continue;
 				}
-	
+
+				// HACK: if cell is checked-in, don't try to modify it
+				int status = Project.getCellStatus(cell);
+				if (status == Project.CHECKEDIN || status == Project.CHECKEDOUTTOOTHERS) continue;
+
 				// must update the "last designer" on this cell
 				updateLastDesigner.add(cell);
 			}

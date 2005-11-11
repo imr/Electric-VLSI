@@ -141,6 +141,7 @@ public class Output
 	/** Map of referenced objects for library files */	HashMap<Object,Integer> objInfo;
 	/** Maps memory face index to disk face index */	int[] faceMap;
 	/** Name space of variable names */					TreeMap<String,Short> nameSpace;
+	/** True to write with less information displayed */protected boolean quiet;
 
 	public Output()
 	{
@@ -174,9 +175,10 @@ public class Output
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
 	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
+	 * @param quiet true to save with less information displayed.
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6)
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet)
 	{
 		Output out;
 
@@ -293,6 +295,7 @@ public class Output
 			if (type == FileType.ELIB)
 			{
 				ELIB elib = new ELIB();
+				elib.quiet = quiet;
 				if (compatibleWith6) elib.write6Compatible();
 				out = (Output)elib;
 				if (out.openBinaryOutputStream(properOutputName)) return true;
@@ -301,6 +304,7 @@ public class Output
 			} else
 			{
 				JELIB jelib = new JELIB();
+				jelib.quiet = quiet;
 				out = (Output)jelib;
 				if (out.openTextOutputStream(properOutputName)) return true;
 				if (out.writeLib(lib)) return true;
@@ -309,6 +313,7 @@ public class Output
  		} else if (type == FileType.READABLEDUMP)
 		{
 			out = (Output)new ReadableDump();
+			out.quiet = quiet;
 			if (out.openTextOutputStream(properOutputName)) return true;
 			if (out.writeLib(lib)) return true;
 			if (out.closeTextOutputStream()) return true;

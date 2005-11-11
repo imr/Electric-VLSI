@@ -472,7 +472,7 @@ public class ELIB extends Output
 			}
 		}
 
-		if (!lib.isHidden())
+		if (!lib.isHidden() && !quiet)
 		{
 			System.out.println(filePath + " written (" + cellsHere + " cells)");
 		}

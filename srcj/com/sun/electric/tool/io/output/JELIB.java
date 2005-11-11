@@ -410,7 +410,7 @@ public class JELIB extends Output
 		// clean up and return
 		lib.clearChanged();
 		lib.setFromDisk();
-		System.out.println(filePath + " written");
+		if (!quiet) System.out.println(filePath + " written");
 		return false;
 	}
 

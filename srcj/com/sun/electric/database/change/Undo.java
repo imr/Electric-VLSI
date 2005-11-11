@@ -541,11 +541,19 @@ public class Undo
 			{
 				return "Changed variables on "+obj;
 			}
+			if (type == Type.LIBRARYNEW)
+			{
+				return "Created "+obj;
+			}
+			if (type == Type.LIBRARYKILL)
+			{
+				return "Deleted "+obj;
+			}
             if (type == Type.OTHERCHANGE)
             {
                 return "Other (non-undoable) change in " + obj;
             }
-			return "?";
+			return "UNKNOWN CHANGE, type=" + type;
 		}
 	}
 
@@ -557,7 +565,7 @@ public class Undo
 		private List<Change> changes;
 		private int batchNumber;
 //		private boolean done;
-//		private Tool tool;
+		private Tool tool;
 		private String activity;
 		private Cell upCell;
 		private List<Highlight> startingHighlights = null;				// highlights before changes made
@@ -581,6 +589,12 @@ public class Undo
 		 * @return the unique number of this ChangeBatch.
 		 */
 		public int getBatchNumber() { return batchNumber; }
+
+		/**
+		 * Method to return the Tool associated with this ChangeBatch.
+		 * @return the Tool associated with this ChangeBatch.
+		 */
+		public Tool getTool() { return tool; }
 
 		/**
 		 * Method to return the number of changes in this ChangeBatch.
@@ -622,7 +636,7 @@ public class Undo
                 }
 			}
 
-			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + ") has " + batchSize + " changes and affects";
+			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + " from " + tool.getName() + " tool) has " + batchSize + " changes and affects";
 			if (nodeInst != 0) message += " " + nodeInst + " nodes";
 			if (arcInst != 0) message += " " + arcInst + " arcs";
 			if (export != 0) message += " " + export + " exports";
@@ -678,7 +692,7 @@ public class Undo
 		currentBatch.changes = new ArrayList<Change>();
 		currentBatch.batchNumber = ++overallBatchNumber;
 //		currentBatch.done = true;
-//		currentBatch.tool = tool;
+		currentBatch.tool = tool;
 		currentBatch.activity = activity;
 		currentBatch.upCell = cell;
 		currentBatch.startingHighlights = startingHighlights;

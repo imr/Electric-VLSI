@@ -661,7 +661,7 @@ public class JELIB extends LibraryFiles
 		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
 		cellsConstructed++;
-		progress.setProgress(cellsConstructed * 100 / totalCells);
+		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
         cell.loadExpandStatus();
 	}
