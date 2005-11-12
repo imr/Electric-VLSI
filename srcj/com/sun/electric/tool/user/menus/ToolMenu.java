@@ -143,15 +143,15 @@ public class ToolMenu {
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_SWEEP); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.GHMode.ALGO_SWEEP); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_SWEEP); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.GHMode.ALGO_SWEEP); }});
         drcSubMenu.addMenuItem("Check Area _Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.GHMode.ALGO_SWEEP, true);} });
 
         drcSubMenu.addMenuItem("_List Layer Coverage on Cell", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE,
-                        LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+                        LayerCoverage.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
 		drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Import _Assura DRC Errors...", null,
@@ -332,7 +332,7 @@ public class ToolMenu {
 		MenuBar.Menu ercSubMenu = MenuBar.makeMenu("_ERC");
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check _Wells", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_SWEEP); } });
 		ercSubMenu.addMenuItem("_Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
@@ -367,7 +367,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("List Exports _below Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
 		networkSubMenu.addMenuItem("List _Geometry on Network", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.GHMode.ALGO_SWEEP); } });
         networkSubMenu.addMenuItem("List _Total Wire Lengths on All Networks", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
 
@@ -457,7 +457,7 @@ public class ToolMenu {
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE,
-                    LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+                    LayerCoverage.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("_Pad Frame Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
@@ -576,7 +576,7 @@ public class ToolMenu {
      * @param startJob to determine if job has to run in a separate thread
      * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
      */
-    public static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
+    public static boolean layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob)
     {
         Cell curCell = cell;
 
@@ -596,7 +596,7 @@ public class ToolMenu {
         Rectangle2D bbox = curCell.getBounds();
         if (width > bbox.getWidth()) width = bbox.getWidth();
         if (height > bbox.getHeight()) height = bbox.getHeight();
-        LayerCoverage.AreaCoverage job = new LayerCoverage.AreaCoverage(curCell, highlighter, mode, width, height,
+        LayerCoverage.AreaCoverageJob job = new LayerCoverage.AreaCoverageJob(curCell, highlighter, mode, width, height,
                 deltaX, deltaY);
 
         // No regression
@@ -611,7 +611,7 @@ public class ToolMenu {
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, int func, int mode)
+    public static void layerCoverageCommand(Job.Type jobType, LayerCoverage.LCMode func, GeometryHandler.GHMode mode)
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
@@ -692,7 +692,7 @@ public class ToolMenu {
                 nets.add(layNet);
                 //LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets,
                 LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(netcell, nets,
-                        false, GeometryHandler.ALGO_QTREE);
+                        false, GeometryHandler.GHMode.ALGO_QTREE);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -1086,7 +1086,7 @@ public class ToolMenu {
     /**
      * Method to handle the "List Geometry On Network" command.
      */
-    public static void listGeometryOnNetworkCommand(int mode)
+    public static void listGeometryOnNetworkCommand(GeometryHandler.GHMode mode)
     {
 	    Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
@@ -1132,7 +1132,7 @@ public class ToolMenu {
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(net);
                 LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets,
-                        false, GeometryHandler.ALGO_QTREE);
+                        false, GeometryHandler.GHMode.ALGO_QTREE);
                 if (geoms.getTotalWireLength() == 0) continue;
                 System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
             }

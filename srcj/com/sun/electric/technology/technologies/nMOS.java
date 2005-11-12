@@ -370,21 +370,21 @@ public class nMOS extends Technology
 		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Metal
-		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Polysilicon
-		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Diffusion
-		I_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Implant
-		CC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Contact-Cut
-		BC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Buried-Contact
-		O_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Overglass
-		LI_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Light-Implant
-		OC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Oversize-Contact
-		HE_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Hard-Enhancement
-		LE_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Light-Enhancement
-		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Transistor
-		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Diffusion
+		M_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Metal
+		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Polysilicon
+		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Diffusion
+		I_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Implant
+		CC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Contact-Cut
+		BC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Buried-Contact
+		O_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Overglass
+		LI_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Light-Implant
+		OC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Oversize-Contact
+		HE_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Hard-Enhancement
+		LE_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Light-Enhancement
+		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Transistor
+		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo-Diffusion
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal

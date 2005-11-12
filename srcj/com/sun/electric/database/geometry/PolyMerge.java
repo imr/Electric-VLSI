@@ -74,9 +74,9 @@ public class PolyMerge
 	 * @param value the PolyBase to merge.
 	 * @param fasterAlgorithm
 	 */
-	public void add(Object key, Object value, boolean fasterAlgorithm)
+	public void add(Layer key, Object value, boolean fasterAlgorithm)
 	{
-		Layer layer = (Layer)key;
+		Layer layer = key;
 		PolyBase poly = (PolyBase)value;
 		addPolygon(layer, poly);
 	}

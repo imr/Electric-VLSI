@@ -155,11 +155,11 @@ public class Quick
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to caching current extra bits
-    private int mergeMode = GeometryHandler.ALGO_SWEEP; // .ALGO_QTREE;
+    private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private DRCTemplate.DRCMode techMode = DRCTemplate.DRCMode.NONE;       /** To control different rules for ST and TSMC technologies */
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-	public Quick(DRC.CheckDRCLayoutJob job, int mode)
+	public Quick(DRC.CheckDRCLayoutJob job, GeometryHandler.GHMode mode)
 	{
 		this.job = job;
         this.mergeMode = mode;
@@ -224,7 +224,7 @@ public class Quick
     public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                        Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
     {
-        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.ALGO_QTREE);
+        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_QTREE);
     }
 
 	/**
@@ -239,7 +239,7 @@ public class Quick
 	 * @return the number of errors found
 	 */
 	public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob, int mode)
+                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob, GeometryHandler.GHMode mode)
 	{
 		Quick q = new Quick(drcJob, mode);
 		return q.doCheck(cell, geomsToCheck, validity, bounds);
@@ -2553,7 +2553,7 @@ public class Quick
 
 			List list = null;
 
-            if (mergeMode == GeometryHandler.ALGO_QTREE)
+            if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
                 list = ((PolyQTree.PolyNode)obj).getSortedLoops();
             else
                 list = ((PolyBase)obj).getSortedLoops();
@@ -2569,12 +2569,12 @@ public class Quick
                 Object listObj = list.get(i);
 				double area = 0;
 
-                if (mergeMode == GeometryHandler.ALGO_QTREE)
+                if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
                     area = ((PolyQTree.PolyNode)listObj).getArea();
                 else
                     area = ((PolyBase)listObj).getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
-                PolyBase simplePn = ((mergeMode == GeometryHandler.ALGO_QTREE))
+                PolyBase simplePn = ((mergeMode == GeometryHandler.GHMode.ALGO_QTREE))
                         ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
                         : (PolyBase)listObj;
 
@@ -2582,7 +2582,7 @@ public class Quick
                 if (minRule == minAreaRule && slotSizeRule != null)
                 {
                     double length = 0;
-                    if (mergeMode == GeometryHandler.ALGO_QTREE)
+                    if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
                         length = ((PolyQTree.PolyNode)listObj).getMaxLength();
                     else
                         length = ((PolyBase)listObj).getMaxLength();
@@ -4413,10 +4413,10 @@ public class Quick
 		private Layer polyLayer;
 		private HashMap<NodeInst,NodeInst> notExportedNodes;
 		private HashMap<NodeInst,NodeInst> checkedNodes;
-        private int mode; // geometrical merge algorithm
+        private GeometryHandler.GHMode mode; // geometrical merge algorithm
 
 		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
-		                           HashMap<NodeInst,NodeInst> checkedNodes, int mode)
+		                           HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
 		{
 			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
@@ -4425,7 +4425,7 @@ public class Quick
             this.mode = mode;
 		}
 
-		public QuickAreaEnumerator(HashMap<NodeInst,NodeInst> notExportedNodes, HashMap<NodeInst,NodeInst> checkedNodes, int mode)
+		public QuickAreaEnumerator(HashMap<NodeInst,NodeInst> notExportedNodes, HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
 		{
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
@@ -4629,7 +4629,7 @@ public class Quick
         private void addElement(Poly poly, Layer layer, boolean isNode)
         {
             Shape obj = null;
-            if (mode == GeometryHandler.ALGO_QTREE)
+            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                 obj = new PolyQTree.PolyNode(poly.getBounds2D());
             else
                 obj = poly;
@@ -4656,15 +4656,15 @@ public class Quick
         private HashMap<Cell,GeometryHandler> otherTypeMergeMap;
         private HashMap<Cell,Cell> doneCells = new HashMap<Cell,Cell>(); // Mark if cells are done already.
 		private Layer polyLayer;
-        private int mode; // geometrical merge algorithm
+        private GeometryHandler.GHMode mode; // geometrical merge algorithm
 
-		public CheckAreaEnumerator(HashMap<Cell,GeometryHandler> selectMergeMap, int mode)
+		public CheckAreaEnumerator(HashMap<Cell,GeometryHandler> selectMergeMap, GeometryHandler.GHMode mode)
 		{
             this.otherTypeMergeMap = selectMergeMap;
             this.mode = mode;
 		}
 
-		public CheckAreaEnumerator(int mode)
+		public CheckAreaEnumerator(GeometryHandler.GHMode mode)
 		{
             this.mode = mode;
 		}
@@ -4822,7 +4822,7 @@ public class Quick
                                 Layer layer, boolean isNode)
         {
             Shape obj = null;
-            if (mode == GeometryHandler.ALGO_QTREE)
+            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                 obj = new PolyQTree.PolyNode(poly.getBounds2D());
             else
                 obj = poly;

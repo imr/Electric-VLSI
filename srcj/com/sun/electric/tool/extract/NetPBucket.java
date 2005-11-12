@@ -50,8 +50,8 @@ public class NetPBucket implements ExtractedPBucket
     {
         this.net = net;
         // Only 1 layer should be available per network
-        capMerge = GeometryHandler.createGeometryHandler(GeometryHandler.ALGO_SWEEP, 1, cell.getBounds());
-        resGeom = GeometryHandler.createGeometryHandler(GeometryHandler.ALGO_SWEEP, 1, cell.getBounds());
+        capMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1, cell.getBounds());
+        resGeom = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1, cell.getBounds());
         resNameMap = new HashMap<Layer,List<String>>(1);
         resSubGeom = new HashMap<Layer,List<Poly>>(1); // contact geometries that will be substracted
     }

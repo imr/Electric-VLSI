@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Rectangle2D;
@@ -138,16 +139,16 @@ public class LayerCoverage extends Listener
      * except "List Geometry on Network" commands.
      */
 
-    public static class AreaCoverage extends Job
+    public static class AreaCoverageJob extends Job
     {
         private Cell curCell;
         double deltaX, deltaY;
         double width, height;
         Highlighter highlighter;
-        int mode;
+        GeometryHandler.GHMode mode;
         boolean foundError = false;
 
-        public AreaCoverage(Cell cell, Highlighter highlighter, int mode, double width, double height, double deltaX, double deltaY)
+        public AreaCoverageJob(Cell cell, Highlighter highlighter, GeometryHandler.GHMode mode, double width, double height, double deltaX, double deltaY)
         {
             super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
@@ -184,7 +185,7 @@ public class LayerCoverage extends Listener
                     System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
                             DBMath.round(posX) + "," + DBMath.round(posY) + ") (" +
                             DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
-                    Job job = new LayerCoverageJob(this, Type.EXAMINE, curCell, LayerCoverageJob.AREA, mode, highlighter, geoms, box);
+                    Job job = new LayerCoverageJob(this, Type.EXAMINE, curCell, LCMode.AREA, mode, highlighter, geoms, box);
                     job.doIt();
                     if (checkAbort() || job.checkAbort()) // aborted by user
                     {
@@ -198,5 +199,13 @@ public class LayerCoverage extends Listener
             errorLogger.termLogging(true);
             return true;
         }
+    }
+
+    public enum LCMode // LC = LayerCoverage mode
+    {
+	    AREA,   // function Layer Coverage
+	    MERGE,  // Generic merge polygons function
+	    IMPLANT, // Coverage implants
+	    NETWORK; // List Geometry on Network function
     }
 }

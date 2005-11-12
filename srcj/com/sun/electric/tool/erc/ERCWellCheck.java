@@ -61,7 +61,7 @@ import java.util.List;
 public class ERCWellCheck
 {
     Cell cell;
-	int mode;
+	GeometryHandler.GHMode mode;
 	ErrorLogger errorLogger;
 	Highlighter highlighter;
 	List<WellCon> wellCons = new ArrayList<WellCon>();
@@ -86,7 +86,7 @@ public class ERCWellCheck
 		PrimitiveNode.Function fun;
 	};
 
-	public ERCWellCheck(Cell cell, WellCheckJob job, int newAlgorithm, Highlighter highlighter)
+	public ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
 	{
 		this.job = job;
 		this.mode = newAlgorithm;
@@ -97,7 +97,7 @@ public class ERCWellCheck
 	/*
 	 * Method to analyze the current Cell for well errors.
 	 */
-	public static void analyzeCurCell(int newAlgorithm)
+	public static void analyzeCurCell(GeometryHandler.GHMode newAlgorithm)
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
@@ -113,7 +113,7 @@ public class ERCWellCheck
 	 * Static function to call the ERC Well functionality
 	 * @return number of errors
 	 */
-	public static int checkERCWell(Cell cell, WellCheckJob job, int newAlgorithm, Highlighter highlighter)
+	public static int checkERCWell(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
 	{
 		ERCWellCheck check = new ERCWellCheck(cell, job, newAlgorithm, highlighter);
 		return check.doIt();
@@ -161,7 +161,7 @@ public class ERCWellCheck
 				WellArea wa = new WellArea();
 				PolyBase poly = null;
 
-                if (mode == GeometryHandler.ALGO_QTREE)
+                if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                 {
                     PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
                     poly = new PolyBase(pn.getPoints(true));
@@ -504,10 +504,10 @@ public class ERCWellCheck
 	private static class WellCheckJob extends Job
 	{
 		Cell cell;
-		int newAlgorithm;
+		GeometryHandler.GHMode newAlgorithm;
 		Highlighter highlighter;
 
-		protected WellCheckJob(Cell cell, int newAlgorithm, Highlighter highlighter)
+		protected WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -563,7 +563,7 @@ public class ERCWellCheck
 
 	        if (!done)
 	        {
-                boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
+                boolean qTreeAlgo = check.mode == GeometryHandler.GHMode.ALGO_QTREE;
 
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
@@ -626,7 +626,7 @@ public class ERCWellCheck
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
-                boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
+                boolean qTreeAlgo = check.mode == GeometryHandler.GHMode.ALGO_QTREE;
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
 				{

@@ -74,7 +74,7 @@ public class DRCTemplate
         /** only applies if scmos rules are in effect */					SC (04000),
         /** only for TSMC technology */                                     TSMC (010000),
         /** only for ST technology */                                       ST (020000),
-        /** only for MOSIS technology */                                    MOSIS (040000);
+        /** only for MOSIS technology */                                    Mosis (040000);
 
         private final int mode;   // mode
         DRCMode(int mode) {
@@ -369,7 +369,7 @@ public class DRCTemplate
                 String whenName = null;
                 for (DRCMode p : DRCMode.values())
                 {
-                    if (p == DRCMode.NONE || p == DRCMode.MOSIS || p == DRCMode.TSMC || p == DRCMode.ST) continue;
+                    if (p == DRCMode.NONE || p == DRCMode.Mosis || p == DRCMode.TSMC || p == DRCMode.ST) continue;
                     if ((p.mode() & rule.when) != 0)
                     {
                         if (whenName == null) // first element

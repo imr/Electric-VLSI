@@ -436,22 +436,22 @@ public class Bipolar extends Technology
 		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("8", DRCTemplate.DRCMode.MOSIS.name());		// Metal1
-		M0_lay.setFactoryGDSLayer("9", DRCTemplate.DRCMode.MOSIS.name());		// Metal2
-		N_lay.setFactoryGDSLayer("52", DRCTemplate.DRCMode.MOSIS.name());		// NPImplant
-		P_lay.setFactoryGDSLayer("53", DRCTemplate.DRCMode.MOSIS.name());		// PPImplant
-		PD_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.MOSIS.name());		// Poly_Definition
-		FI_lay.setFactoryGDSLayer("2", DRCTemplate.DRCMode.MOSIS.name());		// Field_Implant
-		I_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.MOSIS.name());		// Isolation
-		SI_lay.setFactoryGDSLayer("6", DRCTemplate.DRCMode.MOSIS.name());		// Sink_Implant
-		NI_lay.setFactoryGDSLayer("51", DRCTemplate.DRCMode.MOSIS.name());	// N_Implant
-		SE_lay.setFactoryGDSLayer("45", DRCTemplate.DRCMode.MOSIS.name());	// Silicide_Exclusion
-		C_lay.setFactoryGDSLayer("7", DRCTemplate.DRCMode.MOSIS.name());		// Contact
-		V_lay.setFactoryGDSLayer("81", DRCTemplate.DRCMode.MOSIS.name());		// Via
-		SP_lay.setFactoryGDSLayer("10", DRCTemplate.DRCMode.MOSIS.name());	// Scratch_Protection
-		B_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// Buried
-		PM_lay.setFactoryGDSLayer("18", DRCTemplate.DRCMode.MOSIS.name());	// Pseudo_Metal1
-		PM0_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.MOSIS.name());	// Pseudo_Metal2
+		M_lay.setFactoryGDSLayer("8", DRCTemplate.DRCMode.Mosis.name());		// Metal1
+		M0_lay.setFactoryGDSLayer("9", DRCTemplate.DRCMode.Mosis.name());		// Metal2
+		N_lay.setFactoryGDSLayer("52", DRCTemplate.DRCMode.Mosis.name());		// NPImplant
+		P_lay.setFactoryGDSLayer("53", DRCTemplate.DRCMode.Mosis.name());		// PPImplant
+		PD_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.Mosis.name());		// Poly_Definition
+		FI_lay.setFactoryGDSLayer("2", DRCTemplate.DRCMode.Mosis.name());		// Field_Implant
+		I_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.Mosis.name());		// Isolation
+		SI_lay.setFactoryGDSLayer("6", DRCTemplate.DRCMode.Mosis.name());		// Sink_Implant
+		NI_lay.setFactoryGDSLayer("51", DRCTemplate.DRCMode.Mosis.name());	// N_Implant
+		SE_lay.setFactoryGDSLayer("45", DRCTemplate.DRCMode.Mosis.name());	// Silicide_Exclusion
+		C_lay.setFactoryGDSLayer("7", DRCTemplate.DRCMode.Mosis.name());		// Contact
+		V_lay.setFactoryGDSLayer("81", DRCTemplate.DRCMode.Mosis.name());		// Via
+		SP_lay.setFactoryGDSLayer("10", DRCTemplate.DRCMode.Mosis.name());	// Scratch_Protection
+		B_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.Mosis.name());		// Buried
+		PM_lay.setFactoryGDSLayer("18", DRCTemplate.DRCMode.Mosis.name());	// Pseudo_Metal1
+		PM0_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.Mosis.name());	// Pseudo_Metal2
 
 		//******************** DESIGN RULES ********************
 

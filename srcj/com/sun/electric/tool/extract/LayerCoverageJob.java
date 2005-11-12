@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -72,13 +71,9 @@ public class LayerCoverageJob extends Job
 {
 	private Cell curCell;
     private Job parentJob; // to stop if parent job is killed
-    private int mode;
-	private GeometryHandler tree; // = new PolyQTree(curCell.getBounds());
-	public final static int AREA = 0;   // function Layer Coverage
-	public final static int MERGE = 1;  // Generic merge polygons function
-	public final static int IMPLANT = 2; // Coverage implants
-	public final static int NETWORK = 3; // List Geometry on Network function
-	private final int function;
+    private GeometryHandler.GHMode mode;
+	private GeometryHandler tree;
+	private final LayerCoverage.LCMode function;
 	private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 	private HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
 	private Highlighter highlighter; // To highlight new implants
@@ -92,14 +87,15 @@ public class LayerCoverageJob extends Job
      * @param startJob if job has to run on thread
      * @param mode geometric algorithm to use: GeometryHandler.ALGO_QTREE, GeometryHandler.SWEEP or GeometryHandler.ALGO_MERGE
      */
-    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet<Network> nets, boolean startJob, int mode)
+    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet<Network> nets, boolean startJob,
+                                                           GeometryHandler.GHMode mode)
     {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob);
 
-		Job job = new LayerCoverageJob(null, Job.Type.EXAMINE, cell, NETWORK, mode, null, geoms, null);
+		Job job = new LayerCoverageJob(null, Job.Type.EXAMINE, cell, LayerCoverage.LCMode.NETWORK, mode, null, geoms, null);
         if (startJob)
             job.startJob();
         else
@@ -111,9 +107,9 @@ public class LayerCoverageJob extends Job
 	{
         private Job parentJob;
 		private GeometryHandler tree;
-        private int mode;
+        private GeometryHandler.GHMode mode;
 		private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
-		private final int function;
+		private final LayerCoverage.LCMode function;
 		private HashMap<Layer,Set<PolyBase>> originalPolygons;
 		private Set netSet; // For network type, rest is null
         private Rectangle2D origBBox;
@@ -122,7 +118,7 @@ public class LayerCoverageJob extends Job
 		/**
 		 * Determines if function of given layer is applicable for the corresponding operation
 		 */
-		private static boolean isValidFunction(Layer.Function func, int function)
+		private static boolean isValidFunction(Layer.Function func, LayerCoverage.LCMode function)
 		{
 			switch (function)
 			{
@@ -139,7 +135,7 @@ public class LayerCoverageJob extends Job
 			}
 		}
 
-		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, int func, HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
+		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LayerCoverage.LCMode func, HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
 		{
             this.parentJob = job;
 			this.tree = t;
@@ -151,11 +147,11 @@ public class LayerCoverageJob extends Job
             origBBoxArea = (bBox != null) ? new Area(origBBox) : null;
 
             if (t instanceof PolySweepMerge)
-                mode = GeometryHandler.ALGO_SWEEP;
+                mode = GeometryHandler.GHMode.ALGO_SWEEP;
             else if (t instanceof PolyMerge)
-               mode = GeometryHandler.ALGO_MERGE;
+               mode = GeometryHandler.GHMode.ALGO_MERGE;
             else
-               mode = GeometryHandler.ALGO_QTREE;
+               mode = GeometryHandler.GHMode.ALGO_QTREE;
 		}
 
         /**
@@ -254,10 +250,10 @@ public class LayerCoverageJob extends Job
                     // empty intersection
                     if (pnode == null) continue;
 
-                    if (mode == GeometryHandler.ALGO_QTREE)
+                    if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                         pnode = new PolyQTree.PolyNode(poly);
 
-					tree.add(layer, pnode, /*false*/function==NETWORK);  // tmp fix
+					tree.add(layer, pnode, /*false*/function==LayerCoverage.LCMode.NETWORK);  // tmp fix
 				}
 			}
 			return (true);
@@ -271,7 +267,7 @@ public class LayerCoverageJob extends Job
          */
         private void storeOriginalPolygons(Layer layer, PolyBase poly)
         {
-            if (function != IMPLANT) return;
+            if (function != LayerCoverage.LCMode.IMPLANT) return;
             // For coverage implants
             Set<PolyBase> polySet = (Set<PolyBase>)originalPolygons.get(layer);
             if (polySet == null)
@@ -365,10 +361,10 @@ public class LayerCoverageJob extends Job
                 if (pnode == null)
                     continue;
 
-                if (mode == GeometryHandler.ALGO_QTREE)
+                if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                     pnode = new PolyQTree.PolyNode(pnode);
 
-				tree.add(layer, pnode, /*false*/function==NETWORK);
+				tree.add(layer, pnode, /*false*/function==LayerCoverage.LCMode.NETWORK);
 			}
 			return (true);
 		}
@@ -397,7 +393,7 @@ public class LayerCoverageJob extends Job
         }
 	}
 
-	public LayerCoverageJob(Job parentJob, Type jobType, Cell cell, int func, int mode, Highlighter highlighter,
+	public LayerCoverageJob(Job parentJob, Type jobType, Cell cell, LayerCoverage.LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)
 	{
 		super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
@@ -412,7 +408,7 @@ public class LayerCoverageJob extends Job
 		this.geoms = geoms; // Valid only for network
         this.bBox = bBox;
 
-        if (func == AREA && this.geoms == null)
+        if (func == LayerCoverage.LCMode.AREA && this.geoms == null)
             this.geoms = new LayerCoverageJob.GeometryOnNetwork(curCell, null, 1, true);
 
 		setReportExecutionFlag(true);
@@ -435,7 +431,7 @@ public class LayerCoverageJob extends Job
 					// With polygons collected, new geometries are calculated
 					if (highlighter != null) highlighter.clear();
 					boolean noNewNodes = true;
-					boolean isMerge = (function == MERGE);
+					boolean isMerge = (function == LayerCoverage.LCMode.MERGE);
                     Rectangle2D rect;
                     PolyBase polyB = null;
                     Point2D [] points;
@@ -445,12 +441,12 @@ public class LayerCoverageJob extends Job
 					{
 						Layer layer = (Layer)it.next();
 						Collection<Object> set = tree.getObjects(layer, !isMerge, true);
-                        Set polySet = (function == IMPLANT) ? (Set)originalPolygons.get(layer) : null;
+                        Set polySet = (function == LayerCoverage.LCMode.IMPLANT) ? (Set)originalPolygons.get(layer) : null;
 
 						// Ready to create new implants.
 						for (Iterator<Object> i = set.iterator(); i.hasNext(); )
 						{
-                            if (mode == GeometryHandler.ALGO_QTREE)
+                            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                             {
                                 PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
                                 points = qNode.getPoints(false);
@@ -537,7 +533,7 @@ public class LayerCoverageJob extends Job
 						// Get all objects and sum the area
 						for (Iterator<Object> i = set.iterator(); i.hasNext(); )
 						{
-                            if (mode == GeometryHandler.ALGO_QTREE)
+                            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
                             {
                                 PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
                                 layerArea += area.getArea();

@@ -137,61 +137,61 @@ public class MoCMOS extends Technology
 
 	static
 	{
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Well",          null,            12, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Well",          null,            12, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Well",   null,            12, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Well",   null,            12, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Well",          null,            10, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Well",          null,            10, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Well",   null,            10, null));
-		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Well",   null,            10, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Well",          null,            12, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Well",          null,            12, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Well",   null,            12, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Well",   null,            12, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Well",          null,            10, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Well",          null,            10, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Well",   null,            10, null));
+		theRules.add(new DRCTemplate("1.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Well",   null,            10, null));
         theRules.add(new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Well",          null,            8.6, null));
         theRules.add(new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Well",          null,            8.6, null));
         theRules.add(new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Well",   null,            8.6, null));
         theRules.add(new DRCTemplate("NW.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Well",   null,            8.6, null));
 
-		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "P-Well",         "P-Well",         18, null));
-		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "N-Well",         "N-Well",         18, null));
-        theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "P-Well",         "P-Well",         9,  null));
-		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "N-Well",         "N-Well",         9,  null));
+		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "P-Well",         "P-Well",         18, null));
+		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "N-Well",         "N-Well",         18, null));
+        theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "P-Well",         "P-Well",         9,  null));
+		theRules.add(new DRCTemplate("1.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "N-Well",         "N-Well",         9,  null));
         theRules.add(new DRCTemplate("NW.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "P-Well",         "P-Well",         14, null));
         theRules.add(new DRCTemplate("NW.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.UCONSPA,  "N-Well",         "N-Well",         14, null));
 
-		theRules.add(new DRCTemplate("1.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.CONSPA,   "P-Well",         "P-Well",         6,  null));
-		theRules.add(new DRCTemplate("1.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.CONSPA,   "N-Well",         "N-Well",         6,  null));
+		theRules.add(new DRCTemplate("1.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.CONSPA,   "P-Well",         "P-Well",         6,  null));
+		theRules.add(new DRCTemplate("1.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.CONSPA,   "N-Well",         "N-Well",         6,  null));
         theRules.add(new DRCTemplate("NW.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CONSPA,   "P-Well",         "P-Well",         6,  null));
 		theRules.add(new DRCTemplate("NW.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CONSPA,   "N-Well",         "N-Well",         6,  null));
 
 		// Valid in case of unconnected node or connected node DRCRuleType.UCONSPA -> SPACING May 21, 05
-		theRules.add(new DRCTemplate("1.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Well",         "N-Well",         0,  null));
+		theRules.add(new DRCTemplate("1.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Well",         "N-Well",         0,  null));
         theRules.add(new DRCTemplate("NW.S.0 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Well",         "N-Well",         0,  null));
 
-		theRules.add(new DRCTemplate("2.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Active",        null,            3,  null));
-		theRules.add(new DRCTemplate("2.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Active",        null,            3,  null));
+		theRules.add(new DRCTemplate("2.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Active",        null,            3,  null));
+		theRules.add(new DRCTemplate("2.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Active",        null,            3,  null));
         theRules.add(new DRCTemplate("OD.W.1/2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Active",        null,            2.2,  null));
 		theRules.add(new DRCTemplate("OD.W.1/2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Active",        null,            2.2,  null));
 
-		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active",       3,  null));
-		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "N-Active",       3,  null));
-		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null));
-		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active-Well",  3,  null));
-		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "P-Active-Well",  3,  null));
+		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active",       3,  null));
+		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "N-Active",       3,  null));
+		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null));
+		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active-Well",  3,  null));
+		theRules.add(new DRCTemplate("2.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "P-Active-Well",  3,  null));
         theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active",       2.8,  null));
 		theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "N-Active",       2.8,  null));
 		theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active-Well",  "P-Active-Well",  2.8,  null));
 		theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "P-Active-Well",  2.8,  null));
 		theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Active",       "P-Active-Well",  2.8,  null));
 
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.ASURROUND,"P-Well",         "N-Active",       6,  "N-Active"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.TRAWELL,   null,             null,            6,  null));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.ASURROUND,"N-Well",         "P-Active",       5,  "P-Active"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.ASURROUND,"P-Well",         "N-Active",       5,  "N-Active"));
-		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAWELL,   null,             null,            5,  null));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.ASURROUND,"P-Well",         "N-Active",       6,  "N-Active"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.TRAWELL,   null,             null,            6,  null));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.ASURROUND,"N-Well",         "P-Active",       5,  "P-Active"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.ASURROUND,"P-Well",         "N-Active",       5,  "N-Active"));
+		theRules.add(new DRCTemplate("2.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAWELL,   null,             null,            5,  null));
         theRules.add(new DRCTemplate("2.3 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("2.3 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"));
         theRules.add(new DRCTemplate("2.3 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
@@ -200,40 +200,40 @@ public class MoCMOS extends Technology
 
 		// Rule 2.4 not implemented
 		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might have discrepancies.
-		theRules.add(new DRCTemplate("2.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "N-Active",       4,  null));
+		theRules.add(new DRCTemplate("2.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "N-Active",       4,  null));
         theRules.add(new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Active",       "N-Active",       2.8,  null));
 
-		theRules.add(new DRCTemplate("3.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-1",   null,            2,  null));
-        theRules.add(new DRCTemplate("3.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Transistor-Poly", null,            2,  null));
+		theRules.add(new DRCTemplate("3.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-1",   null,            2,  null));
+        theRules.add(new DRCTemplate("3.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Transistor-Poly", null,            2,  null));
         theRules.add(new DRCTemplate("PO.W.1/PO.W.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-1",   null,            1.8,  null));
         theRules.add(new DRCTemplate("PO.W.1/PO.W.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Transistor-Poly", null,            1.8,  null));
 
-		theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null));
-        theRules.add(new DRCTemplate("3.2 Mosis",   DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null));
-        theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null));
-		theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null));
+		theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null));
+        theRules.add(new DRCTemplate("3.2 Mosis",   DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null));
+        theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null));
+		theRules.add(new DRCTemplate("3.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null));
         theRules.add(new DRCTemplate("PO.S.3 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null));
         theRules.add(new DRCTemplate("PO.S.3 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null));
 
-		theRules.add(new DRCTemplate("3.2a  Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","Transistor-Poly",3,  null));
-		theRules.add(new DRCTemplate("3.2a Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null));
+		theRules.add(new DRCTemplate("3.2a  Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","Transistor-Poly",3,  null));
+		theRules.add(new DRCTemplate("3.2a Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null));
         theRules.add(new DRCTemplate("PO.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","Transistor-Poly",2.5,  null));
 
-		theRules.add(new DRCTemplate("3.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.TRAPOLY,   null,             null,            2.5,null));
-		theRules.add(new DRCTemplate("3.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAPOLY,   null,             null,            2,  null));
+		theRules.add(new DRCTemplate("3.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.TRAPOLY,   null,             null,            2.5,null));
+		theRules.add(new DRCTemplate("3.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAPOLY,   null,             null,            2,  null));
         theRules.add(new DRCTemplate("PO.O.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.TRAPOLY,   null,             null,            2.2,  null));
 
-		theRules.add(new DRCTemplate("3.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.TRAACTIVE, null,             null,            4,  null));
-		theRules.add(new DRCTemplate("3.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAACTIVE, null,             null,            3,  null));
+		theRules.add(new DRCTemplate("3.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.TRAACTIVE, null,             null,            4,  null));
+		theRules.add(new DRCTemplate("3.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.TRAACTIVE, null,             null,            3,  null));
 //        theRules.add(new DRCTemplate("3.4 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.TRAACTIVE, null,             null,            3.2,  null));
 
         // TSMC PO.C.1 = 1 too but they have different names
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active",       1,  null));
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active",       1,  null));
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "N-Active",       1,  null));
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","N-Active",       1,  null));
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active-Well",  1,  null));
-		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active-Well",  1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active",       1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active",       1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "N-Active",       1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","N-Active",       1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active-Well",  1,  null));
+		theRules.add(new DRCTemplate("3.5 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active-Well",  1,  null));
 
         theRules.add(new DRCTemplate("PO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active",       1,  null));
 		theRules.add(new DRCTemplate("PO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active",       1,  null));
@@ -242,19 +242,19 @@ public class MoCMOS extends Technology
 		theRules.add(new DRCTemplate("PO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-1",  "P-Active-Well",  1,  null));
 		theRules.add(new DRCTemplate("PO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Transistor-Poly","P-Active-Well",  1,  null));
 
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Select",        null,            4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Select",        null,            4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Select", null,            4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Select", null,            4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "P-Select",       4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "N-Select",       4,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Select",        null,            2,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Select",        null,            2,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Select", null,            2,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Select", null,            2,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "P-Select",       2,  null));
-		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "N-Select",       2,  null));
-        theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "N-Select",       0,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Select",        null,            4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Select",        null,            4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Select", null,            4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Select", null,            4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "P-Select",       4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "N-Select",       4,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Select",        null,            2,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Select",        null,            2,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Select", null,            2,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-N-Select", null,            2,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "P-Select",       2,  null));
+		theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select",       "N-Select",       2,  null));
+        theRules.add(new DRCTemplate("4.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select",       "N-Select",       0,  null));
         theRules.add(new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "P-Select",        null,            4.4,  null));
 		theRules.add(new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "N-Select",        null,            4.4,  null));
 		theRules.add(new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Pseudo-P-Select", null,            4.4,  null));
@@ -265,101 +265,101 @@ public class MoCMOS extends Technology
         theRules.add(new DRCTemplate("PP/NP.C.1 4 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "N-Select", "P-Active",              2.6,  "N-Select-Metal-1-N-Well-Con"));
         theRules.add(new DRCTemplate("PP/NP.C.1 4 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "P-Select", "N-Active",             2.6,  "P-Select-Metal-1-P-Well-Con"));
 
-		theRules.add(new DRCTemplate("5.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Poly-Cut",        null,            2,  null));
+		theRules.add(new DRCTemplate("5.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Poly-Cut",        null,            2,  null));
         theRules.add(new DRCTemplate("CO.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Poly-Cut",        null,            2.2,  null));
 
-		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "Polysilicon-1",  "Metal-1",        0,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "Polysilicon-1",  "Metal-1",        0,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-Polysilicon-1-Con"));
         theRules.add(new DRCTemplate("PolyCon NodeSize TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"));
 		theRules.add(new DRCTemplate("PolyCon Surround TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"));
         theRules.add(new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.4,"Metal-1-Polysilicon-1-Con"));
 
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
-        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       4,  null));
-		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null));
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"));
-        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       2,  null));
-		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       2,  null));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
+        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       4,  null));
+		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"));
+        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       2,  null));
+		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       2,  null));
         // Mosis Submicron
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"));
-        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"));
-		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       3,  null));
-		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       3,  null));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"));
+        theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"));
+		theRules.add(new DRCTemplate("5.3 Mosis",     DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       3,  null));
+		theRules.add(new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       3,  null));
         // TSMC Submicron
         theRules.add(new DRCTemplate("CO.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2.5,  "Metal-1-Polysilicon-1-Con"));
         theRules.add(new DRCTemplate("CO.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2.8,  "Metal-1-Polysilicon-1-Con"));
 		theRules.add(new DRCTemplate("CO.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Poly-Cut",       2.5,  null));
 		theRules.add(new DRCTemplate("CO.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       2.5,  null));
 
-		theRules.add(new DRCTemplate("5.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Transistor-Poly", 2,  null));
+		theRules.add(new DRCTemplate("5.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Transistor-Poly", 2,  null));
         theRules.add(new DRCTemplate("CO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Transistor-Poly", 1.6,  null));
 
-		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  5,  null));
-		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Transistor-Poly",5,  null));
-		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  4,  null));
-		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Transistor-Poly",4,  null));
+		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  5,  null));
+		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Transistor-Poly",5,  null));
+		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  4,  null));
+		theRules.add(new DRCTemplate("5.5b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Poly-Cut",       "Transistor-Poly",4,  null));
 
-		theRules.add(new DRCTemplate("5.6b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "P-Active",       2,  null));
-		theRules.add(new DRCTemplate("5.6b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "N-Active",       2,  null));
+		theRules.add(new DRCTemplate("5.6b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "P-Active",       2,  null));
+		theRules.add(new DRCTemplate("5.6b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "N-Active",       2,  null));
 
-		theRules.add(new DRCTemplate("5.7b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACINGM, "Poly-Cut",       "P-Active",       3,  null));
-		theRules.add(new DRCTemplate("5.7b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACINGM, "Poly-Cut",       "N-Active",       3,  null));
+		theRules.add(new DRCTemplate("5.7b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACINGM, "Poly-Cut",       "P-Active",       3,  null));
+		theRules.add(new DRCTemplate("5.7b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACINGM, "Poly-Cut",       "N-Active",       3,  null));
 
-		theRules.add(new DRCTemplate("6.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Active-Cut",      null,            2,  null));
+		theRules.add(new DRCTemplate("6.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Active-Cut",      null,            2,  null));
         theRules.add(new DRCTemplate("CO.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Active-Cut",      null,            2.2,  null));
 
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"));
-        theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Active",       "Metal-1",        0,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Active",       "Metal-1",        0,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("ActCon NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "P-Active",        6,"Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("PP/NP.E.1,PP/NP.C.3,PP/NP.E.4 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active",       1.8,  "Metal-1-P-Active-Con"));
         theRules.add(new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.4,"Metal-1-P-Active-Con"));
 
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|   DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|   DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|   DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|   DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("ActCon NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("ActCon Surround TSMC", DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "N-Active",        6, "Metal-1-N-Active-Con"));
         theRules.add(new DRCTemplate("PP/NP.E.1,PP.C.3,PP/NP.E.4 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       1.8,  "Metal-1-N-Active-Con")); // PP.C.3&PP/NP.E.4=1.8 PP/NP.C.1=2.6
         theRules.add(new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.4,"Metal-1-N-Active-Con"));
 
-		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"));
-        theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-P-Well-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"));
+        theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-P-Well-Con"));
         theRules.add(new DRCTemplate("WellCon NodeSize TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"));
         theRules.add(new DRCTemplate("WellCon Surround TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"));
 //		theRules.add(new DRCTemplate("6.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "P-Active-Well",  "Metal-1",        0.1,"Metal-1-P-Well-Con"));
@@ -370,16 +370,16 @@ public class MoCMOS extends Technology
         theRules.add(new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2.8,"Metal-1-P-Well-Con"));
 
 
-		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"));
-        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"));
-        theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"));
-		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"));
+        theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NAC.mode(),       DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"));
+        theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"));
+		theRules.add(new DRCTemplate("6.2b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            1,  "Metal-1-N-Well-Con"));
         theRules.add(new DRCTemplate("WellCon NodeSize TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"));
         theRules.add(new DRCTemplate("WellCon Surround TSM",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"));
 		theRules.add(new DRCTemplate("PP/NP.C.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.SURROUND, "N-Select",       "N-Active",       1,  "Metal-1-N-Well-Con"));
@@ -388,22 +388,22 @@ public class MoCMOS extends Technology
         theRules.add(new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2.8,"Metal-1-N-Well-Con"));
         theRules.add(new DRCTemplate("CO.S.2 TSMC",        DRCTemplate.DRCMode.TSMC.mode(),       DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2.8,"Metal-1-N-Well-Con"));
 
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-P-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     4,  null));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-P-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     2,  null));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            4,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            4,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     4,  null));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     2,  null));
         // Mosis
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-P-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-P-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-N-Active-Con"));
-        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-N-Active-Con"));
-		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     3,  null));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-P-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-P-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            3,  "Metal-1-N-Active-Con"));
+        theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            3,  "Metal-1-N-Active-Con"));
+		theRules.add(new DRCTemplate("6.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     3,  null));
         // TSMC
 		theRules.add(new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSPA,    null,             null,            2.8,  "Metal-1-P-Active-Con")); // Decide to put CO.S.2 to avoid misaligments
 		theRules.add(new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2.8,  "Metal-1-P-Active-Con"));
@@ -411,17 +411,17 @@ public class MoCMOS extends Technology
         theRules.add(new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSPA2D,    null,             null,            2.8,  "Metal-1-N-Active-Con"));
 		theRules.add(new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Active-Cut",     2.8,  null));
 
-        theRules.add(new DRCTemplate("6.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null));
+        theRules.add(new DRCTemplate("6.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null));
         theRules.add(new DRCTemplate("CO.C.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Transistor-Poly", 1.6,  null));
 
-		theRules.add(new DRCTemplate("6.5b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Active-Cut",     "P-Active",       5,  null));
-		theRules.add(new DRCTemplate("6.5b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Active-Cut",     "N-Active",       5,  null));
+		theRules.add(new DRCTemplate("6.5b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Active-Cut",     "P-Active",       5,  null));
+		theRules.add(new DRCTemplate("6.5b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.UCONSPA,  "Active-Cut",     "N-Active",       5,  null));
 
-		theRules.add(new DRCTemplate("6.6b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Polysilicon-1",  2,  null));
+		theRules.add(new DRCTemplate("6.6b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Polysilicon-1",  2,  null));
 		// 6.7b is not implemented due to complexity. See manual
-		theRules.add(new DRCTemplate("6.8b Mosis",       DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null));
+		theRules.add(new DRCTemplate("6.8b Mosis",       DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.AC.mode(),        DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null));
 
-		theRules.add(new DRCTemplate("7.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-1",         null,            3,  null));
+		theRules.add(new DRCTemplate("7.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-1",         null,            3,  null));
         theRules.add(new DRCTemplate("M1.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-1",         null,            2.3,  null));
         theRules.add(new DRCTemplate("M1.A.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-1",         null,            20.2,  null));  // TSMC page 39
         theRules.add(new DRCTemplate("Mx.A.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINAREA,   "Metal-2",         null,            20.2,  null));  // TSMC page 39
@@ -436,53 +436,53 @@ public class MoCMOS extends Technology
 //        theRules.add(new DRCTemplate("AMS.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.SLOTSIZE,   "Metal-5",         null,            350,  null));  // TSMC page 78
 //        theRules.add(new DRCTemplate("AMS.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.SLOTSIZE,   "Metal-6",         null,            350,  null));  // TSMC page 78
 
-		theRules.add(new DRCTemplate("7.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-1",        "Metal-1",        3,  null));
-        theRules.add(new DRCTemplate("7.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-1",        "Metal-1",        2,  null));
+		theRules.add(new DRCTemplate("7.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-1",        "Metal-1",        3,  null));
+        theRules.add(new DRCTemplate("7.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-1",        "Metal-1",        2,  null));
         theRules.add(new DRCTemplate("M1.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-1",        "Metal-1",        2.3,  null));
 
-		theRules.add(new DRCTemplate("7.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, -1));
-		theRules.add(new DRCTemplate("7.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, -1));
+		theRules.add(new DRCTemplate("7.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, -1));
+		theRules.add(new DRCTemplate("7.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, -1));
         theRules.add(new DRCTemplate("M1.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, -1));
 
-		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"));
-		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"));
-		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-1-Metal-2-Con"));
-        theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"));
+		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"));
+		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"));
+		theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-1-Metal-2-Con"));
+        theRules.add(new DRCTemplate("8.1 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2.6, "Metal-1-Metal-2-Con"));
         theRules.add(new DRCTemplate("M12Con NodeSize TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"));
 
-		theRules.add(new DRCTemplate("8.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via1",           "Via1",           3,  null));
+		theRules.add(new DRCTemplate("8.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via1",           "Via1",           3,  null));
         theRules.add(new DRCTemplate("VIAx.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via1",           "Via1",           2.6,  null));
 
-		theRules.add(new DRCTemplate("8.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-1",         null,            1, "Metal-1-Metal-2-Con"));
+		theRules.add(new DRCTemplate("8.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-1",         null,            1, "Metal-1-Metal-2-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-1",         null,            0.7, "Metal-1-Metal-2-Con"));
 
-		theRules.add(new DRCTemplate("8.4 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Via1",           2,  null));
-		theRules.add(new DRCTemplate("8.4 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Via1",           2,  null));
+		theRules.add(new DRCTemplate("8.4 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Poly-Cut",       "Via1",           2,  null));
+		theRules.add(new DRCTemplate("8.4 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Active-Cut",     "Via1",           2,  null));
 
-		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Polysilicon-1",  2,  null));
-		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Transistor-Poly",2,  null));
-		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Polysilicon-2",  2,  null));
-		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "P-Active",       2,  null));
-		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "N-Active",       2,  null));
+		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Polysilicon-1",  2,  null));
+		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Transistor-Poly",2,  null));
+		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "Polysilicon-2",  2,  null));
+		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "P-Active",       2,  null));
+		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "N-Active",       2,  null));
 
-		theRules.add(new DRCTemplate("9.1",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            3,  null));
+		theRules.add(new DRCTemplate("9.1",  DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            3,  null));
         theRules.add(new DRCTemplate("Mx.W.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            2.8,  null));
 
-		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        4,  null));
-		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        3,  null));
+		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        4,  null));
+		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        3,  null));
         theRules.add(new DRCTemplate("Mx.S.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        2.8,  null));
 
-		theRules.add(new DRCTemplate("9.3 Mosis",  DRCTemplate.DRCMode.MOSIS.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"));
+		theRules.add(new DRCTemplate("9.3 Mosis",  DRCTemplate.DRCMode.Mosis.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMCC",  DRCTemplate.DRCMode.TSMC.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            0.7, "Metal-1-Metal-2-Con"));
 
-		theRules.add(new DRCTemplate("9.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, -1));
-		theRules.add(new DRCTemplate("9.4 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, -1));
+		theRules.add(new DRCTemplate("9.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, -1));
+		theRules.add(new DRCTemplate("9.4 Mosis",  DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, -1));
         theRules.add(new DRCTemplate("Mx.S.2 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, -1));
 
 
-		theRules.add(new DRCTemplate("11.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-2",   null,            7,  null));
-		theRules.add(new DRCTemplate("11.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-2",   null,            3,  null));
+		theRules.add(new DRCTemplate("11.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-2",   null,            7,  null));
+		theRules.add(new DRCTemplate("11.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Polysilicon-2",   null,            3,  null));
 
 		theRules.add(new DRCTemplate("11.2 Mosis", DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SPACING,  "Polysilicon-2",  "Polysilicon-2",  3,  null));
 
@@ -493,155 +493,155 @@ public class MoCMOS extends Technology
 		theRules.add(new DRCTemplate("11.3 Mosis", DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            9,  "Metal-1-Polysilicon-1-2-Con"));
 		theRules.add(new DRCTemplate("11.3 Mosis", DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSUR,    null,             null,            3.5,"Metal-1-Polysilicon-1-2-Con"));
 
-		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3,  "Metal-2-Metal-3-Con"));
-		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via2",            null,            3,  null));
-		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-2-Metal-3-Con"));
-		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2,  "Metal-2-Metal-3-Con"));
-        theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via2",            null,            2,  null));
-        theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M23.mode(),   DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6,  "Metal-2-Metal-3-Con"));
-		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3,  "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via2",            null,            3,  null));
+		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5,  "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2,  "Metal-2-Metal-3-Con"));
+        theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via2",            null,            2,  null));
+        theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M23.mode(),   DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6,  "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("14.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2.6,  "Metal-2-Metal-3-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via2",            null,            2.6,  null));
         theRules.add(new DRCTemplate("M2M3 NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(),  DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"));
 
-		theRules.add(new DRCTemplate("14.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via2",           "Via2",           3,  null));
+		theRules.add(new DRCTemplate("14.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via2",           "Via2",           3,  null));
         theRules.add(new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via2",           "Via2",           2.6,  null));
 
-		theRules.add(new DRCTemplate("14.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            1,  "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("14.3 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            1,  "Metal-2-Metal-3-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-2",         null,            0.7,  "Metal-2-Metal-3-Con"));
 
-		theRules.add(new DRCTemplate("14.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Via1",           "Via2",           2,  null));  /// ?? might need attention
+		theRules.add(new DRCTemplate("14.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACING,  "Via1",           "Via2",           2,  null));  /// ?? might need attention
 
-		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()| DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            6,  null));
-		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()| DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            5,  null));
-		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()| DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
-		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()| DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
-		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
+		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()| DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            6,  null));
+		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()| DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            5,  null));
+		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()| DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
+		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()| DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
+		theRules.add(new DRCTemplate("15.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            3,  null));
         theRules.add(new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),  DRCTemplate.DRCRuleType.MINWID,   "Metal-3",         null,            2.8,  null));
 
-		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        4,  null));
-		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        3,  null));
-        theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        4,  null));
-		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        3,  null));
+		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        4,  null));
+		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        3,  null));
+        theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        4,  null));
+		theRules.add(new DRCTemplate("15.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        3,  null));
         theRules.add(new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-3",        "Metal-3",        2.8,  null));
 
-		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"));
-		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|    DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"));
-		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|    DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|    DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"));
+		theRules.add(new DRCTemplate("15.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode()|    DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),  DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            0.7, "Metal-2-Metal-3-Con"));
 
-		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1));
-		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1));
-		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1));
-		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1));
+		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1));
+		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1));
+		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M3.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1));
+		theRules.add(new DRCTemplate("15.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode()|DRCTemplate.DRCMode.M456.mode(),  DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1));
         theRules.add(new DRCTemplate("Mx.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),  DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1));
 
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via3",            null,            3,  null));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-3-Metal-4-Con"));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-3-Metal-4-Con"));
-        theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via3",            null,            2,  null));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"));
-		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via3",            null,            3,  null));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-3-Metal-4-Con"));
+        theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via3",            null,            2,  null));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2.6, "Metal-3-Metal-4-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via3",            null,            2.6,  null));
         theRules.add(new DRCTemplate("M34 NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(),   DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"));
 
-		theRules.add(new DRCTemplate("21.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via3",           "Via3",           3,  null));
+		theRules.add(new DRCTemplate("21.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via3",           "Via3",           3,  null));
         theRules.add(new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via3",           "Via3",           2.6,  null));
 
-		theRules.add(new DRCTemplate("21.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("21.3 Mosis", DRCTemplate.DRCMode.Mosis.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            1, "Metal-3-Metal-4-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-3",         null,            0.7, "Metal-3-Metal-4-Con"));
 
-		theRules.add(new DRCTemplate("22.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-4",         null,            6,  null));
-		theRules.add(new DRCTemplate("22.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.MINWID,   "Metal-4",         null,            3,  null));
+		theRules.add(new DRCTemplate("22.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-4",         null,            6,  null));
+		theRules.add(new DRCTemplate("22.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.MINWID,   "Metal-4",         null,            3,  null));
         theRules.add(new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),   DRCTemplate.DRCRuleType.MINWID,   "Metal-4",         null,            2.8,  null));
 
-		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        6,  null));
-		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        4,  null));
-		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        3,  null));
+		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        6,  null));
+		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        4,  null));
+		theRules.add(new DRCTemplate("22.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        3,  null));
         theRules.add(new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),   DRCTemplate.DRCRuleType.SPACING,  "Metal-4",        "Metal-4",        2.8,  null));
 
-		theRules.add(new DRCTemplate("22.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"));
-		theRules.add(new DRCTemplate("22.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("22.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"));
+		theRules.add(new DRCTemplate("22.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),   DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            0.7, "Metal-3-Metal-4-Con"));
 
-		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, -1));
-		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, -1));
-		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1));
-        theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1));
+		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M4.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, -1));
+		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, -1));
+		theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1));
+        theRules.add(new DRCTemplate("22.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M56.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1));
         theRules.add(new DRCTemplate("Mx.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),   DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1));
 
-		theRules.add(new DRCTemplate("24.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,  "Thick-Active",    null,            4,  null));
-		theRules.add(new DRCTemplate("24.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING, "Thick-Active",   "Thick-Active",   4, null));
+		theRules.add(new DRCTemplate("24.1 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,  "Thick-Active",    null,            4,  null));
+		theRules.add(new DRCTemplate("24.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING, "Thick-Active",   "Thick-Active",   4, null));
         theRules.add(new DRCTemplate("OD2.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,  "Thick-Active",    null,            4,  null)); // No OD2.W.1 found so using an extension function
 		theRules.add(new DRCTemplate("OD2.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING, "Thick-Active",   "Thick-Active",   4.5, null));
 
-		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"));
-		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            3,  null));
-		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-4-Metal-5-Con"));
-        theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            2,  null));
-        theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"));
-		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"));
-		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            3,  null));
+		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2, "Metal-4-Metal-5-Con"));
+        theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            2,  null));
+        theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("25.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"));
         theRules.add(new DRCTemplate("M45 NodeSize TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"));
 		theRules.add(new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            2.6, "Metal-4-Metal-5-Con"));
         theRules.add(new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via4",            null,            2.6,  null));
 
 		// Bug even in C-Electric It was DRCRuleType.SPACINGW originally
-		theRules.add(new DRCTemplate("25.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(),               DRCTemplate.DRCRuleType.SPACING, "Via4",           "Via4",           3, null));
+		theRules.add(new DRCTemplate("25.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(),               DRCTemplate.DRCRuleType.SPACING, "Via4",           "Via4",           3, null));
         theRules.add(new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),               DRCTemplate.DRCRuleType.SPACING, "Via4",           "Via4",           2.6, null));
 
-		theRules.add(new DRCTemplate("25.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("25.3 Mosis", DRCTemplate.DRCMode.Mosis.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),               DRCTemplate.DRCRuleType.VIASUR,   "Metal-4",         null,            0.7, "Metal-4-Metal-5-Con"));
 
-		theRules.add(new DRCTemplate("26.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-5",         null,            4,  null));
-		theRules.add(new DRCTemplate("26.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-5",         null,            3,  null));
+		theRules.add(new DRCTemplate("26.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-5",         null,            4,  null));
+		theRules.add(new DRCTemplate("26.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-5",         null,            3,  null));
         theRules.add(new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),    DRCTemplate.DRCRuleType.MINWID,   "Metal-5",         null,            2.8,  null));
 
-		theRules.add(new DRCTemplate("26.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        4,  null));
-		theRules.add(new DRCTemplate("26.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        4,  null));
-		theRules.add(new DRCTemplate("26.2 MOSIS", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        3,  null));
+		theRules.add(new DRCTemplate("26.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        4,  null));
+		theRules.add(new DRCTemplate("26.2 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        4,  null));
+		theRules.add(new DRCTemplate("26.2 MOSIS", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        3,  null));
         theRules.add(new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(),    DRCTemplate.DRCRuleType.SPACING,  "Metal-5",        "Metal-5",        2.8,  null));
 
-		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"));
-		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"));
-		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M6.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M5.mode(),    DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"));
+		theRules.add(new DRCTemplate("26.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M6.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"));
         theRules.add(new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"));
 
-		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.M5.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1));
-		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1));
-		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, -1));
+		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.M5.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1));
+		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1));
+		theRules.add(new DRCTemplate("26.4 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.M6.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, -1));
         theRules.add(new DRCTemplate("Mx.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(),    DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, -1));
 
 		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"));
 		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via5",            null,            4,  null));
 		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            8, "Metal-5-Metal-6-Con"));
-		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-5-Metal-6-Con"));
-		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via5",            null,            3,  null));
+		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3, "Metal-5-Metal-6-Con"));
+		theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via5",            null,            3,  null));
         theRules.add(new DRCTemplate("29.1 Mosis", DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-5-Metal-6-Con"));
         theRules.add(new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.CUTSIZE,   null,             null,            3.6, "Metal-5-Metal-6-Con"));
 		theRules.add(new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Via5",            null,            3.6,  null));
         theRules.add(new DRCTemplate("M56Con NodeSize", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.NODSIZ,    null,             null,            5, "Metal-5-Metal-6-Con"));
 
-		theRules.add(new DRCTemplate("29.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via5",           "Via5",           4,  null));
+		theRules.add(new DRCTemplate("29.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via5",           "Via5",           4,  null));
         theRules.add(new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Via5",           "Via5",           3.6,  null));
 
-		theRules.add(new DRCTemplate("29.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"));
+		theRules.add(new DRCTemplate("29.3 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"));
         theRules.add(new DRCTemplate("M6.E.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-5",         null,            0.9, "Metal-5-Metal-6-Con"));
 
-		theRules.add(new DRCTemplate("30.1 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-6",         null,            5,  null));
+		theRules.add(new DRCTemplate("30.1 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-6",         null,            5,  null));
         theRules.add(new DRCTemplate("M6.W.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-6",         null,            4.4,  null));
 
-		theRules.add(new DRCTemplate("30.2 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-6",        "Metal-6",        5,  null));
+		theRules.add(new DRCTemplate("30.2 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-6",        "Metal-6",        5,  null));
         theRules.add(new DRCTemplate("M6.S.1 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-6",        "Metal-6",        4.6,  null));
 
-		theRules.add(new DRCTemplate("30.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"));
-		theRules.add(new DRCTemplate("30.3 Mosis", DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"));
+		theRules.add(new DRCTemplate("30.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"));
+		theRules.add(new DRCTemplate("30.3 Mosis", DRCTemplate.DRCMode.Mosis.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"));
         theRules.add(new DRCTemplate("M6.E.1 TSMC", DRCTemplate.DRCMode.TSMC.mode()|DRCTemplate.DRCMode.SU.mode(), DRCTemplate.DRCRuleType.VIASUR,   "Metal-6",         null,            0.9, "Metal-5-Metal-6-Con"));
 
-		theRules.add(new DRCTemplate("30.4 Mosis", DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, -1));
+		theRules.add(new DRCTemplate("30.4 Mosis", DRCTemplate.DRCMode.Mosis.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, -1));
         theRules.add(new DRCTemplate("M6.S.2 TSMC", DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, -1));
 	};
 
@@ -666,9 +666,9 @@ public class MoCMOS extends Technology
 
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
 
-        foundries.add(DRCTemplate.DRCMode.MOSIS);
+        foundries.add(DRCTemplate.DRCMode.Mosis);
         foundries.add(DRCTemplate.DRCMode.TSMC);
-        setFactorySelecedFound(DRCTemplate.DRCMode.MOSIS.name());  // default
+        setFactorySelecedFound(DRCTemplate.DRCMode.Mosis.name());  // default
 
 		//**************************************** LAYERS ****************************************
         Layer[] metalLayers = new Layer[6]; // 1 -> 6
@@ -1488,74 +1488,74 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The GDS names
-		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-1 Mosis
+		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", DRCTemplate.DRCMode.Mosis.name());				// Metal-1 Mosis
         metalLayers[0].setFactoryGDSLayer("16, 40p, 40t", DRCTemplate.DRCMode.TSMC.name());				// Metal-1 TSMC
-		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-2
+		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", DRCTemplate.DRCMode.Mosis.name());				// Metal-2
         metalLayers[1].setFactoryGDSLayer("18, 41p, 41t", DRCTemplate.DRCMode.TSMC.name());				// Metal-2
-		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-3
+		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", DRCTemplate.DRCMode.Mosis.name());				// Metal-3
         metalLayers[2].setFactoryGDSLayer("28, 42p, 42t", DRCTemplate.DRCMode.TSMC.name());				// Metal-3
-		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-4
+		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", DRCTemplate.DRCMode.Mosis.name());				// Metal-4
         metalLayers[3].setFactoryGDSLayer("31, 43p, 43t", DRCTemplate.DRCMode.TSMC.name());
-		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-5
+		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", DRCTemplate.DRCMode.Mosis.name());				// Metal-5
         metalLayers[4].setFactoryGDSLayer("33, 44p, 44t", DRCTemplate.DRCMode.TSMC.name());				// Metal-5
-		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", DRCTemplate.DRCMode.MOSIS.name());				// Metal-6
+		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", DRCTemplate.DRCMode.Mosis.name());				// Metal-6
         metalLayers[5].setFactoryGDSLayer("38, 45p, 45t", DRCTemplate.DRCMode.TSMC.name());				// Metal-6
-		poly1_lay.setFactoryGDSLayer("46, 77p, 77t", DRCTemplate.DRCMode.MOSIS.name());					// Polysilicon-1
+		poly1_lay.setFactoryGDSLayer("46, 77p, 77t", DRCTemplate.DRCMode.Mosis.name());					// Polysilicon-1
         poly1_lay.setFactoryGDSLayer("13, 47p, 47t", DRCTemplate.DRCMode.TSMC.name());					// Polysilicon-1
-		transistorPoly_lay.setFactoryGDSLayer("46", DRCTemplate.DRCMode.MOSIS.name());		// Transistor-Poly
+		transistorPoly_lay.setFactoryGDSLayer("46", DRCTemplate.DRCMode.Mosis.name());		// Transistor-Poly
         transistorPoly_lay.setFactoryGDSLayer("13", DRCTemplate.DRCMode.TSMC.name());		// Transistor-Poly
-		poly2_lay.setFactoryGDSLayer("56", DRCTemplate.DRCMode.MOSIS.name());					// Polysilicon-2
-		activeLayers[P_TYPE].setFactoryGDSLayer("43", DRCTemplate.DRCMode.MOSIS.name());				// P-Active
+		poly2_lay.setFactoryGDSLayer("56", DRCTemplate.DRCMode.Mosis.name());					// Polysilicon-2
+		activeLayers[P_TYPE].setFactoryGDSLayer("43", DRCTemplate.DRCMode.Mosis.name());				// P-Active
         activeLayers[P_TYPE].setFactoryGDSLayer("3", DRCTemplate.DRCMode.TSMC.name());				// P-Active
-		activeLayers[N_TYPE].setFactoryGDSLayer("43", DRCTemplate.DRCMode.MOSIS.name());				// N-Active
+		activeLayers[N_TYPE].setFactoryGDSLayer("43", DRCTemplate.DRCMode.Mosis.name());				// N-Active
         activeLayers[N_TYPE].setFactoryGDSLayer("3", DRCTemplate.DRCMode.TSMC.name());				// N-Active
-		pActiveWell_lay.setFactoryGDSLayer("43", DRCTemplate.DRCMode.MOSIS.name());			// P-Active-Well
+		pActiveWell_lay.setFactoryGDSLayer("43", DRCTemplate.DRCMode.Mosis.name());			// P-Active-Well
         pActiveWell_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.TSMC.name());			// P-Active-Well
-		selectLayers[P_TYPE].setFactoryGDSLayer("44", DRCTemplate.DRCMode.MOSIS.name());				// P-Select
+		selectLayers[P_TYPE].setFactoryGDSLayer("44", DRCTemplate.DRCMode.Mosis.name());				// P-Select
         selectLayers[P_TYPE].setFactoryGDSLayer("7", DRCTemplate.DRCMode.TSMC.name());				// P-Select
-		selectLayers[N_TYPE].setFactoryGDSLayer("45", DRCTemplate.DRCMode.MOSIS.name());				// N-Select
+		selectLayers[N_TYPE].setFactoryGDSLayer("45", DRCTemplate.DRCMode.Mosis.name());				// N-Select
         selectLayers[N_TYPE].setFactoryGDSLayer("8", DRCTemplate.DRCMode.TSMC.name());				// N-Select
-		wellLayers[P_TYPE].setFactoryGDSLayer("41", DRCTemplate.DRCMode.MOSIS.name());					// P-Well
+		wellLayers[P_TYPE].setFactoryGDSLayer("41", DRCTemplate.DRCMode.Mosis.name());					// P-Well
         wellLayers[P_TYPE].setFactoryGDSLayer("41", DRCTemplate.DRCMode.TSMC.name());					// P-Well
-		wellLayers[N_TYPE].setFactoryGDSLayer("42", DRCTemplate.DRCMode.MOSIS.name());					// N-Well
+		wellLayers[N_TYPE].setFactoryGDSLayer("42", DRCTemplate.DRCMode.Mosis.name());					// N-Well
         wellLayers[N_TYPE].setFactoryGDSLayer("2", DRCTemplate.DRCMode.TSMC.name());					// N-Well
-		polyCutLayer.setFactoryGDSLayer("25", DRCTemplate.DRCMode.MOSIS.name());				// Poly-Cut
+		polyCutLayer.setFactoryGDSLayer("25", DRCTemplate.DRCMode.Mosis.name());				// Poly-Cut
         polyCutLayer.setFactoryGDSLayer("15", DRCTemplate.DRCMode.TSMC.name());				// Poly-Cut
-		activeCut_lay.setFactoryGDSLayer("25", DRCTemplate.DRCMode.MOSIS.name());				// Active-Cut
+		activeCut_lay.setFactoryGDSLayer("25", DRCTemplate.DRCMode.Mosis.name());				// Active-Cut
 		activeCut_lay.setFactoryGDSLayer("15", DRCTemplate.DRCMode.TSMC.name());				// Active-Cut
-		via1_lay.setFactoryGDSLayer("50", DRCTemplate.DRCMode.MOSIS.name());					// Via-1
+		via1_lay.setFactoryGDSLayer("50", DRCTemplate.DRCMode.Mosis.name());					// Via-1
         via1_lay.setFactoryGDSLayer("17", DRCTemplate.DRCMode.TSMC.name());					// Via-1
-		via2_lay.setFactoryGDSLayer("61", DRCTemplate.DRCMode.MOSIS.name());					// Via-2
+		via2_lay.setFactoryGDSLayer("61", DRCTemplate.DRCMode.Mosis.name());					// Via-2
         via2_lay.setFactoryGDSLayer("27", DRCTemplate.DRCMode.TSMC.name());					// Via-2
-		via3_lay.setFactoryGDSLayer("30", DRCTemplate.DRCMode.MOSIS.name());					// Via-3
+		via3_lay.setFactoryGDSLayer("30", DRCTemplate.DRCMode.Mosis.name());					// Via-3
         via3_lay.setFactoryGDSLayer("29", DRCTemplate.DRCMode.TSMC.name());					// Via-3
-		via4_lay.setFactoryGDSLayer("32", DRCTemplate.DRCMode.MOSIS.name());					// Via-4
+		via4_lay.setFactoryGDSLayer("32", DRCTemplate.DRCMode.Mosis.name());					// Via-4
         via4_lay.setFactoryGDSLayer("32", DRCTemplate.DRCMode.TSMC.name());					// Via-4
-		via5_lay.setFactoryGDSLayer("36", DRCTemplate.DRCMode.MOSIS.name());					// Via-5
+		via5_lay.setFactoryGDSLayer("36", DRCTemplate.DRCMode.Mosis.name());					// Via-5
         via5_lay.setFactoryGDSLayer("39", DRCTemplate.DRCMode.TSMC.name());					// Via-5
-		passivation_lay.setFactoryGDSLayer("52", DRCTemplate.DRCMode.MOSIS.name());			// Passivation
+		passivation_lay.setFactoryGDSLayer("52", DRCTemplate.DRCMode.Mosis.name());			// Passivation
         passivation_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.TSMC.name());			// Passivation
-		polyCap_lay.setFactoryGDSLayer("28", DRCTemplate.DRCMode.MOSIS.name());				// Poly-Cap
+		polyCap_lay.setFactoryGDSLayer("28", DRCTemplate.DRCMode.Mosis.name());				// Poly-Cap
         polyCap_lay.setFactoryGDSLayer("28", DRCTemplate.DRCMode.TSMC.name());				// Poly-Cap
-		silicideBlock_lay.setFactoryGDSLayer("29", DRCTemplate.DRCMode.MOSIS.name());			// Silicide-Block
+		silicideBlock_lay.setFactoryGDSLayer("29", DRCTemplate.DRCMode.Mosis.name());			// Silicide-Block
         silicideBlock_lay.setFactoryGDSLayer("34", DRCTemplate.DRCMode.TSMC.name());			// Silicide-Block
-		thickActive_lay.setFactoryGDSLayer("60", DRCTemplate.DRCMode.MOSIS.name());			// Thick-Active
+		thickActive_lay.setFactoryGDSLayer("60", DRCTemplate.DRCMode.Mosis.name());			// Thick-Active
         thickActive_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.TSMC.name());			// Thick-Active
-		pseudoMetal1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());				// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());				// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-P-Active
-		pseudoNActive_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-P-Select
-		pseudoNSelect_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());			// Pseudo-N-Select
-		pseudoPWell_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());				// Pseudo-P-Well
-		pseudoNWell_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());				// Pseudo-N-Well
-		padFrame_lay.setFactoryGDSLayer("26", DRCTemplate.DRCMode.MOSIS.name());				// Pad-Frame
+		pseudoMetal1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-1
+		pseudoMetal2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-2
+		pseudoMetal3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-3
+		pseudoMetal4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-4
+		pseudoMetal5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-5
+		pseudoMetal6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-Metal-6
+		pseudoPoly1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());				// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());				// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-P-Active
+		pseudoNActive_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-N-Active
+		pseudoPSelect_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-P-Select
+		pseudoNSelect_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());			// Pseudo-N-Select
+		pseudoPWell_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());				// Pseudo-P-Well
+		pseudoNWell_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());				// Pseudo-N-Well
+		padFrame_lay.setFactoryGDSLayer("26", DRCTemplate.DRCMode.Mosis.name());				// Pad-Frame
         padFrame_lay.setFactoryGDSLayer("26", DRCTemplate.DRCMode.TSMC.name());				// Pad-Frame
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1
@@ -3836,9 +3836,9 @@ public class MoCMOS extends Technology
                 {
                     // One of the 2 is present. Absence means rule is valid for both
 
-                    if ((when&DRCTemplate.DRCMode.MOSIS.mode()) != 0 && foundryMode == DRCTemplate.DRCMode.TSMC)
+                    if ((when&DRCTemplate.DRCMode.Mosis.mode()) != 0 && foundryMode == DRCTemplate.DRCMode.TSMC)
                         continue;
-                    else if ((when&DRCTemplate.DRCMode.TSMC.mode()) != 0 && foundryMode == DRCTemplate.DRCMode.MOSIS)
+                    else if ((when&DRCTemplate.DRCMode.TSMC.mode()) != 0 && foundryMode == DRCTemplate.DRCMode.Mosis)
                         continue; // skipping this rule
                 }
 

@@ -989,20 +989,20 @@ public class Layer
 	public void setFactoryAreaCoverage(double area)
 	{
 		this.areaCoverage = area;
-		getDoublePref("AreaCoverage", areaCoveragePrefs, this.areaCoverage).setDouble(this.areaCoverage);
+		getDoublePref("AreaCoverageJob", areaCoveragePrefs, this.areaCoverage).setDouble(this.areaCoverage);
 	}
 
     /**
 	 * Method to return the minimu area coverage that the layer must reach in the technology.
 	 * @return the minimum area coverage (in percentage).
 	 */
-	public double getAreaCoverage() { return getDoublePref("AreaCoverage", areaCoveragePrefs, areaCoverage).getDouble(); }
+	public double getAreaCoverage() { return getDoublePref("AreaCoverageJob", areaCoveragePrefs, areaCoverage).getDouble(); }
 
     /**
      * Methot to set minimu area coverage that the layer must reach in the technology.
      * @param area the minimum area coverage (in percentage).
      */
-	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverage", areaCoveragePrefs, areaCoverage).setDouble(area); }
+	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, areaCoverage).setDouble(area); }
 
 	/**
 	 * Returns a printable version of this Layer.

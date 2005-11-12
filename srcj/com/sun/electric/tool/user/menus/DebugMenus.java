@@ -54,7 +54,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.*;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
@@ -255,9 +255,9 @@ public class DebugMenus {
         gildaMenu.addMenuItem("Test Parameters", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {testParameters();}});
         gildaMenu.addMenuItem("DRC QTree", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.GHMode.ALGO_QTREE);}});
         gildaMenu.addMenuItem("DRC Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Test Bash", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});
         gildaMenu.addMenuItem("3D View", null,
@@ -265,27 +265,27 @@ public class DebugMenus {
         gildaMenu.addMenuItem("Parasitic", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.parasiticCommand(); } });
 	    gildaMenu.addMenuItem("Check Wells Sweep", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_SWEEP); } });
 	    gildaMenu.addMenuItem("Check Wells Orig", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_MERGE); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_MERGE); } });
 	    gildaMenu.addMenuItem("Check Wells QTree", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_QTREE); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_QTREE); } });
 	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.GHMode.ALGO_SWEEP); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverage.LCMode.MERGE, GeometryHandler.GHMode.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverage.LCMode.MERGE, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverage.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Covering Implants Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverage.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverage.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
         /****************************** Dima's TEST MENU ******************************/
 

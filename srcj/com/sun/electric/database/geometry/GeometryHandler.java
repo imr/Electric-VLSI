@@ -42,24 +42,27 @@ import java.util.Comparator;
  */
 public abstract class GeometryHandler {
     HashMap<Layer,Object> layers;
-    public static final int ALGO_MERGE = 0;
-    public static final int ALGO_QTREE = 1;
-    public static final int ALGO_SWEEP = 2;
+    public enum GHMode // GH GeometryHandler mode
+    {
+	    ALGO_MERGE,   // using merge structure
+	    ALGO_QTREE,  // using qtree structure
+	    ALGO_SWEEP; // using sweep structure
+    }
     public static final ShapeSort shapeSort = new ShapeSort();
     public static final AreaSort areaSort = new AreaSort();
 
     /**
      * Method to create appropiate GeometryHandler depending on the mode.
      */
-    public static GeometryHandler createGeometryHandler(int mode, int initialSize, Rectangle2D root)
+    public static GeometryHandler createGeometryHandler(GHMode mode, int initialSize, Rectangle2D root)
     {
         switch (mode)
         {
-            case GeometryHandler.ALGO_MERGE:
+            case ALGO_MERGE:
                 return new PolyMerge();
-            case GeometryHandler.ALGO_QTREE:
+            case ALGO_QTREE:
                 return new PolyQTree(root);
-            case GeometryHandler.ALGO_SWEEP:
+            case ALGO_SWEEP:
                 if (initialSize > 0)
                     return new PolySweepMerge(initialSize);
                 else
@@ -83,7 +86,7 @@ public abstract class GeometryHandler {
     }
 
     // To insert new element into handler
-	public void add(Object key, Object value, boolean fasterAlgorithm) {;}
+	public void add(Layer key, Object value, boolean fasterAlgorithm) {;}
 
 	// To add an entire GeometryHandler like collections
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans) {;}

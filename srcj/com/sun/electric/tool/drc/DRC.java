@@ -26,6 +26,7 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -240,7 +241,7 @@ public class DRC extends Listener
 	 * Method to check the current cell hierarchically or
 	 * the selected area of the current cell hierarchically if areaCheck is true
 	 */
-	public static void checkHierarchically(boolean areaCheck, int mode)
+	public static void checkHierarchically(boolean areaCheck, GeometryHandler.GHMode mode)
 	{
 		Cell curCell = null;
 		Rectangle2D bounds = null;
@@ -288,14 +289,14 @@ public class DRC extends Listener
 	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob
 	{
 		Rectangle2D bounds;
-        private int mergeMode; // to select the merge algorithm
+        private GeometryHandler.GHMode mergeMode; // to select the merge algorithm
 
         /**
          * Check bounds within cell. If bounds is null, check entire cell.
          * @param cell
          * @param bounds
          */
-		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds, int mode)
+		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode)
 		{
 			super("Design-Rule Check", cell, tool, Job.Priority.USER);
 			this.bounds = bounds;

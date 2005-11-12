@@ -554,33 +554,33 @@ public class BiCMOS extends Technology
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
 
 		// The GDS names
-		PS_lay.setFactoryGDSLayer("8", DRCTemplate.DRCMode.MOSIS.name());		// P_Select
-		NS_lay.setFactoryGDSLayer("7", DRCTemplate.DRCMode.MOSIS.name());		// N_Select
-		NW_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// N_Well
-		V_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Via
-		P_lay.setFactoryGDSLayer("13", DRCTemplate.DRCMode.MOSIS.name());		// Passivation
-		PF_lay.setFactoryGDSLayer("9", DRCTemplate.DRCMode.MOSIS.name());		// Pad_Frame
-		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Transistor
-		AC_lay.setFactoryGDSLayer("35", DRCTemplate.DRCMode.MOSIS.name());		// Active_Cut
-		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Metal_1
-		PM0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Metal_2
-		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Polysilicon
-		PPS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_P_Select
-		PNS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_N_Select
-		PNW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_N_Well
-		PP0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Polysilicon_2
-		M_lay.setFactoryGDSLayer("10", DRCTemplate.DRCMode.MOSIS.name());		// M1
-		M0_lay.setFactoryGDSLayer("12", DRCTemplate.DRCMode.MOSIS.name());		// M2
-		P0_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.MOSIS.name());		// Poly1
-		P1_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.MOSIS.name());		// Poly2
-		A_lay.setFactoryGDSLayer("31", DRCTemplate.DRCMode.MOSIS.name());		// Active
-		PC_lay.setFactoryGDSLayer("45", DRCTemplate.DRCMode.MOSIS.name());		// Poly1_Cut
-		PC0_lay.setFactoryGDSLayer("55", DRCTemplate.DRCMode.MOSIS.name());		// Poly2_Cut
-		PA_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo_Active
-		PBA_lay.setFactoryGDSLayer("33", DRCTemplate.DRCMode.MOSIS.name());		// P_Base_Active
-		B_lay.setFactoryGDSLayer("17", DRCTemplate.DRCMode.MOSIS.name());		// BCCD
-		OS_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic_Substrate
-		OW_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic_Well
+		PS_lay.setFactoryGDSLayer("8", DRCTemplate.DRCMode.Mosis.name());		// P_Select
+		NS_lay.setFactoryGDSLayer("7", DRCTemplate.DRCMode.Mosis.name());		// N_Select
+		NW_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.Mosis.name());		// N_Well
+		V_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Via
+		P_lay.setFactoryGDSLayer("13", DRCTemplate.DRCMode.Mosis.name());		// Passivation
+		PF_lay.setFactoryGDSLayer("9", DRCTemplate.DRCMode.Mosis.name());		// Pad_Frame
+		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Transistor
+		AC_lay.setFactoryGDSLayer("35", DRCTemplate.DRCMode.Mosis.name());		// Active_Cut
+		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_Metal_1
+		PM0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_Metal_2
+		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_Polysilicon
+		PPS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_P_Select
+		PNS_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_N_Select
+		PNW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_N_Well
+		PP0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_Polysilicon_2
+		M_lay.setFactoryGDSLayer("10", DRCTemplate.DRCMode.Mosis.name());		// M1
+		M0_lay.setFactoryGDSLayer("12", DRCTemplate.DRCMode.Mosis.name());		// M2
+		P0_lay.setFactoryGDSLayer("4", DRCTemplate.DRCMode.Mosis.name());		// Poly1
+		P1_lay.setFactoryGDSLayer("19", DRCTemplate.DRCMode.Mosis.name());		// Poly2
+		A_lay.setFactoryGDSLayer("31", DRCTemplate.DRCMode.Mosis.name());		// Active
+		PC_lay.setFactoryGDSLayer("45", DRCTemplate.DRCMode.Mosis.name());		// Poly1_Cut
+		PC0_lay.setFactoryGDSLayer("55", DRCTemplate.DRCMode.Mosis.name());		// Poly2_Cut
+		PA_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.Mosis.name());		// Pseudo_Active
+		PBA_lay.setFactoryGDSLayer("33", DRCTemplate.DRCMode.Mosis.name());		// P_Base_Active
+		B_lay.setFactoryGDSLayer("17", DRCTemplate.DRCMode.Mosis.name());		// BCCD
+		OS_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.Mosis.name());		// Ohmic_Substrate
+		OW_lay.setFactoryGDSLayer("3", DRCTemplate.DRCMode.Mosis.name());		// Ohmic_Well
 
 		//******************** DESIGN RULES ********************
 
