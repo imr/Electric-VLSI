@@ -1822,7 +1822,7 @@ public class Project extends Listener
 			if (response != JOptionPane.YES_OPTION) return false;
 
 			// replace former usage with new version
-			getCellFromRepository(former, lib, false);
+			getCellFromRepository(former, lib, false, false);
 			if (former.cell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -2200,11 +2200,18 @@ public class Project extends Listener
 			String dirName = getRepositoryLocation();
 			File dir = new File(dirName);
 			File [] filesInDir = dir.listFiles();
+			List<String> libNames = new ArrayList<String>();
 			for(int i=0; i<filesInDir.length; i++)
 			{
 				File subFile = filesInDir[i];
 				if (subFile.isDirectory())
-				libModel.addElement(subFile.getName());
+					libNames.add(subFile.getName());
+			}
+			Collections.sort(libNames, new TextUtils.ObjectsByToString());
+			for(Iterator<String> it = libNames.iterator(); it.hasNext(); )
+			{
+				String libName = (String)it.next();
+				libModel.addElement(libName);
 			}
 
 			GridBagConstraints gbc = new GridBagConstraints();
@@ -2285,7 +2292,7 @@ public class Project extends Listener
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
 
-			getCellFromRepository(foundPC, lib, false);
+			getCellFromRepository(foundPC, lib, false, false);
 			if (foundPC.cell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -2361,7 +2368,7 @@ public class Project extends Listener
 				ProjectCell pc = (ProjectCell)it.next();
 				if (pc.cell == null)
 				{
-					getCellFromRepository(pc, lib, true);
+					getCellFromRepository(pc, lib, true, true);
 					if (pc.cell == null)
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -3089,7 +3096,7 @@ public class Project extends Listener
 	 * Method to get the latest version of the cell described by "pc" and return
 	 * the newly created cell.
 	 */
-	private static void getCellFromRepository(ProjectCell pc, Library lib, boolean recursively)
+	private static void getCellFromRepository(ProjectCell pc, Library lib, boolean recursively, boolean report)
 	{
 		// figure out the library name
 		ProjectLibrary pl = pc.projLib;
@@ -3100,7 +3107,9 @@ public class Project extends Listener
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
+		if (report) System.out.print("Reading library with cell " + lib.getName() + ":" + pc.describe() + "...");
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		if (report) System.out.println("done");
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
@@ -3113,7 +3122,7 @@ public class Project extends Listener
 				for(Iterator<NodeInst> it = cur.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
-					nodePrototypes.put(ni, ni.getProto());
+//					nodePrototypes.put(ni, ni.getProto());
 					if (ni.getProto() instanceof Cell)
 					{
 						Cell subCell = (Cell)ni.getProto();
@@ -3148,7 +3157,7 @@ public class Project extends Listener
 										if (!recPC.latestVersion) continue;
 										if (recPC.cell == null)
 										{
-											getCellFromRepository(recPC, subLib, true);
+											getCellFromRepository(recPC, subLib, true, report);
 											if (recPC.cell == null)
 												System.out.println("Error retrieving cell from repository");
 										}
@@ -3177,7 +3186,7 @@ public class Project extends Listener
 									System.out.println("ERROR: cell " + cellName + " does not exist, but it appears as " +
 										subPC.cell);
 								}
-								getCellFromRepository(subPC, subLib, recursively);
+								getCellFromRepository(subPC, subLib, recursively, false);
 								realSubCell = subPC.cell;
 							}
 						}
@@ -3191,8 +3200,10 @@ public class Project extends Listener
 				}
 
 				String cellName = describeFullCellName(cur);
+				if (report) System.out.print("Retrieving cell " + lib.getName() + ":" + cellName + "...");
 				newCell = Cell.copyNodeProtoUsingMapping(cur, lib, cellName, nodePrototypes);
 				if (newCell == null) System.out.println("Cannot copy " + cur + " from new library");
+				if (report) System.out.println("done");
 			}
 
 			// kill the library

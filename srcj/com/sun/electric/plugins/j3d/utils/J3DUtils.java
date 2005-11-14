@@ -961,7 +961,7 @@ public final class J3DUtils
      * @param topList
      * @param bottomList
      */
-    public static void correctNormals(java.util.List topList, java.util.List bottomList)
+    public static void correctNormals(List<Point3d> topList, List<Point3d> bottomList)
     {
         // Determining normal direction
         Point3d p0 = (Point3d)topList.get(0);
@@ -1185,7 +1185,7 @@ public final class J3DUtils
         }
     }
 
-    public static Boolean set3DColorsInTab(DefaultListModel colorLayerModel, HashMap transAndSpecialMap)
+    public static Boolean set3DColorsInTab(DefaultListModel colorLayerModel, HashMap<String,GenMath.MutableInteger> transAndSpecialMap)
     {
         GenMath.MutableInteger [] colors3D = new GenMath.MutableInteger[3];
 		boolean colorChanged = false;

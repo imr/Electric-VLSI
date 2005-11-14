@@ -181,7 +181,7 @@ public class JThreeDSideView extends JPanel
         objTrans.addChild(nodesGroup);
 
         layerPolyhedra = new HashMap<Layer,Shape3DTab>(parentDialog.getTech().getNumLayers());
-        for(Iterator it = parentDialog.getTech().getLayers(); it.hasNext(); )
+        for(Iterator<Layer> it = parentDialog.getTech().getLayers(); it.hasNext(); )
         {
             Layer layer = (Layer)it.next();
             if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;

@@ -128,7 +128,7 @@ public class JThreeDTab extends ThreeDTab
 		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
         transparencyMap = new HashMap<Layer,J3DAppearance>();
         // Sorted by Height to be consistent with LayersTab
-		for(Iterator it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
@@ -176,7 +176,7 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
         alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
-        for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
+        for (Iterator<J3DTransparencyOption> it = modeMap.keySet().iterator(); it.hasNext();)
         {
             J3DTransparencyOption op = (J3DTransparencyOption)it.next();
             transparencyMode.addItem(op);
@@ -260,7 +260,7 @@ public class JThreeDTab extends ThreeDTab
             threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
             transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
-            for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
+            for (Iterator<J3DTransparencyOption> it = modeMap.keySet().iterator(); it.hasNext();)
             {
                 J3DTransparencyOption op = (J3DTransparencyOption)it.next();
                 if (op.mode == ta.getTransparencyMode())
@@ -280,7 +280,7 @@ public class JThreeDTab extends ThreeDTab
 	 */
 	public void term()
 	{
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;

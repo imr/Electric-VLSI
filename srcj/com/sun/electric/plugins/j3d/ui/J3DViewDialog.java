@@ -31,6 +31,8 @@ import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.TransformGroup;
 import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -46,7 +48,7 @@ public class J3DViewDialog extends EDialog
     private View3DWindow view3D = null;
     private J3DClientApp socketJob = null;
     private List<J3DUtils.ThreeDDemoKnot> knots = new ArrayList<J3DUtils.ThreeDDemoKnot>();
-    private Map interMap;
+    private Map<TransformGroup,BranchGroup> interMap;
 
     public static void create3DViewDialog(java.awt.Frame parent)
     {

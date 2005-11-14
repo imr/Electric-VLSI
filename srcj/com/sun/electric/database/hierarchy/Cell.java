@@ -511,11 +511,11 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 
 		// mark the proper prototype to use for each node
 		HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
-		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			nodePrototypes.put(ni, ni.getProto());
-		}
+//		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
+//		{
+//			NodeInst ni = (NodeInst)it.next();
+//			nodePrototypes.put(ni, ni.getProto());
+//		}
 
 		// if doing a cross-library copy and can use existing ones from new library, do it
 		if (destLib != null)
@@ -607,12 +607,11 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			// create the new nodeinst
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto lnt = (NodeProto)nodePrototypes.get(ni);
+			if (lnt == null) lnt = ni.getProto();
 			double scaleX = ni.getXSize();   //if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   //if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
 				scaleX, scaleY, newCell, ni.getOrient(), ni.getName(), 0);
-//			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-//				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0);
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
@@ -622,7 +621,6 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			toNi.copyStateBits(ni);
-
 		}
 
 		// now copy the variables on the nodes

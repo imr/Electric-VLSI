@@ -323,7 +323,7 @@ class MyClass extends MyObject {
     MyField[] fields;
     MyField classField;
     
-    MyClass(String className, int mode, List staticFieldList, List fieldList) {
+    MyClass(String className, int mode, List<String> staticFieldList, List<String> fieldList) {
         this.className = className;
         classField = new MyField(0, MyField.CLASS, className);
         this.mode = mode;

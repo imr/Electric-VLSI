@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/14/05, SMR) Project management presents libraries unsorted (Bug #750).
+FIX: Sort the libraries.
+
 BUG: (11/13/05, GVG) Few bug fixes in the design rules tab due to changes for DRC deck and typesafe
 enum.
 FIX: Mainly in DesignRulesTab.java and DesignRulesPanel.java.

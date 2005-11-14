@@ -390,7 +390,7 @@ public class View3DWindow extends JPanel
 
             TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
             try {
-                Constructor instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
+                Constructor<Object> instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
                 Object obj = instance.newInstance(new Object[] {axisTG, viewPlatformTG});
                 if (obj != null)
                 {
@@ -820,7 +820,7 @@ public class View3DWindow extends JPanel
 			highlighter2D = view2D.getHighlighter();
 			highlighter2D.clear();
 		}
-		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();)
 		{
 			Highlight h = (Highlight)it.next();
 //			Shape3D obj = (Shape3D)h.getObject();
@@ -880,7 +880,7 @@ public class View3DWindow extends JPanel
             Highlighter highlighter2D = view2D.getHighlighter();
             List<Geometric> geomList = highlighter2D.getHighlightedEObjs(true, true);
 
-            for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
+            for (Iterator<Geometric> hIt = geomList.iterator(); hIt.hasNext(); )
             {
                 ElectricObject eobj = (ElectricObject)hIt.next();
 
@@ -888,7 +888,7 @@ public class View3DWindow extends JPanel
 
                 if (list == null || list.size() == 0) continue;
 
-                for (Iterator lIt = list.iterator(); lIt.hasNext();)
+                for (Iterator<Shape3D> lIt = list.iterator(); lIt.hasNext();)
                 {
                     Shape3D shape = (Shape3D)lIt.next();
                     highlighter.addObject(new HighlightShape3D(shape), Highlight.Type.SHAPE3D, cell);
@@ -923,7 +923,7 @@ public class View3DWindow extends JPanel
 	    Transform3D vTrans = new Transform3D();
 	    Vector3d vCenter = new Vector3d(1, 1, value);
 
-       	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+       	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -941,7 +941,7 @@ public class View3DWindow extends JPanel
 	 */
 	public static void setAntialiasing(boolean value)
 	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
@@ -961,7 +961,7 @@ public class View3DWindow extends JPanel
      */
     public static void setZValues(Layer layer, Double origDist, Double origThick, Double distance, Double thickness)
     {
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
             WindowFrame wf = (WindowFrame)it.next();
             WindowContent content = wf.getContent();
@@ -1117,7 +1117,7 @@ public class View3DWindow extends JPanel
         Quat4f quaf = J3DUtils.createQuaternionFromEuler(factor*values[3], factor*values[4], factor*values[5]);
         Transform3D currXform = new Transform3D();
 
-        for (Iterator it = cell.getNodes(); it.hasNext();)
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
@@ -1298,7 +1298,7 @@ public class View3DWindow extends JPanel
 
             AffineTransform rTrans = info.getTransformToRoot();
 
-			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 			{
 				addArc((ArcInst)it.next(), rTrans, objTrans);
 			}
@@ -1379,7 +1379,7 @@ public class View3DWindow extends JPanel
         Vector3d translation = new Vector3d (bounding.getCenterX(), bounding.getCenterY(), zCenter);
         yAxis.setTranslation(translation);
 
-        for (Iterator it = cell.getNodes(); it.hasNext();)
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() == Artwork.tech.pinNode)
@@ -1450,7 +1450,7 @@ public class View3DWindow extends JPanel
         }
 
         Map<TransformGroup,BranchGroup> interMap = new HashMap<TransformGroup,BranchGroup>(1);
-        for (Iterator it = cell.getNodes(); it.hasNext();)
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
@@ -1461,7 +1461,7 @@ public class View3DWindow extends JPanel
                 tmpList = J3DUtils.readDemoDataFromFile(this);
                 if (tmpList == null) continue; // nothing load
             }
-            List list = (List)electricObjectMap.get(ni);
+            List<Shape3D> list = (List<Shape3D>)electricObjectMap.get(ni);
             for (int j = 0; j < list.size(); j++)
             {
                 Shape3D obj = (Shape3D)list.get(j);
@@ -1496,7 +1496,7 @@ public class View3DWindow extends JPanel
      * @param interMap
      * @return
      */
-    public Map<TransformGroup,BranchGroup> addInterpolatorPerGroup(List knotList, TransformGroup grp, Map<TransformGroup,BranchGroup> interMap, boolean useView)
+    public Map<TransformGroup,BranchGroup> addInterpolatorPerGroup(List<J3DUtils.ThreeDDemoKnot> knotList, TransformGroup grp, Map<TransformGroup,BranchGroup> interMap, boolean useView)
     {
         if (knotList == null || knotList.size() < 2)
         {
@@ -1534,10 +1534,10 @@ public class View3DWindow extends JPanel
      * Method to remove certain interpolators from scene graph
      * @param interMap
      */
-    public void removeInterpolator(Map interMap)
+    public void removeInterpolator(Map<TransformGroup,BranchGroup> interMap)
     {
         canvas.resetMoveFrames();
-        for (Iterator it = interMap.keySet().iterator(); it.hasNext();)
+        for (Iterator<TransformGroup> it = interMap.keySet().iterator(); it.hasNext();)
         {
             TransformGroup grp = (TransformGroup)it.next();
             Node node = (Node)interMap.get(grp);

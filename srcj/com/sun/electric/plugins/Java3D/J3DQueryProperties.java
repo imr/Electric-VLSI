@@ -37,8 +37,8 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision: 1.2 $
- * $Date: 2005/06/28 19:46:02 $
+ * $Revision: 1.1 $
+ * $Date: 2005/06/29 06:44:46 $
  * $State: Exp $
  */
 package com.sun.electric.plugins.Java3D;
@@ -53,15 +53,15 @@ import java.awt.GraphicsConfiguration;
  * Included by Gilda Garreton
  */
 public class J3DQueryProperties {
-    private static void printProps(Map map, String[] propList) {
+    private static void printProps(Map<String,String> map, String[] propList) {
         // Create an alphabetical list of keys
-        List  keyList = new ArrayList(map.keySet());
+        List<String> keyList = new ArrayList<String>(map.keySet());
         Collections.sort(keyList);
-        Iterator it;
+        Iterator<String> it;
 
         // Collection used to remember the properties we've already
         // printed, so we don't print them twice
-        HashSet hs = new HashSet();
+        HashSet<String> hs = new HashSet<String>();
 
         // Print out the values for the caller-specified properties
         String key;
@@ -104,7 +104,7 @@ public class J3DQueryProperties {
     }
 
     public static void queryHardwareAcceleration() {
-        Map vuMap = VirtualUniverse.getProperties();
+        Map<String,String> vuMap = VirtualUniverse.getProperties();
         final String[] vuPropList = {
             "j3d.version",
             "j3d.vendor",
@@ -129,7 +129,7 @@ public class J3DQueryProperties {
             GraphicsEnvironment.getLocalGraphicsEnvironment().
                 getDefaultScreenDevice().getBestConfiguration(template);
 
-        Map c3dMap = new Canvas3D(config).queryProperties();
+        Map<String,String> c3dMap = new Canvas3D(config).queryProperties();
         final String[] c3dPropList = {
             "native.*",
             "doubleBufferAvailable",
