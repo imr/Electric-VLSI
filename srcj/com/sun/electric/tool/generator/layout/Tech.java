@@ -429,9 +429,15 @@ public class Tech {
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
 
+        PrimitiveNode wellCon = tech.findNodeProto("Metal-1-N-Well-Con");
+        wellCon.getMinWidth();
+        wellWidth = wellCon.getMinWidth();
+
 		// initialize design rules (RKao first cut)
 		if (isTsmc90) {
-		    wellWidth = 14;
+            if (wellWidth != 14)
+                new Error("wrong value in Tech");
+//		    wellWidth = 14;
 		    wellSurroundDiff = Double.NaN;
 		    gateExtendPastMOS = 3.25;
 		    p1Width = 2;
@@ -449,7 +455,9 @@ public class Tech {
             selectSurroundDiffInActiveContact = Double.NaN;
             selectSurroundDiffAlongGateInTrans = 3.6;
 		} else if (isTsmc180) {
-		    wellWidth = 17;
+            if (wellWidth != 17)
+                new Error("wrong value in Tech");
+//            wellWidth = 17;
 		    wellSurroundDiff = 4.3;
 		    gateExtendPastMOS = 2.5;
 		    p1Width = 1.8;
@@ -468,7 +476,9 @@ public class Tech {
             selectSurroundDiffAlongGateInTrans = 3.6;
 		} else {
 			// default to MoCMOS
-		    wellWidth = 17;
+            if (wellWidth != 17)
+                new Error("wrong value in Tech");
+//		    wellWidth = 17;
 		    wellSurroundDiff = 3;
 		    gateExtendPastMOS = 2;
 		    p1Width = 2;

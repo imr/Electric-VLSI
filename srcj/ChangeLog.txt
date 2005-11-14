@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/13/05, GVG) Few bug fixes in the design rules tab due to changes for DRC deck and typesafe
+enum.
+FIX: Mainly in DesignRulesTab.java and DesignRulesPanel.java.
+
 BUG: (11/11/05, SMR) "Set Focus" command does not make changes that are browsable (Bug #746).
 FIX: Improved "SetFocus.java" to use the focus browser.
 

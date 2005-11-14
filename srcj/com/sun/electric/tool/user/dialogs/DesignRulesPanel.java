@@ -25,8 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.*;
-import com.sun.electric.technology.technologies.utils.MOSRules;
-import com.sun.electric.tool.drc.DRC;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,7 +53,7 @@ public class DesignRulesPanel extends JPanel
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
 	private List<DRCTemplate> wideSpacingRules;
-	private int foundry;
+	private DRCTemplate.DRCMode foundry;
 
 	/** Creates new form DesignRulesTab */
 	public DesignRulesPanel()
@@ -67,7 +65,7 @@ public class DesignRulesPanel extends JPanel
 	 * Method called at the start of the frame.
 	 * Caches current values and displays them in the Design Rules tab.
 	 */
-	public void init(Technology tech, int foun, DRCRules drcR)
+	public void init(Technology tech, DRCTemplate.DRCMode foun, DRCRules drcR)
 	{
         curTech = tech;
         foundry = foun;
@@ -241,27 +239,27 @@ public class DesignRulesPanel extends JPanel
 		// get new normal spacing values
         List<DRCTemplate> list = new ArrayList<DRCTemplate>();
 		double value = TextUtils.atof(drNormalConnected.getText());
-        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry, DRCTemplate.DRCRuleType.CONSPA,
+        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
                 0, 0, null, null, value, -1));
 		value = TextUtils.atof(drNormalUnconnected.getText());
-        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry, DRCTemplate.DRCRuleType.UCONSPA,
+        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
                 0, 0, null, null, value, -1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING);
 
 		// get new multicut spacing values
         list.clear();
         value = TextUtils.atof(drMultiConnected.getText());
-        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry, DRCTemplate.DRCRuleType.CONSPA,
+        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
                 0, 0, null, null, value, 1));
 		value = TextUtils.atof(drMultiUnconnected.getText());
-        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry, DRCTemplate.DRCRuleType.UCONSPA,
+        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
                 0, 0, null, null, value, 1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
 
 		// get new edge values
         list.clear();
         value = TextUtils.atof(drNormalEdge.getText());
-        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry, DRCTemplate.DRCRuleType.CONSPA,
+        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
                 0, 0, null, null, value, -1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACINGE);
 
@@ -303,21 +301,21 @@ public class DesignRulesPanel extends JPanel
         double minSize = TextUtils.atof(minSizeText);
         String minSizeRuleName = drLayerWidthRule.getText().trim();
 		if (minSizeText.length() > 0 && minSizeRuleName.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINWID, foundry);
+            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINWID, foundry.mode());
 
         // pickup changes to layer min area rule
         minSizeText = drLayerArea.getText().trim();
         minSize = TextUtils.atof(minSizeText);
         minSizeRuleName = drLayerAreaRule.getText().trim();
 		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINAREA, foundry);
+            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINAREA, foundry.mode());
 
         // pickup changes to layer min enclose area rule
         minSizeText = drLayerEnclosure.getText().trim();
         minSize = TextUtils.atof(minSizeText);
         minSizeRuleName = drLayerEAreaRule.getText().trim();
 		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry);
+            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry.mode());
     }
 
 	/**
@@ -327,7 +325,7 @@ public class DesignRulesPanel extends JPanel
 	{
 		designRulesUpdating = true;
 		int nodeIndex = designRulesNodeList.getSelectedIndex();
-		DRCTemplate nr = drRules.getMinNodeSize(nodeIndex, foundry);
+		DRCTemplate nr = drRules.getMinNodeSize(nodeIndex, foundry.mode());
 		drNodeWidth.setText("");
 	    drNodeHeight.setText("");
 		drNodeRule.setText("");
@@ -404,7 +402,7 @@ public class DesignRulesPanel extends JPanel
 
 		// show minimum layer size
 		Layer layer = curTech.getLayer(j);
-        DRCTemplate lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID, foundry);
+        DRCTemplate lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID, foundry.mode());
         if (lr != null)
 		{
 			drLayerWidth.setText(TextUtils.formatDouble(lr.value1));
@@ -416,7 +414,7 @@ public class DesignRulesPanel extends JPanel
 		}
 
         // Show min area
-        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA, foundry);
+        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA, foundry.mode());
 		if (lr != null)
 		{
 			drLayerArea.setText(TextUtils.formatDouble(lr.value1));
@@ -428,7 +426,7 @@ public class DesignRulesPanel extends JPanel
 		}
 
         // Show min enclosure area
-        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry);
+        lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, foundry.mode());
 		if (lr != null)
 		{
 			drLayerEnclosure.setText(TextUtils.formatDouble(lr.value1));
@@ -462,7 +460,7 @@ public class DesignRulesPanel extends JPanel
 		if (dindex != -1)
 		{
 //            double wideLimit = 0;
-            List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING, foundry);
+            List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING, foundry.mode());
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCTemplate tmp = spacingRules.get(i);
@@ -479,7 +477,7 @@ public class DesignRulesPanel extends JPanel
 //                if (tmp.maxWidth > 0) wideLimit = tmp.maxWidth;
             }
 
-			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW, foundry);
+			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW, foundry.mode());
             Collections.sort(spacingRules, DRCTemplate.templateSort);
 			wideSpacingRules = new ArrayList<DRCTemplate>();
 			drSpacingsList.removeAllItems();
@@ -499,7 +497,7 @@ public class DesignRulesPanel extends JPanel
 			if (wideSpacingRules.size() != 0)
 				drSpacingsList.setSelectedIndex(0);
 			
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA, foundry);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA, foundry.mode());
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
@@ -515,7 +513,7 @@ public class DesignRulesPanel extends JPanel
                 }
             }
 
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE, foundry);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE, foundry.mode());
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
@@ -544,25 +542,25 @@ public class DesignRulesPanel extends JPanel
 	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
 	{
 		boolean gotRule = false;
-		List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING, foundry);
+		List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING, foundry.mode());
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW, foundry.mode());
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA, foundry.mode());
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE, foundry.mode());
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCTemplate tmp = spacingRules.get(i);
@@ -581,14 +579,13 @@ public class DesignRulesPanel extends JPanel
 	{
         // Getting last changes
         designRulesEditChanged();
-		if (designRulesFactoryReset)
-		{
-			DRC.resetDRCDates();
-            DRCRules rules = curTech.getFactoryDesignRules(null);
-            if (rules instanceof MOSRules)
-			    drRules = (MOSRules)rules;
-		}
-		DRC.setRules(curTech, drRules);
+//		if (designRulesFactoryReset)
+//		{
+//			DRC.resetDRCDates();
+//            DRCRules rules = curTech.getFactoryDesignRules(null);
+//            drRules = rules;
+//		}
+//		DRC.setRules(curTech, drRules);
 	}
 
 	/** This method is called from within the constructor to
@@ -1211,7 +1208,7 @@ public class DesignRulesPanel extends JPanel
         if (ruleText.length() > 0 && value > 0 && (maxW > 0 || minLen > 0))
         {
 		    drSpacingsList.addItem("Rule " + (soFar+1));
-		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry, DRCTemplate.DRCRuleType.CONSPA,
+		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
                     maxW, minLen, null, null, value, -1);
             drRules.addRule(dindex, wr, DRCTemplate.DRCRuleType.SPACINGW);
             wideSpacingRules.add(wr);

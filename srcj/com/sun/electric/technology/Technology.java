@@ -3298,7 +3298,7 @@ public class Technology implements Comparable<Technology>
         for (int i = 0; i < foundries.size(); i++)
         {
             DRCTemplate.DRCMode man = foundries.get(i);
-            if (man.name().equals(foundryName))
+            if (man.name().equalsIgnoreCase(foundryName))
                 return man;
         }
         return DRCTemplate.DRCMode.NONE;
@@ -3445,7 +3445,7 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules)
+	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules, DRCTemplate.DRCMode mode)
 	{
 		return null;
 	}

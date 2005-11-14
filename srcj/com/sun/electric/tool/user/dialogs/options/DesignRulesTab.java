@@ -102,7 +102,7 @@ public class DesignRulesTab extends PreferencePanel
 
         drRules = rules;
 		foundry = curTech.getFoundry();
-        rulesPanel.init(curTech, foundry.mode(), drRules);
+        rulesPanel.init(curTech, foundry, drRules);
 
 		// load the dialog
         String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
@@ -113,11 +113,21 @@ public class DesignRulesTab extends PreferencePanel
         for (Iterator<DRCTemplate.DRCMode> it = curTech.getFactories().iterator(); it.hasNext(); )
         {
             DRCTemplate.DRCMode factory = it.next();
-            defaultFoundryPulldown.addItem(factory.name());
-            if (selectedFoundry.equals(factory.name())) foundry = factory;
+            defaultFoundryPulldown.addItem(factory);
+            if (selectedFoundry.equalsIgnoreCase(factory.name())) foundry = factory;
         }
         defaultFoundryPulldown.setEnabled(foundry != DRCTemplate.DRCMode.NONE);
-        defaultFoundryPulldown.setSelectedItem(selectedFoundry);
+        defaultFoundryPulldown.setSelectedItem(foundry);
+        defaultFoundryPulldown.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt)
+            {
+                DRCTemplate.DRCMode mode = (DRCTemplate.DRCMode)defaultFoundryPulldown.getSelectedItem();
+
+                drRules = curTech.getFactoryDesignRules(null, mode);
+                rulesPanel.init(curTech, mode, drRules);;
+            }
+		});
 
         // Resolution
 		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
@@ -140,19 +150,19 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        String foundryName = (String)defaultFoundryPulldown.getSelectedItem();
-        if (foundryName == null) return; // technology without design rules.
+        DRCTemplate.DRCMode foundry = (DRCTemplate.DRCMode)defaultFoundryPulldown.getSelectedItem();
+        if (foundry == null) return; // technology without design rules.
         
         int val = -1;
 
-        if (!foundryName.equals(curTech.getSelectedFoundry()))
+        if (!foundry.name().equalsIgnoreCase(curTech.getSelectedFoundry()))
         {
             // only valid for 180nm so far
             if (curTech == MoCMOS.tech)
             {
                 String [] messages = {
-                    "Primitives in database might be resized according to values provided by " + foundryName + ".",
-                    "If you do not resize now, arc widths might not be optimal for " + foundryName + ".",
+                    "Primitives in database might be resized according to values provided by " + foundry + ".",
+                    "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
                     "If you cancel the operation, the foundry will not be changed.",
                     "Do you want to resize the database?"};
                 Object [] options = {"Yes", "No", "Cancel"};
@@ -162,7 +172,7 @@ public class DesignRulesTab extends PreferencePanel
                 }
             if (val != 2)
             {
-                curTech.setSelectedFoundry(foundryName);
+                curTech.setSelectedFoundry(foundry.name());
                 // primitive arcs have to be modified.
                 if (val == 0)
                     new Technology.ResetDefaultWidthJob(null);
@@ -188,7 +198,7 @@ public class DesignRulesTab extends PreferencePanel
 		if (designRulesFactoryReset)
 		{
 			DRC.resetDRCDates();
-            drRules = curTech.getFactoryDesignRules(null);
+            drRules = curTech.getFactoryDesignRules(null, null);
 		}
 		DRC.setRules(curTech, drRules);
 

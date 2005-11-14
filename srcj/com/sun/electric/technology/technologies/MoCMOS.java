@@ -3374,7 +3374,7 @@ public class MoCMOS extends Technology
 	public void setState(List<DRCTemplate> rules)
 	{
 		// set rules
-        cachedRules = getFactoryDesignRules(rules);
+        cachedRules = getFactoryDesignRules(rules, getFoundry());
 
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed();
@@ -3799,7 +3799,7 @@ public class MoCMOS extends Technology
 	 * @return the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
 	 */
-	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules)
+	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules, DRCTemplate.DRCMode foundryMode)
 	{
         if (deckRules != null)
             theRules = deckRules;
@@ -3807,7 +3807,8 @@ public class MoCMOS extends Technology
 		MOSRules rules = new MOSRules(this);
 
         // doesn't load rules that
-        DRCTemplate.DRCMode foundryMode = getFoundry();
+        //DRCTemplate.DRCMode foundryMode = getFoundry();
+        if (foundryMode == null) foundryMode = getFoundry();
 
         // Resize primitives according to the foundry
         resizeNodes();
