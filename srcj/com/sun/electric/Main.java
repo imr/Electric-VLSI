@@ -122,37 +122,47 @@ public final class Main
 			System.exit(0);
 		}
 
+
+		// -debug for debugging
+		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
+        if (hasCommandLineOption(argsList, "-gilda")) LOCALDEBUGFLAG = true;
+        if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
+		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
+
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
-		if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
-		{
-			try
-			{
-				osXClass = Class.forName("com.sun.electric.MacOSXInterface");
+        if (!BATCHMODE)
+        {
+            if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
+            {
+                try
+                {
+                    osXClass = Class.forName("com.sun.electric.MacOSXInterface");
 
-				// find the necessary methods on the Mac OS/X class
-				try
-				{
-					osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
-					osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
-				} catch (NoSuchMethodException e)
-				{
-					osXRegisterMethod = osXSetJobMethod = null;
-				}
-				if (osXRegisterMethod != null)
-				{
-					try
-					{
-						osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
-					} catch (Exception e)
-					{
-						System.out.println("Error initializing Mac OS/X interface");
-					}
-				}
-			} catch (ClassNotFoundException e) {}
-		}
-//		MacOSXInterface.registerMacOSXApplication(argsList);
+                    // find the necessary methods on the Mac OS/X class
+                    try
+                    {
+                        osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
+                        osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+                    } catch (NoSuchMethodException e)
+                    {
+                        osXRegisterMethod = osXSetJobMethod = null;
+                    }
+                    if (osXRegisterMethod != null)
+                    {
+                        try
+                        {
+                            osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
+                        } catch (Exception e)
+                        {
+                            System.out.println("Error initializing Mac OS/X interface");
+                        }
+                    }
+                } catch (ClassNotFoundException e) {}
+            }
+    //		MacOSXInterface.registerMacOSXApplication(argsList);
+        }
 
 		// -help
         if (hasCommandLineOption(argsList, "-help"))
@@ -184,14 +194,7 @@ public final class Main
 
 		SplashWindow sw = null;
 
-
-		// -debug for debugging
-		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
-        if (hasCommandLineOption(argsList, "-gilda")) LOCALDEBUGFLAG = true;
-        if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
-		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
-
-		if (!Main.BATCHMODE && !Main.LOCALDEBUGFLAG) sw = new SplashWindow();
+		if (!Main.BATCHMODE) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");

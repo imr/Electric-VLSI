@@ -233,19 +233,22 @@ public class TopLevel extends JFrame
 				osMode = Mode.MDI;
 
 				scrnSize.height -= 30;
-				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                if (!Main.BATCHMODE)
+				    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
 				os = OS.UNIX;
                 osMode = Mode.SDI;
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                if (!Main.BATCHMODE)
+                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
                 osMode = Mode.SDI;
-				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+				if (!Main.BATCHMODE)
+                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
 

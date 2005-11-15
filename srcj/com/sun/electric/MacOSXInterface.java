@@ -112,7 +112,6 @@ class MacOSXInterface extends ApplicationAdapter
         }
         URL dirUrl = TextUtils.makeURLToFile(filename);
         String dirString = TextUtils.getFilePath(dirUrl);
-        System.out.println("Aqui " + dirString);
         User.setWorkingDirectory(dirString);
     }
 
