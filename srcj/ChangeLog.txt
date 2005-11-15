@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (11/15/05, SMR) Spice templates can now have multiple lines.
+
+IMP/MAN: (11/15/05, SMR) New command: "Tool / Network / Repair Power and Ground" fixes
+     export characteristics that are inconsistent (Bug #380).
+
 IMP: (11/15/05, SMR) Now have "Tool / NCC" command to create NCC annotations (Bug #646).
      NCC attributes are NOT inheritable or parameters (cleaned-up on library input).
      Cell attributes that are not inheritable are mentioned in properties dialogs.

@@ -870,34 +870,44 @@ public class Spice extends Topology
 				Cell subCell = (Cell)niProto;
 
 				// look for a SPICE template on the prototype
-				Variable varTemplate = subCell.getVar(preferedEngineTemplateKey);
-				if (varTemplate == null)
-					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
-
-				// handle self-defined models
-				if (varTemplate != null && !useCDL)
+				Variable varTemplate = null;
+				if (useCDL)
 				{
-					String line = varTemplate.getObject().toString();
-					StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
-                    // Writing MFactor if available. Not sure here
-					writeMFactor(context, no, infstr);
-					
-					infstr.append('\n');
-					multiLinePrint(false, infstr.toString());
-					continue;
+					varTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
+				} else
+				{
+					subCell.getVar(preferedEngineTemplateKey);
+					if (varTemplate == null)
+						varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 				}
 
-                Variable cdlTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
-                if (cdlTemplate != null && useCDL) {
-                    String line = cdlTemplate.getObject().toString();
-                    StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
-                    // Writing MFactor if available. Not sure here
-                    writeMFactor(context, no, infstr);
-
-                    infstr.append('\n');
-                    multiLinePrint(false, infstr.toString());
-                    continue;
-                }
+				// handle templates
+				if (varTemplate != null)
+				{
+					if (varTemplate.getObject() instanceof Object[])
+					{
+						Object [] manyLines = (Object [])varTemplate.getObject();
+						for(int i=0; i<manyLines.length; i++)
+						{
+							String line = manyLines[i].toString();
+							StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
+		                    // Writing MFactor if available. Not sure here
+							if (i == 0) writeMFactor(context, no, infstr);
+							infstr.append('\n');
+							multiLinePrint(false, infstr.toString());
+						}
+					} else
+					{
+						String line = varTemplate.getObject().toString();
+						StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
+	                    // Writing MFactor if available. Not sure here
+						writeMFactor(context, no, infstr);
+						
+						infstr.append('\n');
+						multiLinePrint(false, infstr.toString());
+					}
+					continue;
+				}
 
 				// get the ports on this node (in proper order)
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
