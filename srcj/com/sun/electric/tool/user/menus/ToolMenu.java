@@ -352,7 +352,7 @@ public class ToolMenu {
 
 		//------------------- Network
 
-		// mnemonic keys available: A  D F  IJK M O QRS   W YZ
+		// mnemonic keys available: A  D F  IJK M O Q S   W YZ
 		MenuBar.Menu networkSubMenu = MenuBar.makeMenu("Net_work");
 		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("Show _Network", KeyStroke.getKeyStroke('K', buckyBit),
@@ -382,7 +382,9 @@ public class ToolMenu {
         networkSubMenu.addMenuItem("Show _Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
 		networkSubMenu.addMenuItem("_Validate Power and Ground", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(false); } });
+		networkSubMenu.addMenuItem("_Repair Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new RepairPowerAndGround(); } });
 		networkSubMenu.addMenuItem("Redo Network N_umbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { NetworkTool.renumberNetlists(); } });
 
@@ -1198,9 +1200,25 @@ public class ToolMenu {
             System.out.println("This cell has no Power or Ground networks");
     }
 
-    public static void validatePowerAndGround()
+	private static class RepairPowerAndGround extends Job
     {
-        System.out.println("Validating power and ground networks");
+        protected RepairPowerAndGround()
+        {
+            super("Repair Power and Ground", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+			validatePowerAndGround(true);
+            return true;
+        }
+    }
+
+    public static void validatePowerAndGround(boolean repair)
+    {
+		if (repair) System.out.println("Repairing power and ground exports"); else
+			System.out.println("Validating power and ground exports");
         int total = 0;
         for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
         {
@@ -1215,19 +1233,24 @@ public class ToolMenu {
                     {
                         System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'GROUND' characteristic");
+						if (repair) pp.setCharacteristic(PortCharacteristic.GND);
                         total++;
                     }
                     if (pp.isNamedPower() && pp.getCharacteristic() != PortCharacteristic.PWR)
                     {
                         System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'POWER' characteristic");
+						if (repair) pp.setCharacteristic(PortCharacteristic.PWR);
                         total++;
                     }
                 }
             }
         }
         if (total == 0) System.out.println("No problems found"); else
-            System.out.println("Found " + total + " export problems");
+		{
+            if (repair) System.out.println("Fixed " + total + " export problems"); else
+				System.out.println("Found " + total + " export problems");
+		}
     }
 
     /**
@@ -1260,13 +1283,6 @@ public class ToolMenu {
         {
             TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(-1.5, -1);
             Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0), td);
-//            Variable var = ni.newDisplayVar(Simulation.M_FACTOR_KEY, new Double(1.0));
-//            if (var != null)
-//            {
-////                var.setDisplay(true);
-//                var.setOff(-1.5, -1);
-//                var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//            }
             return true;
         }
     }
