@@ -68,9 +68,18 @@ public class DRC extends Listener
     public static final int DRC_BIT_ST_FOUNDRY = 03; /* For ST foundry selection */
     public static final int DRC_BIT_TSMC_FOUNDRY = 04; /* For TSMC foundry selection */
     /** Control different level of error checking */
-    public static final int ERROR_CHECK_DEFAULT = 0;    /** DRC stops after first error between 2 nodes is found (default) */
-    public static final int ERROR_CHECK_CELL = 1;       /** DRC stops after first error per cell is found */
-    public static final int ERROR_CHECK_EXHAUSTIVE = 2;  /** DRC checks all combinations */
+    public enum DRCMode
+    {
+	    ERROR_CHECK_DEFAULT (0),    /** DRC stops after first error between 2 nodes is found (default) */
+        ERROR_CHECK_CELL (1),       /** DRC stops after first error per cell is found */
+        ERROR_CHECK_EXHAUSTIVE (2);  /** DRC checks all combinations */
+        private final int mode;   // mode
+        DRCMode(int mode) {
+            this.mode = mode;
+        }
+        public int mode() { return this.mode; }
+        public String toString() {return name();}
+    }
 
     /****************************** DESIGN RULES ******************************/
 
@@ -731,18 +740,28 @@ public class DRC extends Listener
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
-	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs, ERROR_CHECK_DEFAULT);
+	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
+            DRCMode.ERROR_CHECK_DEFAULT.mode());
 	/**
 	 * Method to retrieve checking level in DRC
 	 * The default is "ERROR_CHECK_DEFAULT".
 	 * @return integer representing error type
 	 */
-	public static int getErrorType() { return cacheErrorCheckLevel.getInt(); }
+	public static DRC.DRCMode getErrorType()
+    {
+        int val = cacheErrorCheckLevel.getInt();
+        for (DRCMode p : DRCMode.values())
+        {
+            if (p.mode() == val) return p;
+        }
+        return null;
+    }
+
 	/**
 	 * Method to set DRC error type.
 	 * @param type representing error level
 	 */
-	public static void setErrorType(int type) { cacheErrorCheckLevel.setInt(type); }
+	public static void setErrorType(DRC.DRCMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
 
 	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", tool.prefs, false);
 	/**
