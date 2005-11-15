@@ -131,6 +131,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 						if (i != 0) initialText += "\n";
 						initialText += theArray[i];
 					}
+					multiLineCapable = true;
 				} else
 				{
 					initialText = var.getPureValue(-1);

@@ -50,6 +50,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -788,8 +789,7 @@ public abstract class LibraryFiles extends Input
             width = bounds.getWidth();
             height = bounds.getHeight();
         }
-            
-        
+
 		int rotation = nil.rotation[nodeIndex];
         boolean flipX = false;
         boolean flipY = false;
@@ -855,11 +855,22 @@ public abstract class LibraryFiles extends Input
         if (ni == null) return;
         Variable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
-            // Preprocess TRACE variables
             for (int j = 0; j < vars.length; j++) {
                 Variable var = vars[j];
                 if (var == null) continue;
-                if (var.getKey() == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
+
+				// cleanup NCC cell annotations which were inheritable
+				if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY)
+				{
+					if (version.getMajor() == 8 && version.getMinor() <= 3)
+					{
+						System.out.println("Removed NCC annotations from cell instance " + ni.describe(false));
+						continue;
+					}
+				}
+
+	            // convert outline information
+				if (var.getKey() == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
                     Object value = var.getObject();
                     if (value instanceof Integer[] || value instanceof Float[]) {
                         // convert outline information, if present
@@ -893,7 +904,31 @@ public abstract class LibraryFiles extends Input
             Variable var = vars[i];
 			if (var == null || eObj.isDeprecatedVariable(var.getKey())) continue;
             String origVarName = var.getKey().toString();
-            if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
+
+			// disable parameterization of cell's NCC attributes
+			if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY)
+			{
+				if (version != null && version.getMajor() == 8 && version.getMinor() <= 3)
+				{
+					if (eObj instanceof Cell)
+					{
+						TextDescriptor td = var.getTextDescriptor();
+						if (td != null && td.isInherit())
+						{
+							td = td.withInherit(false).withParam(false).withInterior(true);
+							var = Variable.newInstance(var.getKey(), var.getObject(), td);
+							System.out.println("Cleaned up NCC annotations in cell " + ((Cell)eObj).describe(false));
+						}
+					} else if (eObj instanceof NodeInst)
+					{
+						System.out.println("Removed extraneous NCC annotations from cell instance " + ((NodeInst)eObj).describe(false));
+						continue;
+					}
+				}
+			}
+
+			// convert old port variables
+			if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
                 // the form is "ATTRP_portName_variableName" with "\" escapes
                 StringBuffer portName = new StringBuffer();
                 String varName = null;

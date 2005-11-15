@@ -81,9 +81,11 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.ncc.Ncc;
+import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.NetEquivalence;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
@@ -340,16 +342,13 @@ public class ToolMenu {
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRS UVWXYZ
 		MenuBar.Menu nccSubMenu = MenuBar.makeMenu("_NCC");
 		toolMenu.add(nccSubMenu);
-		nccSubMenu.addMenuItem("Schematic and Layout Views of Cell in _Current Window", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(1);
-			}
-		});
-		nccSubMenu.addMenuItem("Cells from _Two Windows", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(2);
-			}
-		});
+		nccSubMenu.addMenuItem("Schematic and Layout Views of Cell in _Current Window", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new NccJob(1); } });
+		nccSubMenu.addMenuItem("Cells from _Two Windows", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new NccJob(2); } });
+		nccSubMenu.addSeparator();
+		nccSubMenu.addMenuItem("Add NCC Annotation to Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation(); } });
 
 		//------------------- Network
 

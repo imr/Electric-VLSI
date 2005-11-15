@@ -29,12 +29,21 @@ import java.util.StringTokenizer;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 /** Representation of the NCC annotations that a user may place on a Cell */
 
 public class NccCellAnnotations {
+	/** key of Variable holding NCC Cell annotations. */	public static final Variable.Key NCC_ANNOTATION_KEY = Variable.newKey("ATTR_NCC");
+
 	public static class NamePattern {
 		private final boolean isRegExp;
 		private final String pattern;
@@ -279,16 +288,70 @@ public class NccCellAnnotations {
 			prErr(" ignoring bad NCC annotation: ");
 		}
 	}
-	
+
+	/**
+	 * Class to create a Cell NCC annotation object in a new Job.
+	 */
+    private static class MakeCellAnnotation extends Job
+    {
+		private EditWindow wnd;
+        private Cell cell;
+
+		private MakeCellAnnotation(EditWindow wnd, Cell cell)
+        {
+            super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.wnd = wnd;
+            this.cell = cell;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+			Variable nccVar = cell.getVar(NCC_ANNOTATION_KEY);
+			if (nccVar == null)
+			{
+				String [] initial = new String[1];
+				initial[0] = "* NCC Annotations";
+				TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+				nccVar = cell.newVar(NCC_ANNOTATION_KEY, initial, td);
+				if (nccVar == null) return true;
+			}
+			Highlighter h = wnd.getHighlighter();
+			h.clear();
+			h.addText(cell, cell, nccVar, null);
+			h.finished();
+			return true;
+        }
+    }
+
 	// ---------------------- public methods -----------------------------
 
-	/** @return null if Cell has no NCC annotations */
+	/**
+	 * Method to create NCC annotations in the current Cell.
+	 * Called from the menu commands.
+	 */
+	public static void makeNCCAnnotation()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		new MakeCellAnnotation(wnd, cell);
+	}
+
+	/**
+	 * Method to get the NCC annotations on a Cell.
+	 * @param cell the Cell to query.
+	 * @return the NccCellAnnotations for the Cell.
+	 * Returns null if the Cell has no NCC annotations
+	 */
 	public static NccCellAnnotations getAnnotations(Cell cell) {
-		Variable nccVar = cell.getVar("ATTR_NCC");
+		Variable nccVar = cell.getVar(NCC_ANNOTATION_KEY);
 		if (nccVar==null) return null;
 		Object annotation = nccVar.getObject();
 		return new NccCellAnnotations(cell, annotation);
 	}
+
 	/** @return a String which is the reason given by the user for not 
 	 * NCCing the cell or null if there is no skipNCC annotation on 
 	 * the cell. */

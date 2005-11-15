@@ -497,26 +497,18 @@ public class PaletteFrame implements MouseListener
 
 			// get default creation angle
             Orientation defOrient = Orientation.IDENT;
-//			int defAngle = 0;
 			int techBits = 0;
 			if (ni != null)
 			{
                 defOrient = ni.getOrient();
-//				defAngle = ni.getAngle();
 				techBits = ni.getTechSpecific();
 			} else if (np instanceof PrimitiveNode)
 			{
 				int defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
                 defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
-//				if (defAngle >= 3600)
-//				{
-//					defAngle %= 3600;
-//					width = -width;
-//				}
 			}
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
-//			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode ||
                     (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
@@ -602,7 +594,7 @@ public class PaletteFrame implements MouseListener
 			if (export)
 			{
 				ExportChanges.newExportCommand();
-				System.out.println("SHOULD EXPORT IT NOW");
+//				System.out.println("SHOULD EXPORT IT NOW");
 			}
 			return true;
 		}
