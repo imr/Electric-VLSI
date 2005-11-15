@@ -113,7 +113,7 @@ public class JELIB extends LibraryFiles
 	private HashMap<String,Point2D.Double> externalExports;
     private HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
     private HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
-	private Version version;
+//	private Version version;
 	private int revision;
 	private char escapeChar = '\\';
 	private String curLibName;
