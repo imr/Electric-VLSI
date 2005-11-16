@@ -98,7 +98,7 @@ class NetCell
     /** */                                                          int numExportedDrawns;
 	/** */															int numConnectedDrawns;
 
-	/** A map from Name to NetName. */								Map<Name,NetName> netNames = new HashMap<Name,NetName>();
+	/** A map from canonic String to NetName. */					Map<String,NetName> netNames = new HashMap<String,NetName>();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
@@ -511,8 +511,7 @@ class NetCell
 	}
 
 	void initNetnames() {
-		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); ) {
-			NetName nn = (NetName)it.next();
+		for (NetName nn: netNames.values()) {
 			nn.name = null;
 			nn.index = -1;
 		}
@@ -552,10 +551,10 @@ class NetCell
 	}
 
 	void addNetName(Name name) {
-		NetName nn = (NetName)netNames.get(name);
+		NetName nn = netNames.get(name.canonicString());
 		if (nn == null) {
 			nn = new NetName();
-			netNames.put(name.canonic(), nn);
+			netNames.put(name.canonicString(), nn);
 		}
 		if (nn.index < 0) {
 			nn.name = name;
@@ -652,7 +651,7 @@ class NetCell
 
 	private void setNetName(Network[] netNamesToNet, int drawn, Name name, boolean exported) {
 		Network network = netlist.getNetworkByMap(drawn);
-		NetName nn = (NetName)netNames.get(name);
+		NetName nn = netNames.get(name.canonicString());
 		if (netNamesToNet[nn.index] != null) {
 			if (netNamesToNet[nn.index] == network) return;
 			String msg = "Network: Layout " + cell + " has nets with same name " + name;

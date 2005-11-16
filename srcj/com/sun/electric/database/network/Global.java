@@ -45,7 +45,7 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Map Name -> Global. */					private static Map<Name,Global> globalsByName = new HashMap<Name,Global>();
+	/** Map canonic String -> Global. */		private static Map<String,Global> globalsByName = new HashMap<String,Global>();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
 	/** global signal power. */					public static final Global power = newGlobal("vdd");
@@ -63,7 +63,7 @@ public class Global
 		}
 		newGlobals[index] = this;
 		allGlobals = newGlobals;
-		globalsByName.put(name.canonic(), this);
+		globalsByName.put(name.canonicString(), this);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class Global
 	 */
 	public static Global newGlobal(String name) {
 		Name nameKey = Name.findName(name);
-		Global g = (Global) globalsByName.get(nameKey);
+		Global g = globalsByName.get(nameKey.canonicString());
 		if (g == null)
 			g = new Global(nameKey);
 		return g;

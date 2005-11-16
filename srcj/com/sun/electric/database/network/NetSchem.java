@@ -970,7 +970,7 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
                 netlistF.connectMap(portOffset + i, drawnOffset + (busWidth == drawnWidths[drawn] ? i : i % drawnWidths[drawn]));
-				NetName nn = (NetName)netNames.get(expNm.subname(i));
+				NetName nn = netNames.get(expNm.subname(i).canonicString());
 				netlistF.connectMap(portOffset + i, netNamesOffset + nn.index);
 			}
 		}
@@ -1038,7 +1038,7 @@ class NetSchem extends NetCell {
 			if (arcNm.busWidth() != busWidth) continue;
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
-				NetName nn = (NetName)netNames.get(arcNm.subname(i));
+				NetName nn = netNames.get(arcNm.subname(i).canonicString());
 				netlistF.connectMap(drawnOffset + i, netNamesOffset + nn.index);
 			}
 		}
@@ -1148,16 +1148,14 @@ class NetSchem extends NetCell {
 			netlistF.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
 			netlistT.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
 		}
-		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); )
+		for (NetName nn: netNames.values())
 		{
-			NetName nn = (NetName)it.next();
 			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
 			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
 			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
 		}
-		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); )
+		for (NetName nn: netNames.values())
 		{
-			NetName nn = (NetName)it.next();
 			if (nn.index < exportedNetNameCount) continue;
 			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);
 			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);

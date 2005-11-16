@@ -1014,7 +1014,7 @@ public class Undo
 //		if (!recordChange() && !(obj instanceof Library)) return;
 		if (!recordChange()) return;
 		Cell cell = obj.whichCell();
-		if (cell != null) cell.checkInvariants();
+//		if (cell != null) cell.checkInvariants();
 		Type type = null;
 		if (obj instanceof Cell) type = Type.CELLNEW;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;

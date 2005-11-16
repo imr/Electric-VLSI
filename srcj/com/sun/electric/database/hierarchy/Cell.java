@@ -381,11 +381,11 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
     /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
 	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
-	/** A map from Name to Integer maximal numeric suffix */        private final HashMap<Name,MaxSuffix> maxSuffix = new HashMap<Name,MaxSuffix>();
+	/** A map from canonic String to Integer maximal numeric suffix */private final HashMap<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
     /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
     /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
     /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
-	/** A map from temporary Name keys to NodeInst. */				private final HashMap<Name,NodeInst> tempNodeNames = new HashMap<Name,NodeInst>();
+	/** A map from temporary canonicString to NodeInst. */			private final HashMap<String,NodeInst> tempNodeNames = new HashMap<String,NodeInst>();
 	/** The bounds of the Cell. */									private final Rectangle2D cellBounds = new Rectangle2D.Double();
 	/** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
@@ -1833,17 +1833,17 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         // add temporary name
 		Name name = ni.getNameKey();
 		if (!name.isTempname()) return;
-		tempNodeNames.put(name.canonic(), ni);
+		tempNodeNames.put(name.canonicString(), ni);
 
 		Name basename = name.getBasename();
 		if (basename != null && basename != name)
 		{
-			basename = basename.canonic(); 
-			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+			String basenameString = basename.canonicString(); 
+			MaxSuffix ms = maxSuffix.get(basenameString);
 			if (ms == null)
 			{
 				ms = new MaxSuffix();
-				maxSuffix.put(basename, ms);
+				maxSuffix.put(basenameString, ms);
 			}
 			int numSuffix = name.getNumSuffix();
 			if (numSuffix > ms.v)
@@ -1859,7 +1859,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 */
 	public boolean hasTempNodeName(Name name)
 	{
-		return tempNodeNames.containsKey(name);
+		return tempNodeNames.containsKey(name.canonicString());
 	}
 
 	/**
@@ -1869,11 +1869,12 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 */
 	public Name getNodeAutoname(Name basename)
 	{
-		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
+        String basenameString = basename.canonicString();
+		MaxSuffix ms = maxSuffix.get(basenameString);
 		if (ms == null)
 		{
 			ms = new MaxSuffix();
-			maxSuffix.put(basename.canonic(), ms);
+			maxSuffix.put(basenameString, ms);
 			return basename.findSuffixed(0);
 		} else 
 		{
@@ -1926,7 +1927,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         
         // remove temporary name
 		if (!ni.isUsernamed())
-            tempNodeNames.remove(ni.getNameKey().canonic());
+            tempNodeNames.remove(ni.getNameKey().canonicString());
 	}
 
     /**
@@ -2301,11 +2302,11 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
         if (name == null) return null;
 		int portIndex = searchExport(name.toString());
 		if (portIndex >= 0) return exports[portIndex];
-		name = name.canonic();
+		String nameString = name.canonicString();
 		for (int i = 0; i < exports.length; i++)
 		{
 			Export e = exports[i];
-			if (e.getNameKey().canonic() == name)
+			if (e.getNameKey().canonicString() == nameString)
 				return e;
 		}
 		return null;
@@ -2761,7 +2762,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 	 */
 	public boolean isUniqueName(Name name, Class cls, ElectricObject exclude)
 	{
-		name = name.canonic();
+//		name = name.canonic();
 		if (cls == PortProto.class)
 		{
 			PortProto pp = findExport(name);
@@ -2770,9 +2771,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 		}
 		if (cls == NodeInst.class)
 		{
+            String nameString = name.canonicString();
 			if (name.isTempname())
 			{
-				NodeInst ni = (NodeInst)tempNodeNames.get(name);
+				NodeInst ni = tempNodeNames.get(nameString);
 				return ni == null || exclude == ni;
 			}
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
@@ -2780,15 +2782,16 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				NodeInst ni = (NodeInst)it.next();
 				if (exclude == ni) continue;
 				Name nodeName = ni.getNameKey();
-				if (name == nodeName.canonic()) return false;
+				if (nameString == nodeName.canonicString()) return false;
 			}
 			return true;
 		}
 		if (cls == ArcInst.class)
 		{
+            String nameString = name.canonicString();
 			if (name.isTempname())
 			{
-                ArcInst ai = findArc(name.toString());
+                ArcInst ai = findArc(nameString);
 				return ai == null || exclude == ai;
 			}
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
@@ -2796,7 +2799,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable<Cell>
 				ArcInst ai = (ArcInst)it.next();
 				if (exclude == ai) continue;
 				Name arcName = ai.getNameKey();
-				if (name == arcName.canonic()) return false;
+				if (nameString == arcName.canonicString()) return false;
 			}
 			return true;
 		}

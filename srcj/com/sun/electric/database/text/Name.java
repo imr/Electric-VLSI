@@ -23,11 +23,12 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.geometry.GenMath;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -46,20 +47,23 @@ import java.util.Map;
 public class Name implements Comparable<Name>
 {
 	/** the original name */	private final String ns;
-	/** the canonic name */     private final Name canonic;
+	/** the canonic name */     private final String canonicString;
 	/** list of subnames */		private Name[] subnames;
 	/** basename */				private final Name basename;
 	/** numerical suffix */     private final int numSuffix;
 	/** the flags */			private int flags;
 	
-	/** Map String -> Name */	private static Map<String,Name> allNames = new HashMap<String,Name>();
+	/** Hash of Names */        private static volatile Name[] allNames = new Name[1];
+    /** count of allocated Names */private static int allNamesCount = 0;
 
 	/**
 	 * Method to return the name object for this string.
 	 * @param ns given string
 	 * @return the name object for the string.
 	 */
-	public static synchronized final Name findName(String ns) { return findTrimmedName(trim(ns)); }
+	public static final Name findName(String ns) {
+        if (ns == null) return null;
+        return findTrimmedName(trim(ns)); }
 
 	/**
 	 * Method to check whether or not string is a valid name.
@@ -85,10 +89,10 @@ public class Name implements Comparable<Name>
 	public final String toString() { return ns; }
 
 	/**
-	 * Returns canonic equivalent of this Name.
-	 * @return canonic equivalent of this Name.
+	 * Returns canonic equivalent String of this Name.
+	 * @return canonic equivalent String of this Name.
 	 */
-	public final Name canonic() { return canonic; }
+	public final String canonicString() { return canonicString; }
 
     /**
      * Compares this Name with the specified Name for order.  Returns a
@@ -100,8 +104,8 @@ public class Name implements Comparable<Name>
      */
     public int compareTo(Name name)
 	{
-		if (canonic == name.canonic) return 0;
-		return canonic.ns.compareTo(name.canonic.ns);
+		if (canonicString == name.canonicString) return 0;
+		return canonicString.compareTo(name.canonicString);
 	}
 
     /**
@@ -131,7 +135,7 @@ public class Name implements Comparable<Name>
 		if (anObject instanceof Name)
 		{
 			Name anotherName = (Name)anObject;
-			return canonic == anotherName.canonic;
+			return canonicString == anotherName.canonicString;
 		}
 		return false;
 	}
@@ -141,7 +145,7 @@ public class Name implements Comparable<Name>
      * <code>TextDescriptor</code> object is computed as sum of its fields.
      * @return  a hash code value for this object.
      */
-    public int hashCode() { return canonic == this ? super.hashCode() : canonic.hashCode(); }
+    public int hashCode() { return canonicString.hashCode(); }
 
 	/**
 	 * Tells whether or not this Name is a valid bus or signal name.
@@ -236,15 +240,74 @@ public class Name implements Comparable<Name>
 	 */
 	private static Name findTrimmedName(String ns)
 	{
-		Name name = (Name)allNames.get(ns);
-		if (name == null && ns != null)
-		{
-            ns = ns.intern();
-			name = new Name(ns);
-			allNames.put(name.ns, name);
-		}
-		return name;
-	}
+        // The allNames array is created in "rehash" method inside synchronized block.
+        // "rehash" fills some entris leaving null in others.
+        // All entries filled in rehash() are final.
+        // However other threads may change initially null entries to non-null value.
+        // This non-null value is final.
+        // First we scan a sequence of non-null entries out of synchronized block.
+        // It is guaranteed that we see the correct values of non-null entries.
+
+        // Get poiner to hash array locally once to avoid many reads of volatile variable.
+        Name[] hash = allNames;
+        
+        // We shall try to search a sequence of non-null entries for CellUsage with our protoId.
+        int i = ns.hashCode() & 0x7FFFFFFF;
+        i %= hash.length;
+        for (int j = 1; hash[i] != null; j += 2) {
+            Name n = hash[i];
+            
+            // We scanned a seqence of non-null entries and found the result.
+            // It is correct to return it without synchronization.
+            if (n.ns.equals(ns)) return n;
+            
+            i += j;
+            if (i >= hash.length) i -= hash.length;
+        }
+        
+        // Need to enter into the synchronized mode.
+        synchronized (Name.class) {
+            
+            if (hash == allNames && allNames[i] == null) {
+                // There we no rehash during our search and the last null entry is really null.
+                // So we can safely use results of unsynchronized search.
+                if (allNamesCount*2 <= hash.length - 3) {
+                    // create a new CellUsage, if enough space in the hash
+                    Name n = new Name(ns);
+                    hash[i] = n;
+                    allNamesCount++;
+                    return n;
+                }
+                // enlarge hash if not 
+                rehash();
+            }
+            // retry in synchronized mode.
+            return findTrimmedName(ns);
+        }
+    }
+    
+    /**
+     * Rehash the allNames hash.
+     * @throws IndexOutOfBoundsException on hash overflow.
+     * This method may be called only inside synchronized block.
+     */
+    private static void rehash() {
+        Name[] oldHash = allNames;
+        int newSize = oldHash.length*2 + 3;
+        if (newSize < 0) throw new IndexOutOfBoundsException();
+        Name[] newHash = new Name[GenMath.primeSince(newSize)];
+        for (Name n: oldHash) {
+            if (n == null) continue;
+            int i = n.ns.hashCode() & 0x7FFFFFFF;
+            i %= newHash.length;
+            for (int j = 1; newHash[i] != null; j += 2) {
+                i += j;
+                if (i >= newHash.length) i -= newHash.length;
+            }
+            newHash[i] = n;
+        }
+        allNames = newHash;
+    }
 
 	/**
 	 * Returns the trimmed string for given string.
@@ -273,13 +336,13 @@ public class Name implements Comparable<Name>
 	/**
 	 * Constructs a <CODE>Name</CODE> (cannot be called).
 	 */
-	private Name(String ns)
+	private Name(String s)
 	{
-		this.ns = ns;
+		ns = s.intern();
         int suffix = -1;
         Name base = null;
 		String canonic = TextUtils.canonicString(ns);
-		this.canonic = (ns.equals(canonic) ? this : findTrimmedName(canonic));
+		canonicString = canonic == ns ? ns : canonic.intern();
 		try
 		{
 			flags = checkNameThrow(ns);
