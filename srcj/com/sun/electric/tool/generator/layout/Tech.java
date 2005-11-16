@@ -274,7 +274,7 @@ public class Tech {
             if (isTsmc180)
 			    tech.setSelectedFoundry(DRCTemplate.DRCMode.TSMC.name());
             else // Make sure MOSIS is set as foundry. Doesn' rely on preferences
-                tech.setSelectedFoundry(DRCTemplate.DRCMode.Mosis.name());
+                tech.setSelectedFoundry(DRCTemplate.DRCMode.MOSIS.name());
 		} else {
 			tech = Technology.findTechnology(techNm);
 		}

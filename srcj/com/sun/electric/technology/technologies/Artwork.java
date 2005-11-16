@@ -112,7 +112,7 @@ public class Artwork extends Technology
 		G_lay.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		G_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.Mosis.name());		// Graphics
+		G_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************
 
