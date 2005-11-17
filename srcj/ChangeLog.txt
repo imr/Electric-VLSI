@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/16/05, SMR) Deleting a cell instance loses arc names on reconnected arcs (Bug #758).
+FIX: In CircuitChanges.eraseObjectsInList(), apply old name to new arc.
+
 IMP: (11/16/05, DN) Memory optimization: Name module stores only canonic String instead of Name.
 
 IMP: (11/15/05, SMR) Spice templates can now have multiple lines.

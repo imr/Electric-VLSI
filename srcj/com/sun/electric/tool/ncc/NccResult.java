@@ -120,7 +120,7 @@ public class NccResult {
         comparisonMismatches.add(cr);
     }
 
-    public List getAllComparisonMismatches() {
+    public List<NccComparisonMismatches> getAllComparisonMismatches() {
         return comparisonMismatches;
     }
 }

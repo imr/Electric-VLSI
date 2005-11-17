@@ -1749,7 +1749,8 @@ public class CircuitChanges
 					// reconnect a piece of hair to a cell instance
 					PrimitiveNode pinNp = ai.getProto().findPinProto();
 					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-					ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), otherPi, pin.getOnlyPortInst());
+					ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), otherPi, pin.getOnlyPortInst(),
+						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 				}
 			}
 		}
