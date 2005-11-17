@@ -1126,6 +1126,13 @@ public class Undo
 	public static ChangeBatch getCurrentBatch() { return currentBatch; }
 
 	/**
+	 * Method to tell whether changes are being made quietly.
+	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
+	 * @return true if changes are being made quietly.
+	 */
+	public static boolean isChangeQuiet() { return doChangesQuietly; }
+
+	/**
 	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 * @return the previous value of the "quiet" state.

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/17/05, SMR) Project management cannot find some cells (Bug #751).
+FIX: In Project.copyrecursively(), use the version number in the cell name so that
+     new repositories are correct.  In Project.getCellFromRepository(), be forgiving
+     of versions to handle existing repositories.
+
 BUG: (11/16/05, SMR) Deleting a cell instance loses arc names on reconnected arcs (Bug #758).
 FIX: In CircuitChanges.eraseObjectsInList(), apply old name to new arc.
 

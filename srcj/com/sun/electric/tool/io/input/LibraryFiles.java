@@ -163,7 +163,8 @@ public abstract class LibraryFiles extends Input
 		LibraryFiles.initializeLibraryInput();
 
 		Library lib = null;
-		boolean formerQuiet = Undo.changesQuiet(true);
+		boolean formerQuiet = Undo.isChangeQuiet();
+		if (!formerQuiet) Undo.changesQuiet(true);
 		try {
 			// show progress
 			if (!quick) startProgressDialog("library", fileURL.getFile());
@@ -203,7 +204,7 @@ public abstract class LibraryFiles extends Input
 			if (!quick) stopProgressDialog();
 			Cell.setAllowCircularLibraryDependences(false);
 		}
-		Undo.changesQuiet(formerQuiet);
+		if (!formerQuiet) Undo.changesQuiet(formerQuiet);
 
 		if (lib != null && !quick)
 		{

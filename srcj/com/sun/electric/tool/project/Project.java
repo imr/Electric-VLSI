@@ -1311,28 +1311,29 @@ public class Project extends Listener
 		}
 	}
 
-    private boolean variablesDiffers(ImmutableElectricObject oldImmutable, ImmutableElectricObject newImmutable) {
-            int oldLength = oldImmutable.getNumVariables();
-            int newLength = newImmutable.getNumVariables();
-            int oldIndex = oldImmutable.searchVar(PROJLOCKEDKEY);
-            int newIndex = newImmutable.searchVar(PROJLOCKEDKEY);
-            if (oldLength == newLength) {
-                if (oldIndex != newIndex) return true;
-                if (oldIndex < 0) return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldLength);
-                return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
-                        variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, oldIndex + 1, oldLength - oldIndex - 1);
-            }
-            if (oldLength == newLength + 1) {
-                if (oldIndex < 0 || oldIndex != ~newIndex) return true;
-                return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
-                        variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, ~newIndex, oldLength - oldIndex - 1);
-            }
-            if (newLength == oldIndex + 1) {
-                if (newIndex < 0 || newIndex != ~oldIndex) return true;
-                return variablesDiffers(oldImmutable, 0, newImmutable, 0, newIndex) ||
-                        variablesDiffers(oldImmutable, newIndex, newImmutable, newIndex + 1, newLength - newIndex - 1);
-            }
-            return true;
+    private boolean variablesDiffers(ImmutableElectricObject oldImmutable, ImmutableElectricObject newImmutable)
+	{
+		int oldLength = oldImmutable.getNumVariables();
+		int newLength = newImmutable.getNumVariables();
+		int oldIndex = oldImmutable.searchVar(PROJLOCKEDKEY);
+		int newIndex = newImmutable.searchVar(PROJLOCKEDKEY);
+		if (oldLength == newLength) {
+			if (oldIndex != newIndex) return true;
+			if (oldIndex < 0) return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldLength);
+			return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
+				variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, oldIndex + 1, oldLength - oldIndex - 1);
+		}
+		if (oldLength == newLength + 1) {
+			if (oldIndex < 0 || oldIndex != ~newIndex) return true;
+			return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
+				variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, ~newIndex, oldLength - oldIndex - 1);
+		}
+		if (newLength == oldIndex + 1) {
+			if (newIndex < 0 || newIndex != ~oldIndex) return true;
+			return variablesDiffers(oldImmutable, 0, newImmutable, 0, newIndex) ||
+				variablesDiffers(oldImmutable, newIndex, newImmutable, newIndex + 1, newLength - newIndex - 1);
+		}
+		return true;
     }
     
     private boolean variablesDiffers(ImmutableElectricObject oldImmutable, int oldStart, ImmutableElectricObject newImmutable, int newStart, int count) {
@@ -2810,6 +2811,7 @@ public class Project extends Listener
 	private static void setChangeStatus(boolean quiet)
 	{
 		if (quiet) ignoreChanges = quiet;
+		Undo.changesQuiet(quiet);
 	}
 
 	private static void ensureUserList()
@@ -2852,7 +2854,6 @@ public class Project extends Listener
 	{
 		// write the file back
 		String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
-//		URL url = TextUtils.makeURLToFile(userFile);
 		try
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(userFile)));
@@ -3102,14 +3103,13 @@ public class Project extends Listener
 		ProjectLibrary pl = pc.projLib;
 		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
 			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
+		URL libURL = TextUtils.makeURLToFile(libName);
 
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-		if (report) System.out.print("Reading library with cell " + lib.getName() + ":" + pc.describe() + "...");
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
-		if (report) System.out.println("done");
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
@@ -3122,7 +3122,6 @@ public class Project extends Listener
 				for(Iterator<NodeInst> it = cur.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
-//					nodePrototypes.put(ni, ni.getProto());
 					if (ni.getProto() instanceof Cell)
 					{
 						Cell subCell = (Cell)ni.getProto();
@@ -3179,6 +3178,19 @@ public class Project extends Listener
 						{
 							ProjectLibrary subPL = ProjectLibrary.findProjectLibrary(subLib);
 							ProjectCell subPC = subPL.findProjectCellByNameViewVersion(subCell.getName(), subCell.getView(), subCell.getVersion());
+							if (subPC == null)
+							{
+								// could not find that cell, see if a different version is available
+								for(Iterator<ProjectCell> oIt = subPL.allCells.iterator(); oIt.hasNext(); )
+								{
+									ProjectCell oPc = (ProjectCell)oIt.next();
+									if (oPc.cellName.equals(subCell.getName()) && oPc.cellView == subCell.getView())
+									{
+										if (subPC != null && subPC.cellVersion > oPc.cellVersion) continue;
+										subPC = oPc;
+									}
+								}
+							}
 							if (subPC != null)
 							{
 								if (subPC.cell != null)
@@ -3200,10 +3212,9 @@ public class Project extends Listener
 				}
 
 				String cellName = describeFullCellName(cur);
-				if (report) System.out.print("Retrieving cell " + lib.getName() + ":" + cellName + "...");
+				if (report) System.out.println("Retrieving cell " + lib.getName() + ":" + cellName);
 				newCell = Cell.copyNodeProtoUsingMapping(cur, lib, cellName, nodePrototypes);
 				if (newCell == null) System.out.println("Cannot copy " + cur + " from new library");
-				if (report) System.out.println("done");
 			}
 
 			// kill the library
@@ -3570,7 +3581,8 @@ public class Project extends Listener
 			if (cell.getView().isTextView()) continue;
 
 			// get proper subcell name
-			String subCellName = cell.noLibDescribe();
+			String subCellName = cell.getName() + ";" + cell.getVersion() + "{" +  cell.getView().getAbbreviation() + "}";
+//			String subCellName = cell.noLibDescribe();
 			if (cell.getLibrary() != fromCell.getLibrary())
 				subCellName = cell.getLibrary().getName() + "__" + subCellName;
 
