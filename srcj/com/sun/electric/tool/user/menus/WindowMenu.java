@@ -139,8 +139,7 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
 
         windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
-                curWF.finished(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { closeWindowCommand(); }});
 
 		if (!TopLevel.isMDIMode()) {
 			windowMenu.addSeparator();
@@ -471,7 +470,13 @@ public class WindowMenu {
 		}
     }
 
-    private static Rectangle [] getWindowAreas()
+	private static void closeWindowCommand()
+	{
+		WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+		curWF.finished();
+	}
+
+	private static Rectangle [] getWindowAreas()
     {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice [] gs = ge.getScreenDevices();

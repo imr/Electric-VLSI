@@ -109,6 +109,8 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -140,7 +142,7 @@ import javax.swing.tree.TreePath;
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
  */
-public class WaveformWindow implements WindowContent
+public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
 	private static int panelSizeDigital = 25;
 	private static int panelSizeAnalog  = 75;
@@ -161,6 +163,7 @@ public class WaveformWindow implements WindowContent
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
+	/** the signal on all X axes (null for time) */			private AnalogSignal xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
@@ -199,6 +202,10 @@ public class WaveformWindow implements WindowContent
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
     /** for drawing far-dotted lines */						private static final BasicStroke farDottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {4,12}, 0);
 
+	/** Font for all text in the window */					private static Font waveWindowFont;
+	/** For rendering text */								private static FontRenderContext waveWindowFRC;
+	/** The colors of signal lines */						private static Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
+
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
 	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
@@ -210,6 +217,7 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconToggleGrid = Resources.getResource(WaveformWindow.class, "ButtonSimGrid.gif");
 	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
 	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
+	private static final ImageIcon iconTimeInXPanel = Resources.getResource(WaveformWindow.class, "ButtonSimTimeInX.gif");
 	private static final ImageIcon iconVCRRewind = Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif");
 	private static final ImageIcon iconVCRPlayBackward = Resources.getResource(WaveformWindow.class, "ButtonVCRPlayBackward.gif");
 	private static final ImageIcon iconVCRStop = Resources.getResource(WaveformWindow.class, "ButtonVCRStop.gif");
@@ -226,6 +234,7 @@ public class WaveformWindow implements WindowContent
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		/** the main waveform window this is part of */			private WaveformWindow waveWindow;
+		/** the signal on the X axis (null for time) */			private AnalogSignal xAxisSignal;
 		/** maps signal buttons to the actual Signal */			private HashMap<JButton,WaveSignal> waveSignals;
 		/** the list of signal name buttons on the left */		private JPanel signalButtons;
 		/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
@@ -235,7 +244,6 @@ public class WaveformWindow implements WindowContent
 		/** the button to hide this panel. */					private JButton hide;
 		/** the button to delete selected signal (analog). */	private JButton deleteSignal;
 		/** the button to delete all signals (analog). */		private JButton deleteAllSignals;
-//		/** the button to toggle bus display (digital). */		private JButton toggleBusSignals;
 		/** the signal name button (digital). */				private JButton digitalSignalButton;
 		/** displayed range along horozintal axis */			private double minTime, maxTime;
 		/** low value displayed in this panel (analog) */		private double analogLowValue;
@@ -285,6 +293,7 @@ public class WaveformWindow implements WindowContent
 			addMouseListener(this);
 			addMouseMotionListener(this);
 			addMouseWheelListener(this);
+			xAxisSignal = null;
 			waveSignals = new HashMap<JButton,WaveSignal>();
 
 			setTimeRange(waveWindow.minTime, waveWindow.maxTime);
@@ -436,11 +445,11 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// the right side with signal traces
-			rightHalf = new OnePanel(this, waveWindow);
+			rightHalf = new JPanel();
 			rightHalf.setLayout(new GridBagLayout());
 
 			// a drop target for the signal panel
-			DropTarget dropTargetRight = new DropTarget(rightHalf, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+			DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 
 			// a separator at the top
 			sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -756,11 +765,6 @@ public class WaveformWindow implements WindowContent
 			repaint();
 		}
 
-		private Font waveWindowFont;
-		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
-
-		private Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
-
 		/**
 		 * Method to repaint this Panel.
 		 */
@@ -784,7 +788,6 @@ public class WaveformWindow implements WindowContent
 			// show the image
 			g.setColor(new Color(User.getColorWaveformBackground()));
 			g.fillRect(0, 0, wid, hei);
-			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 
 			// draw the grid first (behind the signals)
 			if (isAnalog && waveWindow.showGrid)
@@ -812,50 +815,6 @@ public class WaveformWindow implements WindowContent
 					}
 				}
 
-				// draw the horizontal grid lines
-//				double displayedLow = scaleYToValue(hei);
-//				double displayedHigh = scaleYToValue(0);
-//
-//				// instead of sensible values taken from ticks, base it on the range of numbers
-//				double lowYData = 0, highYData = 0;
-//				boolean first = true;
-//				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
-//				{
-//					WaveSignal ws = (WaveSignal)it.next();
-//					if (ws.sSig instanceof AnalogSignal)
-//					{
-//						// grid on analog trace
-//						Rectangle2D bounds = ws.sSig.getBounds();
-//						if (first)
-//						{
-//							lowYData = bounds.getMinY();
-//							highYData = bounds.getMaxY();
-//							first = false;
-//						} else
-//						{
-//							if (bounds.getMinY() < lowYData) lowYData = bounds.getMinY();
-//							if (bounds.getMaxY() > highYData) highYData = bounds.getMaxY();
-//						}
-//					}
-//				}
-//				ss.separation = (highYData-lowYData) / 5;
-//				ss.low = (highYData-lowYData) / 10 + lowYData;
-//				ss.high = highYData - (highYData-lowYData) / 10;
-//				if (ss.separation != 0.0)
-//				{
-//					double value = ss.low;
-//					for(;;)
-//					{
-//						if (value >= displayedLow)
-//						{
-//							if (value > displayedHigh || value > ss.high) break;
-//							int y = scaleValueToY(value);
-//							g.drawLine(vertAxisPos, y, wid, y);
-//						}
-//						value += ss.separation;
-//					}
-//				}
-
 				ss = getSensibleValues(analogHighValue, analogLowValue, 5);
 				if (ss.separation != 0.0)
 				{
@@ -873,12 +832,6 @@ public class WaveformWindow implements WindowContent
 				}
 				g2.setStroke(Highlight.solidLine);
 			}
-
-			// look at all traces in this panel
-			offStrengthColor = new Color(User.getColorWaveformStrengthOff());
-			nodeStrengthColor = new Color(User.getColorWaveformStrengthNode());
-			gateStrengthColor = new Color(User.getColorWaveformStrengthGate());
-			powerStrengthColor = new Color(User.getColorWaveformStrengthPower());
 
 			processSignals(g, null);
 			processControlPoints(g, null);
@@ -1105,6 +1058,10 @@ public class WaveformWindow implements WindowContent
 			sz = getSize();
 			int wid = sz.width;
 			int hei = sz.height;
+			AnalogSignal xSignal = xAxisSignal;
+			if (waveWindow.timeLocked) xSignal = waveWindow.xAxisSignalAll;
+            double[] result = new double[3];
+            double[] result2 = new double[3];
 
 			for(Iterator<WaveSignal> it = waveSignals.values().iterator(); it.hasNext(); )
 			{
@@ -1114,7 +1071,6 @@ public class WaveformWindow implements WindowContent
 				{
 					// draw analog trace
 					AnalogSignal as = (AnalogSignal)ws.sSig;
-                    double[] result = new double[3];
                     for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 					{
                         SweepSignal ss = null;
@@ -1129,6 +1085,11 @@ public class WaveformWindow implements WindowContent
                             int x = scaleTimeToX(result[0]);
                             int lowY = scaleValueToY(result[1]);
                             int highY = scaleValueToY(result[2]);
+							if (xSignal != null)
+							{
+								xSignal.getEvent(s, i, result2);
+								x = scaleTimeToX(result2[1]);
+							}
                             if (i != 0)
                             {
                                 if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
@@ -2193,6 +2154,7 @@ public class WaveformWindow implements WindowContent
 
 		public void drop(DropTargetDropEvent dtde)
 		{
+			// get information about the drop (such as the signal name)
 			Object data = null;
 			try
 			{
@@ -2215,15 +2177,60 @@ public class WaveformWindow implements WindowContent
 				return;
 			}
 			String sigName = (String)data;
+
+			// see if the signal was dropped onto a "time" panel (setting x-axis)
 			DropTarget dt = (DropTarget)dtde.getSource();
-			if (!(dt.getComponent() instanceof OnePanel))
+			if (dt.getComponent() instanceof TimeTickPanel)
+			{
+				// dragged a signal to the time panel: make that signal the X axis
+				if (!sigName.startsWith("PANEL "))
+				{
+					TimeTickPanel ttp = (TimeTickPanel)dt.getComponent();
+					Signal sSig = ttp.waveWindow.findSignal(sigName);
+					if (sSig != null && sSig instanceof AnalogSignal)
+					{
+						Rectangle2D bounds = sSig.getBounds();
+						if (ttp.wavePanel != null)
+						{
+							ttp.wavePanel.xAxisSignal = (AnalogSignal)sSig;
+							ttp.wavePanel.setTimeRange(bounds.getMinY(), bounds.getMaxY());
+							ttp.wavePanel.repaint();
+						} else
+						{
+							ttp.waveWindow.xAxisSignalAll = (AnalogSignal)sSig;
+							ttp.waveWindow.redrawAllPanels();
+							for(Iterator<Panel> it = ttp.waveWindow.wavePanels.iterator(); it.hasNext(); )
+							{
+								Panel wp = (Panel)it.next();
+								wp.setTimeRange(bounds.getMinY(), bounds.getMaxY());
+							}
+						}
+						ttp.repaint();
+					}
+				}
+				dtde.dropComplete(false);
+				return;
+			}
+
+			// determine which panel was the target of the drop
+			WaveformWindow ww = null;
+			Panel panel = null;
+			if (dt.getComponent() instanceof Panel)
+			{
+				panel = (Panel)dt.getComponent();
+				ww = panel.waveWindow;
+			}
+			if (dt.getComponent() instanceof OnePanel)
+			{
+				OnePanel op = (OnePanel)dt.getComponent();
+				ww = op.getWaveformWindow();
+				panel = op.getPanel();
+			}
+			if (panel == null)
 			{
 				dtde.dropComplete(false);
 				return;
 			}
-			OnePanel op = (OnePanel)dt.getComponent();
-			WaveformWindow ww = op.getWaveformWindow();
-			Panel panel = op.getPanel();
 
 			// see if rearranging the waveform window
 			if (sigName.startsWith("PANEL "))
@@ -2358,6 +2365,9 @@ public class WaveformWindow implements WindowContent
 			Dimension sz = new Dimension(16, 20);
 			this.setMinimumSize(sz);
 			setPreferredSize(sz);
+
+			// a drop target for the time panel
+			DropTarget dropTargetMainTime = new DropTarget(this, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 		}
 
 		/**
@@ -2370,7 +2380,11 @@ public class WaveformWindow implements WindowContent
 			int hei = sz.height;
 			int offX = 0;
 			Panel drawHere = wavePanel;
-			if (drawHere == null)
+			Signal xAxisSig = waveWindow.xAxisSignalAll;
+			if (drawHere != null)
+			{
+				xAxisSig = drawHere.xAxisSignal;
+			} else
 			{
 				// this is the main time panel for all panels
 				Point screenLoc = getLocationOnScreen();
@@ -2398,10 +2412,15 @@ public class WaveformWindow implements WindowContent
 			g.setColor(new Color(User.getColorWaveformBackground()));
 			g.fillRect(offX, 0, wid, hei);
 
-			// draw the time ticks
+			// draw the name of the signal on the "time" axis
 			g.setColor(new Color(User.getColorWaveformForeground()));
-			if (wavePanel != null)
-				g.drawLine(drawHere.vertAxisPos + offX, hei-1, wid+offX, hei-1);
+			g.setFont(waveWindowFont);
+			String xAxisName = "Time";
+			if (xAxisSig != null) xAxisName = xAxisSig.getSignalName();
+			g.drawLine(drawHere.vertAxisPos + offX, hei-1, wid+offX, hei-1);
+			g.drawString(xAxisName, offX+1, hei-6);
+
+			// draw the time ticks
 			double displayedLow = drawHere.scaleXToTime(drawHere.vertAxisPos);
 			double displayedHigh = drawHere.scaleXToTime(wid);
 			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
@@ -2815,6 +2834,18 @@ public class WaveformWindow implements WindowContent
 		public void componentShown(ComponentEvent e) {}
 	}
 
+	public void propertyChange(PropertyChangeEvent e)
+	{
+		if (e.getPropertyName().equals("dividerLocation"))
+		{
+			if (mainTimePanel != null)
+			{
+				mainTimePanel.repaint();
+//				overall.repaint();
+			}
+		}
+	}
+
 	public WaveformWindow(Stimuli sd, WindowFrame wf)
 	{
 		// initialize the structure
@@ -2826,6 +2857,14 @@ public class WaveformWindow implements WindowContent
 		this.timeLocked = true;
 		this.showVertexPoints = false;
 		this.showGrid = false;
+		this.xAxisSignalAll = null;
+
+		waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
+		waveWindowFRC = new FontRenderContext(null, false, false);
+		offStrengthColor = new Color(User.getColorWaveformStrengthOff());
+		nodeStrengthColor = new Color(User.getColorWaveformStrengthNode());
+		gateStrengthColor = new Color(User.getColorWaveformStrengthGate());
+		powerStrengthColor = new Color(User.getColorWaveformStrengthPower());
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
@@ -2843,6 +2882,8 @@ public class WaveformWindow implements WindowContent
 		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
 		split.setResizeWeight(0.1);
+		split.addPropertyChangeListener(this);
+
 		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 2;
@@ -2926,6 +2967,24 @@ public class WaveformWindow implements WindowContent
 		refresh.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { refreshData(); }
+		});
+
+		JButton setTimeInX = new JButton(iconTimeInXPanel);
+		setTimeInX.setBorderPainted(false);
+		setTimeInX.setDefaultCapable(false);
+		setTimeInX.setToolTipText("Make the X axis be time");
+		minWid = new Dimension(iconTimeInXPanel.getIconWidth()+4, iconTimeInXPanel.getIconHeight()+4);
+		setTimeInX.setMinimumSize(minWid);
+		setTimeInX.setPreferredSize(minWid);
+		gbc.gridx = 2;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(setTimeInX, gbc);
+		setTimeInX.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { putTimeInX(); }
 		});
 
 		timeLock = new JButton(iconLockTime);
@@ -3211,7 +3270,6 @@ public class WaveformWindow implements WindowContent
 			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
 		});
 
-
 		// the single time panel (when time is locked)
 		if (timeLocked)
 		{
@@ -3289,10 +3347,11 @@ public class WaveformWindow implements WindowContent
 	{
 		mainTimePanel = new TimeTickPanel(null, this);
 		mainTimePanel.setToolTipText("One time scale applies to all signals when time is locked");
+
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 10;      gbc.gridy = 1;
 		gbc.gridwidth = 3;   gbc.gridheight = 1;
-		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.weightx = 1;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		overall.add(mainTimePanel, gbc);
@@ -3844,25 +3903,9 @@ if (wp.signalButtons != null)
 		}
 	}
 
-	public static String getSpiceNetName(Network net) {
+	public static String getSpiceNetName(Network net)
+	{
         return net.getName();
-//		String name = "";
-//		if (net.hasNames())
-//		{
-//			if (net.getExportedNames().hasNext())
-//			{
-//				name = (String)net.getExportedNames().next();
-//			} else
-//			{
-//				name = (String)net.getNames().next();
-//			}
-//		} else
-//		{
-//			name = net.describe(false);
-//			if (name.equals(""))
-//				name = "UNCONNECTED";
-//		}
-//		return name;
 	}
 
 	/**
@@ -3882,7 +3925,6 @@ if (wp.signalButtons != null)
 			while (net.isExported() && (context != VarContext.globalContext)) {
 				// net is exported, find net in parent
 				net = getNetworkInParent(net, context.getNodable());
-//				Network net1 = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
 				if (net == null) break;
 				context = context.pop();
 			}
@@ -3945,7 +3987,6 @@ if (wp.signalButtons != null)
 					System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
 					return null;
 				}
-//				Network net = childCell.getUserNetlist().getNetwork(export, i);
 				Network net = netlist.getNetwork(export, i);
 				if (net == childNetwork) { found = true; break; }
 			}
@@ -3965,7 +4006,6 @@ if (wp.signalButtons != null)
 			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
 			return null;
 		}
-//		Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
 		Network parentNet = netlist.getNetwork(childNodable, pp, i);
 		return parentNet;
 	}
@@ -4283,7 +4323,6 @@ if (wp.signalButtons != null)
 		}
 
 		int p = i1 - 12 - 1;
-//		if (p < 0) p = 0;
 		if (p <= 0) p = 1;
 		String s = TextUtils.formatDouble(v/d, p);
 		return s + "e" + i2;
@@ -4858,6 +4897,29 @@ if (wp.signalButtons != null)
 		overall.repaint();
 	}
 
+	public void putTimeInX()
+	{
+		Rectangle2D timeBounds = sd.getBounds();
+		double lowTime = timeBounds.getMinX();
+		double highTime = timeBounds.getMaxX();
+
+		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!timeLocked && !wp.selected) continue;
+			wp.xAxisSignal = null;
+			wp.setTimeRange(lowTime, highTime);
+			if (wp.timePanel != null) wp.timePanel.repaint();
+			wp.repaint();
+		}
+		if (timeLocked)
+		{
+			xAxisSignalAll = null;
+			mainTimePanel.repaint();
+			redrawAllPanels();
+		}
+	}
+
 	/**
 	 * Method to refresh the simulation data from disk.
 	 */
@@ -5128,6 +5190,12 @@ if (wp.signalButtons != null)
 		Rectangle2D timeBounds = sd.getBounds();
 		double lowTime = timeBounds.getMinX();
 		double highTime = timeBounds.getMaxX();
+		if (xAxisSignalAll != null)
+		{
+			Rectangle2D sigBounds = xAxisSignalAll.getBounds();
+			lowTime = sigBounds.getMinY();
+			highTime = sigBounds.getMaxY();
+		}
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
@@ -5183,11 +5251,19 @@ if (wp.signalButtons != null)
 			Panel wp = (Panel)it.next();
 			if (!timeLocked && !wp.selected) continue;
 
+			boolean timeInXAxis = true;
+			if (timeLocked)
+			{
+				if (xAxisSignalAll != null) timeInXAxis = false;
+			} else
+			{
+				if (wp.xAxisSignal != null) timeInXAxis = false;
+			}
 			boolean repaint = false;
 			double range = wp.maxTime - wp.minTime;
 			wp.minTime -= range/2;
 			wp.maxTime += range/2;
-			if (wp.minTime < 0)
+			if (wp.minTime < 0 && timeInXAxis)
 			{
 				wp.maxTime -= wp.minTime;
 				wp.minTime = 0;
