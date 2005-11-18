@@ -84,7 +84,8 @@ public class WindowFrame extends Observable
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
 	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
 	/** the signal explorer part. */					public DefaultMutableTreeNode signalExplorerNode;
-	/** the signal/sweep explorer part. */				public DefaultMutableTreeNode sweepExplorerNode;
+	/** the sweep explorer part. */						public DefaultMutableTreeNode sweepExplorerNode;
+	/** the measurement explorer part. */				public DefaultMutableTreeNode measurementExplorerNode;
 	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
     /** true if this window is finished */              private boolean finished = false;
 
@@ -634,6 +635,7 @@ public class WindowFrame extends Observable
 		if (libraryExplorerNode != null) rootNode.add(libraryExplorerNode);
 		if (signalExplorerNode != null) rootNode.add(signalExplorerNode);
 		if (sweepExplorerNode != null) rootNode.add(sweepExplorerNode);
+		if (measurementExplorerNode != null) rootNode.add(measurementExplorerNode);
 		rootNode.add(jobExplorerNode);
 		rootNode.add(errorExplorerNode);
 

@@ -1624,7 +1624,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						JMenuItem item = new JMenuItem("Linear");
 						item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
 						menu.add(item);
-						item = new JMenuItem("Logarithmic");
+						item = new JMenuItem("Logarithmic (not yet)");
 						item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
 						menu.add(item);
 						menu.show(this, evt.getX(), evt.getY());
@@ -2530,7 +2530,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			JMenuItem item = new JMenuItem("Linear");
 			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
 			menu.add(item);
-			item = new JMenuItem("Logarithmic (not yet)");
+			item = new JMenuItem("Logarithmic");
 			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
 			menu.add(item);
 			menu.addSeparator();

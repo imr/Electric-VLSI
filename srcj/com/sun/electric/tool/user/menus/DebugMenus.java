@@ -660,15 +660,15 @@ public class DebugMenus {
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		WaveformWindow ww = (WaveformWindow)wf.getContent();
-		ww.setMainTimeCursor(timeStep*22);
-		ww.setExtensionTimeCursor(timeStep*77);
-		ww.setDefaultTimeRange(0, timeStep*100);
+		ww.setMainXPositionCursor(timeStep*22);
+		ww.setExtensionXPositionCursor(timeStep*77);
+		ww.setDefaultHorizontalRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
-			wp.setValueRange(-5, 5);
+			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
 				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
@@ -728,16 +728,16 @@ public class DebugMenus {
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		WaveformWindow ww = (WaveformWindow)wf.getContent();
-		ww.setMainTimeCursor(timeStep*22);
-		ww.setExtensionTimeCursor(timeStep*77);
-		ww.setDefaultTimeRange(0, timeStep*100);
+		ww.setMainXPositionCursor(timeStep*22);
+		ww.setExtensionXPositionCursor(timeStep*77);
+		ww.setDefaultHorizontalRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		int k = 0;
 		for(int i=0; i<3; i++)
 		{
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
-			wp.setValueRange(-5, 5);
+			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<=i; j++)
 			{
 				AnalogSignal as = (AnalogSignal)sd.getSignals().get(k++);

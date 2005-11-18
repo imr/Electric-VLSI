@@ -4,14 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: Waveform window can now draw horizontal axis logarithmically.
+
+BUG: (11/18/05, SMR) Waveform window drops zeros from numbers.
+FIX: In TextUtils.convertToEngineeringNotation() remove trailing zeros only if
+     there is a decimal point in the number.
+
 BUG: (11/18/05, SMR) Crash when deleting a cell (Bug #759).
 FIX: In User.endBatch(), ignore cell changes to deleted cells.
 
 IMP: (11/17/05, GVG) Adding Ctl-W to NCC GUI (Bug 756)
 
-IMP: (11/17/05, SMR) Waveform window can now plot any signal on the X axis.
-     Drag the signal to the time bar to set it as the X axis.  Use the new
-     icon (with a clock above a horizontal arrow) to reset to time on the X axis.
+IMP/MAN: (11/17/05, SMR) Waveform window can now plot any signal on the X axis.
+     Drag the signal to the time bar to set it as the X axis.  Right-click on
+     time bar to reset to time on the X axis.
 
 BUG: (11/17/05, SMR) Project management cannot find some cells (Bug #751).
 FIX: In Project.copyrecursively(), use the version number in the cell name so that

@@ -556,8 +556,11 @@ public class TextUtils
 		}
 		scaled /= 1.0E2;
 		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
-		while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
-		if (numPart.endsWith(".")) numPart = numPart.substring(0, numPart.length()-1);
+		if (numPart.indexOf('.') >= 0)
+		{
+			while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
+			if (numPart.endsWith(".")) numPart = numPart.substring(0, numPart.length()-1);
+		}
 		return negative + numPart + secType;
 	}
 
