@@ -27,12 +27,14 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Measurement;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -124,11 +126,144 @@ public class HSpiceOut extends Simulate
 		// read the actual signal data from the .trX file
 		Stimuli sd = readTR0File(fileURL, pa0List, cell);
 
+		addMeasurementData(sd, fileURL);
+
 		// stop progress dialog
 		stopProgressDialog();
 
 		// return the simulation data
 		return sd;
+	}
+
+	/**
+	 * Method to find the ".mt" file and read measurement data.
+	 * @param sd the Stimuli to add this measurement data to.
+	 * @param fileURL the URL to the ".tr" file.
+	 * @throws IOException
+	 */
+	private void addMeasurementData(Stimuli sd, URL fileURL)
+		throws IOException
+	{
+		// find the associated ".mt" name file
+		String trFile = fileURL.getFile();
+		String mtFile = trFile + ".mt0";
+		int dotPos = trFile.lastIndexOf('.');
+		if (dotPos > 0)
+		{
+			String trExtension = trFile.substring(dotPos+1);
+			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
+			{
+				String mtExtension = "mt" + trExtension.substring(2);
+				mtFile = trFile.substring(0, dotPos) + "." + mtExtension;
+			}
+		}
+
+		URL mtURL = null;
+		try
+		{
+			mtURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), mtFile);
+		} catch (java.net.MalformedURLException e)
+		{
+		}
+		if (mtURL == null) return;
+        if (!TextUtils.URLExists(mtURL)) return;
+		if (openTextInput(mtURL)) return;
+
+		List<String> measurementNames = new ArrayList<String>();
+		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
+		String lastLine = null;
+		for(;;)
+		{
+			// get line from file
+			String nextLine = lastLine;
+			if (nextLine == null)
+			{
+				nextLine = lineReader.readLine();
+				if (nextLine == null) break;
+			}
+			if (nextLine.startsWith("$") || nextLine.startsWith(".")) continue;
+			String [] keywords = breakMTLine(nextLine);
+			if (keywords.length == 0) break;
+
+			// gather measurement names on the first time out
+			if (measurementNames.size() == 0)
+			{
+				for(int i=0; i<keywords.length; i++)
+					measurementNames.add(keywords[i]);
+				for(;;)
+				{
+					lastLine = lineReader.readLine();
+					if (lastLine == null) break;
+					keywords = breakMTLine(lastLine);
+					if (keywords.length == 0) break;
+					if (keywords[0].length() != 0) break;
+					for(int i=1; i<keywords.length; i++)
+						measurementNames.add(keywords[i]);
+				}
+				for(Iterator<String> it = measurementNames.iterator(); it.hasNext(); )
+				{
+					String mName = (String)it.next();
+					measurementData.put(mName, new ArrayList<Double>());
+				}
+				continue;
+			}
+
+			// get data values
+			int index = 0;
+			for(int i=0; i<keywords.length; i++)
+			{
+				String mName = (String)measurementNames.get(index++);
+				List<Double> mData = measurementData.get(mName);
+				mData.add(new Double(TextUtils.atof(keywords[i])));
+			}
+			for(;;)
+			{
+				lastLine = lineReader.readLine();
+				if (lastLine == null) break;
+				keywords = breakMTLine(lastLine);
+				if (keywords.length == 0) break;
+				if (keywords[0].length() != 0) break;
+				for(int i=1; i<keywords.length; i++)
+				{
+					String mName = (String)measurementNames.get(index++);
+					List<Double> mData = measurementData.get(mName);
+					mData.add(new Double(TextUtils.atof(keywords[i])));
+				}
+			}
+			continue;
+		}
+
+		// convert this to a list of Measurements
+		List<Measurement> measData = new ArrayList<Measurement>();
+		for(Iterator<String> it = measurementNames.iterator(); it.hasNext(); )
+		{
+			String mName = (String)it.next();
+			List<Double> mData = measurementData.get(mName);
+			double [] mValues = new double[mData.size()];
+			for(int i=0; i<mData.size(); i++) mValues[i] = mData.get(i).doubleValue();
+			Measurement m = new Measurement(mName, mValues);
+			measData.add(m);
+		}
+
+		sd.setMeasurementData(measData);
+
+		closeInput();
+	}
+
+	private String[] breakMTLine(String line)
+	{
+		List<String> strings = new ArrayList<String>();
+		for(int i=1; ; i += 17)
+		{
+			if (line.length() <= i+1) break;
+			int end = i+17;
+			if (end > line.length()) end = line.length();
+			String part = line.substring(i, end);
+			strings.add(part.trim());
+		}
+		String [] retVal = new String[strings.size()];
+		for(int i=0; i<strings.size(); i++) retVal[i] = (String)strings.get(i);
+		return retVal;
 	}
 
 	/**

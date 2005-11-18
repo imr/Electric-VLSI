@@ -136,7 +136,7 @@ public class Sim
 			for(Iterator<WaveformWindow.Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
 				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				double panelMax = wp.getMaxTimeRange();
+				double panelMax = wp.getMaxXAxis();
 				if (panelMax > tMax) tMax = panelMax;
 			}
 

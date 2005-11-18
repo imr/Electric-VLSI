@@ -494,7 +494,7 @@ public class ALS extends Engine
 				continue;
 			}
 
-			double time = ww.getMainTimeCursor();
+			double time = ww.getMainXPositionCursor();
 			Link vectPtr2 = new Link();
 			vectPtr2.type = 'N';
 			vectPtr2.ptr = nodeHead;
@@ -861,7 +861,7 @@ public class ALS extends Engine
 			}
 
 			int strength = Stimuli.NODE_STRENGTH;
-			double time = ww.getMainTimeCursor();
+			double time = ww.getMainXPositionCursor();
 
 			Link setHead = new Link();
 			setHead.type = 'N';
@@ -881,7 +881,7 @@ public class ALS extends Engine
 		if (Simulation.isBuiltInResimulateEach())
 		{
 			double endTime = theSim.initializeSimulator(true);
-			if (Simulation.isBuiltInAutoAdvance()) ww.setMainTimeCursor(endTime);
+			if (Simulation.isBuiltInAutoAdvance()) ww.setMainXPositionCursor(endTime);
 		}
 	}
 

@@ -116,6 +116,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
     private static ImageIcon iconWarnMsg = null;
 	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconSweeps = null;
+	private static ImageIcon iconMeasurements = null;
 //	private static ImageIcon iconViewIcon = null;
 //	private static ImageIcon iconViewLayout = null;
 	private static ImageIcon iconViewMultiPageSchematics = null;
@@ -702,6 +703,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (iconSweeps == null)
 						iconSweeps = Resources.getResource(getClass(), "IconSweeps.gif");
 					setIcon(iconSweeps);
+				} else if (theString.equalsIgnoreCase("measurements"))
+				{
+					if (iconMeasurements == null)
+						iconMeasurements = Resources.getResource(getClass(), "IconMeasurement.gif");
+					setIcon(iconMeasurements);
 				}
 			}
             if (nodeInfo instanceof ErrorLogger.MessageLog)

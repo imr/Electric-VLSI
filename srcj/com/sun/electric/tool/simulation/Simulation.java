@@ -643,9 +643,9 @@ public class Simulation extends Listener
 		double lowValue = bounds.getMinY();
 		double highValue = bounds.getMaxY();
 		double timeRange = highTime - lowTime;
-		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
-		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
-		ww.setDefaultTimeRange(lowTime, highTime);
+		ww.setMainXPositionCursor(timeRange*0.2 + lowTime);
+		ww.setExtensionXPositionCursor(timeRange*0.8 + lowTime);
+		ww.setDefaultHorizontalRange(lowTime, highTime);
 
 		// if the data has an associated cell, see if that cell remembers the signals that were in the waveform window
 		if (sd.getCell() != null)
@@ -711,7 +711,7 @@ public class Simulation extends Listener
 								if (sigBounds.getMaxY() > highY) highY = sigBounds.getMaxY();
 							}
 						}
-						if (!first) wp.setValueRange(lowY, highY);
+						if (!first) wp.setYAxisRange(lowY, highY);
 					}
 				}
 				return;
@@ -722,7 +722,7 @@ public class Simulation extends Listener
 		if (sd.isAnalog())
 		{
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
-			wp.setValueRange(lowValue, highValue);
+			wp.setYAxisRange(lowValue, highValue);
 			wp.makeSelectedPanel();
 		} else
 		{

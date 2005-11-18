@@ -67,6 +67,7 @@ public class Stimuli
 	/** the separator character that breaks names */			private char separatorChar;
 	/** the common time array (if there is common time) */		private double [] commonTime;
 	/** a list of time arrays for each sweep */					private List<double[]> sweepCommonTime;
+	/** a List of measurements */								private List<Measurement> measurements;
 
 	/**
 	 * Constructor to build a new Simulation Data object.
@@ -79,6 +80,7 @@ public class Stimuli
 		allBussedSignals = new ArrayList<Signal>();
 		sweepCommonTime = new ArrayList<double[]>();
 		separatorChar = '.';
+		measurements = null;
 	}
 
 	/**
@@ -186,6 +188,21 @@ public class Stimuli
 	 * If there is no sweep information, the list is empty.
 	 */
 	public List<Object> getSweepList() { return sweeps; }
+	
+	/**
+	 * Method to set the measurement data on this Stimuli.
+	 * @param data a List of Measurement objects.
+	 */
+	public void setMeasurementData(List<Measurement> data)
+	{
+		measurements = data;
+	}
+
+	/**
+	 * Method to get the measurements.
+	 * @return a List of measurements.
+	 */
+	public List<Measurement> getMeasurements() { return measurements; }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.

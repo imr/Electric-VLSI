@@ -1,0 +1,57 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Measurement.java
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.simulation;
+
+/**
+ * Class to define a measurement in the simulation waveform window.
+ */
+public class Measurement
+{
+	private String name;
+	private double [] values;
+
+	/**
+	 * Constructor for a Measurement.
+	 * @param name the name of the Measurement.
+	 * @param values an array of doubles for the Measurement.
+	 */
+	public Measurement(String name, double [] values)
+	{
+		this.name = name;
+		this.values = values;
+	}
+
+	/**
+	 * Method to get the name associated with this Measurement.
+	 * @return the name associated with this Measurement.
+	 */
+	public String getName() { return name; }
+
+	/**
+	 * Method to get the numeric values associated with this Measurement.
+	 * @return the numeric values associated with this Measurement.
+	 * @return
+	 */
+	public double [] getValues() { return values; }
+}

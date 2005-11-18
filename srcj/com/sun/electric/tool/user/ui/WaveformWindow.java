@@ -30,9 +30,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -40,17 +40,17 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
+import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.Engine;
+import com.sun.electric.tool.simulation.Measurement;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -163,11 +163,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
+	/** the smallest nonzero value (for log drawing) */		private double smallestXValue;
 	/** the signal on all X axes (null for time) */			private AnalogSignal xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
-	/** the "lock time" button. */							private JButton timeLock;
+	/** the "lock X axis" button. */						private JButton xAxisLockButton;
 	/** the "refresh" button. */							private JButton refresh;
 	/** the "show points" button. */						private JButton showPoints;
 	/** the "grow panel" button for widening. */			private JButton growPanel;
@@ -178,19 +179,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
-	/** buttons for centering the time cursors. */			private JButton centerMain, centerExt;
+	/** buttons for centering the X-axis cursors. */		private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List<Panel> wavePanels;
 	/** a list of sweep signals in this window */			private List<SweepSignal> sweepSignals;
-	/** the time panel at the top of the wave window. */	private TimeTickPanel mainTimePanel;
-	/** true to repaint the main time panel. */				private boolean mainTimePanelNeedsRepaint;
+	/** the main horizontal ruler for all panels. */		private HorizRulerPanel mainHorizRulerPanel;
+	/** true to repaint the main horizontal ruler. */		private boolean mainHorizRulerPanelNeedsRepaint;
+	/** true if the main horizontal ruler is logarithmic */	private boolean mainHorizRulerPanelLogarithmic;
 	/** the VCR timer, when running */						private Timer vcrTimer;
 	/** true to run VCR backwards */						private boolean vcrPlayingBackwards = false;
 	/** time the VCR last advanced */						private long vcrLastAdvance;
 	/** speed of the VCR (in screen pixels) */				private int vcrAdvanceSpeed = 3;
-	/** current "main" time cursor */						private double mainTime;
-	/** current "extension" time cursor */					private double extTime;
-	/** default range along horozintal axis */				private double minTime, maxTime;
-	/** true if the time axis is the same in each panel */	private boolean timeLocked;
+	/** current "main" x-axis cursor */						private double mainXPosition;
+	/** current "extension" x-axis cursor */				private double extXPosition;
+	/** default range along horozintal axis */				private double minXPosition, maxXPosition;
+	/** true if the X axis is the same in each panel */		private boolean xAxisLocked;
 	/** the sweep signal that is highlighted */				private int highlightedSweep = -1;
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** true to show a grid (analog only) */				private boolean showGrid;
@@ -209,15 +211,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
 	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
-	private static final ImageIcon iconLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
-	private static final ImageIcon iconUnLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
+	private static final ImageIcon iconLockXAxes = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
+	private static final ImageIcon iconUnLockXAxes = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
 	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
 	private static final ImageIcon iconPointsOn = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOn.gif");
 	private static final ImageIcon iconPointsOff = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOff.gif");
 	private static final ImageIcon iconToggleGrid = Resources.getResource(WaveformWindow.class, "ButtonSimGrid.gif");
 	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
 	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
-	private static final ImageIcon iconTimeInXPanel = Resources.getResource(WaveformWindow.class, "ButtonSimTimeInX.gif");
 	private static final ImageIcon iconVCRRewind = Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif");
 	private static final ImageIcon iconVCRPlayBackward = Resources.getResource(WaveformWindow.class, "ButtonVCRPlayBackward.gif");
 	private static final ImageIcon iconVCRStop = Resources.getResource(WaveformWindow.class, "ButtonVCRStop.gif");
@@ -225,7 +226,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private static final ImageIcon iconVCRToEnd = Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif");
 	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
 	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
-	private static final Cursor dragTimeCursor = ToolBar.readCursor("CursorDragTime.gif", 8, 8);
+	private static final Cursor dragXPositionCursor = ToolBar.readCursor("CursorDragTime.gif", 8, 8);
 
 	/**
 	 * This class defines a single panel of Signals with an associated list of signal names.
@@ -245,17 +246,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		/** the button to delete selected signal (analog). */	private JButton deleteSignal;
 		/** the button to delete all signals (analog). */		private JButton deleteAllSignals;
 		/** the signal name button (digital). */				private JButton digitalSignalButton;
-		/** displayed range along horozintal axis */			private double minTime, maxTime;
+		/** displayed range along horozintal axis */			private double minXPosition, maxXPosition;
 		/** low value displayed in this panel (analog) */		private double analogLowValue;
 		/** high value displayed in this panel (analog) */		private double analogHighValue;
 		/** vertical range displayed in this panel (analog) */	private double analogRange;
 		/** the size of the window (in pixels) */				private Dimension sz;
-		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt, draggingVertAxis;
+		/** true if an X axis cursor is being dragged */		private boolean draggingMain, draggingExt, draggingVertAxis;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if this waveform panel is selected */			private boolean selected;
 		/** true if this waveform panel is hidden */			private boolean hidden;
 		/** true if this waveform panel is analog */			private boolean isAnalog;
-		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
+		/** the horizontal ruler at the top of this panel. */	private HorizRulerPanel horizRulerPanel;
+		/** true if the horizontal ruler is logarithmic */		private boolean horizRulerPanelLogarithmic;
 		/** the number of this panel. */						private int panelNumber;
 		/** all panels that the "measure" tool crosses into */	private HashSet<Panel> measureWindows;
 		/** extent of area dragged-out by cursor */				private int dragStartX, dragStartY;
@@ -277,9 +279,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// remember state
 			this.waveWindow = waveWindow;
 			this.isAnalog = isAnalog;
-			this.selected = false;
-			this.panelNumber = nextPanelNumber++;
-			this.vertAxisPos = VERTLABELWIDTH;
+			selected = false;
+			panelNumber = nextPanelNumber++;
+			vertAxisPos = VERTLABELWIDTH;
+			horizRulerPanelLogarithmic = false;
 
 			// setup this panel window
 			int height = panelSizeDigital;
@@ -296,7 +299,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			xAxisSignal = null;
 			waveSignals = new HashMap<JButton,WaveSignal>();
 
-			setTimeRange(waveWindow.minTime, waveWindow.maxTime);
+			setXAxisRange(waveWindow.minXPosition, waveWindow.maxXPosition);
 
 			// the left side with signal names
 			leftHalf = new OnePanel(this, waveWindow);
@@ -461,9 +464,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc.insets = new java.awt.Insets(4, 0, 4, 0);
 			rightHalf.add(sep, gbc);
 
-			// the time tick panel (if separate time in each panel)
-			if (!waveWindow.timeLocked)
-				addTimePanel();
+			// the horizontal ruler (if separate rulers in each panel)
+			if (!waveWindow.xAxisLocked)
+				addHorizRulerPanel();
 
 			// the waveform display for this panel
 			gbc.gridx = 0;       gbc.gridy = 2;
@@ -482,11 +485,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			waveWindow.wavePanels.add(this);
 			if (waveWindow.wavePanels.size() == 1)
 			{
-				// on the first real addition, redraw any main time panel
-				if (waveWindow.mainTimePanel != null)
+				// on the first real addition, redraw any main horizontal ruler panel
+				if (waveWindow.mainHorizRulerPanel != null)
 				{
-					waveWindow.mainTimePanel.repaint();
-					waveWindow.mainTimePanelNeedsRepaint = true;
+					waveWindow.mainHorizRulerPanel.repaint();
+					waveWindow.mainHorizRulerPanelNeedsRepaint = true;
 				}
 			}
 
@@ -549,9 +552,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			waveWindow.crossProbeWaveformToEditWindow();
 		}
 
-		private void addTimePanel()
+		private void addHorizRulerPanel()
 		{
-			timePanel = new TimeTickPanel(this, waveWindow);
+			horizRulerPanel = new HorizRulerPanel(this, waveWindow);
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
@@ -559,13 +562,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(0, 0, 0, 0);
-			rightHalf.add(timePanel, gbc);
+			rightHalf.add(horizRulerPanel, gbc);
 		}
 
-		private void removeTimePanel()
+		private void removeHorizRulerPanel()
 		{
-			rightHalf.remove(timePanel);
-			timePanel = null;
+			rightHalf.remove(horizRulerPanel);
+			horizRulerPanel = null;
 		}
 
 		public void hidePanel()
@@ -690,7 +693,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					int destIndex = 0;
 					for( ; destIndex < lefts.length; destIndex++)
 					{
-						if (lefts[destIndex] == this.leftHalf) break;
+						if (lefts[destIndex] == leftHalf) break;
 					}
 					waveWindow.left.add(wsig.wavePanel.leftHalf, destIndex+increment);
 					waveWindow.right.add(wsig.wavePanel.rightHalf, destIndex+increment);
@@ -702,34 +705,34 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		/**
-		 * Method to set the time range in this panel.
-		 * @param minTime the low time value.
-		 * @param maxTime the high time value.
+		 * Method to set the X axis range in this panel.
+		 * @param minXPosition the low X axis value.
+		 * @param maxXPosition the high X axis value.
 		 */
-		public void setTimeRange(double minTime, double maxTime)
+		public void setXAxisRange(double minXPosition, double maxXPosition)
 		{
-			this.minTime = minTime;
-			this.maxTime = maxTime;
+			this.minXPosition = minXPosition;
+			this.maxXPosition = maxXPosition;
 		}
 
 		/**
-		 * Method to return the low time range shown in this panel.
-		 * @return the low time range shown in this panel.
+		 * Method to return the low X axis value shown in this panel.
+		 * @return the low X axis value shown in this panel.
 		 */
-		public double getMinTimeRange() { return minTime; }
+		public double getMinXAxis() { return minXPosition; }
 
 		/**
-		 * Method to return the high time range shown in this panel.
-		 * @return the high time range shown in this panel.
+		 * Method to return the high X axis value shown in this panel.
+		 * @return the high X axis value shown in this panel.
 		 */
-		public double getMaxTimeRange() { return maxTime; }
+		public double getMaxXAxis() { return maxXPosition; }
 
 		/**
-		 * Method to set the value range in this panel.
-		 * @param low the low value.
-		 * @param high the high value.
+		 * Method to set the Y axis range in this panel.
+		 * @param low the low Y axis value.
+		 * @param high the high Y axis value.
 		 */
-		public void setValueRange(double low, double high)
+		public void setYAxisRange(double low, double high)
 		{
 			if (low == high)
 			{
@@ -754,13 +757,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		/**
-		 * Method to repaint this window and its associated time-tick panel.
+		 * Method to repaint this window and its associated ruler panel.
 		 */
-		public void repaintWithTime()
+		public void repaintWithRulers()
 		{
-			if (timePanel != null) timePanel.repaint(); else
+			if (horizRulerPanel != null) horizRulerPanel.repaint(); else
 			{
-				waveWindow.mainTimePanel.repaint();
+				waveWindow.mainHorizRulerPanel.repaint();
 			}
 			repaint();
 		}
@@ -781,7 +784,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			Point screenLoc = getLocationOnScreen();
 			if (waveWindow.screenLowX != screenLoc.x ||
 				waveWindow.screenHighX - waveWindow.screenLowX != wid)
-					waveWindow.mainTimePanelNeedsRepaint = true;
+					waveWindow.mainHorizRulerPanelNeedsRepaint = true;
 			waveWindow.screenLowX = screenLoc.x;
 			waveWindow.screenHighX = waveWindow.screenLowX + wid;
 
@@ -797,21 +800,21 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				g.setColor(gridColor);
 
 				// draw the vertical grid lines
-				double displayedXLow = scaleXToTime(vertAxisPos);
-				double displayedXHigh = scaleXToTime(wid);
+				double displayedXLow = convertXScreenToData(vertAxisPos);
+				double displayedXHigh = convertXScreenToData(wid);
 				StepSize ss = getSensibleValues(displayedXHigh, displayedXLow, 10);
 				if (ss.separation != 0.0)
 				{
-					double time = ss.low;
+					double value = ss.low;
 					for(;;)
 					{
-						if (time >= displayedXLow)
+						if (value >= displayedXLow)
 						{
-							if (time > ss.high) break;
-							int x = scaleTimeToX(time);
+							if (value > ss.high) break;
+							int x = convertXDataToScreen(value);
 							g.drawLine(x, 0, x, hei);
 						}
-						time += ss.separation;
+						value += ss.separation;
 					}
 				}
 
@@ -824,7 +827,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						if (value >= analogLowValue)
 						{
 							if (value > analogHighValue || value > ss.high) break;
-							int y = scaleValueToY(value);
+							int y = convertYDataToScreen(value);
 							g.drawLine(vertAxisPos, y, wid, y);
 						}
 						value += ss.separation;
@@ -847,8 +850,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			if (isAnalog)
 			{
-				double displayedLow = scaleYToValue(hei);
-				double displayedHigh = scaleYToValue(0);
+				double displayedLow = convertYScreenToData(hei);
+				double displayedHigh = convertYScreenToData(0);
 				StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
 				if (ss.separation != 0.0)
 				{
@@ -861,7 +864,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						if (value > displayedHigh) break;
 						if (value >= displayedLow)
 						{
-							int y = scaleValueToY(value);
+							int y = convertYDataToScreen(value);
 							if (lastY >= 0)
 							{
 								if (lastY - y > 100)
@@ -896,14 +899,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 
-			// draw the time cursors
+			// draw the X position cursors
 			Graphics2D g2 = (Graphics2D)g;
 			g2.setStroke(Highlight.dashedLine);
-			int x = scaleTimeToX(waveWindow.mainTime);
+			int x = convertXDataToScreen(waveWindow.mainXPosition);
 			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
 			g2.setStroke(farDottedLine);
-			x = scaleTimeToX(waveWindow.extTime);
+			x = convertXDataToScreen(waveWindow.extXPosition);
 			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
 			g2.setStroke(Highlight.solidLine);
@@ -923,39 +926,39 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 				{
 					// show dimensions while dragging
-					double lowTime = scaleXToTime(lowX);
-					double highTime = scaleXToTime(highX);
-					double lowValue = scaleYToValue(highY);
-					double highValue = scaleYToValue(lowY);
+					double lowXValue = convertXScreenToData(lowX);
+					double highXValue = convertXScreenToData(highX);
+					double lowValue = convertYScreenToData(highY);
+					double highValue = convertYScreenToData(lowY);
 					g.setFont(waveWindowFont);
 
-					// show the low time value and arrow
-					String lowTimeString = TextUtils.convertToEngineeringNotation(lowTime, "s");
-					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowTimeString);
+					// show the low X value and arrow
+					String lowXValueString = TextUtils.convertToEngineeringNotation(lowXValue, "s");
+					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowXValueString);
 					Rectangle2D glyphBounds = gv.getLogicalBounds();
 					int textWid = (int)glyphBounds.getWidth();
 					int textHei = (int)glyphBounds.getHeight();
 					int textY = (lowY+highY)/2;
-					g.drawString(lowTimeString, lowX-textWid-6, textY+textHei/2-10);
+					g.drawString(lowXValueString, lowX-textWid-6, textY+textHei/2-10);
 					g.drawLine(lowX-1, textY, lowX-textWid, textY);
 					g.drawLine(lowX-1, textY, lowX-6, textY+4);
 					g.drawLine(lowX-1, textY, lowX-6, textY-4);
 
-					// show the high time value and arrow
-					String highTimeString = TextUtils.convertToEngineeringNotation(highTime, "s");
-					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highTimeString);
+					// show the high X value and arrow
+					String highXValueString = TextUtils.convertToEngineeringNotation(highXValue, "s");
+					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highXValueString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
-					int highTimeTextWid = textWid;
-					g.drawString(highTimeString, highX+6, textY+textHei/2-10);
+					int highXValueTextWid = textWid;
+					g.drawString(highXValueString, highX+6, textY+textHei/2-10);
 					g.drawLine(highX+1, textY, highX+textWid, textY);
 					g.drawLine(highX+1, textY, highX+6, textY+4);
 					g.drawLine(highX+1, textY, highX+6, textY-4);
 
-					// show the difference time value
-					String timeDiffString = TextUtils.convertToEngineeringNotation(highTime-lowTime, "s");
-					gv = waveWindowFont.createGlyphVector(waveWindowFRC, timeDiffString);
+					// show the difference X value
+					String xDiffString = TextUtils.convertToEngineeringNotation(highXValue-lowXValue, "s");
+					gv = waveWindowFont.createGlyphVector(waveWindowFRC, xDiffString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
@@ -965,7 +968,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						int yPosText = highY + textHei*5;
 						int yPos = yPosText - textHei/2;
 						int xCtr = (highX+lowX)/2;
-						g.drawString(timeDiffString, xCtr - textWid/2, yPosText);
+						g.drawString(xDiffString, xCtr - textWid/2, yPosText);
 						g.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
 						g.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
 						g.drawLine(lowX, yPos, lowX+5, yPos+4);
@@ -978,7 +981,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						int yPosText = highY + textHei*5;
 						int yPos = yPosText - textHei/2;
 						int xCtr = (highX+lowX)/2;
-						g.drawString(timeDiffString, highX + 12, yPosText);
+						g.drawString(xDiffString, highX + 12, yPosText);
 						g.drawLine(lowX, yPos, lowX-10, yPos);
 						g.drawLine(highX, yPos, highX+10, yPos);
 						g.drawLine(lowX, yPos, lowX-5, yPos+4);
@@ -1023,7 +1026,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						if (textHei + 12 < highY - lowY)
 						{
 							// fits inside: draw arrows around text
-							int xPos = highX + highTimeTextWid + 30;
+							int xPos = highX + highXValueTextWid + 30;
 							int yCtr = (highY+lowY)/2;
 							g.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
 							g.drawLine(xPos, lowY, xPos, highY);
@@ -1034,7 +1037,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						} else
 						{
 							// does not fit inside: draw outside of arrows
-							int xPos = highX + highTimeTextWid + 30;
+							int xPos = highX + highXValueTextWid + 30;
 							int yCtr = (highY+lowY)/2;
 							g.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
 							g.drawLine(xPos, lowY, xPos, lowY-10);
@@ -1059,7 +1062,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			int wid = sz.width;
 			int hei = sz.height;
 			AnalogSignal xSignal = xAxisSignal;
-			if (waveWindow.timeLocked) xSignal = waveWindow.xAxisSignalAll;
+			if (waveWindow.xAxisLocked) xSignal = waveWindow.xAxisSignalAll;
             double[] result = new double[3];
             double[] result2 = new double[3];
 
@@ -1082,13 +1085,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						for(int i=0; i<numEvents; i++)
 						{
                             as.getEvent(s, i, result);
-                            int x = scaleTimeToX(result[0]);
-                            int lowY = scaleValueToY(result[1]);
-                            int highY = scaleValueToY(result[2]);
+                            int x = convertXDataToScreen(result[0]);
+                            int lowY = convertYDataToScreen(result[1]);
+                            int highY = convertYDataToScreen(result[2]);
 							if (xSignal != null)
 							{
 								xSignal.getEvent(s, i, result2);
-								x = scaleTimeToX(result2[1]);
+								x = convertXDataToScreen(result2[1]);
 							}
                             if (i != 0)
                             {
@@ -1125,12 +1128,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					{
 						// a digital bus trace
 						int busWidth = bussedSignals.size();
-						long curValue = 0;
-						double curTime = 0;
+						long curYValue = 0;
+						double curXValue = 0;
 						int lastX = vertAxisPos;
 						for(;;)
 						{
-							double nextTime = Double.MAX_VALUE;
+							double nextXValue = Double.MAX_VALUE;
 							int bit = 0;
 							boolean curDefined = true;
 							for(Iterator<Signal> bIt = bussedSignals.iterator(); bIt.hasNext(); )
@@ -1140,26 +1143,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 								boolean undefined = false;
 								for(int i=0; i<numEvents; i++)
 								{
-									double time = subDS.getTime(i);
-									if (time <= curTime)
+									double xValue = subDS.getTime(i);
+									if (xValue <= curXValue)
 									{
 										switch (subDS.getState(i) & Stimuli.LOGIC)
 										{
-											case Stimuli.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
-											case Stimuli.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
+											case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<bit);   undefined = false;   break;
+											case Stimuli.LOGIC_HIGH: curYValue |= (1<<bit);    undefined = false;   break;
 											case Stimuli.LOGIC_X:
 											case Stimuli.LOGIC_Z: undefined = true;    break;
 										}
 									} else
 									{
-										if (time < nextTime) nextTime = time;
+										if (xValue < nextXValue) nextXValue = xValue;
 										break;
 									}
 								}
 								if (undefined) { curDefined = false;   break; }
 								bit++;
 							}
-							int x = scaleTimeToX(curTime);
+							int x = convertXDataToScreen(curXValue);
 							if (x >= vertAxisPos)
 							{
 								if (x < vertAxisPos+5)
@@ -1182,7 +1185,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 								if (g != null)
 								{
 									String valString = "XX";
-									if (curDefined) valString = Long.toString(curValue);
+									if (curDefined) valString = Long.toString(curYValue);
 									g.setFont(waveWindowFont);
 									GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, valString);
 									Rectangle2D glyphBounds = gv.getLogicalBounds();
@@ -1190,9 +1193,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 									g.drawString(valString, x+2, hei/2+textHei/2);
 								}
 							}
-							curTime = nextTime;
+							curXValue = nextXValue;
 							lastX = x;
-							if (nextTime == Double.MAX_VALUE) break;
+							if (nextXValue == Double.MAX_VALUE) break;
 						}
 						if (lastX+5 < wid)
 						{
@@ -1211,8 +1214,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					int lastLowy = 0, lastHighy = 0;
 					for(int i=0; i<numEvents; i++)
 					{
-						double time = ds.getTime(i);
-						int x = scaleTimeToX(time);
+						double xValue = ds.getTime(i);
+						int x = convertXDataToScreen(xValue);
 						if (Simulation.isWaveformDisplayMultiState() && g != null)
 						{
 							switch (ds.getState(i) & Stimuli.STRENGTH)
@@ -1293,23 +1296,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (g != null) g.setColor(ws.color);
 				for(int i=0; i<points.length; i++)
 				{
-					double time = points[i];
-					int x = scaleTimeToX(time);
+					double xValue = points[i];
+					int x = convertXDataToScreen(xValue);
 					if (processABox(g, x-CONTROLPOINTSIZE, hei-CONTROLPOINTSIZE*2, x+CONTROLPOINTSIZE, hei,
-						bounds, selectedObjects, ws, true, time)) break;
+						bounds, selectedObjects, ws, true, xValue)) break;
 
 					// see if the control point is selected
 					boolean found = false;
 					if (bounds == null && ws.controlPointsSelected != null)
 					{
 						for(int j=0; j<ws.controlPointsSelected.length; j++)
-							if (ws.controlPointsSelected[j] == time) { found = true;   break; }
+							if (ws.controlPointsSelected[j] == xValue) { found = true;   break; }
 					}
 					if (found)
 					{
 						g.setColor(Color.GREEN);
 						if (processABox(g, x-CONTROLPOINTSIZE+2, hei-CONTROLPOINTSIZE*2+2, x+CONTROLPOINTSIZE-2, hei-2,
-							bounds, selectedObjects, ws, true, time)) break;
+							bounds, selectedObjects, ws, true, xValue)) break;
 						g.setColor(ws.color);
 					}
 				}
@@ -1318,7 +1321,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List<WaveSelection> result,
-			WaveSignal ws, boolean controlPoint, double controlTime)
+			WaveSignal ws, boolean controlPoint, double controlXValue)
 		{
 			// bounds is non-null if doing hit-testing
 			if (bounds != null)
@@ -1329,7 +1332,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					WaveSelection wSel = new WaveSelection();
 					wSel.ws = ws;
 					wSel.controlPoint = controlPoint;
-					wSel.controlTime = controlTime;
+					wSel.controlXValue = controlXValue;
 					result.add(wSel);
 					return true;
 				}
@@ -1408,69 +1411,85 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		/**
-		 * Method to scale a time value to the X coordinate in this window.
-		 * @param time the time value.
-		 * @return the X coordinate of that time value.
+		 * Method to scale a simulation X value to the X coordinate in this window.
+		 * @param value the simulation X value.
+		 * @return the X coordinate of that simulation value on the screen.
 		 */
-		private int scaleTimeToX(double time)
+		private int convertXDataToScreen(double value)
 		{
-			double x = (time - minTime) / (maxTime - minTime) * (sz.width - vertAxisPos) + vertAxisPos;
-			return (int)x;
+			// see if doing logarithmic axes
+			boolean log = waveWindow.mainHorizRulerPanelLogarithmic;
+			if (!waveWindow.xAxisLocked) log = horizRulerPanelLogarithmic;
+			if (log)
+			{
+				// logarithmic axes
+				if (value <= waveWindow.smallestXValue) value = waveWindow.smallestXValue;
+				double logValue = Math.log10(value);
+				double winMinX = minXPosition;
+				if (winMinX <= 0) winMinX = waveWindow.smallestXValue;
+				double logWinMinX = Math.log10(winMinX);
+				double winMaxX = maxXPosition;
+				if (winMaxX <= 0) winMaxX = waveWindow.smallestXValue;
+				double logWinMaxX = Math.log10(winMaxX);
+				double x = (logValue - logWinMinX) / (logWinMaxX - logWinMinX) * (sz.width - vertAxisPos) + vertAxisPos;
+				return (int)x;
+			} else
+			{
+				// linear axes
+				double x = (value - minXPosition) / (maxXPosition - minXPosition) * (sz.width - vertAxisPos) + vertAxisPos;
+				return (int)x;
+			}
 		}
 
 		/**
-		 * Method to scale an X coordinate to a time value in this window.
-		 * @param x the X coordinate.
-		 * @return the time value corresponding to that coordinate.
+		 * Method to scale an X coordinate from screen space to data space.
+		 * @param x the X coordinate on the screen.
+		 * @return the X value in the simulation corresponding to that screen coordinate.
 		 */
-		private double scaleXToTime(int x)
+		private double convertXScreenToData(int x)
 		{
-			double time = ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (maxTime - minTime) + minTime;
-			return time;
+			// see if doing logarithmic axes
+			boolean log = waveWindow.mainHorizRulerPanelLogarithmic;
+			if (!waveWindow.xAxisLocked) log = horizRulerPanelLogarithmic;
+			if (log)
+			{
+				// logarithmic axes
+				double winMinX = minXPosition;
+				if (winMinX <= 0) winMinX = waveWindow.smallestXValue;
+				double logWinMinX = Math.log10(winMinX);
+				double winMaxX = maxXPosition;
+				if (winMaxX <= 0) winMaxX = waveWindow.smallestXValue;
+				double logWinMaxX = Math.log10(winMaxX);
+				double xValue = Math.pow(10, ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (logWinMaxX - logWinMinX) + logWinMinX);
+				return xValue;
+			} else
+			{
+				// linear axes
+				double xValue = ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (maxXPosition - minXPosition) + minXPosition;
+				return xValue;
+			}
 		}
 
 		/**
-		 * Method to scale a delta-X to a delta-time in this window.
-		 * @param dx the delta-X.
-		 * @return the delta-time value corresponding to that coordinate.
+		 * Method to scale a simulation Y value to the Y coordinate in this window.
+		 * @param value the simulation Y value.
+		 * @return the Y coordinate of that simulation value on the screen
 		 */
-		private double scaleDeltaXToTime(int dx)
-		{
-			double dTime = ((double)dx) / (sz.width - vertAxisPos) * (maxTime - minTime);
-			return dTime;
-		}
-
-		/**
-		 * Method to scale a value to the Y coordinate in this window.
-		 * @param value the value in Y.
-		 * @return the Y coordinate of that value.
-		 */
-		private int scaleValueToY(double value)
+		private int convertYDataToScreen(double value)
 		{
 			double y = sz.height - 1 - (value - analogLowValue) / analogRange * (sz.height-1);
 			return (int)y;
 		}
 
 		/**
-		 * Method to scale a Y coordinate in this window to a value.
-		 * @param y the Y coordinate.
-		 * @return the value corresponding to that coordinate.
+		 * Method to scale a Y coordinate from screen space to data space.
+		 * @param y the Y coordinate on the screen.
+		 * @return the Y value in the simulation corresponding to that screen coordinate.
 		 */
-		private double scaleYToValue(int y)
+		private double convertYScreenToData(int y)
 		{
 			double value = analogLowValue - ((double)(y - sz.height + 1)) / (sz.height-1) * analogRange;
 			return value;
-		}
-
-		/**
-		 * Method to scale a delta-yY in this window to a delta-value.
-		 * @param dy the delta-Y.
-		 * @return the delta-value corresponding to that Y change.
-		 */
-		private double scaleDeltaYToValue(int dy)
-		{
-			double dValue = - ((double)dy) / (sz.height-1) * analogRange;
-			return dValue;
 		}
 
 		/**
@@ -1509,7 +1528,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					ws.sigButton.setBackground(background);
 			}
 			waveWindow.highlightedSweep = -1;
-			this.repaint();
+			repaint();
 		}
 
 		private void addHighlightedSignal(WaveSignal ws)
@@ -1521,7 +1540,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			ws.highlighted = true;
 			waveWindow.highlightedSweep = -1;
-			this.repaint();
+			repaint();
 		}
 
 		private void removeHighlightedSignal(WaveSignal ws)
@@ -1530,7 +1549,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (ws.sigButton != null)
 				ws.sigButton.setBackground(background);
 			waveWindow.highlightedSweep = -1;
-			this.repaint();
+			repaint();
 		}
 
 		/**
@@ -1550,8 +1569,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (!selected)
 			{
 				selected = true;
-				this.repaint();
+				repaint();
 			}
+		}
+
+		/**
+		 * Make this panel show a linear Y axis.
+		 */
+		private void makeLinear()
+		{
+		}
+
+		/**
+		 * Make this panel show a logarithmic Y axis.
+		 */
+		private void makeLogarithmic()
+		{
+			System.out.println("CANNOT DRAW LOG SCALES YET");
 		}
 
 		/**
@@ -1575,12 +1609,29 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			if (evt.getClickCount() == 2 && evt.getX() < vertAxisPos)
 			{
-				WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minTime, maxTime, waveWindow, this);
+				WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minXPosition, maxXPosition, waveWindow, this);
 				return;
 			}
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
-			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
-				mode = ToolBar.CursorMode.ZOOM;
+			if (ClickZoomWireListener.isRightMouse(evt))
+			{
+				if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0) mode = ToolBar.CursorMode.ZOOM; else
+				{
+					if (evt.getX() < vertAxisPos)
+					{
+						// right click in ruler area: show popup of choices
+						JPopupMenu menu = new JPopupMenu();
+						JMenuItem item = new JMenuItem("Linear");
+						item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
+						menu.add(item);
+						item = new JMenuItem("Logarithmic");
+						item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
+						menu.add(item);
+						menu.show(this, evt.getX(), evt.getY());
+						return;
+					}
+				}
+			}
 			if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
 					mousePressedSelect(evt);
@@ -1640,9 +1691,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		private static class WaveSelection
 		{
-			/** Selected signal in Waveform Window */	WaveSignal ws;
-			/** true if this is a control point */		boolean    controlPoint;
-			/** time of the control point (if a CP) */	double     controlTime;
+			/** Selected signal in Waveform Window */		WaveSignal ws;
+			/** true if this is a control point */			boolean    controlPoint;
+			/** X value of the control point (if a CP) */	double     controlXValue;
 		}
 
 		/**
@@ -1650,15 +1701,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		 */ 
 		public void mousePressedSelect(MouseEvent evt)
 		{
-			// see if the time cursors are selected
+			// see if the horizontal cursors are selected
 			draggingMain = draggingExt = draggingVertAxis = false;
-			int mainX = scaleTimeToX(waveWindow.mainTime);
+			int mainX = convertXDataToScreen(waveWindow.mainXPosition);
 			if (Math.abs(mainX - evt.getX()) < 5)
 			{
 				draggingMain = true;
 				return;
 			}
-			int extX = scaleTimeToX(waveWindow.extTime);
+			int extX = convertXDataToScreen(waveWindow.extXPosition);
 			if (Math.abs(extX - evt.getX()) < 5)
 			{
 				draggingExt = true;
@@ -1704,9 +1755,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					for(int i=0; i<numEvents; i++)
 					{
                         as.getEvent(s, i, result);
-						int x = scaleTimeToX(result[0]);
-                        int lowY = scaleValueToY(result[1]);
-                        int highY = scaleValueToY(result[2]);
+						int x = convertXDataToScreen(result[0]);
+                        int lowY = convertYDataToScreen(result[1]);
+                        int highY = convertYDataToScreen(result[2]);
 						if (Math.abs(x - pt.x) < 5 && pt.y > lowY - 5 && pt.y < highY + 5)
 						{
 							pt.x = x;
@@ -1736,11 +1787,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                     if (ss != null && !ss.included) continue;
 					int numEvents = as.getNumEvents(s);
                     as.getEvent(s, 0, lastResult);
-					Point2D lastPt = new Point2D.Double(scaleTimeToX(lastResult[0]), scaleValueToY((lastResult[1] + lastResult[2]) / 2));
+					Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));
 					for(int i=1; i<numEvents; i++)
 					{
                         as.getEvent(s, i, result);
-						Point2D thisPt = new Point2D.Double(scaleTimeToX(result[0]), scaleValueToY((result[1] + result[2]) / 2));
+						Point2D thisPt = new Point2D.Double(convertXDataToScreen(result[0]), convertYDataToScreen((result[1] + result[2]) / 2));
 						Point2D closest = GenMath.closestPointToSegment(lastPt, thisPt, snap);
 						if (closest.distance(snap) < 5)
 						{
@@ -1786,7 +1837,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							WaveSelection wSel = (WaveSelection)it.next();
 							if (wSel.controlPoint)
 							{
-								wSel.ws.addSelectedControlPoint(wSel.controlTime);
+								wSel.ws.addSelectedControlPoint(wSel.controlXValue);
 							}
 							wp.addHighlightedSignal(wSel.ws);
 						}
@@ -1799,11 +1850,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							WaveSignal ws = wSel.ws;
 							if (ws.highlighted)
 							{
-								if (wSel.controlPoint) ws.removeSelectedControlPoint(wSel.controlTime);
+								if (wSel.controlPoint) ws.removeSelectedControlPoint(wSel.controlXValue);
 								removeHighlightedSignal(ws);
 							} else
 							{
-								if (wSel.controlPoint) ws.addSelectedControlPoint(wSel.controlTime);
+								if (wSel.controlPoint) ws.addSelectedControlPoint(wSel.controlXValue);
 								wp.addHighlightedSignal(ws);
 							}
 						}
@@ -1816,7 +1867,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					// just leave this highlight and show dimensions
 				}
 			}
-			this.repaint();
+			repaint();
 		}
 
 		/**
@@ -1827,19 +1878,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (draggingMain)
 			{
 				if (evt.getX() <= 0) return;
-				double time = scaleXToTime(evt.getX());
-				waveWindow.setMainTimeCursor(time);
+				double value = convertXScreenToData(evt.getX());
+				waveWindow.setMainXPositionCursor(value);
 				waveWindow.redrawAllPanels();
 			} else if (draggingExt)
 			{
 				if (evt.getX() <= 0) return;
-				double time = scaleXToTime(evt.getX());
-				waveWindow.setExtensionTimeCursor(time);
+				double value = convertXScreenToData(evt.getX());
+				waveWindow.setExtensionXPositionCursor(value);
 				waveWindow.redrawAllPanels();
 			} else if (draggingVertAxis)
 			{
 				if (evt.getX() <= 0) return;
-				if (waveWindow.timeLocked)
+				if (waveWindow.xAxisLocked)
 				{
 					for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 					{
@@ -1847,11 +1898,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						wp.vertAxisPos = evt.getX();
 					}
 					waveWindow.redrawAllPanels();
-					waveWindow.mainTimePanel.repaint();
+					waveWindow.mainHorizRulerPanel.repaint();
 				} else
 				{
 					vertAxisPos = evt.getX();
-					repaintWithTime();
+					repaintWithRulers();
 				}
 			} else if (draggingArea)
 			{
@@ -1905,19 +1956,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				dragEndX = pt.x;
 				dragEndY = pt.y;
-				this.repaint();
+				repaint();
 			}
 		}
 
 		public void mouseMovedSelect(MouseEvent evt)
 		{
-			// see if over time cursors
-			int mainX = scaleTimeToX(waveWindow.mainTime);
-			int extX = scaleTimeToX(waveWindow.extTime);
+			// see if over horizontal cursors
+			int mainX = convertXDataToScreen(waveWindow.mainXPosition);
+			int extX = convertXDataToScreen(waveWindow.extXPosition);
 			if (Math.abs(mainX - evt.getX()) < 5 || Math.abs(extX - evt.getX()) < 5 ||
 				Math.abs(vertAxisPos - evt.getX()) < 5)
 			{
-				setCursor(dragTimeCursor);
+				setCursor(dragXPositionCursor);
 			} else
 			{
 				setCursor(Cursor.getDefaultCursor());
@@ -1944,42 +1995,42 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			ZoomAndPanListener.setProperCursor(evt);
 			draggingArea = false;
-			double lowTime = this.scaleXToTime(Math.min(dragEndX, dragStartX));
-			double highTime = this.scaleXToTime(Math.max(dragEndX, dragStartX));
-			double timeRange = highTime - lowTime;
-			lowTime -= timeRange / 8;
-			highTime += timeRange / 8;
-			double lowValue = this.scaleYToValue(Math.max(dragEndY, dragStartY));
-			double highValue = this.scaleYToValue(Math.min(dragEndY, dragStartY));
+			double lowXValue = convertXScreenToData(Math.min(dragEndX, dragStartX));
+			double highXValue = convertXScreenToData(Math.max(dragEndX, dragStartX));
+			double xRange = highXValue - lowXValue;
+			lowXValue -= xRange / 8;
+			highXValue += xRange / 8;
+			double lowValue = convertYScreenToData(Math.max(dragEndY, dragStartY));
+			double highValue = convertYScreenToData(Math.min(dragEndY, dragStartY));
 			double valueRange = highValue - lowValue;
 			lowValue -= valueRange / 8;
 			highValue += valueRange / 8;
 			for(Iterator<Panel> it = waveWindow.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				if (!waveWindow.timeLocked && wp != this) continue;
+				if (!waveWindow.xAxisLocked && wp != this) continue;
 				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0 || ClickZoomWireListener.isRightMouse(evt))
 				{
 					// standard click: zoom in
-					wp.minTime = lowTime;
-					wp.maxTime = highTime;
+					wp.minXPosition = lowXValue;
+					wp.maxXPosition = highXValue;
 					if (wp == this)
 					{
-						wp.setValueRange(lowValue, highValue);
+						wp.setYAxisRange(lowValue, highValue);
 					}
 				} else
 				{
 					// shift-click: zoom out
-					double oldRange = wp.maxTime - wp.minTime;
-					wp.minTime = (lowTime + highTime) / 2 - oldRange;
-					wp.maxTime = (lowTime + highTime) / 2 + oldRange;
+					double oldRange = wp.maxXPosition - wp.minXPosition;
+					wp.minXPosition = (lowXValue + highXValue) / 2 - oldRange;
+					wp.maxXPosition = (lowXValue + highXValue) / 2 + oldRange;
 					if (wp == this)
 					{
-						wp.setValueRange((lowValue + highValue) / 2 - wp.analogRange,
+						wp.setYAxisRange((lowValue + highValue) / 2 - wp.analogRange,
 							(lowValue + highValue) / 2 + wp.analogRange);
 					}
 				}
-				wp.repaintWithTime();
+				wp.repaintWithRulers();
 			}
 		}
 
@@ -1993,7 +2044,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				dragEndX = evt.getX();
 				dragEndY = evt.getY();
-				this.repaint();
+				repaint();
 			}
 		}
 
@@ -2026,21 +2077,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		public void mouseDraggedPan(MouseEvent evt)
 		{
 			dragEndX = evt.getX();
+			double dragEndXData = convertXScreenToData(dragEndX);
+			double dragStartXData = convertXScreenToData(dragStartX);
+			double dXValue = dragEndXData - dragStartXData;
+
 			dragEndY = evt.getY();
-			double dTime = scaleDeltaXToTime(dragEndX - dragStartX);
-			double dValue = scaleDeltaYToValue(dragEndY - dragStartY);
+			double dragEndYData = convertXScreenToData(dragEndY);
+			double dragStartYData = convertXScreenToData(dragStartY);
+			double dYValue = dragEndYData - dragStartYData;
 
 			for(Iterator<Panel> it = waveWindow.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				if (!waveWindow.timeLocked && wp != this) continue;
-				wp.minTime -= dTime;
-				wp.maxTime -= dTime;
+				if (!waveWindow.xAxisLocked && wp != this) continue;
+				wp.minXPosition -= dXValue;
+				wp.maxXPosition -= dXValue;
 				if (wp == this)
 				{
-					setValueRange(analogLowValue - dValue, analogHighValue - dValue);
+					setYAxisRange(analogLowValue - dYValue, analogHighValue - dYValue);
 				}
-				wp.repaintWithTime();
+				wp.repaintWithRulers();
 			}
 			dragStartX = dragEndX;
 			dragStartY = dragEndY;
@@ -2178,14 +2234,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			String sigName = (String)data;
 
-			// see if the signal was dropped onto a "time" panel (setting x-axis)
+			// see if the signal was dropped onto a ruler panel (setting x-axis)
 			DropTarget dt = (DropTarget)dtde.getSource();
-			if (dt.getComponent() instanceof TimeTickPanel)
+			if (dt.getComponent() instanceof HorizRulerPanel)
 			{
-				// dragged a signal to the time panel: make that signal the X axis
+				// dragged a signal to the ruler panel: make that signal the X axis
 				if (!sigName.startsWith("PANEL "))
 				{
-					TimeTickPanel ttp = (TimeTickPanel)dt.getComponent();
+					HorizRulerPanel ttp = (HorizRulerPanel)dt.getComponent();
 					Signal sSig = ttp.waveWindow.findSignal(sigName);
 					if (sSig != null && sSig instanceof AnalogSignal)
 					{
@@ -2193,7 +2249,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						if (ttp.wavePanel != null)
 						{
 							ttp.wavePanel.xAxisSignal = (AnalogSignal)sSig;
-							ttp.wavePanel.setTimeRange(bounds.getMinY(), bounds.getMaxY());
+							ttp.wavePanel.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
 							ttp.wavePanel.repaint();
 						} else
 						{
@@ -2202,7 +2258,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							for(Iterator<Panel> it = ttp.waveWindow.wavePanels.iterator(); it.hasNext(); )
 							{
 								Panel wp = (Panel)it.next();
-								wp.setTimeRange(bounds.getMinY(), bounds.getMaxY());
+								wp.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
 							}
 						}
 						ttp.repaint();
@@ -2335,7 +2391,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				double range = highValue - lowValue;
 				if (range == 0) range = 2;
 				double rangeExtra = range / 10;
-				panel.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+				panel.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
 			}
 			WaveSignal wsig = new WaveSignal(panel, sSig);
 			ww.overall.validate();
@@ -2344,18 +2400,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
-	// ************************************* TIME GRID ALONG THE TOP OF EACH PANEL *************************************
+	// ************************************* RULER ALONG THE TOP OF EACH PANEL *************************************
 
 	/**
-	 * This class defines the horizontal time tick display at the top of each Panel.
+	 * This class defines the horizontal ruler display at the top of each Panel.
 	 */
-	private static class TimeTickPanel extends JPanel
+	private static class HorizRulerPanel extends JPanel implements MouseListener
 	{
 		Panel wavePanel;
 		WaveformWindow waveWindow;
 
 		// constructor
-		TimeTickPanel(Panel wavePanel, WaveformWindow waveWindow)
+		HorizRulerPanel(Panel wavePanel, WaveformWindow waveWindow)
 		{
 			// remember state
 			this.wavePanel = wavePanel;
@@ -2363,15 +2419,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// setup this panel window
 			Dimension sz = new Dimension(16, 20);
-			this.setMinimumSize(sz);
+			setMinimumSize(sz);
 			setPreferredSize(sz);
 
-			// a drop target for the time panel
-			DropTarget dropTargetMainTime = new DropTarget(this, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+			addMouseListener(this);
+
+			// a drop target for the ruler panel
+			new DropTarget(this, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 		}
 
 		/**
-		 * Method to repaint this TimeTickPanel.
+		 * Method to repaint this HorizRulerPanel.
 		 */
 		public void paint(Graphics g)
 		{
@@ -2386,16 +2444,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				xAxisSig = drawHere.xAxisSignal;
 			} else
 			{
-				// this is the main time panel for all panels
+				// this is the main horizontal ruler panel for all panels
 				Point screenLoc = getLocationOnScreen();
 				offX = waveWindow.screenLowX - screenLoc.x;
 				int newWid = waveWindow.screenHighX - waveWindow.screenLowX;
 
-				// because the main time panel needs a Panel (won't work if there aren't any)
+				// because the main horizontal ruler panel needs a Panel (won't work if there aren't any)
 				// have to do complex things to request a repaint after adding the first Panel
 				if (newWid == 0 || waveWindow.wavePanels.size() == 0)
 				{
-					if (waveWindow.mainTimePanelNeedsRepaint)
+					if (waveWindow.mainHorizRulerPanelNeedsRepaint)
 						repaint();
 					return;
 				}
@@ -2404,7 +2462,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				wid = newWid;
 
 				drawHere = (Panel)waveWindow.wavePanels.get(0);
-				waveWindow.mainTimePanelNeedsRepaint = false;
+				waveWindow.mainHorizRulerPanelNeedsRepaint = false;
 				g.setClip(offX, 0, wid, hei);
 			}
 
@@ -2412,7 +2470,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			g.setColor(new Color(User.getColorWaveformBackground()));
 			g.fillRect(offX, 0, wid, hei);
 
-			// draw the name of the signal on the "time" axis
+			// draw the name of the signal on the horizontal ruler axis
 			g.setColor(new Color(User.getColorWaveformForeground()));
 			g.setFont(waveWindowFont);
 			String xAxisName = "Time";
@@ -2420,19 +2478,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			g.drawLine(drawHere.vertAxisPos + offX, hei-1, wid+offX, hei-1);
 			g.drawString(xAxisName, offX+1, hei-6);
 
-			// draw the time ticks
-			double displayedLow = drawHere.scaleXToTime(drawHere.vertAxisPos);
-			double displayedHigh = drawHere.scaleXToTime(wid);
+			// draw the ruler ticks
+			double displayedLow = drawHere.convertXScreenToData(drawHere.vertAxisPos);
+			double displayedHigh = drawHere.convertXScreenToData(wid);
 			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
 			if (ss.separation == 0.0) return;
-			double time = ss.low;
+			double xValue = ss.low;
 			int lastX = -1;
 			for(;;)
 			{
-				if (time > ss.high) break;
-				if (time >= displayedLow)
+				if (xValue > ss.high) break;
+				if (xValue >= displayedLow)
 				{
-					int x = drawHere.scaleTimeToX(time) + offX;
+					int x = drawHere.convertXDataToScreen(xValue) + offX;
 					g.drawLine(x, 0, x, hei);
 					if (lastX >= 0)
 					{
@@ -2451,11 +2509,102 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							g.drawLine(intX, hei/2, intX, hei);
 						}
 					}
-					String timeVal = TextUtils.convertToEngineeringNotation(time, "s", ss.stepScale);
-					g.drawString(timeVal, x+2, hei-2);
+					String xValueVal = TextUtils.convertToEngineeringNotation(xValue, "s", ss.stepScale);
+					g.drawString(xValueVal, x+2, hei-2);
 					lastX = x;
 				}
-				time += ss.separation;
+				xValue += ss.separation;
+			}
+		}
+
+		/**
+		 * the MouseListener events for the horizontal ruler panel
+		 */
+		public void mousePressed(MouseEvent evt)
+		{
+			if (!ClickZoomWireListener.isRightMouse(evt)) return;
+			waveWindow.vcrClickStop();
+
+			// right click in horizontal ruler area: show popup of choices
+			JPopupMenu menu = new JPopupMenu();
+			JMenuItem item = new JMenuItem("Linear");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
+			menu.add(item);
+			item = new JMenuItem("Logarithmic (not yet)");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
+			menu.add(item);
+			menu.addSeparator();
+			item = new JMenuItem("Make the X axis show Time");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { restoreTime(); } });
+			menu.add(item);
+
+			menu.show(this, evt.getX(), evt.getY());
+		}
+
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		/**
+		 * Make this panel show a linear X axis.
+		 */
+		private void makeLinear()
+		{
+			if (waveWindow.xAxisLocked)
+			{
+				waveWindow.mainHorizRulerPanelLogarithmic = false;
+				waveWindow.mainHorizRulerPanel.repaint();
+				waveWindow.redrawAllPanels();
+			} else
+			{
+				wavePanel.horizRulerPanelLogarithmic = false;
+				wavePanel.horizRulerPanel.repaint();
+				wavePanel.repaint();
+			}
+		}
+
+		/**
+		 * Make this panel show a logarithmic X axis.
+		 */
+		private void makeLogarithmic()
+		{
+			if (waveWindow.xAxisLocked)
+			{
+				waveWindow.mainHorizRulerPanelLogarithmic = true;
+				waveWindow.mainHorizRulerPanel.repaint();
+				waveWindow.redrawAllPanels();
+			} else
+			{
+				wavePanel.horizRulerPanelLogarithmic = true;
+				wavePanel.horizRulerPanel.repaint();
+				wavePanel.repaint();
+			}
+		}
+
+		/**
+		 * Make this panel show a time in the X axis.
+		 */
+		private void restoreTime()
+		{
+			Rectangle2D dataBounds = waveWindow.sd.getBounds();
+			double lowXValue = dataBounds.getMinX();
+			double highXValue = dataBounds.getMaxX();
+
+			for(Iterator<Panel> it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (!waveWindow.xAxisLocked && wp != wavePanel) continue;
+				wp.xAxisSignal = null;
+				wp.setXAxisRange(lowXValue, highXValue);
+				if (wp.horizRulerPanel != null) wp.horizRulerPanel.repaint();
+				wp.repaint();
+			}
+			if (waveWindow.xAxisLocked)
+			{
+				waveWindow.xAxisSignalAll = null;
+				waveWindow.mainHorizRulerPanel.repaint();
+				waveWindow.redrawAllPanels();
 			}
 		}
 	}
@@ -2470,7 +2619,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		/** the panel that holds this signal */			private Panel wavePanel;
 		/** the data for this signal */					private Signal sSig;
 		/** the color of this signal */					private Color color;
-		/** the times of selected control points */		private double [] controlPointsSelected;
+		/** the x values of selected control points */	private double [] controlPointsSelected;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
 
@@ -2536,7 +2685,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			int sigNo = wavePanel.waveSignals.size();
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
-			this.controlPointsSelected = null;
+			controlPointsSelected = null;
 			highlighted = false;
 			String sigName = sSig.getFullName();
 			if (wavePanel.isAnalog)
@@ -2555,11 +2704,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				sigButton.addMouseListener(new SignalButton(this));
 			} else
 			{
-				this.color = new Color(User.getColorWaveformStimuli());
+				color = new Color(User.getColorWaveformStimuli());
 				wavePanel.digitalSignalButton.setText(sigName);
 				wavePanel.waveSignals.put(wavePanel.digitalSignalButton, this);
 				sigButton = wavePanel.digitalSignalButton;
-				sigButton.setForeground(this.color);
+				sigButton.setForeground(color);
 			}
 		}
 
@@ -2570,8 +2719,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		public Signal getSignal() { return sSig; }
 
 		/**
-		 * Method to return the time of selected control points in this WaveSignal.
-		 * @return an array of times of selected control points in this WaveSignal
+		 * Method to return the X values of selected control points in this WaveSignal.
+		 * @return an array of X values of selected control points in this WaveSignal
 		 * (returns null if no control points are selected).
 		 */
 		public double [] getSelectedControlPoints() { return controlPointsSelected; }
@@ -2582,44 +2731,44 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		 */
 		public boolean isSelected() { return highlighted; }
 
-		private void addSelectedControlPoint(double controlTime)
+		private void addSelectedControlPoint(double controlXValue)
 		{
 			if (controlPointsSelected == null)
 			{
 				// no control points: set this as the only one
 				controlPointsSelected = new double[1];
-				controlPointsSelected[0] = controlTime;
+				controlPointsSelected[0] = controlXValue;
 				return;
 			}
 
-			// see if this time value is already in the list
+			// see if this X value is already in the list
 			for(int i=0; i<controlPointsSelected.length; i++)
-				if (controlPointsSelected[i] == controlTime) return;
+				if (controlPointsSelected[i] == controlXValue) return;
 
-			// expand the list and add this time value
+			// expand the list and add this X value
 			double [] newPoints = new double[controlPointsSelected.length+1];
 			for(int i=0; i<controlPointsSelected.length; i++)
 				newPoints[i] = controlPointsSelected[i];
-			newPoints[controlPointsSelected.length] = controlTime;
+			newPoints[controlPointsSelected.length] = controlXValue;
 			controlPointsSelected = newPoints;
 		}
 
-		private void removeSelectedControlPoint(double controlTime)
+		private void removeSelectedControlPoint(double controlXValue)
 		{
 			if (controlPointsSelected == null) return;
 
-			// see if this time value is in the list
+			// see if this X value is in the list
 			boolean found = false;
 			for(int i=0; i<controlPointsSelected.length; i++)
-				if (controlPointsSelected[i] == controlTime) { found = true;   break; }
+				if (controlPointsSelected[i] == controlXValue) { found = true;   break; }
 			if (!found) return;
 
-			// shrink the list and remove this time value
+			// shrink the list and remove this X value
 			double [] newPoints = new double[controlPointsSelected.length-1];
 			int j = 0;
 			for(int i=0; i<controlPointsSelected.length; i++)
 			{
-				if (controlPointsSelected[i] == controlTime) continue;
+				if (controlPointsSelected[i] == controlXValue) continue;
 				newPoints[j++] = controlPointsSelected[i];
 			}
 			controlPointsSelected = newPoints;
@@ -2661,8 +2810,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			this.obj = obj;
 			this.ww = ww;
-			this.included = true;
-			this.sweepIndex = ww.sweepSignals.size();
+			included = true;
+			sweepIndex = ww.sweepSignals.size();
 			ww.sweepSignals.add(this);
 		}
 
@@ -2682,7 +2831,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				wp.repaintWithTime();
+				wp.repaintWithRulers();
 			}
 		}
 
@@ -2692,7 +2841,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				wp.repaintWithTime();
+				wp.repaintWithRulers();
 			}
 		}
 
@@ -2838,9 +2987,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		if (e.getPropertyName().equals("dividerLocation"))
 		{
-			if (mainTimePanel != null)
+			if (mainHorizRulerPanel != null)
 			{
-				mainTimePanel.repaint();
+				mainHorizRulerPanel.repaint();
 //				overall.repaint();
 			}
 		}
@@ -2854,10 +3003,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		sd.setWaveformWindow(this);
 		resetSweeps();
 		wavePanels = new ArrayList<Panel>();
-		this.timeLocked = true;
-		this.showVertexPoints = false;
-		this.showGrid = false;
-		this.xAxisSignalAll = null;
+		xAxisLocked = true;
+		showVertexPoints = false;
+		showGrid = false;
+		xAxisSignalAll = null;
+		mainHorizRulerPanelLogarithmic = false;
 
 		waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 		waveWindowFRC = new FontRenderContext(null, false, false);
@@ -2969,40 +3119,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { refreshData(); }
 		});
 
-		JButton setTimeInX = new JButton(iconTimeInXPanel);
-		setTimeInX.setBorderPainted(false);
-		setTimeInX.setDefaultCapable(false);
-		setTimeInX.setToolTipText("Make the X axis be time");
-		minWid = new Dimension(iconTimeInXPanel.getIconWidth()+4, iconTimeInXPanel.getIconHeight()+4);
-		setTimeInX.setMinimumSize(minWid);
-		setTimeInX.setPreferredSize(minWid);
-		gbc.gridx = 2;       gbc.gridy = 1;
-		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
-		overall.add(setTimeInX, gbc);
-		setTimeInX.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { putTimeInX(); }
-		});
-
-		timeLock = new JButton(iconLockTime);
-		timeLock.setBorderPainted(false);
-		timeLock.setDefaultCapable(false);
-		timeLock.setToolTipText("Lock all panels in time");
-		minWid = new Dimension(iconLockTime.getIconWidth()+4, iconLockTime.getIconHeight()+4);
-		timeLock.setMinimumSize(minWid);
-		timeLock.setPreferredSize(minWid);
+		xAxisLockButton = new JButton(iconLockXAxes);
+		xAxisLockButton.setBorderPainted(false);
+		xAxisLockButton.setDefaultCapable(false);
+		xAxisLockButton.setToolTipText("Lock all panels horizontally");
+		minWid = new Dimension(iconLockXAxes.getIconWidth()+4, iconLockXAxes.getIconHeight()+4);
+		xAxisLockButton.setMinimumSize(minWid);
+		xAxisLockButton.setPreferredSize(minWid);
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
-		overall.add(timeLock, gbc);
-		timeLock.addActionListener(new ActionListener()
+		overall.add(xAxisLockButton, gbc);
+		xAxisLockButton.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
+			public void actionPerformed(ActionEvent evt) { togglePanelXAxisLock(); }
 		});
 
 		signalNameList = new JComboBox();
@@ -3057,74 +3189,74 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { growPanels(0.8); }
 		});
 
-		// the time section that shows the value of the main and extension cursors
-		JPanel timeLabelPanel = new JPanel();
-		timeLabelPanel.setLayout(new GridBagLayout());
+		// the X axis section that shows the value of the main and extension cursors
+		JPanel xAxisLabelPanel = new JPanel();
+		xAxisLabelPanel.setLayout(new GridBagLayout());
 		gbc.gridx = 10;      gbc.gridy = 0;
 		gbc.gridwidth = 3;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 4, 0, 4);
-		overall.add(timeLabelPanel, gbc);
+		overall.add(xAxisLabelPanel, gbc);
 
 		mainPos = new JLabel("Main:", JLabel.RIGHT);
-		mainPos.setToolTipText("The main (dashed) time cursor");
+		mainPos.setToolTipText("The main (dashed) X axis cursor");
 		gbc.gridx = 0;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		timeLabelPanel.add(mainPos, gbc);
+		xAxisLabelPanel.add(mainPos, gbc);
 
 		centerMain = new JButton("Center");
-		centerMain.setToolTipText("Center the main (dashed) time cursor");
+		centerMain.setToolTipText("Center the main (dashed) X axis cursor");
 		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
 		gbc.insets = new Insets(2, 4, 2, 0);
-		timeLabelPanel.add(centerMain, gbc);
+		xAxisLabelPanel.add(centerMain, gbc);
 		centerMain.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { centerCursor(true); }
 		});
 
 		extPos = new JLabel("Ext:", JLabel.RIGHT);
-		extPos.setToolTipText("The extension (dotted) time cursor");
+		extPos.setToolTipText("The extension (dotted) X axis cursor");
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		timeLabelPanel.add(extPos, gbc);
+		xAxisLabelPanel.add(extPos, gbc);
 
 		centerExt = new JButton("Center");
-		centerExt.setToolTipText("Center the extension (dotted) time cursor");
+		centerExt.setToolTipText("Center the extension (dotted) X axis cursor");
 		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
 		gbc.insets = new Insets(2, 4, 2, 0);
-		timeLabelPanel.add(centerExt, gbc);
+		xAxisLabelPanel.add(centerExt, gbc);
 		centerExt.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { centerCursor(false); }
 		});
 
 		delta = new JLabel("Delta:", JLabel.CENTER);
-		delta.setToolTipText("Time distance between cursors");
+		delta.setToolTipText("X distance between cursors");
 		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		timeLabelPanel.add(delta, gbc);
+		xAxisLabelPanel.add(delta, gbc);
 
 		// the name of the waveform disk file
 		if (sd.getFileURL() != null)
@@ -3140,14 +3272,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(0, 10, 0, 0);
-			timeLabelPanel.add(diskLabel, gbc);
+			xAxisLabelPanel.add(diskLabel, gbc);
 		}
 
 		// add VCR controls
 		JButton vcrButtonRewind = new JButton(iconVCRRewind);
 		vcrButtonRewind.setBorderPainted(false);
 		vcrButtonRewind.setDefaultCapable(false);
-		vcrButtonRewind.setToolTipText("Rewind main time cursor to start");
+		vcrButtonRewind.setToolTipText("Rewind main X axis cursor to start");
 		minWid = new Dimension(iconVCRRewind.getIconWidth()+4, iconVCRRewind.getIconHeight()+4);
 		vcrButtonRewind.setMinimumSize(minWid);
 		vcrButtonRewind.setPreferredSize(minWid);
@@ -3165,7 +3297,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonPlayBackwards = new JButton(iconVCRPlayBackward);
 		vcrButtonPlayBackwards.setBorderPainted(false);
 		vcrButtonPlayBackwards.setDefaultCapable(false);
-		vcrButtonPlayBackwards.setToolTipText("Play main time cursor backwards");
+		vcrButtonPlayBackwards.setToolTipText("Play main X axis cursor backwards");
 		minWid = new Dimension(iconVCRPlayBackward.getIconWidth()+4, iconVCRPlayBackward.getIconHeight()+4);
 		vcrButtonPlayBackwards.setMinimumSize(minWid);
 		vcrButtonPlayBackwards.setPreferredSize(minWid);
@@ -3183,7 +3315,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonStop = new JButton(iconVCRStop);
 		vcrButtonStop.setBorderPainted(false);
 		vcrButtonStop.setDefaultCapable(false);
-		vcrButtonStop.setToolTipText("Stop moving main time cursor");
+		vcrButtonStop.setToolTipText("Stop moving main X axis cursor");
 		minWid = new Dimension(iconVCRStop.getIconWidth()+4, iconVCRStop.getIconHeight()+4);
 		vcrButtonStop.setMinimumSize(minWid);
 		vcrButtonStop.setPreferredSize(minWid);
@@ -3201,7 +3333,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonPlay = new JButton(iconVCRPlay);
 		vcrButtonPlay.setBorderPainted(false);
 		vcrButtonPlay.setDefaultCapable(false);
-		vcrButtonPlay.setToolTipText("Play main time cursor");
+		vcrButtonPlay.setToolTipText("Play main X axis cursor");
 		minWid = new Dimension(iconVCRPlay.getIconWidth()+4, iconVCRPlay.getIconHeight()+4);
 		vcrButtonPlay.setMinimumSize(minWid);
 		vcrButtonPlay.setPreferredSize(minWid);
@@ -3219,7 +3351,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonToEnd = new JButton(iconVCRToEnd);
 		vcrButtonToEnd.setBorderPainted(false);
 		vcrButtonToEnd.setDefaultCapable(false);
-		vcrButtonToEnd.setToolTipText("Move main time cursor to end");
+		vcrButtonToEnd.setToolTipText("Move main X axis cursor to end");
 		minWid = new Dimension(iconVCRToEnd.getIconWidth()+4, iconVCRToEnd.getIconHeight()+4);
 		vcrButtonToEnd.setMinimumSize(minWid);
 		vcrButtonToEnd.setPreferredSize(minWid);
@@ -3237,7 +3369,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonFaster = new JButton(iconVCRFaster);
 		vcrButtonFaster.setBorderPainted(false);
 		vcrButtonFaster.setDefaultCapable(false);
-		vcrButtonFaster.setToolTipText("Move main time cursor faster");
+		vcrButtonFaster.setToolTipText("Move main X axis cursor faster");
 		minWid = new Dimension(iconVCRFaster.getIconWidth()+4, iconVCRFaster.getIconHeight()+4);
 		vcrButtonFaster.setMinimumSize(minWid);
 		vcrButtonFaster.setPreferredSize(minWid);
@@ -3255,7 +3387,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		JButton vcrButtonSlower = new JButton(iconVCRSlower);
 		vcrButtonSlower.setBorderPainted(false);
 		vcrButtonSlower.setDefaultCapable(false);
-		vcrButtonSlower.setToolTipText("Move main time cursor slower");
+		vcrButtonSlower.setToolTipText("Move main X axis cursor slower");
 		minWid = new Dimension(iconVCRSlower.getIconWidth()+4, iconVCRSlower.getIconHeight()+4);
 		vcrButtonSlower.setMinimumSize(minWid);
 		vcrButtonSlower.setPreferredSize(minWid);
@@ -3270,11 +3402,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
 		});
 
-		// the single time panel (when time is locked)
-		if (timeLocked)
+		// the single horizontal ruler panel (when the X axes are locked)
+		if (xAxisLocked)
 		{
-			addMainTimePanel();
+			addMainHorizRulerPanel();
 		}
+
+		Rectangle2D dataBounds = sd.getBounds();
+		smallestXValue = dataBounds.getWidth() / 1000;
 
 		// a drop target for the overall waveform window
 		DropTarget dropTarget = new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
@@ -3343,10 +3478,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void setSimEngine(Engine se) { this.se = se; }
 
-	private void addMainTimePanel()
+	private void addMainHorizRulerPanel()
 	{
-		mainTimePanel = new TimeTickPanel(null, this);
-		mainTimePanel.setToolTipText("One time scale applies to all signals when time is locked");
+		mainHorizRulerPanel = new HorizRulerPanel(null, this);
+		mainHorizRulerPanel.setToolTipText("One X axis ruler applies to all signals when the X axes are locked");
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 10;      gbc.gridy = 1;
@@ -3354,7 +3489,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc.weightx = 1;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		overall.add(mainTimePanel, gbc);
+		overall.add(mainHorizRulerPanel, gbc);
 	}
 
 	private void resetSweeps()
@@ -3370,10 +3505,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public List<SweepSignal> getSweepSignals() { return sweepSignals; }
 
-	private void removeMainTimePanel()
+	private void removeMainHorizRulerPanel()
 	{
-		overall.remove(mainTimePanel);
-		mainTimePanel = null;
+		overall.remove(mainHorizRulerPanel);
+		mainHorizRulerPanel = null;
 	}
 
 	private void togglePanelName()
@@ -3404,36 +3539,38 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private void tick()
 	{
-		/* see if it is time to advance the VCR */
+		// see if it is time to advance the VCR
 		long curtime = System.currentTimeMillis();
 		if (curtime - vcrLastAdvance < 100) return;
 		vcrLastAdvance = curtime;
 
-		if (this.wavePanels.size() == 0) return;
+		if (wavePanels.size() == 0) return;
 		Panel wp = (Panel)wavePanels.iterator().next();
-		double dTime = wp.scaleDeltaXToTime(vcrAdvanceSpeed);
-		double newTime = mainTime;
+		int xValueScreen = wp.convertXDataToScreen(mainXPosition);
 		Rectangle2D bounds = sd.getBounds();
 		if (vcrPlayingBackwards)
 		{
-			newTime -= dTime;
-			double lowTime = bounds.getMinX();
-			if (newTime <= lowTime)
+			int newXValueScreen = xValueScreen - vcrAdvanceSpeed;
+			double newXValue = wp.convertXScreenToData(newXValueScreen);
+			double lowXValue = bounds.getMinX();
+			if (newXValue <= lowXValue)
 			{
-				newTime = lowTime;
+				newXValue = lowXValue;
 				vcrClickStop();
 			}
+			setMainXPositionCursor(newXValue);
 		} else
 		{
-			newTime += dTime;
-			double highTime = bounds.getMaxX();
-			if (newTime >= highTime)
+			int newXValueScreen = xValueScreen + vcrAdvanceSpeed;
+			double newXValue = wp.convertXScreenToData(newXValueScreen);
+			double highXValue = bounds.getMaxX();
+			if (newXValue >= highXValue)
 			{
-				newTime = highTime;
+				newXValue = highXValue;
 				vcrClickStop();
 			}
+			setMainXPositionCursor(newXValue);
 		}
-		setMainTimeCursor(newTime);
 		redrawAllPanels();
 	}
 
@@ -3441,8 +3578,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		vcrClickStop();
 		Rectangle2D bounds = sd.getBounds();
-		double lowTime = bounds.getMinX();
-		setMainTimeCursor(lowTime);
+		double lowXValue = bounds.getMinX();
+		setMainXPositionCursor(lowXValue);
 		redrawAllPanels();
 	}
 
@@ -3487,8 +3624,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		vcrClickStop();
 		Rectangle2D bounds = sd.getBounds();
-		double highTime = bounds.getMaxX();
-		setMainTimeCursor(highTime);
+		double highXValue = bounds.getMaxX();
+		setMainXPositionCursor(highXValue);
 		redrawAllPanels();
 	}
 
@@ -3670,8 +3807,10 @@ if (wp.signalButtons != null)
 		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
 		wf.signalExplorerNode = getSignalsForExplorer();
 		wf.sweepExplorerNode = getSweepsForExplorer();
+		wf.measurementExplorerNode = getMeasurementsForExplorer();
 		rootNode.add(wf.signalExplorerNode);
 		if (wf.sweepExplorerNode != null) rootNode.add(wf.sweepExplorerNode);
+		if (wf.measurementExplorerNode != null) rootNode.add(wf.measurementExplorerNode);
 		rootNode.add(wf.jobExplorerNode);
 		rootNode.add(wf.errorExplorerNode);
 	}
@@ -3773,6 +3912,19 @@ if (wp.signalButtons != null)
 		return sweepsExplorerTree;
 	}
 
+	private DefaultMutableTreeNode getMeasurementsForExplorer()
+	{
+		List<Measurement> meas = sd.getMeasurements();
+		if (meas == null) return null;
+		DefaultMutableTreeNode measExplorerTree = new DefaultMutableTreeNode("MEASUREMENTS");
+		for(Iterator<Measurement> it = meas.iterator(); it.hasNext(); )
+		{
+			Measurement m = (Measurement)it.next();
+			measExplorerTree.add(new DefaultMutableTreeNode(m.getName()));
+		}
+		return measExplorerTree;
+	}
+
 	private Signal findSignal(String name)
 	{
 		for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
@@ -3833,7 +3985,7 @@ if (wp.signalButtons != null)
 					double range = highValue - lowValue;
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;
-					wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+					wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
 					wp.makeSelectedPanel();
 				}
 			}
@@ -3881,7 +4033,7 @@ if (wp.signalButtons != null)
 			while (found)
 			{
 				found = false;
-				for(Iterator<Panel> pIt = this.getPanels(); pIt.hasNext(); )
+				for(Iterator<Panel> pIt = getPanels(); pIt.hasNext(); )
 				{
 					Panel wp = (Panel)pIt.next();
 					for(Iterator<WaveSignal> it = wp.waveSignals.values().iterator(); it.hasNext(); )
@@ -4129,39 +4281,39 @@ if (wp.signalButtons != null)
 		return nets;
 	}
 
-	// ************************************ TIME ************************************
+	// ************************************ THE X AXIS ************************************
 
-	public double getMainTimeCursor() { return mainTime; }
+	public double getMainXPositionCursor() { return mainXPosition; }
 
-	public void setMainTimeCursor(double time)
+	public void setMainXPositionCursor(double value)
 	{
-		mainTime = time;
-		String amount = TextUtils.convertToEngineeringNotation(mainTime, "s");
+		mainXPosition = value;
+		String amount = TextUtils.convertToEngineeringNotation(mainXPosition, "s");
 		mainPos.setText("Main: " + amount);
-		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainTime - extTime), "s");
+		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainXPosition - extXPosition), "s");
 		delta.setText("Delta: " + diff);
 		updateAssociatedLayoutWindow();
 	}
 
-	public double getExtensionTimeCursor() { return extTime; }
+	public double getExtensionXPositionCursor() { return extXPosition; }
 
-	public void setExtensionTimeCursor(double time)
+	public void setExtensionXPositionCursor(double value)
 	{
-		extTime = time;
-		String amount = TextUtils.convertToEngineeringNotation(extTime, "s");
+		extXPosition = value;
+		String amount = TextUtils.convertToEngineeringNotation(extXPosition, "s");
 		extPos.setText("Ext: " + amount);
-		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainTime - extTime), "s");
+		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainXPosition - extXPosition), "s");
 		delta.setText("Delta: " + diff);
 	}
 
 	/**
-	 * Method to create a new panel with a time range similar to others on the display.
+	 * Method to create a new panel with an X range similar to others on the display.
 	 * @param isAnalog true if the new panel holds analog signals.
 	 * @return the newly created Panel.
 	 */
 	private Panel makeNewPanel(boolean isAnalog)
 	{
-		// get some other panel to match the time scale
+		// get some other panel to match the X scale
 		Panel oPanel = null;
 		Iterator<Panel> pIt = getPanels();
 		if (pIt.hasNext())
@@ -4172,28 +4324,28 @@ if (wp.signalButtons != null)
 		// add this signal in a new panel
 		Panel panel = new Panel(this, isAnalog);
 
-		// make its time range match the other panel
-		if (oPanel != null) panel.setTimeRange(oPanel.minTime, oPanel.maxTime);
+		// make its X range match the other panel
+		if (oPanel != null) panel.setXAxisRange(oPanel.minXPosition, oPanel.maxXPosition);
 		return panel;
 	}
 
 	/**
-	 * Method to set the time range in all panels.
-	 * @param minTime the low time value.
-	 * @param maxTime the high time value.
+	 * Method to set the X range in all panels.
+	 * @param minXPosition the low X value.
+	 * @param maxXPosition the high X value.
 	 */
-	public void setDefaultTimeRange(double minTime, double maxTime)
+	public void setDefaultHorizontalRange(double minXPosition, double maxXPosition)
 	{
-		this.minTime = minTime;
-		this.maxTime = maxTime;
+		this.minXPosition = minXPosition;
+		this.maxXPosition = maxXPosition;
 	}
 
 	/**
 	 * Method to set the zoom extents for this waveform window.
 	 * @param lowVert the low value of the vertical axis (for the given panel only).
 	 * @param highVert the high value of the vertical axis (for the given panel only).
-	 * @param lowHoriz the low value of the horizontal (time) axis (for the given panel only unless time is locked).
-	 * @param highHoriz the high value of the horizontal (time) axis (for the given panel only unless time is locked).
+	 * @param lowHoriz the low value of the horizontal axis (for the given panel only unless X axes are locked).
+	 * @param highHoriz the high value of the horizontal axis (for the given panel only unless X axes are locked).
 	 * @param thePanel the panel being zoomed.
 	 */
 	public void setZoomExtents(double lowVert, double highVert, double lowHoriz, double highHoriz, Panel thePanel)
@@ -4204,16 +4356,16 @@ if (wp.signalButtons != null)
 			boolean changed = false;
 			if (wp == thePanel)
 			{
-				wp.setValueRange(lowVert, highVert);
+				wp.setYAxisRange(lowVert, highVert);
 				changed = true;
 			}
-			if (timeLocked || wp == thePanel)
+			if (xAxisLocked || wp == thePanel)
 			{
-				wp.minTime = lowHoriz;
-				wp.maxTime = highHoriz;
+				wp.minXPosition = lowHoriz;
+				wp.maxXPosition = highHoriz;
 				changed = true;
 			}
-			if (changed) wp.repaintWithTime();
+			if (changed) wp.repaintWithRulers();
 		}
 	}
 
@@ -4280,13 +4432,17 @@ if (wp.signalButtons != null)
 
 		// determine powers of ten in the step size
 		double d = Math.abs(h - l)/(double)n;
-		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1f;
+		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1;
 		int mp = 0;
 		while ( d >= 10.0 ) { d /= 10.0;   mp++;   ss.stepScale++; }
 		while ( d <= 1.0  ) { d *= 10.0;   mp--;   ss.stepScale--; }
 		double m = Math.pow(10, mp);
 
 		int di = (int)d;
+		if (di == 0 || m == 0)
+		{
+			int ww = 9;
+		}
 		if (di > 2 && di <= 5) di = 5; else 
 			if (di > 5) di = 10;
 		int li = (int)(l / m);
@@ -4614,7 +4770,7 @@ if (wp.signalButtons != null)
 		netValues = new HashMap<Network,Integer>();
 
 		// assign values from simulation window traces to networks
-		for(Iterator<Panel> it = this.wavePanels.iterator(); it.hasNext(); )
+		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			if (wp.hidden) continue;
@@ -4709,13 +4865,13 @@ if (wp.signalButtons != null)
 		Network net = findNetwork(netlist, ds.getSignalName());
 		if (net == null) return;
 
-		// find the proper data for the time of the main cursor
+		// find the proper data for the main cursor
 		int numEvents = ds.getNumEvents();
 		int state = Stimuli.LOGIC_X;
 		for(int i=numEvents-1; i>=0; i--)
 		{
-			double time = ds.getTime(i);
-			if (time <= mainTime)
+			double xValue = ds.getTime(i);
+			if (xValue <= mainXPosition)
 			{
 				state = ds.getState(i) & Stimuli.LOGIC;
 				break;
@@ -4812,112 +4968,89 @@ if (wp.signalButtons != null)
 	public void centerCursor(boolean main)
 	{
 		boolean havePanel = false;
-		double lowTime = 0, highTime = 0;
+		double lowXValue = 0, highXValue = 0;
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			double low = wp.getMinTimeRange();
-			double high = wp.getMaxTimeRange();
+			double low = wp.getMinXAxis();
+			double high = wp.getMaxXAxis();
 			if (havePanel)
 			{
-				lowTime = Math.max(lowTime, low);
-				highTime = Math.min(highTime, high);
+				lowXValue = Math.max(lowXValue, low);
+				highXValue = Math.min(highXValue, high);
 			} else
 			{
-				lowTime = low;
-				highTime = high;
+				lowXValue = low;
+				highXValue = high;
 				havePanel = true;
 			}
 		}
 		if (!havePanel) return;
-		double center = (lowTime + highTime) / 2;
-		if (main) setMainTimeCursor(center); else
-			setExtensionTimeCursor(center);
+		double center = (lowXValue + highXValue) / 2;
+		if (main) setMainXPositionCursor(center); else
+			setExtensionXPositionCursor(center);
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			wp.repaintWithTime();
+			wp.repaintWithRulers();
 		}
 	}
 
 	/**
-	 * Method called to toggle the panel time lock.
+	 * Method called to toggle the lock on the horizontal axes.
 	 */
-	public void togglePanelTimeLock()
+	public void togglePanelXAxisLock()
 	{
-		timeLocked = ! timeLocked;
-		if (timeLocked)
+		xAxisLocked = ! xAxisLocked;
+		if (xAxisLocked)
 		{
-			// time now locked: add main time, remove individual time
-			timeLock.setIcon(iconLockTime);
-			addMainTimePanel();
-			double minTime = 0, maxTime = 0;
+			// X axes now locked: add main ruler, remove individual rulers
+			xAxisLockButton.setIcon(iconLockXAxes);
+			addMainHorizRulerPanel();
+			double minXPosition = 0, maxXPosition = 0;
 			int vertAxis = 0;
 			boolean first = true;
 			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				wp.removeTimePanel();
+				wp.removeHorizRulerPanel();
 				if (first)
 				{
 					first = false;
-					minTime = wp.minTime;
-					maxTime = wp.maxTime;
+					minXPosition = wp.minXPosition;
+					maxXPosition = wp.maxXPosition;
 					vertAxis = wp.vertAxisPos;
 				} else
 				{
-					if (wp.minTime < minTime)
+					if (wp.minXPosition < minXPosition)
 					{
-						minTime = wp.minTime;
-						maxTime = wp.maxTime;
+						minXPosition = wp.minXPosition;
+						maxXPosition = wp.maxXPosition;
 					}
 					wp.vertAxisPos = vertAxis;
 				}
 			}
 
-			// force all panels to be at the same time
+			// force all panels to be at the same X position
 			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				wp.minTime = minTime;
-				wp.maxTime = maxTime;
+				wp.minXPosition = minXPosition;
+				wp.maxXPosition = maxXPosition;
 			}
 		} else
 		{
-			// time is unlocked: put a time bar in each panel, remove main panel
-			timeLock.setIcon(iconUnLockTime);
+			// X axes are unlocked: put a ruler in each panel, remove main ruler
+			xAxisLockButton.setIcon(iconUnLockXAxes);
 			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				wp.addTimePanel();
+				wp.addHorizRulerPanel();
 			}
-			removeMainTimePanel();
+			removeMainHorizRulerPanel();
 		}
 		overall.validate();
 		overall.repaint();
-	}
-
-	public void putTimeInX()
-	{
-		Rectangle2D timeBounds = sd.getBounds();
-		double lowTime = timeBounds.getMinX();
-		double highTime = timeBounds.getMaxX();
-
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
-		{
-			Panel wp = (Panel)it.next();
-			if (!timeLocked && !wp.selected) continue;
-			wp.xAxisSignal = null;
-			wp.setTimeRange(lowTime, highTime);
-			if (wp.timePanel != null) wp.timePanel.repaint();
-			wp.repaint();
-		}
-		if (timeLocked)
-		{
-			xAxisSignalAll = null;
-			mainTimePanel.repaint();
-			redrawAllPanels();
-		}
 	}
 
 	/**
@@ -5040,20 +5173,20 @@ if (wp.signalButtons != null)
 			Rectangle2D bounds = sd.getBounds();
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
-			double lowTime = bounds.getMinX();
-			double highTime = bounds.getMaxX();
-			if (this.timeLocked)
+			double lowXValue = bounds.getMinX();
+			double highXValue = bounds.getMaxX();
+			if (xAxisLocked)
 			{
 				if (wavePanels.size() > 0)
 				{
 					Panel aPanel = (Panel)wavePanels.get(0);
-					lowTime = aPanel.minTime;
-					highTime = aPanel.maxTime;
+					lowXValue = aPanel.minXPosition;
+					highXValue = aPanel.maxXPosition;
 				}
 			}
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(this, isAnalog);
-			wp.setValueRange(lowValue, highValue);
-			wp.setTimeRange(lowTime, highTime);
+			wp.setYAxisRange(lowValue, highValue);
+			wp.setXAxisRange(lowXValue, highXValue);
 			wp.makeSelectedPanel();
 		}
 		getPanel().validate();
@@ -5070,7 +5203,7 @@ if (wp.signalButtons != null)
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			wp.repaintWithTime();
+			wp.repaintWithRulers();
 		}
 	}
 
@@ -5083,7 +5216,7 @@ if (wp.signalButtons != null)
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			wp.repaintWithTime();
+			wp.repaintWithRulers();
 		}
 	}
 
@@ -5187,19 +5320,19 @@ if (wp.signalButtons != null)
 
 	public void fillScreen()
 	{
-		Rectangle2D timeBounds = sd.getBounds();
-		double lowTime = timeBounds.getMinX();
-		double highTime = timeBounds.getMaxX();
+		Rectangle2D dataBounds = sd.getBounds();
+		double lowXValue = dataBounds.getMinX();
+		double highXValue = dataBounds.getMaxX();
 		if (xAxisSignalAll != null)
 		{
 			Rectangle2D sigBounds = xAxisSignalAll.getBounds();
-			lowTime = sigBounds.getMinY();
-			highTime = sigBounds.getMaxY();
+			lowXValue = sigBounds.getMinY();
+			highXValue = sigBounds.getMaxY();
 		}
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			if (!timeLocked && !wp.selected) continue;
+			if (!xAxisLocked && !wp.selected) continue;
 
 			Rectangle2D bounds = new Rectangle2D.Double();
 			boolean first = true;
@@ -5223,23 +5356,23 @@ if (wp.signalButtons != null)
 			lowValue -= valueRange;
 			highValue += valueRange;
 			boolean repaint = false;
-			if (wp.minTime != lowTime || wp.maxTime != highTime)
+			if (wp.minXPosition != lowXValue || wp.maxXPosition != highXValue)
 			{
-				wp.minTime = lowTime;
-				wp.maxTime = highTime;
+				wp.minXPosition = lowXValue;
+				wp.maxXPosition = highXValue;
 				repaint = true;
 			}
 			if (wp.isAnalog)
 			{
 				if (wp.analogLowValue != lowValue || wp.analogHighValue != highValue)
 				{
-					wp.setValueRange(lowValue, highValue);
+					wp.setYAxisRange(lowValue, highValue);
 					repaint = true;
 				}
 			}
 			if (repaint)
 			{
-				wp.repaintWithTime();
+				wp.repaintWithRulers();
 			}
 		}
 	}
@@ -5249,10 +5382,10 @@ if (wp.signalButtons != null)
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			if (!timeLocked && !wp.selected) continue;
+			if (!xAxisLocked && !wp.selected) continue;
 
 			boolean timeInXAxis = true;
-			if (timeLocked)
+			if (xAxisLocked)
 			{
 				if (xAxisSignalAll != null) timeInXAxis = false;
 			} else
@@ -5260,15 +5393,15 @@ if (wp.signalButtons != null)
 				if (wp.xAxisSignal != null) timeInXAxis = false;
 			}
 			boolean repaint = false;
-			double range = wp.maxTime - wp.minTime;
-			wp.minTime -= range/2;
-			wp.maxTime += range/2;
-			if (wp.minTime < 0 && timeInXAxis)
+			double range = wp.maxXPosition - wp.minXPosition;
+			wp.minXPosition -= range/2;
+			wp.maxXPosition += range/2;
+			if (wp.minXPosition < 0 && timeInXAxis)
 			{
-				wp.maxTime -= wp.minTime;
-				wp.minTime = 0;
+				wp.maxXPosition -= wp.minXPosition;
+				wp.minXPosition = 0;
 			}
-			wp.repaintWithTime();
+			wp.repaintWithRulers();
 		}
 	}
 
@@ -5277,40 +5410,40 @@ if (wp.signalButtons != null)
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			if (!timeLocked && !wp.selected) continue;
+			if (!xAxisLocked && !wp.selected) continue;
 
 			boolean repaint = false;
-			double range = wp.maxTime - wp.minTime;
-			wp.minTime += range/4;
-			wp.maxTime -= range/4;
-			wp.repaintWithTime();
+			double range = wp.maxXPosition - wp.minXPosition;
+			wp.minXPosition += range/4;
+			wp.maxXPosition -= range/4;
+			wp.repaintWithRulers();
 		}
 	}
 
 	public void focusOnHighlighted()
 	{
-		if (mainTime == extTime) return;
-		double maxTime, minTime;
-		if (mainTime > extTime)
+		if (mainXPosition == extXPosition) return;
+		double maxXPosition, minXPosition;
+		if (mainXPosition > extXPosition)
 		{
-			double size = (mainTime-extTime) / 20.0;
-			maxTime = mainTime + size;
-			minTime = extTime - size;
+			double size = (mainXPosition-extXPosition) / 20.0;
+			maxXPosition = mainXPosition + size;
+			minXPosition = extXPosition - size;
 		} else
 		{
-			double size = (extTime-mainTime) / 20.0;
-			maxTime = extTime + size;
-			minTime = mainTime - size;
+			double size = (extXPosition-mainXPosition) / 20.0;
+			maxXPosition = extXPosition + size;
+			minXPosition = mainXPosition - size;
 		}
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			if (!timeLocked && !wp.selected) continue;
-			if (wp.minTime != minTime || wp.maxTime != maxTime)
+			if (!xAxisLocked && !wp.selected) continue;
+			if (wp.minXPosition != minXPosition || wp.maxXPosition != maxXPosition)
 			{
-				wp.minTime = minTime;
-				wp.maxTime = maxTime;
-				wp.repaintWithTime();
+				wp.minXPosition = minXPosition;
+				wp.maxXPosition = maxXPosition;
+				wp.repaintWithRulers();
 			}
 		}
 	}
@@ -5339,8 +5472,8 @@ if (wp.signalButtons != null)
 			Panel wp = (Panel)it.next();
 			wp.repaint();
 		}
-		if (mainTimePanel != null)
-			mainTimePanel.repaint();
+		if (mainHorizRulerPanel != null)
+			mainHorizRulerPanel.repaint();
 	}
 
 	public void fireCellHistoryStatus()
@@ -5417,7 +5550,7 @@ if (wp.signalButtons != null)
 	public void panXOrY(int direction, double[] panningAmounts, int ticks)
 	{
 		// determine the panel extent
-		double hRange = maxTime - minTime;
+		double hRange = maxXPosition - minXPosition;
 		double vRange = -1;
 		double vRangeAny = -1;
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
@@ -5426,7 +5559,7 @@ if (wp.signalButtons != null)
 			vRangeAny = wp.analogRange;
 			if (wp.selected)
 			{
-				hRange = wp.maxTime - wp.minTime;
+				hRange = wp.maxXPosition - wp.minXPosition;
 				vRange = wp.analogRange;
 				break;
 			}
@@ -5440,9 +5573,9 @@ if (wp.signalButtons != null)
 			if (direction == 0)
 			{
 				// pan horizontally
-				if (!timeLocked && !wp.selected) continue;
-				wp.minTime -= hRange * distance;
-				wp.maxTime -= hRange * distance;
+				if (!xAxisLocked && !wp.selected) continue;
+				wp.minXPosition -= hRange * distance;
+				wp.maxXPosition -= hRange * distance;
 			} else
 			{
 				// pan vertically
@@ -5450,7 +5583,7 @@ if (wp.signalButtons != null)
 				wp.analogLowValue -= vRange * distance;
 				wp.analogHighValue -= vRange * distance;
 			}
-			wp.repaintWithTime();
+			wp.repaintWithRulers();
 		}
 	}
 }

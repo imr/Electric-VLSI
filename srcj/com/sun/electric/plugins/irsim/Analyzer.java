@@ -226,9 +226,9 @@ public class Analyzer extends Engine
 	 			// make a waveform window
 	 			analyzer.ww = sd.getWaveformWindow();
 				analyzer.ww.setSimEngine(analyzer);
-				analyzer.ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
-				analyzer.ww.setMainTimeCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-				analyzer.ww.setExtensionTimeCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+				analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+				analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+				analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
 				analyzer.init();
 			}
 			return true;
@@ -332,7 +332,7 @@ public class Analyzer extends Engine
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORH, parameters, ww.getMainTimeCursor(), false);
+			newVector(VECTORH, parameters, ww.getMainXPositionCursor(), false);
 		}
 		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
@@ -355,7 +355,7 @@ public class Analyzer extends Engine
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORL, parameters, ww.getMainTimeCursor(), false);
+			newVector(VECTORL, parameters, ww.getMainXPositionCursor(), false);
 		}
 		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
@@ -386,7 +386,7 @@ public class Analyzer extends Engine
 		{
 			Signal sig = (Signal)it.next();
 			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORX, parameters, ww.getMainTimeCursor(), false);
+			newVector(VECTORX, parameters, ww.getMainXPositionCursor(), false);
 		}
 		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
@@ -575,7 +575,7 @@ public class Analyzer extends Engine
 
 		// update main cursor location if requested
 		if (Simulation.isBuiltInAutoAdvance())
-			ww.setMainTimeCursor(curTime + 10.0/1000000000.0);
+			ww.setMainXPositionCursor(curTime + 10.0/1000000000.0);
 	}
 
 	/**
@@ -754,8 +754,8 @@ public class Analyzer extends Engine
 
 //			sim_window_gettimeextents(&min, &max);
 //			ww.setDefaultTimeRange(min, max);
-//			ww.setMainTimeCursor((max-min)/5.0*2.0+min);
-//			ww.setExtensionTimeCursor((max-min)/5.0*3.0+min);
+//			ww.setMainXPositionCursor((max-min)/5.0*2.0+min);
+//			ww.setExtensionXPositionCursor((max-min)/5.0*3.0+min);
 			updateWindow(theSim.curDelta);
 
 			lineReader.close();
@@ -2238,7 +2238,7 @@ public class Analyzer extends Engine
 				if (it.hasNext())
 				{
 					WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-					double max = wp.getMaxTimeRange();
+					double max = wp.getMaxXAxis();
 					long endtime = Sim.nsToDelta(max * 1e9);
 					if (endtime > endTime) endTime = endtime;
 				}
