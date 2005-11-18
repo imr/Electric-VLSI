@@ -23,16 +23,12 @@
 */
 package com.sun.electric.tool.user.ncc;
 
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Frame;
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyVetoException;
 import java.util.List;
 
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -75,6 +71,20 @@ public class NccMsgsFrame {
         contentPane.add(comparPane);
         comparPane.setPreferredSize(new Dimension(scrnSize.width/3*2, scrnSize.height/3*2));
         frame.setLocation(scrnSize.width/6, scrnSize.height/6);
+        frame.addKeyListener(new java.awt.event.KeyListener()
+		{
+            public void keyTyped(KeyEvent event)
+            {
+                int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+                KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(event);
+                if (stroke.getKeyChar() == 'w' && (stroke.getModifiers()&buckyBit) != 0)
+                    frame.setVisible(false);
+            }
+
+            public void keyPressed(KeyEvent event) {;}
+
+            public void keyReleased(KeyEvent event) {;}
+		});
     }
     
     /**
