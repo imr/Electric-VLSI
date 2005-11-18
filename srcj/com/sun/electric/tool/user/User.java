@@ -438,6 +438,7 @@ public class User extends Listener
 			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
+				if (!cell.isLinked()) continue;
 
 				// see if the "last designer" should be changed on the cell
 				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);

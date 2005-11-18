@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+BUG: (11/18/05, SMR) Crash when deleting a cell (Bug #759).
+FIX: In User.endBatch(), ignore cell changes to deleted cells.
+
 IMP: (11/17/05, GVG) Adding Ctl-W to NCC GUI (Bug 756)
 
 IMP: (11/17/05, SMR) Waveform window can now plot any signal on the X axis.
