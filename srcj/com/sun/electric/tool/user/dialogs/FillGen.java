@@ -24,8 +24,13 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.FillGenerator;
+import com.sun.electric.database.text.TextUtils;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.*;
 
 /**
@@ -33,12 +38,25 @@ import java.awt.*;
  * TODO: RK Decide whether to use this file or discard it.
  */
 public class FillGen extends EDialog {
-    
+
+    private JTextField[] vddSpace;
+    private JComboBox[] vddUnit;
+    private JTextField[] gndSpace;
+    private JComboBox[] gndUnit;
+    private Technology tech;
+    private JCheckBox[] tiledCells;
+
     /** Creates new form FillGen */
     public FillGen(Technology tech, java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
+        this.tech = tech;
+        int size = numMetals - 1;
+        vddSpace = new JTextField[size];
+        vddUnit = new JComboBox[size];
+        gndSpace = new JTextField[size];
+        gndUnit = new JComboBox[size];
 
         for (int i = 1; i < numMetals; i++)
         {
@@ -51,9 +69,10 @@ public class FillGen extends EDialog {
             metalPanel.add(label, gridBagConstraints);
 
             JTextField text = new JTextField();
+            vddSpace[i-1] = text;
             text.setColumns(8);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            text.setText("0");
+            text.setText("-1");
             text.setMinimumSize(new java.awt.Dimension(100, 21));
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 1;
@@ -61,6 +80,7 @@ public class FillGen extends EDialog {
             metalPanel.add(text, gridBagConstraints);
 
             JComboBox combox = new JComboBox();
+            vddUnit[i-1] = combox;
             combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
 //            combox.addActionListener(new java.awt.event.ActionListener() {
 //                public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -73,6 +93,7 @@ public class FillGen extends EDialog {
             metalPanel.add(combox, gridBagConstraints);
 
             text = new JTextField();
+            gndSpace[i-1] = text;
             text.setColumns(8);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
             text.setText("0");
@@ -84,6 +105,7 @@ public class FillGen extends EDialog {
             metalPanel.add(text, gridBagConstraints);
 
             combox = new JComboBox();
+            gndUnit[i-1] = combox;
             combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
 //            combox.addActionListener(new java.awt.event.ActionListener() {
 //                public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -254,22 +276,27 @@ public class FillGen extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 10, 0);
         jPanel2.add(jLabel2, gridBagConstraints);
 
+        tiledCells = new JCheckBox[12];
         jCheckBox1.setText("2 x 2");
+        tiledCells[0] = jCheckBox1;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         jPanel2.add(jCheckBox1, gridBagConstraints);
 
         jCheckBox2.setText("3 x 3");
+        tiledCells[1] = jCheckBox2;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         jPanel2.add(jCheckBox2, gridBagConstraints);
 
         jCheckBox3.setText("4 x 4");
+        tiledCells[2] = jCheckBox3;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         jPanel2.add(jCheckBox3, gridBagConstraints);
 
         jCheckBox4.setText("5 x 5");
+        tiledCells[3] = jCheckBox4;
         jCheckBox4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox4ActionPerformed(evt);
@@ -281,6 +308,7 @@ public class FillGen extends EDialog {
         jPanel2.add(jCheckBox4, gridBagConstraints);
 
         jCheckBox5.setText("6 x 6");
+        tiledCells[4] = jCheckBox5;
         jCheckBox5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox5ActionPerformed(evt);
@@ -292,36 +320,43 @@ public class FillGen extends EDialog {
         jPanel2.add(jCheckBox5, gridBagConstraints);
 
         jCheckBox6.setText("7 x 7");
+        tiledCells[5] = jCheckBox6;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         jPanel2.add(jCheckBox6, gridBagConstraints);
 
         jCheckBox7.setText("8 x 8");
+        tiledCells[6] = jCheckBox7;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox7, gridBagConstraints);
 
         jCheckBox8.setText("9 x 9");
+        tiledCells[7] = jCheckBox8;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox8, gridBagConstraints);
 
         jCheckBox9.setText("10 x 10");
+        tiledCells[8] = jCheckBox9;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox9, gridBagConstraints);
 
         jCheckBox10.setText("11 x 11");
+        tiledCells[9] = jCheckBox10;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox10, gridBagConstraints);
 
         jCheckBox11.setText("12 x 12");
+        tiledCells[10] = jCheckBox11;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox11, gridBagConstraints);
 
         jCheckBox12.setText("13 x 13");
+        tiledCells[11] = jCheckBox12;
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         jPanel2.add(jCheckBox12, gridBagConstraints);
@@ -351,8 +386,67 @@ public class FillGen extends EDialog {
     }//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        new FillGenJob();
+        setVisible(false);;
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private class FillGenJob extends Job
+    {
+		protected FillGenJob()
+		{
+			super("Fill generator job", null, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+            FillGenerator fg = new FillGenerator("tsmc180");
+            fg.setFillLibrary("fillLib");
+            fg.setFillCellWidth(TextUtils.atof(jTextField1.getText()));
+            fg.setFillCellHeight(TextUtils.atof(jTextField2.getText()));
+            if (jComboBox1.getModel().getSelectedItem().equals("horizontal"))
+                fg.makeEvenLayersHorizontal(true);
+            FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
+            FillGenerator.Units TRACKS = FillGenerator.TRACKS;
+            int firstMetal = -1, lastMetal = -1;
+
+            for (int i = 0; i < vddSpace.length; i++)
+            {
+                int vddS = TextUtils.atoi(vddSpace[i].getText());
+                int gndS = TextUtils.atoi(gndSpace[i].getText());
+                FillGenerator.Units vddU = TRACKS;
+                if (vddUnit[i].getModel().getSelectedItem().equals("lambda"))
+                    vddU = LAMBDA;
+                FillGenerator.Units gndU = TRACKS;
+                if (gndUnit[i].getModel().getSelectedItem().equals("lambda"))
+                    gndU = LAMBDA;
+                if (vddS > -1 && gndS > -1)
+                {
+                    if (firstMetal == -1) firstMetal = i+2;
+                    lastMetal = i+2;
+                    fg.reserveSpaceOnLayer(i+2, vddS, vddU, gndS, gndU);
+                }
+            }
+            FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
+            List items = new ArrayList(12);
+
+            for (int i = 0; i < tiledCells.length; i++)
+            {
+                if (tiledCells[i].getModel().isSelected())
+                    items.add(new Integer(i+2));
+            }
+            int[] cells = null;
+            if (items.size() > 0)
+            {
+                cells = new int[items.size()];
+                for (int i = 0; i < items.size(); i++)
+                    cells[i] = ((Integer)items.get(i)).intValue();
+            }
+            fg.makeFillCell(firstMetal, lastMetal, PERIMETER, cells); //new int[] {2,3,4,5,10,12});
+            fg.makeGallery();
+            return true;
+        }
+    }
 
     private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
         // TODO add your handling code here:
@@ -367,8 +461,8 @@ public class FillGen extends EDialog {
     }//GEN-LAST:event_jTextField2ActionPerformed
     
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        System.out.println("that's all folks");
-        System.exit(0);
+//        System.out.println("that's all folks");
+//        System.exit(0);
     }//GEN-LAST:event_formWindowClosed
                 
     /**

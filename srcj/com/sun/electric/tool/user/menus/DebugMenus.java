@@ -66,6 +66,7 @@ import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.FillGen;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableCell;
@@ -242,6 +243,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("New fill", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
@@ -747,6 +750,31 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+    private static void newFill()
+    {
+        Cell cell = WindowFrame.getCurrentCell();
+        if (cell == null) return;
+        ErrorLogger log = ErrorLogger.newInstance("Fill", true);
+
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+            NodeProto np = ni.getProto();
+
+            for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+            {
+                PortInst p = itP.next();
+
+                if (!p.getPortProto().isGround() && !p.getPortProto().isPower()) continue;
+
+                ErrorLogger.MessageLog l = log.logError(p.describe(false), cell, 0);
+
+                l.addPoly(p.getPoly(), true, cell);
+            }
+        }
+        log.termLogging(false);
+    }
+
     private static void tsmcGateGenerator(String techNm)
     {
         GateRegression reg = new GateRegression(MoCMOS.tech, techNm);
