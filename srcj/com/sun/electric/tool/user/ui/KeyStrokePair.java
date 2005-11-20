@@ -152,8 +152,6 @@ public class KeyStrokePair {
         KeyStroke key = KeyStroke.getKeyStroke(str);
         if (key == null) // Doesn't seem to handle properly special keyEvent
         {
-//            KeyStroke[] list = {KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
-//            KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0), KeyStroke.getKeyStroke('>'), KeyStroke.getKeyStroke('<')};
             for (int i = 0; i < specialKeyStrokes.size(); i++)
             {
                 KeyStroke tmp = (KeyStroke)specialKeyStrokes.get(i);
