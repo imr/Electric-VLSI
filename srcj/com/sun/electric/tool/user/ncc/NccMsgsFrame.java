@@ -33,6 +33,8 @@ import javax.swing.*;
 import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.menus.WindowMenu;
 
 /**
  * This is the top-level class of NCC GUI. 
@@ -73,15 +75,13 @@ public class NccMsgsFrame {
         frame.setLocation(scrnSize.width/6, scrnSize.height/6);
         frame.addKeyListener(new java.awt.event.KeyListener()
 		{
-            public void keyTyped(KeyEvent event)
+            public void keyPressed(KeyEvent event)
             {
-                int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-                KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(event);
-                if (stroke.getKeyChar() == 'w' && (stroke.getModifiers()&buckyBit) != 0)
+                if (WindowMenu.getCloseWindow().getAccelerator() == KeyStroke.getKeyStrokeForEvent(event))
                     frame.setVisible(false);
             }
 
-            public void keyPressed(KeyEvent event) {;}
+            public void keyTyped(KeyEvent event) {;}
 
             public void keyReleased(KeyEvent event) {;}
 		});

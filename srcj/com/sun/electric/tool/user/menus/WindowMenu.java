@@ -53,6 +53,9 @@ import com.sun.electric.tool.user.ui.*;
  * Class to handle the commands in the "Window" pulldown menu.
  */
 public class WindowMenu {
+    private static MenuBar.MenuItem closeWindow = null;
+
+    public static MenuBar.MenuItem getCloseWindow() {return closeWindow;}
 
     protected static void addWindowMenu(MenuBar menuBar) {
         MenuBar.MenuItem m;
@@ -138,7 +141,7 @@ public class WindowMenu {
         windowPartitionSubMenu.addMenuItem("_Cascade", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
 
-        windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
+        closeWindow = windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { closeWindowCommand(); }});
 
 		if (!TopLevel.isMDIMode()) {
