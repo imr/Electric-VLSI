@@ -31,7 +31,6 @@ import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
@@ -43,7 +42,7 @@ public class HelpMenu {
 
     protected static MenuBar.Menu addHelpMenu(MenuBar menuBar) {
 //        MenuBar.MenuItem m;
-		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+//		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
         /****************************** THE HELP MENU ******************************/
 
