@@ -26,7 +26,7 @@ package com.sun.electric.tool.simulation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
@@ -320,7 +320,7 @@ public class Stimuli
 	{
 		if (getSignals().size() > 0)
 		{
-			Signal sSig = (Signal)getSignals().get(0);
+			TimedSignal sSig = (TimedSignal)getSignals().get(0);
 			if (sSig instanceof AnalogSignal) return true;
 		}
 		return false;

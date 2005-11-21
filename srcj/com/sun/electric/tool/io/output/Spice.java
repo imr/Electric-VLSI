@@ -53,7 +53,7 @@ import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;

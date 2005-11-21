@@ -68,6 +68,9 @@ import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.Main;
 import com.sun.electric.database.CellBackup;
 
@@ -670,12 +673,12 @@ public class DebugMenus {
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
+			Panel wp = new Panel(ww, true);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
 				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
-				WaveformWindow.WaveSignal wsig = new WaveformWindow.WaveSignal(wp, as);
+				WaveSignal wsig = new WaveSignal(wp, as);
 			}
 		}
 	}
@@ -739,12 +742,12 @@ public class DebugMenus {
 		int k = 0;
 		for(int i=0; i<3; i++)
 		{
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
+			Panel wp = new Panel(ww, true);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<=i; j++)
 			{
 				AnalogSignal as = (AnalogSignal)sd.getSignals().get(k++);
-				WaveformWindow.WaveSignal wsig = new WaveformWindow.WaveSignal(wp, as);
+				WaveSignal wsig = new WaveSignal(wp, as);
 			}
 		}
 	}

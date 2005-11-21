@@ -47,8 +47,10 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -503,7 +505,6 @@ public class Simulation extends Listener
 		public boolean doIt()
 		{
 			Variable var = ni.newDisplayVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
-//			var.setDisplay(true);
 			return true;
 		}
 	}
@@ -553,11 +554,9 @@ public class Simulation extends Listener
 				{
 					case 0:		// set to "wire"
 						Variable var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "wire");
-//						var.setDisplay(true);
 						break;
 					case 1:		// set to "trireg"
 						var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "trireg");
-//						var.setDisplay(true);
 						break;
 					case 2:		// set to default
 						if (ai.getVar(Verilog.WIRE_TYPE_KEY) != null)
@@ -607,7 +606,6 @@ public class Simulation extends Listener
 			if (weak)
 			{
 				Variable var = ni.newDisplayVar(WEAK_NODE_KEY, "Weak");
-//				var.setDisplay(true);
 			} else
 			{
 				if (ni.getVar(WEAK_NODE_KEY) != null)
@@ -656,7 +654,7 @@ public class Simulation extends Listener
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
-				WaveformWindow.Panel wp = null;
+				Panel wp = null;
 				boolean firstSignal = true;
 
 				// add signals to the panel
@@ -676,11 +674,11 @@ public class Simulation extends Listener
 						if (firstSignal)
 						{
 							firstSignal = false;
-							wp = new WaveformWindow.Panel(ww, isAnalog);
+							wp = new Panel(ww, isAnalog);
 							wp.makeSelectedPanel();
 							showedSomething = true;
 						}
-						new WaveformWindow.WaveSignal(wp, sSig);
+						new WaveSignal(wp, sSig);
 					}
 					if (tabPos < 0) break;
 				}
@@ -689,15 +687,15 @@ public class Simulation extends Listener
 			{
 				if (isAnalog)
 				{
-					for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+					for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 					{
-						WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-						List<WaveformWindow.WaveSignal> signals = wp.getSignals();
+						Panel wp = (Panel)it.next();
+						List<WaveSignal> signals = wp.getSignals();
 						boolean first = true;
 						double lowY = 0, highY = 0;
-						for(Iterator<WaveformWindow.WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
+						for(Iterator<WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
 						{
-							WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+							WaveSignal ws = (WaveSignal)sIt.next();
 							Signal sSig = ws.getSignal();
 							Rectangle2D sigBounds = sSig.getBounds();
 							if (first)
@@ -721,7 +719,7 @@ public class Simulation extends Listener
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
 		{
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
+			Panel wp = new Panel(ww, true);
 			wp.setYAxisRange(lowValue, highValue);
 			wp.makeSelectedPanel();
 		} else
@@ -736,9 +734,9 @@ public class Simulation extends Listener
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
+				Panel wp = new Panel(ww, false);
 				wp.makeSelectedPanel();
-				new WaveformWindow.WaveSignal(wp, sDSig);
+				new WaveSignal(wp, sDSig);
 				numSignals++;
 				if (numSignals > 15) break;
 			}

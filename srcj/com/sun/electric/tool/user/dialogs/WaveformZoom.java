@@ -24,7 +24,8 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 
 /**
@@ -32,12 +33,12 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
  */
 public class WaveformZoom extends EDialog
 {
-	private WaveformWindow.Panel curPanel;
+	private Panel curPanel;
 	private WaveformWindow curWindow;
 
 	/** Creates new form Waveform Zoom */
 	public WaveformZoom(java.awt.Frame parent, double lowVert, double highVert, double lowHoriz, double highHoriz,
-		WaveformWindow curWindow, WaveformWindow.Panel curPanel)
+		WaveformWindow curWindow, Panel curPanel)
 	{
 		super(parent, true);
 		this.curPanel = curPanel;

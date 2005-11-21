@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define an analog signal in the simulation waveform window.
  */
-public class AnalogSignal extends Signal
+public class AnalogSignal extends TimedSignal
 {
 	private double [] values;
 

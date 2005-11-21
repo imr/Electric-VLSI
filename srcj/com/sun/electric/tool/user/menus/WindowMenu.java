@@ -24,6 +24,21 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.SetFocus;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
+import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
@@ -36,18 +51,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Method;
 import java.util.EventListener;
 import java.util.Iterator;
-import java.lang.reflect.Method;
 
 import javax.swing.KeyStroke;
-
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.dialogs.SetFocus;
-import com.sun.electric.tool.user.ui.*;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.

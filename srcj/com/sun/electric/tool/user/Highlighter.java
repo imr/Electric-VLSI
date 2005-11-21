@@ -54,8 +54,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Color;
 import java.awt.Graphics;

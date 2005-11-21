@@ -31,9 +31,11 @@ import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.simulation.als.ALS.Load;
 import com.sun.electric.tool.simulation.als.ALS.Stat;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -133,9 +135,9 @@ public class Sim
 			// determine highest time to simulate
 			Rectangle2D bounds = als.sd.getBounds();
 			double tMax = bounds.getMaxX();
-			for(Iterator<WaveformWindow.Panel> it = als.ww.getPanels(); it.hasNext(); )
+			for(Iterator<Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
-				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+				Panel wp = (Panel)it.next();
 				double panelMax = wp.getMaxXAxis();
 				if (panelMax > tMax) tMax = panelMax;
 			}

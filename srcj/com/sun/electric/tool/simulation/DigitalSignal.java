@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define a digital signal in the simulation waveform window.
  */
-public class DigitalSignal extends Signal
+public class DigitalSignal extends TimedSignal
 {
 	private int [] state;
 

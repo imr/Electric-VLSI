@@ -25,14 +25,14 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
@@ -54,15 +54,18 @@ import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -78,7 +81,13 @@ import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.RepaintManager;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the commands in the "File" pulldown menu.

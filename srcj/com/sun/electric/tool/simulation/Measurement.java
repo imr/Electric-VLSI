@@ -23,12 +23,13 @@
  */
 package com.sun.electric.tool.simulation;
 
+import java.awt.geom.Rectangle2D;
+
 /**
  * Class to define a measurement in the simulation waveform window.
  */
-public class Measurement
+public class Measurement extends Signal
 {
-	private String name;
 	private double [] values;
 
 	/**
@@ -36,17 +37,16 @@ public class Measurement
 	 * @param name the name of the Measurement.
 	 * @param values an array of doubles for the Measurement.
 	 */
-	public Measurement(String name, double [] values)
+	public Measurement(Stimuli sd)
 	{
-		this.name = name;
-		this.values = values;
+		super(sd);
 	}
 
 	/**
-	 * Method to get the name associated with this Measurement.
-	 * @return the name associated with this Measurement.
+	 * Method to set the values on this Measurement.
+	 * @param values an array of doubles.
 	 */
-	public String getName() { return name; }
+	public void setValues(double [] values) { this.values = values; }
 
 	/**
 	 * Method to get the numeric values associated with this Measurement.
@@ -54,4 +54,29 @@ public class Measurement
 	 * @return
 	 */
 	public double [] getValues() { return values; }
+
+	/**
+	 * Method to compute the low and high range of values on this Measurement.
+	 * The result is stored in the "bounds" field variable.
+	 */
+	protected void calcBounds()
+	{
+		// determine extent of the data
+		double lowValue=0, highValue=0;
+		boolean first = true;
+        for (int i=0; i<values.length; i++)
+		{
+			if (first)
+			{
+				first = false;
+				lowValue = values[i];
+				highValue = values[i];
+			} else
+			{
+				if (values[i] < lowValue) lowValue = values[i];
+				if (values[i] > highValue) highValue = values[i];
+			}
+		}
+		bounds = new Rectangle2D.Double(0, lowValue, 0, highValue-lowValue);
+	}
 }

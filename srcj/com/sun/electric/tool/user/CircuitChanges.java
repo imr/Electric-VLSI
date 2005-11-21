@@ -68,9 +68,9 @@ import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

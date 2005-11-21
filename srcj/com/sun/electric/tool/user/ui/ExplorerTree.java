@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.project.Project;
+import com.sun.electric.tool.simulation.Measurement;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -39,16 +40,19 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.user.tecEdit.Manipulate;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.ArcInfo;
 import com.sun.electric.tool.user.tecEdit.LayerInfo;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.NodeInfo;
+import com.sun.electric.tool.user.waveform.SweepSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.PixelGrabber;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Point;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -65,6 +69,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -551,14 +557,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
 		if (selectedNode == null) return;
+
+		// handle signal dragging when in a WaveformWindow setting
 		if (selectedNode.getUserObject() instanceof Signal)
 		{
 			// Get the Transferable Object
 			Signal sSig = (Signal)selectedNode.getUserObject();
-			Transferable transferable = new StringSelection(sSig.getFullName());
+			String sigName = sSig.getFullName();
+			if (selectedNode.getUserObject() instanceof Measurement)
+				sigName = "MEASUREMENT " + sigName;
+			Transferable transferable = new StringSelection(sigName);
 
 			// begin the drag
 			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+			return;
 		}
 
 		// Drag cell name to edit window
@@ -577,6 +589,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             }
             else
 			    dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+			return;
 		}
 	}
 
@@ -878,9 +891,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (tree.currentSelectedObject instanceof WaveformWindow.SweepSignal)
+				if (tree.currentSelectedObject instanceof SweepSignal)
 				{
-					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
+					SweepSignal ss = (SweepSignal)tree.currentSelectedObject;
 					if (ss == null) return;
 					ss.setIncluded(!ss.isIncluded());
 					return;
@@ -1215,7 +1228,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (selectedObject instanceof WaveformWindow.SweepSignal)
+			if (selectedObject instanceof SweepSignal)
 			{
 				JPopupMenu menu = new JPopupMenu("Sweep Signal");
 
@@ -1491,14 +1504,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void setSweepAction(boolean include)
 		{
-			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
+			SweepSignal ss = (SweepSignal)tree.currentSelectedObject;
 			if (ss == null) return;
 			ss.setIncluded(include);
 		}
 
 		private void highlightSweepAction()
 		{
-			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
+			SweepSignal ss = (SweepSignal)tree.currentSelectedObject;
 			if (ss == null) return;
 			ss.highlight();
 		}
@@ -1510,10 +1523,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				List<WaveformWindow.SweepSignal> sweeps = ww.getSweepSignals();
-				for(Iterator<WaveformWindow.SweepSignal> it = sweeps.iterator(); it.hasNext(); )
+				List<SweepSignal> sweeps = ww.getSweepSignals();
+				for(Iterator<SweepSignal> it = sweeps.iterator(); it.hasNext(); )
 				{
-					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)it.next();
+					SweepSignal ss = (SweepSignal)it.next();
 					ss.setIncluded(include);
 				}
 			}

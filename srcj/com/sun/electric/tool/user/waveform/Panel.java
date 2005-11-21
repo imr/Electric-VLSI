@@ -2031,7 +2031,7 @@ public class Panel extends JPanel
 
 	public void setPanelLogarithmic(boolean logarithmic)
 	{
-		horizRulerPanelLogarithmic = false;
+		horizRulerPanelLogarithmic = logarithmic;
 		horizRulerPanel.repaint();
 	}
 

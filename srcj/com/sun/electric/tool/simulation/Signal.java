@@ -4,7 +4,7 @@
  *
  * File: Signal.java
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,24 +29,21 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Class to define a signal in the simulation waveform window.
- * This is a superclass for specific signal types: digital or analog.
+ * Class to define the basic parts of a signal in the simulation waveform window.
+ * This is a superclass for specific signal types: Measurement and TimedSignal
+ * (which has under it DigitalSignal and AnalogSignal).
  */
 public class Signal
 {
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
 	/** the Stimuli object in which this Signal resides. */			protected Stimuli sd;
-	/** true to use the common time array in the Stimuli */			private boolean useCommonTime;
-	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
-	/** true if the bounds data is valid */							protected boolean boundsCurrent;
-	/** an array of time values on this signal (if not common) */	private double [] time;
 	/** an array of control points on this signal */				private double [] controlPoints;
 	/** a list of signals on this bussed signal */					private List<Signal> bussedSignals;
 	/** the number of busses that reference this signal */			private int busCount;
+	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
+	/** true if the bounds data is valid */							protected boolean boundsCurrent;
 	/** application-specific object associated with this signal */	private Object appObject;
-	/** application-specific flags for this signal */				public int flags;
-	/** used only in the Verilog reader */							public List<Object> tempList;
 
 	/**
 	 * Constructor for a simulation signal.
@@ -55,10 +52,9 @@ public class Signal
 	protected Signal(Stimuli sd)
 	{
 		this.sd = sd;
-		useCommonTime = true;
 		boundsCurrent = false;
-		busCount = 0;
 		controlPoints = null;
+		busCount = 0;
 		if (sd != null) sd.addSignal(this);
 	}
 
@@ -107,14 +103,6 @@ public class Signal
 		if (signalContext != null) return signalContext + sd.getSeparatorChar() + signalName;
 		return signalName;
 	}
-
-	/**
-	 * Method to return the number of events in this signal.
-	 * This is the number of events along the horizontal axis, usually "time".
-	 * This superclass method must be overridden by a subclass that actually has data.
-	 * @return the number of events in this signal.
-	 */
-	public int getNumEvents() { return 0; }
 
 	/**
 	 * Method to request that this signal be a bus.
@@ -246,82 +234,12 @@ if (sd == null) System.out.println("SD IS NULL!!!!!!!");
 	public Object getAppObject() { return appObject; }
 
 	/**
-	 * Method to build a time vector for this signal.
-	 * Signals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each signal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other signals.
-	 * Using common time saves memory, because the time information does not have to be
-	 * stored with each signal.
-	 * This method requests that the signal have its own time array, and not use common time data.
-	 * @param numEvents the number of events on this signal (the length of the time array).
+	 * Method to return the number of events in this signal.
+	 * This is the number of events along the horizontal axis, usually "time".
+	 * This superclass method must be overridden by a subclass that actually has data.
+	 * @return the number of events in this signal.
 	 */
-	public void buildTime(int numEvents) { useCommonTime = false;   time = new double[numEvents]; }
-
-	/**
-	 * Method to return the value of time for a given event on this signal.
-	 * Depending on whether common time data is being used, the time information is
-	 * found on this signal or on the overall simulation data.
-	 * @param index the event being querried (0-based).
-	 * @return the value of time at that event.
-	 */
-	public double getTime(int index)
-	{
-		if (useCommonTime) return sd.getCommonTimeArray()[index];
-		return time[index];
-	}
-
-	/**
-	 * Method to return the value of time for a given event on this signal.
-	 * Depending on whether common time data is being used, the time information is
-	 * found on this signal or on the overall simulation data.
-	 * @param index the event being querried (0-based).
-	 * @return the value of time at that event.
-	 */
-	public double getTime(int index, int sweep)
-	{
-		if (useCommonTime)
-		{
-			double [] sct = (double [])sd.getCommonTimeArray(sweep);
-			return sct[index];
-		}
-		return time[index];
-	}
-
-	/**
-	 * Method to return the time vector for this signal.
-	 * The vector is only valid if this signal is NOT using common time.
-	 * Signals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each signal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other signals.
-	 * @return the time array for this signal.
-	 * Returns null if this signal uses common time.
-	 */
-	public double [] getTimeVector() { return time; }
-
-	/**
-	 * Method to set the time vector for this signal.
-	 * Overrides any previous time vector that may be on this signal.
-	 * Signals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each signal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other signals.
-	 * @param time a new time vector for this signal.
-	 */
-	public void setTimeVector(double [] time) { useCommonTime = false;   boundsCurrent = false;   this.time = time; }
-
-	/**
-	 * Method to set an individual time entry for this signal.
-	 * Only applies if common time is NOT being used for this signal.
-	 * Signals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each signal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other signals.
-	 * @param entry the entry in the event array of this signal (0-based).
-	 * @param t the new value of time at this event.
-	 */
-	public void setTime(int entry, double t) { boundsCurrent = false;   time[entry] = t; }
+	public int getNumEvents() { return 0; }
 
 	/**
 	 * Method to compute the time and value bounds of this simulation signal.

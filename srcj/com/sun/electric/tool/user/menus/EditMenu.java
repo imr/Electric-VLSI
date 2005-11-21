@@ -71,6 +71,7 @@ import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;

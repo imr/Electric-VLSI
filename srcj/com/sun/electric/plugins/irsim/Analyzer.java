@@ -32,10 +32,13 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -116,12 +119,12 @@ public class Analyzer extends Engine
 	 */
 	private static class SimVector
 	{
-		/** index of command */						int            command;
-		/** parameters to the command */			String []      parameters;
-		/** actual signals named in command */		List<Signal>   sigs;
-		/** negated signals named in command */		List<Signal>   sigsNegated;
-		/** duration of step, where appropriate */	double         value;
-		/** next in list of vectors */				SimVector      next;
+		/** index of command */						int           command;
+		/** parameters to the command */			String []     parameters;
+		/** actual signals named in command */		List<Signal>  sigs;
+		/** negated signals named in command */		List<Signal>  sigsNegated;
+		/** duration of step, where appropriate */	double        value;
+		/** next in list of vectors */				SimVector     next;
 	};
 
 	public static class AssertWhen
@@ -461,13 +464,13 @@ public class Analyzer extends Engine
 	public void removeSelectedStimuli()
 	{
 		boolean found = false;
-		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = (Panel)it.next();
+			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
-				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-				if (!ws.isSelected()) continue;
+				WaveSignal ws = (WaveSignal)sIt.next();
+				if (!ws.isHighlighted()) continue;
 				double [] selectedCPs = ws.getSelectedControlPoints();
 				if (selectedCPs == null) continue;
 				for(int i=0; i<selectedCPs.length; i++)
@@ -493,12 +496,12 @@ public class Analyzer extends Engine
 	 */
 	public void removeAllStimuli()
 	{
-		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = (Panel)it.next();
+			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
-				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				ws.getSignal().clearControlPoints();
 			}
 		}
@@ -603,12 +606,12 @@ public class Analyzer extends Engine
 			// remove all vectors
 			firstVector = null;
 			lastVector = null;
-			for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+			for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 			{
-				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+				Panel wp = (Panel)it.next();
+				for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 				{
-					WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+					WaveSignal ws = (WaveSignal)sIt.next();
 					ws.getSignal().clearControlPoints();
 				}
 			}
@@ -697,12 +700,12 @@ public class Analyzer extends Engine
 						// clear the stimuli on the first time
 						anyAnalyzerCommands = true;
 						ww.clearHighlighting();
-						List<WaveformWindow.Panel> allPanels = new ArrayList<WaveformWindow.Panel>();
-						for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+						List<Panel> allPanels = new ArrayList<Panel>();
+						for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 							allPanels.add(it.next());
-						for(Iterator<WaveformWindow.Panel> it = allPanels.iterator(); it.hasNext(); )
+						for(Iterator<Panel> it = allPanels.iterator(); it.hasNext(); )
 						{
-							WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+							Panel wp = (Panel)it.next();
 							wp.closePanel();
 						}
 					}
@@ -711,9 +714,9 @@ public class Analyzer extends Engine
 					for(Iterator<Signal> it = sigs.iterator(); it.hasNext(); )
 					{
 						Signal sig = (Signal)it.next();
-						WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
+						Panel wp = new Panel(ww, false);
 						wp.makeSelectedPanel();
-						new WaveformWindow.WaveSignal(wp, sig);
+						new WaveSignal(wp, sig);
 					}
 					continue;
 				}
@@ -2184,15 +2187,16 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
-			if ((sig.flags & which) == 0) continue;
+			Sim.Node b = (Sim.Node)sig.getAppObject();
+			if ((b.nFlags & which) == 0) continue;
 			int i;
 			List<Signal> sigsOnBus = sig.getBussedSignals();
 			boolean found = false;
 			for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 			{
 				Signal bSig = (Signal)sIt.next();
-				Sim.Node n = (Sim.Node)bSig.getAppObject();
-				if (n.getTime() == theSim.curDelta)
+				Sim.Node bN = (Sim.Node)bSig.getAppObject();
+				if (bN.getTime() == theSim.curDelta)
 					{ found = true;   break; }
 			}
 			if (found)
@@ -2234,10 +2238,10 @@ public class Analyzer extends Engine
 				endTime = startTime + stepsTime;
 
 				// make it conform to the displayed range
-				Iterator<WaveformWindow.Panel> it = ww.getPanels();
+				Iterator<Panel> it = ww.getPanels();
 				if (it.hasNext())
 				{
-					WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+					Panel wp = (Panel)it.next();
 					double max = wp.getMaxXAxis();
 					long endtime = Sim.nsToDelta(max * 1e9);
 					if (endtime > endTime) endTime = endtime;
@@ -2666,14 +2670,15 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
-			if ((sig.flags & flag) != 0)
+			Sim.Node b = (Sim.Node)sig.getAppObject();
+			if ((b.nFlags & flag) != 0)
 			{
 				List<Signal> sigsOnBus = sig.getBussedSignals();
 				for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 				{
 					Signal bSig = (Signal)sIt.next();
-					Sim.Node n = (Sim.Node)bSig.getAppObject();
-					n.nFlags |= flag;
+					Sim.Node bN = (Sim.Node)bSig.getAppObject();
+					bN.nFlags |= flag;
 				}
 			}
 		}

@@ -35,10 +35,13 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.ToolMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -643,13 +646,13 @@ public class ALS extends Engine
 	public void removeSelectedStimuli()
 	{
 		boolean found = false;
-		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = (Panel)it.next();
+			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
-				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-				if (!ws.isSelected()) continue;
+				WaveSignal ws = (WaveSignal)sIt.next();
+				if (!ws.isHighlighted()) continue;
 				double [] selectedCPs = ws.getSelectedControlPoints();
 				if (selectedCPs == null) continue;
 				for(int i=0; i<selectedCPs.length; i++)
@@ -711,13 +714,14 @@ public class ALS extends Engine
 	public void removeAllStimuli()
 	{
 		clearAllVectors(false);
-		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = (Panel)it.next();
+			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
-				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-				ws.getSignal().clearControlPoints();
+				WaveSignal ws = (WaveSignal)sIt.next();
+				Signal sig = ws.getSignal();
+				sig.clearControlPoints();
 			}
 		}
 		if (Simulation.isBuiltInResimulateEach())
@@ -1060,13 +1064,14 @@ public class ALS extends Engine
 		{
 			setRoot = setRoot.right;
 		}
-		for(Iterator<WaveformWindow.Panel> it = ww.getPanels(); it.hasNext(); )
+		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-			for(Iterator<WaveformWindow.WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = (Panel)it.next();
+			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
 			{
-				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-				ws.getSignal().clearControlPoints();
+				WaveSignal ws = (WaveSignal)sIt.next();
+				Signal sig = ws.getSignal();
+				sig.clearControlPoints();
 			}
 		}
 
