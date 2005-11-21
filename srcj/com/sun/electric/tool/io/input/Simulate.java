@@ -36,8 +36,8 @@ import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.IOException;
 import java.net.URL;

@@ -241,7 +241,9 @@ public class HSpiceOut extends Simulate
 			List<Double> mData = measurementData.get(mName);
 			double [] mValues = new double[mData.size()];
 			for(int i=0; i<mData.size(); i++) mValues[i] = mData.get(i).doubleValue();
-			Measurement m = new Measurement(mName, mValues);
+			Measurement m = new Measurement(sd);
+			m.setSignalName(mName);
+			m.setValues(mValues);
 			measData.add(m);
 		}
 

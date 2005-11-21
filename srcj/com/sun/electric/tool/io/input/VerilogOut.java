@@ -31,6 +31,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.TimedSignal;
 
 import java.io.IOException;
 import java.net.URL;
@@ -92,6 +93,7 @@ public class VerilogOut extends Simulate
 		int curLevel = 0;
 		int numSignals = 0;
 		HashMap<String,Object> symbolTable = new HashMap<String,Object>();
+		HashMap<DigitalSignal,List<VerilogStimuli>> dataMap = new HashMap<DigitalSignal,List<VerilogStimuli>>();
 		List<DigitalSignal> curArray = null;
 		for(;;)
 		{
@@ -192,7 +194,7 @@ public class VerilogOut extends Simulate
 					DigitalSignal sig = new DigitalSignal(sd);
 					sig.setSignalName(signalName + index);
 					sig.setSignalContext(currentScope);
-					sig.tempList = new ArrayList<Object>();
+					dataMap.put(sig, new ArrayList<VerilogStimuli>());
 
 					if (index.length() > 0 && width == 1)
 					{
@@ -212,7 +214,7 @@ public class VerilogOut extends Simulate
 							DigitalSignal subSig = new DigitalSignal(sd);
 							subSig.setSignalName(signalName + "[" + i + "]");
 							subSig.setSignalContext(currentScope);
-							subSig.tempList = new ArrayList<Object>();
+							dataMap.put(subSig, new ArrayList<VerilogStimuli>());
 							sig.addToBussedSignalList(subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
 							numSignals++;
@@ -261,7 +263,8 @@ public class VerilogOut extends Simulate
 							case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 						}
 						VerilogStimuli vs = new VerilogStimuli(curTime, state);
-						sig.tempList.add(vs);
+						List<VerilogStimuli> listForSig = dataMap.get(sig);
+						listForSig.add(vs);
 						continue;
 					}
 					if (chr == '$')
@@ -306,7 +309,8 @@ public class VerilogOut extends Simulate
 								case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 							}
 							VerilogStimuli vs = new VerilogStimuli(curTime, state);
-							subSig.tempList.add(vs);
+							List<VerilogStimuli> listForSig = dataMap.get(subSig);
+							listForSig.add(vs);
 						}
 						continue;
 					}
@@ -327,19 +331,19 @@ public class VerilogOut extends Simulate
 				entry = fullList.get(0);
 			} 
 			DigitalSignal sig = (DigitalSignal)entry;
-			int numStimuli = sig.tempList.size();
+			List<VerilogStimuli> listForSig = dataMap.get(sig);
+			int numStimuli = listForSig.size();
 			if (numStimuli == 0) continue;
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;
-			for(Iterator<Object> sIt = sig.tempList.iterator(); sIt.hasNext(); )
+			for(Iterator<VerilogStimuli> sIt = listForSig.iterator(); sIt.hasNext(); )
 			{
 				VerilogStimuli vs = (VerilogStimuli)sIt.next();
 				sig.setTime(i, vs.time);
 				sig.setState(i, vs.state);
 				i++;
 			}
-			sig.tempList = null;
 			if (fullList != null)
 			{
 				for(Iterator<DigitalSignal> lIt = fullList.iterator(); lIt.hasNext(); )
