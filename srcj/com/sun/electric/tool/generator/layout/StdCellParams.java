@@ -41,8 +41,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
