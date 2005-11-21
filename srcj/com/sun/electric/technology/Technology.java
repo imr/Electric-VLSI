@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -1830,13 +1831,13 @@ public class Technology implements Comparable<Technology>
 		SerpentineTrans std = null;
 		if (specialType == PrimitiveNode.MULTICUT && isCutLayer)
 		{
-			mcd = new MultiCutData(ni, np.getSpecialValues());
+			mcd = new MultiCutData(ni.getD(), np.getSpecialValues());
 			if (reasonable) numExtraLayers = mcd.cutsReasonable; else
 			numExtraLayers = mcd.cutsTotal;
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni);
+			std = new SerpentineTrans(ni.getD());
 			if (std.layersTotal > 0)
 			{
 				numExtraLayers = std.layersTotal;
@@ -1926,7 +1927,7 @@ public class Technology implements Comparable<Technology>
 			if (electrical) port = np.getPort(0);
 			for(int i = 0; i < numExtraLayers; i++)
 			{
-				polys[fillPoly] = mcd.fillCutPoly(ni, i);
+				polys[fillPoly] = mcd.fillCutPoly(ni.getD(), i);
 				polys[fillPoly].setStyle(style);
 				polys[fillPoly].setLayer(primLayer.getLayer());
 				polys[fillPoly].setPort(port);
@@ -2005,7 +2006,7 @@ public class Technology implements Comparable<Technology>
 		PrimitiveNode pnp = (PrimitiveNode)np;
 		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
 
-		return (isMultiCutInTechnology(new MultiCutData(ni, pnp.getSpecialValues())));
+		return (isMultiCutInTechnology(new MultiCutData(ni.getD(), pnp.getSpecialValues())));
 	}
 
 	/**
@@ -2109,10 +2110,12 @@ public class Technology implements Comparable<Technology>
 		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
 		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
 		 */
-		public MultiCutData(NodeInst ni, double [] specialValues)
+		public MultiCutData(ImmutableNodeInst niD, double [] specialValues)
 		{
-			SizeOffset so = ni.getSizeOffset();
-            calcultateInternalData(ni.getXSize(), ni.getYSize(), ni.getAnchorCenterX(), ni.getAnchorCenterY(),
+            PrimitiveNode pn = (PrimitiveNode)niD.protoId;
+            SizeOffset so = pn.getProtoSizeOffset();
+//			SizeOffset so = ni.getSizeOffset();
+            calcultateInternalData(niD.width, niD.height, niD.anchor.getX(), niD.anchor.getY(),
                     so.getLowXOffset(), so.getHighXOffset(), so.getLowYOffset(), so.getHighYOffset(), specialValues);
 		}
 
@@ -2149,9 +2152,9 @@ public class Technology implements Comparable<Technology>
 		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
 		 * in "cut".
 		 */
-		protected Poly fillCutPoly(NodeInst ni, int cut)
+		protected Poly fillCutPoly(ImmutableNodeInst ni, int cut)
 		{
-            return (fillCutPoly(ni.getAnchorCenterX(), ni.getAnchorCenterY(), cut));
+            return (fillCutPoly(ni.anchor.getX(), ni.anchor.getY(), cut));
 		}
 
         /**
@@ -2217,7 +2220,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	private static class SerpentineTrans
 	{
-		/** the NodeInst that is this serpentine transistor */					private NodeInst theNode;
+		/** the ImmutableNodeInst that is this serpentine transistor */			private ImmutableNodeInst theNode;
 		/** the prototype of this serpentine transistor */						private PrimitiveNode theProto;
 		/** the number of polygons that make up this serpentine transistor */	private int layersTotal;
 		/** the number of segments in this serpentine transistor */				private int numSegments;
@@ -2230,19 +2233,19 @@ public class Technology implements Comparable<Technology>
 		 * Constructor throws initialize for a serpentine transistor.
 		 * @param ni the NodeInst with a serpentine transistor.
 		 */
-		public SerpentineTrans(NodeInst ni)
+		public SerpentineTrans(ImmutableNodeInst niD)
 		{
-			theNode = ni;
+			theNode = niD;
 
 			layersTotal = 0;
-			points = ni.getTrace();
+			points = niD.getTrace();
 			if (points != null)
 			{
 				if (points.length < 2) points = null;
 			}
 			if (points != null)
 			{
-				theProto = (PrimitiveNode)ni.getProto();
+				theProto = (PrimitiveNode)niD.protoId;
 				specialValues = theProto.getSpecialValues();
 				primLayers = theProto.getLayers();
 				int count = primLayers.length;
@@ -2250,7 +2253,7 @@ public class Technology implements Comparable<Technology>
 				layersTotal = count * numSegments;
 
 				extraScale = 0;
-				double length = ni.getSerpentineTransistorLength();
+				double length = niD.getSerpentineTransistorLength();
 				if (length > 0) extraScale = (length - specialValues[3]) / 2;
 			}
 		}
@@ -2290,8 +2293,8 @@ public class Technology implements Comparable<Technology>
 			rwid += extraScale;
 
 			// prepare to fill the serpentine transistor
-			double xoff = theNode.getAnchorCenterX();
-			double yoff = theNode.getAnchorCenterY();
+			double xoff = theNode.anchor.getX();
+			double yoff = theNode.anchor.getY();
 // 			double xoff = theNode.getTrueCenterX();
 // 			double yoff = theNode.getTrueCenterY();
 			int thissg = segment;   int next = segment+1;
@@ -2397,7 +2400,7 @@ public class Technology implements Comparable<Technology>
 				int portIndex = primLayer.getPortNum();
 				if (portIndex >= 0)
 				{
-					PrimitiveNode np = (PrimitiveNode)theNode.getProto();
+					PrimitiveNode np = (PrimitiveNode)theNode.protoId;
 					PortProto port = np.getPort(portIndex);
 					retPoly.setPort(port);
 				}
@@ -2429,12 +2432,11 @@ public class Technology implements Comparable<Technology>
 			double polyExtend = specialValues[5];
 
 			// prepare to fill the serpentine transistor port
-			double xOff = theNode.getAnchorCenterX();
-			double yOff = theNode.getAnchorCenterY();
-// 			double xOff = theNode.getTrueCenterX();
-// 			double yOff = theNode.getTrueCenterY();
+			double xOff = theNode.anchor.getX();
+			double yOff = theNode.anchor.getY();
 			int total = points.length;
-			AffineTransform trans = theNode.rotateOut();
+			AffineTransform trans = theNode.orient.rotateAbout(theNode.anchor.getX(), theNode.anchor.getY());
+//            AffineTransform trans = theNode.rotateOut();
 
 			// determine which port is being described
 			int which = 0;
@@ -2600,7 +2602,7 @@ public class Technology implements Comparable<Technology>
 		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
 			// serpentine transistors use a more complex port determination
-			SerpentineTrans std = new SerpentineTrans(ni);
+			SerpentineTrans std = new SerpentineTrans(ni.getD());
 			if (std.hasValidData())
 				return std.fillTransPort(pp);
 		}

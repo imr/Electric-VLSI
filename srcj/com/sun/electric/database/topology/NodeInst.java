@@ -91,7 +91,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
-	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
+	/** key of Varible holding serpentine transistor length. */	public static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
 
 	private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
@@ -133,7 +133,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
 	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
     
-	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+	/** bounds after transformation. */						private Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 
     
     // --------------------- private and protected methods ---------------------
@@ -1195,7 +1195,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	private void redoGeometric()
 	{
-		visBounds = d.computeBounds(this);
+		d.computeBounds(this, visBounds);
 	}
 
 	/**
@@ -1803,14 +1803,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * transistors to allow a precise gate path to be specified.
 	 * @return an array of Point2D in database coordinates.
 	 */
-	public Point2D [] getTrace()
-	{
-		Variable var = getVar(TRACE, Point2D[].class);
-		if (var == null) return null;
-		Object obj = var.getObject();
-		if (obj instanceof Object[]) return (Point2D []) obj;
-		return null;
-	}
+	public Point2D [] getTrace() { return getD().getTrace(); }
 
 	/**
 	 * Method to set the "outline" information on this NodeInst.
@@ -2919,26 +2912,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the transistor's length
 	 * Returns -1 if this is not a serpentine transistor, or if the length cannot be found.
 	 */
-	public double getSerpentineTransistorLength()
-	{
-		Variable var = getVar(TRANSISTOR_LENGTH_KEY);
-		if (var == null) return -1;
-		Object obj = var.getObject();
-		if (obj instanceof Integer)
-		{
-			// C Electric stored this as a "fraction", scaled by 120
-			return ((Integer)obj).intValue() / 120;
-		}
-		if (obj instanceof Double)
-		{
-			return ((Double)obj).doubleValue();
-		}
-		if (obj instanceof String)
-		{
-			return TextUtils.atof((String)obj);
-		}
-		return -1;
-	}
+	public double getSerpentineTransistorLength() { return getD().getSerpentineTransistorLength(); }
 
 	/**
 	 * Method to store a length value on this serpentine transistor.

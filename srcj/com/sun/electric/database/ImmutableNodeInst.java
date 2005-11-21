@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -520,7 +521,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      */
     public static int techSpecificFromElib(int elibBits) { return (elibBits & NTECHBITS) >> NTECHBITSSH; }
     
-    public Rectangle2D computeBounds(NodeInst real)
+    public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
 		// handle cell bounds
 		if (protoId instanceof CellId)
@@ -528,24 +529,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			// offset by distance from cell-center to the true center
 			Cell subCell = (Cell)real.getProto();
 			Rectangle2D bounds = subCell.getBounds();
-			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = orient.pureRotate();
-//			AffineTransform trans = pureRotate(orient.getAngle(), isXMirrored(), isYMirrored());
-			trans.transform(shift, shift);
-			double cX = anchor.getX(), cY = anchor.getY();
-			cX -= shift.getX();
-			cY -= shift.getY();
-			Poly poly = new Poly(cX, cY, bounds.getWidth(), bounds.getHeight());
-			trans = orient.rotateAbout(cX, cY);
-//			trans = rotateAbout(orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
-			poly.transform(trans);
-			return poly.getBounds2D();
+            orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), anchor.getX(), anchor.getY(), dstBounds);
+            return;
 		}
 
 		// if zero size, set the bounds directly
 		if (width == 0 && height == 0)
 		{
-			return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
+			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+            return;
 		}
 
 		PrimitiveNode pn = (PrimitiveNode)protoId;
@@ -561,7 +553,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
 				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
-				return poly.getBounds2D();
+				dstBounds.setRect(poly.getBounds2D());
+                return;
 			}
 		}
 
@@ -570,7 +563,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		{
 			if (real.pinUseCount())
 			{
-				return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
+				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+                return;
 			}
 		}
 
@@ -579,23 +573,65 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		{
 			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
 			Poly[] polys = pn.getTechnology().getShapeOfNode(real);
-			Rectangle2D bounds = new Rectangle2D.Double();
 			for (int i = 0; i < polys.length; i++)
 			{
 				Poly poly = polys[i];
 				poly.transform(trans);
 				if (i == 0)
-					bounds.setRect(poly.getBounds2D());
+					dstBounds.setRect(poly.getBounds2D());
 				else
-					Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+					Rectangle2D.union(poly.getBounds2D(), dstBounds, dstBounds);
 			}
-			return bounds;
+			return;
 		}
 
 		// normal bounds computation
-		Poly poly = new Poly(anchor.getX(), anchor.getY(), width, height);
-		AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
-		poly.transform(trans);
-		return poly.getBounds2D();
+        orient.rectangleBounds(-width/2, -height/2, width/2, height/2, anchor.getX(), anchor.getY(), dstBounds);
 	}
+
+    /**
+	 * Method to return the "outline" information on this ImmutableNodeInst.
+	 * Outline information is a set of coordinate points that further
+	 * refines the NodeInst description.  It is typically used in
+	 * Artwork primitives to give them a precise shape.  It is also
+	 * used by pure-layer nodes in all layout technologies to allow
+	 * them to take any shape.  It is even used by many MOS
+	 * transistors to allow a precise gate path to be specified.
+	 * @return an array of EPoint in database coordinates.
+	 */
+	public EPoint [] getTrace()
+	{
+        Variable var = getVar(NodeInst.TRACE);
+        if (var == null) return null;
+        Object obj = var.getObject();
+        if (obj instanceof EPoint[]) return (EPoint[])obj;
+		return null;
+	}
+    
+	/**
+	 * Method to return the length of this serpentine transistor.
+	 * @return the transistor's length
+	 * Returns -1 if this is not a serpentine transistor, or if the length cannot be found.
+	 */
+	public double getSerpentineTransistorLength()
+	{
+		Variable var = getVar(NodeInst.TRANSISTOR_LENGTH_KEY);
+		if (var == null) return -1;
+		Object obj = var.getObject();
+		if (obj instanceof Integer)
+		{
+			// C Electric stored this as a "fraction", scaled by 120
+			return ((Integer)obj).intValue() / 120;
+		}
+		if (obj instanceof Double)
+		{
+			return ((Double)obj).doubleValue();
+		}
+		if (obj instanceof String)
+		{
+			return TextUtils.atof((String)obj);
+		}
+		return -1;
+	}
+
 }

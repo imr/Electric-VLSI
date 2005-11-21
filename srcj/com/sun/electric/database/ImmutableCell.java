@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ImmutableNodeInst.java
+ * File: ImmutableCell.java
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -23,54 +23,70 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.Technology;
-
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import com.sun.electric.database.variable.Variable;
 
 /**
- *
+ * Immutable class ImmutableCell represents a cell.
  */
-public class ImmutableCell {
+public class ImmutableCell extends ImmutableElectricObject {
     
-	/** CellId of this Cell. */                                     public final CellId cellId;
-	/** The CellName of the Cell. */								public final CellName cellName;
-	/** The CellGroup this Cell belongs to. */						public final Cell.CellGroup cellGroup;
-	/** The library this Cell belongs to. */						public final LibId libId;
-	/** The date this Cell was created. */							public final long creationDate;
-	/** The date this Cell was last modified. */					public final long revisionDate;
-	/** This Cell's Technology. */									public final Technology tech;
-	/** Internal flag bits. */										public final int userBits;
-    /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
-	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
-//    /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
-    /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
-    /** Cell Variables. */                                          public final ImmutableElectricObject vars;
-
-    /** Creates a new instance of ImmutableCell */
-    public ImmutableCell(CellId cellId, CellName cellName, Cell.CellGroup cellGroup, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
-            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, ImmutableElectricObject vars) {
+	/** CellId of this ImmutableCell. */                        public final CellId cellId;
+    
+	/**
+	 * The private constructor of ImmutableCell. Use the factory "newInstance" instead.
+     * @param cellId id of this ImmutableCell.
+     * @param vars array of Variables of this ImmutableCell
+	 */
+     private ImmutableCell(CellId cellId, Variable[] vars) {
+        super(vars);
         this.cellId = cellId;
-        this.cellName = cellName;
-        this.cellGroup = cellGroup;
-        this.libId = libId;
-        this.creationDate = creationDate;
-        this.revisionDate = revisionDate;
-        this.tech = tech;
-        this.userBits = userBits;
-        this.nodes = nodes;
-        this.arcs = arcs;
-        this.exports = exports;
-        this.vars = vars;
+        check();
+    }
+
+	/**
+	 * Returns new ImmutableCell object.
+     * @param cellId id of this ImmutableCell.
+	 * @return new ImmutableCell object.
+	 * @throws NullPointerException if cellId is null.
+	 */
+    public static ImmutableCell newInstance(CellId cellId) {
+        if (cellId == null) throw new NullPointerException("cellId");
+		return new ImmutableCell(cellId, Variable.NULL_ARRAY);
+    }
+
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by additional Variable.
+     * If this ImmutableCell has Variable with the same key as new, the old variable will not be in new
+     * ImmutableCell.
+	 * @param var additional Variable.
+	 * @return ImmutableCell with additional Variable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableCell withVariable(Variable var) {
+        Variable[] vars = arrayWithVariable(var);
+        if (this.getVars() == vars) return this;
+		return new ImmutableCell(this.cellId, vars);
     }
     
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by removing Variable
+     * with the specified key. Returns this ImmutableCell if it doesn't contain variable with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return ImmutableCell without Variable with the specified key.
+	 * @throws NullPointerException if key is null
+	 */
+    public ImmutableCell withoutVariable(Variable.Key key) {
+        Variable[] vars = arrayWithoutVariable(key);
+        if (this.getVars() == vars) return this;
+		return new ImmutableCell(this.cellId, vars);
+    }
+    
+	/**
+	 * Checks invariant of this ImmutableCell.
+	 * @throws AssertionError if invariant is broken.
+	 */
+	public void check() {
+        check(true);
+        assert cellId != null;
+	}
 }

@@ -69,7 +69,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.Main;
-import com.sun.electric.database.ImmutableCell;
+import com.sun.electric.database.CellBackup;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -1637,7 +1637,7 @@ public class DebugMenus {
     private static void backupCells() {
         int cellCount = 0;
         long startTime = System.currentTimeMillis();
-        ArrayList<ImmutableCell> cellBackups = new ArrayList<ImmutableCell>();
+        ArrayList<CellBackup> cellBackups = new ArrayList<CellBackup>();
         for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
             Library lib = lit.next();
             for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {

@@ -124,8 +124,10 @@ public class User extends Listener
 
 		// remember what has changed in the cell
 		Cell cell = ni.getParent();
-		Rectangle2D oldBounds = oldD.computeBounds(ni);
-		Rectangle2D newBounds = ni.getD().computeBounds(ni);	// TODO Why can't we use "ni.getBounds()" ?
+		Rectangle2D.Double oldBounds = new Rectangle2D.Double();
+        oldD.computeBounds(ni, oldBounds);
+		Rectangle2D.Double newBounds = new Rectangle2D.Double();
+        ni.getD().computeBounds(ni, newBounds);	// TODO Why can't we use "ni.getBounds()" ?
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();

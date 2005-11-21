@@ -24,6 +24,8 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
@@ -32,7 +34,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject_;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -62,7 +64,7 @@ import javax.swing.JOptionPane;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject_ implements Comparable<Library>
+public class Library extends ElectricObject implements Comparable<Library>
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
@@ -77,10 +79,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
-	/** LibId of this Library. */                           private final LibId libId;
-	/** name of this library  */							private String libName;
-	/** file location of this library */					private URL libFile;
-	/** version of Electric which wrote the library. */		private Version version;
+    /** persistent data of this Library. */                 private ImmutableLibrary d;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
@@ -97,14 +96,12 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	/**
 	 * The constructor is never called.  Use the factor method "newInstance" instead.
 	 */
-	private Library(LibId libId, String libName, URL libFile)
+	private Library(ImmutableLibrary d)
 	{
-        this.libId = libId;
-        this.libName = libName;
-        this.libFile = libFile;
+        this.d = d;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
-        prefs = allPrefs.node(libName);
-        prefs.put("LIB", libName);
+        prefs = allPrefs.node(d.libName);
+        prefs.put("LIB", d.libName);
 	}
 
 	/**
@@ -158,14 +155,15 @@ public class Library extends ElectricObject_ implements Comparable<Library>
         if (legalName != legalLibraryName(legalName)) throw new IllegalArgumentException(legalName);
         
 		// create the library
-		Library lib = new Library(libId, legalName, libFile);
+        ImmutableLibrary d = ImmutableLibrary.newInstance(libId, legalName, libFile, null);
+		Library lib = new Library(d);
 
 		// add the library to the global list
 		synchronized (libraries)
 		{
-            while (linkedLibs.size() <= lib.libId.libIndex) linkedLibs.add(null);
+            while (linkedLibs.size() <= libId.libIndex) linkedLibs.add(null);
             if (linkedLibs.get(libId.libIndex) != null) throw new IllegalArgumentException();
-            linkedLibs.set(lib.libId.libIndex, lib);
+            linkedLibs.set(libId.libIndex, lib);
 			libraries.put(legalName, lib);
 		}
 
@@ -213,7 +211,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 		}
 
 		// make sure it is in the list of libraries
-		if (libraries.get(libName) != this)
+		if (libraries.get(d.libName) != this)
 		{
 			System.out.println("Cannot delete library " + this);
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
@@ -260,8 +258,8 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 		// remove it from the list of libraries
 		synchronized (libraries)
 		{
-			libraries.remove(libName);
-            linkedLibs.set(libId.libIndex, null);
+			libraries.remove(d.libName);
+            linkedLibs.set(d.libId.libIndex, null);
 		}
 
 		// set the new current library if appropriate
@@ -486,11 +484,58 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	// ----------------- public interface --------------------
 
     /**
+     * Returns persistent data of this Library.
+     * @return persistent data of this Library.
+     */
+    public ImmutableLibrary getD() { return d; }
+    
+    /**
+     * Modifies persistend data of this Library.
+     * @param newD new persistent data.
+     * @return true if persistent data was modified.
+     */
+    private boolean setD(ImmutableLibrary newD) {
+        checkChanging();
+        ImmutableLibrary oldD = d;
+        if (newD == oldD) return false;
+        d = newD;
+        Undo.modifyVariables(this, oldD);
+        //setBatchModified();
+        return true;
+    }
+
+    /**
+     * Returns persistent data of this ElectricObject.
+     * @return persistent data of this ElectricObject.
+     */
+    public ImmutableElectricObject getImmutable() { return d; }
+    
+    public void lowLevelModifyVariables(ImmutableLibrary d) { this.d = d; }
+        
+    /**
+     * Method to add a Variable on this Library.
+     * It may add repaired copy of this Variable in some cases.
+     * @param var Variable to add.
+     */
+    public void addVar(Variable var) {
+        setD(d.withVariable(var));
+    }
+
+	/**
+	 * Method to delete a Variable from this Library.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+        setD(d.withoutVariable(key));
+	}
+    
+    /**
      * Method to return LibId of this Library.
      * LibId identifies Library independently of threads.
      * @return LibId of this Library.
      */
-    public LibId getId() { return libId; }
+    public LibId getId() { return d.libId; }
     
     /**
      * Returns a Library by LibId.
@@ -512,7 +557,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
      */
 	public boolean isLinked()
 	{
-        return inCurrentThread(libId) == this;
+        return inCurrentThread(d.libId) == this;
 	}
 
 	/**
@@ -557,9 +602,9 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	protected void check()
 	{
         super.check();
-		assert libName != null;
-		assert libName.length() > 0;
-		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
+		assert d.libName != null;
+		assert d.libName.length() > 0;
+		assert d.libName.indexOf(' ') == -1 && d.libName.indexOf(':') == -1 : d.libName;
 		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
 		String protoName = null;
 		Cell.CellGroup cellGroup = null;
@@ -606,7 +651,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 				Map.Entry<String,Library> e = (Map.Entry<String,Library>)it.next();
 				String libName = (String)e.getKey();
 				Library lib = (Library)e.getValue();
-				assert libName.equals(lib.libName) : libName + " " + lib;
+				assert libName.equals(lib.d.libName) : libName + " " + lib;
 				assert !libNames.contains(libName) : "case insensitive " + libName;
 				libNames.add(libName);
 				lib.check();
@@ -871,7 +916,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 * Method to return the name of this Library.
 	 * @return the name of this Library.
 	 */
-	public String getName() { return libName; }
+	public String getName() { return d.libName; }
 
 	/**
 	 * Method to set the name of this Library.
@@ -881,7 +926,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public boolean setName(String libName)
 	{
-		if (this.libName.equals(libName)) return true;
+		if (d.libName.equals(libName)) return true;
 
 		// make sure the name is legal
         if (legalLibraryName(libName) != libName) {
@@ -895,7 +940,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 			return true;
 		}
 
-		String oldName = this.libName;
+		String oldName = d.libName;
 		lowLevelRename(libName);
 		Undo.renameObject(this, oldName);
 		return false;
@@ -908,14 +953,14 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public void lowLevelRename(String libName)
 	{
-		libraries.remove(this.libName);
-		this.libName = libName;
-		libraries.put(libName, this);
-
-		String newLibFile = TextUtils.getFilePath(libFile) + libName;
-		String extension = TextUtils.getExtension(libFile);
+		String newLibFile = TextUtils.getFilePath(d.libFile) + libName;
+		String extension = TextUtils.getExtension(d.libFile);
 		if (extension.length() > 0) newLibFile += "." + extension;
-		this.libFile = TextUtils.makeURLToFile(newLibFile);
+		URL libFile = TextUtils.makeURLToFile(newLibFile);
+
+        libraries.remove(d.libName);
+        d = d.withName(libName, libFile);
+		libraries.put(libName, this);
         
         Cell curCell = getCurCell();
         prefs = allPrefs.node(libName);
@@ -956,7 +1001,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 * Method to return the URL of this Library.
 	 * @return the URL of this Library.
 	 */
-	public URL getLibFile() { return libFile; }
+	public URL getLibFile() { return d.libFile; }
 
 	/**
 	 * Method to set the URL of this Library.
@@ -964,7 +1009,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public void setLibFile(URL libFile)
 	{
-		this.libFile = libFile;
+		d = d.withName(d.libName, libFile);
 	}
 
     /**
@@ -976,7 +1021,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 //4*/public int compareTo(Object o)
 	{
 //4*/	Library that = (Library)o;
-		return TextUtils.STRING_NUMBER_ORDER.compare(libName, that.libName);
+		return TextUtils.STRING_NUMBER_ORDER.compare(d.libName, that.d.libName);
     }
 
 	/**
@@ -985,7 +1030,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public String toString()
 	{
-		return "library '" + libName + "'";
+		return "library '" + d.libName + "'";
 	}
 
 	// ----------------- cells --------------------
@@ -1121,7 +1166,7 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public Version getVersion()
 	{
-		return version;
+		return d.version;
 	}
 
 	/**
@@ -1130,6 +1175,6 @@ public class Library extends ElectricObject_ implements Comparable<Library>
 	 */
 	public void setVersion(Version version)
 	{
-		this.version = version;
+		d = d.withVersion(version);
 	}
 }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (11/21/05, DN) NodeInst.redoGeometric allocated less temporary objects.
+
 IMP/MAN: Waveform window can now draw horizontal axis logarithmically.
 
 BUG: (11/18/05, SMR) Waveform window drops zeros from numbers.

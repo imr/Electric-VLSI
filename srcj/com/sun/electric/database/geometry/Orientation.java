@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 
 /**
@@ -52,7 +53,7 @@ public class Orientation {
 
 	private final short cAngle;
 	private final boolean cTranspose;
-
+    
 	private final Orientation inverse;
 	private final AffineTransform trans;
 
@@ -96,6 +97,19 @@ public class Orientation {
     public static final Orientation XYRR = fromJava(1800, true, true);
     public static final Orientation XYRRR = fromJava(2700, true, true);
     
+    // flags for manhattan orientations
+    private static final byte MNONE = -1;
+    private static final byte MIDENT = 0;
+    private static final byte MR = 1;
+    private static final byte MRR = 2;
+    private static final byte MRRR = 3;
+    private static final byte MY = 4;
+    private static final byte MYR = 5;
+    private static final byte MYRR = 6;
+    private static final byte MYRRR = 7;
+    private final byte manh;
+    
+
 	private Orientation(int jAngle, boolean jMirrorX, boolean jMirrorY, Orientation inverse)
 	{
 		assert 0 <= jAngle && jAngle < 3600;
@@ -126,7 +140,15 @@ public class Orientation {
 		}
 		this.cAngle = (short)cAngle;
 		this.cTranspose = cTranspose;
-
+        // check for manhattan orientation
+        switch (cAngle) {
+            case 0: manh = cTranspose ? MYR : MIDENT; break;
+            case 900: manh = cTranspose ? MYRR : MR; break;
+            case 1800: manh = cTranspose ? MYRRR : MRR; break;
+            case 2700: manh = cTranspose ? MY : MRRR; break;
+            default: manh = MNONE;
+        }
+        
 		if (inverse == null)
 		{
 			if (cTranspose || jAngle == 0 || jAngle == 1800)
@@ -273,20 +295,6 @@ public class Orientation {
 		return fromJava(angle, mirrorX, mirrorY);
 	}
 
-//	/**
-//	 * Concatenates other Orientation with this Orientation.
-//	 * In matrix notation returns that * this.
-//	 * @param that other Orienation.
-//	 * @return concatenation of this and other Orientations.
-//	 */
-//	public Orientation getPreConcatenate(Orientation that)
-//	{
-//		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
-//		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
-//		int angle = this.jMirrorX^this.jMirrorY ? this.jAngle - that.jAngle : this.jAngle + that.jAngle;
-//		return fromJava(angle, mirrorX, mirrorY);
-//	}
-
 	/**
 	 * Method to return the old C style angle value.
 	 * @return the old C style angle value, in tenth-degrees.
@@ -313,6 +321,11 @@ public class Orientation {
 	 * @return true to flip over the horizontal axis (mirror in Y).
 	 */
 	public boolean isYMirrored() { return jMirrorY; }
+	/**
+	 * Returns true if orientation is one of Manhattan orientations.
+	 * @return true if orientation is one of Manhattan orientations.
+	 */
+	public boolean isManhattan() { return manh != MNONE; }
 	
 	/**
 	 * Method to return a transformation that rotates an object.
@@ -372,6 +385,56 @@ public class Orientation {
         angle %= 3600;
         if (angle < 0) angle += 3600;
         return angle;
+    }
+    
+    /**
+     * Calculate bounds of rectangle transformed by this Orientation.
+     * @param xl lower x coordinate.
+     * @param yl lower y coordinate.
+     * @param xh higher x coordinate.
+     * @param yh higher y coordinate.
+     * @param cx additional x shift
+     * @param xy additional y shift.
+     * @param dst destination rectangle.
+     */
+    public void rectangleBounds(double xl, double yl, double xh, double yh, double cx, double cy, Rectangle2D dst) {
+        double dx = xh - xl;
+        double dy = yh - yl;
+        switch (manh) {
+            case MIDENT:
+                dst.setFrame(cx + xl, cy + yl, dx, dy);
+                return;
+            case MR:
+                dst.setFrame(cx - yh, cy + xl, dy, dx);
+                return;
+            case MRR:
+                dst.setFrame(cx - xh, cy - yh, dx, dy);
+                return;
+            case MRRR:
+                dst.setFrame(cx + yl, cy - xh, dy, dx);
+                return;
+            case MY:
+                dst.setFrame(cx + xl, cy - yh, dx, dy);
+                return;
+            case MYR:
+                dst.setFrame(cx - yh, cy - xh, dy, dx);
+                return;
+            case MYRR:
+                dst.setFrame(cx - xh, cy + yl, dx, dy);
+                return;
+            case MYRRR:
+                dst.setFrame(cx + yl, cy + xl, dy, dx);
+                return;
+        }
+        assert manh == MNONE;
+        double m00 = trans.getScaleX();
+        double m01 = trans.getShearX();
+        double m10 = trans.getShearY();
+        double m11 = trans.getScaleY();
+        dst.setFrame(cx + m00*(m00 >= 0 ? xl : xh) + m01*(m01 >= 0 ? yl : yh),
+                cy + m10*(m10 >= 0 ? xl : xh) + m11*(m11 >= 0 ? yl : yh),
+                Math.abs(m00)*dx + Math.abs(m01)*dy,
+                Math.abs(m10)*dx + Math.abs(m11)*dy);
     }
     
     /**

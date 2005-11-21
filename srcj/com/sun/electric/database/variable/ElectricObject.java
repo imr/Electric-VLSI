@@ -1216,6 +1216,5 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @exception AssertionError if invariants are not valid
 	 */
 	protected void check() {
-        getImmutable().check(this instanceof Cell);
     }
 }

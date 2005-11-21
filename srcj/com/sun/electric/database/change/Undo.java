@@ -26,8 +26,10 @@ package com.sun.electric.database.change;
 import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -41,7 +43,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
@@ -60,7 +61,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
-
 /**
  * This interface defines changes that are made to the database.
  */
@@ -346,7 +346,10 @@ public class Undo
 			if (type == Type.VARIABLESMOD)
 			{
 				ImmutableElectricObject oldImmutable = obj.getImmutable();
-				((ElectricObject_)obj).lowLevelModifyVariables((ImmutableElectricObject)o1);
+                if (obj instanceof Cell)
+                    ((Cell)obj).lowLevelModifyVariables((ImmutableCell)o1);
+                else if (obj instanceof Library)
+                    ((Library)obj).lowLevelModifyVariables((ImmutableLibrary)o1);
                 o1 = oldImmutable;
 				return;
 			}
@@ -900,7 +903,7 @@ public class Undo
 	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLESMOD takes o1=oldImmutable.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
-     * <LI?OTHERCHANGE takes nothing
+     * <LI>OTHERCHANGE takes nothing
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
@@ -1094,7 +1097,7 @@ public class Undo
 	 * @param obj the ElectricObject on which Variables changed.
 	 * @param oldImmutable the old Variables.
 	 */
-	public static void modifyVariables(ElectricObject_ obj, ImmutableElectricObject oldImmutable)
+	public static void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{
 		if (!recordChange()) return;
 		Type type = Type.VARIABLESMOD;

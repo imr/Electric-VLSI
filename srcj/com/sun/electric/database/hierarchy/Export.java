@@ -224,7 +224,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return null;
 		}
 
-        ExportId exportId = parent.cellId.newExportId();
+        ExportId exportId = parent.getD().cellId.newExportId();
 		Name nameKey = Name.findName(name);
         if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
         ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
@@ -908,7 +908,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         assert d.originalPortId == pp.getId();
 		assert ni.getParent() == parent && ni.isLinked();
 		assert ni.getProto() == pp.getParent();
-        assert d.exportId.parentId == parent.cellId;
+        assert d.exportId.parentId == parent.getD().cellId;
 		if (pp instanceof Export) assert ((Export)pp).isLinked();
 	}
 

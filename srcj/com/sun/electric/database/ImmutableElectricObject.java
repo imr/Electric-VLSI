@@ -32,9 +32,7 @@ import java.util.Iterator;
 /**
  * This immutable class is the base class of all Electric immutable objects that can be extended with Variables.
  */
-public class ImmutableElectricObject {
-    
-    public final static ImmutableElectricObject EMPTY = new ImmutableElectricObject(Variable.NULL_ARRAY);
+public abstract class ImmutableElectricObject {
     
     /** array of variables sorted by their keys. */
     private final Variable[] vars;
@@ -48,20 +46,6 @@ public class ImmutableElectricObject {
         this.vars = vars;
     }
 
-	/**
-	 * Returns ImmutableElectricObject which differs from this ImmutableElectricObject by additional Variable.
-     * If this ImmutableElectricObject has Variable with the same key as new, the old Variable will not be in new
-     * ImmutableElectricObject.
-	 * @param var additional Variable.
-	 * @return ImmutableElectricObject with additional Variable.
-	 * @throws NullPointerException if var is null
-	 */
-    public ImmutableElectricObject withVariable_(Variable var) {
-        Variable[] vars = arrayWithVariable(var);
-        if (this.vars == vars) return this;
-        return new ImmutableElectricObject(vars);
-    }
-    
 	/**
 	 * Returns array of Variables which differs from array of this ImmutableElectricObject by additional Variable.
      * If this ImmutableElectricObject has Variable with the same key as new, the old variable will not be in new array.
@@ -82,20 +66,6 @@ public class ImmutableElectricObject {
         int tailLength = newLength - (varIndex + 1);
         System.arraycopy(vars, vars.length - tailLength, newVars, varIndex + 1, tailLength);
         return newVars;
-    }
-    
-	/**
-	 * Returns ImmutableElectricObject which differs from this ImmutableElectricObject by removing Variable
-     * with the specified key. Returns this ImmutableElectricObject if it doesn't contain variable with the specified key.
-	 * @param key Variable Key to remove.
-	 * @return ImmutableElectricObject without Variable with the specified key.
-	 * @throws NullPointerException if key is null
-	 */
-    public ImmutableElectricObject withoutVariable_(Variable.Key key) {
-        Variable[] vars = arrayWithoutVariable(key);
-        if (this.vars == vars) return this;
-        if (vars.length == 0) return EMPTY;
-        return new ImmutableElectricObject(vars);
     }
     
 	/**
@@ -214,7 +184,7 @@ public class ImmutableElectricObject {
      * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.
 	 */
-	public void check(boolean paramAllowed) {
+	void check(boolean paramAllowed) {
         if (vars.length == 0) return;
         vars[0].check(paramAllowed);
         for (int i = 1; i < vars.length; i++) {

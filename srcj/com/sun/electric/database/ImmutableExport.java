@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ImmutableNodeInst.java
+ * File: ImmutableExport.java
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
