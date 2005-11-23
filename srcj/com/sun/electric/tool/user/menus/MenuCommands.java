@@ -33,6 +33,7 @@ import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.Job;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -105,7 +106,7 @@ public final class MenuCommands
 
         MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
-		if (Main.getDebug())
+		if (Job.getDebug())
 	        DebugMenus.addDebugMenus(menuBar, helpMenu);
 
         /********************************* Hidden Menus *******************************/

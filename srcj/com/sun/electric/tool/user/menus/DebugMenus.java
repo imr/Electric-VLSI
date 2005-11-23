@@ -543,7 +543,7 @@ public class DebugMenus {
 			System.out.println("Created " + bigCell);
 
 			// display a cell
-            if (!Main.BATCHMODE)
+            if (!BATCHMODE)
 			    WindowFrame.createEditWindow(myCell);
 			return true;
 		}
@@ -634,7 +634,7 @@ public class DebugMenus {
 			System.out.println("Created " + higherCell);
 
 			// display a cell
-            if (!Main.BATCHMODE)
+            if (!BATCHMODE)
 			    WindowFrame.createEditWindow(myCell);
             return (true);
 		}

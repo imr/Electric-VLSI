@@ -44,6 +44,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -532,7 +533,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		parent.removeArc(this);
 		parent.unLinkArc(this);
 
-		if (Main.getDebug()) parent.checkInvariants();
+		if (Job.getDebug()) parent.checkInvariants();
 	}
 
 	/**

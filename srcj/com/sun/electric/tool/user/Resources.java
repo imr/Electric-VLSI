@@ -24,6 +24,8 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.tool.Job;
+
 import javax.swing.ImageIcon;
 import java.net.URL;
 
@@ -79,7 +81,7 @@ public class Resources {
 
         } catch (ClassNotFoundException e)
         {
-            if (Main.getDebug()) System.out.println("Can't find class '" + name +
+            if (Job.getDebug()) System.out.println("Can't find class '" + name +
                     "' from " + plugin + " plugin: " + e.getMessage());
         } catch (Error e)
         {

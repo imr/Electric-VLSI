@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.Job;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -396,7 +397,7 @@ public class ManualViewer extends EDialog
 		menuMap = new HashMap<String,String>();
 		HashMap<String,String> menuMapCheck = null;
 		preferenceMap = new HashMap<String,String>();
-		if (Main.getDebug())
+		if (Job.getDebug())
 		{
 			menuMapCheck = new HashMap<String,String>();
 		}
@@ -449,7 +450,7 @@ public class ManualViewer extends EDialog
 						commandName = commandName.substring(0, backslashPos) + commandName.substring(backslashPos+1);
 					}
 					String already = (String)menuMap.get(commandName);
-					if (already != null && Main.getDebug())
+					if (already != null && Job.getDebug())
 					{
 						System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
 					}
@@ -467,7 +468,7 @@ public class ManualViewer extends EDialog
 					}
 					String preferenceName = pageLine.substring(16, endPt).trim();
 					String already = (String)preferenceMap.get(preferenceName);
-					if (already != null && Main.getDebug())
+					if (already != null && Job.getDebug())
 					{
 						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
 					}
@@ -518,7 +519,7 @@ public class ManualViewer extends EDialog
 			{
 				String commandName = cumulative + menuItem.getText();
 				String fileName = (String)menuMap.get(commandName);
-				if (fileName == null && Main.getDebug())
+				if (fileName == null && Job.getDebug())
 				{
 					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
 						!commandName.startsWith("Gilda/") && !commandName.startsWith("Dima/"))
@@ -1271,7 +1272,7 @@ public class ManualViewer extends EDialog
 		});
         getRootPane().setDefaultButton(searchButton);
 
-		if (Main.getDebug())
+		if (Job.getDebug())
 		{
 			// manual and edit buttons at the bottom of the left side
 			JButton manualButton = new JButton("1-Page Man");

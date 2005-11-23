@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
@@ -49,7 +48,6 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
@@ -1086,7 +1084,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
         // Don't recalculate in GUI thread.
         if (boundsDirty == BOUNDS_CORRECT ||
-            Thread.currentThread() != Job.databaseChangesThread && !Main.NOTHREADING)
+            Thread.currentThread() != Job.databaseChangesThread && !Job.NOTHREADING)
             return cellBounds;
         
         // Current bounds are correct if subcell bounds are the same
@@ -3760,7 +3758,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
     void saveExpandStatus() throws BackingStoreException {
         if (!expandStatusModified) return;
-        if (Main.getDebug()) System.err.println("Save expanded status of " + this);
+        if (Job.getDebug()) System.err.println("Save expanded status of " + this);
         int num = 0, expanded = 0, diff = 0;
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();

@@ -28,7 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.Color;
@@ -80,35 +80,38 @@ public class EGraphics extends Observable
 			outlineByIndex.put(new Integer(index), this);
 			outlineByName.put(name, this);
 
-			// construct a sample of this outline texture
-			BufferedImage bi = new BufferedImage(SAMPLEWID+SAMPLEHEI, SAMPLEHEI, BufferedImage.TYPE_INT_RGB);
-			int startX = SAMPLEHEI / 2;
-			int startY = (SAMPLEHEI-thickness) / 2;
-			for(int y=0; y<SAMPLEHEI; y++)
-				for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
-					bi.setRGB(x, y, 0xFFFFFF);
-			for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
-			{
-				bi.setRGB(x, 0, 0);
-				bi.setRGB(x, SAMPLEHEI-1, 0);
-			}
-			for(int y=0; y<SAMPLEHEI; y++)
-			{
-				bi.setRGB(0, y, 0);
-				bi.setRGB(SAMPLEWID+SAMPLEHEI-1, y, 0);
-			}
-			for(int y=0; y<thickness; y++)
-			{
-				int patPos = 0;
-				for(int x=0; x<SAMPLEWID; x++)
-				{
-					if ((pattern & (1<<patPos)) != 0) bi.setRGB(x+startX, y+startY, 0); else
-						bi.setRGB(x+startX, y+startY, 0xFFFFFF);
-					patPos++;
-					if (patPos >= len) patPos = 0;
-				}
-			}
-			sample = new ImageIcon(bi);
+            if (!Job.BATCHMODE)
+            {
+                // construct a sample of this outline texture
+                BufferedImage bi = new BufferedImage(SAMPLEWID+SAMPLEHEI, SAMPLEHEI, BufferedImage.TYPE_INT_RGB);
+                int startX = SAMPLEHEI / 2;
+                int startY = (SAMPLEHEI-thickness) / 2;
+                for(int y=0; y<SAMPLEHEI; y++)
+                    for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
+                        bi.setRGB(x, y, 0xFFFFFF);
+                for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
+                {
+                    bi.setRGB(x, 0, 0);
+                    bi.setRGB(x, SAMPLEHEI-1, 0);
+                }
+                for(int y=0; y<SAMPLEHEI; y++)
+                {
+                    bi.setRGB(0, y, 0);
+                    bi.setRGB(SAMPLEWID+SAMPLEHEI-1, y, 0);
+                }
+                for(int y=0; y<thickness; y++)
+                {
+                    int patPos = 0;
+                    for(int x=0; x<SAMPLEWID; x++)
+                    {
+                        if ((pattern & (1<<patPos)) != 0) bi.setRGB(x+startX, y+startY, 0); else
+                            bi.setRGB(x+startX, y+startY, 0xFFFFFF);
+                        patPos++;
+                        if (patPos >= len) patPos = 0;
+                    }
+                }
+                sample = new ImageIcon(bi);
+            }
 		}
 
 		public String getName() { return name; }

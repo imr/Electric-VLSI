@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -3814,7 +3813,7 @@ public class Technology implements Comparable<Technology>
 			// describe the error
             String errorMessage = "User preference of " + width + " overwrites original layer minimum size in layer '"
 					+ layername + "', primitive '" + np.getName() + ":" + getTechShortName() + "' by rule " + rulename;
-			if (Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
+			if (Job.LOCALDEBUGFLAG) System.out.println(errorMessage);
 		}
 	}
 

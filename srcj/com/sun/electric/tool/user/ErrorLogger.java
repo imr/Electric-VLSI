@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -43,6 +42,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.Job;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -846,31 +846,41 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             if (!alreadyExplained)
             {
 				alreadyExplained = true;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						// To print consistent message in message window
-						String extraMsg = "errors/warnings";
-						if (getNumErrors() == 0) extraMsg = "warnings";
-						else  if (getNumWarnings() == 0) extraMsg = "errors";
-						String msg = getInfo(); //errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!";
-						System.out.println(msg);
-						if (getNumLogs() > 0)
-						{
-							System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
-						}
-						if (getNumErrors() > 0 && !Main.BATCHMODE)
-						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
-								errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
-						}
-					}
-				});
+                if (Job.BATCHMODE)
+                {
+                    System.out.println(getInfo());
+                }
+                else
+                {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            // To print consistent message in message window
+                            String extraMsg = "errors/warnings";
+                            if (getNumErrors() == 0) extraMsg = "warnings";
+                            else  if (getNumWarnings() == 0) extraMsg = "errors";
+                            String msg = getInfo();
+                            System.out.println(msg);
+                            if (getNumLogs() > 0)
+                            {
+                                System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
+                            }
+                            if (getNumErrors() > 0 && !Job.BATCHMODE)
+                            {
+                                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
+                                    errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
+                            }
+                        }
+                    });
+                }
             }
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {WindowFrame.wantToRedoErrorTree(); }
-        });
 
+        if (!Job.BATCHMODE)
+        {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {WindowFrame.wantToRedoErrorTree(); }
+            });
+        }
         terminated = true;
     }
 

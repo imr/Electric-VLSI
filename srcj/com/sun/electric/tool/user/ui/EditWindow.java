@@ -1082,7 +1082,7 @@ public class EditWindow extends JPanel
 			// add cross-probed level display
 			showCrossProbeLevels(g);
 
-            if (Main.getDebug()) {
+            if (Job.getDebug()) {
 				// add in highlighting
 	            if (Job.acquireExamineLock(false)) {
 	                try {

@@ -24,7 +24,6 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -469,7 +468,7 @@ public class FileMenu {
         lib.setCurrent();
         Cell cell = lib.getCurCell();
         if (cell == null) System.out.println("No current cell in this library");
-        else if (!Main.BATCHMODE)
+        else if (!Job.BATCHMODE)
         {
             CreateCellWindow creator = new CreateCellWindow(cell);
             if (!SwingUtilities.isEventDispatchThread()) {

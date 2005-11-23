@@ -178,7 +178,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         listModel = new DefaultListModel();
         list = new JList(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        cellRenderer = new VariableCellRenderer(!Main.getDebug());
+        cellRenderer = new VariableCellRenderer(!Job.getDebug());
         list.setCellRenderer(cellRenderer);
         listPane.setViewportView(list);
         list.addMouseListener(new java.awt.event.MouseAdapter()

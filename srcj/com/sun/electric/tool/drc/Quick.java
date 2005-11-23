@@ -663,7 +663,7 @@ public class Quick
 				if (localWarnings > 0)
 					System.out.println("\tFOUND " + localWarnings + " WARNINGS");
 			}
-            if (Main.getDebug())
+            if (Job.getDebug())
                 System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
@@ -891,7 +891,7 @@ public class Quick
 
 		if (nodesMap.get(ai) != null)
 		{
-			if (Main.LOCALDEBUGFLAG) System.out.println("Done already arc " + ai.getName());
+			if (Job.LOCALDEBUGFLAG) System.out.println("Done already arc " + ai.getName());
 			return (false);
 		}
 		nodesMap.put(ai, ai);
@@ -1084,7 +1084,7 @@ public class Quick
 						Layer layer = poly.getLayer();
 						if (layer == null)
                         {
-                            if (Main.LOCALDEBUGFLAG) System.out.println("When is this case?");
+                            if (Job.LOCALDEBUGFLAG) System.out.println("When is this case?");
                             continue;
                         }
 
@@ -1671,7 +1671,7 @@ public class Quick
 					int funExtras = layer1.getFunctionExtras();
 					if (fun.isDiff() && (funExtras&Layer.Function.THICK) != 0)
 					{
-						if (Main.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
+						if (Job.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
 						maytouch = true;
 					}
 				}
@@ -1863,7 +1863,7 @@ public class Quick
 
                     // see if the notch is filled
                     boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
-                    if (Main.LOCALDEBUGFLAG)
+                    if (Job.LOCALDEBUGFLAG)
                     {
                         Point2D pt1 = new Point2D.Double();
                         Point2D pt2 = new Point2D.Double();
@@ -3494,7 +3494,7 @@ public class Quick
 	        if (g == geom) continue;
 			if (!(g instanceof NodeInst))
             {
-                if (Main.LOCALDEBUGFLAG && !DRC.isIgnoreExtensionRuleChecking())
+                if (Job.LOCALDEBUGFLAG && !DRC.isIgnoreExtensionRuleChecking())
                     System.out.println("Skipping arcs!");
                 continue; // Skipping arcs!!!!
             }
@@ -3725,7 +3725,7 @@ public class Quick
 
 				if (piNet == badNet)
 					oldFound = true;
-				if (Main.LOCALDEBUGFLAG && oldFound != found)
+				if (Job.LOCALDEBUGFLAG && oldFound != found)
 						System.out.println("Here is different in activeOnTransistorRecurse");
                 if (found)
                     continue;

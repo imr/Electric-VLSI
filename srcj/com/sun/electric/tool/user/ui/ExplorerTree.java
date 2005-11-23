@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -1499,7 +1498,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, true);
-			if (!Main.BATCHMODE) dialog.setVisible(true);
+			if (!Job.BATCHMODE) dialog.setVisible(true);
 		}
 
 		private void setSweepAction(boolean include)
@@ -1585,7 +1584,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             Cell cell = (Cell)tree.currentSelectedObject;
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
-            if (!Main.BATCHMODE) dialog.setVisible(true);
+            if (!Job.BATCHMODE) dialog.setVisible(true);
         }
 
         private void makeNewSchematicPage()

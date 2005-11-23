@@ -127,7 +127,7 @@ public class ERCWellCheck
 
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		// announce start of analysis
-		if (Main.getDebug())
+		if (Job.getDebug())
 		{
             initialMemory = Runtime.getRuntime().freeMemory();
 			System.out.println("Free v/s Total Memory " +
@@ -153,7 +153,7 @@ public class ERCWellCheck
 			// Not sure if null goes here
 			Collection<Object> set = topMerge.getObjects(layer, false, true);
 
-		    if (Main.getDebug())
+		    if (Job.getDebug())
                 System.out.println("Layer " + layer.getName() + " " + set.size());
 
 			for(Iterator<Object> pIt = set.iterator(); pIt.hasNext(); )
@@ -178,7 +178,7 @@ public class ERCWellCheck
 			}
 		}
 
-		if (Main.getDebug())
+		if (Job.getDebug())
 		{
 			System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
 					" contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
@@ -378,7 +378,7 @@ public class ERCWellCheck
 				}
 			}
 		}
-		if (Main.getDebug())
+		if (Job.getDebug())
 			System.out.println("Free v/s Total Memory Intermediate step 2: " +
 				Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
@@ -488,7 +488,7 @@ public class ERCWellCheck
 			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
-		if (Main.getDebug())
+		if (Job.getDebug())
 		{
 			System.out.println("Free v/s Total Memory Final Step: " +
 					Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
@@ -676,7 +676,7 @@ public class ERCWellCheck
 					while (cinfo.getParentInst() != null) {
 						parentNet = cinfo.getNetworkInParent(parentNet);
 						cinfo = cinfo.getParentInfo();
-						if (parentNet == null && Main.LOCALDEBUGFLAG)
+						if (parentNet == null && Job.LOCALDEBUGFLAG)
 							System.out.println("parentNet null in ERC. Stop loop?");
 					}
 					if (parentNet != null)

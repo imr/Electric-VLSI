@@ -24,6 +24,7 @@
 package com.sun.electric.technology.technologies;
 
 import com.sun.electric.Main;
+import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
@@ -4712,6 +4713,6 @@ public class MoCMOS extends Technology
 		}
         errorMessage += "(rule " + ruleName + ")";
         // Message printed only if developer turns local flag on
-		if (hasChanged && Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
+		if (hasChanged && Job.LOCALDEBUGFLAG) System.out.println(errorMessage);
 	}
 }

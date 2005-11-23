@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.Main;
+import com.sun.electric.tool.Job;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;
@@ -457,7 +458,7 @@ public class PolyMerge
 			}
 			pIt.next();
 		}
-        if (Main.LOCALDEBUGFLAG)
+        if (Job.LOCALDEBUGFLAG)
         {
             List newList = PolyBase.getPointsInArea(area, layer, simple, true, null);
 

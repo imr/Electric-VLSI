@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.Main;
+import com.sun.electric.tool.Job;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -207,7 +207,7 @@ public class MessagesWindow
 	protected void dump(String str)
 	{
 		info.append(str);
-		if (Main.BATCHMODE) return;
+		if (Job.BATCHMODE) return;
 		try
 		{
 			Rectangle r = info.modelToView(info.getDocument().getLength());

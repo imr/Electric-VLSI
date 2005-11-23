@@ -34,13 +34,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -277,7 +275,7 @@ public class NetworkTool extends Listener
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors_());
 		}
-        if (Main.getDebug() && SwingUtilities.isEventDispatchThread())
+        if (Job.getDebug() && SwingUtilities.isEventDispatchThread())
 		{
 			System.out.println("getUserNetlist() used in GUI thread");
 		}
@@ -306,7 +304,7 @@ public class NetworkTool extends Listener
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
-		if (Thread.currentThread() == Job.databaseChangesThread || Main.NOTHREADING) {
+		if (Thread.currentThread() == Job.databaseChangesThread || Job.NOTHREADING) {
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}

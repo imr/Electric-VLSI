@@ -30,11 +30,11 @@ import java.util.List;
 
 import javax.swing.*;
 
-import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.menus.WindowMenu;
+import com.sun.electric.tool.Job;
 
 /**
  * This is the top-level class of NCC GUI. 
@@ -151,7 +151,7 @@ public class NccMsgsFrame {
                     placed = true;
                     jf.pack();
                 }
-                if (!Main.BATCHMODE) jf.setVisible(true);
+                if (!Job.BATCHMODE) jf.setVisible(true);
             } 
             jf.toFront();
             jf.requestFocus();

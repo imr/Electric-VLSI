@@ -527,7 +527,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
      */
     public AttributesTable(ElectricObject owner, boolean showCode, boolean showDispPos, boolean showUnits) {
         setElectricObject(owner);
-        showAttrOnly = Main.getDebug();
+        showAttrOnly = Job.getDebug();
 
         setGridColor(getBackground());          // hides cell grids
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

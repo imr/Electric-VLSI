@@ -37,6 +37,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
 
 import java.awt.geom.Rectangle2D;
@@ -218,7 +219,7 @@ public class CellLists extends EDialog
 		boolean goodDRC = false;
         int activeBits = DRC.getActiveBits(cell.getTechnology());
 		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
-		if (!Main.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 

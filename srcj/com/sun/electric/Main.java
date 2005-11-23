@@ -87,12 +87,8 @@ import javax.swing.SwingUtilities;
  */
 public final class Main
 {
-    private static boolean DEBUG;   // global debug flag
-    public static boolean LOCALDEBUGFLAG; // Gilda's case
-    public static boolean NOTHREADING = false;             // to turn off Job threading
-	public static boolean BATCHMODE = false; // to run it in batch mode
 
-	private Main() {}
+    private Main() {}
 
 	/**
 	 * The main entry point of Electric.
@@ -124,15 +120,15 @@ public final class Main
 
 
 		// -debug for debugging
-		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
-        if (hasCommandLineOption(argsList, "-gilda")) LOCALDEBUGFLAG = true;
-        if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
-		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
+		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
+        if (hasCommandLineOption(argsList, "-gilda")) Job.LOCALDEBUGFLAG = true;
+        if (hasCommandLineOption(argsList, "-NOTHREADING")) Job.NOTHREADING = true;
+		if (hasCommandLineOption(argsList, "-batch")) Job.BATCHMODE = true;
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
-        if (!BATCHMODE)
+        if (!Job.BATCHMODE)
         {
             if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
             {
@@ -194,7 +190,7 @@ public final class Main
 
 		SplashWindow sw = null;
 
-		if (!Main.BATCHMODE) sw = new SplashWindow();
+		if (!Job.BATCHMODE) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
@@ -416,31 +412,29 @@ public final class Main
 			openCommandLineLibs(argsList);
 
             // finish initializing the GUI
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    // remove the splash screen
-                    if (sw != null) sw.removeNotify();
-                    if (!Main.BATCHMODE)
-                    {
-                    TopLevel.InitializeWindows();
-					WindowFrame.wantToOpenCurrentLibrary(true);
+            if (!BATCHMODE)
+            {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        // remove the splash screen
+                        if (sw != null) sw.removeNotify();
+                        TopLevel.InitializeWindows();
+                        WindowFrame.wantToOpenCurrentLibrary(true);
+                        // run script
+                        if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
                     }
-                    // run script
-                    if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
-                }
-            });
+                });
+            }
+            else
+            {
+               // run script
+               if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
+            }
             return true;
 		}
 	}
 
-	/**
-	 * Method to tell whether Electric is running in "debug" mode.
-	 * If the program is started with the "-debug" switch, debug mode is enabled.
-	 * @return true if running in debug mode.
-	 */
-    public static boolean getDebug() { return DEBUG; }
-
-	/**
+    /**
 	 * Method to return the amount of memory being used by Electric.
 	 * Calls garbage collection and delays to allow completion, so the method is SLOW.
 	 * @return the number of bytes being used by Electric.
@@ -479,7 +473,7 @@ public final class Main
     private static class EventProcessor extends EventQueue
     {
 		private EventProcessor() {
-            if (!BATCHMODE)
+            if (!Job.BATCHMODE)
             {
             Toolkit kit = Toolkit.getDefaultToolkit();
             kit.getSystemEventQueue().push(this);

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -41,7 +40,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
@@ -422,7 +420,7 @@ public class User extends Listener
 	 */
 	public void endBatch()
 	{
-		if (Main.BATCHMODE) return;
+		if (Job.BATCHMODE) return;
 
 		// redraw all windows with Cells that changed
 		for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )

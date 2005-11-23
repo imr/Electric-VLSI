@@ -27,6 +27,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.Job;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -637,7 +638,7 @@ public class Layer
 				if (savedVis != layer.visible)
 				{
 					visPref.setBoolean(layer.visible);
-			        if (Main.getDebug()) System.err.println("Save visibility of " + layer.getName());
+			        if (Job.getDebug()) System.err.println("Save visibility of " + layer.getName());
 				}
 			}
 		}

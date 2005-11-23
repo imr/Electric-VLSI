@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -692,7 +691,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     public void makeLayoutTextCommand()
     {
         LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame(), true);
-        if (!Main.BATCHMODE) dialog.setVisible(true);
+        if (!Job.BATCHMODE) dialog.setVisible(true);
     }
 
     public void placeNodeStarted(Object nodeToBePlaced) {

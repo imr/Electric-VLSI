@@ -92,7 +92,7 @@ public class GateRegression extends Job {
     }
 
     public boolean doIt() {
-        if (Main.LOCALDEBUGFLAG) // Gilda for now
+        if (LOCALDEBUGFLAG) // Gilda for now
             runGildaTest(technology, foundry);
         else
             runRegression(technology, foundry);

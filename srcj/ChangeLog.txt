@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP: (11/22/05, GVG) Changes to get rid of DISPLAY dependency while running with -batch.
+
 IMP: (11/21/05, SMR) Refactored the waveform window.
 
 IMP: (11/21/05, DN) NodeInst.redoGeometric allocated less temporary objects.

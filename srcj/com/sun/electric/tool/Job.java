@@ -24,7 +24,6 @@
 
 package com.sun.electric.tool;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -75,7 +74,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public abstract class Job implements ActionListener, Runnable {
 
-    private static final boolean DEBUG = false;
+    private static boolean DEBUG = false;
+    public static boolean BATCHMODE = false; // to run it in batch mode
+    public static boolean NOTHREADING = false;             // to turn off Job threading
+    public static boolean LOCALDEBUGFLAG; // Gilda's case
+
+    /**
+	 * Method to tell whether Electric is running in "debug" mode.
+	 * If the program is started with the "-debug" switch, debug mode is enabled.
+	 * @return true if running in debug mode.
+	 */
+    public static boolean getDebug() { return DEBUG; }
+
+    public static void setDebug(boolean f) { DEBUG = f; }
 
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
@@ -147,10 +158,13 @@ public abstract class Job implements ActionListener, Runnable {
 				Job job = waitChangeJob();
 
                 job.run();
-                // turn off busy cursor if no more change jobs
-                synchronized(this) {
-                    if (!isChangeJobQueuedOrRunning())
-                        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
+                if (!BATCHMODE)
+                {
+                    // turn off busy cursor if no more change jobs
+                    synchronized(this) {
+                        if (!isChangeJobQueuedOrRunning())
+                            SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
+                    }
                 }
 			}
 		}
@@ -215,7 +229,7 @@ public abstract class Job implements ActionListener, Runnable {
 			if (numStarted == allJobs.size())
 				notify();
             allJobs.add(j);
-            if (j.jobType == Type.CHANGE) {
+            if (!BATCHMODE && j.jobType == Type.CHANGE) {
                 SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(true); }});
             }
             if (j.getDisplay()) {
@@ -406,7 +420,7 @@ public abstract class Job implements ActionListener, Runnable {
      */
 	public void startJob()
 	{
-        startJob(true, true);
+        startJob(!BATCHMODE, true);
     }
 	
     /**
@@ -424,7 +438,7 @@ public abstract class Job implements ActionListener, Runnable {
         if (display)
             myNode = new DefaultMutableTreeNode(this);
 
-        if (Main.NOTHREADING) {
+        if (NOTHREADING) {
             // turn off threading if needed for debugging
             TopLevel.setBusyCursor(true);
             run();
@@ -832,8 +846,8 @@ public abstract class Job implements ActionListener, Runnable {
 	 * Method to check whether examining of database is allowed.
 	 */
     public static void checkExamine() {
-        if (!Main.getDebug()) return;
-        if (Main.NOTHREADING) return;
+        if (!getDebug()) return;
+        if (NOTHREADING) return;
 	    /*
 	    // disabled by Gilda on Oct 18
         if (!hasExamineLock()) {
@@ -872,13 +886,13 @@ public abstract class Job implements ActionListener, Runnable {
 	{
 		if (Thread.currentThread() != databaseChangesThread)
 		{
-			if (Main.NOTHREADING) return;
+			if (NOTHREADING) return;
 			String msg = "Database is being changed by another thread";
             System.out.println(msg);
 			throw new IllegalStateException(msg);
 		} else if (changingJob == null)
 		{
-			if (Main.NOTHREADING) return;
+			if (NOTHREADING) return;
 			String msg = "Database is changing but no change job is running";
             System.out.println(msg);
 			throw new IllegalStateException(msg);

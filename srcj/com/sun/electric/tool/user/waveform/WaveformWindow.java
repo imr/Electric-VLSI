@@ -2628,7 +2628,7 @@ if (wp.getSignalButtons() != null)
 			cellName = cellName.substring(colonPos+1);
 			Pref savedSignalPref = Pref.makeStringPref("SavedSignalsForCell" + cellName, lib.getPrefs(), "");
 			savedSignalPref.setString(savedOrder);
-		    if (Main.getDebug()) System.err.println("Save waveform signals for cell " + cellName);
+		    if (Job.getDebug()) System.err.println("Save waveform signals for cell " + cellName);
 		}
 	}
 

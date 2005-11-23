@@ -24,7 +24,6 @@
 
 package com.sun.electric.database.variable;
 
-import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
@@ -433,7 +432,7 @@ public class EvalJavaBsh
         }
 
 	    // Finishing session
-		if (Main.BATCHMODE)
+		if (Job.BATCHMODE)
 			System.exit(1);
     }
 

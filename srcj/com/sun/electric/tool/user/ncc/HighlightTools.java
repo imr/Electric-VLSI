@@ -30,7 +30,6 @@ import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -46,6 +45,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.Job;
 
 public class HighlightTools {
     
@@ -101,7 +101,7 @@ public class HighlightTools {
             jf.setState(Frame.NORMAL);
             if (!jf.isVisible()) {
                 jf.toFront();
-                if (!Main.BATCHMODE) jf.setVisible(true);
+                if (!Job.BATCHMODE) jf.setVisible(true);
             } else 
                 jf.toFront();
         }                

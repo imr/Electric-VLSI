@@ -57,6 +57,9 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -111,8 +114,17 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			theDialog = new GetInfoNode(jf, false);
 		}
         theDialog.loadInfo();
-        if (!theDialog.isVisible()) theDialog.pack();
+
+        if (!theDialog.isVisible())
+            theDialog.pack();
+//        theDialog.toFront();
+//        theDialog.isActive();
+
+//        theDialog.s
+//        KeyboardFocusManager.getCurrentKeyboardFocusManager().setMostRecentFocusOwner(theDialog, null);
 		theDialog.setVisible(true);
+
+//        theDialog.dispatchEvent(new WindowEvent(theDialog, WindowEvent.WINDOW_ACTIVATED));
 	}
 
     /**
@@ -1174,6 +1186,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             public void windowClosing(java.awt.event.WindowEvent evt)
             {
                 closeDialog(evt);
+            }
+                        public void windowActivated(java.awt.event.WindowEvent evt)
+            {
+                System.out.println("DD");
             }
         });
 

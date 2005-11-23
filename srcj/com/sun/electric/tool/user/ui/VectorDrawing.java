@@ -50,6 +50,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -508,7 +509,7 @@ public class VectorDrawing
 			System.out.println("Done");
 		}
 
-		if (TAKE_STATS && Main.getDebug())
+		if (TAKE_STATS && Job.getDebug())
 		{
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memUsed = curUsed - initialUsed;

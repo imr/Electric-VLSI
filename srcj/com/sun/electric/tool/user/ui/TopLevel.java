@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.Job;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -203,7 +203,7 @@ public class TopLevel extends JFrame
 	public static void OSInitialize(Mode mode)
 	{
 		// setup the size of the screen
-        if (!Main.BATCHMODE)
+        if (!Job.BATCHMODE)
         {
             Toolkit tk = Toolkit.getDefaultToolkit();
             scrnSize = tk.getScreenSize();
@@ -233,7 +233,7 @@ public class TopLevel extends JFrame
 				osMode = Mode.MDI;
 
 				scrnSize.height -= 30;
-                if (!Main.BATCHMODE)
+                if (!Job.BATCHMODE)
 				    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
@@ -241,13 +241,13 @@ public class TopLevel extends JFrame
 				os = OS.UNIX;
                 osMode = Mode.SDI;
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-                if (!Main.BATCHMODE)
+                if (!Job.BATCHMODE)
                     UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
                 osMode = Mode.SDI;
-				if (!Main.BATCHMODE)
+				if (!Job.BATCHMODE)
                     UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
@@ -283,7 +283,7 @@ public class TopLevel extends JFrame
 			// make the desktop
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-            if (!Main.BATCHMODE) topLevel.setVisible(true);
+            if (!Job.BATCHMODE) topLevel.setVisible(true);
 		}
 	}
 
@@ -394,7 +394,7 @@ public class TopLevel extends JFrame
         private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
         public void run() {
             desktop.add(jif);
-	        if (!Main.BATCHMODE) jif.show();
+	        if (!Job.BATCHMODE) jif.show();
         }
     }
 

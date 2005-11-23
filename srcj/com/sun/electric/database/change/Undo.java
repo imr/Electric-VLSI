@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.change;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -259,7 +258,7 @@ public class Undo
 				ArcInst ai = (ArcInst)obj;
 				ai.lowLevelLink();
 				type = Type.ARCINSTNEW;
-				if (Main.getDebug()) ai.getParent().checkInvariants();
+				if (Job.getDebug()) ai.getParent().checkInvariants();
 				return;
 			}
 			if (type == Type.ARCINSTMOD)
@@ -287,7 +286,7 @@ public class Undo
 				Export pp = (Export)obj;
 				pp.lowLevelLink();
 				type = Type.EXPORTNEW;
-				if (Main.getDebug()) ((Cell)pp.getParent()).checkInvariants();
+				if (Job.getDebug()) ((Cell)pp.getParent()).checkInvariants();
 				return;
 			}
 			if (type == Type.EXPORTMOD)
@@ -792,16 +791,18 @@ public class Undo
 
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
 	{
-		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
-		for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
-		{
-			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-			SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
+        if (Job.BATCHMODE) return;
+
+        DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
+        for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
+        {
+            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+            SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
 // 			if (l.isGUIListener())
 // 				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
 // 			else
 // 				l.databaseEndChangeBatch(batch);
-		}
+        }
 	}
 
 	/** Add a property change listener. This generates Undo and Redo enabled property changes */

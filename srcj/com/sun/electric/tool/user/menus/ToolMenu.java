@@ -583,10 +583,14 @@ public class ToolMenu {
 
         if (curCell == null ) curCell = WindowFrame.needCurCell();
         if (curCell == null) return false;
-	    EditWindow wnd = EditWindow.needCurrent();
 	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
+        
+        if (!Job.BATCHMODE)
+        {
+            EditWindow wnd = EditWindow.needCurrent();
+            if ((wnd != null) && (wnd.getCell() == curCell))
+                highlighter = wnd.getHighlighter();
+        }
 
         double width = LayerCoverage.getWidth(curCell.getTechnology());
         double height = LayerCoverage.getHeight(curCell.getTechnology());

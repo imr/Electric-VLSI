@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -31,6 +30,8 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.Job;
+import com.sun.electric.Main;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -323,7 +324,7 @@ public class Pref
 			return;
 		}
 
-        if (!Main.BATCHMODE) {
+        if (!Job.BATCHMODE) {
             TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
             top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
         }
@@ -904,7 +905,7 @@ public class Pref
 		}
 
 		if (meaningsToReconcile.size() == 0) return;
-		if (Main.BATCHMODE)
+		if (Job.BATCHMODE)
 		{
 			for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
 			{
@@ -946,7 +947,7 @@ public class Pref
 			prefs.flush();
 		} catch (BackingStoreException e)
 		{
-            if (!Main.BATCHMODE) {
+            if (!Job.BATCHMODE) {
 			    System.out.println("Failed to save " + name + " options");
             }
 		}

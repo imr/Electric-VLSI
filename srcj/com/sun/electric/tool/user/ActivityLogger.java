@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.Job;
@@ -202,7 +201,7 @@ public class ActivityLogger {
 		{
 			msg = new String[] {msg1, msg2, msg4};
 		}
-	    if (!Main.BATCHMODE)
+	    if (!Job.BATCHMODE)
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
 	    else
 	        System.out.println(msg[0]);

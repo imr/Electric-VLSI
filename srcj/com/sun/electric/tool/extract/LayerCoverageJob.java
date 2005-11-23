@@ -128,7 +128,7 @@ public class LayerCoverageJob extends Job
 				case IMPLANT:
 					return (func.isSubstrate());
 				case AREA:
-                    if (Main.LOCALDEBUGFLAG) return (true);
+                    if (LOCALDEBUGFLAG) return (true);
 					return (func.isPoly() || func.isMetal());
 				default:
 					return (false);
