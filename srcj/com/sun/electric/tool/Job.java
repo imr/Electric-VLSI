@@ -75,6 +75,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public abstract class Job implements ActionListener, Runnable {
 
     private static boolean DEBUG = false;
+    private static boolean GLOBALDEBUG = false;
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
@@ -84,9 +85,9 @@ public abstract class Job implements ActionListener, Runnable {
 	 * If the program is started with the "-debug" switch, debug mode is enabled.
 	 * @return true if running in debug mode.
 	 */
-    public static boolean getDebug() { return DEBUG; }
+    public static boolean getDebug() { return GLOBALDEBUG; }
 
-    public static void setDebug(boolean f) { DEBUG = f; }
+    public static void setDebug(boolean f) { GLOBALDEBUG = f; }
 
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
