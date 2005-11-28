@@ -34,9 +34,9 @@ public class DigitalSignal extends TimedSignal
 
 	/**
 	 * Constructor for a digital signal.
-	 * @param sd the Simulation Data object in which this signal will reside.
+	 * @param an the Analysis object in which this signal will reside.
 	 */
-	public DigitalSignal(Stimuli sd) { super(sd); }
+	public DigitalSignal(Analysis an) { super(an); }
 
 	/**
 	 * Method to initialize this simulation signal with a specified number of events.

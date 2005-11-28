@@ -60,6 +60,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.interval.Diode;
@@ -647,13 +648,14 @@ public class DebugMenus {
 	{
 		// make the waveform data
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		double timeStep = 0.0000000001;
-		sd.buildCommonTime(100);
+		an.buildCommonTime(100);
 		for(int i=0; i<100; i++)
-			sd.setCommonTime(i, i * timeStep);
+			an.setCommonTime(i, i * timeStep);
 		for(int i=0; i<18; i++)
 		{
-			AnalogSignal as = new AnalogSignal(sd);
+			AnalogSignal as = new AnalogSignal(an);
 			as.setSignalName("Signal"+(i+1));
 			as.buildValues(100);
 			for(int k=0; k<100; k++)
@@ -666,18 +668,18 @@ public class DebugMenus {
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		WaveformWindow ww = (WaveformWindow)wf.getContent();
-		ww.setMainXPositionCursor(timeStep*22);
-		ww.setExtensionXPositionCursor(timeStep*77);
-		ww.setDefaultHorizontalRange(0, timeStep*100);
+//		ww.setMainXPositionCursor(timeStep*22);
+//		ww.setExtensionXPositionCursor(timeStep*77);
+//		ww.setDefaultHorizontalRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
-			Panel wp = new Panel(ww, true);
+			Panel wp = new Panel(ww, Analysis.ANALYSIS_TRANS);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
-				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
+				AnalogSignal as = (AnalogSignal)an.getSignals().get(j);
 				WaveSignal wsig = new WaveSignal(wp, as);
 			}
 		}
@@ -690,8 +692,8 @@ public class DebugMenus {
         private final int signalIndex;
         private final double timeStep;
         
-        private IntervalAnalogSignal(Stimuli sd, double timeStep, int signalIndex) {
-            super(sd);
+        private IntervalAnalogSignal(Analysis an, double timeStep, int signalIndex) {
+            super(an);
             this.signalIndex = signalIndex;
             this.timeStep = timeStep;
             setSignalName("Signal"+(signalIndex+1));
@@ -724,29 +726,30 @@ public class DebugMenus {
 	{
 		// make the interval waveform data
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
         final double timeStep = 0.0000000001;
 		for(int i=0; i<6; i++)
 		{
-			AnalogSignal as = new IntervalAnalogSignal(sd, timeStep, i);
+			AnalogSignal as = new IntervalAnalogSignal(an, timeStep, i);
 		}
 		sd.setCell(null);
 
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		WaveformWindow ww = (WaveformWindow)wf.getContent();
-		ww.setMainXPositionCursor(timeStep*22);
-		ww.setExtensionXPositionCursor(timeStep*77);
-		ww.setDefaultHorizontalRange(0, timeStep*100);
+//		ww.setMainXPositionCursor(timeStep*22);
+//		ww.setExtensionXPositionCursor(timeStep*77);
+//		ww.setDefaultHorizontalRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		int k = 0;
 		for(int i=0; i<3; i++)
 		{
-			Panel wp = new Panel(ww, true);
+			Panel wp = new Panel(ww, Analysis.ANALYSIS_SIGNALS);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<=i; j++)
 			{
-				AnalogSignal as = (AnalogSignal)sd.getSignals().get(k++);
+				AnalogSignal as = (AnalogSignal)an.getSignals().get(k++);
 				WaveSignal wsig = new WaveSignal(wp, as);
 			}
 		}

@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -53,8 +54,8 @@ public class EpicOut extends Simulate {
         int sigNum;
         double[] data;
         
-        EpicAnalogSignal(EpicStimuli sd, int sigNum) {
-            super(sd);
+        EpicAnalogSignal(Analysis an, int sigNum) {
+            super(an);
             this.sigNum = sigNum;
         }
         
@@ -68,7 +69,7 @@ public class EpicOut extends Simulate {
         public void getEvent(int sweep, int index, double[] result) {
             if (sweep != 0)
                 throw new IndexOutOfBoundsException();
-            EpicStimuli sd = (EpicStimuli)this.sd;
+            EpicStimuli sd = (EpicStimuli)this.an.getStimuli();
             if (data == null)
                 makeData();
             result[0] = data[index*2];
@@ -91,7 +92,7 @@ public class EpicOut extends Simulate {
         }
         
         private void makeData() {
-            EpicStimuli sd = (EpicStimuli)this.sd;
+            EpicStimuli sd = (EpicStimuli)this.an.getStimuli();
             EpicSignal s = (EpicSignal)sd.reader.signals.get(sigNum);
             double resolution = 1;
             switch (s.type) {
@@ -146,6 +147,7 @@ public class EpicOut extends Simulate {
 	{
         char separator = '.';
         EpicStimuli sd = new EpicStimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_TRANS);
         sd.reader = reader;
         sd.setSeparatorChar(separator);
         sd.timeResolution = reader.timeResolution;
@@ -157,7 +159,7 @@ public class EpicOut extends Simulate {
             if (s == null) continue;
             String name = s.name;
             if (name == null) continue;
-            EpicAnalogSignal as = new EpicAnalogSignal(sd, i);
+            EpicAnalogSignal as = new EpicAnalogSignal(an, i);
             if (name.startsWith("v(") && name.endsWith(")"))
                 name = name.substring(2, name.length() - 1);
             else if (name.startsWith("i(") && name.endsWith(")")) {

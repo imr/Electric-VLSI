@@ -133,8 +133,7 @@ public class WaveSignal
 		controlPointsSelected = null;
 		highlighted = false;
 		String sigName = sSig.getFullName();
-		HashMap<JButton,WaveSignal> signalMap = wavePanel.getSignalMap();
-		if (wavePanel.isAnalog())
+		if (wavePanel.getAnalysisType() != null)
 		{
 			color = colorArray[sigNo % colorArray.length];
 			sigButton = new DragButton(sigName, wavePanel.getPanelNumber());
@@ -142,7 +141,7 @@ public class WaveSignal
 			sigButton.setDefaultCapable(false);
 			sigButton.setForeground(color);
 			wavePanel.getSignalButtons().add(sigButton);
-			signalMap.put(sigButton, this);
+			wavePanel.addSignal(this, sigButton);
 			sigButton.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
@@ -152,7 +151,7 @@ public class WaveSignal
 		{
 			color = new Color(User.getColorWaveformStimuli());
 			wavePanel.getDigitalSignalButton().setText(sigName);
-			signalMap.put(wavePanel.getDigitalSignalButton(), this);
+			wavePanel.addSignal(this, wavePanel.getDigitalSignalButton());
 			sigButton = wavePanel.getDigitalSignalButton();
 			sigButton.setForeground(color);
 		}
@@ -161,27 +160,23 @@ public class WaveSignal
 	public static WaveSignal addSignalToPanel(Signal sSig, Panel panel)
 	{
 		// see if the signal is already there
-		HashMap<JButton,WaveSignal> signalMap = panel.getSignalMap();
-		for(Iterator<JButton> it = signalMap.keySet().iterator(); it.hasNext(); )
+		WaveSignal ws = panel.findWaveSignal(sSig);
+		if (ws != null)
 		{
-			JButton but = (JButton)it.next();
-			WaveSignal ws = (WaveSignal)signalMap.get(but);
-			if (ws.sSig == sSig)
+			// found it already: just change the color
+			Color color = ws.color;
+			int index = 0;
+			for( ; index<colorArray.length; index++)
 			{
-				// found it already: just change the color
-				Color color = ws.color;
-				int index = 0;
-				for( ; index<colorArray.length; index++)
-				{
-					if (color.equals(colorArray[index])) { index++;   break; }
-				}
-				if (index >= colorArray.length) index = 0;
-				ws.color = colorArray[index];
-				but.setForeground(colorArray[index]);
-				panel.getSignalButtons().repaint();
-				panel.repaint();
-				return null;
+				if (color.equals(colorArray[index])) { index++;   break; }
 			}
+			if (index >= colorArray.length) index = 0;
+			ws.color = colorArray[index];
+			JButton but = panel.findButton(ws);
+			but.setForeground(colorArray[index]);
+			panel.getSignalButtons().repaint();
+			panel.repaint();
+			return null;
 		}
 
 		// not found: add it
@@ -215,12 +210,6 @@ public class WaveSignal
 	public double [] getSelectedControlPoints() { return controlPointsSelected; }
 
 	public void clearSelectedControlPoints() { controlPointsSelected = null; }
-
-//	/**
-//	 * Method to tell whether this WaveSignal is highlighted in the waveform window.
-//	 * @return true if this WaveSignal is highlighted in the waveform window.
-//	 */
-//	public boolean isSelected() { return highlighted; }
 
 	public void addSelectedControlPoint(double controlXValue)
 	{
@@ -268,7 +257,7 @@ public class WaveSignal
 	private void signalNameClicked(ActionEvent evt)
 	{
 		JButton signal = (JButton)evt.getSource();
-		WaveSignal ws = (WaveSignal)wavePanel.getSignalMap().get(signal);
+		WaveSignal ws = wavePanel.findWaveSignal(signal);
 		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 		{
 			// standard click: add this as the only trace

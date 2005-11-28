@@ -37,7 +37,7 @@ public class Signal
 {
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
-	/** the Stimuli object in which this Signal resides. */			protected Stimuli sd;
+	/** the Analysis object in which this Signal resides. */		protected Analysis an;
 	/** an array of control points on this signal */				private double [] controlPoints;
 	/** a list of signals on this bussed signal */					private List<Signal> bussedSignals;
 	/** the number of busses that reference this signal */			private int busCount;
@@ -49,14 +49,20 @@ public class Signal
 	 * Constructor for a simulation signal.
 	 * @param sd the Simulation Data object in which this signal will reside.
 	 */
-	protected Signal(Stimuli sd)
+	protected Signal(Analysis an)
 	{
-		this.sd = sd;
+		this.an = an;
 		boundsCurrent = false;
 		controlPoints = null;
 		busCount = 0;
-		if (sd != null) sd.addSignal(this);
+		if (an != null) an.addSignal(this);
 	}
+
+	/**
+	 * Method to return the Analysis in which this signal resides.
+	 * @return the Analysis in which this signal resides.
+	 */
+	public Analysis getAnalysis() { return an; }
 
 	/**
 	 * Method to set the name of this simulation signal.
@@ -66,7 +72,7 @@ public class Signal
 	public void setSignalName(String signalName)
 	{
 		this.signalName = signalName;
-		sd.nameSignal(this, getFullName());
+		an.nameSignal(this, getFullName());
 	}
 
 	/**
@@ -100,7 +106,7 @@ public class Signal
 	 */
 	public String getFullName()
 	{
-		if (signalContext != null) return signalContext + sd.getSeparatorChar() + signalName;
+		if (signalContext != null) return signalContext + an.getStimuli().getSeparatorChar() + signalName;
 		return signalName;
 	}
 
@@ -111,8 +117,8 @@ public class Signal
 	public void buildBussedSignalList()
 	{
 		bussedSignals = new ArrayList<Signal>();
-if (sd == null) System.out.println("SD IS NULL!!!!!!!");
-		sd.getBussedSignals().add(this);
+if (an == null) System.out.println("SD IS NULL!!!!!!!");
+an.getBussedSignals().add(this);
 	}
 
 	/**

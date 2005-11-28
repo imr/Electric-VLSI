@@ -23,9 +23,12 @@
  */
 package com.sun.electric.tool.user.waveform;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -41,18 +44,17 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-
-// ************************************* RULER ALONG THE TOP OF EACH PANEL *************************************
 
 /**
  * This class defines the horizontal ruler display at the top of each Panel.
  */
 public class HorizRuler extends JPanel implements MouseListener
 {
-	Panel wavePanel;
-	WaveformWindow waveWindow;
+	private Panel wavePanel;
+	private WaveformWindow waveWindow;
 
 	// constructor
 	HorizRuler(Panel wavePanel, WaveformWindow waveWindow)
@@ -71,6 +73,20 @@ public class HorizRuler extends JPanel implements MouseListener
 		// a drop target for the ruler panel
 		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 	}
+
+	/**
+	 * Method to return the Panel associated with this HorizRuler.
+	 * If the ruler is the "main" ruler, associated with all panels
+	 * (because time is locked) then this is null.
+	 * @return the Panel associated with this HorizRuler.
+	 */
+	public Panel getPanel() { return wavePanel; }
+
+	/**
+	 * Method to return the WaveformWindow in which this ruler lives.
+	 * @return the WaveformWindow in which this ruler lives.
+	 */
+	public WaveformWindow getWaveformWindow() { return waveWindow; }
 
 	/**
 	 * Method to repaint this HorizRulerPanel.
@@ -95,7 +111,7 @@ public class HorizRuler extends JPanel implements MouseListener
 
 			// because the main horizontal ruler panel needs a Panel (won't work if there aren't any)
 			// have to do complex things to request a repaint after adding the first Panel
-			if (newWid == 0 || waveWindow.getPanelList().size() == 0)
+			if (newWid == 0 || waveWindow.getNumPanels() == 0)
 			{
 				if (waveWindow.isMainHorizRulerNeedsRepaint())
 					repaint();
@@ -105,7 +121,7 @@ public class HorizRuler extends JPanel implements MouseListener
 			if (offX + newWid > wid) newWid = wid - offX;
 			wid = newWid;
 
-			drawHere = (Panel)waveWindow.getPanelList().get(0);
+			drawHere = (Panel)waveWindow.getPanels().next();
 			waveWindow.setMainHorizRulerNeedsRepaint(false);
 			g.setClip(offX, 0, wid, hei);
 		}
@@ -125,13 +141,13 @@ public class HorizRuler extends JPanel implements MouseListener
 		// draw the ruler ticks
 		double displayedLow = drawHere.convertXScreenToData(drawHere.getVertAxisPos());
 		double displayedHigh = drawHere.convertXScreenToData(wid);
-		StepSize ss = StepSize.getSensibleValues(displayedHigh, displayedLow, 10);
-		if (ss.separation == 0.0) return;
-		double xValue = ss.low;
+		StepSize ss = new StepSize(displayedHigh, displayedLow, 10);
+		if (ss.getSeparation() == 0.0) return;
+		double xValue = ss.getLowValue();
 		int lastX = -1;
 		for(;;)
 		{
-			if (xValue > ss.high) break;
+			if (xValue > ss.getHighValue()) break;
 			if (xValue >= displayedLow)
 			{
 				int x = drawHere.convertXDataToScreen(xValue) + offX;
@@ -153,11 +169,11 @@ public class HorizRuler extends JPanel implements MouseListener
 						g.drawLine(intX, hei/2, intX, hei);
 					}
 				}
-				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, "s", ss.stepScale);
+				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, "s", ss.getStepScale());
 				g.drawString(xValueVal, x+2, hei-2);
 				lastX = x;
 			}
-			xValue += ss.separation;
+			xValue += ss.getSeparation();
 		}
 	}
 
@@ -231,10 +247,26 @@ public class HorizRuler extends JPanel implements MouseListener
 		double lowXValue = dataBounds.getMinX();
 		double highXValue = dataBounds.getMaxX();
 
+		boolean notWarned = true;
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			if (!waveWindow.isXAxisLocked() && wp != wavePanel) continue;
+			if (wp.getAnalysisType() == Analysis.ANALYSIS_MEAS)
+			{
+				if (wp.getNumSignals() > 0)
+				{
+					if (notWarned)
+					{
+						notWarned = true;
+						int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+							"Remove all measurement traces in these panels?");
+						if (response != JOptionPane.YES_OPTION) return;
+					}
+					waveWindow.deleteAllSignalsFromPanel(wp);
+				}
+				wp.setAnalysisType(Analysis.ANALYSIS_TRANS);
+			}
 			wp.setXAxisSignal(null);
 			wp.setXAxisRange(lowXValue, highXValue);
 			if (wp.getHorizRuler() != null) wp.getHorizRuler().repaint();

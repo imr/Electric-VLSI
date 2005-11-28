@@ -23,15 +23,49 @@
  */
 package com.sun.electric.tool.user.waveform;
 
+/**
+ * Class to determine a sensible range of values to display for a given real range.
+ * Used by rulers, which want to display properly "gridded" values.
+ */
 public class StepSize
 {
-	double separation;
-	double low, high;
-	int rangeScale;
-	int stepScale;
+	private double separation;
+	private double low, high;
+	private int rangeScale;
+	private int stepScale;
 
 	/**
-	 * Method to analyze a range of values and determine sensible displayable values.
+	 * Method to return the low value to display for this range.
+	 * @return the low value to display for this range.
+	 */
+	public double getLowValue() { return low; }
+
+	/**
+	 * Method to return the high value to display for this range.
+	 * @return the high value to display for this range.
+	 */
+	public double getHighValue() { return high; }
+
+	/**
+	 * Method to return the separation between ticks in this range.
+	 * @return the separation between ticks in this range.
+	 */
+	public double getSeparation() { return separation; }
+
+	/**
+	 * Method to return the power of 10 used for steps in this range.
+	 * @return the power of 10 used for steps in this range.
+	 */
+	public int getStepScale() { return stepScale; }
+
+	/**
+	 * Method to return the power of 10 used for this range.
+	 * @return the power of 10 used for this range.
+	 */
+	public int getRangeScale() { return rangeScale; }
+
+	/**
+	 * Constructor to analyze a range of values and determine sensible displayable values.
 	 * @param h the high value in the range.
 	 * @param l the low value in the range.
 	 * @param n the number of steps in the range.
@@ -39,29 +73,28 @@ public class StepSize
 	 * as well as the integers rangeScale and stepScale, which are the
 	 * powers of 10 that belong to the largest value in the interval and the step size.
 	 */
-	public static StepSize getSensibleValues(double h, double l, int n)
+	public StepSize(double h, double l, int n)
 	{
-		StepSize ss = new StepSize();
-		ss.low = l;   ss.high = h;
-		ss.rangeScale = ss.stepScale = 0;
+		low = l;   high = h;
+		rangeScale = stepScale = 0;
 
 		double range = Math.max(Math.abs(l), Math.abs(h));
 		if (range == 0.0)
 		{
-			ss.separation = 0;
-			return ss;
+			separation = 0;
+			return;
 		}
 
 		// determine powers of ten in the range
-		while ( range >= 10.0 ) { range /= 10.0;   ss.rangeScale++; }
-		while ( range <= 1.0  ) { range *= 10.0;   ss.rangeScale--; }
+		while ( range >= 10.0 ) { range /= 10.0;   rangeScale++; }
+		while ( range <= 1.0  ) { range *= 10.0;   rangeScale--; }
 
 		// determine powers of ten in the step size
 		double d = Math.abs(h - l)/(double)n;
 		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1;
 		int mp = 0;
-		while ( d >= 10.0 ) { d /= 10.0;   mp++;   ss.stepScale++; }
-		while ( d <= 1.0  ) { d *= 10.0;   mp--;   ss.stepScale--; }
+		while ( d >= 10.0 ) { d /= 10.0;   mp++;   stepScale++; }
+		while ( d <= 1.0  ) { d *= 10.0;   mp--;   stepScale--; }
 		double m = Math.pow(10, mp);
 
 		int di = (int)d;
@@ -77,9 +110,8 @@ public class StepSize
 		hi = (hi/di) * di;
 		if (li < 0) li -= di;
 		if (hi > 0) hi += di;
-		ss.low = (double)li * m;
-		ss.high = (double)hi * m;
-		ss.separation = di * m;
-		return ss;
+		low = (double)li * m;
+		high = (double)hi * m;
+		separation = di * m;
 	}
 }

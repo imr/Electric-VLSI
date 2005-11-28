@@ -34,9 +34,12 @@ public class AnalogSignal extends TimedSignal
 
 	/**
 	 * Constructor for an analog signal.
-	 * @param sd the Simulation Data object in which this signal will reside.
+	 * @param an the Analysis object in which this signal will reside.
 	 */
-	public AnalogSignal(Stimuli sd) { super(sd); }
+	public AnalogSignal(Analysis an)
+	{
+		super(an);
+	}
 
 	/**
 	 * Method to initialize this as a basic simulation signal with a specified number of events.

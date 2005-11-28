@@ -60,149 +60,40 @@ public class Stimuli
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the type of data in this Stimuli */						private FileType type;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
-	/** a list of all signals in this Stimuli */				private List<Signal> signals;
-	/** a map of all signal names in this Stimuli */			private HashMap<String,Signal> signalNames;
-	/** a list of all bussed signals in this Stimuli */			private List<Signal> allBussedSignals;
-	/** all sweeps in this Stimuli */							private List<Object> sweeps;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the common time array (if there is common time) */		private double [] commonTime;
-	/** a list of time arrays for each sweep */					private List<double[]> sweepCommonTime;
-	/** a List of measurements */								private List<Measurement> measurements;
+	/** the analyses in this Stimuli */							private HashMap<Analysis.AnalysisType,Analysis> analyses;
+	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
 
 	/**
 	 * Constructor to build a new Simulation Data object.
 	 */
 	public Stimuli()
 	{
-		signals = new ArrayList<Signal>();
-		signalNames = new HashMap<String,Signal>();
-		sweeps = new ArrayList<Object>();
-		allBussedSignals = new ArrayList<Signal>();
-		sweepCommonTime = new ArrayList<double[]>();
 		separatorChar = '.';
-		measurements = null;
+		analyses = new HashMap<Analysis.AnalysisType,Analysis>();
+		analysisList = new ArrayList<Analysis>();
 	}
 
-	/**
-	 * Method to get the list of signals in this Simulation Data object.
-	 * @return a List of signals.
-	 */
-	public List<Signal> getSignals() { return signals; }
-
-	/**
-	 * Method to get the list of bussed signals in this Simulation Data object.
-	 * @return a List of signals.
-	 */
-	public List<Signal> getBussedSignals() { return allBussedSignals; }
-
-	public void nameSignal(Signal ws, String sigName)
+	public void addAnalysis(Analysis an)
 	{
-		String name = TextUtils.canonicString(sigName);
-		signalNames.put(name, ws);
-
-		// simulators may strip off last "_"
-		if (name.indexOf('_') >= 0 && !name.endsWith("_"))
-			signalNames.put(name + "_", ws);
+		analyses.put(an.getAnalysisType(), an);
+		analysisList.add(an);
 	}
 
 	/**
-	 * Method to add a new signal to this Simulation Data object.
-	 * Signals can be either digital or analog.
-	 * @param ws the signal to add.
-	 * Instead of a "Signal", use either DigitalSignal or AnalogSignal.
+	 * Method to find an Analysis of a given type.
+	 * @param type the stimulus type being queried.
+	 * @return the Analysis of that type (null if not found).
 	 */
-	public void addSignal(Signal ws)
+	public Analysis findAnalysis(Analysis.AnalysisType type)
 	{
-		signals.add(ws);
-		String sigName = ws.getFullName();
-		if (sigName != null) nameSignal(ws, sigName);
+		Analysis an = analyses.get(type);
+		return an;
 	}
 
-	/**
-	 * Method to construct an array of time values that are common to all signals.
-	 * Some simulation data has all of its stimuli at the same time interval for every signal.
-	 * To save space, such data can use a common time array, kept in the Simulation Data.
-	 * If a signal wants to use its own time values, that can be done by placing the time
-	 * array in the signal.
-	 * @param numEvents the number of time events in the common time array.
-	 */
-	public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
+	public int getNumAnalyses() { return analysisList.size(); }
 
-	/**
-	 * Method to construct an array of time values that are common to all signals, but different
-	 * for the next sweep.
-	 * This method must be called in the order of sweeps.
-	 * Some simulation data has all of its stimuli at the same time interval for every signal.
-	 * To save space, such data can use a common time array, kept in the Simulation Data.
-	 * If a signal wants to use its own time values, that can be done by placing the time
-	 * array in the signal.
-	 * @param numEvents the number of time events in the common time array.
-	 */
-	public void addCommonTime(int numEvents)
-	{
-		double [] sct = new double[numEvents];
-		sweepCommonTime.add(sct);
-	}
-
-	/**
-	 * Method to load an entry in the common time array.
-	 * @param index the entry number.
-	 * @param time the time value at
-	 */
-	public void setCommonTime(int index, double time) { commonTime[index] = time; }
-
-	/**
-	 * Method to get the array of time entries for this signal.
-	 * @return the array of time entries for this signal.
-	 */
-	public double [] getCommonTimeArray() { return commonTime; }
-
-	/**
-	 * Method to load an entry in the common time array for a particular sweep.
-	 * @param index the entry number.
-	 * @param sweep the sweep number.
-	 * @param time the time value at
-	 */
-	public void setCommonTime(int index, int sweep, double time)
-	{
-		double [] sct = (double [])sweepCommonTime.get(sweep);
-		sct[index] = time;
-	}
-
-	/**
-	 * Method to get the array of time entries for a sweep on this signal.
-	 * @param sweep the sweep number.
-	 * @return the array of time entries for a sweep on this signal.
-	 */
-	public double [] getCommonTimeArray(int sweep) { return (double [])sweepCommonTime.get(sweep); }
-
-	/**
-	 * Method to add information about another sweep in this simulation data.
-	 * @param obj sweep information (typically a Double).
-	 */
-	public void addSweep(Object obj) { sweeps.add(obj); }
-
-	/**
-	 * Method to return the list of sweep information in this simulation data.
-	 * @return a list of sweep information in this simulation data.
-	 * If there is no sweep information, the list is empty.
-	 */
-	public List<Object> getSweepList() { return sweeps; }
-	
-	/**
-	 * Method to set the measurement data on this Stimuli.
-	 * @param data a List of Measurement objects.
-	 */
-	public void setMeasurementData(List<Measurement> data)
-	{
-		measurements = data;
-	}
-
-	/**
-	 * Method to get the measurements.
-	 * @return a List of measurements.
-	 */
-	public List<Measurement> getMeasurements() { return measurements; }
+	public Iterator<Analysis> getAnalyses() { return analysisList.iterator(); }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.
@@ -294,19 +185,17 @@ public class Stimuli
 	public Rectangle2D getBounds()
 	{
 		// determine extent of the data
-		Rectangle2D bounds = new Rectangle2D.Double();
-		boolean first = true;
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		Rectangle2D bounds = null;
+		for(Iterator<Analysis> it = analysisList.iterator(); it.hasNext(); )
 		{
-			Signal sig = (Signal)it.next();
-			Rectangle2D sigBounds = sig.getBounds();
-			if (first)
+			Analysis an = it.next();
+			Rectangle2D anBounds = an.getBounds();
+			if (bounds == null)
 			{
-				bounds = sigBounds;
-				first = false;
+				bounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 			} else
 			{
-				Rectangle2D.union(bounds, sigBounds, bounds);
+				Rectangle2D.union(bounds, anBounds, bounds);
 			}
 		}
 		return bounds;
@@ -318,74 +207,16 @@ public class Stimuli
 	 */
 	public boolean isAnalog()
 	{
-		if (getSignals().size() > 0)
+		for(Iterator<Analysis> it = analysisList.iterator(); it.hasNext(); )
 		{
-			TimedSignal sSig = (TimedSignal)getSignals().get(0);
-			if (sSig instanceof AnalogSignal) return true;
+			Analysis an = it.next();
+			if (an.getSignals().size() > 0)
+			{
+				Signal sSig = (Signal)an.getSignals().get(0);
+				if (sSig instanceof AnalogSignal) return true;
+			}
 		}
 		return false;
-	}
-
-	/**
-	 * Method to quickly return the signal that corresponds to a given Network name.
-	 * Not all names may be found (because of name mangling, which this method does not handle).
-	 * But the lookup is faster than "findSignalForNetwork".
-	 * @param netName the Network name to find.
-	 * @return the Signal that corresponds with the Network.
-	 * Returns null if none can be found.
-	 */
-	public Signal findSignalForNetworkQuickly(String netName)
-	{
-		String lookupName = TextUtils.canonicString(netName);
-		Signal sSig = (Signal)signalNames.get(lookupName);
-		return sSig;
-	}
-
-	/**
-	 * Method to return the signal that corresponds to a given Network name.
-	 * @param netName the Network name to find.
-	 * @return the Signal that corresponds with the Network.
-	 * Returns null if none can be found.
-	 */
-	public Signal findSignalForNetwork(String netName)
-	{
-		return findSignalForNetworkQuickly(netName);
-//		// look at all signal names in the cell
-//		for(Iterator it = getSignals().iterator(); it.hasNext(); )
-//		{
-//			Signal sSig = (Signal)it.next();
-//
-//			String signalName = sSig.getFullName();
-//			if (netName.equalsIgnoreCase(signalName)) return sSig;
-//
-//			// if the signal name has underscores, see if all alphabetic characters match
-//			if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
-//			{
-//				signalName += "_";
-//			}
-//			if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
-//			{
-//				boolean matches = true;
-//				for(int i=0; i<signalName.length(); i++)
-//				{
-//					char sigChar = signalName.charAt(i);
-//					char netChar = netName.charAt(i);
-//					if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar))
-//					{
-//						matches = false;
-//						break;
-//					}
-//					if (TextUtils.isLetterOrDigit(sigChar) &&
-//						TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar))
-//					{
-//						matches = false;
-//						break;
-//					}
-//				}
-//				if (matches) return sSig;
-//			}
-//		}
-//		return null;
 	}
 
 	/**

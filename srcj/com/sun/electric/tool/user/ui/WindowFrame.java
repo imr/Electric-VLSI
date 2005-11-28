@@ -96,8 +96,13 @@ public class WindowFrame extends Observable
 	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
 	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
-	/** the signal explorer part. */					public DefaultMutableTreeNode signalExplorerNode;
-	/** the sweep explorer part. */						public DefaultMutableTreeNode sweepExplorerNode;
+	/** the generic signal explorer part. */			public DefaultMutableTreeNode genSignalExplorerNode;
+	/** the transient signal explorer part. */			public DefaultMutableTreeNode transSignalExplorerNode;
+	/** the transient sweep explorer part. */			public DefaultMutableTreeNode transSweepExplorerNode;
+	/** the DC signal explorer part. */					public DefaultMutableTreeNode dcSignalExplorerNode;
+	/** the DC sweep explorer part. */					public DefaultMutableTreeNode dcSweepExplorerNode;
+	/** the AC signal explorer part. */					public DefaultMutableTreeNode acSignalExplorerNode;
+	/** the AC sweep explorer part. */					public DefaultMutableTreeNode acSweepExplorerNode;
 	/** the measurement explorer part. */				public DefaultMutableTreeNode measurementExplorerNode;
 	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
     /** true if this window is finished */              private boolean finished = false;
@@ -654,8 +659,13 @@ public class WindowFrame extends Observable
 		// rebuild the tree
 		rootNode.removeAllChildren();
 		if (libraryExplorerNode != null) rootNode.add(libraryExplorerNode);
-		if (signalExplorerNode != null) rootNode.add(signalExplorerNode);
-		if (sweepExplorerNode != null) rootNode.add(sweepExplorerNode);
+		if (genSignalExplorerNode != null) rootNode.add(genSignalExplorerNode);
+		if (transSignalExplorerNode != null) rootNode.add(transSignalExplorerNode);
+		if (transSweepExplorerNode != null) rootNode.add(transSweepExplorerNode);
+		if (acSignalExplorerNode != null) rootNode.add(acSignalExplorerNode);
+		if (acSweepExplorerNode != null) rootNode.add(acSweepExplorerNode);
+		if (dcSignalExplorerNode != null) rootNode.add(dcSignalExplorerNode);
+		if (dcSweepExplorerNode != null) rootNode.add(dcSweepExplorerNode);
 		if (measurementExplorerNode != null) rootNode.add(measurementExplorerNode);
 		rootNode.add(jobExplorerNode);
 		rootNode.add(errorExplorerNode);

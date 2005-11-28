@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04b: *********************************
 
+IMP/MAN: (11/28/05, SMR) Waveform window can handle many types of analysis (transient,
+     AC, DC, and Measurements).  HSpice reads them.
+
 IMP: (11/22/05, GVG) Changes to get rid of DISPLAY dependency while running with -batch.
 
 IMP: (11/21/05, SMR) Refactored the waveform window.

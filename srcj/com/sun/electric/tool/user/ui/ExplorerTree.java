@@ -31,8 +31,10 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.project.Project;
-import com.sun.electric.tool.simulation.Measurement;
+import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
@@ -122,12 +124,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconSweeps = null;
 	private static ImageIcon iconMeasurements = null;
-//	private static ImageIcon iconViewIcon = null;
-//	private static ImageIcon iconViewLayout = null;
 	private static ImageIcon iconViewMultiPageSchematics = null;
-//	private static ImageIcon iconViewSchematics = null;
-//	private static ImageIcon iconViewMisc = null;
-//	private static ImageIcon iconViewText = null;
 	private static ImageIcon iconSpiderWeb = null;
 	private static ImageIcon iconLocked = null;
 	private static ImageIcon iconUnlocked = null;
@@ -563,8 +560,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			// Get the Transferable Object
 			Signal sSig = (Signal)selectedNode.getUserObject();
 			String sigName = sSig.getFullName();
-			if (selectedNode.getUserObject() instanceof Measurement)
-				sigName = "MEASUREMENT " + sigName;
+			if (sSig instanceof AnalogSignal)
+			{
+				AnalogSignal as = (AnalogSignal)sSig;
+				if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
+					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+			}
 			Transferable transferable = new StringSelection(sigName);
 
 			// begin the drag
@@ -705,12 +707,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (iconErrors == null)
 						iconErrors = Resources.getResource(getClass(), "IconErrors.gif");
 					setIcon(iconErrors);
-				} else if (theString.equalsIgnoreCase("signals"))
+				} else if (theString.equalsIgnoreCase("trans signals") || theString.equalsIgnoreCase("ac signals") ||
+					theString.equalsIgnoreCase("dc signals"))
 				{
 					if (iconSignals == null)
 						iconSignals = Resources.getResource(getClass(), "IconSignals.gif");
 					setIcon(iconSignals);
-				} else if (theString.equalsIgnoreCase("sweeps"))
+				} else if (theString.equalsIgnoreCase("trans sweeps") || theString.equalsIgnoreCase("ac sweeps") ||
+					theString.equalsIgnoreCase("dc sweeps"))
 				{
 					if (iconSweeps == null)
 						iconSweeps = Resources.getResource(getClass(), "IconSweeps.gif");
@@ -1249,7 +1253,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (selectedObject instanceof String)
 			{
 				String msg = (String)selectedObject;
-				if (msg.equalsIgnoreCase("sweeps"))
+				if (msg.toLowerCase().endsWith("sweeps"))
 				{
 					JPopupMenu menu = new JPopupMenu("All Sweeps");
 

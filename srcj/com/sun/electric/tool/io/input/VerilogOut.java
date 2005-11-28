@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
@@ -87,6 +88,7 @@ public class VerilogOut extends Simulate
 		throws IOException
 	{
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
@@ -125,7 +127,7 @@ public class VerilogOut extends Simulate
 				if (scope.equals("module") || scope.equals("task") || scope.equals("function"))
 				{
 					// scan for arrays
-					cleanUpScope(curArray, sd);
+					cleanUpScope(curArray, an);
 					curArray = new ArrayList<DigitalSignal>();
 
 					String scopeName = getNextKeyword();
@@ -148,7 +150,7 @@ public class VerilogOut extends Simulate
 				}
 
 				// scan for arrays
-				cleanUpScope(curArray, sd);
+				cleanUpScope(curArray, an);
 				curArray = new ArrayList<DigitalSignal>();
 
 				int dotPos = currentScope.lastIndexOf('.');
@@ -191,7 +193,7 @@ public class VerilogOut extends Simulate
 					}
 					numSignals++;
 
-					DigitalSignal sig = new DigitalSignal(sd);
+					DigitalSignal sig = new DigitalSignal(an);
 					sig.setSignalName(signalName + index);
 					sig.setSignalContext(currentScope);
 					dataMap.put(sig, new ArrayList<VerilogStimuli>());
@@ -201,7 +203,7 @@ public class VerilogOut extends Simulate
 						curArray.add(sig);
 					} else
 					{
-						sd.addSignal(sig);
+						an.addSignal(sig);
 					}
 
 					if (width > 1)
@@ -211,7 +213,7 @@ public class VerilogOut extends Simulate
 						sig.buildBussedSignalList();
 						for(int i=0; i<width; i++)
 						{
-							DigitalSignal subSig = new DigitalSignal(sd);
+							DigitalSignal subSig = new DigitalSignal(an);
 							subSig.setSignalName(signalName + "[" + i + "]");
 							subSig.setSignalContext(currentScope);
 							dataMap.put(subSig, new ArrayList<VerilogStimuli>());
@@ -357,7 +359,7 @@ public class VerilogOut extends Simulate
 
 		// remove singular top-level signal name
 		String singularPrefix = null;
-		for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = an.getSignals().iterator(); it.hasNext(); )
 		{
 			Signal sSig = (Signal)it.next();
 			String context = sSig.getSignalContext();
@@ -372,7 +374,7 @@ public class VerilogOut extends Simulate
 		if (singularPrefix != null)
 		{
 			int len = singularPrefix.length();
-			for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
+			for(Iterator<Signal> it = an.getSignals().iterator(); it.hasNext(); )
 			{
 				Signal sSig = (Signal)it.next();
 				String context = sSig.getSignalContext();
@@ -383,7 +385,7 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private void cleanUpScope(List<DigitalSignal> curArray, Stimuli sd)
+	private void cleanUpScope(List<DigitalSignal> curArray, Analysis an)
 	{
 		if (curArray == null) return;
 
@@ -410,7 +412,7 @@ public class VerilogOut extends Simulate
 			{
 				if (last.equals(purename)) lastIndex = index; else
 				{
-					DigitalSignal arraySig = new DigitalSignal(sd);
+					DigitalSignal arraySig = new DigitalSignal(an);
 					arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
 					arraySig.setSignalContext(scope);
 					arraySig.buildBussedSignalList();
@@ -426,7 +428,7 @@ public class VerilogOut extends Simulate
 		}
 		if (last != null)
 		{
-			DigitalSignal arraySig = new DigitalSignal(sd);
+			DigitalSignal arraySig = new DigitalSignal(an);
 			arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
 			arraySig.setSignalContext(scope);
 			arraySig.buildBussedSignalList();

@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
@@ -102,6 +103,7 @@ public class ArchSimOut extends Simulate
 
 		// make a data structure for it
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 		for(Iterator<String> it = symbolTable.keySet().iterator(); it.hasNext(); )
 		{
@@ -109,7 +111,7 @@ public class ArchSimOut extends Simulate
 			List<Point> values = (List<Point>)symbolTable.get(signalName);
 
 			int numStimuli = values.size();
-			DigitalSignal sig = new DigitalSignal(sd);
+			DigitalSignal sig = new DigitalSignal(an);
 			sig.setSignalName(signalName);
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);

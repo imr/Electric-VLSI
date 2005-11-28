@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
@@ -72,6 +73,7 @@ public class RawSpiceOut extends Simulate
 		int numSignals = -1;
 		int eventCount = -1;
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 		AnalogSignal [] signals = null;
 		for(;;)
@@ -112,7 +114,7 @@ public class RawSpiceOut extends Simulate
 				signals = new AnalogSignal[numSignals];
 				for(int i=0; i<numSignals; i++)
 				{
-					signals[i] = new AnalogSignal(sd);
+					signals[i] = new AnalogSignal(an);
 				}
 				continue;
 			}
@@ -120,7 +122,7 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Points"))
 			{
 				eventCount = TextUtils.atoi(postColon);
-				sd.buildCommonTime(eventCount);
+				an.buildCommonTime(eventCount);
 				for(int i=0; i<numSignals; i++)
 					signals[i].buildValues(eventCount);
 				continue;
@@ -196,7 +198,7 @@ public class RawSpiceOut extends Simulate
 							while (TextUtils.isDigit(line.charAt(0))) line = line.substring(1);
 						}
 						line = line.trim();
-						if (i == 0) sd.setCommonTime(j, TextUtils.atof(line)); else
+						if (i == 0) an.setCommonTime(j, TextUtils.atof(line)); else
 							signals[i-1].setValue(j, TextUtils.atof(line));
 					}
 				}
@@ -217,7 +219,7 @@ public class RawSpiceOut extends Simulate
 				// read the data
 				for(int j=0; j<eventCount; j++)
 				{
-					sd.setCommonTime(j, dataInputStream.readDouble());
+					an.setCommonTime(j, dataInputStream.readDouble());
 					for(int i=0; i<numSignals; i++)
 						signals[i].setValue(j, dataInputStream.readDouble());
 				}

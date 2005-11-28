@@ -574,12 +574,21 @@ public class View3DWindow extends JPanel
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
 	{
 		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		wf.jobExplorerNode = Job.getExplorerTree();
-		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
-		wf.signalExplorerNode = null;
 		rootNode.add(wf.libraryExplorerNode);
+		wf.jobExplorerNode = Job.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
+		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);
+
+		// no simulation data
+		wf.genSignalExplorerNode = null;
+		wf.transSignalExplorerNode = null;
+		wf.transSweepExplorerNode = null;
+		wf.acSignalExplorerNode = null;
+		wf.acSweepExplorerNode = null;
+		wf.dcSignalExplorerNode = null;
+		wf.dcSweepExplorerNode = null;
+		wf.measurementExplorerNode = null;
 	}
 
 	/**

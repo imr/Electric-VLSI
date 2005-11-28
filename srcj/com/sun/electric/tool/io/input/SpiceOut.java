@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
@@ -183,19 +184,20 @@ public class SpiceOut extends Simulate
 		}
 
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 
 		// convert lists to arrays
 		int numEvents = allNumbers.size();
-		sd.buildCommonTime(numEvents);
+		an.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
 			List<Double> row = (List<Double>)allNumbers.get(i);
-			sd.setCommonTime(i, ((Double)row.get(0)).doubleValue());
+			an.setCommonTime(i, ((Double)row.get(0)).doubleValue());
 		}
 		for(int j=0; j<mostSignals; j++)
 		{
-			AnalogSignal as = new AnalogSignal(sd);
+			AnalogSignal as = new AnalogSignal(an);
 			as.setSignalName("Signal " + (j+1));
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)

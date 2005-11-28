@@ -27,6 +27,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
@@ -171,6 +172,7 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
+	/** the analysis data being displayed */		private Analysis       analysis;
     /** the cell being simulated */					private Cell           cell;
     /** the context for the cell being simulated */	private VarContext     context;
     /** the name of the file being simulated */		private String         fileName;
@@ -221,9 +223,8 @@ public class Analyzer extends Engine
 				// Load network
 				if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
 					System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-				Stimuli sd = analyzer.getCircuit();
-				sd.setDataType(FileType.IRSIM);
-				sd.setEngine(analyzer);
+				analyzer.loadCircuit();
+				Stimuli sd = analyzer.analysis.getStimuli();
 	 			Simulation.showSimulationData(sd, null);
 
 	 			// make a waveform window
@@ -261,7 +262,7 @@ public class Analyzer extends Engine
 		updateWindow(theSim.curDelta);
 	}
 
-	private Stimuli getCircuit()
+	private void loadCircuit()
 	{
 		// Load network
 		List<Object> components = null;
@@ -275,10 +276,13 @@ public class Analyzer extends Engine
 			// get a pointer to to the file with the network (.sim file)
 			fileURL = TextUtils.makeURLToFile(fileName);
 		}
-		if (theSim.readNetwork(fileURL, components)) return null;
+		if (theSim.readNetwork(fileURL, components)) return;
 
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
+		sd.setDataType(FileType.IRSIM);
+		sd.setEngine(this);
+		analysis = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
@@ -287,7 +291,7 @@ public class Analyzer extends Engine
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
 
 			// make a signal for it
-			DigitalSignal sig = new DigitalSignal(sd);
+			DigitalSignal sig = new DigitalSignal(analysis);
 			n.sig = sig;
 			int slashPos = n.nName.lastIndexOf('/');
 			if (slashPos >= 0)
@@ -307,7 +311,6 @@ public class Analyzer extends Engine
 			sig.setState(0, 0);
 			sig.setState(1, 0);
 		}
-		return sd;
 	}
 
 	/**
@@ -540,8 +543,8 @@ public class Analyzer extends Engine
 		initRSim();
 
 		// Load network
-		Stimuli sd = getCircuit();
-		Simulation.showSimulationData(sd, ww);
+		loadCircuit();
+		Simulation.showSimulationData(analysis.getStimuli(), ww);
 
 		if (vectorFileName != null) loadVectorFile();
 		init();
@@ -714,7 +717,7 @@ public class Analyzer extends Engine
 					for(Iterator<Signal> it = sigs.iterator(); it.hasNext(); )
 					{
 						Signal sig = (Signal)it.next();
-						Panel wp = new Panel(ww, false);
+						Panel wp = new Panel(ww, null);
 						wp.makeSelectedPanel();
 						new WaveSignal(wp, sig);
 					}
@@ -727,7 +730,7 @@ public class Analyzer extends Engine
 					// find this vector name in the list of vectors
 					DigitalSignal busSig = null;
 					Stimuli sd = ww.getSimData();
-					for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
+					for(Iterator<Signal> it = analysis.getBussedSignals().iterator(); it.hasNext(); )
 					{
 						DigitalSignal sig = (DigitalSignal)it.next();
 						if (sig.getSignalName().equals(targ[1]))
@@ -739,7 +742,7 @@ public class Analyzer extends Engine
 					}
 					if (busSig == null)
 					{
-						busSig = new DigitalSignal(sd);
+						busSig = new DigitalSignal(analysis);
 						busSig.setSignalName(targ[1]);
 						busSig.buildBussedSignalList();
 					}
@@ -1134,7 +1137,7 @@ public class Analyzer extends Engine
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Iterator<Signal> it = ww.getSimData().getSignals().iterator(); it.hasNext(); )
+				for(Iterator<Signal> it = analysis.getSignals().iterator(); it.hasNext(); )
 				{
 					Signal sig = (Signal)it.next();
 					if (strMatch(name, sig.getFullName()))
@@ -2183,8 +2186,7 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		Stimuli sd = ww.getSimData();
-		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = analysis.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			Sim.Node b = (Sim.Node)sig.getAppObject();
@@ -2666,8 +2668,7 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
-		Stimuli sd = ww.getSimData();
-		for(Iterator<Signal> it = sd.getBussedSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = analysis.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			Sim.Node b = (Sim.Node)sig.getAppObject();
@@ -2713,8 +2714,7 @@ public class Analyzer extends Engine
 
 	private Signal findName(String name)
 	{
-		Stimuli sd = ww.getSimData();
-		for(Iterator<Signal> it = sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = analysis.getSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
 			if (sig.getFullName().equals(name)) return sig;

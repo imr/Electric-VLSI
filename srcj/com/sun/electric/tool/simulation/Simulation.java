@@ -634,26 +634,37 @@ public class Simulation extends Listener
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		ww = (WaveformWindow)wf.getContent();
 
-		// set bounds of the window from extent of the data
-		Rectangle2D bounds = sd.getBounds();
-		double lowTime = bounds.getMinX();
-		double highTime = bounds.getMaxX();
-		double lowValue = bounds.getMinY();
-		double highValue = bounds.getMaxY();
-		double timeRange = highTime - lowTime;
-		ww.setMainXPositionCursor(timeRange*0.2 + lowTime);
-		ww.setExtensionXPositionCursor(timeRange*0.8 + lowTime);
-		ww.setDefaultHorizontalRange(lowTime, highTime);
-
 		// if the data has an associated cell, see if that cell remembers the signals that were in the waveform window
 		if (sd.getCell() != null)
 		{
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
 			boolean isAnalog = sd.isAnalog();
 			boolean showedSomething = false;
+			boolean haveXAxisSignal = false;
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
+				Analysis an = sd.getAnalyses().next();
+				Signal xAxisSignal = null;
+				if (signalName.startsWith("\t"))
+				{
+					// has panel type and X axis information
+					int openPos = signalName.indexOf('(');
+					int tabPos = signalName.indexOf('\t', 1);
+					if (openPos >= 0) tabPos = openPos;
+					String analysisName = signalName.substring(1, tabPos);
+					Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(analysisName);
+					if (analysisType == null) continue;
+					an = sd.findAnalysis(analysisType);
+					if (an == null) continue;
+					if (openPos >= 0)
+					{
+						int closePos = signalName.indexOf(')');
+						String sigName = signalName.substring(openPos+1, closePos);
+						xAxisSignal = an.findSignalForNetwork(sigName);
+						haveXAxisSignal = true;
+					}
+				}
 				Panel wp = null;
 				boolean firstSignal = true;
 
@@ -668,13 +679,15 @@ public class Simulation extends Listener
 						sigName = signalName.substring(start, tabPos);
 						start = tabPos+1;
 					}
-					Signal sSig = sd.findSignalForNetwork(sigName);
+					Signal sSig = an.findSignalForNetwork(sigName);
 					if (sSig != null)
 					{
 						if (firstSignal)
 						{
 							firstSignal = false;
-							wp = new Panel(ww, isAnalog);
+							wp = new Panel(ww, an.getAnalysisType());
+							if (xAxisSignal != null)
+								wp.setXAxisSignal(xAxisSignal);
 							wp.makeSelectedPanel();
 							showedSomething = true;
 						}
@@ -687,6 +700,7 @@ public class Simulation extends Listener
 			{
 				if (isAnalog)
 				{
+					ww.togglePanelXAxisLock();
 					for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 					{
 						Panel wp = (Panel)it.next();
@@ -717,24 +731,28 @@ public class Simulation extends Listener
 		}
 
 		// nothing saved, so show a default set of signals (if it even exists)
+		Analysis an = sd.getAnalyses().next();
 		if (sd.isAnalog())
 		{
-			Panel wp = new Panel(ww, true);
+			Panel wp = new Panel(ww, an.getAnalysisType());
+			Rectangle2D bounds = an.getBounds();
+			double lowValue = bounds.getMinY();
+			double highValue = bounds.getMaxY();
 			wp.setYAxisRange(lowValue, highValue);
 			wp.makeSelectedPanel();
 		} else
 		{
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
-			makeBussedSignals(sd);
-			List<Signal> allSignals = sd.getSignals();
+			List<Signal> allSignals = an.getSignals();
+			makeBussedSignals(an);
 			for(int i=0; i<allSignals.size(); i++)
 			{
 				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				Panel wp = new Panel(ww, false);
+				Panel wp = new Panel(ww, null);
 				wp.makeSelectedPanel();
 				new WaveSignal(wp, sDSig);
 				numSignals++;
@@ -744,9 +762,9 @@ public class Simulation extends Listener
 		ww.getPanel().validate();
 	}
 
-	private static void makeBussedSignals(Stimuli sd)
+	private static void makeBussedSignals(Analysis an)
 	{
-		List<Signal> signals = sd.getSignals();
+		List<Signal> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
 			Signal sSig = (Signal)signals.get(i);
@@ -779,7 +797,7 @@ public class Simulation extends Listener
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			DigitalSignal busSig = new DigitalSignal(sd);
+			DigitalSignal busSig = new DigitalSignal(an);
 			busSig.setSignalName(prefix);
 			busSig.setSignalContext(sSig.getSignalContext());
 			busSig.buildBussedSignalList();

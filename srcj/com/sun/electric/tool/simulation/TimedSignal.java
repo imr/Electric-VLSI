@@ -39,11 +39,11 @@ public class TimedSignal extends Signal
 
 	/**
 	 * Constructor for a simulation signal.
-	 * @param sd the Stimuli object in which this TimedSignal will reside.
+	 * @param an the Analysis object in which this TimedSignal will reside.
 	 */
-	protected TimedSignal(Stimuli sd)
+	protected TimedSignal(Analysis an)
 	{
-		super(sd);
+		super(an);
 		useCommonTime = true;
 	}
 
@@ -69,7 +69,12 @@ public class TimedSignal extends Signal
 	 */
 	public double getTime(int index)
 	{
-		if (useCommonTime) return sd.getCommonTimeArray()[index];
+		if (useCommonTime)
+		{
+			double [] commonTimeArray = an.getCommonTimeArray();
+			if (commonTimeArray == null) return 0;
+			return commonTimeArray[index];
+		}
 		return time[index];
 	}
 
@@ -84,7 +89,7 @@ public class TimedSignal extends Signal
 	{
 		if (useCommonTime)
 		{
-			double [] sct = (double [])sd.getCommonTimeArray(sweep);
+			double [] sct = (double [])an.getCommonTimeArray(sweep);
 			return sct[index];
 		}
 		return time[index];

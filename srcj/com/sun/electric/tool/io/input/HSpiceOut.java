@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: HSpiceOut.java
- * Input/output tool: reader for HSpice output (tr0,tr1,...)
+ * Input/output tool: reader for HSpice output (tr, pa, ac, sw, mt)
  * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
@@ -27,9 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Measurement;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -40,43 +40,36 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
- * Thease are contained in .trX and .paX files (.pa0/.tr0, .pa1/.tr1, ...)
+ * This includes transient information in .tr and .pa files (.pa0/.tr0, .pa1/.tr1, ...)
+ * It also includes AC analysis in .ac files; DC analysis in .sw files;
+ * and Measurements in .mt files.
  */
 public class HSpiceOut extends Simulate
 {
-	/** true if tr0 file is binary */					private boolean isTR0Binary;
-	/** true if binary trX file has bytes swapped */	private boolean isTR0BinarySwapped;
-	/** the "tr0" file extension (could be tr1...) */	private String tr0Extension;
-	/** the "pa0" file extension (could be pa1...) */	private String pa0Extension;
-	private int binaryTR0Size, binaryTR0Position;
+	/** true if tr/ac/sw file is binary */					private boolean isTRACDCBinary;
+	/** true if binary tr/ac/sw file has bytes swapped */	private boolean isTRACDCBinarySwapped;
+	/** the "tr" file extension (tr0, tr1, ...) */			private String trExtension;
+	/** the "pa" file extension (could be pa1...) */		private String paExtension;
+	private int binaryTRACDCSize, binaryTRACDCPosition;
 	private boolean eofReached;
-	private byte [] binaryTR0Buffer;
+	private byte [] binaryTRACDCBuffer;
 
 	// HSpice name associations from the .paX file
-	private static class PA0Line
+	private static class PALine
 	{
 		int     number;
 		String  string;
 	};
 
-    private static class HSpiceStimuli extends Stimuli {
-        float[][][] data;
+    private static class HSpiceAnalogSignal extends AnalogSignal
+    {
+		float [][] sigData;
 
-        private void getEvent(int sweep, int index, int signalIndex, double[] result) {
-            float[] d = data[sweep][index];
-            result[0] = d[0];
-            result[1] = result[2] = d[signalIndex + 1];
-        }
-    }
-    
-    private static class HSpiceAnalogSignal extends AnalogSignal {
-        int signalIndex;
-
-        HSpiceAnalogSignal(Stimuli sd, int signalIndex) {
-            super(sd);
-            this.signalIndex = signalIndex;
+        HSpiceAnalogSignal(Analysis an)
+        {
+            super(an);
         } 
-        
+
         /**
          * Method to return the value of this signal at a given event index.
          * @param sweep sweep index
@@ -84,10 +77,12 @@ public class HSpiceOut extends Simulate
          * @param result double array of length 3 to return (time, lowValue, highValue)
          * If this signal is not a basic signal, return 0 and print an error message.
          */
-        public void getEvent(int sweep, int index, double[] result) {
-            ((HSpiceStimuli)sd).getEvent(sweep, index, signalIndex, result);
+        public void getEvent(int sweep, int index, double[] result)
+		{
+		  result[0] = getTime(index, sweep);
+          result[1] = result[2] = sigData[sweep][index];
         }
-        
+
         /**
          * Method to return the number of events in one sweep of this signal.
          * This is the number of events along the horizontal axis, usually "time".
@@ -95,8 +90,9 @@ public class HSpiceOut extends Simulate
          * @param sweep the sweep number to query.
          * @return the number of events in this signal.
          */
-        public int getNumEvents(int sweep) {
-            return ((HSpiceStimuli)sd).data[sweep].length;
+        public int getNumEvents(int sweep)
+		{
+			return sigData[sweep].length;
         }
         
         /**
@@ -104,32 +100,38 @@ public class HSpiceOut extends Simulate
          * @return the number of sweeps in this signal.
          * If this signal is not a sweep signal, returns 1.
          */
-        public int getNumSweeps() {
-            return ((HSpiceStimuli)sd).data.length;
+        public int getNumSweeps()
+		{
+			return sigData.length;
         }
     }
     
     HSpiceOut() {}
 
 	/**
-	 * Method to read an HSpice output file.
+	 * Method to read HSpice output files.
 	 */
 	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
-		// the .paX file has name information
-		List<PA0Line> pa0List = readPA0File(fileURL);
+		// create the Stimuli object
+		Stimuli sd = new Stimuli();
+		sd.setCell(cell);
 
-		// show progress reading .trX file
-		startProgressDialog("HSpice output", fileURL.getFile());
+		// the .pa file has name information
+		List<PALine> paList = readPAFile(fileURL);
 
-		// read the actual signal data from the .trX file
-		Stimuli sd = readTR0File(fileURL, pa0List, cell);
+		// read the signal data from the .tr file
+		readTRDCACFile(sd, fileURL, paList, Analysis.ANALYSIS_TRANS);
 
+		// read DC analysis data (.sw file)
+		addDCData(sd, paList, fileURL);
+
+		// read AC analysis data (.ac file)
+		addACData(sd, paList, fileURL);
+
+		// read measurement data (.mt file)
 		addMeasurementData(sd, fileURL);
-
-		// stop progress dialog
-		stopProgressDialog();
 
 		// return the simulation data
 		return sd;
@@ -169,6 +171,7 @@ public class HSpiceOut extends Simulate
         if (!TextUtils.URLExists(mtURL)) return;
 		if (openTextInput(mtURL)) return;
 
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_MEAS);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -234,20 +237,17 @@ public class HSpiceOut extends Simulate
 		}
 
 		// convert this to a list of Measurements
-		List<Measurement> measData = new ArrayList<Measurement>();
+		List<AnalogSignal> measData = new ArrayList<AnalogSignal>();
 		for(Iterator<String> it = measurementNames.iterator(); it.hasNext(); )
 		{
 			String mName = (String)it.next();
 			List<Double> mData = measurementData.get(mName);
-			double [] mValues = new double[mData.size()];
-			for(int i=0; i<mData.size(); i++) mValues[i] = mData.get(i).doubleValue();
-			Measurement m = new Measurement(sd);
-			m.setSignalName(mName);
-			m.setValues(mValues);
-			measData.add(m);
+			AnalogSignal as = new AnalogSignal(an);
+			as.setSignalName(mName);
+			as.buildValues(mData.size());
+			for(int i=0; i<mData.size(); i++) as.setValue(i, mData.get(i).doubleValue());
+			measData.add(as);
 		}
-
-		sd.setMeasurementData(measData);
 
 		closeInput();
 	}
@@ -269,44 +269,118 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to examine the "tr0" file pointer and read the associated "pa0" file.
-	 * These files can also end in "1", "2",...
-	 * As a side effect (oh no) the field variables "tr0Extension" and "pa0Extension"
-	 * are set.
-	 * @param fileURL the URL to the simulation output file ("pa0", "pa1", ...)
-	 * @return a list of PA0Line objects that describe the name mapping file entries.
+	 * Method to find the ".sw" file and read DC data.
+	 * @param sd the Stimuli to add this DC data to.
+	 * @param fileURL the URL to the ".tr" file.
+	 * @throws IOException
 	 */
-	private List<PA0Line> readPA0File(URL fileURL)
+	private void addDCData(Stimuli sd, List<PALine> paList, URL fileURL)
 		throws IOException
 	{
-		// find the associated ".pa" name file
-		String tr0File = fileURL.getFile();
-		tr0Extension = "";
-		pa0Extension = "";
-		String pa0File = tr0File + ".pa0";
-		int dotPos = tr0File.lastIndexOf('.');
+		// find the associated ".sw" name file
+		String trFile = fileURL.getFile();
+		String swFile = trFile + ".sw0";
+		int dotPos = trFile.lastIndexOf('.');
 		if (dotPos > 0)
 		{
-			tr0Extension = tr0File.substring(dotPos+1);
-			if (tr0Extension.length() > 2 && tr0Extension.startsWith("tr"))
+			String trExtension = trFile.substring(dotPos+1);
+			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
 			{
-				pa0Extension = "pa" + tr0Extension.substring(2);
-				pa0File = tr0File.substring(0, dotPos) + "." + pa0Extension;
+				String mtExtension = "sw" + trExtension.substring(2);
+				swFile = trFile.substring(0, dotPos) + "." + mtExtension;
 			}
 		}
 
-		URL pa0URL = null;
+		URL swURL = null;
 		try
 		{
-			pa0URL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), pa0File);
+			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), swFile);
 		} catch (java.net.MalformedURLException e)
 		{
 		}
-		if (pa0URL == null) return null;
-        if (!TextUtils.URLExists(pa0URL)) return null;
-		if (openTextInput(pa0URL)) return null;
+		if (swURL == null) return;
+        if (!TextUtils.URLExists(swURL)) return;
 
-		List<PA0Line> pa0List = new ArrayList<PA0Line>();
+		// process the DC data
+		readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_DC);
+	}
+
+	/**
+	 * Method to find the ".ac" file and read AC data.
+	 * @param sd the Stimuli to add this AC data to.
+	 * @param fileURL the URL to the ".tr" file.
+	 * @throws IOException
+	 */
+	private void addACData(Stimuli sd, List<PALine> paList, URL fileURL)
+		throws IOException
+	{
+		// find the associated ".ac" name file
+		String trFile = fileURL.getFile();
+		String acFile = trFile + ".ac0";
+		int dotPos = trFile.lastIndexOf('.');
+		if (dotPos > 0)
+		{
+			String trExtension = trFile.substring(dotPos+1);
+			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
+			{
+				String mtExtension = "ac" + trExtension.substring(2);
+				acFile = trFile.substring(0, dotPos) + "." + mtExtension;
+			}
+		}
+
+		URL acURL = null;
+		try
+		{
+			acURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), acFile);
+		} catch (java.net.MalformedURLException e)
+		{
+		}
+		if (acURL == null) return;
+        if (!TextUtils.URLExists(acURL)) return;
+
+		// process the AC data
+		readTRDCACFile(sd, acURL, paList, Analysis.ANALYSIS_AC);
+	}
+
+	/**
+	 * Method to examine the "tr" file pointer and read the associated "pa" file.
+	 * These files can end in "0", "1", "2",...
+	 * As a side effect (oh no) the field variables "trExtension" and "paExtension"
+	 * are set.
+	 * @param fileURL the URL to the simulation output file ("pa")
+	 * @return a list of PALine objects that describe the name mapping file entries.
+	 */
+	private List<PALine> readPAFile(URL fileURL)
+		throws IOException
+	{
+		// find the associated ".pa" name file
+		String trFile = fileURL.getFile();
+		trExtension = "";
+		paExtension = "";
+		String paFile = trFile + ".pa0";
+		int dotPos = trFile.lastIndexOf('.');
+		if (dotPos > 0)
+		{
+			trExtension = trFile.substring(dotPos+1);
+			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
+			{
+				paExtension = "pa" + trExtension.substring(2);
+				paFile = trFile.substring(0, dotPos) + "." + paExtension;
+			}
+		}
+
+		URL paURL = null;
+		try
+		{
+			paURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), paFile);
+		} catch (java.net.MalformedURLException e)
+		{
+		}
+		if (paURL == null) return null;
+        if (!TextUtils.URLExists(paURL)) return null;
+		if (openTextInput(paURL)) return null;
+
+		List<PALine> paList = new ArrayList<PALine>();
 		for(;;)
 		{
 			// get line from file
@@ -318,21 +392,26 @@ public class HSpiceOut extends Simulate
 			int spacePos = trimLine.indexOf(' ');
 			if (spacePos > 0)
 			{
-				// save it in a PA0Line object
-				PA0Line pl = new PA0Line();
+				// save it in a PALine object
+				PALine pl = new PALine();
 				pl.number = TextUtils.atoi(trimLine, 0, 10);
 				pl.string = removeLeadingX(trimLine.substring(spacePos+1).trim());
-				pa0List.add(pl);
+				paList.add(pl);
 			}
 		}
 		closeInput();
-		return pa0List;
+		return paList;
 	}
 
-	private Stimuli readTR0File(URL fileURL, List<PA0Line> pa0List, Cell cell)
+	private void readTRDCACFile(Stimuli sd, URL fileURL, List<PALine> paList, Analysis.AnalysisType analysisType)
 		throws IOException
 	{
-		if (openBinaryInput(fileURL)) return null;
+		if (openBinaryInput(fileURL)) return;
+		eofReached = false;
+		resetBinaryTRACDCReader();
+
+		Analysis an = new Analysis(sd, analysisType);
+		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
@@ -363,7 +442,7 @@ public class HSpiceOut extends Simulate
 		for(int j=0; j<76; j++)
 		{
 			int k = getByteFromFile();
-			if (!isTR0Binary && k == '\n') j--;
+			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
 		// ignore the date/time information (16 characters)
@@ -373,7 +452,7 @@ public class HSpiceOut extends Simulate
 		for(int j=0; j<72; j++)
 		{
 			int k = getByteFromFile();
-			if (!isTR0Binary && k == '\n') j--;
+			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
 		// get number of sweeps
@@ -384,7 +463,7 @@ public class HSpiceOut extends Simulate
 		for(int j=0; j<76; j++)
 		{
 			int k = getByteFromFile();
-			if (!isTR0Binary && k == '\n') j--;
+			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
 		// get the type of each signal
@@ -397,14 +476,14 @@ public class HSpiceOut extends Simulate
 			{
 				int l = getByteFromFile();
 				line.append((char)l);
-				if (!isTR0Binary && l == '\n') j--;
+				if (!isTRACDCBinary && l == '\n') j--;
 			}
 			if (k == 0) continue;
 			int l = k - nodcnt;
 			if (k < nodcnt) l = k + numnoi - 1;
 			signalTypes[l] = TextUtils.atoi(line.toString(), 0, 10);
 		}
-		boolean pa0MissingWarned = false;
+		boolean paMissingWarned = false;
 		for(int k=0; k<=numSignals; k++)
 		{
 			int j = 0;
@@ -426,7 +505,7 @@ public class HSpiceOut extends Simulate
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
-				if (!isTR0Binary && i == '\n') { j--;   continue; }
+				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
 			}
 			if (k == 0) continue;
 
@@ -442,25 +521,25 @@ public class HSpiceOut extends Simulate
 			if (j < line.length() && line.charAt(j) == ':')
 			{
 				l = TextUtils.atoi(line.toString().substring(startPos), 0, 10);
-				PA0Line foundPA0Line = null;
-				if (pa0List == null)
+				PALine foundPALine = null;
+				if (paList == null)
 				{
-					if (!pa0MissingWarned)
-						System.out.println("ERROR: there should be a ." + pa0Extension + " file with extra signal names");
-					pa0MissingWarned = true;
+					if (!paMissingWarned)
+						System.out.println("ERROR: there should be a ." + paExtension + " file with extra signal names");
+					paMissingWarned = true;
 				} else
 				{
-					for(Iterator<PA0Line> it = pa0List.iterator(); it.hasNext(); )
+					for(Iterator<PALine> it = paList.iterator(); it.hasNext(); )
 					{
-						PA0Line pa0Line = (PA0Line)it.next();
-						if (pa0Line.number == l) { foundPA0Line = pa0Line;   break; }
+						PALine paLine = (PALine)it.next();
+						if (paLine.number == l) { foundPALine = paLine;   break; }
 					}
 				}
-				if (foundPA0Line != null)
+				if (foundPALine != null)
 				{
 					StringBuffer newSB = new StringBuffer();
 					newSB.append(line.substring(0, startPos));
-					newSB.append(foundPA0Line.string);
+					newSB.append(foundPALine.string);
 					newSB.append(line.substring(j+1));
 					line = newSB;
 				}
@@ -511,13 +590,13 @@ public class HSpiceOut extends Simulate
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
-				if (!isTR0Binary && i == '\n') { j--;   continue; }
+				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
 			}
 		}
 
 		// read the end-of-header marker
 		line = new StringBuffer();
-		if (!isTR0Binary)
+		if (!isTRACDCBinary)
 		{
 			// finish line, ensure the end-of-header
 			for(int j=0; ; j++)
@@ -536,16 +615,17 @@ public class HSpiceOut extends Simulate
 		{
 			System.out.println("HSpice header improperly terminated (got "+line.toString()+")");
 			closeInput();
-			return null;
+			stopProgressDialog();
+			return;
 		}
-		resetBinaryTR0Reader();
+		resetBinaryTRACDCReader();
 
 		// setup the simulation information
-		HSpiceStimuli sd = new HSpiceStimuli();
-		sd.setCell(cell);
+		HSpiceAnalogSignal [] allSignals = new HSpiceAnalogSignal[numSignals];
 		for(int k=0; k<numSignals; k++)
 		{
-			AnalogSignal as = new HSpiceAnalogSignal(sd, k);
+			HSpiceAnalogSignal as = new HSpiceAnalogSignal(an);
+			allSignals[k] = as;
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
@@ -566,7 +646,7 @@ public class HSpiceOut extends Simulate
 			{
 				float sweepValue = getHSpiceFloat();
 				if (eofReached) break;
-				sd.addSweep(new Double(sweepValue));
+				an.addSweep(new Double(sweepValue));
 			}
 
 			// now read the data
@@ -590,6 +670,8 @@ public class HSpiceOut extends Simulate
 				if (eofReached) break;
 				allTheData.add(oneSetOfData);
 			}
+			int numEvents = allTheData.size();
+			an.addCommonTime(numEvents);
 			theSweeps.add(allTheData);
 			sweepCounter--;
 			if (sweepCounter <= 0) break;
@@ -597,36 +679,45 @@ public class HSpiceOut extends Simulate
 		}
 		closeInput();
         
-        // Put data to HSpiceStimuli
-        sd.data = new float[theSweeps.size()][][];
-        for (int i = 0; i < sd.data.length; i++) {
-            ArrayList<float[]> allTheData = (ArrayList<float[]>)theSweeps.get(i);
-            float[][] d = new float[allTheData.size()][];
-            for (int j = 0; j < d.length; j++)
-                d[j] = (float[])allTheData.get(j);
-            sd.data[i] = d;
-        }
-		return sd;
+        // Put data to Stimuli
+		for(int sigNum=0; sigNum<numSignals; sigNum++)
+		{
+			HSpiceAnalogSignal as = allSignals[sigNum];
+			as.sigData = new float[theSweeps.size()][];
+			for(int sweepNum=0; sweepNum<theSweeps.size(); sweepNum++)
+			{
+	            List<float[]> allTheData = (List<float[]>)theSweeps.get(sweepNum);
+				as.sigData[sweepNum] = new float[allTheData.size()];
+	            for (int eventNum = 0; eventNum < allTheData.size(); eventNum++)
+				{
+					float [] oneSetOfData = (float[])allTheData.get(eventNum);
+					as.sigData[sweepNum][eventNum] = oneSetOfData[sigNum+1];
+					if (sigNum == 0) an.setCommonTime(eventNum, sweepNum, oneSetOfData[0]);
+				}
+			}
+		}
+		an.setBoundsDirty();
+		stopProgressDialog();
 	}
 
 	/*
-	 * Method to reset the binary tr0 block pointer (done between the header and
+	 * Method to reset the binary block pointer (done between the header and
 	 * the data).
 	 */
-	private void resetBinaryTR0Reader()
+	private void resetBinaryTRACDCReader()
 	{
-		binaryTR0Size = 0;
-		binaryTR0Position = 0;
+		binaryTRACDCSize = 0;
+		binaryTRACDCPosition = 0;
 	}
 
 	/*
-	 * Method to read the next block of tr0 data.  Skips the first byte if "firstbyteread"
+	 * Method to read the next block of tr, sw, or ac data.  Skips the first byte if "firstbyteread"
 	 * is true.  Returns true on EOF.
 	 */
-	private boolean readBinaryTR0Block(boolean firstbyteread)
+	private boolean readBinaryTRACDCBlock(boolean firstbyteread)
 		throws IOException
 	{
-		// read the first word of a binary tr0 block
+		// read the first word of a binary block
 		if (!firstbyteread)
 		{
 			if (dataInputStream.read() == -1) return true;
@@ -641,7 +732,7 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			if (isTR0BinarySwapped) blocks = ((blocks >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+			if (isTRACDCBinarySwapped) blocks = ((blocks >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
 				blocks = (blocks << 8) | uval;
 		}
 		updateProgressDialog(4);
@@ -657,7 +748,7 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			if (isTR0BinarySwapped) bytes = ((bytes >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+			if (isTRACDCBinarySwapped) bytes = ((bytes >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
 				bytes = (bytes << 8) | uval;
 		}
 		updateProgressDialog(4);
@@ -668,7 +759,7 @@ public class HSpiceOut extends Simulate
 			System.out.println("ERROR: block is " + bytes + " long, but limit is 8192");
 			bytes = 8192;
 		}
-		int amtread = dataInputStream.read(binaryTR0Buffer, 0, bytes);
+		int amtread = dataInputStream.read(binaryTRACDCBuffer, 0, bytes);
 		if (amtread != bytes) return true;
 		updateProgressDialog(bytes);
 
@@ -678,15 +769,15 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			if (isTR0BinarySwapped) trailer = ((trailer >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+			if (isTRACDCBinarySwapped) trailer = ((trailer >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
 				trailer = (trailer << 8) | uval;
 		}
 		if (trailer != bytes) return true;
 		updateProgressDialog(4);
 
 		// set pointers for the buffer
-		binaryTR0Position = 0;
-		binaryTR0Size = bytes;
+		binaryTRACDCPosition = 0;
+		binaryTRACDCSize = bytes;
 		return false;
 	}
 
@@ -705,26 +796,26 @@ public class HSpiceOut extends Simulate
 			updateProgressDialog(1);
 			if (i == 0 || i == 4)
 			{
-				isTR0Binary = true;
-				isTR0BinarySwapped = false;
-				if (i == 4) isTR0BinarySwapped = true;
-				binaryTR0Buffer = new byte[8192];
-				if (readBinaryTR0Block(true)) return(-1);
+				isTRACDCBinary = true;
+				isTRACDCBinarySwapped = false;
+				if (i == 4) isTRACDCBinarySwapped = true;
+				binaryTRACDCBuffer = new byte[8192];
+				if (readBinaryTRACDCBlock(true)) return(-1);
 			} else
 			{
-				isTR0Binary = false;
+				isTRACDCBinary = false;
 				return(i);
 			}
 		}
-		if (isTR0Binary)
+		if (isTRACDCBinary)
 		{
-			if (binaryTR0Position >= binaryTR0Size)
+			if (binaryTRACDCPosition >= binaryTRACDCSize)
 			{
-				if (readBinaryTR0Block(false))
+				if (readBinaryTRACDCBlock(false))
 					return(-1);
 			}
-			int val = binaryTR0Buffer[binaryTR0Position];
-			binaryTR0Position++;
+			int val = binaryTRACDCBuffer[binaryTRACDCPosition];
+			binaryTRACDCPosition++;
 			return val&0xFF;
 		}
 		int i = dataInputStream.read();
@@ -747,7 +838,7 @@ public class HSpiceOut extends Simulate
 	private float getHSpiceFloat()
 		throws IOException
 	{
-		if (!isTR0Binary)
+		if (!isTRACDCBinary)
 		{
 			StringBuffer line = new StringBuffer();
 			for(int j=0; j<11; j++)
@@ -780,7 +871,7 @@ public class HSpiceOut extends Simulate
 		fi2 &= 0xFF;
 		fi3 &= 0xFF;
 		int fi = 0;
-		if (isTR0BinarySwapped)
+		if (isTRACDCBinarySwapped)
 		{
 			fi = (fi3 << 24) | (fi2 << 16) | (fi1 << 8) | fi0;
 		} else

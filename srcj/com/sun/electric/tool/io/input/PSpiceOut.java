@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -79,6 +80,7 @@ public class PSpiceOut extends Simulate
 		boolean first = true;
 //		boolean knows = false;
 		Stimuli sd = new Stimuli();
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 		AnalogSignal [] signals = null;
 		List<Double> [] values = null;
@@ -121,7 +123,7 @@ public class PSpiceOut extends Simulate
 				{
 					if (i != 0)
 					{
-						signals[i-1] = new AnalogSignal(sd);
+						signals[i-1] = new AnalogSignal(an);
 						signals[i-1].setSignalName((String)signalNames.get(i));
 					}
 					values[i] = new ArrayList<Double>();
@@ -170,10 +172,10 @@ public class PSpiceOut extends Simulate
 			return null;
 		}
 		int numEvents = values[0].size(); 
-		sd.buildCommonTime(numEvents);
+		an.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
-			sd.setCommonTime(i, ((Double)values[0].get(i)).doubleValue());
+			an.setCommonTime(i, ((Double)values[0].get(i)).doubleValue());
 		}
 		for(int j=1; j<numSignals; j++)
 		{

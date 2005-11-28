@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
@@ -72,7 +73,7 @@ public class SmartSpiceOut extends Simulate
 		int signalCount = -1;
 		AnalogSignal [] allSignals = null;
 		int rowCount = -1;
-		Stimuli sd = null;
+		Analysis an = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -119,7 +120,8 @@ public class SmartSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				sd = new Stimuli();
+				Stimuli sd = new Stimuli();
+				an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 				sd.setCell(cell);
 				allSignals = new AnalogSignal[signalCount];
 				for(int i=0; i<=signalCount; i++)
@@ -149,7 +151,7 @@ public class SmartSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						AnalogSignal as = new AnalogSignal(sd);
+						AnalogSignal as = new AnalogSignal(an);
 						int lastDotPos = name.lastIndexOf('.');
 						if (lastDotPos >= 0)
 						{
@@ -176,7 +178,7 @@ public class SmartSpiceOut extends Simulate
 					System.out.println("Missing point count in file");
 					return null;
 				}
-				sd.buildCommonTime(rowCount);
+				an.buildCommonTime(rowCount);
 				for(int i=0; i<signalCount; i++)
 					allSignals[i].buildValues(rowCount);
 				double [] timeValues = new double[rowCount];
@@ -193,7 +195,7 @@ public class SmartSpiceOut extends Simulate
 					int spacePos = line.indexOf(' ');
 					if (spacePos >= 0) line = line.substring(spacePos+1);
 					double time = TextUtils.atof(line.trim());
-					sd.setCommonTime(j, time);
+					an.setCommonTime(j, time);
 
 					for(int i=0; i<signalCount; i++)
 					{
@@ -216,7 +218,7 @@ public class SmartSpiceOut extends Simulate
 					System.out.println("Missing point count in file");
 					return null;
 				}
-				sd.buildCommonTime(rowCount);
+				an.buildCommonTime(rowCount);
 				for(int i=0; i<signalCount; i++)
 					allSignals[i].buildValues(rowCount);
 				double [] timeValues = new double[rowCount];
@@ -225,7 +227,7 @@ public class SmartSpiceOut extends Simulate
 				for(int j=0; j<rowCount; j++)
 				{
 					double time = dataInputStream.readDouble();
-					sd.setCommonTime(j, time);
+					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
 						double value = dataInputStream.readDouble();
@@ -234,6 +236,6 @@ public class SmartSpiceOut extends Simulate
 				}
 			}
 		}
-		return sd;
+		return an.getStimuli();
 	}
 }
