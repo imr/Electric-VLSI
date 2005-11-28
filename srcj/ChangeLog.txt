@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.04b: *********************************
+************************* Version 8.04c: *********************************
 
 IMP: (11/28/05, SMR) Entering "measure" mode clears previous measurements (Bug #761).
 
@@ -10,6 +10,10 @@ IMP/MAN: (11/28/05, SMR) Waveform window can show lines, points, or both.
 
 IMP/MAN: (11/28/05, SMR) Waveform window can handle many types of analysis (transient,
      AC, DC, and Measurements).  HSpice reads them.
+
+IMP: (11/28/05, DN) Changes towards Snapshots.
+
+************************* Version 8.04b: *********************************
 
 IMP: (11/22/05, GVG) Changes to get rid of DISPLAY dependency while running with -batch.
 
