@@ -34,6 +34,8 @@ import com.sun.electric.database.variable.Variable;
  */
 public class ImmutableExport extends ImmutableElectricObject {
     
+    public final static ImmutableExport[] NULL_ARRAY = {};
+    
     /** id of this Export. */                                       public final ExportId exportId;
 	/** name of this ImmutableExport. */							public final Name name;
 	/** The text descriptor of name of ImmutableExport. */          public final TextDescriptor nameDescriptor;

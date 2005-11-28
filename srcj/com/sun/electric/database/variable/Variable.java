@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -40,11 +41,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
-import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.util.Arrays;
 
 import java.util.HashMap;
-
 
 /**
  * The Variable immutable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -160,26 +160,38 @@ public class Variable
     public static final Variable[] NULL_ARRAY = {};
     /** type if value. */
     private final static byte ARRAY = 1;
-    private final static byte SIMPLE = 0;
     private final static byte LIBRARY = 2;
     private final static byte CELL = 4;
     private final static byte EXPORT = 6;
+    private final static byte STRING = 8;
+    private final static byte DOUBLE = 10;
+    private final static byte FLOAT = 12;
+    private final static byte LONG = 14;
+    private final static byte INTEGER = 16;
+    private final static byte SHORT = 18;
+    private final static byte BYTE = 20;
+    private final static byte BOOLEAN = 22;
+    private final static byte EPOINT = 24;
+    private final static byte TOOL = 26;
+    private final static byte TECHNOLOGY = 28;
+    private final static byte PRIM_NODE = 30;
+    private final static byte ARC_PROTO = 32;
     /** Valid type of value. */
     private static final HashMap<Class,Byte> validClasses = new HashMap<Class,Byte>();
     static {
-        validClasses.put(String.class, new Byte(SIMPLE));
-        validClasses.put(Double.class, new Byte(SIMPLE));
-        validClasses.put(Float.class, new Byte(SIMPLE));
-        validClasses.put(Long.class, new Byte(SIMPLE));
-        validClasses.put(Integer.class, new Byte(SIMPLE));
-        validClasses.put(Short.class, new Byte(SIMPLE));
-        validClasses.put(Byte.class, new Byte(SIMPLE));
-        validClasses.put(Boolean.class, new Byte(SIMPLE));
-        validClasses.put(EPoint.class, new Byte(SIMPLE));
-        validClasses.put(Tool.class, new Byte(SIMPLE));
-        validClasses.put(Technology.class, new Byte(SIMPLE));
-        validClasses.put(PrimitiveNode.class, new Byte(SIMPLE));
-        validClasses.put(ArcProto.class, new Byte(SIMPLE));
+        validClasses.put(String.class, new Byte(STRING));
+        validClasses.put(Double.class, new Byte(DOUBLE));
+        validClasses.put(Float.class, new Byte(FLOAT));
+        validClasses.put(Long.class, new Byte(LONG));
+        validClasses.put(Integer.class, new Byte(INTEGER));
+        validClasses.put(Short.class, new Byte(SHORT));
+        validClasses.put(Byte.class, new Byte(BYTE));
+        validClasses.put(Boolean.class, new Byte(BOOLEAN));
+        validClasses.put(EPoint.class, new Byte(EPOINT));
+        validClasses.put(Tool.class, new Byte(TOOL));
+        validClasses.put(Technology.class, new Byte(TECHNOLOGY));
+        validClasses.put(PrimitiveNode.class, new Byte(PRIM_NODE));
+        validClasses.put(ArcProto.class, new Byte(ARC_PROTO));
         validClasses.put(LibId.class, new Byte(LIBRARY));
         validClasses.put(CellId.class, new Byte(CELL));
         validClasses.put(ExportId.class, new Byte(EXPORT));
@@ -328,11 +340,9 @@ public class Variable
      */
     public Object getObjectInCurrentThread() {
         switch (type) {
-            case SIMPLE: return value;
             case LIBRARY: return ((LibId)value).inCurrentThread();
             case CELL: return ((CellId)value).inCurrentThread();
             case EXPORT: return ((ExportId)value).inCurrentThread();
-            case SIMPLE|ARRAY: return ((Object[])value).clone();
             case LIBRARY|ARRAY:
                 LibId[] libIds = (LibId[])value;
                 Library[] libs = new Library[libIds.length];
@@ -351,10 +361,25 @@ public class Variable
                 for (int i = 0; i < exportIds.length; i++)
                     if (exportIds[i] != null) exports[i] = (Export)exportIds[i].inCurrentThread();
                 return exports;
+            default:
+                return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
         }
-        throw new AssertionError();
     }
 
+    /**
+     * Write this Variable to SnapshotWriter.
+     */
+    public void write() throws IOException {
+        SnapshotWriter.write(key);
+        SnapshotWriter.write(descriptor);
+        SnapshotWriter.out.writeByte(type);
+        if (isArray()) {
+            SnapshotWriter.out.writeInt(getLength());
+        } else {
+            
+        }
+    }
+    
 	/**
 	 * Returns Variable which differs from this Variable by value.
 	 * @param value value of new Variable.
@@ -390,7 +415,6 @@ public class Variable
      */
     public Object getObjectInCurrentThread(int index) {
         switch (type) {
-            case SIMPLE|ARRAY: return ((Object[])value)[index];
             case LIBRARY|ARRAY:
                 LibId libId = ((LibId[])value)[index];
                 return libId != null ? libId.inCurrentThread() : null;
@@ -401,6 +425,8 @@ public class Variable
                 ExportId exportId = ((ExportId[])value)[index];
                 return exportId != null ? exportId.inCurrentThread() : null;
             default:
+                if ((type & ARRAY) != 0)
+                    return ((Object[])value)[index];
                 throw new ArrayIndexOutOfBoundsException(index);
         }
     }

@@ -395,6 +395,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/** The temporary integer value. */								private int tempInt;
     /** Set if Cell is modified (major or minor). */                private int modified;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
+    /** Set if contents (nodes, arc, exports) were modified in this change job. */ private boolean contentsModified;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -943,47 +944,80 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Low-level method to backup this Cell to CellBackup.
      * @return CellBackup which is the backup of this Cell.
 	 */
-    public CellBackup backup() {
-        ImmutableNodeInst[] n = new ImmutableNodeInst[nodes.size()];
-        for (int i = 0; i < nodes.size(); i++)
-            n[i] = nodes.get(i).getD();
-        ImmutableArcInst[] a = new ImmutableArcInst[arcs.size()];
-        for (int i = 0; i < arcs.size(); i++)
-            a[i] = arcs.get(i).getD();
-        ImmutableExport[] e = new ImmutableExport[exports.length];
-        for (int i = 0; i < exports.length; i++)
-            e[i] = exports[i].getD();
+    public CellBackup backup(CellBackup oldBackup) {
+        ImmutableNodeInst[] oldN = ImmutableNodeInst.NULL_ARRAY;
+        ImmutableArcInst[] oldA = ImmutableArcInst.NULL_ARRAY;
+        ImmutableExport[] oldE = ImmutableExport.NULL_ARRAY;
+        if (oldBackup != null) {
+            oldN = oldBackup.nodes;
+            oldA = oldBackup.arcs;
+            oldE = oldBackup.exports;
+        }
+        ImmutableNodeInst[] n = backupNodes(oldN);
+        ImmutableArcInst[] a = backupArcs(oldA);
+        ImmutableExport[] e = backupExports(oldE);
+        if (oldBackup != null && d == oldBackup.d &&
+                cellName == oldBackup.cellName &&
+                cellGroup == oldBackup.cellGroup &&
+                lib.getId() == oldBackup.libId &&
+                creationDate.getTime() == oldBackup.creationDate &&
+                revisionDate.getTime() == oldBackup.revisionDate &&
+                tech == oldBackup.tech &&
+                userBits == oldBackup.userBits &&
+                n == oldBackup.nodes &&
+                a == oldBackup.arcs &&
+                e == oldBackup.exports)
+            return oldBackup;
         return new CellBackup(d, cellName, cellGroup, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
-                tech, userBits, n, a, e);
+                tech, userBits, n, a, e, cellUsages);
     }
 
+    private ImmutableNodeInst[] backupNodes(ImmutableNodeInst[] oldNodes) {
+        int numNodes = nodes.size();
+        int matchedNodes = 0;
+        while (matchedNodes < oldNodes.length && oldNodes[matchedNodes] == nodes.get(matchedNodes).getD())
+            matchedNodes++;
+        if (matchedNodes == numNodes && numNodes == oldNodes.length) return oldNodes;
+        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[numNodes];
+        System.arraycopy(oldNodes, 0, newNodes, 0, matchedNodes);
+        for (int i = matchedNodes; i < numNodes; i++)
+            newNodes[i] = nodes.get(i).getD();
+        return newNodes;
+    }
+    
+    private ImmutableArcInst[] backupArcs(ImmutableArcInst[] oldArcs) {
+        int numArcs = arcs.size();
+        int matchedArcs = 0;
+        while (matchedArcs < oldArcs.length && oldArcs[matchedArcs] == arcs.get(matchedArcs).getD())
+            matchedArcs++;
+        if (matchedArcs == numArcs && numArcs == oldArcs.length) return oldArcs;
+        ImmutableArcInst[] newArcs = new ImmutableArcInst[numArcs];
+        System.arraycopy(oldArcs, 0, newArcs, 0, matchedArcs);
+        for (int i = matchedArcs; i < numArcs; i++)
+            newArcs[i] = arcs.get(i).getD();
+        return newArcs;
+    }
+    
+    private ImmutableExport[] backupExports(ImmutableExport[] oldExports) {
+        int numExports = exports.length;
+        int matchedExports = 0;
+        while (matchedExports < oldExports.length && oldExports[matchedExports] == exports[matchedExports].getD())
+            matchedExports++;
+        if (matchedExports == numExports && numExports == oldExports.length) return oldExports;
+        ImmutableExport[] newExports = new ImmutableExport[numExports];
+        System.arraycopy(oldExports, 0, newExports, 0, matchedExports);
+        for (int i = matchedExports; i < numExports; i++)
+            newExports[i] = exports[i].getD();
+        return newExports;
+    }
+    
 	/*
 	 * Low-level method to check consistency of backup of this Cell.
      * @param backup backup of this Cell.
      * @return true if backup is consistence with this Cell.
 	 */
     public boolean checkBackup(CellBackup backup) {
-        if (d != backup.d) return false;
-        if (cellName != backup.cellName) return false;
-        if (cellGroup != backup.cellGroup) return false;
-        if (lib.getId() != backup.libId) return false;
-        if (creationDate.getTime() != backup.creationDate) return false;
-        if (revisionDate.getTime() != backup.revisionDate) return false;
-        if (tech != backup.tech) return false;
-        if (userBits != backup.userBits) return false;
-        int numNodes = nodes.size();
-        if (numNodes != backup.nodes.length) return false;
-        for (int i = 0; i < numNodes; i++)
-            if (nodes.get(i).getD() != backup.nodes[i]) return false;
-        int numArcs = arcs.size();
-        if (numArcs != backup.arcs.length) return false;
-        for (int i = 0; i < numArcs; i++)
-            if (arcs.get(i).getD() != backup.arcs[i]) return false;
-        int numExports = exports.length;
-        if (numExports != backup.exports.length) return false;
-        for (int i = 0; i < numExports; i++)
-            if (exports[i].getD() != backup.exports[i]) return false;
-        return true;
+        return backup(backup) == backup;
     }
     
 	/****************************** GRAPHICS ******************************/
@@ -1800,6 +1834,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         while (chronNodes.size() <= nodeId) chronNodes.add(null);
         assert chronNodes.get(nodeId) == null;
         chronNodes.set(nodeId, ni);
+        setContentsModified();
         
         // count usage
         if (protoType instanceof Cell) {
@@ -1907,6 +1942,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int nodeId = ni.getD().nodeId;
         assert chronNodes.get(nodeId) == ni;
         chronNodes.set(nodeId, null);
+        setContentsModified();
 	}
 
 	/**
@@ -2059,6 +2095,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         while (chronArcs.size() <= arcId) chronArcs.add(null);
         assert chronArcs.get(arcId) == null;
         chronArcs.set(arcId, ai);
+        setContentsModified();
         
         // update maximal arc name suffux temporary name
 		if (ai.isUsernamed()) return;
@@ -2110,6 +2147,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int arcId = ai.getD().arcId;
         assert chronArcs.get(arcId) == ai;
         chronArcs.set(arcId, null);
+        setContentsModified();
 	}
 
     /**
@@ -2201,6 +2239,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			newExports[i + 1] = e;
 		}
 		exports = newExports;
+        setContentsModified();
 
 		// create a PortInst for every instance of this node
         for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
@@ -2229,6 +2268,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		exports = newExports;
         chronExports[export.getId().getChronIndex()] = null;
+        setContentsModified();
 
 		// remove the PortInst from every instance of this node
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
@@ -2851,7 +2891,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (newD == oldD) return false;
         d = newD;
         Undo.modifyVariables(this, oldD);
-        setBatchModified();
         return true;
     }
 
@@ -3709,7 +3748,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /**
 	 * Method to set if cell has been modified in the batch job.
 	 */
-	public void setBatchModified() {
+	public void setContentsModified() {
+        contentsModified = true;
     }
 
     /**

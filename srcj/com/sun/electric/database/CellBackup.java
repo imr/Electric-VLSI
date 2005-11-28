@@ -52,12 +52,12 @@ public class CellBackup {
 	/** Internal flag bits. */										public final int userBits;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
-//    /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
+    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of ImmutableCell */
     public CellBackup(ImmutableCell d, CellName cellName, Cell.CellGroup cellGroup, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
-            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports) {
+            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages) {
         this.d = d;
         this.cellName = cellName;
         this.cellGroup = cellGroup;
@@ -69,5 +69,6 @@ public class CellBackup {
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
+        this.cellUsages = cellUsages.clone();
     }
 }

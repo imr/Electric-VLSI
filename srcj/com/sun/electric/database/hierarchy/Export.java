@@ -290,10 +290,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 		// do the rename
 		Name oldName = getNameKey();
-		lowLevelRename(Name.findName(newName));
-
-		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldName);
+        parent.moveExport(portIndex, newName);
+		setD(d.withName(Name.findName(newName)), true);
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();
@@ -344,21 +342,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access method to rename this Export.
-	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
-	 * @param newName the new name of this Export.
-	 */
-	public void lowLevelRename(Name newName)
-	{
-		assert isLinked();
-		parent.moveExport(portIndex, newName.toString());
-        ImmutableExport oldD = d;
-        d = d.withName(newName);
-        if (d != oldD)
-            parent.setBatchModified();
-	}
-
-	/**
 	 * Low-level access method to link this Export into its cell.
 	 * @return true on error.
 	 */
@@ -388,17 +371,18 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public void lowLevelModify(ImmutableExport d)
 	{
+        assert isLinked();
+        boolean renamed = getNameKey() != d.name;
         boolean moved = this.d.originalNodeId != d.originalNodeId || this.d.originalPortId != d.originalPortId;
 		// remove the old linkage
         if (moved) {
             NodeInst origNode = getOriginalPort().getNodeInst();
             origNode.removeExport(this);
         }
+        if (renamed)
+            parent.moveExport(portIndex, d.name.toString());
 
-        ImmutableExport oldD = d;
-        this.d = d;
-        if (d != oldD)
-            parent.setBatchModified();
+        setD(d, false);
         
 		// create the new linkage
         if (moved) {
@@ -520,16 +504,18 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     /**
      * Modifies persistend data of this Export.
      * @param newD new persistent data.
+     * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableExport newD) {
+    private boolean setD(ImmutableExport newD, boolean notify) {
         checkChanging();
         ImmutableExport oldD = d;
         if (newD == oldD) return false;
         d = newD;
         if (parent != null) {
-            parent.setBatchModified();
-            Undo.modifyExport(this, oldD);
+            parent.setContentsModified();
+            if (notify)
+                Undo.modifyExport(this, oldD);
         }
         return true;
     }
@@ -546,7 +532,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        setD(d.withVariable(var));
+        setD(d.withVariable(var), true);
     }
 
 	/**
@@ -555,7 +541,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public void delVar(Variable.Key key)
 	{
-        setD(d.withoutVariable(key));
+        setD(d.withoutVariable(key), true);
 	}
     
     /** Method to return PortProtoId of this Export.
@@ -609,7 +595,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == EXPORT_NAME) {
-			setD(d.withNameDescriptor(td));
+			setD(d.withNameDescriptor(td), true);
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -775,7 +761,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public void setCharacteristic(PortCharacteristic characteristic)
 	{
-        setD(d.withCharacteristic(characteristic));
+        setD(d.withCharacteristic(characteristic), true);
 	}
 
 	/**
@@ -851,7 +837,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
 	public void setAlwaysDrawn(boolean b) {
-        setD(d.withAlwaysDrawn(b));
+        setD(d.withAlwaysDrawn(b), true);
     }
 
 	/**
@@ -868,7 +854,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param b true if this Export exists only in the body of a cell.
 	 */
 	public void setBodyOnly(boolean b) {
-        setD(d.withBodyOnly(b));
+        setD(d.withBodyOnly(b), true);
     }
 
 	/**

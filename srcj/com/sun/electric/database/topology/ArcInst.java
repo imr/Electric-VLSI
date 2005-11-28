@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -43,8 +42,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -463,16 +462,18 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     /**
      * Modifies persistend data of this ArcInst.
      * @param newD new persistent data.
+     * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableArcInst newD) {
+    private boolean setD(ImmutableArcInst newD, boolean notify) {
         checkChanging();
         ImmutableArcInst oldD = d;
         if (newD == oldD) return false;
         d = newD;
         if (parent != null) {
-            parent.setBatchModified();
-            Undo.modifyArcInst(this, oldD);
+            parent.setContentsModified();
+            if (notify)
+                Undo.modifyArcInst(this, oldD);
         }
         return true;
     }
@@ -489,7 +490,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        setD(d.withVariable(var));
+        setD(d.withVariable(var), true);
     }
 
 	/**
@@ -498,7 +499,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void delVar(Variable.Key key)
 	{
-        setD(d.withoutVariable(key));
+        setD(d.withoutVariable(key), true);
 	}
     
 	/**
@@ -550,10 +551,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             parent.removeArc(this);
 
 		// now make the change
-        ImmutableArcInst oldD = d;
-        this.d = d;
-        if (d != oldD)
-            parent.setBatchModified();
+        setD(d, false);
         if (renamed)
             parent.addArc(this);
 		updateGeometric();
@@ -1115,7 +1113,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == ARC_NAME) {
-			setD(d.withNameDescriptor(td));
+			setD(d.withNameDescriptor(td), true);
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -1518,8 +1516,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			}
 			if (repair)
 			{
-				d = d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY()));
-                parent.setBatchModified();
+				setD(d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY())), false);
 				updateGeometric();
 			}
 			errorCount++;
@@ -1540,8 +1537,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			}
 			if (repair)
 			{
-				d = d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation);
-                parent.setBatchModified();
+				setD(d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation), false);
 				updateGeometric();
 			}
 			errorCount++;

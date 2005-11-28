@@ -122,6 +122,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public static final Flag LOCKED = new Flag(NILOCKED);
     
+    public final static ImmutableNodeInst[] NULL_ARRAY = {};
+    
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;

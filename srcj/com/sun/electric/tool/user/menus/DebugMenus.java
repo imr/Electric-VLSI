@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.AnalyzeHeap;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.DumpHeap;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1643,31 +1644,9 @@ public class DebugMenus {
     private static void backupCells() {
         int cellCount = 0;
         long startTime = System.currentTimeMillis();
-        ArrayList<CellBackup> cellBackups = new ArrayList<CellBackup>();
-        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
-            Library lib = lit.next();
-            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                Cell cell = cit.next();
-                int cellIndex = cell.getCellIndex();
-                while (cellBackups.size() <= cellIndex) cellBackups.add(null);
-                assert cellBackups.get(cellIndex) == null;
-                cellBackups.set(cellIndex, cell.backup());
-                cellCount++;
-            }
-        }
+        Snapshot.advance();
         long backTime = System.currentTimeMillis();
-        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
-            Library lib = lit.next();
-            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                Cell cell = cit.next();
-                int cellIndex = cell.getCellIndex();
-                if (!cell.checkBackup(cellBackups.get(cellIndex)))
-                    System.out.println(cell + " has wrong backup");
-                cellBackups.set(cellIndex, cell.backup());
-            }
-        }
-        long checkTime = System.currentTimeMillis();
-        System.out.println(cellCount + " cells: backup in " + (backTime - startTime) + "msec check in " + (checkTime - backTime) + "msec");
+        System.out.println("backup cells took " + (backTime - startTime) + "msec");
     }
     
 	private static int[] objs;

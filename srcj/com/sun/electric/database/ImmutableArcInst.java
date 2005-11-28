@@ -192,6 +192,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
 	/** prefix for autonameing. */                          public static final Name BASENAME = Name.findName("net@0");
 
+    public final static ImmutableArcInst[] NULL_ARRAY = {};
+
     /** id of this ArcInst in parent. */                            public final int arcId;
 	/** Arc prototype. */                                           public final ArcProto protoType;
 	/** name of this ImmutableArcInst. */							public final Name name;

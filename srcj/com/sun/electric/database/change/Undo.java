@@ -327,12 +327,6 @@ public class Undo
 					CellName oldName = (CellName)o1;
 					o1 = cell.getCellName();
 					cell.lowLevelRename(oldName);
-				} else if (obj instanceof Export)
-				{
-					Export pp = (Export)obj;
-					Name oldName = (Name)o1;
-					o1 = pp.getNameKey();
-					pp.lowLevelRename(oldName);
 				} else if (obj instanceof Library)
 				{
 					Library lib = (Library)obj;
@@ -385,6 +379,8 @@ public class Undo
 				Export pp = (Export)obj;
 				cell = (Cell)pp.getParent();
 				lib = cell.getLibrary();
+                if (type == Type.EXPORTMOD && pp.getNameKey() != ((ImmutableExport)o1).name)
+                    modifyUsages(cell);
 				major = true;
 			} else if (type == Type.CELLNEW || type == Type.CELLKILL)
 			{
@@ -404,14 +400,7 @@ public class Undo
 				if (cell != null)
 				{
 					lib = cell.getLibrary();
-					// also mark libraries that reference this cell as dirty
-					for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); )
-					{
-						CellUsage u = (CellUsage)it.next();
-						Cell parent = u.getParent();
-						parent.getLibrary().setChangedMajor();
-                        parent.setModified(true);
-					}
+                    modifyUsages(cell);
 				}
 				major = true;   // this is major change for the library (E.g.: export names)
 			} else if (type == Type.VARIABLESMOD)
@@ -442,6 +431,19 @@ public class Undo
 			}
 		}
 
+        /**
+         * Mark libraries that reference given Cell as dirty.
+         * @param cell given cell.
+         */
+        private static void modifyUsages(Cell cell) {
+            for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); ) {
+                CellUsage u = (CellUsage)it.next();
+                Cell parent = u.getParent();
+                parent.getLibrary().setChanged();
+                parent.setModified(true);
+            }
+        }
+        
 		private static boolean isMajorVariable(ElectricObject obj, Variable.Key key)
 		{
 // 			if ((obj instanceof Cell) && key == el_cell_message_key) return true;
@@ -612,12 +614,10 @@ public class Undo
 			for(int j = 0; j<batchSize; j++)
 			{
 				Change ch = (Change)changes.get(j);
-				if (ch.getType() == Type.NODEINSTNEW || ch.getType() == Type.NODEINSTKILL || ch.getType() == Type.NODEINSTMOD ||
-					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof NodeInst)
+				if (ch.getType() == Type.NODEINSTNEW || ch.getType() == Type.NODEINSTKILL || ch.getType() == Type.NODEINSTMOD)
 				{
 					nodeInst++;
-				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD ||
-					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof ArcInst)
+				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD)
 				{
 					arcInst++;
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
@@ -791,18 +791,18 @@ public class Undo
 
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
 	{
-        if (Job.BATCHMODE) return;
+		if (Job.BATCHMODE) return;
 
-        DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
-        for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
-        {
-            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
+		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
+		for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
+		{
+			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+			SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
 // 			if (l.isGUIListener())
 // 				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
 // 			else
 // 				l.databaseEndChangeBatch(batch);
-        }
+		}
 	}
 
 	/** Add a property change listener. This generates Undo and Redo enabled property changes */

@@ -24,6 +24,10 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -39,10 +43,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.ImmutableNodeInst;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
@@ -433,20 +433,27 @@ public class NetworkTool extends Listener
 
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
-		if (ni.getNameKey() != oD.name)	getNetCell(ni.getParent()).setNetworksDirty();
+		if (ni.getNameKey() != oD.name)	{
+            invalidate();
+            getNetCell(ni.getParent()).setNetworksDirty();
+        }
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
 	}
 
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
-		if (ai.getNameKey() != oD.name)	getNetCell(ai.getParent()).setNetworksDirty();
+		if (ai.getNameKey() != oD.name)	{
+            invalidate();
+            getNetCell(ai.getParent()).setNetworksDirty();
+        }
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
 	}
 
 	public void modifyExport(Export pp, ImmutableExport oD)
 	{
+        invalidate();
         exportsChanged((Cell)pp.getParent());
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyExport("+pp+","+oD+")");
@@ -508,23 +515,11 @@ public class NetworkTool extends Listener
 	public void renameObject(ElectricObject obj, Object oldName)
 	{
 		invalidate();
-		Cell cell = obj.whichCell();
-		if (obj instanceof Export) {
-			exportsChanged(cell);
-		} else if (obj instanceof Geometric)
-		{
-			if (cell != null) getNetCell(cell).setNetworksDirty();
-		}
 		if (!debug) return;
 		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
 	}
 
 	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {
-        ImmutableElectricObject newImmutable = obj.getImmutable();
-        if (oldImmutable.getVar(Schematics.SCHEM_GLOBAL_NAME) != newImmutable.getVar(Schematics.SCHEM_GLOBAL_NAME)) {
-			Cell cell = obj.whichCell();
-			if (cell != null) getNetCell(cell).setNetworksDirty();
-		}
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyVariables("+obj+")");
 	}

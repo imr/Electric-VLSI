@@ -865,16 +865,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Modifies persistend data of this NodeInst.
      * @param newD new persistent data.
+     * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableNodeInst newD) {
+    private boolean setD(ImmutableNodeInst newD, boolean notify) {
         checkChanging();
         ImmutableNodeInst oldD = d;
         if (newD == oldD) return false;
         d = newD;
         if (parent != null) {
-            parent.setBatchModified();
-            Undo.modifyNodeInst(this, oldD);
+            parent.setContentsModified();
+            if (notify)
+                Undo.modifyNodeInst(this, oldD);
         }
         return true;
     }
@@ -891,7 +893,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        if (setD(d.withVariable(var)))
+        if (setD(d.withVariable(var), true))
             // check for side-effects of the change
             checkPossibleVariableEffects(var.getKey());
     }
@@ -903,7 +905,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param var Variable to add.
      */
     void addVar(PortProtoId portProtoId, Variable var) {
-        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withVariable(var)));
+        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withVariable(var)), true);
     }
 
 	/**
@@ -912,7 +914,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public void delVar(Variable.Key key)
 	{
-        if (setD(d.withoutVariable(key)))
+        if (setD(d.withoutVariable(key), true))
             // check for side-effects of the change
             checkPossibleVariableEffects(key);
 	}
@@ -924,7 +926,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	void delVar(PortProtoId portProtoId, Variable.Key key)
 	{
-        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key)));
+        setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key)), true);
 	}
     
 	/**
@@ -933,7 +935,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	void delVars(PortProtoId portProtoId)
 	{
-        setD(d.withPortInst(portProtoId, ImmutablePortInst.EMPTY));
+        setD(d.withPortInst(portProtoId, ImmutablePortInst.EMPTY), true);
 	}
     
     /**
@@ -980,10 +982,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 parent.removeNodeName(this);
             
             // make the change
-            ImmutableNodeInst oldD = this.d;
-            this.d = d;
-            if (d != oldD)
-                parent.setBatchModified();
+            setD(d, false);
             if (renamed)
                 parent.addNodeName(this);
             
@@ -2553,11 +2552,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == NODE_NAME) {
-			setD(d.withNameDescriptor(td));
+			setD(d.withNameDescriptor(td), true);
             return;
         }
         if (varKey == NODE_PROTO) {
-			setD(d.withProtoDescriptor(td));
+			setD(d.withProtoDescriptor(td), true);
             return;
         }
         super.setTextDescriptor(varKey, td);
@@ -3073,8 +3072,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                d = d.withSize(width, height);
-                parent.setBatchModified();
+                setD(d.withSize(width, height), false);
 				redoGeometric();
 			}
 //			warningCount++;
@@ -3139,11 +3137,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param ni the other NodeInst to copy.
 	 */
 	public void copyStateBits(NodeInst ni) {
-        setD(d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits));
+        setD(d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits), true);
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
-        setD(d.withFlag(flag, value));
+        setD(d.withFlag(flag, value), true);
     }
    
 	/**
@@ -3265,7 +3263,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param value the Technology-specific value to store on this NodeInst.
 	 */
 	public void setTechSpecific(int value) {
-        setD(d.withTechSpecific(value));
+        setD(d.withTechSpecific(value), true);
     }
 
 	/**
