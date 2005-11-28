@@ -61,8 +61,19 @@ public class MeasureListener
 		return dim;
 	}
 
-    public void reset() {
+    public void reset()
+    {
         if (measuring) measuring = false;
+
+        // clear measurements in the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd != null)
+        {
+	        Highlighter highlighter = wnd.getRulerHighlighter();
+	        highlighter.clear();
+	        highlighter.finished();
+	        wnd.repaint();
+        }
     }
 
     private void startMeasure(Point2D dbStart) {
