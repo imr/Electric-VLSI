@@ -124,7 +124,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
-	/** the smallest nonzero value (for log drawing) */		private double smallestXValue;
 	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** left panel: the signal names */						private JPanel left;
@@ -155,7 +154,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** default range along horozintal axis */				private double minXPosition, maxXPosition;
 	/** true if the X axis is the same in each panel */		private boolean xAxisLocked;
 	/** the sweep signal that is highlighted */				private int highlightedSweep = -1;
-	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
+	/** display mode (0=lines, 1=lines&points, 2=points) */	private int linePointMode;
 	/** true to show a grid (analog only) */				private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** a listener for redraw requests */					private WaveComponentListener wcl;
@@ -175,8 +174,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private static final ImageIcon iconLockXAxes = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
 	private static final ImageIcon iconUnLockXAxes = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
 	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
-	private static final ImageIcon iconPointsOn = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOn.gif");
-	private static final ImageIcon iconPointsOff = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOff.gif");
+	private static final ImageIcon iconLineOnPointOn = Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOn.gif");
+	private static final ImageIcon iconLineOnPointOff = Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOff.gif");
+	private static final ImageIcon iconLineOffPointOn = Resources.getResource(WaveformWindow.class, "ButtonSimLineOffPointOn.gif");
 	private static final ImageIcon iconToggleGrid = Resources.getResource(WaveformWindow.class, "ButtonSimGrid.gif");
 	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
 	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
@@ -202,12 +202,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		resetSweeps();
 		wavePanels = new ArrayList<Panel>();
 		xAxisLocked = true;
-		showVertexPoints = false;
+		linePointMode = 0;
 		showGrid = false;
 		xAxisSignalAll = null;
 		mainHorizRulerPanelLogarithmic = false;
-		Rectangle2D dataBounds = sd.getBounds();
-		smallestXValue = dataBounds.getWidth() / 1000;
 
 		// compute static fields used in graphics
 		waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
@@ -267,11 +265,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
 			});
 
-			showPoints = new JButton(iconPointsOff);
+			showPoints = new JButton(iconLineOnPointOff);
 			showPoints.setBorderPainted(false);
 			showPoints.setDefaultCapable(false);
-			showPoints.setToolTipText("Toggle display of vertex points");
-			minWid = new Dimension(iconPointsOff.getIconWidth()+4, iconPointsOff.getIconHeight()+4);
+			showPoints.setToolTipText("Toggle display of vertex points and lines");
+			minWid = new Dimension(iconLineOnPointOff.getIconWidth()+4, iconLineOnPointOff.getIconHeight()+4);
 			showPoints.setMinimumSize(minWid);
 			showPoints.setPreferredSize(minWid);
 			gbc = new GridBagConstraints();
@@ -597,6 +595,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// set bounds of the window from extent of the data
+		Rectangle2D dataBounds = sd.getBounds();
 		double lowTime = dataBounds.getMinX();
 		double highTime = dataBounds.getMaxX();
 		double lowValue = dataBounds.getMinY();
@@ -1825,14 +1824,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* THE X AXIS *************************************
 
-	/**
-	 * Method to return the smallest X value displayable in the window.
-	 * This is used in log plots, when a value of zero is unrepresentable,
-	 * and an alternate "tiny" value is needed.
-	 * @return the smallest X value displayable in the window.
-	 */
-	public double getSmallestXValue() { return smallestXValue; }
-
 	public double getMainXPositionCursor() { return mainXPosition; }
 
 	public void setMainXPositionCursor(double value)
@@ -2554,7 +2545,7 @@ if (wp.getSignalButtons() != null)
 						if (first)
 						{
 							// header begins with a tab
-							sb.append("\t" + wp.getAnalysisType().toString());
+							sb.append("\t" + wp.getAnalysisType());
 							Signal signalInX = xAxisSignalAll;
 							if (!xAxisLocked) signalInX = wp.getXAxisSignal();
 							first = false;
@@ -2643,9 +2634,13 @@ if (wp.getSignalButtons() != null)
 	 */
 	private void toggleShowPoints()
 	{
-		showVertexPoints = !showVertexPoints;
-		if (showVertexPoints) showPoints.setIcon(iconPointsOn); else
-			showPoints.setIcon(iconPointsOff);
+		linePointMode = (linePointMode+1) % 3;
+		switch (linePointMode)
+		{
+			case 0: showPoints.setIcon(iconLineOnPointOff);   break;
+			case 1: showPoints.setIcon(iconLineOnPointOn);    break;
+			case 2: showPoints.setIcon(iconLineOffPointOn);   break;
+		}
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
@@ -2653,7 +2648,12 @@ if (wp.getSignalButtons() != null)
 		}
 	}
 
-	public boolean isShowVertexPoints() { return showVertexPoints;}
+	/**
+	 * Method to return the drawing mode for analog waves.
+	 * @return the drawing mode for analog waves.
+	 * 0 means draw lines only; 1 means draw lines and points; 2 means draw points only.
+	 */
+	public int getLinePointMode() { return linePointMode;}
 
 	/**
 	 * Method called to toggle the display of a grid.
@@ -2670,17 +2670,31 @@ if (wp.getSignalButtons() != null)
 
 	public boolean isShowGrid() { return showGrid; }
 
+	/**
+	 * Method to add a signal to the display.
+	 * Called when the user double-clicks on the signal in the explorer tree.
+	 * @param sig the Signal to add to the display
+	 */
 	public void addSignal(Signal sig)
 	{
 		if (sig instanceof AnalogSignal)
 		{
 			// add analog signal on top of current panel
+			AnalogSignal as = (AnalogSignal)sig;
 			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 			{
-				Panel wp = (Panel)it.next();
-				if (wp.isSelected())
+				Panel panel = (Panel)it.next();
+				if (panel.isSelected())
 				{
-					WaveSignal.addSignalToPanel(sig, wp);
+					if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
+							"First convert the panel with the popup in the upper-left.",
+							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+						return;					
+					}
+					WaveSignal.addSignalToPanel(sig, panel);
 					break;
 				}
 			}
@@ -2987,8 +3001,8 @@ if (wp.getSignalButtons() != null)
 							}
 							if (warn)
 							{
-								String warning = "The waveform window is not showing " + analysisType.toString() +
-									" data.  Remove all traces and convert panels to show " + analysisType.toString() + " data?";
+								String warning = "The waveform window is not showing " + analysisType +
+									" data.  Remove all traces and convert panels to show " + analysisType + " data?";
 								int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
 								if (response != JOptionPane.YES_OPTION)
 								{
@@ -3015,8 +3029,8 @@ if (wp.getSignalButtons() != null)
 							if (panel.getAnalysisType() != analysisType)
 							{
 								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-									"Cannot drop a " + analysisType.toString() + " signal onto the horizontal ruler of a " +
-									panel.getAnalysisType().toString() + " panel.  " +
+									"Cannot drop a " + analysisType + " signal onto the horizontal ruler of a " +
+									panel.getAnalysisType() + " panel.  " +
 									"First convert the panel with the popup in the upper-left.",
 									"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 								dtde.dropComplete(true);
@@ -3099,6 +3113,15 @@ if (wp.getSignalButtons() != null)
 						WaveSignal ws = (WaveSignal)it.next();
 						if (!ws.getSignal().getFullName().equals(signalName)) continue;
 						sSig = ws.getSignal();
+						if (sSig.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+						{
+							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+								"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
+								"First convert the panel with the popup in the upper-left.",
+								"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+							dtde.dropComplete(true);
+							return;					
+						}
 						oldColor = ws.getColor();
 						sourcePanel.removeHighlightedSignal(ws);
 						sourcePanel.removeSignal(ws.getButton());
@@ -3140,7 +3163,7 @@ if (wp.getSignalButtons() != null)
 				if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"Cannot drop a " + as.getAnalysis().getAnalysisType().toString() + " signal onto a " + panel.getAnalysisType().toString() + " panel.  " +
+						"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
 						"First convert the panel with the popup in the upper-left.",
 						"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 					dtde.dropComplete(true);

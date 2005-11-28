@@ -66,11 +66,11 @@ public class Analysis
 			return null;
 		}
 	}
-	/** indicates general signals */	public static final AnalysisType ANALYSIS_SIGNALS = new AnalysisType("signals");
-	/** indicates transient analysis */	public static final AnalysisType ANALYSIS_TRANS = new AnalysisType("transient");
+	/** indicates general signals */	public static final AnalysisType ANALYSIS_SIGNALS = new AnalysisType("Signals");
+	/** indicates transient analysis */	public static final AnalysisType ANALYSIS_TRANS = new AnalysisType("Transient");
 	/** indicates AC analysis */		public static final AnalysisType ANALYSIS_AC = new AnalysisType("AC");
 	/** indicates DC analysis */		public static final AnalysisType ANALYSIS_DC = new AnalysisType("DC");
-	/** indicates Measurement data */	public static final AnalysisType ANALYSIS_MEAS = new AnalysisType("measurement");
+	/** indicates Measurement data */	public static final AnalysisType ANALYSIS_MEAS = new AnalysisType("Measurement");
 
 	/** the Stimuli in which this Analysis resides */			private Stimuli sd;
 	/** the type of analysis data here */						private AnalysisType type;

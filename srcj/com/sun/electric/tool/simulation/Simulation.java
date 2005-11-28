@@ -640,7 +640,8 @@ public class Simulation extends Listener
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
 			boolean isAnalog = sd.isAnalog();
 			boolean showedSomething = false;
-			boolean haveXAxisSignal = false;
+			boolean wantUnlockedTime = false;
+			Analysis.AnalysisType onlyType = null;
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
@@ -662,9 +663,11 @@ public class Simulation extends Listener
 						int closePos = signalName.indexOf(')');
 						String sigName = signalName.substring(openPos+1, closePos);
 						xAxisSignal = an.findSignalForNetwork(sigName);
-						haveXAxisSignal = true;
+						wantUnlockedTime = true;
 					}
 				}
+				if (onlyType == null) onlyType = an.getAnalysisType();
+				if (an.getAnalysisType() != onlyType) wantUnlockedTime = true;
 				Panel wp = null;
 				boolean firstSignal = true;
 
@@ -698,33 +701,18 @@ public class Simulation extends Listener
 			}
 			if (showedSomething)
 			{
-				if (isAnalog)
+				if (wantUnlockedTime)
 				{
 					ww.togglePanelXAxisLock();
 					for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 					{
-						Panel wp = (Panel)it.next();
-						List<WaveSignal> signals = wp.getSignals();
-						boolean first = true;
-						double lowY = 0, highY = 0;
-						for(Iterator<WaveSignal> sIt = signals.iterator(); sIt.hasNext(); )
-						{
-							WaveSignal ws = (WaveSignal)sIt.next();
-							Signal sSig = ws.getSignal();
-							Rectangle2D sigBounds = sSig.getBounds();
-							if (first)
-							{
-								lowY = sigBounds.getMinY();
-								highY = sigBounds.getMaxY();
-								first = false;
-							} else
-							{
-								if (sigBounds.getMinY() < lowY) lowY = sigBounds.getMinY();
-								if (sigBounds.getMaxY() > highY) highY = sigBounds.getMaxY();
-							}
-						}
-						if (!first) wp.setYAxisRange(lowY, highY);
+						Panel panel = it.next();
+						panel.makeSelectedPanel();
+						ww.fillScreen();
 					}
+				} else
+				{
+					ww.fillScreen();
 				}
 				return;
 			}
@@ -760,6 +748,7 @@ public class Simulation extends Listener
 			}
 		}
 		ww.getPanel().validate();
+		ww.fillScreen();
 	}
 
 	private static void makeBussedSignals(Analysis an)

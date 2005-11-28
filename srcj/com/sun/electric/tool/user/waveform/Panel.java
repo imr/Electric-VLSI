@@ -129,11 +129,14 @@ public class Panel extends JPanel
 	/** the type of analysis shown in this panel */			private Analysis.AnalysisType analysisType;
 	/** the horizontal ruler at the top of this panel. */	private HorizRuler horizRulerPanel;
 	/** true if the horizontal ruler is logarithmic */		private boolean horizRulerPanelLogarithmic;
+	/** true if this panel is logarithmic in Y */			private boolean vertPanelLogarithmic;
 	/** the number of this panel. */						private int panelNumber;
 	/** all panels that the "measure" tool crosses into */	private HashSet<Panel> measureWindows;
 	/** extent of area dragged-out by cursor */				private int dragStartX, dragStartY;
 	/** extent of area dragged-out by cursor */				private int dragEndX, dragEndY;
 	/** the location of the Y axis vertical line */			private int vertAxisPos;
+	/** the smallest nonzero X value (for log drawing) */	private double smallestXValue;
+	/** the smallest nonzero Y value (for log drawing) */	private double smallestYValue;
 
 	/** the background color of a button */					private static Color background = null;
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
@@ -158,11 +161,12 @@ public class Panel extends JPanel
 	{
 		// remember state
 		this.waveWindow = waveWindow;
-		this.analysisType = analysisType;
+		setAnalysisType(analysisType);
 		selected = false;
 		panelNumber = nextPanelNumber++;
 		vertAxisPos = VERTLABELWIDTH;
 		horizRulerPanelLogarithmic = false;
+		vertPanelLogarithmic = false;
 		xAxisSignal = null;
 		waveSignals = new HashMap<JButton,WaveSignal>();
 
@@ -275,7 +279,7 @@ public class Panel extends JPanel
 
 		if (analysisType != null)
 		{
-			// the "delete signal" button for this panel
+			// the "delete signal" button for this panel (analog only)
 			deleteSignal = new JButton(iconDeleteSignal);
 			deleteSignal.setBorderPainted(false);
 			deleteSignal.setDefaultCapable(false);
@@ -294,7 +298,7 @@ public class Panel extends JPanel
 				public void actionPerformed(ActionEvent evt) { deleteSignalFromPanel(); }
 			});
 
-			// the "delete all signal" button for this panel
+			// the "delete all signal" button for this panel (analog only)
 			deleteAllSignals = new JButton(iconDeleteAllSignals);
 			deleteAllSignals.setBorderPainted(false);
 			deleteAllSignals.setDefaultCapable(false);
@@ -313,21 +317,19 @@ public class Panel extends JPanel
 				public void actionPerformed(ActionEvent evt) { deleteAllSignalsFromPanel(); }
 			});
 
-			// the "signal type" selector for this panel
+			// the "signal type" selector for this panel (analog only)
 			boolean hasACData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_AC) != null;
 			boolean hasDCData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_DC) != null;
 			boolean hasMeasData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_MEAS) != null;
 			if (hasACData || hasDCData || hasMeasData)
 			{
 				analysisCombo = new JComboBox();
-				analysisCombo.addItem("Transient");
-				if (hasACData) analysisCombo.addItem("AC");
-				if (hasDCData) analysisCombo.addItem("DC");
-				if (hasMeasData) analysisCombo.addItem("Measurement");
+				analysisCombo.addItem(Analysis.ANALYSIS_TRANS.toString());
+				if (hasACData) analysisCombo.addItem(Analysis.ANALYSIS_AC.toString());
+				if (hasDCData) analysisCombo.addItem(Analysis.ANALYSIS_DC.toString());
+				if (hasMeasData) analysisCombo.addItem(Analysis.ANALYSIS_MEAS.toString());
 				analysisCombo.setToolTipText("Sets the type of data seen in this panel");
-				if (analysisType == Analysis.ANALYSIS_AC) analysisCombo.setSelectedIndex(1); else
-					if (analysisType == Analysis.ANALYSIS_DC) analysisCombo.setSelectedIndex(2); else
-						if (analysisType == Analysis.ANALYSIS_MEAS) analysisCombo.setSelectedIndex(3);
+				analysisCombo.setSelectedItem(analysisType.toString());
 				gbc = new GridBagConstraints();
 				gbc.gridx = 0;       gbc.gridy = 2;
 				gbc.gridwidth = 5;   gbc.gridheight = 1;
@@ -339,11 +341,8 @@ public class Panel extends JPanel
 					public void actionPerformed(ActionEvent evt) { setPanelSignalType(); }
 				});
 			}
-		}
 
-		// the list of signals in this panel (analog only)
-		if (analysisType != null)
-		{
+			// the list of signals in this panel (analog only)
 			signalButtons = new JPanel();
 			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
 			signalButtonsPane = new JScrollPane(signalButtons);
@@ -424,6 +423,8 @@ public class Panel extends JPanel
 	 */
 	private void makeLinear()
 	{
+		vertPanelLogarithmic = false;
+		repaint();
 	}
 
 	/**
@@ -431,12 +432,17 @@ public class Panel extends JPanel
 	 */
 	private void makeLogarithmic()
 	{
-		System.out.println("CANNOT DRAW LOG SCALES YET");
+		vertPanelLogarithmic = true;
+		repaint();
 	}
 
 	public Analysis.AnalysisType getAnalysisType() { return analysisType; };
 
-	public void setAnalysisType(Analysis.AnalysisType a) { analysisType = a; };
+	public void setAnalysisType(Analysis.AnalysisType a)
+	{
+		analysisType = a;
+		computeSmallestValues();
+	}
 
 	public JPanel getSignalButtons() { return signalButtons; };
 
@@ -534,21 +540,24 @@ public class Panel extends JPanel
 	private void setPanelSignalType()
 	{		
 		String typeName = (String)analysisCombo.getSelectedItem();
-		Analysis.AnalysisType analysisType = Analysis.ANALYSIS_TRANS;
-		if (typeName.equals("AC")) analysisType = Analysis.ANALYSIS_AC; else
-			if (typeName.equals("DC")) analysisType = Analysis.ANALYSIS_DC; else
-				if (typeName.equals("Measurement")) analysisType = Analysis.ANALYSIS_MEAS;
-
+		Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(typeName);
 		if (getAnalysisType() != analysisType && getNumSignals() > 0)
 		{
-			String warning = "The signals in this panel are not " + analysisType.toString() +
+			String warning = "The signals in this panel are not " + analysisType +
 				" data.  Remove them from the panel?";
 			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
-			if (response != JOptionPane.YES_OPTION) return;
+			if (response != JOptionPane.YES_OPTION)
+			{
+				// aborted: reset panel type
+				analysisCombo.setSelectedItem(getAnalysisType().toString());
+				return;
+			}
+			xAxisSignal = null;
+			if (waveWindow.isXAxisLocked()) waveWindow.setXAxisSignalAll(null);
 			waveWindow.deleteAllSignalsFromPanel(this);
 		}
 		setAnalysisType(analysisType);
-		repaint();
+		repaintWithRulers();
 	}
 
 	// ************************************* THE HORIZONTAL RULER *************************************
@@ -670,6 +679,17 @@ public class Panel extends JPanel
 	// ************************************* X AND Y AXIS CONTROL *************************************
 
 	/**
+	 * Method to compute the smallest X and Y values (for log display).
+	 */
+	private void computeSmallestValues()
+	{
+		if (analysisType == null) return;
+		Rectangle2D anBounds = waveWindow.getSimData().findAnalysis(analysisType).getBounds();
+		smallestXValue = anBounds.getWidth() / 1000;
+		smallestYValue = anBounds.getHeight() / 1000;
+	}
+
+	/**
 	 * Method to set the X axis range in this panel.
 	 * @param minXPosition the low X axis value.
 	 * @param maxXPosition the high X axis value.
@@ -728,13 +748,13 @@ public class Panel extends JPanel
 		if (log)
 		{
 			// logarithmic axes
-			if (value <= waveWindow.getSmallestXValue()) value = waveWindow.getSmallestXValue();
+			if (value <= smallestXValue) value = smallestXValue;
 			double logValue = Math.log10(value);
 			double winMinX = minXPosition;
-			if (winMinX <= 0) winMinX = waveWindow.getSmallestXValue();
+			if (winMinX <= 0) winMinX = smallestXValue;
 			double logWinMinX = Math.log10(winMinX);
 			double winMaxX = maxXPosition;
-			if (winMaxX <= 0) winMaxX = waveWindow.getSmallestXValue();
+			if (winMaxX <= 0) winMaxX = smallestXValue;
 			double logWinMaxX = Math.log10(winMaxX);
 			double x = (logValue - logWinMinX) / (logWinMaxX - logWinMinX) * (sz.width - vertAxisPos) + vertAxisPos;
 			return (int)x;
@@ -760,10 +780,10 @@ public class Panel extends JPanel
 		{
 			// logarithmic axes
 			double winMinX = minXPosition;
-			if (winMinX <= 0) winMinX = waveWindow.getSmallestXValue();
+			if (winMinX <= 0) winMinX = smallestXValue;
 			double logWinMinX = Math.log10(winMinX);
 			double winMaxX = maxXPosition;
-			if (winMaxX <= 0) winMaxX = waveWindow.getSmallestXValue();
+			if (winMaxX <= 0) winMaxX = smallestXValue;
 			double logWinMaxX = Math.log10(winMaxX);
 			double xValue = Math.pow(10, ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (logWinMaxX - logWinMinX) + logWinMinX);
 			return xValue;
@@ -782,8 +802,25 @@ public class Panel extends JPanel
 	 */
 	private int convertYDataToScreen(double value)
 	{
-		double y = sz.height - 1 - (value - analogLowValue) / analogRange * (sz.height-1);
-		return (int)y;
+		if (vertPanelLogarithmic)
+		{
+			// logarithmic axes
+			if (value <= smallestYValue) value = smallestYValue;
+			double logValue = Math.log10(value);
+			double winMinY = analogLowValue;
+			if (winMinY <= 0) winMinY = smallestYValue;
+			double logWinMinY = Math.log10(winMinY);
+			double winMaxY = analogHighValue;
+			if (winMaxY <= 0) winMaxY = smallestYValue;
+			double logWinMaxY = Math.log10(winMaxY);
+			double y = sz.height - 1 - (logValue - logWinMinY) / (logWinMaxY - logWinMinY) * (sz.height-1);
+			return (int)y;
+		} else
+		{
+			// linear axes
+			double y = sz.height - 1 - (value - analogLowValue) / analogRange * (sz.height-1);
+			return (int)y;
+		}
 	}
 
 	/**
@@ -793,8 +830,23 @@ public class Panel extends JPanel
 	 */
 	private double convertYScreenToData(int y)
 	{
-		double value = analogLowValue - ((double)(y - sz.height + 1)) / (sz.height-1) * analogRange;
-		return value;
+		if (vertPanelLogarithmic)
+		{
+			// logarithmic axes
+			double winMinY = analogLowValue;
+			if (winMinY <= 0) winMinY = smallestYValue;
+			double logWinMinY = Math.log10(winMinY);
+			double winMaxY = analogHighValue;
+			if (winMaxY <= 0) winMaxY = smallestYValue;
+			double logWinMaxY = Math.log10(winMaxY);
+			double yValue = Math.pow(10, logWinMinY - ((double)(y - sz.height + 1)) * (logWinMaxY - logWinMinY) / (sz.height-1));
+			return yValue;
+		} else
+		{
+			// linear axes
+			double value = analogLowValue - ((double)(y - sz.height + 1)) * analogRange / (sz.height-1);
+			return value;
+		}
 	}
 
 	// ************************************* DISPLAY CONTROL *************************************
@@ -1098,13 +1150,13 @@ public class Panel extends JPanel
 	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		sz = getSize();
 		int wid = sz.width;
 		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
         double[] result = new double[3];
 
+        int linePointMode = waveWindow.getLinePointMode();
 		for(Iterator<WaveSignal> it = waveSignals.values().iterator(); it.hasNext(); )
 		{
 			WaveSignal ws = (WaveSignal)it.next();
@@ -1134,15 +1186,20 @@ public class Panel extends JPanel
 						}
                         if (i != 0)
                         {
-                            if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
-                            if (lastLY != lastHY || lowY != highY)
-                            {
-        						if (processALine(g, lastX, lastHY, x, highY, bounds, selectedObjects, ws, -1)) break;
-        						if (processALine(g, lastX, lastHY, x, lowY, bounds, selectedObjects, ws, -1)) break;
-        						if (processALine(g, lastX, lastLY, x, highY, bounds, selectedObjects, ws, -1)) break;
-                            }
-							if (waveWindow.isShowVertexPoints())
+                        	if (linePointMode <= 1)
+                        	{
+                        		// drawing has lines
+	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+	                            if (lastLY != lastHY || lowY != highY)
+	                            {
+	        						if (processALine(g, lastX, lastHY, x, highY, bounds, selectedObjects, ws, -1)) break;
+	        						if (processALine(g, lastX, lastHY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+	        						if (processALine(g, lastX, lastLY, x, highY, bounds, selectedObjects, ws, -1)) break;
+	                            }
+                        	}
+                        	if (linePointMode >= 1)
 							{
+                        		// drawing has points
 								if (i < numEvents-1)
 								{
 									if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, selectedObjects, ws, false, 0)) break;
@@ -1320,9 +1377,6 @@ public class Panel extends JPanel
 	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		sz = getSize();
-		int wid = sz.width;
-		int hei = sz.height;
 
 		// show control points
 		for(Iterator<WaveSignal> it = waveSignals.values().iterator(); it.hasNext(); )
@@ -1337,7 +1391,7 @@ public class Panel extends JPanel
 			{
 				double xValue = points[i];
 				int x = convertXDataToScreen(xValue);
-				if (processABox(g, x-CONTROLPOINTSIZE, hei-CONTROLPOINTSIZE*2, x+CONTROLPOINTSIZE, hei,
+				if (processABox(g, x-CONTROLPOINTSIZE, sz.height-CONTROLPOINTSIZE*2, x+CONTROLPOINTSIZE, sz.height,
 					bounds, selectedObjects, ws, true, xValue)) break;
 
 				// see if the control point is selected
@@ -1350,7 +1404,7 @@ public class Panel extends JPanel
 				if (found)
 				{
 					g.setColor(Color.GREEN);
-					if (processABox(g, x-CONTROLPOINTSIZE+2, hei-CONTROLPOINTSIZE*2+2, x+CONTROLPOINTSIZE-2, hei-2,
+					if (processABox(g, x-CONTROLPOINTSIZE+2, sz.height-CONTROLPOINTSIZE*2+2, x+CONTROLPOINTSIZE-2, sz.height-2,
 						bounds, selectedObjects, ws, true, xValue)) break;
 					g.setColor(ws.getColor());
 				}
@@ -1406,7 +1460,6 @@ public class Panel extends JPanel
 		{
 			Point2D from = new Point2D.Double(fX, fY);
 			Point2D to = new Point2D.Double(tX, tY);
-			sz = getSize();
 			if (GenMath.clipLine(from, to, vertAxisPos, sz.width, 0, sz.height)) return false;
 			fX = (int)from.getX();
 			fY = (int)from.getY();
@@ -1514,7 +1567,7 @@ public class Panel extends JPanel
 					JMenuItem item = new JMenuItem("Linear");
 					item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
 					menu.add(item);
-					item = new JMenuItem("Logarithmic (not yet)");
+					item = new JMenuItem("Logarithmic)");
 					item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
 					menu.add(item);
 					menu.show(this, evt.getX(), evt.getY());
@@ -2025,23 +2078,18 @@ public class Panel extends JPanel
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0 || ClickZoomWireListener.isRightMouse(evt))
 			{
 				// standard click: zoom in
-				wp.minXPosition = lowXValue;
-				wp.maxXPosition = highXValue;
+				wp.setXAxisRange(lowXValue, highXValue);
 				if (wp == this)
-				{
 					wp.setYAxisRange(lowValue, highValue);
-				}
 			} else
 			{
 				// shift-click: zoom out
 				double oldRange = wp.maxXPosition - wp.minXPosition;
-				wp.minXPosition = (lowXValue + highXValue) / 2 - oldRange;
-				wp.maxXPosition = (lowXValue + highXValue) / 2 + oldRange;
+				wp.setXAxisRange((lowXValue + highXValue) / 2 - oldRange,
+					(lowXValue + highXValue) / 2 + oldRange);
 				if (wp == this)
-				{
 					wp.setYAxisRange((lowValue + highValue) / 2 - wp.analogRange,
 						(lowValue + highValue) / 2 + wp.analogRange);
-				}
 			}
 			wp.repaintWithRulers();
 		}
@@ -2093,20 +2141,17 @@ public class Panel extends JPanel
 		double dXValue = dragEndXData - dragStartXData;
 
 		dragEndY = evt.getY();
-		double dragEndYData = convertXScreenToData(dragEndY);
-		double dragStartYData = convertXScreenToData(dragStartY);
+		double dragEndYData = convertYScreenToData(dragEndY);
+		double dragStartYData = convertYScreenToData(dragStartY);
 		double dYValue = dragEndYData - dragStartYData;
 
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			if (!waveWindow.isXAxisLocked() && wp != this) continue;
-			wp.minXPosition -= dXValue;
-			wp.maxXPosition -= dXValue;
+			wp.setXAxisRange(wp.minXPosition - dXValue, wp.maxXPosition - dXValue);
 			if (wp == this)
-			{
 				setYAxisRange(analogLowValue - dYValue, analogHighValue - dYValue);
-			}
 			wp.repaintWithRulers();
 		}
 		dragStartX = dragEndX;
