@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.Resources;
