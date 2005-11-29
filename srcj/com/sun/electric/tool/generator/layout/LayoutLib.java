@@ -55,7 +55,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.Job;
+
 /*
  * The LayoutLib class provides an assortment of methods that I
  * found to be useful for programatic layout generation.
@@ -121,7 +121,7 @@ public class LayoutLib {
 		Library lib = Library.findLibrary(libName);
 		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
 		if (lib==null) {
-			lib = LibraryFiles.readLibrary(libFileURL, null, type, Job.BATCHMODE);
+			lib = LibraryFiles.readLibrary(libFileURL, null, type, false);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;

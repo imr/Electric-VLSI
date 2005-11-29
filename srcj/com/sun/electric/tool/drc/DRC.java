@@ -264,18 +264,38 @@ public class DRC extends Listener
 			curCell = wnd.getCell();
 		}
 
-		if (curCell == null) return;
-		if (curCell.isSchematic() || curCell.getTechnology() == Schematics.tech ||
-			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
+        checkDRCHierarchically(curCell, bounds, mode);
+//		if (curCell == null) return;
+//		if (curCell.isSchematic() || curCell.getTechnology() == Schematics.tech ||
+//			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
+//		{
+//			// hierarchical check of schematics
+//			new CheckSchematicHierarchically(curCell);
+//		} else
+//		{
+//			// hierarchical check of layout
+//			new CheckLayoutHierarchically(curCell, bounds, mode);
+//		}
+	}
+
+    /**
+     * This method generates a DRC job from the GUI or for a bash script.
+     */
+    public static void checkDRCHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode)
+    {
+        if (cell == null) return;
+		if (cell.isSchematic() || cell.getTechnology() == Schematics.tech ||
+			cell.isIcon() || cell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
-			new CheckSchematicHierarchically(curCell);
+			new CheckSchematicHierarchically(cell);
 		} else
 		{
 			// hierarchical check of layout
-			new CheckLayoutHierarchically(curCell, bounds, mode);
+            if (mode == null) mode = GeometryHandler.GHMode.ALGO_QTREE;
+			new CheckLayoutHierarchically(cell, bounds, mode);
 		}
-	}
+    }
 
 	/**
 	 * Base class for checking design rules.

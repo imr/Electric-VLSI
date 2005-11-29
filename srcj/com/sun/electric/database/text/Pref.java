@@ -30,6 +30,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
 
@@ -907,33 +908,45 @@ public class Pref
 		if (meaningsToReconcile.size() == 0) return;
 		if (Job.BATCHMODE)
 		{
-			for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
-			{
-				Meaning meaning = (Meaning)it.next();
-				Pref pref = meaning.getPref();
-
-//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-				Object obj = meaning.getDesiredValue();
-
-				// set the option
-				switch (pref.getType())
-				{
-					case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-					case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
-					case Pref.DOUBLE:
-						if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
-							if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
-						break;
-					case Pref.STRING:  pref.setString((String)obj);                       break;
-					default: continue;
-				}
-				System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
-			}
+            finishPrefReconcilation(meaningsToReconcile);
 			return;
 		}
  		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
 		dialog.setVisible(true);
 	}
+
+    /**
+     * This method is called after reconciling Prefs with OptionReconcile dialog or in a batch mode
+     */
+    public static void finishPrefReconcilation(List<Meaning> meaningsToReconcile)
+    {
+        for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
+        {
+            Meaning meaning = (Meaning)it.next();
+            Pref pref = meaning.getPref();
+
+//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
+            Object obj = meaning.getDesiredValue();
+
+            // set the option
+            switch (pref.getType())
+            {
+                case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
+                case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
+                case Pref.DOUBLE:
+                    if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
+                        if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
+                    break;
+                case Pref.STRING:  pref.setString((String)obj);                       break;
+                default: continue;
+            }
+            System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
+        }
+        // Repair libraries in case number of layers was changed or arcs must be resized.
+        CircuitChanges.checkAndRepairCommand(true);
+        // Repair libraries in case default width changes due to foundry changes
+        new Technology.ResetDefaultWidthJob(null);
+    }
 
 	/****************************** private methods ******************************/
 

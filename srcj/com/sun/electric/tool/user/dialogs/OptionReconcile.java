@@ -26,8 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.technology.Technology;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -253,32 +251,16 @@ public class OptionReconcile extends EDialog
 
 		public boolean doIt()
 		{
+            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
+
 			for(Iterator<JRadioButton> it = changedOptions.keySet().iterator(); it.hasNext(); )
 			{
 				JRadioButton cb = (JRadioButton)it.next();
 				if (!cb.isSelected()) continue;
 				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
-				Pref pref = meaning.getPref();
-
-//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-				Object obj = meaning.getDesiredValue();
-
-				// set the option
-				switch (pref.getType())
-				{
-					case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-					case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
-					case Pref.DOUBLE:
-						if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
-							if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
-						break;
-					case Pref.STRING:  pref.setString((String)obj);                       break;
-				}
+                meaningsToReconcile.add(meaning);
 			}
-            // Repair libraries in case number of layers was changed or arcs must be resized.
-            CircuitChanges.checkAndRepairCommand(true);
-            // Repair libraries in case default width changes due to foundry changes
-            new Technology.ResetDefaultWidthJob(null);
+            Pref.finishPrefReconcilation(meaningsToReconcile);
 			return true;
 		}
 	}
