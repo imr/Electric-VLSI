@@ -133,7 +133,7 @@ public class Sim
 			System.out.print("Simulating...");
 
 			// determine highest time to simulate
-			Rectangle2D bounds = als.sd.getBounds();
+			Rectangle2D bounds = als.an.getBounds();
 			double tMax = bounds.getMaxX();
 			for(Iterator<Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
@@ -193,7 +193,7 @@ public class Sim
 		stateVector[0] = 0;
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
-		for(Iterator<Signal> it = als.sd.getSignals().iterator(); it.hasNext(); )
+		for(Iterator<Signal> it = als.an.getSignals().iterator(); it.hasNext(); )
 		{
 			DigitalSignal sig = (DigitalSignal)it.next();
 			if (sigsChanged.contains(sig)) continue;

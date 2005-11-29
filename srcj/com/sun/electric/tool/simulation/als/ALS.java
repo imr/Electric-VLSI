@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
@@ -68,7 +69,7 @@ public class ALS extends Engine
 	/** the simulation engine */						Sim               theSim;
 	/** the circuit flattener */						Flat              theFlat;
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
-	/** the stimuli set currently being displayed */	Stimuli           sd;
+	/** the stimuli set currently being displayed */	Analysis          an;
 	/** current time in the simulator */				double            timeAbs;
 	/** saved list of stimuli when refreshing */		List<String>      stimuliList;
 
@@ -446,7 +447,7 @@ public class ALS extends Engine
 		stimuliList = getStimuliToSave();
 
 		// restart everything
-		Simulation.startSimulation(Simulation.ALS_ENGINE, false, sd.getCell(), this);
+		Simulation.startSimulation(Simulation.ALS_ENGINE, false, an.getStimuli().getCell(), this);
 	}
 
 	/**
@@ -735,7 +736,7 @@ public class ALS extends Engine
 	 */
 	public void saveStimuli()
 	{
-		String stimuliFileName = OpenFile.chooseOutputFile(FileType.ALSVECTOR, "ALS Vector file", sd.getCell().getName() + ".vec");
+		String stimuliFileName = OpenFile.chooseOutputFile(FileType.ALSVECTOR, "ALS Vector file", an.getStimuli().getCell().getName() + ".vec");
 		if (stimuliFileName ==  null) return;
 		try
 		{
@@ -825,16 +826,14 @@ public class ALS extends Engine
 		if (theFlat.flattenNetwork(cell)) return;
 
 		// initialize display
-		sd = getCircuit(cell);
+		an = getCircuit(cell);
 		ww = oldWW;
 
-		sd.setDataType(FileType.ALS);
-		sd.setEngine(this);
-		Simulation.showSimulationData(sd, ww);
+		Simulation.showSimulationData(an.getStimuli(), ww);
 
 		// make a waveform window
 		if (ww == null)
-			ww = sd.getWaveformWindow();
+			ww = an.getStimuli().getWaveformWindow();
 		ww.setSimEngine(this);
 
 		if (stimuliList != null) processStimuliList(stimuliList);
@@ -970,10 +969,13 @@ public class ALS extends Engine
 		}
 	}
 
-	private Stimuli getCircuit(Cell cell)
+	private Analysis getCircuit(Cell cell)
 	{
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
+		sd.setDataType(FileType.ALS);
+		sd.setEngine(this);
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();
@@ -981,14 +983,14 @@ public class ALS extends Engine
 		{
 			if (cr.modelName.equals(topLevelName))
 			{
-				addExports(cr, sd, null);
+				addExports(cr, an, null);
 				break;
 			}
 		}
-		return sd;
+		return an;
 	}
 
-	private void addExports(Connect cr, Stimuli sd, String context)
+	private void addExports(Connect cr, Analysis an, String context)
 	{
 		// determine type of model
 		for(Iterator<Model> it = modelList.iterator(); it.hasNext(); )
@@ -1004,7 +1006,7 @@ public class ALS extends Engine
 		{
 			ALSExport e = (ALSExport)it.next();
 			if (e.nodePtr.sig != null) continue;
-			DigitalSignal sig = new DigitalSignal(sd);
+			DigitalSignal sig = new DigitalSignal(an);
 			e.nodePtr.sig = sig;
 			sig.setSignalContext(context);
 			sig.setSignalName((String)e.nodeName);
@@ -1019,7 +1021,7 @@ public class ALS extends Engine
 		if (subContext == null) subContext = ""; else subContext += ".";
 		for(Connect child = cr.child; child != null; child = child.next)
 		{
-			addExports(child, sd, subContext + child.instName);
+			addExports(child, an, subContext + child.instName);
 		}
 	}
 
@@ -1324,7 +1326,7 @@ public class ALS extends Engine
 
 		int dotPos = sp.lastIndexOf('.');
 		String s2 = sp;
-		Connect cellPtr = findLevel(sd.getCell().getName().toUpperCase());
+		Connect cellPtr = findLevel(an.getStimuli().getCell().getName().toUpperCase());
 		if (dotPos >= 0)
 		{
 			s2 = sp.substring(dotPos+1);
