@@ -24,7 +24,6 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -63,6 +62,7 @@ public class Stimuli
 	/** the separator character that breaks names */			private char separatorChar;
 	/** the analyses in this Stimuli */							private HashMap<Analysis.AnalysisType,Analysis> analyses;
 	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
+	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
 
 	/**
 	 * Constructor to build a new Simulation Data object.
@@ -72,6 +72,7 @@ public class Stimuli
 		separatorChar = '.';
 		analyses = new HashMap<Analysis.AnalysisType,Analysis>();
 		analysisList = new ArrayList<Analysis>();
+		controlPointMap = new HashMap<Signal,Double[]>();
 	}
 
 	public void addAnalysis(Analysis an)
@@ -178,6 +179,83 @@ public class Stimuli
 	public WaveformWindow getWaveformWindow() { return ww; }
 
 	/**
+	 * Method to return an array of control points associated with a signal.
+	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+	 * These points can be selected for change of the stimuli.
+	 * @param sig the signal in question.
+	 * @return an array of times where there are control points.
+	 * Null if no control points are defined.
+	 */
+	public Double [] getControlPoints(Signal sig) { return controlPointMap.get(sig); }
+
+	/**
+	 * Method to clear the list of control points associated with a signal.
+	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+	 * These points can be selected for change of the stimuli.
+	 * @param sig the signal to clear.
+	 */
+	public void clearControlPoints(Signal sig) { controlPointMap.remove(sig); }
+
+	/**
+	 * Method to add a new control point to the list on a signal.
+	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+	 * These points can be selected for change of the stimuli.
+	 * @param sig the signal in question.
+	 * @param time the time of the new control point.
+	 */
+	public void addControlPoint(Signal sig, double time)
+	{
+		Double [] controlPoints = controlPointMap.get(sig);
+		if (controlPoints == null)
+		{
+			controlPoints = new Double[1];
+			controlPoints[0] = new Double(time);
+			controlPointMap.put(sig, controlPoints);
+		} else
+		{
+			// see if it is in the list already
+			for(int i=0; i<controlPoints.length; i++)
+				if (controlPoints[i].doubleValue() == time) return;
+
+			// extend the list
+			Double [] newCP = new Double[controlPoints.length + 1];
+			for(int i=0; i<controlPoints.length; i++)
+				newCP[i] = controlPoints[i];
+			newCP[controlPoints.length] = new Double(time);
+			controlPointMap.put(sig, newCP);
+		}
+	}
+
+	/**
+	 * Method to remove control points the list on a signal.
+	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+	 * These points can be selected for change of the stimuli.
+	 * @param sig the signal in question.
+	 * @param time the time of the control point to delete.
+	 */
+	public void removeControlPoint(Signal sig, double time)
+	{
+		Double [] controlPoints = controlPointMap.get(sig);
+		if (controlPoints == null) return;
+
+		// see if it is in the list already
+		boolean found = false;
+		for(int i=0; i<controlPoints.length; i++)
+			if (controlPoints[i].doubleValue() == time) { found = true;   break; }
+		if (!found) return;
+
+		// shrink the list
+		Double [] newCP = new Double[controlPoints.length - 1];
+		int j = 0;
+		for(int i=0; i<controlPoints.length; i++)
+		{
+			if (controlPoints[i].doubleValue() != time)
+				newCP[j++] = controlPoints[i];
+		}
+		controlPointMap.put(sig, newCP);
+	}
+
+	/**
 	 * Method to compute the time and value bounds of this simulation data.
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.
@@ -190,6 +268,7 @@ public class Stimuli
 		{
 			Analysis an = it.next();
 			Rectangle2D anBounds = an.getBounds();
+			if (anBounds == null) continue;
 			if (bounds == null)
 			{
 				bounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());

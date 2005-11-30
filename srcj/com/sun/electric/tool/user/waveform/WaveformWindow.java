@@ -596,14 +596,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// set bounds of the window from extent of the data
 		Rectangle2D dataBounds = sd.getBounds();
-		double lowTime = dataBounds.getMinX();
-		double highTime = dataBounds.getMaxX();
-		double lowValue = dataBounds.getMinY();
-		double highValue = dataBounds.getMaxY();
-		double timeRange = highTime - lowTime;
-		setMainXPositionCursor(timeRange*0.2 + lowTime);
-		setExtensionXPositionCursor(timeRange*0.8 + lowTime);
-		setDefaultHorizontalRange(lowTime, highTime);
+		if (dataBounds != null)
+		{
+			double lowTime = dataBounds.getMinX();
+			double highTime = dataBounds.getMaxX();
+			double lowValue = dataBounds.getMinY();
+			double highValue = dataBounds.getMaxY();
+			double timeRange = highTime - lowTime;
+			setMainXPositionCursor(timeRange*0.2 + lowTime);
+			setExtensionXPositionCursor(timeRange*0.8 + lowTime);
+			setDefaultHorizontalRange(lowTime, highTime);
+		}
 	}
 
 	// ************************************* REQUIRED IMPLEMENTATION METHODS *************************************
@@ -630,7 +633,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			wp.repaint();
+			wp.repaintContents();
 		}
 		if (mainHorizRulerPanel != null)
 			mainHorizRulerPanel.repaint();
@@ -1004,7 +1007,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
-			wp.repaint();
+			wp.repaintContents();
 		}
 	}
 
@@ -1109,7 +1112,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		wp.getSignalButtons().validate();
 		wp.getSignalButtons().repaint();
-		wp.repaint();
+		wp.repaintContents();
 		saveSignalOrder();
 	}
 
@@ -1124,7 +1127,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		wp.getSignalButtons().validate();
 		wp.getSignalButtons().repaint();
 		wp.removeAllSignals();
-		wp.repaint();
+		wp.repaintContents();
 		saveSignalOrder();
 	}
 
@@ -1329,7 +1332,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (ws.isHighlighted()) changed = true;
 				ws.setHighlighted(false);
 			}
-			if (changed) wp.repaint();
+			if (changed) wp.repaintContents();
 		}
 	}
 
@@ -1644,7 +1647,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				WaveSignal wsig = new WaveSignal(wp, sSig);
 			}
 			added = true;
-			wp.repaint();
+			wp.repaintContents();
 		}
 		if (added)
 		{
@@ -1687,7 +1690,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							wp.removeSignal(ws.getButton());
 							wp.getSignalButtons().validate();
 							wp.getSignalButtons().repaint();
-							wp.repaint();
+							wp.repaintContents();
 							found = true;
 							break;
 						}
@@ -2486,7 +2489,7 @@ if (wp.getSignalButtons() != null)
 					wp.getSignalButtons().validate();
 					wp.getSignalButtons().repaint();
 				}
-				wp.repaint();
+				wp.repaintContents();
 			}
 		}
 		wf.wantToRedoSignalTree();
@@ -2704,7 +2707,7 @@ if (wp.getSignalButtons() != null)
 			Panel wp = makeNewPanel();
 			WaveSignal wsig = new WaveSignal(wp, sig);
 			overall.validate();
-			wp.repaint();
+			wp.repaintContents();
 		}
 		saveSignalOrder();
 	}
@@ -2747,8 +2750,10 @@ if (wp.getSignalButtons() != null)
 		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
+			if (wp.getXAxisSignal() != null) continue;
 			Analysis an = sd.findAnalysis(wp.getAnalysisType());
 			Rectangle2D bounds = an.getBounds();
+			if (bounds == null) continue;
 			if (xBounds == null)
 			{
 				xBounds = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
@@ -2774,7 +2779,9 @@ if (wp.getSignalButtons() != null)
 
 				// when time is not locked, compute bounds for this panel only
 				Analysis an = sd.findAnalysis(wp.getAnalysisType());
-				xBounds = an.getBounds();
+				Rectangle2D anBounds = an.getBounds();
+				if (anBounds != null)
+					xBounds.setRect(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 				if (wp.getXAxisSignal() != null)
 				{
 					Rectangle2D sigBounds = wp.getXAxisSignal().getBounds();
@@ -2795,22 +2802,35 @@ if (wp.getSignalButtons() != null)
 					Rectangle2D.union(yBounds, sigBounds, yBounds);
 				}
 			}
-			double lowValue = yBounds.getMinY();
-			double highValue = yBounds.getMaxY();
-			double valueRange = (highValue - lowValue) / 8;
-			if (valueRange == 0) valueRange = 0.5;
-			lowValue -= valueRange;
-			highValue += valueRange;
-			boolean repaint = false;
-			if (wp.getMinXAxis() != xBounds.getMinX() || wp.getMaxXAxis() != xBounds.getMaxX())
+			if (yBounds == null)
 			{
-				wp.setXAxisRange(xBounds.getMinX(), xBounds.getMaxX());
-				repaint = true;
+				Analysis an = sd.findAnalysis(wp.getAnalysisType());
+				Rectangle2D anBounds = an.getBounds();
+				if (anBounds != null)
+					yBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 			}
-			if (wp.getYAxisLowValue() != lowValue || wp.getYAxisHighValue() != highValue)
+			boolean repaint = false;
+			if (xBounds != null)
 			{
-				wp.setYAxisRange(lowValue, highValue);
-				repaint = true;
+				if (wp.getMinXAxis() != xBounds.getMinX() || wp.getMaxXAxis() != xBounds.getMaxX())
+				{
+					wp.setXAxisRange(xBounds.getMinX(), xBounds.getMaxX());
+					repaint = true;
+				}
+			}
+			if (yBounds != null)
+			{
+				double lowValue = yBounds.getMinY();
+				double highValue = yBounds.getMaxY();
+				double valueRange = (highValue - lowValue) / 8;
+				if (valueRange == 0) valueRange = 0.5;
+				lowValue -= valueRange;
+				highValue += valueRange;
+				if (wp.getYAxisLowValue() != lowValue || wp.getYAxisHighValue() != highValue)
+				{
+					wp.setYAxisRange(lowValue, highValue);
+					repaint = true;
+				}
 			}
 			if (repaint)
 			{
@@ -3038,7 +3058,7 @@ if (wp.getSignalButtons() != null)
 							}
 							panel.setXAxisSignal(sSig);
 							panel.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
-							panel.repaint();
+							panel.repaintContents();
 						}
 						hr.repaint();
 					}
@@ -3131,7 +3151,7 @@ if (wp.getSignalButtons() != null)
 					{
 						sourcePanel.getSignalButtons().validate();
 						sourcePanel.getSignalButtons().repaint();
-						sourcePanel.repaint();
+						sourcePanel.repaintContents();
 						WaveSignal newSig = WaveSignal.addSignalToPanel(sSig, panel);
 						if (newSig != null)
 						{
@@ -3193,7 +3213,7 @@ if (wp.getSignalButtons() != null)
 			}
 			WaveSignal wsig = new WaveSignal(panel, sSig);
 			ww.overall.validate();
-			panel.repaint();
+			panel.repaintContents();
 			dtde.dropComplete(true);
 		}
 	}

@@ -648,18 +648,19 @@ public class DebugMenus {
 	public static void makeFakeWaveformCommand()
 	{
 		// make the waveform data
+		int numEvents = 100;
 		Stimuli sd = new Stimuli();
 		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		double timeStep = 0.0000000001;
-		an.buildCommonTime(100);
-		for(int i=0; i<100; i++)
+		an.buildCommonTime(numEvents);
+		for(int i=0; i<numEvents; i++)
 			an.setCommonTime(i, i * timeStep);
 		for(int i=0; i<18; i++)
 		{
 			AnalogSignal as = new AnalogSignal(an);
 			as.setSignalName("Signal"+(i+1));
-			as.buildValues(100);
-			for(int k=0; k<100; k++)
+			as.buildValues(numEvents);
+			for(int k=0; k<numEvents; k++)
 			{
 				as.setValue(k, Math.sin((k+i*10) / (2.0+i*2)) * 4);
 			}
@@ -669,14 +670,11 @@ public class DebugMenus {
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		WaveformWindow ww = (WaveformWindow)wf.getContent();
-//		ww.setMainXPositionCursor(timeStep*22);
-//		ww.setExtensionXPositionCursor(timeStep*77);
-//		ww.setDefaultHorizontalRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
-			Panel wp = new Panel(ww, Analysis.ANALYSIS_TRANS);
+			Panel wp = new Panel(ww, Analysis.ANALYSIS_SIGNALS);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{

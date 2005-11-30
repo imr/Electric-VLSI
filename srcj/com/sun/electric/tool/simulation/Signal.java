@@ -38,12 +38,9 @@ public class Signal
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
 	/** the Analysis object in which this Signal resides. */		protected Analysis an;
-	/** an array of control points on this signal */				private double [] controlPoints;
 	/** a list of signals on this bussed signal */					private List<Signal> bussedSignals;
 	/** the number of busses that reference this signal */			private int busCount;
 	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
-	/** true if the bounds data is valid */							protected boolean boundsCurrent;
-	/** application-specific object associated with this signal */	private Object appObject;
 
 	/**
 	 * Constructor for a simulation signal.
@@ -52,8 +49,7 @@ public class Signal
 	protected Signal(Analysis an)
 	{
 		this.an = an;
-		boundsCurrent = false;
-		controlPoints = null;
+		bounds = null;
 		busCount = 0;
 		if (an != null) an.addSignal(this);
 	}
@@ -117,8 +113,7 @@ public class Signal
 	public void buildBussedSignalList()
 	{
 		bussedSignals = new ArrayList<Signal>();
-if (an == null) System.out.println("SD IS NULL!!!!!!!");
-an.getBussedSignals().add(this);
+		an.getBussedSignals().add(this);
 	}
 
 	/**
@@ -161,83 +156,51 @@ an.getBussedSignals().add(this);
 	 * Method to return a list of control points associated with this signal.
 	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
 	 * These points can be selected for change of the stimuli.
+	 * Note that the control point structures are not stored on this object because that would consume
+	 * too much memory for such little-used information.
+	 * Instead, the control point data is stored in HashMaps on the Stimuli.
 	 * @return an array of times where there are control points.
 	 * Null if no control points are defined.
 	 */
-	public double [] getControlPoints() { return controlPoints; }
+	public Double [] getControlPoints() { return an.getStimuli().getControlPoints(this); }
 
 	/**
 	 * Method to clear the list of control points associated with this signal.
 	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
 	 * These points can be selected for change of the stimuli.
+	 * Note that the control point structures are not stored on this object because that would consume
+	 * too much memory for such little-used information.
+	 * Instead, the control point data is stored in HashMaps on the Stimuli.
 	 */
-	public void clearControlPoints() { controlPoints = null; }
+	public void clearControlPoints() { an.getStimuli().clearControlPoints(this); }
 
 	/**
 	 * Method to add a new control point to the list on this signal.
 	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
 	 * These points can be selected for change of the stimuli.
+	 * Note that the control point structures are not stored on this object because that would consume
+	 * too much memory for such little-used information.
+	 * Instead, the control point data is stored in HashMaps on the Stimuli.
 	 * @param time the time of the new control point.
 	 */
 	public void addControlPoint(double time)
 	{
-		if (controlPoints == null)
-		{
-			controlPoints = new double[1];
-			controlPoints[0] = time;
-		} else
-		{
-			// see if it is in the list already
-			for(int i=0; i<controlPoints.length; i++)
-				if (controlPoints[i] == time) return;
-
-			// extend the list
-			double [] newCP = new double[controlPoints.length + 1];
-			for(int i=0; i<controlPoints.length; i++)
-				newCP[i] = controlPoints[i];
-			newCP[controlPoints.length] = time;
-			controlPoints = newCP;
-		}
+		an.getStimuli().addControlPoint(this, time);
 	}
 
 	/**
 	 * Method to remove control points the list on this signal.
 	 * Control points are places where the user has added stimuli to the signal (set a level or strength).
 	 * These points can be selected for change of the stimuli.
+	 * Note that the control point structures are not stored on this object because that would consume
+	 * too much memory for such little-used information.
+	 * Instead, the control point data is stored in HashMaps on the Stimuli.
 	 * @param time the time of the control point to delete.
 	 */
 	public void removeControlPoint(double time)
 	{
-		if (controlPoints == null) return;
-
-		// see if it is in the list already
-		boolean found = false;
-		for(int i=0; i<controlPoints.length; i++)
-			if (controlPoints[i] == time) { found = true;   break; }
-		if (!found) return;
-
-		// shrink the list
-		double [] newCP = new double[controlPoints.length - 1];
-		int j = 0;
-		for(int i=0; i<controlPoints.length; i++)
-		{
-			if (controlPoints[i] != time)
-				newCP[j++] = controlPoints[i];
-		}
-		controlPoints = newCP;
+		an.getStimuli().removeControlPoint(this, time);
 	}
-
-	/**
-	 * Method to set an application-specific object pointer on this Signal.
-	 * @param appObject an application-specific object pointer on this Signal.
-	 */
-	public void setAppObject(Object appObject) { this.appObject = appObject; }
-
-	/**
-	 * Method to get an application-specific object pointer on this Signal.
-	 * @return the application-specific object pointer on this Signal.
-	 */
-	public Object getAppObject() { return appObject; }
 
 	/**
 	 * Method to return the number of events in this signal.
@@ -255,10 +218,9 @@ an.getBussedSignals().add(this);
 	 */
 	public Rectangle2D getBounds()
 	{
-		if (!boundsCurrent)
+		if (bounds == null)
 		{
 			calcBounds();
-			boundsCurrent = true;
 		}
 		return bounds;
 	}

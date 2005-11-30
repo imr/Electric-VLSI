@@ -4,11 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04c: *********************************
 
+IMP: (11/30/05, SMR) Reduced the amount of memory used by signals (Bug #712).
+
 IMP: (11/30/05, DN) Command-line switch "-server" to dump snapshot trace. 
 
 IMP: (11/29/05, GVG) More changes related to the DISPLAY dependency while running batch jobs.
 Ability to reconcile options in batch mode (some code in OptionReconcile.java moved to Pref so it
 can be used in batch mode).
+
+IMP: (11/29/05, SMR) Waveform panels use offscreen buffers (Bug #239).
+
+BUG: (11/29/05, SMR) Redoing text changes may crash (Bug #762).
+FIX: In TextWindow.redo(), must catch the CannotRedoException exception.
 
 IMP: (11/28/05, SMR) Entering "measure" mode clears previous measurements (Bug #761).
 

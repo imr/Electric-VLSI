@@ -23,10 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Class to define a signal in a simulation that has time information.
@@ -34,8 +30,7 @@ import java.util.List;
  */
 public class TimedSignal extends Signal
 {
-	/** true to use the common time array in the Stimuli */			private boolean useCommonTime;
-	/** an array of time values on this signal (if not common) */	private double [] time;
+	/** an array of time values on this signal (null to use common time) */	private double [] time;
 
 	/**
 	 * Constructor for a simulation signal.
@@ -44,7 +39,7 @@ public class TimedSignal extends Signal
 	protected TimedSignal(Analysis an)
 	{
 		super(an);
-		useCommonTime = true;
+		time = null;
 	}
 
 	/**
@@ -58,7 +53,7 @@ public class TimedSignal extends Signal
 	 * This method requests that the TimedSignal have its own time array, and not use common time data.
 	 * @param numEvents the number of events on this TimedSignal (the length of the time array).
 	 */
-	public void buildTime(int numEvents) { useCommonTime = false;   time = new double[numEvents]; }
+	public void buildTime(int numEvents) { time = new double[numEvents]; }
 
 	/**
 	 * Method to return the value of time for a given event on this TimedSignal.
@@ -69,7 +64,7 @@ public class TimedSignal extends Signal
 	 */
 	public double getTime(int index)
 	{
-		if (useCommonTime)
+		if (time == null)
 		{
 			double [] commonTimeArray = an.getCommonTimeArray();
 			if (commonTimeArray == null) return 0;
@@ -87,7 +82,7 @@ public class TimedSignal extends Signal
 	 */
 	public double getTime(int index, int sweep)
 	{
-		if (useCommonTime)
+		if (time == null)
 		{
 			double [] sct = (double [])an.getCommonTimeArray(sweep);
 			return sct[index];
@@ -116,7 +111,7 @@ public class TimedSignal extends Signal
 	 * each entry must be at the same time as the corresponding entries in other TimedSignals.
 	 * @param time a new time vector for this TimedSignal.
 	 */
-	public void setTimeVector(double [] time) { useCommonTime = false;   boundsCurrent = false;   this.time = time; }
+	public void setTimeVector(double [] time) { bounds = null;   this.time = time; }
 
 	/**
 	 * Method to set an individual time entry for this TimedSignal.
@@ -128,5 +123,5 @@ public class TimedSignal extends Signal
 	 * @param entry the entry in the event array of this TimedSignal (0-based).
 	 * @param t the new value of time at this event.
 	 */
-	public void setTime(int entry, double t) { boundsCurrent = false;   time[entry] = t; }
+	public void setTime(int entry, double t) { bounds = null;   time[entry] = t; }
 }

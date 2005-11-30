@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  */
 public class AnalogSignal extends TimedSignal
 {
-	private double [] values;
+	/** the array of values on this signal */		private double [] values;
 
 	/**
 	 * Constructor for an analog signal.
@@ -60,7 +60,7 @@ public class AnalogSignal extends TimedSignal
 	public void setValue(int index, double value)
 	{
 		values[index] = value;
-		boundsCurrent = false;
+		bounds = null;
 	}
 
 	/**

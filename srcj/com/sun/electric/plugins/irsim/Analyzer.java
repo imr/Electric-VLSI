@@ -50,6 +50,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -177,6 +178,7 @@ public class Analyzer extends Engine
     /** the context for the cell being simulated */	private VarContext     context;
     /** the name of the file being simulated */		private String         fileName;
     /** the name of the last vector file read */	private String         vectorFileName;
+    /** mapping from signals to nodes */			private HashMap<Signal,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -285,6 +287,7 @@ public class Analyzer extends Engine
 		analysis = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
+		nodeMap = new HashMap<Signal,Sim.Node>();
 		for(Iterator<Sim.Node> it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
@@ -302,7 +305,7 @@ public class Analyzer extends Engine
 			{
 				sig.setSignalName(n.nName);
 			}
-			sig.setAppObject(n);
+			nodeMap.put(sig, n);
 
 			sig.buildTime(2);
 			sig.buildState(2);
@@ -757,11 +760,6 @@ public class Analyzer extends Engine
 				}
 			}
 			playVectors();
-
-//			sim_window_gettimeextents(&min, &max);
-//			ww.setDefaultTimeRange(min, max);
-//			ww.setMainXPositionCursor((max-min)/5.0*2.0+min);
-//			ww.setExtensionXPositionCursor((max-min)/5.0*3.0+min);
 			updateWindow(theSim.curDelta);
 
 			lineReader.close();
@@ -1210,7 +1208,7 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			if (n == null) continue;
 
 			String name = n.nName;
@@ -1537,7 +1535,7 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			setIn(n, commandName(sv.command).charAt(0));
 		}
 	}
@@ -1620,7 +1618,7 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 		{
 			Signal sig = (Signal)sIt.next();
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			System.out.println("Critical path for last transition of " + n.nName + ":");
 			n = unAlias(n);
 			cPath(n, 0);
@@ -1767,7 +1765,7 @@ public class Analyzer extends Engine
 		}
 		for(int i = 0; i < sigsOnBus.size(); i++)
 		{
-			Sim.Node n = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
+			Sim.Node n = nodeMap.get((Signal)sigsOnBus.get(i));
 			setIn(n, sv.parameters[1].charAt(i));
 		}
 	}
@@ -1841,7 +1839,7 @@ public class Analyzer extends Engine
 			for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
-				Sim.Node n = (Sim.Node)sig.getAppObject();
+				Sim.Node n = nodeMap.get(sig);
 				n = unAlias(n);
 				if ((n.nFlags & Sim.MERGED) != 0) continue;
 
@@ -1865,7 +1863,7 @@ public class Analyzer extends Engine
 			for(Iterator<Signal> sIt = sv.sigs.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
-				Sim.Node n = (Sim.Node)sig.getAppObject();
+				Sim.Node n = nodeMap.get(sig);
 				n = unAlias(n);
 
 				if ((n.nFlags & Sim.MERGED) != 0)
@@ -1882,7 +1880,7 @@ public class Analyzer extends Engine
 			for(Iterator<Signal> sIt = sv.sigsNegated.iterator(); sIt.hasNext(); )
 			{
 				Signal sig = (Signal)sIt.next();
-				Sim.Node n = (Sim.Node)sig.getAppObject();
+				Sim.Node n = nodeMap.get(sig);
 				n = unAlias(n);
 
 				if ((n.nFlags & Sim.MERGED) != 0)
@@ -1967,7 +1965,7 @@ public class Analyzer extends Engine
 		Sim.Node [] nodes = null;
 		if (sig.getBussedSignals() == null)
 		{
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			name = sig.getFullName();
 			n = unAlias(n);
 			Sim.Node [] nodeList = new Sim.Node[1];
@@ -1984,7 +1982,10 @@ public class Analyzer extends Engine
 		{
 			List<Signal> sigsOnBus = sig.getBussedSignals();
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
-			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
+			for(int i=0; i<sigsOnBus.size(); i++)
+			{
+				nodeList[i] = nodeMap.get((Signal)sigsOnBus.get(i));
+			}
 
 			int cnt = 0;
 			while ((cnt <= cCount) && (comp = compareVector(nodeList, sig.getFullName(), sigsOnBus.size(), mask, value.toString())) != 0)
@@ -2048,7 +2049,7 @@ public class Analyzer extends Engine
 		Sim.Node [] nodes = null;
 		if (sig.getBussedSignals() == null)
 		{
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			name = n.nName;
 			n = unAlias(n);
 			Sim.Node [] nodeList = new Sim.Node[1];
@@ -2059,7 +2060,10 @@ public class Analyzer extends Engine
 		{
 			List<Signal> sigsOnBus = sig.getBussedSignals();
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
-			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
+			for(int i=0; i<sigsOnBus.size(); i++)
+			{
+				nodeList[i] = nodeMap.get((Signal)sigsOnBus.get(i));
+			}
 			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
 			name = sig.getSignalName();
 			nBits = sigsOnBus.size();
@@ -2096,7 +2100,7 @@ public class Analyzer extends Engine
 
 		if (sig.getBussedSignals() == null)
 		{
-			Sim.Node n = (Sim.Node)sig.getAppObject();
+			Sim.Node n = nodeMap.get(sig);
 			n = unAlias(n);
 			awTrig = n;
 			awTrig.awPot = (short)chToPot(sv.parameters[1].charAt(0));
@@ -2108,7 +2112,8 @@ public class Analyzer extends Engine
 				return;
 			}
 
-			setupAssertWhen((Sim.Node)oSig.getAppObject(), commandName(sv.command));
+			Sim.Node wN = nodeMap.get(oSig);
+			setupAssertWhen(wN, commandName(sv.command));
 		} else
 		{
 			System.out.println("trigger to assertWhen " + sv.parameters[0] + " can't be a vector");
@@ -2189,7 +2194,7 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> it = analysis.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
-			Sim.Node b = (Sim.Node)sig.getAppObject();
+			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & which) == 0) continue;
 			int i;
 			List<Signal> sigsOnBus = sig.getBussedSignals();
@@ -2197,7 +2202,7 @@ public class Analyzer extends Engine
 			for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 			{
 				Signal bSig = (Signal)sIt.next();
-				Sim.Node bN = (Sim.Node)bSig.getAppObject();
+				Sim.Node bN = nodeMap.get(bSig);
 				if (bN.getTime() == theSim.curDelta)
 					{ found = true;   break; }
 			}
@@ -2671,14 +2676,14 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> it = analysis.getBussedSignals().iterator(); it.hasNext(); )
 		{
 			Signal sig = (Signal)it.next();
-			Sim.Node b = (Sim.Node)sig.getAppObject();
+			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & flag) != 0)
 			{
 				List<Signal> sigsOnBus = sig.getBussedSignals();
 				for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 				{
 					Signal bSig = (Signal)sIt.next();
-					Sim.Node bN = (Sim.Node)bSig.getAppObject();
+					Sim.Node bN = nodeMap.get(bSig);
 					bN.nFlags |= flag;
 				}
 			}
@@ -2738,7 +2743,7 @@ public class Analyzer extends Engine
 		for(Iterator<Signal> sIt = sigsOnBus.iterator(); sIt.hasNext(); )
 		{
 			Signal bSig = (Signal)sIt.next();
-			Sim.Node n = (Sim.Node)bSig.getAppObject();
+			Sim.Node n = nodeMap.get(bSig);
 			bits += Sim.vChars.charAt(n.nPot);
 		}
 
@@ -2772,14 +2777,14 @@ public class Analyzer extends Engine
 			String v = cs.values[index % cs.values.length];
 			if (cs.sig.getBussedSignals() == null)
 			{
-				Sim.Node n = (Sim.Node)cs.sig.getAppObject();
+				Sim.Node n = nodeMap.get(cs.sig);
 				setIn(n, v.charAt(0));
 			} else
 			{
 				List<Signal> sigsOnBus = cs.sig.getBussedSignals();
 				for(int i=0; i<sigsOnBus.size(); i++)
 				{
-					Sim.Node n = (Sim.Node)((Signal)sigsOnBus.get(i)).getAppObject();
+					Sim.Node n = nodeMap.get((Signal)sigsOnBus.get(i));
 					setIn(n, v.charAt(i));
 				}
 			}
@@ -2810,7 +2815,7 @@ public class Analyzer extends Engine
 		if (sig.getBussedSignals() != null)
 			len = sig.getBussedSignals().size();
 
-		Sim.Node n = (Sim.Node)sig.getAppObject();
+		Sim.Node n = nodeMap.get(sig);
 		if (sig.getBussedSignals() == null)
 		{
 			n = unAlias(n);
@@ -2838,7 +2843,7 @@ public class Analyzer extends Engine
 		Sequence s = new Sequence();
 		s.values = new String[args.length-1];
 		s.sig = sig;
-		sig.setAppObject(n);
+		nodeMap.put(sig, n);
 
 		// process each value specification saving results in sequence
 		for(int i = 1; i < args.length; i++)

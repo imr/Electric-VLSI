@@ -50,7 +50,7 @@ public class DigitalSignal extends TimedSignal
 	 * @param index the event index (0-based).
 	 * @param st the state of the signal at that event.
 	 */
-	public void setState(int index, int st) { state[index] = st;   boundsCurrent = false; }
+	public void setState(int index, int st) { state[index] = st;   bounds = null; }
 
 	/**
 	 * Method to get the state of this signal at a given event.
@@ -69,7 +69,7 @@ public class DigitalSignal extends TimedSignal
 	 * Method to set the state information for all events in this signal.
 	 * @param state an array of state information for every event on this signal.
 	 */
-	public void setStateVector(int [] state) { this.state = state;   boundsCurrent = false; }
+	public void setStateVector(int [] state) { this.state = state;   bounds = null; }
 
 	/**
 	 * Method to return the number of events in this signal.

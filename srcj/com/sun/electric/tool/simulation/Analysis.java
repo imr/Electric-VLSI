@@ -23,13 +23,9 @@
  */
 package com.sun.electric.tool.simulation;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.Rectangle2D;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;

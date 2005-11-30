@@ -30,7 +30,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
@@ -740,7 +739,7 @@ public class Simulation extends Listener
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				Panel wp = new Panel(ww, null);
+				Panel wp = new Panel(ww, an.getAnalysisType());
 				wp.makeSelectedPanel();
 				new WaveSignal(wp, sDSig);
 				numSignals++;

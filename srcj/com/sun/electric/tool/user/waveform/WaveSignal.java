@@ -121,7 +121,7 @@ public class WaveSignal
 		{
 			signal.color = col;
 			signal.sigButton.setForeground(col);
-			signal.wavePanel.repaint();
+			signal.wavePanel.repaintContents();
 		}
 	};
 
@@ -175,7 +175,7 @@ public class WaveSignal
 			JButton but = panel.findButton(ws);
 			but.setForeground(colorArray[index]);
 			panel.getSignalButtons().repaint();
-			panel.repaint();
+			panel.repaintContents();
 			return null;
 		}
 
@@ -186,7 +186,7 @@ public class WaveSignal
 		panel.getSignalButtons().validate();
 		panel.getSignalButtons().repaint();
 		if (panel.getSignalButtonsPane() != null) panel.getSignalButtonsPane().validate();
-		panel.repaint();
+		panel.repaintContents();
 		return wsig;
 	}
 

@@ -218,7 +218,7 @@ public class HorizRuler extends JPanel implements MouseListener
 		} else
 		{
 			wavePanel.setPanelLogarithmic(false);
-			wavePanel.repaint();
+			wavePanel.repaintContents();
 		}
 	}
 
@@ -234,7 +234,7 @@ public class HorizRuler extends JPanel implements MouseListener
 		} else
 		{
 			wavePanel.setPanelLogarithmic(true);
-			wavePanel.repaint();
+			wavePanel.repaintContents();
 		}
 	}
 
@@ -270,7 +270,7 @@ public class HorizRuler extends JPanel implements MouseListener
 			wp.setXAxisSignal(null);
 			wp.setXAxisRange(lowXValue, highXValue);
 			if (wp.getHorizRuler() != null) wp.getHorizRuler().repaint();
-			wp.repaint();
+			wp.repaintContents();
 		}
 		if (waveWindow.isXAxisLocked())
 		{

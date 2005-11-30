@@ -67,6 +67,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
@@ -169,7 +170,7 @@ public class TextWindow
 		{
 			undo.redo();
 			updateUndoRedo();
-		} catch (CannotUndoException e)
+		} catch (CannotRedoException e)
 		{
 			System.out.println("Cannot redo");
 		}
