@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.ui;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -3438,14 +3439,17 @@ public class PixelDrawing
         RenderTextInfo renderInfo = new RenderTextInfo();
         if (!renderInfo.buildInfo(msg, font, tSize, italic, bold, underline, new Rectangle(boxedWidth, boxedHeight), null, 0))
             return null;
-        return renderText(renderInfo);
+        EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
+        Undo.removeDatabaseChangeListener(wnd.getHighlighter());
+        wnd.setScreenSize(new Dimension(10, 10));
+        return wnd.getOffscreen().renderText(renderInfo);
     }
 
-	private static int textImageWidth = 0, textImageHeight = 0;
-	private static BufferedImage textImage = null;
-	private static Graphics2D textImageGraphics;
+	private int textImageWidth = 0, textImageHeight = 0;
+	private BufferedImage textImage = null;
+	private Graphics2D textImageGraphics;
 
-    private static Raster renderText(RenderTextInfo renderInfo) {
+    private Raster renderText(RenderTextInfo renderInfo) {
 
         Font theFont = renderInfo.font;
         if (theFont == null) return null;

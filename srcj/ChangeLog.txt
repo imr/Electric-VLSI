@@ -4,6 +4,24 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04c: *********************************
 
+BUG: (11/30/05, SMR) PostScript text scale is wrong (Bug #763).
+FIX: Increased PostScript text size.
+
+BUG: (11/30/05, SMR) Pasting shows undisplayable cell variables (Bug #760);
+FIX: In Clipboard.paste() ignore variables that are not displayed.
+
+IMP/MAN (11/30/05, SMR) New commands in Tool / Simulation (Built-in):
+     "Save Waveform Window Configuration to Disk..." and
+     "Restore Waveform Window Configuration from Disk..." remember the waveform
+     window configuration (Bug #704).
+
+BUG: (11/30/05, SMR) Menu text sometimes appears in the edit window (Bug #765).
+FIX: In PixelDrawing.java, make text drawing use a non-static buffer.
+
+BUG: (11/30/05, SMR) Some dialogs don't follow the main window (Bug #581).
+FIX: Removed "setLocation()" from GetInfoNode, GetInfoExport, and GetInfoText.
+     Also remember the messages window location.
+
 IMP: (11/30/05, SMR) Reduced the amount of memory used by signals (Bug #712).
 
 IMP: (11/30/05, DN) Command-line switch "-server" to dump snapshot trace. 

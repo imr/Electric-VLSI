@@ -370,7 +370,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         super(parent, modal);
         initComponents();
         getRootPane().setDefaultButton(ok);
-        setLocation(100, 50);
+//        setLocation(100, 50);
 
         Undo.addDatabaseChangeListener(this);
 

@@ -59,6 +59,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.applet.Applet;
 import java.applet.AudioClip;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -1857,30 +1859,91 @@ public class User extends Listener
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
 	private static Pref cacheDefaultWindowXPos = Pref.makeIntPref("DefaultWindowXPos", tool.prefs, 0);
-	/**
-	 * Method to tell the default X position of top-level windows.
-	 * The default is "0" (on the left).
-	 * @return the default X position of top-level windows.
-	 */
-	public static int getDefaultWindowXPos() { return cacheDefaultWindowXPos.getInt(); }
-	/**
-	 * Method to set the default X position of top-level windows.
-	 * @param x the default X position of top-level windows.
-	 */
-	public static void setDefaultWindowXPos(int x) { cacheDefaultWindowXPos.setInt(x); }
-
 	private static Pref cacheDefaultWindowYPos = Pref.makeIntPref("DefaultWindowYPos", tool.prefs, 0);
 	/**
-	 * Method to tell the default Y position of top-level windows.
-	 * The default is "0" (on the left).
-	 * @return the default Y position of top-level windows.
+	 * Method to tell the default position of top-level windows.
+	 * The default is "0,0" (top-left).
+	 * @return the default position of top-level windows.
 	 */
-	public static int getDefaultWindowYPos() { return cacheDefaultWindowYPos.getInt(); }
+	public static Point getDefaultWindowPos()
+	{
+		return new Point(cacheDefaultWindowXPos.getInt(), cacheDefaultWindowYPos.getInt());
+	}
 	/**
-	 * Method to set the default Y position of top-level windows.
-	 * @param y the default Y position of top-level windows.
+	 * Method to set the default position of top-level windows.
+	 * @param pt the default position of top-level windows.
 	 */
-	public static void setDefaultWindowYPos(int y) { cacheDefaultWindowYPos.setInt(y); }
+	public static void setDefaultWindowPos(Point pt)
+	{
+		cacheDefaultWindowXPos.setInt(pt.x);
+		cacheDefaultWindowYPos.setInt(pt.y);
+	}
+
+	private static Pref cacheDefaultWindowXSize = Pref.makeIntPref("DefaultWindowXSize", tool.prefs, 0);
+	private static Pref cacheDefaultWindowYSize = Pref.makeIntPref("DefaultWindowYSize", tool.prefs, 0);
+	/**
+	 * Method to tell the default size of top-level windows.
+	 * The default is null (use screen default).
+	 * @return the default position of top-level windows.
+	 */
+	public static Dimension getDefaultWindowSize()
+	{
+		if (cacheDefaultWindowXSize.getInt() == 0 || cacheDefaultWindowYSize.getInt() == 0) return null;
+		return new Dimension(cacheDefaultWindowXSize.getInt(), cacheDefaultWindowYSize.getInt());
+	}
+	/**
+	 * Method to set the default size of top-level windows.
+	 * @param sz the default size of top-level windows.
+	 */
+	public static void setDefaultWindowSize(Dimension sz)
+	{
+		cacheDefaultWindowXSize.setInt(sz.width);
+		cacheDefaultWindowYSize.setInt(sz.height);
+	}
+
+	private static Pref cacheDefaultMessagesXPos = Pref.makeIntPref("DefaultMessagesXPos", tool.prefs, -1);
+	private static Pref cacheDefaultMessagesYPos = Pref.makeIntPref("DefaultMessagesYPos", tool.prefs, -1);
+	/**
+	 * Method to tell the default position of the messages window.
+	 * The default is null (use appropriate size for screen).
+	 * @return the default position of the messages window.
+	 */
+	public static Point getDefaultMessagesPos()
+	{
+		if (cacheDefaultMessagesXPos.getInt() < 0 && cacheDefaultMessagesYPos.getInt() < 0) return null;
+		return new Point(cacheDefaultMessagesXPos.getInt(), cacheDefaultMessagesYPos.getInt());
+	}
+	/**
+	 * Method to set the default position of the messages window.
+	 * @param pt the default position of the messages window.
+	 */
+	public static void setDefaultMessagesPos(Point pt)
+	{
+		cacheDefaultMessagesXPos.setInt(pt.x);
+		cacheDefaultMessagesYPos.setInt(pt.y);
+	}
+
+	private static Pref cacheDefaultMessagesXSize = Pref.makeIntPref("DefaultMessagesXSize", tool.prefs, 0);
+	private static Pref cacheDefaultMessagesYSize = Pref.makeIntPref("DefaultMessagesYSize", tool.prefs, 0);
+	/**
+	 * Method to tell the default size of the messages window.
+	 * The default is null (use screen default).
+	 * @return the default position of the messages window.
+	 */
+	public static Dimension getDefaultMessagesSize()
+	{
+		if (cacheDefaultMessagesXSize.getInt() == 0 || cacheDefaultMessagesYSize.getInt() == 0) return null;
+		return new Dimension(cacheDefaultMessagesXSize.getInt(), cacheDefaultMessagesYSize.getInt());
+	}
+	/**
+	 * Method to set the default size of the messages window.
+	 * @param sz the default size of the messages window.
+	 */
+	public static void setDefaultMessagesSize(Dimension sz)
+	{
+		cacheDefaultMessagesXSize.setInt(sz.width);
+		cacheDefaultMessagesYSize.setInt(sz.height);
+	}
 
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", tool.prefs, true);
 	/**

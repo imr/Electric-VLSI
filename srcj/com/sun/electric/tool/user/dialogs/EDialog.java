@@ -71,7 +71,12 @@ public class EDialog extends JDialog
 
 		thisClass = this.getClass();
 		Point pt = (Point)locations.get(thisClass);
-		if (pt == null) pt = new Point(User.getDefaultWindowXPos()+100, User.getDefaultWindowYPos()+50);
+		if (pt == null)
+		{
+			pt = User.getDefaultWindowPos();
+			pt.x += 100;
+			pt.y += 50;
+		}
 		setLocation(pt.x, pt.y);
 
 		addComponentListener(new MoveComponentListener());

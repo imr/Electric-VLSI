@@ -470,6 +470,7 @@ public class Clipboard
         for (Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
+            if (!var.isDisplay()) continue;
             pasteList.add(var);
         }
 

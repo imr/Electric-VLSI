@@ -169,7 +169,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     {
         super(parent, modal);
         initComponents();
-        setLocation(100, 50);
+//        setLocation(100, 50);
 
         wnd = null;
         Undo.addDatabaseChangeListener(this);

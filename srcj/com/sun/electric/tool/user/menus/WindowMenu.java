@@ -671,12 +671,19 @@ public class WindowMenu {
         // this only works in SDI mode
         if (TopLevel.isMDIMode()) return;
 
-        // find current screen
+        // remember main window information
         WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
 		TopLevel tl = curWF.getFrame();
 		Point pt = tl.getLocation();
-		User.setDefaultWindowXPos(pt.x);
-		User.setDefaultWindowYPos(pt.y);
+		User.setDefaultWindowPos(pt);
+		Dimension sz = tl.getSize();
+		User.setDefaultWindowSize(sz);
+
+		// remember messages information
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+		Rectangle rect = mw.getMessagesLocation();
+		User.setDefaultMessagesPos(new Point(rect.x, rect.y));
+		User.setDefaultMessagesSize(new Dimension(rect.width, rect.height));
     }
 
     /**

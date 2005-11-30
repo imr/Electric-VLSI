@@ -238,7 +238,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        setLocation(100, 50);
+//        setLocation(100, 50);
 
         // add myself as a listener for highlight changes
         Undo.addDatabaseChangeListener(this);

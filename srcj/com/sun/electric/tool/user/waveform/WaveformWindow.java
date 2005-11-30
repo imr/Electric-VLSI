@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.simulation.AnalogSignal;
@@ -58,6 +59,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ExplorerTree;
@@ -91,6 +93,14 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -2519,6 +2529,198 @@ if (wp.getSignalButtons() != null)
 			return;
 		}
 		Simulate.plotSimulationResults(sd.getDataType(), sd.getCell(), sd.getFileURL(), this);
+	}
+
+	/**
+	 * Method to save the waveform window configuration to a disk file.
+	 */
+	public static void saveConfiguration()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		WaveformWindow ww = findWaveformWindow(cell);
+		if (ww == null)
+		{
+			System.out.println("There is no waveform window to save");
+			return;
+		}
+
+		String configurationFileName = OpenFile.chooseOutputFile(FileType.TEXT, "Waveform Configuration File", "waveform.txt");
+		if (configurationFileName == null) return;
+		try
+		{
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(configurationFileName)));
+			int total = ww.right.getComponentCount();
+			for(int i=0; i<total; i++)
+			{
+				JPanel rightPart = (JPanel)ww.right.getComponent(i);
+				for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+				{
+					Panel wp = (Panel)it.next();
+					if (wp.getRightHalf() == rightPart)
+					{
+						boolean first = true;
+						for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+						{
+							WaveSignal ws = (WaveSignal)sIt.next();
+							String sigName = ws.getSignal().getFullName();
+							if (first)
+							{
+								// header
+								first = false;
+								String analysisName = "";
+								if (wp.getAnalysisType() != null) analysisName = " " + wp.getAnalysisType();
+								String log = "";
+								if (wp.isPanelLogarithmicHorizontally()) log = " xlog";
+								if (wp.isPanelLogarithmicVertically()) log += " ylog";
+								if (i > 0) printWriter.println();
+								printWriter.println("panel" + analysisName + log);
+								printWriter.println("zoom " + wp.getYAxisLowValue() + " " + wp.getYAxisHighValue() +
+									" " + wp.getMinXAxis() + " " + wp.getMaxXAxis());
+								Signal signalInX = ww.xAxisSignalAll;
+								if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
+								if (signalInX != null) printWriter.println("x-axis " + signalInX.getFullName());
+							}
+							Color color = ws.getColor();
+							printWriter.println("signal " + sigName + " " + color.getRed() + "," + color.getGreen() + "," + color.getBlue());
+						}
+						break;
+					}
+				}
+			}
+			printWriter.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error writing configuration");
+			return;
+		}
+		System.out.println("Wrote " + configurationFileName);
+	}
+
+	/**
+	 * Method to restore the waveform window configuration from a disk file.
+	 */
+	public static void restoreConfiguration()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		WaveformWindow ww = findWaveformWindow(cell);
+		if (ww == null)
+		{
+			System.out.println("There is no waveform window to restore");
+			return;
+		}
+
+		String configurationFileName = OpenFile.chooseInputFile(FileType.TEXT, "Waveform Configuration File");
+		if (configurationFileName == null) return;
+
+		// clear the display
+		List<Panel> closeList = new ArrayList<Panel>();
+		for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+			closeList.add(it.next());
+		for(Iterator<Panel> it = closeList.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			ww.closePanel(wp);
+		}
+
+		// read the file
+		URL url = TextUtils.makeURLToFile(configurationFileName);
+		Panel curPanel = null;
+		Analysis.AnalysisType oneType = null;
+		try
+		{
+			URLConnection urlCon = url.openConnection();
+			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+			LineNumberReader lineReader = new LineNumberReader(is);
+			for(;;)
+			{
+				String buf = lineReader.readLine();
+				if (buf == null) break;
+				String [] keywords = buf.split(" ");
+				if (keywords.length == 0) continue;
+				if (keywords[0].equals("panel"))
+				{
+					Analysis.AnalysisType analysisType = null;
+					boolean xLog = false, yLog = false;
+					for(int i=1; i<keywords.length; i++)
+					{
+						if (keywords[i].equals("xlog")) xLog = true; else
+						if (keywords[i].equals("ylog")) yLog = true; else
+						{
+							analysisType = Analysis.AnalysisType.findAnalysisType(keywords[i]);
+							if (analysisType != null)
+							{
+								if (oneType == null) oneType = analysisType;
+								if (oneType != analysisType && ww.isXAxisLocked()) ww.togglePanelXAxisLock();
+							}
+						}
+					}
+					curPanel = new Panel(ww, analysisType);
+					if (xLog)
+					{
+						if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
+						curPanel.setPanelLogarithmicHorizontally(true);
+					}
+					if (yLog) curPanel.setPanelLogarithmicVertically(true);
+					continue;
+				}
+				if (keywords[0].equals("zoom"))
+				{
+					if (curPanel == null) continue;
+					double lowYValue = TextUtils.atof(keywords[1]);
+					double highYValue = TextUtils.atof(keywords[2]);
+					double lowXValue = TextUtils.atof(keywords[3]);
+					double highXValue = TextUtils.atof(keywords[4]);
+					curPanel.setXAxisRange(lowXValue, highXValue);
+					if (curPanel.getAnalysisType() != null)
+						curPanel.setYAxisRange(lowYValue, highYValue);
+					continue;
+				}
+				if (keywords[0].equals("x-axis"))
+				{
+					if (curPanel == null) continue;
+					Stimuli sd = ww.getSimData();
+					Analysis an = sd.getAnalyses().next();
+					if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
+					if (an == null) continue;
+					Signal sig = an.findSignalForNetwork(keywords[1]);
+					if (sig == null) continue;
+					if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
+					curPanel.setXAxisSignal(sig);
+					continue;					
+				}
+				if (keywords[0].equals("signal"))
+				{
+					if (curPanel == null) continue;
+					Stimuli sd = ww.getSimData();
+					Analysis an = sd.getAnalyses().next();
+					if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
+					if (an == null) continue;
+					Signal sig = an.findSignalForNetwork(keywords[1]);
+					if (sig == null) continue;
+					String [] colorNames = keywords[2].split(",");
+					int red = TextUtils.atoi(colorNames[0]);
+					int green = TextUtils.atoi(colorNames[1]);
+					int blue = TextUtils.atoi(colorNames[2]);
+					Color color = new Color(red, green, blue);
+					WaveSignal ws = new WaveSignal(curPanel, sig);
+					ws.setColor(color);
+					continue;
+				}
+			}
+			lineReader.close();
+			for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel panel = it.next();
+				panel.repaintWithRulers();
+			}
+			ww.saveSignalOrder();
+		} catch (IOException e)
+		{
+			System.out.println("Error reading " + configurationFileName);
+			return;
+		}
 	}
 
 	private static HashMap<String,String> savedSignalOrder = new HashMap<String,String>();

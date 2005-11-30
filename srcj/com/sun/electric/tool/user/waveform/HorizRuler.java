@@ -217,7 +217,7 @@ public class HorizRuler extends JPanel implements MouseListener
 			waveWindow.redrawAllPanels();
 		} else
 		{
-			wavePanel.setPanelLogarithmic(false);
+			wavePanel.setPanelLogarithmicHorizontally(false);
 			wavePanel.repaintContents();
 		}
 	}
@@ -233,7 +233,7 @@ public class HorizRuler extends JPanel implements MouseListener
 			waveWindow.redrawAllPanels();
 		} else
 		{
-			wavePanel.setPanelLogarithmic(true);
+			wavePanel.setPanelLogarithmicHorizontally(true);
 			wavePanel.repaintContents();
 		}
 	}

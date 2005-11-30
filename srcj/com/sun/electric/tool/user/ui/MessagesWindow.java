@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.Job;
 
@@ -35,6 +36,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -98,6 +100,7 @@ public class MessagesWindow
 			jf = jInternalFrame;
 			contentFrame = jInternalFrame.getContentPane();
 			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
+			jf.setLocation(150, scrnSize.height/100*80);
 		} else
 		{
 			JFrame jFrame = new JFrame("Electric Messages");
@@ -105,6 +108,11 @@ public class MessagesWindow
 			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			contentFrame = jFrame.getContentPane();
 			jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
+			Point pt = User.getDefaultMessagesPos();
+			if (pt == null) pt = new Point(150, scrnSize.height/100*80);
+			jf.setLocation(pt);
+			Dimension override = User.getDefaultMessagesSize();
+			if (override != null) jf.setPreferredSize(override);
 		}
 		contentFrame.setLayout(new BorderLayout());
 		history = new ArrayList<String>();
@@ -122,10 +130,9 @@ public class MessagesWindow
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setPreferredSize(msgSize);
-//		JScrollBar vertscroll = scrollPane.getVerticalScrollBar();
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
-		jf.setLocation(150, scrnSize.height/100*80);
+//		jf.setLocation(150, scrnSize.height/100*80);
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();

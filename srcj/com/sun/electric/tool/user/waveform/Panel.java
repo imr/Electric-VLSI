@@ -422,18 +422,16 @@ public class Panel extends JPanel
 	/**
 	 * Make this panel show a linear Y axis.
 	 */
-	private void makeLinear()
-	{
-		vertPanelLogarithmic = false;
-		repaintContents();
-	}
+	private void makeLinear() { setPanelLogarithmicVertically(false); }
 
 	/**
 	 * Make this panel show a logarithmic Y axis.
 	 */
-	private void makeLogarithmic()
+	private void makeLogarithmic() { setPanelLogarithmicVertically(true); }
+
+	public void setPanelLogarithmicVertically(boolean logarithmic)
 	{
-		vertPanelLogarithmic = true;
+		vertPanelLogarithmic = logarithmic;
 		repaintContents();
 	}
 
@@ -453,11 +451,19 @@ public class Panel extends JPanel
 
 	public int getPanelNumber() { return panelNumber; }
 
-	public void setPanelLogarithmic(boolean logarithmic)
+	public void setPanelLogarithmicHorizontally(boolean logarithmic)
 	{
 		horizRulerPanelLogarithmic = logarithmic;
 		horizRulerPanel.repaint();
 	}
+
+	public boolean isPanelLogarithmicHorizontally()
+	{
+		if (waveWindow.isXAxisLocked()) return waveWindow.isWaveWindowLogarithmic();
+		return horizRulerPanelLogarithmic;
+	}
+
+	public boolean isPanelLogarithmicVertically() { return vertPanelLogarithmic; }
 
 	public int getVertAxisPos() { return vertAxisPos; }
 

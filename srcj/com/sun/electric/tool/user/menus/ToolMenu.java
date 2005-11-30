@@ -107,6 +107,7 @@ import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -169,7 +170,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (Built-in)
 
-		// mnemonic keys available:  B  EF   JK  N PQ    V XYZ
+		// mnemonic keys available:  B   F   JK  N PQ      XYZ
 		MenuBar.Menu builtInSimulationSubMenu = MenuBar.makeMenu("Simulation (Built-in)");
 		toolMenu.add(builtInSimulationSubMenu);
 		if (Simulation.hasIRSIM())
@@ -219,6 +220,13 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.saveStimuli(); } });
 		builtInSimulationSubMenu.addMenuItem("_Restore Stimuli from Disk...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.restoreStimuli(); } });
+
+		builtInSimulationSubMenu.addSeparator();
+
+		builtInSimulationSubMenu.addMenuItem("Sa_ve Waveform Window Configuration to Disk...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { WaveformWindow.saveConfiguration(); } });
+		builtInSimulationSubMenu.addMenuItem("R_estore Waveform Window Configuration from Disk...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { WaveformWindow.restoreConfiguration(); } });
 
 		//------------------- Simulation (SPICE)
 

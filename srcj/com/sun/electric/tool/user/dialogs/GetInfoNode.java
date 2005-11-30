@@ -27,7 +27,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -42,7 +41,10 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeSize;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -56,10 +58,8 @@ import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.geom.Point2D;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -190,12 +190,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 //     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Node Get-Info */
-	private GetInfoNode(java.awt.Frame parent, boolean modal)
+	private GetInfoNode(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        setLocation(100, 50);
 
         Undo.addDatabaseChangeListener(this);
 

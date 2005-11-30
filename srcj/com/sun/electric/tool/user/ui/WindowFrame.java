@@ -42,6 +42,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -342,8 +343,11 @@ public class WindowFrame extends Observable
 		} else
 		{
 			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
+			Dimension preferredSize = User.getDefaultWindowSize();
+			if (preferredSize != null) frameSize = preferredSize;
 			jf.setSize(frameSize);
-			jf.setLocation(windowOffset+WINDOW_OFFSET+User.getDefaultWindowXPos(), windowOffset+User.getDefaultWindowYPos());
+			Point preferredLoc = User.getDefaultWindowPos();
+			jf.setLocation(windowOffset+WINDOW_OFFSET+preferredLoc.x, windowOffset+preferredLoc.y);
 		}
 		return frameSize;
 	}        

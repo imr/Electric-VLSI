@@ -69,8 +69,10 @@ import javax.swing.JOptionPane;
  */
 public class PostScript extends Output
 {
-	/** scale factor for PostScript */				private static final int PSSCALE        =  4;
-	/** size of text in the corner */				private static final int CORNERDATESIZE = 14;
+	/** scale factor for PostScript */				private static final int    PSSCALE        =  4;
+//	/** scale factor for PostScript text */			private static final double PSTEXTSCALE    =  0.45;
+	/** scale factor for PostScript text */			private static final double PSTEXTSCALE    =  0.75;
+	/** size of text in the corner */				private static final int    CORNERDATESIZE = 14;
 
 	/** write macros for dot drawing */				private static final int HEADERDOT      =  1;
 	/** write macros for line drawing */			private static final int HEADERLINE     =  2;
@@ -1141,8 +1143,7 @@ public class PostScript extends Output
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
-//		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
-		int size = (int)(td.getTrueSize(wnd) * 0.45 * PSSCALE);
+		int size = (int)(td.getTrueSize(wnd) * PSTEXTSCALE * PSSCALE);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size
