@@ -28,6 +28,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import java.io.IOException;
 
 /**
  * Immutable class ImmutableExport represents an export.
@@ -201,6 +202,22 @@ public class ImmutableExport extends ImmutableElectricObject {
         if (this.getVars() == vars) return this;
 		return new ImmutableExport(this.exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
+    }
+    
+    /**
+     * Writes this ImmutableArcInst to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        writer.writePortProtoId(exportId);
+        writer.writeNameKey(name);
+        writer.writeTextDescriptor(nameDescriptor);
+        writer.out.writeInt(originalNodeId);
+        writer.writePortProtoId(originalPortId);
+        writer.out.writeBoolean(alwaysDrawn);
+        writer.out.writeBoolean(bodyOnly);
+        writer.out.writeInt(characteristic.getBits());
+        super.write(writer);
     }
     
 	/**

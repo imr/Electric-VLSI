@@ -30,6 +30,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import java.io.IOException;
 
 
 /**
@@ -447,6 +448,27 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @return true if specific flag is set,
      */
     public boolean is(Flag flag) { return flag.is(flags); }
+    
+    /**
+     * Writes this ImmutableArcInst to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        writer.out.writeInt(arcId);
+        writer.writeArcProto(protoType);
+        writer.writeNameKey(name);
+        writer.writeTextDescriptor(nameDescriptor);
+        writer.out.writeInt(tailNodeId);
+        writer.writePortProtoId(tailPortId);
+        writer.writePoint(tailLocation);
+        writer.out.writeInt(headNodeId);
+        writer.writePortProtoId(headPortId);
+        writer.writePoint(headLocation);
+        writer.out.writeDouble(width);
+        writer.out.writeShort(angle);
+        writer.out.writeInt(flags);
+        super.write(writer);
+    }
     
 	/**
 	 * Checks invariant of this ImmutableArcInst.

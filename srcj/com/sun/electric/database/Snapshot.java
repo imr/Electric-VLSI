@@ -25,6 +25,11 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.user.ActivityLogger;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -36,6 +41,7 @@ public class Snapshot {
     public ArrayList<CellBackup> cellBackups = new ArrayList<CellBackup>();
 
     public static Snapshot currentSnapshot = new Snapshot();
+    public static SnapshotWriter writer = null;
     
     /** Creates a new instance of Snapshot */
     private Snapshot() {
@@ -64,29 +70,53 @@ public class Snapshot {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
     }
     
+    /**
+     * Initialize SnapshotWriter to file with given name.
+     * @param dumpName file name of dump.
+     */
+    public static void initWriter(String dumpFile) {
+        try {
+            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(new FileOutputStream("snapshot.trace"))));
+        } catch (IOException e) {
+            ActivityLogger.logException(e);
+        }
+    }
+    
     public static void advance() {
+        if (writer == null) return;
         Snapshot oldSnapshot = currentSnapshot;
         Snapshot newSnapshot = new Snapshot(oldSnapshot);
-        newSnapshot.showDiffs(oldSnapshot);
+        try {
+            newSnapshot.writeDiffs(writer, oldSnapshot);
+            writer.out.flush();
+        } catch (IOException e) {
+            ActivityLogger.logException(e);
+        }
         currentSnapshot = newSnapshot;
     }
 
-    private void showDiffs(Snapshot oldSnapshot) {
+    private void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
         int numCells = Math.max(oldSnapshot.cellBackups.size(), cellBackups.size());
         for (int i = 0; i < numCells; i++) {
             CellBackup oldBackup = oldSnapshot.get(i);
             CellBackup newBackup = get(i);
             if (oldBackup == newBackup) continue;
-            if (oldBackup == null)
+            if (oldBackup == null) {
                 System.out.println("Created cell " + i + " " + newBackup.cellName);
-            else if (newBackup == null)
+                writer.out.writeInt(i);
+                newBackup.write(writer);
+            } else if (newBackup == null) {
                 System.out.println("Killed cell " + i + " " + oldBackup.cellName);
-            else {
+                writer.out.writeInt(~i);
+            } else {
                 System.out.print("Modified cell " + i + " " + oldBackup.cellName);
                 if (newBackup.cellName != oldBackup.cellName)
                     System.out.print(" -> " + newBackup.cellName);
                 System.out.println();
+                writer.out.writeInt(i);
+                newBackup.write(writer);
             }
         }
+        writer.out.write(Integer.MAX_VALUE);
     }
 }

@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -81,6 +82,7 @@ import javax.swing.SwingUtilities;
  * <P> <CODE>         -v: brief version information </CODE>
  * <P> <CODE>         -debug: debug mode. Extra information is available </CODE>
  * <P> <CODE>         -pulldowns: show list of all pulldown menus in Electric </CODE>
+ * <P> <CODE>         -server: dump strace of snapshots</CODE>
  * <P> <CODE>         -help: this message </CODE>
  * <P> <P>
  * See manual for more instructions.
@@ -124,6 +126,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-gilda")) Job.LOCALDEBUGFLAG = true;
         if (hasCommandLineOption(argsList, "-NOTHREADING")) Job.NOTHREADING = true;
 		if (hasCommandLineOption(argsList, "-batch")) Job.BATCHMODE = true;
+        if (hasCommandLineOption(argsList, "-server")) Job.SERVER = true;
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
@@ -179,6 +182,7 @@ public final class Main
             System.out.println("\t-NOTHREADING: turn off Job threading.");
 	        System.out.println("\t-batch: running in batch mode.");
 	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
+            System.out.println("\t-server: dump trace of snapshots");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -202,6 +206,8 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
+        if (Job.SERVER)
+            Snapshot.initWriter("snapshot.trace");
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{

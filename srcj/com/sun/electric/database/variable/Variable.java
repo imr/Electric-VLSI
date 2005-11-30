@@ -368,15 +368,76 @@ public class Variable
 
     /**
      * Write this Variable to SnapshotWriter.
+     * @param writer where to write.
      */
-    public void write() throws IOException {
-        SnapshotWriter.write(key);
-        SnapshotWriter.write(descriptor);
-        SnapshotWriter.out.writeByte(type);
+    public void write(SnapshotWriter writer) throws IOException {
+        writer.writeVariableKey(key);
+        writer.writeTextDescriptor(descriptor);
+        writer.out.writeByte(type);
         if (isArray()) {
-            SnapshotWriter.out.writeInt(getLength());
+            int length = getLength();
+            writer.out.writeInt(length);
+            for (int i = 0; i < length; i++) {
+                Object obj = getObject(i);
+                writer.out.writeBoolean(obj != null);
+                if (obj != null)
+                    writeObj(writer, obj);
+            }
         } else {
-            
+            writeObj(writer, getObject());
+        }
+    }
+    
+    private void writeObj(SnapshotWriter writer, Object obj) throws IOException {
+        switch (type & ~ARRAY) {
+            case LIBRARY:
+                writer.writeLibId((LibId)obj);
+                break;
+            case CELL:
+                writer.writeNodeProtoId((CellId)obj);
+                break;
+            case EXPORT:
+                writer.writePortProtoId((ExportId)obj);
+                break;
+            case STRING:
+                writer.out.writeUTF((String)obj);
+                break;
+            case DOUBLE:
+                writer.out.writeDouble(((Double)obj).doubleValue());
+                break;
+            case FLOAT:
+                writer.out.writeFloat(((Float)obj).floatValue());
+                break;
+            case LONG:
+                writer.out.writeLong(((Long)obj).longValue());
+                break;
+            case INTEGER:
+                writer.out.writeInt(((Integer)obj).intValue());
+                break;
+            case SHORT:
+                writer.out.writeShort(((Short)obj).shortValue());
+                break;
+            case BYTE:
+                writer.out.writeByte(((Byte)obj).byteValue());
+                break;
+            case BOOLEAN:
+                writer.out.writeBoolean(((Boolean)obj).booleanValue());
+                break;
+            case EPOINT:
+                writer.writePoint((EPoint)obj);
+                break;
+            case TOOL:
+                writer.writeTool((Tool)obj);
+                break;
+            case TECHNOLOGY:
+                writer.writeTechnology((Technology)obj);
+                break;
+            case PRIM_NODE:
+                writer.writeNodeProtoId((PrimitiveNode)obj);
+                break;
+            case ARC_PROTO:
+                writer.writeArcProto((ArcProto)obj);
+                break;
         }
     }
     

@@ -79,6 +79,7 @@ public abstract class Job implements ActionListener, Runnable {
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
+    public static boolean SERVER; // to dump trace of snapshots.
 
     /**
 	 * Method to tell whether Electric is running in "debug" mode.

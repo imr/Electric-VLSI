@@ -24,18 +24,9 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology;
-
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.io.IOException;
 
 /**
  *
@@ -71,4 +62,31 @@ public class CellBackup {
         this.exports = exports;
         this.cellUsages = cellUsages.clone();
     }
+    
+    /**
+     * Writes this CellBackup to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        d.write(writer);
+        writer.out.writeUTF(cellName != null ? cellName.toString() : "");
+        // cellGroup
+        writer.writeLibId(libId);
+        writer.out.writeLong(creationDate);
+        writer.out.writeLong(revisionDate);
+        writer.out.writeBoolean(tech != null);
+        if (tech != null)
+            writer.writeTechnology(tech);
+        writer.out.writeInt(userBits);
+        writer.out.writeInt(nodes.length);
+        for (int i = 0; i < nodes.length; i++)
+            nodes[i].write(writer);
+        writer.out.writeInt(nodes.length);
+        for (int i = 0; i < arcs.length; i++)
+            arcs[i].write(writer);
+        writer.out.writeInt(exports.length);
+        for (int i = 0; i < exports.length; i++)
+            exports[i].write(writer);
+    }
+    
 }

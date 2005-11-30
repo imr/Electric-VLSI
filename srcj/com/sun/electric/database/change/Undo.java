@@ -30,6 +30,7 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,7 +38,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -59,8 +59,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-/**
+import javax.swing.SwingUtilities;/**
  * This interface defines changes that are made to the database.
  */
 public class Undo
@@ -737,14 +736,7 @@ public class Undo
 		}
 
 		// changes made: apply final constraints to this batch of changes
-		Constraints.getCurrent().endBatch();
-
-		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-		{
-			Listener listener = (Listener)it.next();
-			listener.endBatch();
-		}
-		fireEndChangeBatch(currentBatch);
+		fireEndChangeBatch(currentBatch, false);
 
 		currentBatch = null;
 	}
@@ -789,8 +781,20 @@ public class Undo
 // 		}
 // 	}
 
-	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
+	private static synchronized void fireEndChangeBatch(ChangeBatch batch, boolean undo)
 	{
+        if (undo) {
+            refreshCellBounds();
+        } else {
+            Constraints.getCurrent().endBatch();
+        }
+		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
+		{
+			Listener listener = (Listener)it.next();
+			listener.endBatch();
+		}
+        Snapshot.advance();
+        
 		if (Job.BATCHMODE) return;
 
 		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
@@ -1223,13 +1227,7 @@ public class Undo
 //        batch.describe("Undo");
 
 		// broadcast the end-batch
-        refreshCellBounds();
-		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-		{
-			Listener listener = (Listener)it.next();
-			listener.endBatch();
-		}
-		fireEndChangeBatch(batch);
+		fireEndChangeBatch(batch, true);
 
 		// restore highlights (must be done after all other tools have
 		// responded to changes)
@@ -1300,13 +1298,7 @@ public class Undo
 //        batch.describe("Redo");
 
 		// broadcast the end-batch
-        refreshCellBounds();
-		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-		{
-			Listener listener = (Listener)it.next();
-			listener.endBatch();
-		}
-		fireEndChangeBatch(batch);
+		fireEndChangeBatch(batch, true);
 
 		// set highlights to what they were before undo
 		List<Highlight> highlights = new ArrayList<Highlight>();

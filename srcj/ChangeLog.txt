@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04c: *********************************
 
+IMP: (11/30/05, DN) Command-line switch "-server" to dump snapshot trace. 
+
 IMP: (11/29/05, GVG) More changes related to the DISPLAY dependency while running batch jobs.
 Ability to reconcile options in batch mode (some code in OptionReconcile.java moved to Pref so it
 can be used in batch mode).

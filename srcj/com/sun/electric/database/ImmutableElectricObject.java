@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.variable.Variable;
+import java.io.IOException;
 
 import java.util.Iterator;
 
@@ -179,7 +180,28 @@ public abstract class ImmutableElectricObject {
 		return -(low + 1);  // Variable not found.
     }
     
-	/**
+    /**
+     * Writes optional variable part of this ImmutableElectricObject.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        boolean hasVars = vars.length > 0;
+        writer.out.writeBoolean(hasVars);
+        if (hasVars)
+            writeVars(writer);
+    }
+    
+    /**
+     * Writes variables of this ImmutableElectricObject.
+     * @param writer where to write.
+     */
+    void writeVars(SnapshotWriter writer) throws IOException {
+        writer.out.writeInt(vars.length);
+        for (int i = 0; i < vars.length; i++)
+            vars[i].write(writer);
+    }
+    
+    /**
 	 * Checks invariant of this ImmutableElectricObject.
      * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.

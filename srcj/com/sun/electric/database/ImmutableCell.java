@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.variable.Variable;
+import java.io.IOException;
 
 /**
  * Immutable class ImmutableCell represents a cell.
@@ -79,6 +80,15 @@ public class ImmutableCell extends ImmutableElectricObject {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableCell(this.cellId, vars);
+    }
+    
+    /**
+     * Writes this ImmutableCell to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        writer.writeNodeProtoId(cellId);
+        super.write(writer);
     }
     
 	/**

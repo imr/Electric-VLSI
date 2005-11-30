@@ -23,10 +23,20 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Tool;
 
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -35,19 +45,25 @@ import java.util.HashMap;
  */
 public class SnapshotWriter {
     
-    public static DataOutput out;
-    private static HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
-    private static HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
-    
+    public DataOutputStream out;
+    private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
+    private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
+    private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
+    private HashMap<Technology,Integer> techs = new HashMap<Technology,Integer>();
+    private HashMap<ArcProto,Integer> arcProtos = new HashMap<ArcProto,Integer>();
+    private HashMap<PrimitiveNode,Integer> primNodes = new HashMap<PrimitiveNode,Integer>();
+    private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
+   
     /** Creates a new instance of SnapshotWriter */
-    private SnapshotWriter() {
+    SnapshotWriter(DataOutputStream out) {
+        this.out = out;
     }
 
     /**
      * Writes variable key.
      * @param key variable key to write.
      */
-    public static void write(Variable.Key key) throws IOException {
+    public void writeVariableKey(Variable.Key key) throws IOException {
         Integer i = varKeys.get(key);
         if (i != null) {
             out.writeInt(i.intValue());
@@ -64,7 +80,11 @@ public class SnapshotWriter {
      * Writes TextDescriptor.
      * @param td TextDescriptor to write.
      */
-    public static void write(TextDescriptor td) throws IOException {
+    public void writeTextDescriptor(TextDescriptor td) throws IOException {
+        if (td == null) {
+            out.writeInt(-1);
+            return;
+        }
         Integer i = textDescriptors.get(td);
         if (i != null) {
             out.writeInt(i.intValue());
@@ -81,5 +101,129 @@ public class SnapshotWriter {
             String fontName = face != 0 ? TextDescriptor.ActiveFont.findActiveFont(face).getName() : "";
             out.writeUTF(fontName);
         }
+    }
+    
+    /**
+     * Writes Tool.
+     * @param tool Tool to write.
+     */
+    public void writeTool(Tool tool) throws IOException {
+        Integer i = tools.get(tool);
+        if (i != null) {
+            out.writeInt(i.intValue());
+        } else {
+            i = new Integer(tools.size());
+            tools.put(tool, i);
+            out.writeInt(i.intValue());
+            out.writeUTF(tool.getName());
+        }
+    }
+    
+    /**
+     * Writes Technology.
+     * @param tech Technology to write.
+     */
+    public void writeTechnology(Technology tech) throws IOException {
+        Integer i = techs.get(tech);
+        if (i != null) {
+            out.writeInt(i.intValue());
+        } else {
+            i = new Integer(techs.size());
+            techs.put(tech, i);
+            out.writeInt(i.intValue());
+            out.writeUTF(tech.getTechName());
+        }
+    }
+    
+    /**
+     * Writes ArcProto.
+     * @param ap ArcProto to write.
+     */
+    public void writeArcProto(ArcProto ap) throws IOException {
+        Integer i = arcProtos.get(ap);
+        if (i != null) {
+            out.writeInt(i.intValue());
+        } else {
+            i = new Integer(arcProtos.size());
+            arcProtos.put(ap, i);
+            out.writeInt(i.intValue());
+            writeTechnology(ap.getTechnology());
+            out.writeUTF(ap.getName());
+        }
+    }
+
+    /**
+     * Writes LibId.
+     * @param libId LibId to write.
+     */
+    public void writeLibId(LibId libId) throws IOException {
+        out.writeInt(libId.libIndex);
+    }
+    
+    /**
+     * Writes NodeProtoId.
+     * @param nodeProtoId NodeProtoId to write.
+     */
+    public void writeNodeProtoId(NodeProtoId nodeProtoId) throws IOException {
+        if (nodeProtoId instanceof CellId) {
+            out.writeInt(((CellId)nodeProtoId).cellIndex);
+            return;
+        }
+        PrimitiveNode pn = (PrimitiveNode)nodeProtoId;
+        Integer i = primNodes.get(pn);
+        if (i != null) {
+            out.writeInt(i.intValue());
+        } else {
+            i = new Integer(-primNodes.size()-1);
+            primNodes.put(pn, i);
+            out.writeInt(i.intValue());
+            writeTechnology(pn.getTechnology());
+            out.writeUTF(pn.getName());
+        }
+    }
+    
+    /**
+     * Writes PortProtoId.
+     * @param portProtoId PortProtoId to write.
+     */
+    public void writePortProtoId(PortProtoId portProtoId) throws IOException {
+        writeNodeProtoId(portProtoId.getParentId());
+        out.write(portProtoId.getChronIndex());
+    }
+    
+    /**
+     * Writes Name key.
+     * @param nameKey name key to write.
+     */
+    public void writeNameKey(Name nameKey) throws IOException {
+        out.writeUTF(nameKey.toString());
+    }
+    
+    /**
+     * Writes Orientation .
+     * @param orient Orientation.
+     */
+    public void writeOrientation(Orientation orient) throws IOException {
+        Integer i = orients.get(orient);
+        if (i != null) {
+            out.writeInt(i.intValue());
+        } else {
+            i = new Integer(varKeys.size());
+            orients.put(orient, i);
+            out.writeInt(i.intValue());
+            
+            out.writeShort(orient.getAngle());
+            out.writeBoolean(orient.isXMirrored());
+            out.writeBoolean(orient.isYMirrored());
+        }
+    }
+    
+    /**
+     * Writes EPoint.
+     * @param p EPoint.
+     */
+    public void writePoint(EPoint p) throws IOException {
+        out.writeDouble(p.getX());
+        out.writeDouble(p.getY());
     }
 }

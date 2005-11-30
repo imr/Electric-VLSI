@@ -42,6 +42,7 @@ import com.sun.electric.technology.technologies.Generic;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -463,6 +464,30 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //	 */
 //	public byte getTechSpecific() { return techBits; }
 
+    /**
+     * Writes this ImmutableNodeInst to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        writer.out.writeInt(nodeId);
+        writer.writeNodeProtoId(protoId);
+        writer.writeNameKey(name);
+        writer.writeTextDescriptor(nameDescriptor);
+        writer.writeOrientation(orient);
+        writer.writePoint(anchor);
+        writer.out.writeDouble(width);
+        writer.out.writeDouble(height);
+        writer.out.writeInt(flags);
+        writer.out.writeByte(techBits);
+        writer.writeTextDescriptor(protoDescriptor);
+        for (int i = ports.length - 1; i >= 0; i--) {
+            if (ports[i] == ImmutablePortInst.EMPTY) continue;
+            writer.out.writeInt(i);
+            ports[i].writeVars(writer);
+        }
+        super.write(writer);
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableNodeInst.
 	 * @throws AssertionError if invariant is broken.
