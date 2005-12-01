@@ -35,7 +35,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -44,9 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.Color;
