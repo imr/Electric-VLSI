@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04c: *********************************
 
+IMP: (12/1/05, SMR) New waveform window icons.
+
 IMP: (12/1/05, SMR) Making windows fill the screen works right in MDI mode.
 
 BUG: (12/1/05, SMR) Initial cell display doesn't fill the window (Bug #562).

@@ -897,7 +897,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Analysis.AnalysisType analysisType = null;
 		if (sd.isAnalog())
 		{
-			analysisType = Analysis.ANALYSIS_TRANS;
+			analysisType = Analysis.ANALYSIS_SIGNALS;
+			if (sd.getNumAnalyses() > 0)
+				analysisType = sd.getAnalyses().next().getAnalysisType();
 			if (xAxisLocked)
 			{
 				if (xAxisSignalAll != null)

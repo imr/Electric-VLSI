@@ -265,7 +265,10 @@ public class HorizRuler extends JPanel implements MouseListener
 					}
 					waveWindow.deleteAllSignalsFromPanel(wp);
 				}
-				wp.setAnalysisType(Analysis.ANALYSIS_TRANS);
+				Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
+				if (waveWindow.getSimData().getNumAnalyses() > 0)
+					analysisType = waveWindow.getSimData().getAnalyses().next().getAnalysisType();
+				wp.setAnalysisType(analysisType);
 			}
 			wp.setXAxisSignal(null);
 			wp.setXAxisRange(lowXValue, highXValue);
