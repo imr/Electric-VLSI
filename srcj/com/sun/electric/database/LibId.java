@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Library;
+import java.util.ArrayList;
 
 
 /**
@@ -33,17 +34,35 @@ import com.sun.electric.database.hierarchy.Library;
  */
 public final class LibId
 {
-    /** Unique index of this cell in the database. */
-    public final int libIndex = numLibIds++;
+    /** Unique index of this lib in the database. */
+    public final int libIndex;
     
-    /** Number of LibraryIds created so far. */
-    private static volatile int numLibIds = 0;
+     /** List of LibIds created so far. */
+    private static final ArrayList<LibId> libIds = new ArrayList<LibId>();
     
     /**
      * LibId constructor.
      * Creates LibId with unique libIndex.
      */
-    public LibId() {}
+    public LibId() {
+        synchronized(libIds) {
+            libIndex = libIds.size();
+            libIds.add(this);
+        }
+    }
+    
+    /**
+     * Returns LibId by given index.
+     * @param libIndex given index.
+     * @return LibId with given index.
+     */
+    public static LibId getByIndex(int libIndex) {
+        synchronized(libIds) {
+           while (libIndex >= libIds.size())
+               new LibId();
+           return libIds.get(libIndex);
+        }
+    }
     
     /**
      * Method to return the Library representiong LibId in the current thread.

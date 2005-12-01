@@ -43,7 +43,7 @@ public final class CellId implements NodeProtoId
      * Usages of other proto subcells in this parent cell.
      * CellUsages are in chronological order by time of their creation.
      */
-    private volatile CellUsage[] usagesIn = NULL_CELL_USAGE_ARRAY;
+    private volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
     /**
 	 * Hash of usagesIn.
 	 * The size of nonempty hash is a prime number.
@@ -58,9 +58,9 @@ public final class CellId implements NodeProtoId
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
-    private volatile CellUsage[] usagesOf = NULL_CELL_USAGE_ARRAY;
+    private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
     
-    private volatile ExportId[] exportIds = NULL_EXPORT_ID_ARRAY;
+    private volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
     
     /**
      * Number of nodeIds returned by newNodeId.
@@ -74,12 +74,8 @@ public final class CellId implements NodeProtoId
     
     /** List of CellIds created so far. */
     private static final ArrayList<CellId> cellIds = new ArrayList<CellId>();
-    /** Empty CellUsage array for initialization. */
-    private static final CellUsage[] NULL_CELL_USAGE_ARRAY = {};
     /** Empty hash for initialization. */
     private static final CellUsage[] EMPTY_HASH = { null };
-    /** Empty Export array for initialization. */
-    private static final ExportId[] NULL_EXPORT_ID_ARRAY = {};
     
     /**
      * CellId constructor.
@@ -89,6 +85,19 @@ public final class CellId implements NodeProtoId
         synchronized(cellIds) {
             cellIndex = cellIds.size();
             cellIds.add(this);
+        }
+    }
+    
+    /**
+     * Returns CellId by given index.
+     * @param cellIndex given index.
+     * @return CellId with given index.
+     */
+    public static CellId getByIndex(int cellIndex) {
+        synchronized(cellIds) {
+           while (cellIndex >= cellIds.size())
+               new CellId();
+           return cellIds.get(cellIndex);
         }
     }
     

@@ -174,7 +174,7 @@ public class SnapshotWriter {
         if (i != null) {
             out.writeInt(i.intValue());
         } else {
-            i = new Integer(-primNodes.size()-1);
+            i = new Integer(~primNodes.size());
             primNodes.put(pn, i);
             out.writeInt(i.intValue());
             writeTechnology(pn.getTechnology());
@@ -188,7 +188,7 @@ public class SnapshotWriter {
      */
     public void writePortProtoId(PortProtoId portProtoId) throws IOException {
         writeNodeProtoId(portProtoId.getParentId());
-        out.write(portProtoId.getChronIndex());
+        out.writeInt(portProtoId.getChronIndex());
     }
     
     /**
@@ -200,7 +200,7 @@ public class SnapshotWriter {
     }
     
     /**
-     * Writes Orientation .
+     * Writes Orientation.
      * @param orient Orientation.
      */
     public void writeOrientation(Orientation orient) throws IOException {

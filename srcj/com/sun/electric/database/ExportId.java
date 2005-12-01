@@ -37,6 +37,9 @@ import com.sun.electric.database.prototype.PortProtoId;
  */
 public final class ExportId implements PortProtoId
 {
+    /** Empty ExportId array for initialization. */
+    public static final ExportId[] NULL_ARRAY = {};
+    
     /** Parent CellId of this ExportId */
     public final CellId parentId;
     

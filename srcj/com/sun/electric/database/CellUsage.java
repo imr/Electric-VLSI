@@ -32,7 +32,10 @@ import com.sun.electric.database.hierarchy.Cell;
  */
 public final class CellUsage
 {
-	/** CellId of the parent Cell */
+    /** Empty CellUsage array for initialization. */
+    public static final CellUsage[] NULL_ARRAY = {};
+
+    /** CellId of the parent Cell */
     public final CellId parentId;
 	/** CellId of the (prototype) subCell */
     public final CellId protoId;

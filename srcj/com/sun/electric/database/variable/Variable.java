@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
@@ -438,6 +439,90 @@ public class Variable
             case ARC_PROTO:
                 writer.writeArcProto((ArcProto)obj);
                 break;
+        }
+    }
+    
+    /**
+     * Read Variable from SnapshotReader.
+     * @param reader from to write.
+     */
+    public Variable read(SnapshotReader reader) throws IOException {
+        Variable.Key varKey = reader.readVariableKey();
+        TextDescriptor td = reader.readTextDescriptor();
+        int type = reader.in.readByte();
+        Object value;
+        if ((type & ARRAY) != 0) {
+            int length = reader.in.readInt();
+            type &= ~ARRAY;
+            Object[] array;
+            switch (type) {
+                case LIBRARY: array = new LibId[length]; break;
+                case CELL: array = new CellId[length]; break;
+                case EXPORT: array = new ExportId[length]; break;
+                case STRING: array = new String[length]; break;
+                case DOUBLE: array = new Double[length]; break;
+                case FLOAT: array = new Float[length]; break;
+                case LONG: array = new Long[length]; break;
+                case INTEGER: array = new Integer[length]; break;
+                case SHORT: array = new Short[length]; break;
+                case BYTE: array = new Byte[length]; break;
+                case BOOLEAN: array = new Boolean[length]; break;
+                case EPOINT: array = new EPoint[length]; break; 
+                case TOOL: array = new Tool[length]; break;
+                case TECHNOLOGY: array = new Technology[length]; break;
+                case PRIM_NODE: array = new PrimitiveNode[length]; break;
+                case ARC_PROTO: array = new ArcProto[length]; break;
+                default: throw new IOException("type");
+                
+            }
+            for (int i = 0; i < length; i++) {
+                boolean hasElem = reader.in.readBoolean();
+                if (hasElem)
+                    array[i] = readObj(reader, type);
+            }
+            value = array;
+        } else {
+            value = readObj(reader, type);
+        }
+        return Variable.newInstance(varKey, value, td);
+    }
+    
+    private static Object readObj(SnapshotReader reader, int type) throws IOException {
+        switch (type) {
+            case LIBRARY:
+                return reader.readLibId();
+            case CELL:
+                return (CellId)reader.readNodeProtoId();
+            case EXPORT:
+                return (ExportId)reader.readPortProtoId();
+            case STRING:
+                return reader.in.readUTF();
+            case DOUBLE:
+                return Double.valueOf(reader.in.readDouble());
+            case FLOAT:
+                return Float.valueOf(reader.in.readFloat());
+            case LONG:
+                return Long.valueOf(reader.in.readLong());
+            case INTEGER:
+                return Integer.valueOf(reader.in.readInt());
+            case SHORT:
+                return Short.valueOf(reader.in.readShort());
+            case BYTE:
+                return Byte.valueOf(reader.in.readByte());
+            case BOOLEAN:
+                return Boolean.valueOf(reader.in.readBoolean());
+            case EPOINT:
+                return reader.readPoint();
+            case TOOL:
+                return reader.readTool();
+            case TECHNOLOGY:
+                return reader.readTechnology();
+            case PRIM_NODE:
+                return (PrimitiveNode)reader.readNodeProtoId();
+            case ARC_PROTO:
+                return reader.readArcProto();
+            default:
+                throw new IllegalArgumentException();
         }
     }
     
