@@ -3485,7 +3485,7 @@ public class PixelDrawing
 		g2.drawGlyphVector(gv, (float)-renderInfo.rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
 		if (renderInfo.underline)
 		{
-			g2.drawLine(0, height-1, width, height-1);
+			g2.drawLine(0, height-1, width-1, height-1);
 		}
 
 		// return the bits

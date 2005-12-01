@@ -25,8 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -98,7 +100,6 @@ public class TextWindow
 		this.finishing = false;
 
 		textArea = new JTextArea();
-		textArea.setFont(new Font(User.getDefaultTextCellFont(), 0, User.getDefaultTextCellSize()));
 		scrollPane = new JScrollPane(textArea);
 		overall = new JPanel();
 		overall.setLayout(new BorderLayout());
@@ -110,10 +111,19 @@ public class TextWindow
 		textArea.getDocument().addDocumentListener(twDocumentListener);
 		textArea.getDocument().addUndoableEditListener(new MyUndoableEditListener());
 		textArea.addFocusListener(twDocumentListener);
+	}
 
-//		textArea.requestFocus();
-//		textArea.setSelectionStart(0);
-//		textArea.setSelectionEnd(0);
+	private void setCellFont(Cell cell)
+	{
+        String fontName = User.getDefaultTextCellFont();
+        Variable var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
+        if (var != null) fontName = (String)var.getObject();
+
+        int fontSize = User.getDefaultTextCellSize();
+        var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
+        if (var != null) fontSize = ((Integer)var.getObject()).intValue();
+
+        textArea.setFont(new Font(fontName, 0, fontSize));
 	}
 
 	private class MyUndoableEditListener implements UndoableEditListener
@@ -342,6 +352,7 @@ public class TextWindow
 		this.cell = cell;
 		String [] lines = (cell != null) ? cell.getTextViewContents() : null;
 		String oneLine = (lines != null) ? oneLine = makeOneString(lines) : "";
+		setCellFont(cell);
 		textArea.setText(oneLine);
 		textArea.setSelectionStart(0);
 		textArea.setSelectionEnd(0);

@@ -489,20 +489,25 @@ public class WindowMenu {
 
 	private static Rectangle [] getWindowAreas()
     {
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice [] gs = ge.getScreenDevices();
-		Rectangle [] areas = new Rectangle[gs.length];
-		for (int j = 0; j < gs.length; j++)
+		Rectangle [] areas = null;
+		if (TopLevel.isMDIMode())
 		{
-			GraphicsDevice gd = gs[j];
-			GraphicsConfiguration gc = gd.getDefaultConfiguration();
-			areas[j] = gc.getBounds();
+			TopLevel tl = TopLevel.getCurrentJFrame();
+			Dimension sz = tl.getContentPane().getSize();
+			areas = new Rectangle[1];
+			areas[0] = new Rectangle(0, 0, sz.width, sz.height);
+		} else
+		{
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			GraphicsDevice [] gs = ge.getScreenDevices();
+			areas = new Rectangle[gs.length];
+			for (int j = 0; j < gs.length; j++)
+			{
+				GraphicsDevice gd = gs[j];
+				GraphicsConfiguration gc = gd.getDefaultConfiguration();
+				areas[j] = gc.getBounds();
+			}
 		}
-
-//        // remove the tool palette
-//        PaletteFrame pf = TopLevel.getPaletteFrame();
-//        Rectangle pb = pf.getPaletteLocation();
-//        removeOccludingRectangle(areas, pb);
 
         // remove the messages window
         MessagesWindow mw = TopLevel.getMessagesWindow();

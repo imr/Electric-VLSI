@@ -144,7 +144,8 @@ public class WindowFrame extends Observable
 		} else
 		{
 			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame, null);
-			Dimension sz = frame.finishWindowFrameInformation(eWnd, cell);
+			frame.finishWindowFrameInformation(eWnd, cell);
+			Dimension sz = eWnd.getSize();
 
 			// make sure the edit window has the right size
 			eWnd.setScreenSize(sz);
@@ -170,12 +171,11 @@ public class WindowFrame extends Observable
     /**
      * Method to finish with frame pointers.
      */
-    public Dimension finishWindowFrameInformation(WindowContent wnd, Cell cell)
+    public void finishWindowFrameInformation(WindowContent wnd, Cell cell)
     {
-        Dimension sz = buildWindowStructure(wnd, cell, null);
+        buildWindowStructure(wnd, cell, null);
         setCurrentWindowFrame(this);
         populateJFrame();
-		return sz;
     }
 
     /*****************************************************************************

@@ -894,7 +894,7 @@ public class GDS extends Input
 				{
 					// determine shape of segment
 					double length = fromPt.distance(toPt);
-					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(fromPt, toPt), fromPt, fextend, toPt, textend);
+					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(fromPt, toPt), fromPt, fextend, toPt, textend, Poly.Type.FILLED);
 
 					// make the node for this segment
 					Rectangle2D polyBox = poly.getBox();

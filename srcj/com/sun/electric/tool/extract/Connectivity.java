@@ -467,20 +467,20 @@ public class Connectivity
 					if (!loc1.equals(loc2)) ang = GenMath.figureAngle(loc1, loc2);
 					double wid = cl.width - ap.getWidthOffset();
 					boolean noEndExtend = false;
-					Poly arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+					Poly arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2, Poly.Type.FILLED);
 					if (!originalMerge.contains(layer, arcPoly))
 					{
 						// arc does not fit, try reducing ends
-						arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, 0, loc2, 0);
+						arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, 0, loc2, 0, Poly.Type.FILLED);
 						if (originalMerge.contains(layer, arcPoly)) noEndExtend = true; else
 						{
 							// arc does not fit, try reducing width
 							wid = ap.getWidthOffset();
-							arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+							arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2, Poly.Type.FILLED);
 							if (originalMerge.contains(layer, arcPoly)) cl.width = 0; else
 							{
 								// arc does not fit, try reducing ends and width
-								arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+								arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2, Poly.Type.FILLED);
 								if (!originalMerge.contains(layer, arcPoly))continue;
 								noEndExtend = true;
 								cl.width = 0;
@@ -1920,7 +1920,7 @@ public class Connectivity
 					double length = cl.start.distance(cl.end);
 					if (length < DBMath.getEpsilon()) continue;
 					Poly clPoly = Poly.makeEndPointPoly(length, cl.width, cl.angle,
-						cl.start, 0, cl.end, 0);
+						cl.start, 0, cl.end, 0, Poly.Type.FILLED);
 
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
@@ -1999,7 +1999,7 @@ public class Connectivity
 							extendEnd = cl.width / 2;
 						}
 						Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), cl.width, cl.angle,
-							newStart, extendStart, newEnd, extendEnd);
+							newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
 						if (originalMerge.contains(layer, extended))
 						{
 							cl.start = newStart;
@@ -2025,7 +2025,7 @@ public class Connectivity
 							extendEnd = oCl.width / 2;
 						}
 						Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), oCl.width, oCl.angle,
-							newStart, extendStart, newEnd, extendEnd);
+							newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
 						if (originalMerge.contains(layer, extended))
 						{
 							oCl.start = newStart;

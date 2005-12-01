@@ -670,8 +670,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		}
 
 		// make the polygon
-		Poly poly = Poly.makeEndPointPoly(length, width, real.getAngle(), headPt, extendH, tailPt, extendT);
-		if (poly != null) poly.setStyle(style);
+		Poly poly = Poly.makeEndPointPoly(length, width, real.getAngle(), headPt, extendH, tailPt, extendT, style);
 		return poly;
 	}
 

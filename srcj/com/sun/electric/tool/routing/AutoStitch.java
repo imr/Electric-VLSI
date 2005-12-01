@@ -452,7 +452,7 @@ public class AutoStitch
 	    {
 	    	// normal arc: construct it
 			Poly arcPoly = Poly.makeEndPointPoly(head.distance(tail), width, GenMath.figureAngle(head, tail),
-				head, width/2, tail, width/2);
+				head, width/2, tail, width/2, Poly.Type.FILLED);
 	    	if (stayInside.contains(layer, arcPoly)) return true;
 	    }
 	    return false;

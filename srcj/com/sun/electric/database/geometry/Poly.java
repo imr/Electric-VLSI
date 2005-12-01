@@ -142,14 +142,16 @@ public class Poly extends PolyBase {
 	 * @param extendH the head end extension distance of the arc.
 	 * @param endT the tail end of the arc.
 	 * @param extendT the tail end extension distance of the arc.
+	 * @param style the style of the polygon (filled, opened, etc.)
 	 * @return a Poly describing the outline of the arc.
 	 */
 	public static Poly makeEndPointPoly(double len, double wid, int angle, Point2D endH, double extendH,
-		Point2D endT, double extendT)
+		Point2D endT, double extendT, Poly.Type style)
 	{
 		double w2 = wid / 2;
 		double x1 = endH.getX();   double y1 = endH.getY();
 		double x2 = endT.getX();   double y2 = endT.getY();
+		Point2D.Double [] points = null;
 
 		// somewhat simpler if rectangle is manhattan
 		if (angle == 900 || angle == 2700)
@@ -159,56 +161,63 @@ public class Poly extends PolyBase {
 				double temp = y1;   y1 = y2;   y2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
 			}
-			new Poly(new Point2D.Double[] {
+			points = new Point2D.Double[] {
 				new Point2D.Double(x1 - w2, y1 - extendH),
 				new Point2D.Double(x1 + w2, y1 - extendH),
 				new Point2D.Double(x2 + w2, y2 + extendT),
-				new Point2D.Double(x2 - w2, y2 + extendT)});
-		}
-		if (angle == 0 || angle == 1800)
+				new Point2D.Double(x2 - w2, y2 + extendT)};
+		} else if (angle == 0 || angle == 1800)
 		{
 			if (x1 > x2)
 			{
 				double temp = x1;   x1 = x2;   x2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
 			}
-			return new Poly(new Point2D.Double[] {
+			points = new Point2D.Double[] {
 				new Point2D.Double(x1 - extendH, y1 - w2),
 				new Point2D.Double(x1 - extendH, y1 + w2),
 				new Point2D.Double(x2 + extendT, y2 + w2),
-				new Point2D.Double(x2 + extendT, y2 - w2)});
-		}
-
-		// nonmanhattan arcs cannot have zero length so re-compute it
-		if (len == 0) len = endH.distance(endT);
-		double xextra, yextra, xe1, ye1, xe2, ye2;
-		if (len == 0)
-		{
-			double sa = DBMath.sin(angle);
-			double ca = DBMath.cos(angle);
-			xe1 = x1 - ca * extendH;
-			ye1 = y1 - sa * extendH;
-			xe2 = x2 + ca * extendT;
-			ye2 = y2 + sa * extendT;
-			xextra = ca * w2;
-			yextra = sa * w2;
+				new Point2D.Double(x2 + extendT, y2 - w2)};
 		} else
 		{
-			// work out all the math for nonmanhattan arcs
-			xe1 = x1 - extendH * (x2-x1) / len;
-			ye1 = y1 - extendH * (y2-y1) / len;
-			xe2 = x2 + extendT * (x2-x1) / len;
-			ye2 = y2 + extendT * (y2-y1) / len;
-
-			// now compute the corners
-			xextra = w2 * (x2-x1) / len;
-			yextra = w2 * (y2-y1) / len;
+			// nonmanhattan arcs cannot have zero length so re-compute it
+			if (len == 0) len = endH.distance(endT);
+			double xextra, yextra, xe1, ye1, xe2, ye2;
+			if (len == 0)
+			{
+				double sa = DBMath.sin(angle);
+				double ca = DBMath.cos(angle);
+				xe1 = x1 - ca * extendH;
+				ye1 = y1 - sa * extendH;
+				xe2 = x2 + ca * extendT;
+				ye2 = y2 + sa * extendT;
+				xextra = ca * w2;
+				yextra = sa * w2;
+			} else
+			{
+				// work out all the math for nonmanhattan arcs
+				xe1 = x1 - extendH * (x2-x1) / len;
+				ye1 = y1 - extendH * (y2-y1) / len;
+				xe2 = x2 + extendT * (x2-x1) / len;
+				ye2 = y2 + extendT * (y2-y1) / len;
+	
+				// now compute the corners
+				xextra = w2 * (x2-x1) / len;
+				yextra = w2 * (y2-y1) / len;
+			}
+			points = new Point2D.Double[] {
+				new Point2D.Double(yextra + xe1, ye1 - xextra),
+				new Point2D.Double(xe1 - yextra, xextra + ye1),
+				new Point2D.Double(xe2 - yextra, xextra + ye2),
+				new Point2D.Double(yextra + xe2, ye2 - xextra)};
 		}
-		return new Poly(new Point2D.Double[] {
-			new Point2D.Double(yextra + xe1, ye1 - xextra),
-			new Point2D.Double(xe1 - yextra, xextra + ye1),
-			new Point2D.Double(xe2 - yextra, xextra + ye2),
-			new Point2D.Double(yextra + xe2, ye2 - xextra)});
+		if (wid != 0 && style.isOpened())
+		{
+			points = new Point2D.Double[] {points[0], points[1], points[2], points[3], points[0]};
+		}
+		Poly poly = new Poly(points);
+		poly.setStyle(style);
+		return poly;
 	}
 
 	/**
@@ -559,6 +568,17 @@ public class Poly extends PolyBase {
 		 * but if there are more they are averaged and the cross is drawn in the center.
 		 */
 		public static final Type BIGCROSS = new Type("big-cross", "BIGCROSS", false);
+
+		/**
+		 * Method to tell whether this is a style that can draw an opened polygon.
+		 * @return true if this is a style that can draw an opened polygon.
+		 */
+		public boolean isOpened()
+		{
+			if (this == OPENED || this == OPENEDT1 || this == OPENEDT2 ||
+				this == OPENEDT3 || this == VECTORS) return true;
+			return false;
+		}
 
 		/**
 		 * Method to get the "angle" of a style of text.
