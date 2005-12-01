@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04d: *********************************
+
 ************************* Version 8.04c: *********************************
 
 IMP: (12/1/05, SMR) Making windows fill the screen works right in MDI mode.
