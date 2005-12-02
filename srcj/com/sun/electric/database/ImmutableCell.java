@@ -91,6 +91,17 @@ public class ImmutableCell extends ImmutableElectricObject {
         super.write(writer);
     }
     
+    /**
+     * Reads ImmutableCell from SnapshotReader.
+     * @param reader where to read.
+     */
+    static ImmutableCell read(SnapshotReader reader) throws IOException {
+        CellId cellId = (CellId)reader.readNodeProtoId();
+        boolean hasVars = reader.in.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableCell(cellId, vars);
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableCell.
 	 * @throws AssertionError if invariant is broken.

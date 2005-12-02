@@ -26,8 +26,11 @@ package com.sun.electric.database;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.ActivityLogger;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,13 +79,22 @@ public class Snapshot {
      */
     public static void initWriter(String dumpFile) {
         try {
-            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(new FileOutputStream("snapshot.trace"))));
+            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dumpFile))));
         } catch (IOException e) {
             ActivityLogger.logException(e);
         }
     }
     
-    public static void advance() {
+//    public static void initReader(String dumpFile) {
+//        try {
+//            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(new FileInputStream(dumpFile))));
+//        } catch (IOException e) {
+//            ActivityLogger.logException(e);
+//        }
+//        
+//    }
+    
+    public static void advanceWriter() {
         if (writer == null) return;
         Snapshot oldSnapshot = currentSnapshot;
         Snapshot newSnapshot = new Snapshot(oldSnapshot);
@@ -117,6 +129,49 @@ public class Snapshot {
                 newBackup.write(writer);
             }
         }
-        writer.out.write(Integer.MAX_VALUE);
+        writer.out.writeInt(Integer.MAX_VALUE);
+    }
+    
+    public static void readDump(String dumpFile) {
+        try {
+            SnapshotReader reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(new FileInputStream(dumpFile))));
+            Snapshot oldSnapshot = new Snapshot();
+            for (;;) {
+                oldSnapshot = readSnapshot(reader, oldSnapshot);
+                System.out.println("END OF SNAPSHOT");
+            }
+        } catch (IOException e) {
+            System.out.println("END OF FILE");
+        }
+        
+    }
+    
+    public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
+        Snapshot newSnapshot = new Snapshot();
+        newSnapshot.read(reader, oldSnapshot);
+        return newSnapshot;
+    }
+    
+    private void read(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
+        assert cellBackups.size() == 0;
+        cellBackups.addAll(oldSnapshot.cellBackups);
+        assert cellBackups.size() == oldSnapshot.cellBackups.size();
+        for (;;) {
+            int cellIndex = reader.in.readInt();
+            if (cellIndex == Integer.MAX_VALUE) break;
+            if (cellIndex >= 0) {
+                System.out.println("Cell " + cellIndex);
+                CellBackup newBackup = CellBackup.read(reader);
+                while (cellIndex >= cellBackups.size()) cellBackups.add(null);
+                cellBackups.set(cellIndex, newBackup);
+            } else {
+                cellIndex = ~cellIndex;
+                System.out.println("Kill cell " + cellIndex);
+                CellBackup oldBackup = cellBackups.set(cellIndex, null);
+                assert oldBackup != null;
+            }
+        }
+        while (cellBackups.size() > 0 && cellBackups.get(cellBackups.size() - 1) == null)
+            cellBackups.remove(cellBackups.size() - 1);
     }
 }

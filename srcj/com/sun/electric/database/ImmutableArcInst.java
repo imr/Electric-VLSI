@@ -470,6 +470,31 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         super.write(writer);
     }
     
+    /**
+     * Reads ImmutableArcInst from SnapshotReader.
+     * @param reader where to read.
+     */
+    static ImmutableArcInst read(SnapshotReader reader) throws IOException {
+        int arcId = reader.in.readInt();
+        ArcProto protoType = reader.readArcProto();
+        Name name = reader.readNameKey();
+        TextDescriptor nameDescriptor = reader.readTextDescriptor();
+        int tailNodeId = reader.in.readInt();
+        PortProtoId tailPortId = reader.readPortProtoId();
+        EPoint tailLocation = reader.readPoint();
+        int headNodeId = reader.in.readInt();
+        PortProtoId headPortId = reader.readPortProtoId();
+        EPoint headLocation = reader.readPoint();
+        double width = reader.in.readDouble();
+        short angle = reader.in.readShort();
+        int flags = reader.in.readInt();
+        boolean hasVars = reader.in.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
+                tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, width,
+                tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, vars);
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.

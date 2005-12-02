@@ -202,6 +202,19 @@ public abstract class ImmutableElectricObject {
     }
     
     /**
+     * Reads variables of this ImmutableElectricObject.
+     * @param reader where to read.
+     */
+    static Variable[] readVars(SnapshotReader reader) throws IOException {
+        int length = reader.in.readInt();
+        if (length == 0) return Variable.NULL_ARRAY;
+        Variable[] vars = new Variable[length];
+        for (int i = 0; i < length; i++)
+            vars[i] = Variable.read(reader);
+        return vars;
+    }
+    
+    /**
 	 * Checks invariant of this ImmutableElectricObject.
      * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.

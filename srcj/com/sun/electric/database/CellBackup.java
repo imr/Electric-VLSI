@@ -43,7 +43,7 @@ public class CellBackup {
 	/** Internal flag bits. */										public final int userBits;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
-    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
+//    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of ImmutableCell */
@@ -60,7 +60,7 @@ public class CellBackup {
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
-        this.cellUsages = cellUsages.clone();
+//        this.cellUsages = cellUsages.clone();
     }
     
     /**
@@ -81,7 +81,7 @@ public class CellBackup {
         writer.out.writeInt(nodes.length);
         for (int i = 0; i < nodes.length; i++)
             nodes[i].write(writer);
-        writer.out.writeInt(nodes.length);
+        writer.out.writeInt(arcs.length);
         for (int i = 0; i < arcs.length; i++)
             arcs[i].write(writer);
         writer.out.writeInt(exports.length);
@@ -89,4 +89,33 @@ public class CellBackup {
             exports[i].write(writer);
     }
     
+    /**
+     * Reads CellBackup from SnapshotReader.
+     * @param reader where to read.
+     */
+    static CellBackup read(SnapshotReader reader) throws IOException {
+        ImmutableCell d = ImmutableCell.read(reader);
+        String cellNameString = reader.in.readUTF();
+        CellName cellName = cellNameString.length() > 0 ? CellName.parseName(cellNameString) : null;
+        // cellGroup
+        LibId libId = reader.readLibId();
+        long creationDate = reader.in.readLong();
+        long revisionDate = reader.in.readLong();
+        boolean hasTech = reader.in.readBoolean();
+        Technology tech = hasTech ? reader.readTechnology() : null;
+        int userBits = reader.in.readInt();
+        int nodesLength = reader.in.readInt();
+        ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
+        for (int i = 0; i < nodesLength; i++)
+            nodes[i] = ImmutableNodeInst.read(reader);
+        int arcsLength = reader.in.readInt();
+        ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
+        for (int i = 0; i < arcsLength; i++)
+            arcs[i] = ImmutableArcInst.read(reader);
+        int exportsLength = reader.in.readInt();
+        ImmutableExport[] exports = new ImmutableExport[exportsLength];
+        for (int i = 0; i < exportsLength; i++)
+            exports[i] = ImmutableExport.read(reader);
+        return new CellBackup(d, cellName, null/*?*/, libId, creationDate, revisionDate, tech, userBits, nodes, arcs, exports, null/*?*/);
+    }
 }

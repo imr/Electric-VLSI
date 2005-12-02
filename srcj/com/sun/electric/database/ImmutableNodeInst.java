@@ -485,7 +485,42 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             writer.out.writeInt(i);
             ports[i].writeVars(writer);
         }
+        writer.out.writeInt(-1);
         super.write(writer);
+    }
+    
+    /**
+     * Reads ImmutableNodeInst from SnapshotReader.
+     * @param reader where to read.
+     */
+    static ImmutableNodeInst read(SnapshotReader reader) throws IOException {
+        int nodeId = reader.in.readInt();
+        NodeProtoId protoId = reader.readNodeProtoId();
+        Name name = reader.readNameKey();
+        TextDescriptor nameDescriptor = reader.readTextDescriptor();
+        Orientation orient = reader.readOrientation();
+        EPoint anchor = reader.readPoint();
+        double width = reader.in.readDouble();
+        double height = reader.in.readDouble();
+        int flags = reader.in.readInt();
+        byte techBits = reader.in.readByte();
+        TextDescriptor protoDescriptor = reader.readTextDescriptor();
+        ImmutablePortInst[] ports = ImmutablePortInst.NULL_ARRAY;
+        for (;;) {
+            int i = reader.in.readInt();
+            if (i == -1) break;
+            if (i >= ports.length) {
+                ImmutablePortInst[] newPorts = new ImmutablePortInst[i + 1];
+                System.arraycopy(ports, 0, newPorts, 0, ports.length);
+                Arrays.fill(newPorts, ports.length, newPorts.length, ImmutablePortInst.EMPTY);
+                ports = newPorts;
+            }
+            ports[i] = ImmutablePortInst.read(reader);
+        }
+        boolean hasVars = reader.in.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor, orient, anchor, width, height,
+                flags, techBits, protoDescriptor, vars, ports);
     }
     
 	/**

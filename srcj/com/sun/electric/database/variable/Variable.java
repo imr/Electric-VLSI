@@ -446,7 +446,7 @@ public class Variable
      * Read Variable from SnapshotReader.
      * @param reader from to write.
      */
-    public Variable read(SnapshotReader reader) throws IOException {
+    public static Variable read(SnapshotReader reader) throws IOException {
         Variable.Key varKey = reader.readVariableKey();
         TextDescriptor td = reader.readTextDescriptor();
         int type = reader.in.readByte();

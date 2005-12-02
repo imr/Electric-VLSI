@@ -209,7 +209,7 @@ public class SnapshotReader {
             short angle = in.readShort();
             boolean isXMirrored = in.readBoolean();
             boolean isYMirrored = in.readBoolean();
-            Orientation orient = Orientation.fromJava(angle,isXMirrored, isYMirrored);
+            Orientation orient = Orientation.fromJava(angle, isXMirrored, isYMirrored);
             orients.add(orient);
         }
         return orients.get(i);

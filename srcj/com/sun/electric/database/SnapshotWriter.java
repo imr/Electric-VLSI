@@ -89,7 +89,7 @@ public class SnapshotWriter {
         if (i != null) {
             out.writeInt(i.intValue());
         } else {
-            i = new Integer(varKeys.size());
+            i = new Integer(textDescriptors.size());
             textDescriptors.put(td, i);
             out.writeInt(i.intValue());
             
@@ -208,7 +208,7 @@ public class SnapshotWriter {
         if (i != null) {
             out.writeInt(i.intValue());
         } else {
-            i = new Integer(varKeys.size());
+            i = new Integer(orients.size());
             orients.put(orient, i);
             out.writeInt(i.intValue());
             

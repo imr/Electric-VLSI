@@ -220,6 +220,26 @@ public class ImmutableExport extends ImmutableElectricObject {
         super.write(writer);
     }
     
+    /**
+     * Reads ImmutableExport from SnapshotReader.
+     * @param reader where to read.
+     */
+    static ImmutableExport read(SnapshotReader reader) throws IOException {
+        ExportId exportId = (ExportId)reader.readPortProtoId();
+        Name name = reader.readNameKey();
+        TextDescriptor nameDescriptor = reader.readTextDescriptor();
+        int originalNodeId = reader.in.readInt();
+        PortProtoId originalPortId = reader.readPortProtoId();
+        boolean alwaysDrawn = reader.in.readBoolean();
+        boolean bodyOnly = reader.in.readBoolean();
+        int bits = reader.in.readInt();
+        PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(bits);
+        boolean hasVars = reader.in.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableExport(exportId, name, nameDescriptor,
+                originalNodeId, originalPortId, alwaysDrawn, bodyOnly, characteristic, vars);
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableExport.
 	 * @throws AssertionError if invariant is broken.

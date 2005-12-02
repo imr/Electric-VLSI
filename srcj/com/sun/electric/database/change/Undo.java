@@ -793,7 +793,7 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
-        Snapshot.advance();
+        Snapshot.advanceWriter();
         
 		if (Job.BATCHMODE) return;
 

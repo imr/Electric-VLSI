@@ -301,6 +301,8 @@ public class DebugMenus {
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Backup cells", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { backupCells(); } });
+	    dimaMenu.addMenuItem("Read cells", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { readCells(); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,
@@ -1640,11 +1642,17 @@ public class DebugMenus {
 	// ---------------------- Dima's Stuff MENU -----------------
 
     private static void backupCells() {
-        int cellCount = 0;
         long startTime = System.currentTimeMillis();
-        Snapshot.advance();
+        Snapshot.advanceWriter();
         long backTime = System.currentTimeMillis();
         System.out.println("backup cells took " + (backTime - startTime) + "msec");
+    }
+    
+    private static void readCells() {
+        long startTime = System.currentTimeMillis();
+        Snapshot.readDump("snapshot.trace");
+        long backTime = System.currentTimeMillis();
+        System.out.println("read cells took " + (backTime - startTime) + "msec");
     }
     
 	private static int[] objs;

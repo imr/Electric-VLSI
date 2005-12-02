@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.variable.Variable;
+import java.io.IOException;
 
 /**
  * Immutable class which stores varaibles of PortInst.
@@ -67,7 +68,15 @@ public class ImmutablePortInst extends ImmutableElectricObject {
         return new ImmutablePortInst(vars);
     }
     
-	/**
+    /**
+     * Reads optional variable part of ImmutableElectricObject.
+     * @param reader where to read.
+     */
+    static ImmutablePortInst read(SnapshotReader reader) throws IOException {
+        return new ImmutablePortInst(readVars(reader));
+    }
+    
+ 	/**
 	 * Checks invariant of this ImmutablePortInst.
 	 * @throws AssertionError if invariant is broken.
 	 */
