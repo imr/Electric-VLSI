@@ -49,7 +49,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -1181,13 +1180,14 @@ public class Undo
 		// for now, just save from the current window
 		UserInterface ui = Main.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
-		Highlighter highlighter = null;
 		if (wnd != null)
 		{
 			savedHighlights = wnd.saveHighlightList();
 			offset = wnd.getHighlightOffset();
-			highlighter.clear();
-			highlighter.finished();
+            wnd.clearHighlighting();
+            wnd.finishedHighlighting();
+//			highlighter.clear();
+//			highlighter.finished();
 		}
 
 		// close out the current batch
