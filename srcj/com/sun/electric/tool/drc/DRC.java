@@ -23,9 +23,6 @@
  */
 package com.sun.electric.tool.drc;
 
-import static com.sun.electric.tool.drc.DRC.tool;
-
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Geometric;
@@ -37,9 +34,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
@@ -259,35 +254,24 @@ public class DRC extends Listener
 	 * Method to check the current cell hierarchically or
 	 * the selected area of the current cell hierarchically if areaCheck is true
 	 */
-	public static void checkHierarchically(boolean areaCheck, GeometryHandler.GHMode mode)
-	{
-		Cell curCell = null;
-		Rectangle2D bounds = null;
-		UserInterface ui = Main.getUserInterface();
-		if (!areaCheck)
-		{
-			curCell = ui.needCurrentCell();
-		} else
-		{
-			EditWindow_ wnd = ui.getCurrentEditWindow_();
-			if (wnd == null) return;
-			bounds = wnd.getHighlightedArea();
-			curCell = wnd.getCell();
-		}
-
-        checkDRCHierarchically(curCell, bounds, mode);
-//		if (curCell == null) return;
-//		if (curCell.isSchematic() || curCell.getTechnology() == Schematics.tech ||
-//			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
+//	public static void checkHierarchically(boolean areaCheck, GeometryHandler.GHMode mode)
+//	{
+//		Cell curCell = null;
+//		Rectangle2D bounds = null;
+//		UserInterface ui = Main.getUserInterface();
+//		if (!areaCheck)
 //		{
-//			// hierarchical check of schematics
-//			new CheckSchematicHierarchically(curCell);
+//			curCell = ui.needCurrentCell();
 //		} else
 //		{
-//			// hierarchical check of layout
-//			new CheckLayoutHierarchically(curCell, bounds, mode);
+//			EditWindow_ wnd = ui.getCurrentEditWindow_();
+//			if (wnd == null) return;
+//			bounds = wnd.getHighlightedArea();
+//			curCell = wnd.getCell();
 //		}
-	}
+//
+//        checkDRCHierarchically(curCell, bounds, mode);
+//	}
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.

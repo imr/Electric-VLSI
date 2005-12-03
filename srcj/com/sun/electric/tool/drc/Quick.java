@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GeometryHandler;

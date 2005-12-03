@@ -44,11 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -108,6 +104,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -146,9 +143,15 @@ public class ToolMenu {
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.GHMode.ALGO_SWEEP); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkDRCHierarchically(Main.getUserInterface().needCurrentCell(),
+                    null, GeometryHandler.GHMode.ALGO_SWEEP); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.GHMode.ALGO_SWEEP); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e)
+            {
+                EditWindow_ wnd = Main.getUserInterface().getCurrentEditWindow_();
+                if (wnd == null) return;
+                DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP);
+            }});
         drcSubMenu.addMenuItem("Check Area _Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.GHMode.ALGO_SWEEP, true);} });
 
