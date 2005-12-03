@@ -50,6 +50,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.awt.Shape;
 
 import java.awt.geom.AffineTransform;

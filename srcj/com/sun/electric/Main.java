@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -36,15 +37,14 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -58,11 +58,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -234,7 +236,7 @@ public final class Main
         job.startJob();
 	}
 
-	private static class UserInterfaceDummy implements UserInterface
+    private static class UserInterfaceDummy implements UserInterface
 	{
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()
@@ -253,8 +255,18 @@ public final class Main
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }
-		
-		
+		public void wantToRedoErrorTree() { ; }
+        public void termLogging(final ErrorLogger logger, boolean explain) {;}
+        /**
+         * Method to return the error message associated with the current error.
+         * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
+         * with associated geometry modules (if nonzero).
+         */
+        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
+        {
+            // return the error message
+            return log.getMessageString();
+        }
 	}
 
 	/**

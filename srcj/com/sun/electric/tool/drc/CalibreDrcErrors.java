@@ -2,7 +2,6 @@ package com.sun.electric.tool.drc;
 
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.output.GDS;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -11,7 +10,6 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.*;
 import java.util.List;
 import java.awt.*;

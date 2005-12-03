@@ -25,20 +25,14 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;

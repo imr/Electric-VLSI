@@ -44,7 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ErrorLogger.MessageLog;
+
 import java.awt.Shape;
 
 import java.awt.geom.AffineTransform;
@@ -233,7 +233,7 @@ public class ERCWellCheck
 			{
 				if (contactAction == 0)
 				{
-					MessageLog err = errorLogger.logError(noContactError, cell, 0);
+					ErrorLogger.MessageLog err = errorLogger.logError(noContactError, cell, 0);
 					err.addPoly(wa.poly, true, cell);
 				}
 			}
@@ -248,7 +248,7 @@ public class ERCWellCheck
 			{
 				String errorMsg = "N-Well contact is floating";
 				if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contact is floating";
-				MessageLog err = errorLogger.logError(errorMsg, cell, 0);
+				ErrorLogger.MessageLog err = errorLogger.logError(errorMsg, cell, 0);
 				err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 				continue;
 			}
@@ -258,14 +258,14 @@ public class ERCWellCheck
 				{
 					if (ERC.isMustConnectPWellToGround())
 					{
-						MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
+						ErrorLogger.MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
 						err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					}
 				} else
 				{
 					if (ERC.isMustConnectNWellToPower())
 					{
-						MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
+						ErrorLogger.MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
 						err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					}
 				}
@@ -370,7 +370,7 @@ public class ERCWellCheck
 						int layertype = getWellLayerType(waLayer);
 						if (layertype == ERCPSEUDO) continue;
 
-						MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
+						ErrorLogger.MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
 								+ TextUtils.formatDouble(dist, 1) + ", should be "
 								+ TextUtils.formatDouble(rule.value1, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);

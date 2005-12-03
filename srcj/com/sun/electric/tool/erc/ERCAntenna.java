@@ -46,7 +46,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
@@ -358,7 +357,7 @@ public class ERCAntenna
 							// error
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
-							MessageLog err = errorLogger.logError(errMsg, cell, 0);
+							ErrorLogger.MessageLog err = errorLogger.logError(errMsg, cell, 0);
 							for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();

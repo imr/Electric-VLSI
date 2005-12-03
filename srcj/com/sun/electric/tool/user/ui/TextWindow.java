@@ -34,6 +34,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLoggerTree;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
@@ -244,7 +245,7 @@ public class TextWindow
 		rootNode.add(wf.libraryExplorerNode);
 		wf.jobExplorerNode = Job.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
+		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);
 
 		// no simulation data

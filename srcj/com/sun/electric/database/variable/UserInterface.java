@@ -24,7 +24,9 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Font;
 import java.awt.Point;
@@ -45,4 +47,12 @@ public interface UserInterface {
 	public void alignToGrid(Point2D pt);
 	public int getDefaultTextSize();
 	public EditWindow_ displayCell(Cell cell);
+    public void wantToRedoErrorTree();
+    public void termLogging(final ErrorLogger logger, boolean explain);
+    /**
+     * Method to return the error message associated with the current error.
+     * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
+     * with associated geometry modules (if nonzero).
+     */
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair);
 }

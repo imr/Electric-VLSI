@@ -56,13 +56,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
@@ -967,7 +961,7 @@ public class EditWindow extends JPanel
 		rootNode.add(wf.libraryExplorerNode);
 		wf.jobExplorerNode = Job.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
+		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);
 
 		// no simulation data

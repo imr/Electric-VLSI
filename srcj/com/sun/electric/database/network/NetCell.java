@@ -43,6 +43,7 @@ import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.util.ArrayList;
 
 import java.util.Arrays;

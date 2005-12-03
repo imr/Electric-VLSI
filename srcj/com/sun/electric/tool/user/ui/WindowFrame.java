@@ -35,6 +35,7 @@ import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLoggerTree;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -657,7 +658,7 @@ public class WindowFrame extends Observable
 		if (wantToRedoJobTree)
 			jobExplorerNode = Job.getExplorerTree();
 		if (wantToRedoErrorTree)
-			errorExplorerNode = ErrorLogger.getExplorerTree();
+			errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		wantToRedoLibraryTree = wantToRedoJobTree = wantToRedoErrorTree = wantToRedoSignalTree = false;
 
 		// rebuild the tree

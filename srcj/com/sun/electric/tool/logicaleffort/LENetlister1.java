@@ -43,8 +43,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.MessagesWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

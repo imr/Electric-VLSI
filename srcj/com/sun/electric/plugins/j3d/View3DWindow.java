@@ -48,12 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
@@ -619,7 +614,7 @@ public class View3DWindow extends JPanel
 		rootNode.add(wf.libraryExplorerNode);
 		wf.jobExplorerNode = Job.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
+		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);
 
 		// no simulation data

@@ -52,12 +52,7 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.TimedSignal;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -1478,7 +1473,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// show standard things in the explorer (jobs, errors)
 		wf.jobExplorerNode = Job.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
+		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);
 	}
 

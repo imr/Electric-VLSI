@@ -34,11 +34,7 @@ import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
@@ -49,6 +45,7 @@ import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.NodeInfo;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -519,9 +516,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			Cell.CellGroup group = (Cell.CellGroup)nodeInfo;
             return group.getName();
 		}
-		if (nodeInfo instanceof ErrorLogger)
+		if (nodeInfo instanceof ErrorLoggerTree.ErrorLoggerTreeNode)
 		{
-			ErrorLogger el = (ErrorLogger)nodeInfo;
+            ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)nodeInfo;
+			ErrorLogger el = (ErrorLogger)node.getLogger();
 			return el.describe();
 		}
         if (nodeInfo instanceof ErrorLogger.MessageLog)
@@ -912,7 +910,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (tree.currentSelectedObject instanceof ErrorLogger.MessageLog)
 				{
 					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)tree.currentSelectedObject;
-					String msg = el.reportLog(true, null);
+					String msg = Main.getUserInterface().reportLog(el,true, null);
 					System.out.println(msg);
 					return;
 				}
@@ -1274,11 +1272,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					JMenuItem menuItem = new JMenuItem("Delete All");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLogger.deleteAllLoggers(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.deleteAllLoggers(); } });
 
                     menuItem = new JMenuItem("Load Logger");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLogger.load(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.load(); } });
 
                     menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                     return;
@@ -1374,9 +1372,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 			}
-            if (selectedObject instanceof ErrorLogger) {
-                ErrorLogger logger = (ErrorLogger)selectedObject;
-                JPopupMenu p = logger.getPopupMenu();
+            if (selectedObject instanceof ErrorLoggerTree.ErrorLoggerTreeNode) {
+                ErrorLoggerTree.ErrorLoggerTreeNode logger = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
+                JPopupMenu p = ErrorLoggerTree.getPopupMenu(logger);
                 if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
             }

@@ -29,40 +29,23 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
+import com.sun.electric.Main;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
+import java.util.*;
 import java.net.URL;
 import java.net.URLConnection;
 
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
 
@@ -89,76 +72,42 @@ import org.xml.sax.SAXParseException;
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger implements ActionListener, DatabaseChangeListener
+public class ErrorLogger implements DatabaseChangeListener
 {
-    private enum ErrorLoggerType
-    {
-        ERRORTYPEGEOM, ERRORTYPEEXPORT , ERRORTYPELINE, ERRORTYPETHICKLINE, ERRORTYPEPOINT
-    };
-
-    private static class ErrorHighlight
-    {
-        ErrorLoggerType         type;
-        Geometric   geom;
-        Export      pp;
-        boolean     showgeom;
-        double      x1, y1;
-        double      x2, y2;
-        double      cX, cY;
-        Cell        cell;
-        VarContext  context;
-
-        /**
-         * Method to describe an object on an error.
-         */
-        public String describe()
-        {
-            String msg;
-            if (geom instanceof NodeInst) msg = "Node " + geom.describe(true); else
-                msg = "Arc " + geom.describe(true);
-            msg += " in " + context.getInstPath(".");
-            return msg;
-        }
-
-        public boolean isValid() {
-            if (type == ErrorLoggerType.ERRORTYPEEXPORT) return pp.isLinked();
-            if (type == ErrorLoggerType.ERRORTYPEGEOM) return geom.isLinked();
-	        //return true;
-	        return (cell.isLinked()); // Still have problems with minAre DRC errors
-        }
-    };
-
     /**
      * Create a Log of a single message.
      */
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
-        private String message;
-        private int    sortKey;
+        protected String message;
+        protected int    sortKey;
         protected int    index;
         protected Cell    logCell;                // cell associated with log (not really used)
-        protected List<ErrorHighlight>   highlights;
+        protected List<ErrorLogger.ErrorHighlight>   highlights;
 
-        private MessageLog(String message, Cell cell, int sortKey) {
+        public MessageLog(String message, Cell cell, int sortKey) {
             this.message = message;
             this.sortKey = sortKey;
             this.logCell = cell;
             index = 0;
-            highlights = new ArrayList<ErrorHighlight>();
+            highlights = new ArrayList<ErrorLogger.ErrorHighlight>();
         }
 
-	    /**
-		 * Compare objects lexicographically based on string comparator CASE_INSENSITIVE_ORDER
-		 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
-		 * @param log1
-		 * @return Returns a negative integer, zero, or a positive integer as the
-		 * first message has smaller than, equal to, or greater than the second lexicographically
-		 */
-/*5*/    public int compareTo(MessageLog log1)
+        public String getMessageString() { return message; }
+        public Iterator<ErrorLogger.ErrorHighlight> getHighlights() { return highlights.iterator(); }
+
+        /**
+         * Compare objects lexicographically based on string comparator CASE_INSENSITIVE_ORDER
+         * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
+         * @param log1
+         * @return Returns a negative integer, zero, or a positive integer as the
+         * first message has smaller than, equal to, or greater than the second lexicographically
+         */
+/*5*/    public int compareTo(com.sun.electric.tool.user.ErrorLogger.MessageLog log1)
 //4*/    public int compareTo(Object o1)
-	    {
+        {
 //4*/	    MessageLog log1 = (MessageLog)o1;
-		    return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
-	    }
+            return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
+        }
 
         /**
          * Method to add "geom" to the error in "errorlist".  Also adds a
@@ -166,8 +115,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
          */
         public void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
         {
-            ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ErrorLoggerType.ERRORTYPEGEOM;
+            ErrorLogger.ErrorHighlight eh = new ErrorLogger.ErrorHighlight();
+            eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM;
             eh.geom = geom;
             eh.showgeom = showit;
             eh.cell = cell;
@@ -180,8 +129,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
          */
         public void addExport(Export pp, boolean showit, Cell cell, VarContext context)
         {
-            ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ErrorLoggerType.ERRORTYPEEXPORT;
+            ErrorLogger.ErrorHighlight eh = new ErrorLogger.ErrorHighlight();
+            eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPEEXPORT;
             eh.pp = pp;
             eh.showgeom = showit;
             eh.cell = cell;
@@ -192,10 +141,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         /**
          * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
          */
-        public ErrorHighlight addLine(double x1, double y1, double x2, double y2, Cell cell)
+        public ErrorLogger.ErrorHighlight addLine(double x1, double y1, double x2, double y2, Cell cell)
         {
-            ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ErrorLoggerType.ERRORTYPELINE;
+            ErrorLogger.ErrorHighlight eh = new ErrorLogger.ErrorHighlight();
+            eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPELINE;
             eh.x1 = x1;
             eh.y1 = y1;
             eh.x2 = x2;
@@ -217,9 +166,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             {
                 int prev = i-1;
                 if (i == 0) prev = points.length-1;
-                ErrorHighlight eh = new ErrorHighlight();
-                if (thick) eh.type = ErrorLoggerType.ERRORTYPETHICKLINE; else
-                    eh.type = ErrorLoggerType.ERRORTYPELINE;
+                ErrorLogger.ErrorHighlight eh = new ErrorLogger.ErrorHighlight();
+                if (thick) eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPETHICKLINE; else
+                    eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPELINE;
                 eh.x1 = points[prev].getX();
                 eh.y1 = points[prev].getY();
                 eh.x2 = points[i].getX();
@@ -237,8 +186,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
          */
         public void addPoint(double x, double y, Cell cell)
         {
-            ErrorHighlight eh = new ErrorHighlight();
-            eh.type = ErrorLoggerType.ERRORTYPEPOINT;
+            ErrorLogger.ErrorHighlight eh = new ErrorLogger.ErrorHighlight();
+            eh.type = ErrorLogger.ErrorLoggerType.ERRORTYPEPOINT;
             eh.x1 = x;
             eh.y1 = y;
             eh.cell = cell;
@@ -253,10 +202,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         public int getNumGeoms()
         {
             int total = 0;
-            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(Iterator<ErrorLogger.ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
-                ErrorHighlight eh = (ErrorHighlight)it.next();
-                if (eh.type == ErrorLoggerType.ERRORTYPEGEOM) total++;
+                ErrorLogger.ErrorHighlight eh = (ErrorLogger.ErrorHighlight)it.next();
+                if (eh.type == ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) total++;
             }
             return total;
         }
@@ -280,23 +229,23 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         }
         */
 
-	    public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
+        public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
         {
             boolean eh1found = false;
-	        boolean eh2found = false;
+            boolean eh2found = false;
 
-	        for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(Iterator<ErrorLogger.ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
-                ErrorHighlight eh = (ErrorHighlight)it.next();
-                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
-		        if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
-		            eh1found = true;
-		        if (!eh2found && eh.cell == cell2 && eh.geom == geo2)
-		            eh2found = true;
-		        if (eh1found && eh2found)
-		            return (true);
+                ErrorLogger.ErrorHighlight eh = (ErrorLogger.ErrorHighlight)it.next();
+                if (eh.type != ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) continue;
+                if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
+                    eh1found = true;
+                if (!eh2found && eh.cell == cell2 && eh.geom == geo2)
+                    eh2found = true;
+                if (eh1found && eh2found)
+                    return (true);
             }
-	        return (false);
+            return (false);
         }
         /**
          * Method to describe error "elv".
@@ -311,9 +260,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             String className = this.getClass().getSimpleName();
             msg.append("\t<" + className + " message=\"" + message + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
-            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(Iterator<ErrorLogger.ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
             {
-                ErrorHighlight eh = it.next();
+                ErrorLogger.ErrorHighlight eh = it.next();
 
                 switch (eh.type)
                 {
@@ -350,148 +299,34 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
          * (In a linked Cell, and all highlights are still valid)
          */
         public boolean isValid() {
-        	if (logCell == null) return true;
+            if (logCell == null) return true;
             if (!logCell.isLinked()) return false;
             // check validity of highlights
             boolean allValid = true;
-            for (Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); ) {
-                ErrorHighlight erh = (ErrorHighlight)it.next();
+            for (Iterator<ErrorLogger.ErrorHighlight> it = highlights.iterator(); it.hasNext(); ) {
+                ErrorLogger.ErrorHighlight erh = (ErrorLogger.ErrorHighlight)it.next();
                 if (!erh.isValid()) { allValid = false; break; }
             }
             return allValid;
         }
 
-        /**
-         * Method to return the error message associated with the current error.
-         * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
-         * with associated geometry modules (if nonzero).
-         */
-        public String reportLog(boolean showhigh, Geometric [] gPair)
-        {
-            // if two highlights are requested, find them
-            if (gPair != null)
-            {
-                Geometric geom1 = null, geom2 = null;
-                for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
-                {
-                    ErrorHighlight eh = (ErrorHighlight)it.next();
-                    if (eh.type == ErrorLoggerType.ERRORTYPEGEOM)
-                    {
-                        if (geom1 == null) geom1 = eh.geom; else
-                            if (geom2 == null) geom2 = eh.geom;
-                    }
-                }
-
-                // return geometry if requested
-                if (geom1 != null) gPair[0] = geom1;
-                if (geom2 != null) gPair[1] = geom2;
-            }
-
-            // show the error
-            if (showhigh)
-            {
-                Highlighter highlighter = null;
-                EditWindow wnd = null;
-
-                // first show the geometry associated with this error
-                for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
-                {
-                    ErrorHighlight eh = (ErrorHighlight)it.next();
-
-                    Cell cell = eh.cell;
-                    // validate the cell (it may have been deleted)
-                    if (cell != null)
-                    {
-                        if (!cell.isLinked())
-                        {
-                            return "(cell deleted): " + message;
-                        }
-
-                        // make sure it is shown
-                        boolean found = false;
-                        for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
-                        {
-                            WindowFrame wf = (WindowFrame)it2.next();
-                            WindowContent content = wf.getContent();
-                            if (!(content instanceof EditWindow)) continue;
-                            wnd = (EditWindow)content;
-                            if (wnd.getCell() == cell)
-                            {
-                                if (((eh.context != null) && eh.context.equals(wnd.getVarContext())) ||
-                                        (eh.context == null)) {
-                                    // already displayed.  should force window "wf" to front? yes
-                                    wf.getFrame().toFront();
-                                    found = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!found)
-                        {
-                            // make a new window for the cell
-                            WindowFrame wf = WindowFrame.createEditWindow(cell);
-                            wnd = (EditWindow)wf.getContent();
-                            wnd.setCell(eh.cell, eh.context);
-                        }
-                        if (highlighter == null) {
-                            highlighter = wnd.getHighlighter();
-                            highlighter.clear();
-                        }
-                    }
-
-                    if (highlighter == null) continue;
-
-                    switch (eh.type)
-                    {
-                        case ERRORTYPEGEOM:
-                            if (!eh.showgeom) break;
-                            highlighter.addElectricObject(eh.geom, cell);
-                            break;
-                        case ERRORTYPEEXPORT:
-    						highlighter.addText(eh.pp, cell, null, null);
-//						if (havegeoms == 0) infstr = initinfstr(); else
-//							addtoinfstr(infstr, '\n');
-//						havegeoms++;
-//						formatinfstr(infstr, x_("CELL=%s TEXT=0%lo;0%lo;-"),
-//							describenodeproto(eh->pp->parent), (INTBIG)eh->pp->subnodeinst->geom,
-//								(INTBIG)eh->pp);
-                            break;
-                        case ERRORTYPELINE:
-                            highlighter.addLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), cell);
-                            break;
-                        case ERRORTYPETHICKLINE:
-                            highlighter.addThickLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), new Point2D.Double(eh.cX, eh.cY), cell);
-                            break;
-                        case ERRORTYPEPOINT:
-                            double consize = 5;
-                            highlighter.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x1+consize, eh.y1+consize), cell);
-                            highlighter.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x1+consize, eh.y1-consize), cell);
-                            break;
-                    }
-                }
-
-                if (highlighter != null)
-				{
-					highlighter.ensureHighlightingSeen();
-					highlighter.finished();
-
-					// make sure the selection is visible
-					Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
-					Rectangle2D shown = wnd.getDisplayedBounds();
-					if (!shown.intersects(hBounds))
-					{
-				        wnd.focusOnHighlighted();
-					}
-				}
-            }
-
-            // return the error message
-            return message;
-        }
-
     }
 
-	/**
+    private static class ErrorLogOrder implements Comparator<MessageLog>
+    {
+/*5*/   public int compare(MessageLog el1, MessageLog el2)
+//4*/   public int compare(Object o1, Object o2)
+        {
+//4*/       MessageLog el1 = (MessageLog)o1;
+//4*/       MessageLog el2 = (MessageLog)o2;
+            int sortedKey = el1.sortKey - el2.sortKey;
+            if (sortedKey == 0) // Identical, compare lexicographically
+                sortedKey = el1.compareTo(el2);
+            return sortedKey; //el1.sortKey - el2.sortKey;
+        }
+    }
+
+    /**
      * Create a Log of a single warning.
      */
     public static class WarningLog extends MessageLog
@@ -513,7 +348,15 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
     private boolean persistent; // cannot be deleted
     private HashMap<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
 
-    private ErrorLogger() {}
+    public static List<ErrorLogger> getAllErrors() { return allLoggers; }
+
+    public static void setCurrentLogger(ErrorLogger log) { currentLogger = log; }
+
+    public HashMap<Integer,String> getSortKeyToGroupNames() { return sortKeysToGroupNames; }
+
+    public String getSystem() { return errorSystem; }
+
+    public ErrorLogger() {}
 
     /**
      * Create a new ErrorLogger instance, with persistent set false, so
@@ -591,7 +434,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         allErrors.add(el);
 //        currentLogNumber = allErrors.size()-1;
 
-        if (persistent) WindowFrame.wantToRedoErrorTree();
+        if (persistent) Main.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -626,7 +469,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         // add the ErrorLog into the global list
         allWarnings.add(el);
 
-        if (persistent) WindowFrame.wantToRedoErrorTree();
+        if (persistent) Main.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -698,7 +541,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             allErrors.clear();
 			allWarnings.clear();
             currentLogNumber = -1;
-            WindowFrame.wantToRedoErrorTree();
+            Main.getUserInterface().wantToRedoErrorTree();
             return;
         }
 
@@ -711,38 +554,11 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
         }
         Undo.removeDatabaseChangeListener(this);
 
-        WindowFrame.wantToRedoErrorTree();
+        Main.getUserInterface().wantToRedoErrorTree();
     }
 
-    public static void load()
+    public void save(PrintStream buffWriter)
     {
-        String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
-        try {
-            XMLParser parser = new XMLParser();
-            parser.process(TextUtils.makeURLToFile(fileName));
-        } catch (Exception e)
-		{
-			System.out.println("Error loading " + fileName);
-			return;
-		}
-    }
-
-    public void save() {
-	    PrintStream buffWriter = null;
-	    String filePath = null;
-
-	    try
-        {
-		    filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
-            if (filePath == null) return; // cancel operation
-		    buffWriter = new PrintStream(new FileOutputStream(filePath));
-
-	    } catch (IOException e)
-		{
-			System.out.println("Error creating " + filePath);
-			return;
-		}
-
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         buffWriter.println();
@@ -834,6 +650,13 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             currentLogger = this;
         }
 
+        if (Job.BATCHMODE)
+        {
+            System.out.println(getInfo());
+            terminated = true;
+            return;
+        }
+
         if (errs == 0) {
             delete();
             return;
@@ -841,46 +664,41 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 
 //		if (db_errorchangedroutine != 0) (*db_errorchangedroutine)();
 
-        if (errs > 0 && explain)
-        {
-            if (!alreadyExplained)
-            {
-				alreadyExplained = true;
-                if (Job.BATCHMODE)
-                {
-                    System.out.println(getInfo());
-                }
-                else
-                {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            // To print consistent message in message window
-                            String extraMsg = "errors/warnings";
-                            if (getNumErrors() == 0) extraMsg = "warnings";
-                            else  if (getNumWarnings() == 0) extraMsg = "errors";
-                            String msg = getInfo();
-                            System.out.println(msg);
-                            if (getNumLogs() > 0)
-                            {
-                                System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
-                            }
-                            if (getNumErrors() > 0 && !Job.BATCHMODE)
-                            {
-                                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
-                                    errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        if (!Job.BATCHMODE)
-        {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {WindowFrame.wantToRedoErrorTree(); }
-            });
-        }
+        Main.getUserInterface().termLogging(this, explain);
+//        if (errs > 0 && explain)
+//        {
+//            if (!alreadyExplained)
+//            {
+//				alreadyExplained = true;
+//                    SwingUtilities.invokeLater(new Runnable() {
+//                        public void run() {
+//                            // To print consistent message in message window
+//                            String extraMsg = "errors/warnings";
+//                            if (getNumErrors() == 0) extraMsg = "warnings";
+//                            else  if (getNumWarnings() == 0) extraMsg = "errors";
+//                            String msg = getInfo();
+//                            System.out.println(msg);
+//                            if (getNumLogs() > 0)
+//                            {
+//                                System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
+//                            }
+//                            if (getNumErrors() > 0 && !Job.BATCHMODE)
+//                            {
+//                                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
+//                                    errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
+//                            }
+//                        }
+//                    });
+//            }
+//        }
+//
+//        if (!Job.BATCHMODE)
+//        {
+//            SwingUtilities.invokeLater(new Runnable() {
+//                public void run() {Main.getUserInterface().wantToRedoErrorTree(); }
+//            });
+//        }
+        alreadyExplained = true;
         terminated = true;
     }
 
@@ -888,7 +706,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
      * Method to retrieve general information about the errorLogger
      * @return
      */
-    private String getInfo()
+    public String getInfo()
     {
         return (errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!");
     }
@@ -901,20 +719,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
     {
         Collections.sort(allErrors, new ErrorLogOrder());
 	    Collections.sort(allWarnings, new ErrorLogOrder());
-    }
-
-    private static class ErrorLogOrder implements Comparator<MessageLog>
-    {
-/*5*/   public int compare(MessageLog el1, MessageLog el2)
-//4*/   public int compare(Object o1, Object o2)
-        {
-//4*/       MessageLog el1 = (MessageLog)o1;
-//4*/       MessageLog el2 = (MessageLog)o2;
-	        int sortedKey = el1.sortKey - el2.sortKey;
-	        if (sortedKey == 0) // Identical, compare lexicographically
-	            sortedKey = el1.compareTo(el2);
-            return sortedKey; //el1.sortKey - el2.sortKey;
-        }
     }
 
     /**
@@ -996,7 +800,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
             el = (MessageLog)allWarnings.get(logNumber-allErrors.size());
             extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
         }
-        String message = el.reportLog(showHigh, gPair);
+        String message = Main.getUserInterface().reportLog(el, showHigh, gPair);
         return (errorSystem + extraMsg + ": " + message);
     }
 
@@ -1022,7 +826,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
      * Method to list all logged errors and warnings.
      * @return an Iterator over all of the "ErrorLog" objects.
      */
-    private synchronized Iterator<MessageLog> getLogs() {
+    public synchronized Iterator<MessageLog> getLogs() {
         List<MessageLog> copy = new ArrayList<MessageLog>();
         for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
             copy.add(it.next());
@@ -1045,89 +849,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 
     // ----------------------------- Explorer Tree Stuff ---------------------------
 
-    /**
-     * A static object is used so that its open/closed tree state can be maintained.
-     */
-    private static String errorNode = "ERRORS";
-
-    public static void deleteAllLoggers()
-    {
-        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
-        synchronized(allLoggers) {
-            loggersCopy.addAll(allLoggers);
-        }
-        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); )
-        {
-            ErrorLogger log = (ErrorLogger)eit.next();
-            log.delete();
-        }
-    }
-
-    public static DefaultMutableTreeNode getExplorerTree()
-    {
-        DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
-        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
-        synchronized(allLoggers) {
-            loggersCopy.addAll(allLoggers);
-        }
-        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); ) {
-            ErrorLogger logger = (ErrorLogger)eit.next();
-            if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
-            DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
-            DefaultMutableTreeNode groupNode = loggerNode;
-            int currentSortKey = -1;
-            for (Iterator<MessageLog> it = logger.getLogs(); it.hasNext();)
-            {
-                MessageLog el = (MessageLog)it.next();
-                // by default, groupNode is entire loggerNode
-                // but, groupNode could be sub-node:
-                if (logger.sortKeysToGroupNames != null) {
-                    if (currentSortKey != el.sortKey) {
-                        // create new sub-tree node
-                        currentSortKey = el.sortKey;
-                        String groupName = (String)logger.sortKeysToGroupNames.get(new Integer(el.sortKey));
-                        if (groupName != null) {
-                            groupNode = new DefaultMutableTreeNode(groupName);
-                            loggerNode.add(groupNode);
-                        } else {
-                            // not found, put in loggerNode
-                            groupNode = loggerNode;
-                        }
-                    }
-                }
-                DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
-                groupNode.add(node);
-            }
-            explorerTree.add(loggerNode);
-        }
-        return explorerTree;
-    }
-
-    public JPopupMenu getPopupMenu() {
-        JPopupMenu p = new JPopupMenu();
-        JMenuItem m;
-        m = new JMenuItem("Delete"); m.addActionListener(this); p.add(m);
-        m = new JMenuItem("Get Info"); m.addActionListener(this); p.add(m);
-	    m = new JMenuItem("Save"); m.addActionListener(this); p.add(m);
-        m = new JMenuItem("Set Current"); m.addActionListener(this); p.add(m);
-        return p;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() instanceof JMenuItem) {
-            JMenuItem m = (JMenuItem)e.getSource();
-            if (m.getText().equals("Delete")) delete();
-            else if (m.getText().equals("Save")) save();
-            else if (m.getText().equals("Get Info")) {
-                System.out.println("ErrorLogger Information: " +  getInfo());
-            }
-            else if (m.getText().equals("Set Current")) {
-                synchronized(allLoggers) { currentLogger = this; }
-                WindowFrame.wantToRedoErrorTree();
-            }
-        }
-    }
-
     public void databaseChanged(DatabaseChangeEvent e) {
         // check if any errors need to be deleted
         boolean changed = false;
@@ -1138,8 +859,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
                 changed = true;
             }
         }
-        if (changed)
-            WindowFrame.wantToRedoErrorTree();
+        if (changed) Main.getUserInterface().wantToRedoErrorTree();
+
     }
 
 //     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
@@ -1162,7 +883,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
 //         return true;
 //     }
 
-    private static class XMLParser
+    public static class XMLParser
     {
         public void process(URL fileURL)
         {
@@ -1313,6 +1034,58 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener
                 System.out.println("Parser Error");
                 e.printStackTrace();
             }
+        }
+    }
+
+    public enum ErrorLoggerType
+    {
+        ERRORTYPEGEOM, ERRORTYPEEXPORT , ERRORTYPELINE, ERRORTYPETHICKLINE, ERRORTYPEPOINT
+    }
+
+    public static class ErrorHighlight
+    {
+        ErrorLoggerType         type;
+        Geometric   geom;
+        Export      pp;
+        boolean     showgeom;
+        double      x1, y1;
+        double      x2, y2;
+        double      cX, cY;
+        Cell        cell;
+        VarContext  context;
+
+        public VarContext getVarContext() { return context; }
+        public boolean getShowGeom() { return showgeom; }
+        public Cell getCell() { return cell; }
+        public Geometric getGeom() { return geom; }
+        public ElectricObject getExport() { return pp; }
+        public ErrorLoggerType getType() { return type; }
+
+        public Point2D getPoint(int i, double dx, double dy)
+        {
+            if (i == 0) return new Point2D.Double(x1+dx, y1+dy);
+            return new Point2D.Double(x2+dx, y2+dy);
+        }
+
+        public Point2D getCenterPoint() { return new Point2D.Double(cX, cY);}
+
+        /**
+         * Method to describe an object on an error.
+         */
+        public String describe()
+        {
+            String msg;
+            if (geom instanceof NodeInst) msg = "Node " + geom.describe(true); else
+                msg = "Arc " + geom.describe(true);
+            msg += " in " + context.getInstPath(".");
+            return msg;
+        }
+
+        public boolean isValid() {
+            if (type == ErrorLoggerType.ERRORTYPEEXPORT) return pp.isLinked();
+            if (type == ErrorLoggerType.ERRORTYPEGEOM) return geom.isLinked();
+	        //return true;
+	        return (cell.isLinked()); // Still have problems with minAre DRC errors
         }
     }
 }

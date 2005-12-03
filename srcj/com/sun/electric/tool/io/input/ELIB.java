@@ -1489,7 +1489,7 @@ public class ELIB extends LibraryFiles
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
                             getArcEndError = Input.errorLogger.logError(msg, cell, 0);
-//                            ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
+//                            ErrorLogger.ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
 //                            error.addGeom(ai, true, cell, null);
                             return pi;
                         }
@@ -1524,7 +1524,7 @@ public class ELIB extends LibraryFiles
         String msg = cell+": Port '"+portname+"' on "+node+" "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         getArcEndError = Input.errorLogger.logError(msg, cell, 0);
-//        ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
+//        ErrorLogger.ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
 //        error.addGeom(ai, true, cell, null);
 
         PrimitiveNode pn = ap.findOverridablePinProto();
