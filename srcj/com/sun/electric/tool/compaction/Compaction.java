@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.compaction;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
@@ -39,13 +40,15 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -99,7 +102,8 @@ public class Compaction extends Listener
 	 */
 	public static void compactNow(Job completion)
 	{
-		Cell cell = WindowFrame.getCurrentCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.getCurrentCell();
 		if (cell == null) return;
 
 		// do the compaction in a job

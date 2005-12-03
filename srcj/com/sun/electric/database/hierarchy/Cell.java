@@ -64,7 +64,6 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -1298,10 +1297,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
-			if (!(content instanceof EditWindow)) continue;
+			if (!(content instanceof EditWindow_)) continue;
 			Cell cell = content.getCell();
 			if (cell != this) continue;
-			EditWindow wnd = (EditWindow)content;
+			EditWindow_ wnd = (EditWindow_)content;
 			Point2D off = wnd.getOffset();
 			off.setLocation(off.getX()-cX, off.getY()-cY);
 			wnd.setOffset(off);
@@ -2675,7 +2674,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * be larger than the actual cell contents.
 	 * Only relative (scalable) text is considered, since it is not possible
 	 * to change the size of absolute text.
-	 * @param wnd the EditWindow in which this Cell is being displayed.
+	 * @param wnd the EditWindow_ in which this Cell is being displayed.
 	 * @return the bounds of the relative (scalable) text.
 	 */
 	public Rectangle2D getRelativeTextBounds(EditWindow_ wnd)

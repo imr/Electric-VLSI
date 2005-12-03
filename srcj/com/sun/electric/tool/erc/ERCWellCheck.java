@@ -36,6 +36,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.*;
 import com.sun.electric.tool.Job;
@@ -43,7 +45,6 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
-import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.Shape;
 
 import java.awt.geom.AffineTransform;
@@ -63,7 +64,7 @@ public class ERCWellCheck
     Cell cell;
 	GeometryHandler.GHMode mode;
 	ErrorLogger errorLogger;
-	Highlighter highlighter;
+	EditWindow_ wnd;
 	List<WellCon> wellCons = new ArrayList<WellCon>();
 	List<WellArea> wellAreas = new ArrayList<WellArea>();
 	HashMap<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
@@ -86,12 +87,12 @@ public class ERCWellCheck
 		PrimitiveNode.Function fun;
 	};
 
-	public ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
+	public ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, EditWindow_ wnd)
 	{
 		this.job = job;
 		this.mode = newAlgorithm;
 		this.cell = cell;
-		this.highlighter = highlighter;
+		this.wnd = wnd;
 	}
 
 	/*
@@ -99,23 +100,23 @@ public class ERCWellCheck
 	 */
 	public static void analyzeCurCell(GeometryHandler.GHMode newAlgorithm)
 	{
-        EditWindow wnd = EditWindow.getCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
 
 		Cell curCell = wnd.getCell();
 		if (curCell == null) return;
 
-        new WellCheckJob(curCell, newAlgorithm, highlighter);
+        new WellCheckJob(curCell, newAlgorithm, wnd);
 	}
 
 	/**
 	 * Static function to call the ERC Well functionality
 	 * @return number of errors
 	 */
-	public static int checkERCWell(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
+	public static int checkERCWell(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, EditWindow_ wnd)
 	{
-		ERCWellCheck check = new ERCWellCheck(cell, job, newAlgorithm, highlighter);
+		ERCWellCheck check = new ERCWellCheck(cell, job, newAlgorithm, wnd);
 		return check.doIt();
 	}
 
@@ -460,20 +461,20 @@ public class ERCWellCheck
 			}
 
 			// show the farthest distance from a well contact
-			if (highlighter != null && (worstPWellDist > 0 || worstNWellDist > 0))
+			if (wnd != null && (worstPWellDist > 0 || worstNWellDist > 0))
 			{
-				highlighter.clear();
+				wnd.clearHighlighting();
 				if (worstPWellDist > 0)
 				{
-					highlighter.addLine(worstPWellCon, worstPWellEdge, cell);
+					wnd.addHighlightLine(worstPWellCon, worstPWellEdge, cell);
 					System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
 				}
 				if (worstNWellDist > 0)
 				{
-					highlighter.addLine(worstNWellCon, worstNWellEdge, cell);
+					wnd.addHighlightLine(worstNWellCon, worstNWellEdge, cell);
 					System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
 				}
-				highlighter.finished();
+				wnd.finishedHighlighting();
 			}
 		}
 
@@ -505,20 +506,20 @@ public class ERCWellCheck
 	{
 		Cell cell;
 		GeometryHandler.GHMode newAlgorithm;
-		Highlighter highlighter;
+		EditWindow_ wnd;
 
-		protected WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, Highlighter highlighter)
+		protected WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, EditWindow_ wnd)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlgorithm;
-			this.highlighter = highlighter;
+			this.wnd = wnd;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			return(checkERCWell(cell, this, newAlgorithm, highlighter) == 0);
+			return(checkERCWell(cell, this, newAlgorithm, wnd) == 0);
 		}
     }
 

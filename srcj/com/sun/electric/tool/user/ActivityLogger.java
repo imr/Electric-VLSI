@@ -23,13 +23,15 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ui.ToolBarButton;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
@@ -106,14 +108,14 @@ public class ActivityLogger {
         printDelimeter(true);
         out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
         //System.out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
-        WindowFrame frame = WindowFrame.getCurrentWindowFrame();
-        if (frame != null) {
-            WindowContent content = frame.getContent();
-            if (content != null) {
-                Highlighter h = content.getHighlighter();
-                if (h != null) {
-                    logHighlights(h.getHighlights(), h.getHighlightOffset());
-                }
+        UserInterface ui = Main.getUserInterface();
+        EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd != null)
+        {
+        	List<Object> savedContents = wnd.saveHighlightList();
+            if (savedContents != null)
+            {
+                logHighlights(savedContents, wnd.getHighlightOffset());
             }
         }
     }
@@ -139,7 +141,7 @@ public class ActivityLogger {
      * @param savedHighlightsOffset the starting highlight offset (currently not used)
      */
     public static synchronized void logJobStarted(String jobName, Job.Type jobType, Cell upCell,
-                                                  List<Highlight> savedHighlights, Point2D savedHighlightsOffset) {
+                                                  List<Object> savedHighlights, Point2D savedHighlightsOffset) {
         if (out == null) return;
         if (!logJobs) return;
         printDelimeter(true);
@@ -156,11 +158,11 @@ public class ActivityLogger {
      * @param highlights a list of Highlight objects
      * @param offset the offset
      */
-    public static synchronized void logHighlights(List<Highlight> highlights, Point2D offset) {
+    public static synchronized void logHighlights(List<Object> highlights, Point2D offset) {
         if (out == null) return;
         if (highlights.size() == 0) return;
         out.println("Currently highlighted: ");
-        for (Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
+        for (Iterator<Object> it = highlights.iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             out.println("    "+h.describe());
         }

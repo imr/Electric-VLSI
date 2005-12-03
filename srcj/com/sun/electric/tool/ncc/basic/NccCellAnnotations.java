@@ -22,22 +22,21 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc.basic;
+import com.sun.electric.Main;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 /** Representation of the NCC annotations that a user may place on a Cell */
 
@@ -294,10 +293,10 @@ public class NccCellAnnotations {
 	 */
     private static class MakeCellAnnotation extends Job
     {
-		private EditWindow wnd;
+		private EditWindow_ wnd;
         private Cell cell;
 
-		private MakeCellAnnotation(EditWindow wnd, Cell cell)
+		private MakeCellAnnotation(EditWindow_ wnd, Cell cell)
         {
             super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.wnd = wnd;
@@ -316,10 +315,8 @@ public class NccCellAnnotations {
 				nccVar = cell.newVar(NCC_ANNOTATION_KEY, initial, td);
 				if (nccVar == null) return true;
 			}
-			Highlighter h = wnd.getHighlighter();
-			h.clear();
-			h.addText(cell, cell, nccVar, null);
-			h.finished();
+			wnd.addHighlightText(cell, cell, nccVar, null);
+			wnd.finishedHighlighting();
 			return true;
         }
     }
@@ -332,9 +329,10 @@ public class NccCellAnnotations {
 	 */
 	public static void makeNCCAnnotation()
 	{
-		EditWindow wnd = EditWindow.needCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
-		Cell cell = WindowFrame.needCurCell();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		new MakeCellAnnotation(wnd, cell);
 	}

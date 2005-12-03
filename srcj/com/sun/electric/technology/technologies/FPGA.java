@@ -25,6 +25,7 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -47,6 +48,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -59,12 +61,9 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PromptAt;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -937,7 +936,8 @@ public class FPGA extends Technology
 				internalDisplay = (internalDisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
 				break;
 		}
-		EditWindow.repaintAllContents();
+		UserInterface ui = Main.getUserInterface();
+		ui.repaintAllEditWindows();
 	}
 
 	/**
@@ -948,7 +948,8 @@ public class FPGA extends Technology
 	{
 		if (show) internalDisplay |= TEXTDISPLAY; else
 			internalDisplay &= ~TEXTDISPLAY;
-		EditWindow.repaintAllContents();
+		UserInterface ui = Main.getUserInterface();
+		ui.repaintAllEditWindows();
 	}
 
 	/**
@@ -956,18 +957,17 @@ public class FPGA extends Technology
 	 */
 	public static void programPips()
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf == null) return;
-		Highlighter highlighter = wf.getContent().getHighlighter();
-		if (highlighter == null) return;
-		ElectricObject eObj = highlighter.getOneElectricObject(NodeInst.class);
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd == null) return;
+		ElectricObject eObj = wnd.getOneElectricObject(NodeInst.class);
 		if (eObj == null) return;
 		NodeInst ni = (NodeInst)eObj;
 		String pips = "";
 		Variable var = ni.getVar(ACTIVEPIPS_KEY);
 		if (var != null) pips = (String)var.getObject();
 
-		String newPips = PromptAt.showPromptAt((EditWindow)wf.getContent(), ni, "Edit Pips",
+		String newPips = PromptAt.showPromptAt(wnd, ni, "Edit Pips",
 			"Pips on this node:", pips);
 		if (newPips == null) return;
 		new SetPips(ni, newPips);
@@ -992,7 +992,8 @@ public class FPGA extends Technology
 		public boolean doIt()
 		{
 			ni.newVar(ACTIVEPIPS_KEY, newPips);
-			EditWindow.repaintAllContents();
+			UserInterface ui = Main.getUserInterface();
+			ui.repaintAllEditWindows();
 			return true;
 		}
 	}
@@ -1028,7 +1029,8 @@ public class FPGA extends Technology
 				if (topCell != null)
 				{
 					// display top cell
-					WindowFrame.createEditWindow(topCell);
+					UserInterface ui = Main.getUserInterface();
+					ui.displayCell(topCell);
 				}
 			}
 			return true;

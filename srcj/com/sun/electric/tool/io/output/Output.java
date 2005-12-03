@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -50,7 +51,6 @@ import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Rectangle2D;
@@ -847,7 +847,7 @@ public class Output
 	 * Method to determine the area of a cell that is to be printed.
 	 * Returns null if the area cannot be determined.
 	 */
-	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow wnd)
+	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow_ wnd)
 	{
 		Rectangle2D bounds = cell.getBounds();
 		if (wnd != null) bounds = wnd.getBoundsInWindow();
@@ -873,7 +873,7 @@ public class Output
 					bounds = wnd.getDisplayedBounds();
 				} else
 				{
-					Rectangle2D hBounds = wnd.getHighlighter().getHighlightedArea(wnd);
+					Rectangle2D hBounds = wnd.getHighlightedArea();
 					if (hBounds == null || hBounds.getWidth() == 0 || hBounds.getHeight() == 0)
 					{
 						System.out.println("Warning: no highlighted area; printing entire cell");

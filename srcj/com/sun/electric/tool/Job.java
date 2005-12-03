@@ -24,14 +24,14 @@
 
 package com.sun.electric.tool;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -379,7 +379,7 @@ public abstract class Job implements ActionListener, Runnable {
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
     /** progress */                             private String progress = null;
-    /** list of saved Highlights */             private List<Highlight> savedHighlights;
+    /** list of saved Highlights */             private List<Object> savedHighlights;
     /** saved Highlight offset */               private Point2D savedHighlightsOffset;
     /** Thread job will run in (null for new thread) */
                                                 private Thread thread;
@@ -409,7 +409,7 @@ public abstract class Job implements ActionListener, Runnable {
         started = finished = aborted = scheduledToAbort = false;
         myNode = null;
         thread = null;
-        savedHighlights = new ArrayList<Highlight>();
+        savedHighlights = new ArrayList<Object>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
 	}
@@ -583,15 +583,12 @@ public abstract class Job implements ActionListener, Runnable {
         savedHighlights.clear();
 
         // for now, just save highlights in current window
-        EditWindow wnd = EditWindow.getCurrent();
+        UserInterface ui = Main.getUserInterface();
+        EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
-        if (highlighter == null) return;
 
-        for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-            savedHighlights.add(it.next());
-        }
-        savedHighlightsOffset = highlighter.getHighlightOffset();
+        savedHighlights = wnd.saveHighlightList();
+        savedHighlightsOffset = wnd.getHighlightOffset();
     }
 
 	/** Confirmation that thread is aborted */

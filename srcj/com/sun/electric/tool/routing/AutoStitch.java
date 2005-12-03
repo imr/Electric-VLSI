@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -41,7 +42,9 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -50,10 +53,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -106,7 +106,8 @@ public class AutoStitch
 
 		public boolean doIt()
 		{
-			Cell cell = WindowFrame.needCurCell();
+			UserInterface ui = Main.getUserInterface();
+			Cell cell = ui.needCurrentCell();
 			if (cell == null) return false;
 			runAutoStitch(cell, highlighted, forced, null);
 			return true;
@@ -127,11 +128,11 @@ public class AutoStitch
 		Rectangle2D limitBound = null;
 		if (highlighted)
 		{
-            EditWindow wnd = EditWindow.getCurrent();
+			UserInterface ui = Main.getUserInterface();
+            EditWindow_ wnd = ui.getCurrentEditWindow_();
             if (wnd == null) return;
-			Highlighter hl = wnd.getHighlighter();
-			List<Geometric> highs = hl.getHighlightedEObjs(true, true);
-			limitBound = hl.getHighlightedArea(wnd);
+			List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
+			limitBound = wnd.getHighlightedArea();
 			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 			{
 				ElectricObject eObj = (ElectricObject)it.next();

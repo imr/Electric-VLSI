@@ -26,19 +26,21 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
@@ -47,7 +49,6 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -236,7 +237,8 @@ public class PLA
 				if (plaCell != null)
 				{
 					System.out.println("DONE");
-					WindowFrame.createEditWindow(plaCell);
+					UserInterface ui = Main.getUserInterface();
+					ui.displayCell(plaCell);
 				}
 				break;
 		}

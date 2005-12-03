@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -41,15 +42,15 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
@@ -59,7 +60,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.SwingUtilities;/**
+import javax.swing.SwingUtilities;
+/**
  * This interface defines changes that are made to the database.
  */
 public class Undo
@@ -571,9 +573,9 @@ public class Undo
 		private Tool tool;
 		private String activity;
 		private Cell upCell;
-		private List<Highlight> startingHighlights = null;				// highlights before changes made
+		private List<Object> startingHighlights = null;				// highlights before changes made
 		private Point2D startHighlightsOffset = null;		// highlights offset before changes made
-		private List<Highlight> preUndoHighlights = null;				// highlights before undo of changes done
+		private List<Object> preUndoHighlights = null;				// highlights before undo of changes done
 		private Point2D preUndoHighlightsOffset = null;		// highlights offset before undo of changes done
 
 		private ChangeBatch() {}
@@ -677,7 +679,7 @@ public class Undo
 	 * @param cell root of up-tree or null for whole database lock
 	 */
 	public static void startChanges(Tool tool, String activity, Cell cell,
-                                    List<Highlight> startingHighlights, Point2D startingHighlightsOffset)
+                                    List<Object> startingHighlights, Point2D startingHighlightsOffset)
 	{
 		// close any open batch of changes
 		endChanges();
@@ -1174,19 +1176,16 @@ public class Undo
 	public static ChangeBatch undoABatch()
 	{
 		// save highlights for redo
-		List<Highlight> savedHighlights = new ArrayList<Highlight>();
+		List<Object> savedHighlights = null;
 		Point2D offset = new Point2D.Double(0, 0);
 		// for now, just save from the current window
-		EditWindow wnd = EditWindow.getCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		Highlighter highlighter = null;
 		if (wnd != null)
 		{
-			highlighter = wnd.getHighlighter();
-			for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
-			{
-				savedHighlights.add(it.next());
-			}
-			offset = highlighter.getHighlightOffset();
+			savedHighlights = wnd.saveHighlightList();
+			offset = wnd.getHighlightOffset();
 			highlighter.clear();
 			highlighter.finished();
 		}
@@ -1231,18 +1230,13 @@ public class Undo
 
 		// restore highlights (must be done after all other tools have
 		// responded to changes)
-		List<Highlight> highlights = new ArrayList<Highlight>();
-		for (Iterator<Highlight> it = batch.startingHighlights.iterator(); it.hasNext(); )
+		if (wnd != null)
 		{
-			highlights.add(it.next());
-		}
-		if (highlighter != null)
-		{
-			highlighter.setHighlightList(highlights);
+			wnd.restoreHighlightList(batch.startingHighlights);
 			if (batch.startHighlightsOffset != null)
-				highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+				wnd.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
 											   (int)batch.startHighlightsOffset.getY());
-			highlighter.finished();
+			wnd.finishedHighlighting();
 		}
 
 		// mark that this batch is undone
@@ -1256,13 +1250,12 @@ public class Undo
 	 */
 	public static boolean redoABatch()
 	{
-		EditWindow wnd = EditWindow.getCurrent();
-		Highlighter highlighter = null;
-		if (wnd != null) highlighter = wnd.getHighlighter();
-		if (highlighter != null)
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd != null)
 		{
-			highlighter.clear();
-			highlighter.finished();
+			wnd.clearHighlighting();
+			wnd.finishedHighlighting();
 		}
 
 		// close out the current batch
@@ -1301,17 +1294,12 @@ public class Undo
 		fireEndChangeBatch(batch, true);
 
 		// set highlights to what they were before undo
-		List<Highlight> highlights = new ArrayList<Highlight>();
-		for (Iterator<Highlight> it = batch.preUndoHighlights.iterator(); it.hasNext(); )
+		if (batch.preUndoHighlights != null)
 		{
-			highlights.add(it.next());
-		}
-		if (highlighter != null)
-		{
-			highlighter.setHighlightList(highlights);
-			highlighter.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
+			wnd.restoreHighlightList(batch.preUndoHighlights);
+			wnd.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
 				(int)batch.preUndoHighlightsOffset.getY());
-			highlighter.finished();
+			wnd.finishedHighlighting();
 		}
 
 		// mark that this batch is redone

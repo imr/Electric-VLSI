@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -33,6 +34,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -40,7 +43,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -110,7 +112,7 @@ public abstract class Router {
      * @param highlighter the highlighter to use
      */
     public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
-                                           boolean highlightRouteEnd, Highlighter highlighter) {
+                                           boolean highlightRouteEnd, EditWindow_ wnd) {
 
         Job.checkChanging();
 
@@ -200,14 +202,14 @@ public abstract class Router {
 			User.playSound(arcsCreated);
         }
 
-        if (highlightRouteEnd && (highlighter != null)) {
+        if (highlightRouteEnd && (wnd != null)) {
             RouteElementPort finalRE = route.getEnd();
             if (finalRE != null) {
-                highlighter.clear();
+                wnd.clearHighlighting();
                 PortInst pi = finalRE.getPortInst();
                 if (pi != null) {
-                    highlighter.addElectricObject(pi, cell);
-                    highlighter.finished();
+                    wnd.addElectricObject(pi, cell);
+                    wnd.finishedHighlighting();
                 }
             }
         }
@@ -239,9 +241,9 @@ public abstract class Router {
         public boolean doIt() {
             if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
-            EditWindow wnd = EditWindow.getCurrent();
-            Highlighter highlighter = (wnd == null) ? null : wnd.getHighlighter();
-            return createRouteNoJob(route, cell, verbose, true, highlighter);
+            UserInterface ui = Main.getUserInterface();
+            EditWindow_ wnd = ui.getCurrentEditWindow_();
+            return createRouteNoJob(route, cell, verbose, true, wnd);
        }
     }
 

@@ -26,14 +26,8 @@
  */
 package com.sun.electric.tool.simulation.als;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.als.ALS.Model;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 

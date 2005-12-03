@@ -30,14 +30,16 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.Aborter;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -82,11 +84,12 @@ public class NccUtils {
 	}
 	
 	public static CellContext getCurrentCellContext() {
-		EditWindow wnd = EditWindow.getCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		return getCellContext(wnd);
 	}
 
-	public static CellContext getCellContext(EditWindow wnd) {
+	public static CellContext getCellContext(EditWindow_ wnd) {
 		if (wnd==null) return null;
 		Cell cell = wnd.getCell();
 		if (cell==null) {
@@ -101,7 +104,8 @@ public class NccUtils {
 		List<CellContext> cellCtxts = new ArrayList<CellContext>();
 
 		// first is always current window
-		EditWindow wnd = EditWindow.getCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		CellContext curCellCtxt = getCellContext(wnd);
 
 		if (curCellCtxt==null)  return cellCtxts;
@@ -110,10 +114,10 @@ public class NccUtils {
 		for(Iterator<WindowFrame> it=WindowFrame.getWindows(); it.hasNext();) {
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
-			if (!(content instanceof EditWindow)) continue;
-			EditWindow wnd2 = (EditWindow) content;
+			if (!(content instanceof EditWindow_)) continue;
+			EditWindow_ wnd2 = (EditWindow_) content;
 			if (wnd2==wnd) continue;
-			CellContext cc = getCellContext((EditWindow)content);
+			CellContext cc = getCellContext((EditWindow_)content);
 			cellCtxts.add(cc);
 		}
 

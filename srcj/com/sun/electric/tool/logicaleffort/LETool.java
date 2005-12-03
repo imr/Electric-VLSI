@@ -35,13 +35,13 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -366,7 +366,7 @@ public class LETool extends Listener {
      * @param context varcontext of the cell
      * @param wnd the edit window holding the cell
      */
-    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow wnd, boolean newAlg) {
+    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow_ wnd, boolean newAlg) {
         AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, wnd, newAlg);
         acjob.startJob(true, false);
     }
@@ -380,12 +380,12 @@ public class LETool extends Listener {
         /** progress */                         private String progress;
         /** cell to analyze */                  private Cell cell;
         /** var context */                      private VarContext context;
-        /** EditWindow */                       private EditWindow wnd;
+        /** EditWindow_ */                       private EditWindow_ wnd;
         /** algorithm type */                   private LESizer.Alg algorithm;
         /** netlist */                          private LENetlister netlister;
         private boolean newAlg;
 
-        public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd, boolean newAlg) {
+        public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow_ wnd, boolean newAlg) {
             super("Analyze "+cell, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
@@ -491,9 +491,9 @@ public class LETool extends Listener {
     private static class UpdateSizes extends Job {
 
         private LENetlister netlister;
-        private EditWindow wnd;
+        private EditWindow_ wnd;
 
-        private UpdateSizes(LENetlister netlister, Cell cell, EditWindow wnd) {
+        private UpdateSizes(LENetlister netlister, Cell cell, EditWindow_ wnd) {
             super("Update LE Sizes", tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             this.netlister = netlister;
             this.wnd = wnd;

@@ -1007,10 +1007,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	}
 
 	/**
-	 * Method to find the true size in points for this TextDescriptor in a given EditWindow.
+	 * Method to find the true size in points for this TextDescriptor in a given EditWindow_.
 	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
-	 * Otherwise, the scale of the EditWindow is used to determine the acutal point size.
-	 * @param wnd the EditWindow in which drawing will occur.
+	 * Otherwise, the scale of the EditWindow_ is used to determine the acutal point size.
+	 * @param wnd the EditWindow_ in which drawing will occur.
 	 * @return the point size of the text described by this TextDescriptor.
 	 */
 	public double getTrueSize(EditWindow_ wnd)

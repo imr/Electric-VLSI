@@ -127,11 +127,7 @@ public abstract class Geometry extends Output
     
     /** Overridable method to determine whether or not to include the original Geometric with a Poly */
     protected boolean includeGeometric() { return false; }
-    
-    /** Overridable method to determine the current EditWindow to use for text scaling */
-//    protected EditWindow windowBeingRendered() { return null; }
-    
-    
+
     /**
      * Class to store polygon geometry of a cell
      */

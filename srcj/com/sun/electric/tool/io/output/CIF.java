@@ -245,9 +245,6 @@ public class CIF extends Geometry
 		return !IOTool.isCIFOutMergesBoxes();
 	}
 
-//	/** Overridable method to determine the current EditWindow to use for text scaling */
-//	protected EditWindow windowBeingRendered() { return null; }
-
 	/**
 	 * Method to emit the current layer number.
 	 * @return true if the layer is invalid.

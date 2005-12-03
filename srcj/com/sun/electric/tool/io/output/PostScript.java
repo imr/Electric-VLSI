@@ -25,13 +25,13 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -39,18 +39,18 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -90,8 +90,8 @@ public class PostScript extends Output
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
     /** the Job being run for this operation */                         private Job job;
-	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
-	/** the EditWindow in which the cell resides. */					private EditWindow wnd;
+//	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
+	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
@@ -148,13 +148,9 @@ public class PostScript extends Output
 	private void start()
 	{
 		// find the edit window
-		wf = WindowFrame.getCurrentWindowFrame();
-		if (wf != null && wf.getContent().getCell() != cell) wf = null;
-		wnd = null;
-		if (wf != null && wf.getContent() instanceof EditWindow)
-		{
-			wnd = (EditWindow)wf.getContent();
-		}
+		UserInterface ui = Main.getUserInterface();
+		wnd = ui.getCurrentEditWindow_();
+		if (wnd != null && wnd.getCell() != cell) wnd = null;
 
 		// clear flags that tell whether headers have been included
 		putHeaderDot = false;
@@ -219,8 +215,8 @@ public class PostScript extends Output
 		if (psUseColorMerge)
 		{
 			System.out.println("Cannot do color merging yet");
-//			io_pscolorplot(np, epsFormat, useplotter, pagewid, pagehei, pagemarginps);
-//			return;
+			PostScriptColor.psColorPlot(printWriter, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
+			return;
 		}
 
 		// PostScript: compute the transformation matrix

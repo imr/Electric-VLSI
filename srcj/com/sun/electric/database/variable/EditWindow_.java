@@ -23,12 +23,23 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.user.Highlight;
+
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.font.GlyphVector;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Set;
 
 /**
- * This interface gives a limited access to EditWindow necessary
+ * This interface gives a limited access to EditWindow_ necessary
  * for calculating a shape of some primitives.
  */
 public interface EditWindow_ {
@@ -53,7 +64,7 @@ public interface EditWindow_ {
 
 	/**
 	 * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow.
-	 * The scale of this EditWindow is used to determine the acutal screen size.
+	 * The scale of this EditWindow_ is used to determine the acutal screen size.
 	 * @param dbSize the size of the text in database grid-units.
 	 * @return the screen size (in points) of the text.
 	 */
@@ -61,7 +72,7 @@ public interface EditWindow_ {
     
 	/**
 	 * Method to find the size in database units for text of a given point size in this EditWindow.
-	 * The scale of this EditWindow is used to determine the acutal unit size.
+	 * The scale of this EditWindow_ is used to determine the acutal unit size.
 	 * @param pointSize the size of the text in points.
 	 * @return the database size (in grid units) of the text.
 	 */
@@ -88,4 +99,41 @@ public interface EditWindow_ {
 	 * @return a GlyphVector describing the text.
 	 */
 	public GlyphVector getGlyphs(String text, Font font);
+
+	// *************************************************** NEW METHODS FROM STEVE ***************************************************
+
+	/**
+	 * Method to 
+	 * @return
+	 */
+	public Point getScreenLocationOfCorner();
+	public Rectangle2D getDisplayedBounds();
+	public Point2D getOffset();
+	public void setOffset(Point2D off);
+	public void setScale(double scale);
+	public void fillScreen();
+	public Rectangle2D getBoundsInWindow();
+	public Point databaseToScreen(double dbX, double dbY);
+	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate);
+
+	public boolean isGrid();
+	public double getGridXSpacing();
+	public double getGridYSpacing();
+
+	// highlighting methods
+//	public Highlighter getHighlighter();
+	public void addElectricObject(ElectricObject ni, Cell cell);
+	public Rectangle2D getHighlightedArea();
+	public void addHighlightArea(Rectangle2D pointRect, Cell cell);
+	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell);
+	public void addHighlightText(ElectricObject eobj, Cell cell, Variable var, Name name);
+	public ElectricObject getOneElectricObject(Class clz);
+	public void clearHighlighting();
+	public void finishedHighlighting();
+	public void setHighlightOffset(int dX, int dY);
+	public List<Geometric> getHighlightedEObjs(boolean wantNodes, boolean wantArcs);
+	public Set<Network> getHighlightedNetworks();
+	public Point2D getHighlightOffset();
+	public List<Object> saveHighlightList();
+	public void restoreHighlightList(List<Object> list);
 }

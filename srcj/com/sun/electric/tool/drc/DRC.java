@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.drc;
 
+import static com.sun.electric.tool.drc.DRC.tool;
+
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Geometric;
@@ -34,20 +37,26 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.prefs.Preferences;
 
 /**
@@ -254,13 +263,15 @@ public class DRC extends Listener
 	{
 		Cell curCell = null;
 		Rectangle2D bounds = null;
-		if (!areaCheck) curCell = WindowFrame.needCurCell();
-		else
+		UserInterface ui = Main.getUserInterface();
+		if (!areaCheck)
 		{
-			EditWindow wnd = EditWindow.getCurrent();
+			curCell = ui.needCurrentCell();
+		} else
+		{
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			if (wnd == null) return;
-			Highlighter h = wnd.getHighlighter();
-			bounds = h.getHighlightedArea(wnd);
+			bounds = wnd.getHighlightedArea();
 			curCell = wnd.getCell();
 		}
 

@@ -762,12 +762,28 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
+	public synchronized void setHighlightListGeneral(List<Object> newHighlights)
+	{
+        clear();
+		for(Iterator<Object> it = newHighlights.iterator(); it.hasNext(); )
+		{
+			Object obj = it.next();
+			if (obj instanceof Highlight) highlightList.add((Highlight)obj);
+		}
+        changed = true;
+	}
+
+    /**
+	 * Method to load a list of Highlights into the highlighting.
+	 * @param newHighlights a List of Highlight objects.
+	 */
 	public synchronized void setHighlightList(List<Highlight> newHighlights)
 	{
         clear();
 		for(Iterator<Highlight> it = newHighlights.iterator(); it.hasNext(); )
 		{
-			highlightList.add(it.next());
+			Object obj = it.next();
+			if (obj instanceof Highlight) highlightList.add((Highlight)obj);
 		}
         changed = true;
 	}

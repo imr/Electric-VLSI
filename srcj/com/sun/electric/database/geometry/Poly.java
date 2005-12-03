@@ -23,12 +23,13 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;
@@ -254,7 +255,8 @@ public class Poly extends PolyBase {
 		Font font = wnd.getFont(descript);
 		if (font == null)
 		{
-			double size = EditWindow.getDefaultFontSize();
+			UserInterface ui = Main.getUserInterface();
+			double size = ui.getDefaultTextSize();
 			if (descript != null) size = descript.getTrueSize(wnd);
 			size = wnd.getTextUnitSize(size);
 			if (size <= 0) size = 1;

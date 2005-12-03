@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -41,9 +42,9 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -55,7 +56,6 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -86,7 +86,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -717,7 +716,8 @@ public class Project extends Listener
 	 */
 	public static void checkInThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		checkIn(cell);
 	}
@@ -738,7 +738,8 @@ public class Project extends Listener
 	 */
 	public static void checkOutThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		checkOut(cell);
 	}
@@ -758,7 +759,8 @@ public class Project extends Listener
 	 */
 	public static void cancelCheckOutThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		cancelCheckOut(cell);
 	}
@@ -779,7 +781,8 @@ public class Project extends Listener
 	 */
 	public static void addThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		addCell(cell);
 	}
@@ -798,7 +801,8 @@ public class Project extends Listener
 	 */
 	public static void removeThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		removeCell(cell);
 	}
@@ -817,7 +821,8 @@ public class Project extends Listener
 	 */
 	public static void examineThisHistory()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		examineHistory(cell);
 	}
@@ -3466,16 +3471,16 @@ public class Project extends Listener
 			if (wf.getContent().getCell() != oldCell) continue;
 			double scale = 1;
 			Point2D offset = null;
-			if (wf.getContent() instanceof EditWindow)
+			if (wf.getContent() instanceof EditWindow_)
 			{
-				EditWindow wnd = (EditWindow)wf.getContent();
+				EditWindow_ wnd = (EditWindow_)wf.getContent();
 				scale = wnd.getScale();
 				offset = wnd.getOffset();
 			}
 			wf.getContent().setCell(newCell, VarContext.globalContext);
-			if (wf.getContent() instanceof EditWindow)
+			if (wf.getContent() instanceof EditWindow_)
 			{
-				EditWindow wnd = (EditWindow)wf.getContent();
+				EditWindow_ wnd = (EditWindow_)wf.getContent();
 				wnd.setScale(scale);
 				wnd.setOffset(offset);
 			}

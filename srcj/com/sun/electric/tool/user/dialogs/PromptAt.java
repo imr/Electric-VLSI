@@ -27,7 +27,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.database.variable.EditWindow_;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -178,7 +178,7 @@ public class PromptAt extends EDialog
 	 * @param initial the default button (true for yes, false for no).
 	 * @return the returned value.
 	 */
-	public static boolean showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, boolean initial)
+	public static boolean showPromptAt(EditWindow_ wnd, NodeInst ni, String title, String label, boolean initial)
 	{
 		Field [] fields = new Field[1];
 		fields[0] = new PromptAt.Field(label);
@@ -200,7 +200,7 @@ public class PromptAt extends EDialog
 	 * @param choices an array of strings to present as choices.
 	 * @return the returned choice (null if cancelled).
 	 */
-	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial, String [] choices)
+	public static String showPromptAt(EditWindow_ wnd, NodeInst ni, String title, String label, String initial, String [] choices)
 	{
 		Field [] fields = new Field[1];
 		fields[0] = new PromptAt.Field(label, choices, initial);
@@ -220,7 +220,7 @@ public class PromptAt extends EDialog
 	 * @param initial the initial value of the text area.
 	 * @return the returned value (null if cancelled).
 	 */
-	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial)
+	public static String showPromptAt(EditWindow_ wnd, NodeInst ni, String title, String label, String initial)
 	{
 		Field [] fields = new Field[1];
 		fields[0] = new PromptAt.Field(label, initial);
@@ -239,7 +239,7 @@ public class PromptAt extends EDialog
 	 * @param fields an array of Field objects that describe each field in the dialog.
 	 * @return null if cancelled, non-null if OK (the results are stored in the Field objects).
 	 */
-	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, Field [] fields)
+	public static String showPromptAt(EditWindow_ wnd, NodeInst ni, String title, Field [] fields)
 	{
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, fields, null);
@@ -255,7 +255,7 @@ public class PromptAt extends EDialog
 	 * @param fields an array of Field objects that describe each field in the dialog.
 	 * @return null if cancelled, non-null if OK (the results are stored in the Field objects).
 	 */
-	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, Field [][] fields)
+	public static String showPromptAt(EditWindow_ wnd, NodeInst ni, String title, Field [][] fields)
 	{
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, null, fields);
@@ -333,13 +333,13 @@ public class PromptAt extends EDialog
 
 	/**
 	 * Method called to initialize the prompt dialog.
-	 * @param wnd the EditWindow in which to show the dialog.
-	 * @param ni the NodeInst (in the EditWindow) over which to show the dialog.
+	 * @param wnd the EditWindow_ in which to show the dialog.
+	 * @param ni the NodeInst (in the EditWindow_) over which to show the dialog.
 	 * @param title the title of the dialog.
 	 * @param fieldList if not null, a 1-dimensional array of fields to place in the dialog.
 	 * @param fieldArray if not null, a 2-dimensional grid of fields to place in the dialog.
 	 */
-	private void initComponents(EditWindow wnd, NodeInst ni, String title, Field [] fieldList, Field [][] fieldArray)
+	private void initComponents(EditWindow_ wnd, NodeInst ni, String title, Field [] fieldList, Field [][] fieldArray)
 	{
 		getContentPane().setLayout(new GridBagLayout());
 
@@ -406,7 +406,7 @@ public class PromptAt extends EDialog
 		pack();
 
 		// now make the dialog appear over a node
-		Point ew = wnd.getLocationOnScreen();
+		Point ew = wnd.getScreenLocationOfCorner();
 		Point locInWnd = wnd.databaseToScreen(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 		Point textfield = centerIt.getLocation();
 		Dimension textSize = centerIt.getSize();

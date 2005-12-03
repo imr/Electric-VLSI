@@ -26,6 +26,7 @@
 
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -35,18 +36,18 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -67,11 +68,11 @@ public class HPGL extends Output
 
 	/** conversion from Layers to pen numbers */	private HashMap<Layer,List<PolyBase>> cellGeoms;
 	/** conversion from Layers to pen numbers */	private HashMap<Layer,Integer>        penNumbers;
-	/** the Cell being written. */					private Cell       cell;
-	/** the Window being printed (for text). */		private EditWindow wnd;
-	/** the current line type */					private int        currentLineType;
-	/** the current pen number */					private int        currentPen;
-	/** if fill info written for the current pen */	private boolean    fillEmitted;
+	/** the Cell being written. */					private Cell        cell;
+	/** the Window being printed (for text). */		private EditWindow_ wnd;
+	/** the current line type */					private int         currentLineType;
+	/** the current pen number */					private int         currentPen;
+	/** if fill info written for the current pen */	private boolean     fillEmitted;
 
 	private static class PenColor
 	{
@@ -123,11 +124,9 @@ public class HPGL extends Output
 		fillEmitted = false;
 
 		// determine the window to use for text scaling
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf != null && wf.getContent().getCell() != cell) wf = null;
-		wnd = null;
-		if (wf != null && wf.getContent() instanceof EditWindow)
-			wnd = (EditWindow)wf.getContent();
+		UserInterface ui = Main.getUserInterface();
+		wnd = ui.getCurrentEditWindow_();
+		if (wnd != null && wnd.getCell() != cell) wnd = null;
 
 		// initialize pen information
 		initPenData();
@@ -462,7 +461,7 @@ public class HPGL extends Output
 
 		if (style.isText())
 		{
-			EditWindow wnd = null;
+			EditWindow_ wnd = null;
 			Poly textPoly = (Poly)poly;
 			double size = textPoly.getTextDescriptor().getTrueSize(wnd);
 			Rectangle2D box = textPoly.getBounds2D();

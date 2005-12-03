@@ -24,19 +24,21 @@
 package com.sun.electric.tool.generator.layout;
 import java.lang.reflect.Method;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.technology.Technology;
 
 /*
@@ -130,7 +132,8 @@ public class GateLayoutGenerator extends Job {
 		String outLibDir = "";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 
-		EditWindow wnd = EditWindow.getCurrent();
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		Cell cell = wnd.getCell();
 		VarContext context = wnd.getVarContext();
 		if (cell==null) {

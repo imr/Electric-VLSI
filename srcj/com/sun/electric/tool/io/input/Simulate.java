@@ -25,19 +25,19 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.IOException;
@@ -66,7 +66,8 @@ public class Simulate extends Input
 	 */
 	public static void plotSpiceResultsThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		FileType type = getCurrentSpiceOutputType();
 		if (type == null) return;
@@ -86,7 +87,8 @@ public class Simulate extends Input
 	 */
 	public static void plotVerilogResultsThisCell()
 	{
-		Cell cell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}

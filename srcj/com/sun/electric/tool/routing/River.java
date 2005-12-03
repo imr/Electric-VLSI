@@ -26,33 +26,35 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.Main;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.ui.WindowFrame;
+
 import java.awt.geom.Point2D;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Comparator;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * Class to do river routing.
@@ -262,7 +264,8 @@ public class River
 
 	public static void riverRoute()
 	{
-		Cell curCell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 		RiverRouteJob job = new RiverRouteJob(curCell);
 	}
@@ -1267,15 +1270,12 @@ public class River
 
 	private void makeTheGeometry(Cell cell)
 	{
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf != null)
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd != null)
         {
-	        Highlighter highlighter = wf.getContent().getHighlighter();
-	        if (highlighter != null)
-	        {
-	        	highlighter.clear();
-	        	highlighter.finished();
-	        }
+        	wnd.clearHighlighting();
+        	wnd.finishedHighlighting();
         }
 
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();

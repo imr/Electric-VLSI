@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator;
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -36,8 +37,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
@@ -53,9 +55,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -824,7 +824,8 @@ public class PadGenerator
             pad.ni = ni;
         }
 
-        WindowFrame frame = WindowFrame.createEditWindow(framecell);
+        UserInterface ui = Main.getUserInterface();
+        EditWindow_ wnd = ui.displayCell(framecell);
 
         // select all
         EditMenu.selectAllCommand();
@@ -845,7 +846,7 @@ public class PadGenerator
 
                 Rectangle2D bounds = framecell.getBounds();
                 Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-                EditWindow.gridAlign(center);
+                Main.getUserInterface().alignToGrid(center);
 
                 SizeOffset so = corenp.getProtoSizeOffset();
                 NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
@@ -876,7 +877,7 @@ public class PadGenerator
             }
         }
 
-        if (frame != null) frame.getContent().fillScreen();
+        if (wnd != null) wnd.fillScreen();
 
 
         if (view == View.ICON) {
@@ -999,7 +1000,7 @@ public class PadGenerator
                     iconPos.setLocation(cellBounds.getMinX() - halfWidth, cellBounds.getMinY() - halfHeight);
                     break;
             }
-            EditWindow.gridAlign(iconPos);
+            Main.getUserInterface().alignToGrid(iconPos);
             double px = iconCell.getBounds().getWidth();
             double py = iconCell.getBounds().getHeight();
             NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);

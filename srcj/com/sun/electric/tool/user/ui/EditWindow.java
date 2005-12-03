@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -46,6 +47,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -119,8 +121,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * This class defines an editing window for displaying circuitry.
@@ -726,6 +730,12 @@ public class EditWindow extends JPanel
 	public JPanel getPanel() { return overall; }
 
 	/**
+	 * Method to return the location of this window on the user's screens.
+	 * @return the location of this window on the user's screens.
+	 */
+	public Point getScreenLocationOfCorner() { return overall.getLocationOnScreen(); }
+	
+	/**
 	 * Method to return the current EditWindow.
 	 * @return the current EditWindow (null if none).
 	 */
@@ -753,11 +763,14 @@ public class EditWindow extends JPanel
 		return null;
 	}
 
+	// ************************************* EDITWINDOW METHODS *************************************
+
 	/**
 	 * Method to return the cell that is shown in this window.
 	 * @return the cell that is shown in this window.
 	 */
 	public Cell getCell() { return cell; }
+
 
 	/**
 	 * Method to set the page number that is shown in this window.
@@ -2705,6 +2718,77 @@ public class EditWindow extends JPanel
             }
         }
         return cellBounds;
+	}
+
+	// Highlighting methods for the EditWindow_ interface
+	public void addElectricObject(ElectricObject eObj, Cell cell)
+	{
+		highlighter.addElectricObject(eObj, cell);
+	}
+
+	public Rectangle2D getHighlightedArea()
+	{
+		return highlighter.getHighlightedArea(this);
+	}
+
+	public void addHighlightArea(Rectangle2D rect, Cell cell)
+	{
+		highlighter.addArea(rect, cell);
+	}
+
+	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell)
+	{
+		highlighter.addLine(pt1, pt2, cell);
+	}
+
+	public void addHighlightText(ElectricObject eObj, Cell cell, Variable var, Name name)
+	{
+		highlighter.addText(eObj, cell, var, name);
+	}
+
+	public ElectricObject getOneElectricObject(Class clz) { return highlighter.getOneElectricObject(clz); }
+
+	public List<Geometric> getHighlightedEObjs(boolean wantNodes, boolean wantArcs)
+	{
+		return highlighter.getHighlightedEObjs(wantNodes, wantArcs);
+	}
+
+	public Set<Network> getHighlightedNetworks()
+	{
+		return highlighter.getHighlightedNetworks();
+	}
+
+	public Point2D getHighlightOffset()
+	{
+		return highlighter.getHighlightOffset();
+	}
+
+	public void setHighlightOffset(int dX, int dY)
+	{
+		highlighter.setHighlightOffset(dX, dY);
+	}
+
+	public List<Object> saveHighlightList()
+	{
+		List<Object> saveList = new ArrayList<Object>();
+		for(Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
+			saveList.add(it.next());
+		return saveList;
+	}
+
+	public void restoreHighlightList(List<Object> list)
+	{
+		highlighter.setHighlightListGeneral(list);
+	}
+
+	public void clearHighlighting()
+	{
+		highlighter.clear();
+	}
+
+	public void finishedHighlighting()
+	{
+		highlighter.finished();
 	}
 
 	/**

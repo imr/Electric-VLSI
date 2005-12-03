@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -105,7 +106,7 @@ public abstract class InteractiveRouter extends Router {
             Highlight h = (Highlight)it.next();
             startRouteHighlights.add(h);
         }
-        wnd.getHighlighter().clear();
+        wnd.clearHighlighting();
         started = true;
     }
 
@@ -123,9 +124,9 @@ public abstract class InteractiveRouter extends Router {
     }
 
     /**
-     * Make a route between startObj and endObj in the EditWindow wnd.
+     * Make a route between startObj and endObj in the EditWindow_ wnd.
      * Uses the point where the user clicked as a parameter to set the route.
-     * @param wnd the EditWindow the user is editing
+     * @param wnd the EditWindow_ the user is editing
      * @param cell the cell in which to create the route
      * @param startObj a PortInst or ArcInst from which to start the route
      * @param endObj a PortInst or ArcInst to end the route on. May be null
@@ -138,7 +139,7 @@ public abstract class InteractiveRouter extends Router {
         Route route = planRoute(cell, startObj, endObj, clicked, null);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
-        wnd.getHighlighter().clear();
+        wnd.clearHighlighting();
         wnd.getHighlighter().setHighlightList(startRouteHighlights);
         // create route
         createRoute(route, cell);
@@ -149,7 +150,7 @@ public abstract class InteractiveRouter extends Router {
      * Make a vertical route.  Will add in contacts in startPort's technology
      * to be able to connect to endPort.  The added contacts will be placed on
      * top of startPort.  The final contact will be able to connect to <i>arc</i>.
-     * @param wnd the EditWindow the user is editing
+     * @param wnd the EditWindow_ the user is editing
      * @param startPort the start of the route
      * @param arc the arc type that the last contact will be able to connect to
      * @return true on sucess
@@ -178,7 +179,7 @@ public abstract class InteractiveRouter extends Router {
         vroute.buildRoute(route, startRE.getCell(), startRE, null, startLoc, startLoc, startLoc);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
-        wnd.getHighlighter().clear();
+        wnd.finishedHighlighting();
         wnd.getHighlighter().setHighlightList(startRouteHighlights);
         MakeVerticalRouteJob job = new MakeVerticalRouteJob(this, route, startPort.getNodeInst().getParent(), true);
         started = false;
@@ -232,13 +233,13 @@ public abstract class InteractiveRouter extends Router {
      */
     public void highlightRoute(EditWindow wnd, Route route, Cell cell) {
         if (!started) startInteractiveRoute(wnd);
-        wnd.getHighlighter().clear();
+        wnd.clearHighlighting();
         //wnd.getHighlighter().setHighlightList(startRouteHighlights);
         for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.addHighlightArea(wnd.getHighlighter());
         }
-        wnd.getHighlighter().finished();
+        wnd.finishedHighlighting();
     }
 
 

@@ -242,7 +242,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * The text can be described by an ElectricObject (Exports or cell instance names).
 	 * The text can be described by a node or arc name.
 	 * The text can be described by a variable on an ElectricObject.
-	 * @param wnd the EditWindow in which the text will be drawn.
+	 * @param wnd the EditWindow_ in which the text will be drawn.
 	 * @param var the Variable on the ElectricObject (may be null).
 	 * @param name the Name of the node or arc in the ElectricObject (may be null).
 	 * @return a Poly that covers the text completely.
@@ -365,7 +365,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 
 	/**
 	 * Method to return the bounds of this ElectricObject in an EditWindow.
-	 * @param wnd the EditWindow in which the object is being displayed.
+	 * @param wnd the EditWindow_ in which the object is being displayed.
 	 * @return the bounds of the text (does not include the bounds of the object).
 	 */
 	public Rectangle2D getTextBounds(EditWindow_ wnd)

@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -36,18 +37,18 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -203,7 +204,8 @@ public class Maze
 
 	public static void mazeRoute()
 	{
-		Cell curCell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 		MazeRouteJob job = new MazeRouteJob(curCell);
 	}
@@ -234,10 +236,9 @@ public class Maze
 	 */
 	public void routeSelected(Cell cell)
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf == null) return;
-		Highlighter hi = wf.getContent().getHighlighter();
-		if (hi == null) return;
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd == null) return;
 
 		netList = cell.acquireUserNetlist();
 		if (netList == null)
@@ -245,7 +246,7 @@ public class Maze
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
 			return;
 		}
-		Set<Network> nets = hi.getHighlightedNetworks();
+		Set<Network> nets = wnd.getHighlightedNetworks();
 		if (nets.size() == 0)
 		{
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -280,14 +281,14 @@ public class Maze
 
 			// route the unrouted arc
 			Network net = netList.getNetwork(ai, 0);
-			if (routeNet(net, hi)) continue;
+			if (routeNet(net, wnd)) continue;
 		}
 	}
 
 	/**
 	 * Method to reroute networks "net".  Returns true on error.
 	 */
-	private boolean routeNet(Network net, Highlighter hi)
+	private boolean routeNet(Network net, EditWindow_ wnd)
 	{
 		// get extent of net and mark nodes and arcs on it
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
@@ -322,8 +323,8 @@ public class Maze
 		}
 
 		// turn off highlighting
-		hi.clear();
-		hi.finished();
+		wnd.clearHighlighting();
+		wnd.finishedHighlighting();
 
 		// now create the routing region
 		int lx = (int)routingBounds.getMinX();

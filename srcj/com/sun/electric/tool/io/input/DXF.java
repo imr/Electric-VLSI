@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -1232,7 +1231,8 @@ public class DXF extends Input
 			if (msg != null)
 			{
 				double h = msg.length();
-//				EditWindow wnd = EditWindow.getCurrent();
+//				UserInterface ui = Main.getUserInterface();
+//				EditWindow_ wnd = ui.getCurrentEditWindow_();
 //				if (wnd != null) h = wnd.getTextScreenSize(height);
 				lX = x;	hX = x + height * h;
 				lY = y;	hY = y + height;

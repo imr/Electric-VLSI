@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.routing;
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,14 +35,14 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
@@ -208,12 +209,11 @@ public class Routing extends Listener
 	 */
 	public void mimicSelected()
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf == null) return;
-		Highlighter highlighter = wf.getContent().getHighlighter();
-		if (highlighter == null) return;
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd == null) return;
 
-		ArcInst ai = (ArcInst)highlighter.getOneElectricObject(ArcInst.class);
+		ArcInst ai = (ArcInst)wnd.getOneElectricObject(ArcInst.class);
 		if (ai == null) return;
 		past = new Activity();
 		past.createdArcs[past.numCreatedArcs++] = ai;
@@ -239,11 +239,10 @@ public class Routing extends Listener
 		public boolean doIt()
 		{
 			// see what is highlighted
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-			if (wf == null) return false;
-			Highlighter highlighter = wf.getContent().getHighlighter();
-			if (highlighter == null) return false;
-			Set<Network> nets = highlighter.getHighlightedNetworks();
+			UserInterface ui = Main.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
+			if (wnd == null) return false;
+			Set<Network> nets = wnd.getHighlightedNetworks();
 			if (nets.size() == 0)
 			{
 				System.out.println("Must select networks to unroute");
@@ -251,7 +250,7 @@ public class Routing extends Listener
 			}
 
 			// convert requested nets
-			Cell cell = wf.getContent().getCell();
+			Cell cell = wnd.getCell();
 //			Netlist netList = cell.getUserNetlist();
 			Netlist netList = cell.acquireUserNetlist();
 			if (netList == null)
@@ -259,7 +258,7 @@ public class Routing extends Listener
 				System.out.println("Sorry, a deadlock aborted unrouting (network information unavailable).  Please try again");
 				return false;
 			}
-			highlighter.clear();
+			wnd.clearHighlighting();
 
 			// make arrays of what to unroute
 			int total = nets.size();
@@ -281,14 +280,14 @@ public class Routing extends Listener
 			// do the unrouting
 			for(int j=0; j<total; j++)
 			{
-				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, highlighter)) return false;
+				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, wnd)) return false;
 			}
-			highlighter.finished();
+			wnd.finishedHighlighting();
 			return true;
 		}
 
 		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
-			List<Connection> netEnds, Netlist netList, Highlighter highlighter)
+			List<Connection> netEnds, Netlist netList, EditWindow_ wnd)
 		{
 			// remove marked nodes and arcs
 			for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
@@ -348,7 +347,7 @@ public class Routing extends Listener
 					System.out.println("Could not create unrouted arc");
 					return true;
 				}
-				highlighter.addElectricObject(ai, ai.getParent());
+				wnd.addElectricObject(ai, ai.getParent());
 			}
 			return false;
 		}
@@ -457,7 +456,8 @@ public class Routing extends Listener
 	 */
 	public static void copyRoutingTopology()
 	{
-		Cell np = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell np = ui.needCurrentCell();
 		if (np == null) return;
 		copiedTopologyCell = np;
 		System.out.println("Cell " + np.describe(true) + " will have its connectivity remembered");
@@ -483,7 +483,8 @@ public class Routing extends Listener
 		}
 
 		// get the destination cell
-		Cell toCell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell toCell = ui.needCurrentCell();
 		if (toCell == null) return;
 
 		// make sure copy goes to a different cell

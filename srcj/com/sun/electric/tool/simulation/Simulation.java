@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -30,6 +31,8 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
@@ -44,7 +47,6 @@ import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -129,16 +131,17 @@ public class Simulation extends Listener
     	String fileName = null;
 		if (prevCell != null) cell = prevCell; else
 		{
+			UserInterface ui = Main.getUserInterface();
 	    	if (forceDeck)
 	    	{
 	    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
 	    		if (fileName == null) return;
-	    		cell = WindowFrame.getCurrentCell();
+				cell = ui.getCurrentCell();
 	    	} else
 	    	{
-		        cell = WindowFrame.needCurCell();
+				cell = ui.needCurrentCell();
 		        if (cell == null) return;
-	            EditWindow wnd = EditWindow.getCurrent();
+	            EditWindow_ wnd = ui.getCurrentEditWindow_();
 	            if (wnd != null) context = wnd.getVarContext();
 	    	}
 		}
@@ -478,12 +481,11 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceModel()
 	{
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return;
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return;
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd == null) return;
 
-		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
+		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 		SetSpiceModel job = new SetSpiceModel(ni);
 	}
@@ -515,12 +517,11 @@ public class Simulation extends Listener
 	 */
 	public static void setVerilogWireCommand(int type)
 	{
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return;
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return;
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd == null) return;
 
-		List<Geometric> list = highlighter.getHighlightedEObjs(false, true);
+		List<Geometric> list = wnd.getHighlightedEObjs(false, true);
 		if (list.size() == 0)
 		{
 			System.out.println("Must select arcs before setting their type");
@@ -575,12 +576,11 @@ public class Simulation extends Listener
 	 */
 	public static void setTransistorStrengthCommand(boolean weak)
 	{
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return;
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return;
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd == null) return;
 
-		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
+		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 		SetTransistorStrength job = new SetTransistorStrength(ni, weak);
 	}

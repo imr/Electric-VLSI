@@ -27,15 +27,19 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
@@ -53,6 +57,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.Point2D;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -89,6 +94,7 @@ import javax.swing.SwingUtilities;
  */
 public final class Main
 {
+	private static UserInterface currentUI;
 
     private Main() {}
 
@@ -133,6 +139,7 @@ public final class Main
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
         if (!Job.BATCHMODE)
         {
+        	currentUI = new UserInterfaceMain();
             if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
             {
                 try
@@ -161,6 +168,9 @@ public final class Main
                 } catch (ClassNotFoundException e) {}
             }
     //		MacOSXInterface.registerMacOSXApplication(argsList);
+        } else
+        {
+        	currentUI = new UserInterfaceDummy();
         }
 
 		// -help
@@ -222,6 +232,29 @@ public final class Main
 		}
 //        MacOSXInterface.setInitJob(job);
         job.startJob();
+	}
+
+	private static class UserInterfaceDummy implements UserInterface
+	{
+		public EditWindow_ getCurrentEditWindow_() { return null; }
+		public EditWindow_ needCurrentEditWindow_()
+		{
+			System.out.println("Batch mode Electric has no needed windows");
+			return null; 
+		}
+		public Cell getCurrentCell() { return null; }
+		public Cell needCurrentCell()
+		{
+			System.out.println("Batch mode Electric has no current cell");
+			return null; 
+		}
+		public void repaintAllEditWindows() {}
+		public void alignToGrid(Point2D pt) {}
+		public int getDefaultTextSize() { return 14; }
+//		public Highlighter getHighlighter();
+		public EditWindow_ displayCell(Cell cell) { return null; }
+		
+		
 	}
 
 	/**
@@ -287,8 +320,9 @@ public final class Main
 		}
 	}
 
+	public static UserInterface getUserInterface() { return currentUI; }
 
-    /** check if command line option 'option' present in 
+	/** check if command line option 'option' present in 
      * command line args. If present, return true and remove if from the list.
      * Otherwise, return false.
      */

@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.extract;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -43,7 +44,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -55,9 +58,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -66,9 +66,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
 /**
  * This is the Connectivity extractor.
@@ -96,7 +96,8 @@ public class Connectivity
 	 */
 	public static void extractCurCell(boolean recursive)
 	{
-		Cell curCell = WindowFrame.needCurCell();
+		UserInterface ui = Main.getUserInterface();
+		Cell curCell = ui.needCurrentCell();
 		if (curCell == null)
 		{
 			System.out.println("Must be editing a cell with pure layer nodes.");
@@ -299,7 +300,7 @@ public class Connectivity
 				if (Extract.isGridAlignExtraction())
 				{
 					for(int i=0; i<points.length; i++)
-						EditWindow.gridAlign(points[i]);
+						Main.getUserInterface().alignToGrid(points[i]);
 				} else
 				{
 					for(int i=0; i<points.length; i++)
@@ -363,17 +364,17 @@ public class Connectivity
 		if (top)
 		{
 			// show the new version
-			WindowFrame wf = WindowFrame.createEditWindow(newCell);
+			UserInterface ui = Main.getUserInterface();
+			ui.displayCell(newCell);
 
 			// highlight pure layer nodes
-			EditWindow wnd = (EditWindow)wf.getContent();
-			Highlighter h = wnd.getHighlighter();
+			EditWindow_ wnd = ui.displayCell(newCell);
 			for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				PrimitiveNode.Function fun = ni.getFunction();
 				if (fun == PrimitiveNode.Function.NODE)
-					h.addElectricObject(ni, newCell);
+					wnd.addElectricObject(ni, newCell);
 			}
 		}
 	}
