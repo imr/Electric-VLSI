@@ -31,7 +31,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -454,7 +454,7 @@ public class Artwork extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -562,7 +562,7 @@ public class Artwork extends Technology
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		layerOverride = getProperLayer(ai);
 		return super.getShapeOfArc(ai, wnd, layerOverride, onlyTheseLayers);

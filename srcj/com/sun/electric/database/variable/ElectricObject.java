@@ -215,7 +215,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return the number of Polys that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow0 wnd, boolean multipleStrings)
 	{
         checkExamine();
 		int numAddedVariables = 0;
@@ -242,14 +242,14 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * The text can be described by an ElectricObject (Exports or cell instance names).
 	 * The text can be described by a node or arc name.
 	 * The text can be described by a variable on an ElectricObject.
-	 * @param wnd the EditWindow_ in which the text will be drawn.
+	 * @param wnd the EditWindow0 in which the text will be drawn.
 	 * @param var the Variable on the ElectricObject (may be null).
 	 * @param name the Name of the node or arc in the ElectricObject (may be null).
 	 * @return a Poly that covers the text completely.
 	 * Even though the Poly is scaled for a particular EditWindow,
 	 * its coordinates are in object space, not screen space.
 	 */
-	public Poly computeTextPoly(EditWindow_ wnd, Variable var, Name name)
+	public Poly computeTextPoly(EditWindow0 wnd, Variable var, Name name)
 	{
         checkExamine();
 		Poly poly = null;
@@ -365,10 +365,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 
 	/**
 	 * Method to return the bounds of this ElectricObject in an EditWindow.
-	 * @param wnd the EditWindow_ in which the object is being displayed.
+	 * @param wnd the EditWindow0 in which the object is being displayed.
 	 * @return the bounds of the text (does not include the bounds of the object).
 	 */
-	public Rectangle2D getTextBounds(EditWindow_ wnd)
+	public Rectangle2D getTextBounds(EditWindow0 wnd)
 	{
 		Rectangle2D bounds = null;
 		for(Iterator<Variable> vIt = getVariables(); vIt.hasNext(); )
@@ -437,7 +437,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return an array of Poly objects that describe the Variable. May return zero length array.
 	 */
-	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow_ wnd, boolean multipleStrings)
+	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
 	{
 		double offX = var.getXOff();
 		double offY = var.getYOff();

@@ -28,7 +28,7 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
@@ -691,7 +691,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * @param hY the high Y bound of the polygon containing the text.
 	 * @return the scale of the text (from database to screen).
 	 */
-	protected double getTextScale(EditWindow_ wnd, GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
+	protected double getTextScale(EditWindow0 wnd, GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
 	{
 		double textScale = 1.0/wnd.getScale();
 		if (style == Poly.Type.TEXTBOX)

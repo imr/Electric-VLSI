@@ -983,13 +983,13 @@ public class Variable
 	public TextDescriptor.Size getSize() { return descriptor.getSize(); }
 
 	/**
-	 * Method to find the true size in points for the Variable's TextDescriptor in a given EditWindow_.
+	 * Method to find the true size in points for the Variable's TextDescriptor in a given EditWindow0.
 	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
-	 * Otherwise, the scale of the EditWindow_ is used to determine the acutal point size.
-	 * @param wnd the EditWindow_ in which drawing will occur.
+	 * Otherwise, the scale of the EditWindow0 is used to determine the acutal point size.
+	 * @param wnd the EditWindow0 in which drawing will occur.
 	 * @return the point size of the text described by the Variable's TextDescriptor.
 	 */
-	public double getTrueSize(EditWindow_ wnd) { return descriptor.getTrueSize(wnd); }
+	public double getTrueSize(EditWindow0 wnd) { return descriptor.getTrueSize(wnd); }
 
 	/**
 	 * Returns Variable which differs from this Variable by text size.

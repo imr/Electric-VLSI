@@ -39,7 +39,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
@@ -1116,7 +1116,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd)
 	{
 		return getShapeOfArc(ai, wnd, null, null);
 	}
@@ -1130,7 +1130,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		// get information about the arc
 		ArcProto ap = ai.getProto();
@@ -1647,7 +1647,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd)
 	{
 		VarContext var = (wnd != null) ? wnd.getVarContext() : null;
 		return getShapeOfNode(ni, wnd, var, false, false, null);
@@ -1672,7 +1672,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable, List onlyTheseLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, List onlyTheseLayers)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1740,7 +1740,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	protected Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
+	protected Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		// if node is erased, remove layers
@@ -1783,7 +1783,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	protected Poly [] computeShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
+	protected Poly [] computeShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();

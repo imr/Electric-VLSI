@@ -50,6 +50,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -974,40 +975,40 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
 
     private ImmutableNodeInst[] backupNodes(ImmutableNodeInst[] oldNodes) {
-        int numNodes = nodes.size();
+        int numNodes = Math.min(oldNodes.length, nodes.size());
         int matchedNodes = 0;
-        while (matchedNodes < oldNodes.length && oldNodes[matchedNodes] == nodes.get(matchedNodes).getD())
+        while (matchedNodes < numNodes && oldNodes[matchedNodes] == nodes.get(matchedNodes).getD())
             matchedNodes++;
-        if (matchedNodes == numNodes && numNodes == oldNodes.length) return oldNodes;
-        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[numNodes];
+        if (matchedNodes == oldNodes.length && matchedNodes == nodes.size()) return oldNodes;
+        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
         System.arraycopy(oldNodes, 0, newNodes, 0, matchedNodes);
-        for (int i = matchedNodes; i < numNodes; i++)
+        for (int i = matchedNodes; i < nodes.size(); i++)
             newNodes[i] = nodes.get(i).getD();
         return newNodes;
     }
     
     private ImmutableArcInst[] backupArcs(ImmutableArcInst[] oldArcs) {
-        int numArcs = arcs.size();
+        int numArcs = Math.min(oldArcs.length, arcs.size());
         int matchedArcs = 0;
-        while (matchedArcs < oldArcs.length && oldArcs[matchedArcs] == arcs.get(matchedArcs).getD())
+        while (matchedArcs < numArcs && oldArcs[matchedArcs] == arcs.get(matchedArcs).getD())
             matchedArcs++;
-        if (matchedArcs == numArcs && numArcs == oldArcs.length) return oldArcs;
-        ImmutableArcInst[] newArcs = new ImmutableArcInst[numArcs];
+        if (matchedArcs == oldArcs.length && matchedArcs == arcs.size()) return oldArcs;
+        ImmutableArcInst[] newArcs = new ImmutableArcInst[arcs.size()];
         System.arraycopy(oldArcs, 0, newArcs, 0, matchedArcs);
-        for (int i = matchedArcs; i < numArcs; i++)
+        for (int i = matchedArcs; i < arcs.size(); i++)
             newArcs[i] = arcs.get(i).getD();
         return newArcs;
     }
     
     private ImmutableExport[] backupExports(ImmutableExport[] oldExports) {
-        int numExports = exports.length;
+        int numExports = Math.min(oldExports.length, exports.length);
         int matchedExports = 0;
-        while (matchedExports < oldExports.length && oldExports[matchedExports] == exports[matchedExports].getD())
+        while (matchedExports < numExports && oldExports[matchedExports] == exports[matchedExports].getD())
             matchedExports++;
-        if (matchedExports == numExports && numExports == oldExports.length) return oldExports;
-        ImmutableExport[] newExports = new ImmutableExport[numExports];
+        if (matchedExports == oldExports.length && matchedExports == exports.length) return oldExports;
+        ImmutableExport[] newExports = new ImmutableExport[exports.length];
         System.arraycopy(oldExports, 0, newExports, 0, matchedExports);
-        for (int i = matchedExports; i < numExports; i++)
+        for (int i = matchedExports; i < exports.length; i++)
             newExports[i] = exports[i].getD();
         return newExports;
     }
@@ -2242,12 +2243,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		exports = newExports;
         setContentsModified();
 
-		// create a PortInst for every instance of this node
-        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
-            ni.addPortInst(export);
-            assert ni.getNumPortInsts() == exports.length;
-        }
+		// create a PortInst for every instance of this Cell
+        if (d.cellId.numUsagesOf() == 0) return;
+        int[] pattern = new int[exports.length];
+        for (int i = 0; i < portIndex; i++) pattern[i] = i;
+        pattern[portIndex] = -1;
+        for (int i = portIndex + 1; i < exports.length; i++) pattern[i] = i - 1;
+        updatePortInsts(pattern);
+//        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+//            NodeInst ni = (NodeInst)it.next();
+//            ni.addPortInst(export);
+//            assert ni.getNumPortInsts() == exports.length;
+//        }
 	}
 
 	/**
@@ -2270,15 +2277,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		exports = newExports;
         chronExports[export.getId().getChronIndex()] = null;
         setContentsModified();
-
-		// remove the PortInst from every instance of this node
-		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.removePortInst(export);
-		}
-
 		export.setPortIndex(-1);
+
+		// remove the PortInst from every instance of this Cell
+        if (d.cellId.numUsagesOf() == 0) return;
+        int[] pattern = new int[exports.length];
+        for (int i = 0; i < portIndex; i++) pattern[i] = i;
+        for (int i = portIndex; i < exports.length; i++) pattern[i] = i + 1;
+        updatePortInsts(pattern);
+//		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
+//		{
+//			NodeInst ni = (NodeInst)it.next();
+//			ni.removePortInst(export);
+//		}
 	}
 
 	/**
@@ -2316,14 +2327,40 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for (int i = 0; i < exports.length; i++)
 			System.out.print(" " + exports[i].getPortIndex() + ":" + exports[i].getName());
 		System.out.println();
+
+        // move PortInst for every instance of this Cell.
+        if (d.cellId.numUsagesOf() == 0) return;
+        int[] pattern = new int[exports.length];
+        for (int i = 0; i < pattern.length; i++) pattern[i] = i;
+        pattern[newPortIndex] = oldPortIndex;
+        if (newPortIndex > oldPortIndex)
+            for (int i = oldPortIndex; i < newPortIndex; i++) pattern[i] = i + 1;
+        else
+            for (int i = oldPortIndex; i > newPortIndex; i--) pattern[i] = i - 1;
+        updatePortInsts(pattern);
+        
+        // move connections for every instance of this Cell.
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			ni.movePortInst(oldPortIndex);
+			ni.moveConnections(export);
 		}
-		
 	}
 
+	/**
+	 * Update PortInsts of all instances of this Cell accoding to pattern.
+     * Pattern contains an element for each Export.
+     * If Export was just created, the element contains -1.
+     * For old Exports the element contains old index of the Export.
+	 * @param pattern array with elements describing new PortInsts.
+	 */
+    public void updatePortInsts(int[] pattern) {
+		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+			NodeInst ni = (NodeInst)it.next();
+			ni.updatePortInsts(pattern);
+		}
+    }
+    
 	/**
 	 * Method to find the PortProto that has a particular name.
 	 * @return the PortProto, or null if there is no PortProto with that name.
@@ -2657,7 +2694,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow_ wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
 	{
 		int dispVars = numDisplayableVariables(false);
 		if (dispVars == 0) return null;
@@ -2674,10 +2711,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * be larger than the actual cell contents.
 	 * Only relative (scalable) text is considered, since it is not possible
 	 * to change the size of absolute text.
-	 * @param wnd the EditWindow_ in which this Cell is being displayed.
+	 * @param wnd the EditWindow0 in which this Cell is being displayed.
 	 * @return the bounds of the relative (scalable) text.
 	 */
-	public Rectangle2D getRelativeTextBounds(EditWindow_ wnd)
+	public Rectangle2D getRelativeTextBounds(EditWindow0 wnd)
 	{
 		Rectangle2D bounds = null;
 		for(Iterator<NodeInst> it = this.getNodes(); it.hasNext(); )
@@ -2704,7 +2741,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		return bounds;
 	}
 
-	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow_ wnd)
+	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow0 wnd)
 	{
 		Rectangle2D objBounds = eObj.getTextBounds(wnd);
 		if (objBounds == null) return bounds;

@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -316,7 +317,7 @@ public class FPGA extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -488,7 +489,7 @@ public class FPGA extends Technology
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow_ wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
 	{
 		boolean active = true;
 		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||

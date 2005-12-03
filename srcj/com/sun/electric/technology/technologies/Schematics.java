@@ -36,7 +36,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -1420,7 +1420,7 @@ public class Schematics extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();

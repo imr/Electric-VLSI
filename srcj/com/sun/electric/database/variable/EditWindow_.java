@@ -42,7 +42,7 @@ import java.util.Set;
  * This interface gives a limited access to EditWindow_ necessary
  * for calculating a shape of some primitives.
  */
-public interface EditWindow_ {
+public interface EditWindow_ extends EditWindow0 {
     
 	/**
 	 * Method to return the cell that is shown in this window.

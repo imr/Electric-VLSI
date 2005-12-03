@@ -32,7 +32,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
@@ -3505,7 +3505,7 @@ public class MoCMOS extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
@@ -3527,7 +3527,7 @@ public class MoCMOS extends Technology
      * @param reasonable
      * @return
      */
-    private Poly [] getShapeOfNodeResistor(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical,
+    private Poly [] getShapeOfNodeResistor(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical,
                                            boolean reasonable)
     {
         // now compute the number of polygons
@@ -3623,7 +3623,7 @@ public class MoCMOS extends Technology
      * @param reasonable
      * @return
      */
-    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow_ wnd, VarContext context, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow0 wnd, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;

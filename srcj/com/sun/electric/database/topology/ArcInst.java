@@ -35,7 +35,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -88,7 +88,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	// -------------------------- private data ----------------------------------
 
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
-	/** bounds after transformation. */					private Rectangle2D visBounds;
+	/** bounds after transformation. */					private final Rectangle2D visBounds = new Rectangle2D.Double();
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 	/** tail connection of this arc instance */			private final TailConnection tailEnd;
@@ -116,7 +116,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	private ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
 	{
-		// initialize this object
+		super(parent);
+
+        // initialize this object
 		assert parent == headPort.getNodeInst().getParent();
         assert parent == tailPort.getNodeInst().getParent();
         assert d.headNodeId == headPort.getNodeInst().getD().nodeId;
@@ -124,7 +126,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         assert d.headPortId == headPort.getPortProto().getId();
         assert d.tailPortId == tailPort.getPortProto().getId();
         
-		this.parent = parent;
         this.d = d;
 
 		// create node/arc connections and place them properly
@@ -133,8 +134,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 		headPortInst = headPort;
 		headEnd = new HeadConnection(this);
-        
-		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
     /****************************** CREATE, DELETE, MODIFY ******************************/
@@ -769,7 +768,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow_ wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
 	{
 		int dispVars = numDisplayableVariables(false);
 		int totalText = dispVars;
@@ -796,7 +795,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
 	 * @return the number of Variables that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow0 wnd, boolean multipleStrings)
 	{
 		int numVars = 0;
 		if (isUsernamed())

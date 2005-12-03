@@ -30,7 +30,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -214,7 +214,7 @@ public class PortInst extends ElectricObject
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return the number of Polys that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow0 wnd, boolean multipleStrings)
 	{
 		if (super.numDisplayableVariables(multipleStrings) == 0) return 0;
 
@@ -315,7 +315,7 @@ public class PortInst extends ElectricObject
 		}
 	}
 
-    public Poly computeTextPoly(EditWindow_ wnd, Variable var, Name name)
+    public Poly computeTextPoly(EditWindow0 wnd, Variable var, Name name)
     {
         Poly poly = null;
         if (var != null)

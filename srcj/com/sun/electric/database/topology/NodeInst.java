@@ -45,7 +45,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -124,7 +124,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 	// ---------------------- private data ----------------------------------
     /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
-	/** prototype of this NodeInst. */						private NodeProto protoType;
+	/** prototype of this NodeInst. */						private final NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList<Connection> connections = new ArrayList<Connection>(2);
@@ -133,7 +133,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
 	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
     
-	/** bounds after transformation. */						private Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+	/** bounds after transformation. */						private final Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 
     
     // --------------------- private and protected methods ---------------------
@@ -144,7 +144,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param parent the Cell in which this NodeInst will reside.
 	 */
     NodeInst(ImmutableNodeInst d, Cell parent) {
-        this.parent = parent;
+        super(parent);
         this.protoType = d.protoId.inCurrentThread();
         this.d = d;
 
@@ -1203,7 +1203,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow_ wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
 	{
 		int cellInstanceNameText = 0;
 		if (protoType instanceof Cell && !isExpanded() && hardToSelect) cellInstanceNameText = 1;
@@ -1413,7 +1413,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return the number of Polys that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow0 wnd, boolean multipleStrings)
 	{
         int numAddedVariables = 0;
 		if (isUsernamed())
@@ -1953,48 +1953,36 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
-	 * Method to create a new PortInst on this NodeInst.
-	 * @param pp the prototype of the new PortInst.
+	 * Update PortInsts of this NodeInst accoding to pattern.
+     * Pattern contains an element for each PortProto.
+     * If PortProto was just created, the element contains -1.
+     * For old PortProtos the element contains old index of the PortProto.
+	 * @param pattern array with elements describing new PortInsts.
 	 */
-	public void addPortInst(PortProto pp)
-	{
-		linkPortInst(PortInst.newInstance(pp, this));
-	}
-
+    public void updatePortInsts(int[] pattern) {
+        assert pattern.length == protoType.getNumPorts();
+        if (pattern.length == 0) {
+            portInsts = NULL_PORT_INST_ARRAY;
+            return;
+        }
+        PortInst[] newPortInsts = new PortInst[pattern.length];
+        for (int i = 0; i < newPortInsts.length; i++) {
+            int p = pattern[i];
+            newPortInsts[i] = p >= 0 ? portInsts[p] : PortInst.newInstance(protoType.getPort(i), this);
+        }
+        portInsts = newPortInsts;
+    }
+    
 	/**
-	 * Method to link saved PortInst on this NodeInst.
-	 * @param pi saved PortInst.
+	 * Method to move Connections on this NodeInst.
+	 * @param pp PortProto whose connections to move.
 	 */
-	public void linkPortInst(PortInst pi)
+	public void moveConnections(PortProto pp)
 	{
-		int portIndex = pi.getPortIndex();
-		PortInst[] newPortInsts = new PortInst[portInsts.length + 1];
-		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
-		newPortInsts[portIndex] = pi;
-		System.arraycopy(portInsts, portIndex, newPortInsts, portIndex + 1, portInsts.length - portIndex);
-		portInsts = newPortInsts;
-	}
-
-	/**
-	 * Method to move PortInst on this NodeInst.
-	 * @param oldPortIndex old port index of the PortInst.
-	 */
-	public void movePortInst(int oldPortIndex)
-	{
-		PortInst pi = portInsts[oldPortIndex];
-		int portIndex = pi.getPortIndex();
-        if (portIndex == oldPortIndex) return;
-		if (portIndex > oldPortIndex)
-			System.arraycopy(portInsts, oldPortIndex + 1, portInsts, oldPortIndex, portIndex - oldPortIndex);
-		else
-			System.arraycopy(portInsts, portIndex, portInsts, portIndex + 1, oldPortIndex - portIndex);
-		portInsts[portIndex] = pi;
-        
-        // Move connections as well
         ArrayList<Connection> savedConnections = new ArrayList<Connection>();
         for (Iterator<Connection> it = connections.iterator(); it.hasNext(); ) {
             Connection con = (Connection)it.next();
-            if (con.getPortInst() == pi) {
+            if (con.getPortInst().getPortProto() == pp) {
                 savedConnections.add(con);
                 it.remove();
             }
@@ -2004,20 +1992,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             addConnection(con);
         }
         check();
-	}
-
-	/**
-	 * Method to delete a PortInst from this NodeInst.
-	 * @param pp the prototype of the PortInst to remove.
-	 */
-	public void removePortInst(PortProto pp)
-	{
-		int portIndex = pp.getPortIndex();
-		PortInst pi = portInsts[portIndex];
-		PortInst[] newPortInsts = portInsts.length > 1 ? new PortInst[portInsts.length - 1] : NULL_PORT_INST_ARRAY;
-		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
-		System.arraycopy(portInsts, portIndex + 1, newPortInsts, portIndex, newPortInsts.length - portIndex);
-		portInsts = newPortInsts;
 	}
 
     /** 

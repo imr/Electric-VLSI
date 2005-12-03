@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -46,20 +45,16 @@ public abstract class Geometric extends ElectricObject
 {
 	// ------------------------------- private data ------------------------------
 
-	/** Cell containing this Geometric object. */			protected Cell parent;
+	/** Cell containing this Geometric object. */			protected final Cell parent;
 
 	// ------------------------ private and protected methods--------------------
 
 	/**
 	 * The constructor is only called from subclasses.
 	 */
-	protected Geometric() {}
-
-	/**
-	 * Method to set the parent Cell of this Geometric.
-	 * @param parent the parent Cell of this Geometric.
-	 */
-	protected void setParent(Cell parent) { this.parent = parent; }
+	protected Geometric(Cell parent) {
+        this.parent = parent;
+    }
 
 	/**
 	 * Method to describe this Geometric as a string.
