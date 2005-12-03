@@ -35,7 +35,6 @@ import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLoggerTree;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 

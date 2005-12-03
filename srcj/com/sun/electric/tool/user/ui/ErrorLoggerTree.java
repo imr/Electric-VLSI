@@ -1,7 +1,8 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.TextUtils;
 
@@ -114,10 +115,10 @@ public class ErrorLoggerTree {
                 // by default, groupNode is entire loggerNode
                 // but, groupNode could be sub-node:
                 if (logger.getSortKeyToGroupNames() != null) {
-                    if (currentSortKey != el.sortKey) {
+                    if (currentSortKey != el.getSortKey()) {
                         // create new sub-tree node
-                        currentSortKey = el.sortKey;
-                        String groupName = (String)logger.getSortKeyToGroupNames().get(new Integer(el.sortKey));
+                        currentSortKey = el.getSortKey();
+                        String groupName = (String)logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
                         if (groupName != null) {
                             groupNode = new DefaultMutableTreeNode(groupName);
                             loggerNode.add(groupNode);

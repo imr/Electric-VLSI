@@ -55,13 +55,7 @@ import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Color;
 import java.awt.Component;

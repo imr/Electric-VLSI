@@ -94,6 +94,7 @@ public class ErrorLogger implements DatabaseChangeListener
 
         public String getMessageString() { return message; }
         public Iterator<ErrorLogger.ErrorHighlight> getHighlights() { return highlights.iterator(); }
+        public int getSortKey() { return sortKey; }
 
         /**
          * Compare objects lexicographically based on string comparator CASE_INSENSITIVE_ORDER
