@@ -133,7 +133,8 @@ public class GateLayoutGenerator extends Job {
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 
 		UserInterface ui = Main.getUserInterface();
-		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		EditWindow_ wnd = ui.needCurrentEditWindow_();
+		if (wnd == null) return false;
 		Cell cell = wnd.getCell();
 		VarContext context = wnd.getVarContext();
 		if (cell==null) {
