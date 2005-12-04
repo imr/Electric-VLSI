@@ -100,23 +100,6 @@ public class Output
         return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype));
     }
 
-    static class OrderedConnections implements Comparator<Connection>
-	{
-/*5*/	public int compare(Connection c1, Connection c2)
-//4*/	public int compare(Object o1, Object o2)
-		{
-//4*/		Connection c1 = (Connection)o1;
-//4*/		Connection c2 = (Connection)o2;
-			int i1 = c1.getPortInst().getPortProto().getPortIndex();
-			int i2 = c2.getPortInst().getPortProto().getPortIndex();
-			int cmp = i1 - i2;
-			if (cmp != 0) return cmp;
-			cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
-			if (cmp != 0) return cmp;
-			return c1.getEndIndex() - c2.getEndIndex();
-		}
-	}
-
 	static class OrderedExports implements Comparator<Export>
 	{
 /*5*/	public int compare(Export e1, Export e2)
@@ -132,7 +115,6 @@ public class Output
 		}
 	}
 
-	/** connections comparator for writeNodeInst */		static final Comparator<Connection> CONNECTIONS_ORDER = new OrderedConnections();
 	/** exports comparator for writeNodeInst */			static final Comparator<Export> EXPORTS_ORDER = new OrderedExports();
 
 	/** file path */									protected String filePath;

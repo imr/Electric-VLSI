@@ -68,6 +68,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -143,7 +145,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param d persistent data of this NodeInst.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 */
-    NodeInst(ImmutableNodeInst d, Cell parent) {
+    public NodeInst(ImmutableNodeInst d, Cell parent) {
         super(parent);
         this.protoType = d.protoId.inCurrentThread();
         this.d = d;
@@ -868,7 +870,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableNodeInst newD, boolean notify) {
+    public boolean setD(ImmutableNodeInst newD, boolean notify) {
         checkChanging();
         ImmutableNodeInst oldD = d;
         if (newD == oldD) return false;
@@ -1192,7 +1194,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/**
 	 * Method to recalculate the Geometric bounds for this NodeInst.
 	 */
-	private void redoGeometric()
+	public void redoGeometric()
 	{
 		d.computeBounds(this, visBounds);
 	}
@@ -2035,7 +2037,28 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		redoGeometric();
 	}
 
-	/**
+    /**
+     * Low-level method to allocate Exports array.
+     * @param numExports size of Exports array.
+     */
+    public void lowLevelAllocExports(int numExports) {
+        if (numExports == exports.length)
+            Arrays.fill(exports, null);
+        else
+            exports = numExports > 0 ? new Export[numExports] : NULL_EXPORT_ARRAY;
+    }
+    
+    /**
+     * Low-level method to put Export into exports array.
+     * @param index index where to put.
+     * @param export Export to put.
+     */
+    public void lowLevelSetExport(int index, Export export) {
+        assert exports[index] == null;
+        exports[index] = export;
+    }
+    
+    /**
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
@@ -2210,7 +2233,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Small values are shortened almost to nothing, whereas large values are shortened
 	 * very little (and a value of 90 indicates no shortening at all).
 	 */
- 	void updateShrinkage()
+ 	public void updateShrinkage()
 	{
 		// quit now if we don't have to worry about this kind of nodeinst
 		if (!(protoType instanceof PrimitiveNode) || !((PrimitiveNode)protoType).isArcsShrink()) return;
@@ -2347,7 +2370,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         updateShrinkage();
 		redoGeometric();
 	}
-
+    
 	/**
 	 * Method to remove an Connection from this NodeInst.
 	 * @param c the Connection to remove.
@@ -2367,7 +2390,48 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         updateShrinkage();
 		redoGeometric();
 	}
+    
+    /**
+     * Low-level method to clear all Connections.
+     */
+    public void lowLevelClearConnections() {
+        connections.clear();
+    }
 
+    /**
+     * Low-level method to add an Connection to this NodeInst.
+     * This method doesn't keep proper order of Connections.
+     * Connections should be sorted later.
+     * @param c the Connection to add.
+     */
+    public void lowLevelAddConnection(Connection c) {
+        PortInst pi = c.getPortInst();
+        assert pi.getNodeInst() == this;
+        connections.add(c);
+    }
+    
+    /**
+     * Repair proper order of Connections after low-level manipulations.
+     */
+    public void sortConnections() {
+        if (connectionsSorted()) return;
+        Collections.sort(connections, TextUtils.CONNECTIONS_ORDER);
+    }
+
+    /**
+     * Returns true if connections are sorted by port index.
+     */
+    private boolean connectionsSorted() {
+        int prevPortIndex = -1;
+        for (int i = 0; i < connections.size(); i++) {
+            int portIndex = connections.get(i).getPortInst().getPortIndex();
+            if (portIndex < prevPortIndex)
+                return false;
+            prevPortIndex = portIndex;
+        }
+        return true;
+    }
+    
 	/**
 	 * Method to return an Iterator over all Connections on this NodeInst.
 	 * @return an Iterator over all Connections on this NodeInst.

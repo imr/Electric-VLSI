@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 
@@ -1524,4 +1525,16 @@ public class TextUtils
             return s1.compareToIgnoreCase(s2);
         }
     }
+
+    public static final Comparator<Connection> CONNECTIONS_ORDER = new Comparator<Connection>() {
+        public int compare(Connection c1, Connection c2) {
+			int i1 = c1.getPortInst().getPortProto().getPortIndex();
+			int i2 = c2.getPortInst().getPortProto().getPortIndex();
+			int cmp = i1 - i2;
+			if (cmp != 0) return cmp;
+			cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
+			if (cmp != 0) return cmp;
+			return c1.getEndIndex() - c2.getEndIndex();
+		}
+    };
 }

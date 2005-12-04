@@ -114,7 +114,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param angle angle in tenth-degrees
      * @param flags flag bits
 	 */
-	private ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
+	public ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
 	{
 		super(parent);
 
@@ -464,7 +464,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableArcInst newD, boolean notify) {
+    public boolean setD(ImmutableArcInst newD, boolean notify) {
         checkChanging();
         ImmutableArcInst oldD = d;
         if (newD == oldD) return false;
@@ -861,7 +861,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/**
 	 * Method to recompute the Geometric information on this ArcInst.
 	 */
-	private void updateGeometric()
+	public void updateGeometric()
 	{
 		checkChanging();
 

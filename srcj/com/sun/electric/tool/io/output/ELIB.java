@@ -643,7 +643,7 @@ public class ELIB extends Output
 			List<Connection> sortedList = new ArrayList<Connection>();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				sortedList.add(it.next());
-			Collections.sort(sortedList, CONNECTIONS_ORDER);
+			Collections.sort(sortedList, TextUtils.CONNECTIONS_ORDER);
 
 			for(Iterator<Connection> it = sortedList.iterator(); it.hasNext(); )
 			{

@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -363,7 +364,7 @@ public class ReadableDump extends Output
 						if (con.getPortInst().getPortProto() == pp)
 							sortedConnections.add(con);
 					}
-					Collections.sort(sortedConnections, CONNECTIONS_ORDER);
+					Collections.sort(sortedConnections, TextUtils.CONNECTIONS_ORDER);
 					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 					{
 						Export e = (Export)eIt.next();

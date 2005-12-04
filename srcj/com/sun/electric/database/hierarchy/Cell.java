@@ -48,6 +48,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
@@ -75,7 +76,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1022,6 +1025,236 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return backup(backup) == backup;
     }
     
+    public void update(CellBackup newBackup) {
+        // Update NodeInsts
+        nodes.clear();
+        essenBounds.clear();
+        int tempNodeCount = 0;
+        for (int i = 0; i < newBackup.nodes.length; i++) {
+            ImmutableNodeInst d = newBackup.nodes[i];
+            while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
+            NodeInst ni = chronNodes.get(d.nodeId);
+            if (ni != null) {
+                ni.setD(d, false);
+                /* Perhaps update PortInsts. */
+                ni.lowLevelClearConnections();
+            } else {
+                ni = new NodeInst(d, this);
+                chronNodes.set(d.nodeId, ni);
+            }
+            ni.setNodeIndex(i);
+            nodes.add(ni);
+            // CellUsages
+            if (!ni.isUsernamed()) {
+                tempNodeCount++;
+                addTempName(ni);
+            }
+        }
+        assert nodes.size() == newBackup.nodes.length;
+
+        int nodeCount = 0;
+        for (int i = 0; i < chronNodes.size(); i++) {
+            NodeInst ni = chronNodes.get(i);
+            if (ni == null) continue;
+            int nodeIndex = ni.getNodeIndex();
+            if (nodeIndex >= nodes.size() || ni != nodes.get(nodeIndex)) {
+                ni.setNodeIndex(-1);
+                chronNodes.set(i, null);
+            }
+            nodeCount++;
+        }
+        assert nodeCount == nodes.size();
+
+        for (Iterator<Map.Entry<String,NodeInst>> it = tempNodeNames.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String,NodeInst> e = it.next();
+            NodeInst ni = e.getValue();
+            if (ni.getNodeIndex() < 0 || !ni.getName().equalsIgnoreCase(e.getKey()))
+                it.remove();
+        }
+        assert tempNodeNames.size() == tempNodeCount;
+
+        arcs.clear();
+        for (int i = 0; i < newBackup.arcs.length; i++) {
+            ImmutableArcInst d = newBackup.arcs[i];
+            while (d.arcId >= chronArcs.size()) chronArcs.add(null);
+            ArcInst ai = chronArcs.get(d.arcId);
+            if (ai != null) {
+                ai.setD(d, false);
+            } else {
+                ai = new ArcInst(this, d, getPortInst(d.headNodeId, d.headPortId), getPortInst(d.tailNodeId, d.tailPortId));
+                chronArcs.set(d.arcId, ai);
+            }
+            ai.setArcIndex(i);
+            arcs.add(ai);
+            ai.getTailPortInst().getNodeInst().lowLevelAddConnection(ai.getTail());
+            ai.getHeadPortInst().getNodeInst().lowLevelAddConnection(ai.getHead());
+            if (!ai.isUsernamed()) {
+                Name name = ai.getNameKey();
+                assert name.getBasename() == ImmutableArcInst.BASENAME;
+                maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
+            }
+        }
+
+        int arcCount = 0;
+        for (int i = 0; i < chronArcs.size(); i++) {
+            ArcInst ai = chronArcs.get(i);
+            if (ai == null) continue;
+            int arcIndex = ai.getArcIndex();
+            if (arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
+                ai.setArcIndex(-1);
+                chronArcs.set(i, null);
+            }
+            arcCount++;
+        }
+        assert arcCount == arcs.size();
+
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            ni.sortConnections();
+        }
+
+        exports = new Export[newBackup.exports.length];
+        for (int i = 0; i < newBackup.exports.length; i++) {
+            ImmutableExport d = newBackup.exports[i];
+            // Add to chronExports 
+            int chronIndex = d.exportId.getChronIndex();
+            if (chronExports.length <= chronIndex) {
+                Export[] newChronExports = new Export[Math.max(chronIndex + 1, chronExports.length*2)];
+                System.arraycopy(chronExports, 0, newChronExports, 0, chronExports.length);
+                chronExports = newChronExports;
+            }
+            Export e = chronExports[chronIndex];
+            if (e != null) {
+                e.setD(d, false);
+                /* OriginalPort */
+            } else {
+                e = new Export(d, this);
+                chronExports[chronIndex] = e;
+            }
+            e.setPortIndex(i);
+            exports[i] = e;
+        }
+
+        int exportCount = 0;
+        for (int i = 0; i < chronExports.length; i++) {
+            Export e = chronExports[i];
+            if (e == null) continue;
+            int chronIndex = e.getId().getChronIndex();
+            if (chronIndex >= exports.length || e != exports[chronIndex]) {
+                e.setPortIndex(-1);
+                chronExports[i] = null;
+            }
+            exportCount++;
+        }
+        assert exportCount == exports.length;
+
+        int[] exportsCounts = new int[nodes.size()];
+        for (int i = 0; i < exports.length; i++) {
+            Export e = exports[i];
+            exportsCounts[e.getOriginalPort().getNodeInst().getNodeIndex()]++;
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            nodes.get(i).lowLevelAllocExports(exportsCounts[i]);
+            exportsCounts[i] = 0;
+        }
+        for (int i = 0; i < exports.length; i++) {
+            Export e = exports[i];
+            int nodeIndex = e.getOriginalPort().getNodeInst().getNodeIndex();
+            NodeInst ni = nodes.get(nodeIndex);
+            ni.lowLevelSetExport(exportsCounts[nodeIndex]++, e);
+        }
+        
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            ni.computeWipeState();
+            ni.updateShrinkage();
+            ni.redoGeometric();
+            linkNode(ni);
+        }
+        
+        for (int i = 0; i < arcs.size(); i++) {
+            ArcInst ai = arcs.get(i);
+            ai.updateGeometric();
+            linkArc(ai);
+        }
+    }
+    
+//    private static int[] portCounts = new int[100000];
+//    
+//    public Connection sortConnections1() {
+//        Connection[] connections = new Connection[arcs.size()*2];
+//        int maxPort = 0;
+//        int[] counts = new int[nodes.size()];
+//        for (int i = 0; i < arcs.size(); i++) {
+//            ArcInst ai = arcs.get(i);
+//            
+//            PortInst tail = ai.getTailPortInst();
+//            counts[tail.getNodeInst().getNodeIndex()]++;
+//            int tailPort = tail.getPortIndex();
+//            while (maxPort <= tailPort)
+//                portCounts[maxPort++] = 0;
+//            portCounts[tailPort]++;
+//            
+//            PortInst head = ai.getHeadPortInst();
+//            counts[head.getNodeInst().getNodeIndex()]++;
+//            int headPort = head.getPortIndex();
+//            while (maxPort <= headPort)
+//                portCounts[maxPort++] = 0;
+//            portCounts[headPort]++;
+//        }
+//        int sum = 0;
+//        for (int i = 0; i < maxPort; i++) {
+//            int c = portCounts[i];
+//            portCounts[i] = sum;
+//            sum += c;
+//        }
+//        assert sum == arcs.size()*2;
+//            
+//        sum = 0;
+//        for (int i = 0; i < counts.length; i++) {
+//            int c = counts[i];
+//            counts[i] = sum;
+//            sum += c;
+//        }
+//        assert sum == arcs.size()*2;
+//        
+//        int[] connections0 = new int[arcs.size()*2]; 
+//        for (int i = 0; i < arcs.size(); i++) {
+//            ArcInst ai = arcs.get(i);
+//            Connection tailCon = ai.getTail();
+//            PortInst tail = ai.getTailPortInst();
+//            int tailPort = tail.getPortIndex();
+//            connections0[portCounts[tailPort]++] = i*2 + ArcInst.TAILEND;
+//            Connection headCon = ai.getHead();
+//            PortInst head = ai.getHeadPortInst();
+//            int headPort = head.getPortIndex();
+//            connections0[portCounts[headPort]++] = i*2 + ArcInst.HEADEND;
+//        }
+//        for (int i = 0; i < connections0.length; i++) {
+//            int v = connections0[i];
+//            ArcInst ai = arcs.get(v >> 1);
+//            int end = v & 1;
+//            int nodeIndex = ai.getPortInst(end).getNodeInst().getNodeIndex();
+//            connections[counts[nodeIndex]++] = ai.getConnection(end);
+//        }
+//        for (int i = 0; i < connections.length; i++)
+//            assert connections[i] != null;
+//        return connections.length > 0 ? connections[0] : null;
+//    }
+//    
+//    private static Comparator<Connection> CONNECTION_ORDER = new Comparator<Connection>() {
+//        public int compare(Connection c1, Connection c2) {
+//            PortInst p1 = c1.getPortInst();
+//            PortInst p2 = c2.getPortInst();
+//            int cmp = p1.getNodeInst().getNodeIndex() - p2.getNodeInst().getNodeIndex();
+//            if (cmp != 0) return cmp;
+//            cmp = p1.getPortIndex() - p2.getPortIndex();
+//            if (cmp != 0) return cmp;
+//            cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
+//            return c1.getEndIndex() - c2.getEndIndex();
+//        }
+//    };
+    
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -1866,7 +2099,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			NodeInst n = (NodeInst)nodes.get(nodeIndex);
 			n.setNodeIndex(nodeIndex);
 		}
-        
+        addTempName(ni);
+	}
+
+    /**
+     * add temp name of NodeInst to temp name map and to maxSuffix map.
+     * @param ni NodeInst.
+     */
+    private void addTempName(NodeInst ni) {
         // add temporary name
 		Name name = ni.getNameKey();
 		if (!name.isTempname()) return;
@@ -1888,8 +2128,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				ms.v = numSuffix;
 			}
 		}
-	}
-
+    }
+    
 	/**
 	 * Method check if NodeInst with specified temporary name key exists in a cell.
 	 * @param name specified temorary name key.

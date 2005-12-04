@@ -507,7 +507,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableExport newD, boolean notify) {
+    boolean setD(ImmutableExport newD, boolean notify) {
         checkChanging();
         ImmutableExport oldD = d;
         if (newD == oldD) return false;
