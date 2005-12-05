@@ -23,20 +23,21 @@
  */
 package com.sun.electric.plugins.j3d.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.TransformGroup;
-import javax.swing.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
@@ -616,8 +617,7 @@ public class J3DViewDialog extends EDialog
     private void connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectActionPerformed
         if (connect.getText().equals("Connect"))
         {
-            Object value = JOptionPane.showInputDialog(null, "Hostname Dialog", "Enter hostname for socket connection", JOptionPane.PLAIN_MESSAGE,
-                null, null, "localhost");
+            Object value = Main.getUserInterface().askForInput("Enter hostname for socket connection", "Hostname Dialog", "localhost");
             if (value == null) return; //nothing to do
             connect.setText("Disconnect");
             socketJob = new J3DClientApp(this, value.toString());

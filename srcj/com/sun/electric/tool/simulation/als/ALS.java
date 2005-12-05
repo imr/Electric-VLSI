@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.simulation.als;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
@@ -36,10 +37,7 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.ToolMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -56,8 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JOptionPane;
 
 /**
  * Class to control the ALS Simulator.
@@ -482,8 +478,8 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting a Clock on it",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before setting a Clock on it",
+				"No Signals Selected");
 			return;
 		}
 		String [] parameters = new String[1];
@@ -559,8 +555,8 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before displaying it",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before displaying it",
+				"No Signals Selected");
 			return;
 		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
@@ -595,8 +591,8 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal on which to clear stimuli",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal on which to clear stimuli",
+				"No Signals Selected");
 			return;
 		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
@@ -847,8 +843,8 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal on which to set stimuli",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal on which to set stimuli",
+				"No Signals Selected");
 			return;
 		}
 		String [] parameters = new String[1];

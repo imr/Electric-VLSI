@@ -50,7 +50,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -61,7 +60,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 
 
 /**
@@ -759,10 +757,8 @@ public class PostScript extends Output
 		if (syncOther)
 		{
 			String [] options = {"Yes", "No"};
-			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Would you like to synchronize all PostScript drawings?",
-				"Synchronize EPS files", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-				null, options, options[1]);
+			int ret = Main.getUserInterface().askForChoice("Would you like to synchronize all PostScript drawings?",
+				"Synchronize EPS files", options, options[1]);
 			if (ret == 1) syncOther = false;
 		}
 		if (syncOther)

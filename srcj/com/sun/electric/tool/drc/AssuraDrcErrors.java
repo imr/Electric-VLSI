@@ -24,18 +24,18 @@
 
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ErrorLogger;
 
-import javax.swing.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class to read DRC errors from Assura.
@@ -166,7 +166,7 @@ public class AssuraDrcErrors {
         }
         System.out.println("Imported "+count+" errors from file "+filename);
         if (count == 0) {
-            JOptionPane.showMessageDialog(null, "Imported Zero Errors", "DRC Import Complete", JOptionPane.INFORMATION_MESSAGE);
+        	Main.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
         }
         logger.termLogging(true);
     }

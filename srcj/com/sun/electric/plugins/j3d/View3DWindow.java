@@ -48,9 +48,19 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
-import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -103,7 +113,6 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.vecmath.Matrix4d;
@@ -211,12 +220,11 @@ public class View3DWindow extends JPanel
             // Only ask once
             if (!alreadyChecked)
             {
-                Object[] possibleValues = { "Full", "Limit", "Cancel" };
-                int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-                "Number of nodes in graph scene reached limit of " + maxNumNodes +
-                        " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in " +cell +
-                        ", 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
-                    "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues, possibleValues[2]);
+                String[] possibleValues = { "Full", "Limit", "Cancel" };
+                int response = Main.getUserInterface().askForChoice("Number of nodes in graph scene reached limit of " + maxNumNodes +
+                    " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in " +cell +
+                    ", 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
+                    "Warning", possibleValues, possibleValues[2]);
                 alreadyChecked = true;
                 if (response > 0) // Cancel or limit
                 {

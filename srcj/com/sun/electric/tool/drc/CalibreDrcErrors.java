@@ -1,20 +1,23 @@
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.io.output.GDS;
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.io.output.GDS;
+import com.sun.electric.tool.user.ErrorLogger;
 
-import javax.swing.*;
+import java.awt.Shape;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.awt.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 /**
  * This reads an ASCII Calibre DRC error database
@@ -328,7 +331,7 @@ public class CalibreDrcErrors {
         }
         System.out.println("Imported "+count+" errors");
         if (count == 0) {
-            JOptionPane.showMessageDialog(null, "Imported Zero Errors", "DRC Import Complete", JOptionPane.INFORMATION_MESSAGE);
+        	Main.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
         }
         logger.termLogging(true);
     }

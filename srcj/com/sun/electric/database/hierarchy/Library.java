@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableLibrary;
@@ -38,7 +39,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,8 +51,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-
-import javax.swing.JOptionPane;
 
 /**
  * A Library represents a collection of Cells.
@@ -204,8 +202,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 			if (newCurLib == null)
 			{
 				System.out.println("Cannot delete the last library");
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete the last "+toString(),
-					"Close library", JOptionPane.INFORMATION_MESSAGE);
+				Main.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
+					"Close library");
 				return false;
 			}
 		}
@@ -214,8 +212,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (libraries.get(d.libName) != this)
 		{
 			System.out.println("Cannot delete library " + this);
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
-				"Close library", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Cannot delete "+toString(),
+				"Close library");
 			return false;
 		}
 
@@ -237,10 +235,9 @@ public class Library extends ElectricObject implements Comparable<Library>
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() == this)
 						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Library close failed. Cannot " + reason + " " + toString() + " because one of its cells (" +
-								subCell.noLibDescribe() + ") is being used (by " + cell.libDescribe() + ")",
-								"Close library", JOptionPane.ERROR_MESSAGE);
+							Main.getUserInterface().showErrorMessage("Library close failed. Cannot " + reason + " " + toString() +
+								" because one of its cells (" + subCell.noLibDescribe() + ") is being used (by " + cell.libDescribe() + ")",
+								"Close library");
 							 referenced = true;
 							 break;
 						}

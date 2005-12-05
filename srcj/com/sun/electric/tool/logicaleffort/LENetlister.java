@@ -24,22 +24,23 @@
  */
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger;
 
-import javax.swing.*;
-import java.util.Iterator;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
+
+import javax.swing.SwingUtilities;
 
 public abstract class LENetlister extends HierarchyEnumerator.Visitor {
 
@@ -199,8 +200,8 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (current.keeperRatio != local.keeperRatio) System.out.println("keeperRatio:\t"+current.keeperRatio+" vs "+local.keeperRatio);
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    JOptionPane.showMessageDialog(null, "Conflicting global parameter settings were found, " +
-                            "please see message window for details", "Settings Conflict Found!!", JOptionPane.ERROR_MESSAGE);
+                	Main.getUserInterface().showErrorMessage("Conflicting global parameter settings were found, " +
+                            "please see message window for details", "Settings Conflict Found!!");
                 }
             });
             return true;

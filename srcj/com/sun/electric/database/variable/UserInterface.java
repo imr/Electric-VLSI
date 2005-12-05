@@ -23,8 +23,8 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
@@ -32,23 +32,68 @@ import java.awt.geom.Point2D;
 /**
  * This interface provides information from the user interface.
  */
-public interface UserInterface {
-
+public interface UserInterface
+{
+	/**
+	 * Method to return the current "EditWindow_" object.
+	 * @return the current "EditWindow_" object (null if none).
+	 */
 	public EditWindow_ getCurrentEditWindow_();
+	/**
+	 * Method to demand the current "EditWindow_" object.
+	 * If none exists, an error message is displayed.
+	 * @return the current "EditWindow_" object (null if none).
+	 */
 	public EditWindow_ needCurrentEditWindow_();
+
+	/**
+	 * Method to return the current Cell.
+	 * @return the current Cell (null if none).
+	 */
 	public Cell getCurrentCell();
+
+	/**
+	 * Method to demand the current Cell.
+	 * If none exists, an error message is displayed.
+	 * @return the current Cell (null if none).
+	 */
 	public Cell needCurrentCell();
+
+	/**
+	 * Method to request that all windows be redisplayed.
+	 */
 	public void repaintAllEditWindows();
+
+	/**
+	 * Method to align a database coordinate with the current grid.
+	 * @param pt the database coordinate.  It's value is adjusted.
+	 */
 	public void alignToGrid(Point2D pt);
+
+	/**
+	 * Method to return the height of default text (in points).
+	 * @return the height of default text (in points).
+	 */
 	public int getDefaultTextSize();
+
+	/**
+	 * Method to request that a Cell be displayed in a new window.
+	 * @param cell the Cell to be displayed.
+	 * @return the EditWindow_ object created to show the Cell.
+	 */
 	public EditWindow_ displayCell(Cell cell);
 
-    /** Related to ExplorerTree */
+    // Related to ExplorerTree
     public void wantToRedoErrorTree();
     public void wantToRedoJobTree();
 
-    /** ErrorLogger related functions */
+    // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain);
+
+    // Job related
+    public void invokeLaterBusyCursor(boolean state);
+    public void setBusyCursor(boolean state);
+
     /**
      * Method to return the error message associated with the current error.
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
@@ -56,11 +101,43 @@ public interface UserInterface {
      */
     public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair);
 
-    /** ActivityLogger related functions */
-    public void logException(String[] msg);
-    public void logFinished(String outputFile);
+    /**
+     * Method to show an error message.
+     * @param message the error message to show.
+     * @param title the title of a dialog with the error message.
+     */
+    public void showErrorMessage(Object message, String title);
 
-    /* Job related **/
-    public void invokeLaterBusyCursor(boolean state);
-    public void setBusyCursor(boolean state);
+    /**
+     * Method to show an informational message.
+     * @param message the message to show.
+     * @param title the title of a dialog with the message.
+     */
+    public void showInformationMessage(Object message, String title);
+
+    /**
+     * Method to show a message and ask for confirmation.
+     * @param message the message to show.
+     * @return true if "yes" was selected, false if "no" was selected.
+     */
+    public boolean confirmMessage(Object message);
+
+    /**
+     * Method to ask for a choice among possibilities.
+     * @param message the message to show.
+     * @param title the title of the dialog with the query.
+     * @param choices an array of choices to present, each in a button.
+     * @param defaultChoice the default choice.
+     * @return the index into the choices array that was selected.
+     */
+    public int askForChoice(Object message, String title, String [] choices, String defaultChoice);
+
+    /**
+     * Method to ask for a line of text.
+     * @param message the prompt message.
+     * @param title the title of a dialog with the message.
+     * @param def the default response.
+     * @return the string (null if cancelled).
+     */
+    public String askForInput(Object message, String title, String def);
 }

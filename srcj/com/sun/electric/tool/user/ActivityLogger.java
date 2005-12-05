@@ -29,6 +29,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
@@ -39,6 +40,8 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JOptionPane;
 
 /**
  * Class to log job activity.
@@ -82,12 +85,14 @@ public class ActivityLogger {
     /**
      * Call to close output writer and warn user if any exceptions were logged.
      */
-    public static synchronized void finished() {
-        if (out != null) out.close();
-        if (exceptionLogged && TEST_VERSION) {
-            Main.getUserInterface().logFinished(outputFile);
-        }
-    }
+	public static synchronized void finished() {
+		if (out != null) out.close();
+		if (exceptionLogged && TEST_VERSION) {
+			Main.getUserInterface().showInformationMessage(new String []
+			    { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
+				"Exception Logged");
+		}
+	}
 
     /**
      * Log a menu activation
@@ -193,7 +198,7 @@ public class ActivityLogger {
 		{
 			msg = new String[] {msg1, msg2, msg4};
 		}
-        Main.getUserInterface().logException(msg);
+        Main.getUserInterface().showErrorMessage(msg, "Exception Caught");
         exceptionLogged = true;
     }
 

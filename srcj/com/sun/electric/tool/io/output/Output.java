@@ -23,16 +23,15 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
@@ -40,18 +39,17 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Job.Priority;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -68,13 +66,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.swing.JOptionPane;
 
 
 /**
@@ -175,10 +171,9 @@ public class Output
         }
         if (dummyCells.size() > 1) {
             dummyCells.add("Do you really want to write this library?");
-            Object [] options = {"Continue Writing", "Cancel" };
-            int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), dummyCells.toArray(),
-                    "Dummy Cells Found in "+lib, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                    options, options[1]);
+            String [] options = {"Continue Writing", "Cancel" };
+            int val = Main.getUserInterface().askForChoice(dummyCells.toArray(),
+                    "Dummy Cells Found in "+lib, options, options[1]);
             if (val == 1) return true;
         }
 

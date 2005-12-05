@@ -18,13 +18,13 @@
 
 package com.sun.electric.plugins.irsim;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.simulation.Analysis;
@@ -33,10 +33,8 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -54,7 +52,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 
 /**
  * The Analyzer class is the top-level class for IRSIM simulation.
@@ -332,8 +329,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it High",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before setting it High",
+				"No Signals Selected");
 			return;
 		}
 		String [] parameters = new String[1];
@@ -355,8 +352,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it Low",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before setting it Low",
+				"No Signals Selected");
 			return;
 		}
 		String [] parameters = new String[1];
@@ -386,8 +383,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before setting it Undefined",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before setting it Undefined",
+				"No Signals Selected");
 			return;
 		}
 		String [] parameters = new String[1];
@@ -409,8 +406,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a signal before displaying it",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a signal before displaying it",
+				"No Signals Selected");
 			return;
 		}
 		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
@@ -435,8 +432,8 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() != 1)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must select a single signal on which to clear stimuli",
-				"No Signals Selected", JOptionPane.ERROR_MESSAGE);
+			Main.getUserInterface().showErrorMessage("Must select a single signal on which to clear stimuli",
+				"No Signals Selected");
 			return;
 		}
 		Signal sig = (Signal)signals.get(0);

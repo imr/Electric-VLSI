@@ -151,20 +151,6 @@ public class Simulate extends Input
 			cell = curLib.findNodeProto(cellName);
 			if (cell == null)
 			{
-				// prompt for the cell
-//				ArrayList cellNames = new ArrayList();
-//				for(Iterator it = curLib.getCells(); it.hasNext(); )
-//				{
-//					Cell aCell = (Cell)it.next();
-//					cellNames.add(aCell.describe(false));
-//				}
-//				String defaultCell = (String)cellNames.get(0);
-//				if (cell != null) defaultCell = cell.describe(false);
-//				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
-//					"Cells in " + curLib, JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
-//				if (selectedCell != null)
-//					cell = curLib.findNodeProto(selectedCell);
-
 				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCell);
 		        dialog.setVisible(true);
 				cell = dialog.getSelectedCell();

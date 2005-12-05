@@ -23,20 +23,22 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to build the UserInterface for the main GUI version of the user interface.
@@ -60,8 +62,6 @@ public class UserInterfaceMain implements UserInterface
     /** Related to ExplorerTree */
     public void wantToRedoErrorTree() { WindowFrame.wantToRedoErrorTree(); }
     public void wantToRedoJobTree() { WindowFrame.wantToRedoJobTree(); }
-
-//	public Highlighter getHighlighter();
 
 	public EditWindow_ displayCell(Cell cell)
 	{
@@ -233,19 +233,6 @@ public class UserInterfaceMain implements UserInterface
         return log.getMessageString();
     }
 
-    /** ActivityLogger related functions */
-    public void logException(String[] msg)
-    {
-        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void logFinished(String outputFile)
-    {
-        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String []
-            { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
-                    "Exception Logged", JOptionPane.WARNING_MESSAGE);
-    }
-
     /* Job related **/
     public void invokeLaterBusyCursor(final boolean state)
     {
@@ -254,5 +241,63 @@ public class UserInterfaceMain implements UserInterface
     public void setBusyCursor(boolean state)
     {
         TopLevel.setBusyCursor(state);
+    }
+
+    /**
+     * Method to show an error message.
+     * @param message the error message to show.
+     * @param title the title of a dialog with the error message.
+     */
+    public void showErrorMessage(Object message, String title)
+    {
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Method to show an informational message.
+     * @param message the message to show.
+     * @param title the title of a dialog with the message.
+     */
+    public void showInformationMessage(Object message, String title)
+    {
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * Method to show a message and ask for confirmation.
+     * @param message the message to show.
+     * @return true if "yes" was selected, false if "no" was selected.
+     */
+    public boolean confirmMessage(Object message)
+    {
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), message);
+		return response == JOptionPane.YES_OPTION;
+    }
+
+    /**
+     * Method to ask for a choice among possibilities.
+     * @param message the message to show.
+     * @param title the title of the dialog with the query.
+     * @param choices an array of choices to present, each in a button.
+     * @param defaultChoice the default choice.
+     * @return the index into the choices array that was selected.
+     */
+    public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
+    {
+	    int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), message, title,
+	    	JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, choices, defaultChoice);
+	    return val;
+    }
+
+    /**
+     * Method to ask for a line of text.
+     * @param message the prompt message.
+     * @param title the title of a dialog with the message.
+     * @param def the default response.
+     * @return the string (null if cancelled).
+     */
+    public String askForInput(Object message, String title, String def)
+    {
+    	return JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def).toString();
     }
 }

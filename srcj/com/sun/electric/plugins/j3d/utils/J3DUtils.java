@@ -24,30 +24,64 @@
  */
 package com.sun.electric.plugins.j3d.utils;
 
+import com.sun.electric.Main;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.plugins.j3d.View3DWindow;
 
-import javax.vecmath.*;
-import javax.media.j3d.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.Color;
+import java.awt.GraphicsConfiguration;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.io.FileReader;
+import java.io.LineNumberReader;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.io.*;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.StringTokenizer;
+
+import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.Background;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.Geometry;
+import javax.media.j3d.GeometryArray;
+import javax.media.j3d.GeometryUpdater;
+import javax.media.j3d.ImageComponent;
+import javax.media.j3d.ImageComponent2D;
+import javax.media.j3d.Light;
+import javax.media.j3d.Node;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
+import javax.swing.DefaultListModel;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Point3f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
 
 /**
  * Utility class for 3D module
@@ -263,7 +297,7 @@ public final class J3DUtils
 
         if (fileName == null) return null; // Cancel
 
-        Object[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
+        String[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
 
         List<J3DUtils.ThreeDDemoKnot> knotList = null;
         try {
@@ -277,9 +311,8 @@ public final class J3DUtils
                 // responce 0 -> Accept All
                 if (response != 0)
                 {
-                    response = JOptionPane.showOptionDialog(null,
-                    "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
-                            possibleValues[0]);
+                    response = Main.getUserInterface().askForChoice("Applying following data " + line, "Action",
+                  		possibleValues, possibleValues[0]);
                     if (response == 2) continue; // skip
                     else if (response == 3) break; // cancel option
                 }

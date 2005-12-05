@@ -24,10 +24,10 @@
 package com.sun.electric;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -37,7 +37,11 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
@@ -256,6 +260,11 @@ public final class Main
         public void wantToRedoJobTree() { ; }
 
         public void termLogging(final ErrorLogger logger, boolean explain) {;}
+
+        /* Job related **/
+        public void invokeLaterBusyCursor(final boolean state){;}
+        public void setBusyCursor(boolean state) {;}
+
         /**
          * Method to return the error message associated with the current error.
          * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
@@ -266,19 +275,57 @@ public final class Main
             // return the error message
             return log.getMessageString();
         }
-        /** ActivityLogger related functions */
-        public void logException(String[] msg)
+
+        /**
+         * Method to show an error message.
+         * @param message the error message to show.
+         * @param title the title of a dialog with the error message.
+         */
+        public void showErrorMessage(Object message, String title)
         {
-            System.out.println(msg[0]);
-        }
-        public void logFinished(String outputFile)
-        {
-            System.out.println("Exception logged.  Please send \""+outputFile+"\", to the developers \n.Exception Logged");
+        	System.out.println(message);
         }
 
-        /* Job related **/
-        public void invokeLaterBusyCursor(final boolean state){;}
-        public void setBusyCursor(boolean state) {;}
+        /**
+         * Method to show an informational message.
+         * @param message the message to show.
+         * @param title the title of a dialog with the message.
+         */
+        public void showInformationMessage(Object message, String title)
+        {
+        	System.out.println(message);
+        }
+
+        /**
+         * Method to show a message and ask for confirmation.
+         * @param message the message to show.
+         * @return true if "yes" was selected, false if "no" was selected.
+         */
+        public boolean confirmMessage(Object message) { return true; }
+
+        /**
+         * Method to ask for a choice among possibilities.
+         * @param message the message to show.
+         * @param title the title of the dialog with the query.
+         * @param choices an array of choices to present, each in a button.
+         * @param defaultChoice the default choice.
+         * @return the index into the choices array that was selected.
+         */
+        public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
+        {
+        	System.out.println(message + " CHOOSING " + defaultChoice);
+        	for(int i=0; i<choices.length; i++) if (choices[i].equals(defaultChoice)) return i;
+        	return 0;
+        }
+
+        /**
+         * Method to ask for a line of text.
+         * @param message the prompt message.
+         * @param title the title of a dialog with the message.
+         * @param def the default response.
+         * @return the string (null if cancelled).
+         */
+        public String askForInput(Object message, String title, String def) { return def; }
 	}
 
 	/**

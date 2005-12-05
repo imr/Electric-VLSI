@@ -24,6 +24,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.io.output;
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -48,7 +49,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -62,8 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.swing.JOptionPane;
 
 
 /**
@@ -732,9 +730,9 @@ public class ELIB extends Output
 	{
 		if (nameSpace.size() > Short.MAX_VALUE)
 		{
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"ERROR! Too many unique variable names",
+			Main.getUserInterface().showErrorMessage(new String [] {"ERROR! Too many unique variable names",
                "The ELIB format cannot handle this many unique variables names", "Either delete the excess variables, or save to a readable dump"},
-               "Error saving ELIB file", JOptionPane.ERROR_MESSAGE);
+               "Error saving ELIB file");
             throw new IOException("Variable.Key index too large");
 		}
 		writeBigInteger(nameSpace.size());

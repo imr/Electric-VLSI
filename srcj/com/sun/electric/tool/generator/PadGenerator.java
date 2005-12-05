@@ -55,7 +55,6 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -70,7 +69,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import javax.swing.JOptionPane;
 
 /**
  * Class to generate pad frames from a specification file.
@@ -895,9 +893,8 @@ public class PadGenerator
             String iconCellName = framecell.getName() + "{ic}";
             Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
             if (iconCell == null) {
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                        "Cannot create Icon cell " + iconCellName,
-                        "Icon creation failed", JOptionPane.ERROR_MESSAGE);
+            	Main.getUserInterface().showErrorMessage("Cannot create Icon cell " + iconCellName,
+                    "Icon creation failed");
                 return;
             }
             iconCell.setWantExpanded();
