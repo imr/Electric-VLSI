@@ -1,6 +1,5 @@
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.FileType;
