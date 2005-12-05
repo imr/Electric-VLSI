@@ -25,14 +25,9 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ErrorLogger;
 
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * This interface provides information from the user interface.
@@ -47,7 +42,12 @@ public interface UserInterface {
 	public void alignToGrid(Point2D pt);
 	public int getDefaultTextSize();
 	public EditWindow_ displayCell(Cell cell);
+
+    /** Related to ExplorerTree */
     public void wantToRedoErrorTree();
+    public void wantToRedoJobTree();
+
+    /** ErrorLogger related functions */
     public void termLogging(final ErrorLogger logger, boolean explain);
     /**
      * Method to return the error message associated with the current error.
@@ -55,4 +55,12 @@ public interface UserInterface {
      * with associated geometry modules (if nonzero).
      */
     public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair);
+
+    /** ActivityLogger related functions */
+    public void logException(String[] msg);
+    public void logFinished(String outputFile);
+
+    /* Job related **/
+    public void invokeLaterBusyCursor(boolean state);
+    public void setBusyCursor(boolean state);
 }

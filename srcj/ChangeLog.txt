@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (12/6/05, GVG) Got rid of user.ui dependencies in ActivityLogger and Job
+
 IMP: (12/3/05, GVG) Similar work with DRC and ErrorLogger.
 
 IMP: (12/2/05, SMR) Major changes to decouple EditWindow and WindowFrame from database.

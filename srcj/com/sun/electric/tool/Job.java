@@ -32,8 +32,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -165,7 +163,7 @@ public abstract class Job implements ActionListener, Runnable {
                     // turn off busy cursor if no more change jobs
                     synchronized(this) {
                         if (!isChangeJobQueuedOrRunning())
-                            SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
+                            Main.getUserInterface().invokeLaterBusyCursor(false);
                     }
                 }
 			}
@@ -232,10 +230,10 @@ public abstract class Job implements ActionListener, Runnable {
 				notify();
             allJobs.add(j);
             if (!BATCHMODE && j.jobType == Type.CHANGE) {
-                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(true); }});
+                Main.getUserInterface().invokeLaterBusyCursor(true);
             }
             if (j.getDisplay()) {
-                WindowFrame.wantToRedoJobTree();
+                Main.getUserInterface().wantToRedoJobTree();
             }
 		}
 
@@ -295,7 +293,7 @@ public abstract class Job implements ActionListener, Runnable {
 			}
             //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
             if (j.getDisplay()) {
-                WindowFrame.wantToRedoJobTree();        
+                Main.getUserInterface().wantToRedoJobTree();
             }
 		}
 
@@ -442,9 +440,9 @@ public abstract class Job implements ActionListener, Runnable {
 
         if (NOTHREADING) {
             // turn off threading if needed for debugging
-            TopLevel.setBusyCursor(true);
+            Main.getUserInterface().setBusyCursor(true);
             run();
-            TopLevel.setBusyCursor(false);
+            Main.getUserInterface().setBusyCursor(false);
         } else {
             databaseChangesThread.addJob(this);
         }
@@ -503,7 +501,9 @@ public abstract class Job implements ActionListener, Runnable {
         startTime = System.currentTimeMillis();
 
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
-        ActivityLogger.logJobStarted(jobName, jobType, upCell, savedHighlights, savedHighlightsOffset);
+
+        Cell cell = Main.getUserInterface().getCurrentCell();
+        ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
 		try {
             if (jobType != Type.EXAMINE) changingJob = this;
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
@@ -558,7 +558,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     protected synchronized void setProgress(String progress) {
         this.progress = progress;
-        WindowFrame.wantToRedoJobTree();
+        Main.getUserInterface().wantToRedoJobTree();
     }        
     
     private synchronized String getProgress() { return progress; }
@@ -575,7 +575,7 @@ public abstract class Job implements ActionListener, Runnable {
             return;
         }
         scheduledToAbort = true;
-        WindowFrame.wantToRedoJobTree();
+        Main.getUserInterface().wantToRedoJobTree();
     }
 
     /** Save current Highlights */
@@ -592,7 +592,7 @@ public abstract class Job implements ActionListener, Runnable {
     }
 
 	/** Confirmation that thread is aborted */
-    protected synchronized void setAborted() { aborted = true; WindowFrame.wantToRedoJobTree(); }
+    protected synchronized void setAborted() { aborted = true; Main.getUserInterface().wantToRedoJobTree(); }
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /**

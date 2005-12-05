@@ -251,7 +251,10 @@ public final class Main
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }
+
 		public void wantToRedoErrorTree() { ; }
+        public void wantToRedoJobTree() { ; }
+
         public void termLogging(final ErrorLogger logger, boolean explain) {;}
         /**
          * Method to return the error message associated with the current error.
@@ -263,6 +266,19 @@ public final class Main
             // return the error message
             return log.getMessageString();
         }
+        /** ActivityLogger related functions */
+        public void logException(String[] msg)
+        {
+            System.out.println(msg[0]);
+        }
+        public void logFinished(String outputFile)
+        {
+            System.out.println("Exception logged.  Please send \""+outputFile+"\", to the developers \n.Exception Logged");
+        }
+
+        /* Job related **/
+        public void invokeLaterBusyCursor(final boolean state){;}
+        public void setBusyCursor(boolean state) {;}
 	}
 
 	/**

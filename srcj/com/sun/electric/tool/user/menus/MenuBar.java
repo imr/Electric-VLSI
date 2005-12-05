@@ -147,7 +147,7 @@ public class MenuBar extends JMenuBar
     private static class MenuLogger implements ActionListener {
         public synchronized void actionPerformed(ActionEvent e) {
             JMenuItem m = (JMenuItem)e.getSource();
-            ActivityLogger.logMenuActivated(m);
+            ActivityLogger.logMenuActivated(((MenuBar.MenuItemInterface)m).getDescription());
         }
     }
 

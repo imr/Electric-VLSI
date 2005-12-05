@@ -29,10 +29,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.ui.ToolBarButton;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
@@ -43,9 +39,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 
 /**
  * Class to log job activity.
@@ -92,21 +85,19 @@ public class ActivityLogger {
     public static synchronized void finished() {
         if (out != null) out.close();
         if (exceptionLogged && TEST_VERSION) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String []
-            { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
-                    "Exception Logged", JOptionPane.WARNING_MESSAGE);
+            Main.getUserInterface().logFinished(outputFile);
         }
     }
 
     /**
      * Log a menu activation
-     * @param m the menu activated
+     * @param menuDescription description of the menu activated
      */
-    public static synchronized void logMenuActivated(JMenuItem m) {
+    public static synchronized void logMenuActivated(String menuDescription) {
         if (out == null) return;
         if (!logMenuActivations) return;
         printDelimeter(true);
-        out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
+        out.println("Menu Activated: "+menuDescription);
         //System.out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
         UserInterface ui = Main.getUserInterface();
         EditWindow_ wnd = ui.getCurrentEditWindow_();
@@ -122,13 +113,13 @@ public class ActivityLogger {
 
     /**
      * Log a tool bar button activation
-     * @param b the tool bar button activated
+     * @param buttonName the tool bar button activated
      */
-    public static synchronized void logToolBarButtonActivated(ToolBarButton b) {
+    public static synchronized void logToolBarButtonActivated(String buttonName) {
         if (out == null) return;
         if (!logMenuActivations) return;
         printDelimeter(true);
-        out.println("ToolBarButton Activated: "+b.getName());
+        out.println("ToolBarButton Activated: "+buttonName);
     }
 
     /**
@@ -136,16 +127,15 @@ public class ActivityLogger {
      * the job started.
      * @param jobName the job name
      * @param jobType the job type
-     * @param upCell the upCell cell
+     * @param cell the current cell
      * @param savedHighlights the starting highlights
      * @param savedHighlightsOffset the starting highlight offset (currently not used)
      */
-    public static synchronized void logJobStarted(String jobName, Job.Type jobType, Cell upCell,
+    public static synchronized void logJobStarted(String jobName, Job.Type jobType, Cell cell,
                                                   List<Object> savedHighlights, Point2D savedHighlightsOffset) {
         if (out == null) return;
         if (!logJobs) return;
         printDelimeter(true);
-        Cell cell = WindowFrame.getCurrentCell();
         String cellName = (cell == null) ? "none" : cell.libDescribe();
         Exception e = new Exception("stack trace");
         out.println("Job Started [Current Cell: "+cellName+"] "+jobName+", "+jobType);
@@ -203,10 +193,7 @@ public class ActivityLogger {
 		{
 			msg = new String[] {msg1, msg2, msg4};
 		}
-	    if (!Job.BATCHMODE)
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
-	    else
-	        System.out.println(msg[0]);
+        Main.getUserInterface().logException(msg);
         exceptionLogged = true;
     }
 

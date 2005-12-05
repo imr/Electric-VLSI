@@ -216,7 +216,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
     private static class ButtonLogger implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             ToolBarButton b = (ToolBarButton)e.getSource();
-            ActivityLogger.logToolBarButtonActivated(b);
+            ActivityLogger.logToolBarButtonActivated(b.getName());
         }
     }
 

@@ -57,7 +57,9 @@ public class UserInterfaceMain implements UserInterface
 
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
 
+    /** Related to ExplorerTree */
     public void wantToRedoErrorTree() { WindowFrame.wantToRedoErrorTree(); }
+    public void wantToRedoJobTree() { WindowFrame.wantToRedoJobTree(); }
 
 //	public Highlighter getHighlighter();
 
@@ -229,5 +231,28 @@ public class UserInterfaceMain implements UserInterface
 
         // return the error message
         return log.getMessageString();
+    }
+
+    /** ActivityLogger related functions */
+    public void logException(String[] msg)
+    {
+        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void logFinished(String outputFile)
+    {
+        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String []
+            { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
+                    "Exception Logged", JOptionPane.WARNING_MESSAGE);
+    }
+
+    /* Job related **/
+    public void invokeLaterBusyCursor(final boolean state)
+    {
+        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(state); }});
+    }
+    public void setBusyCursor(boolean state)
+    {
+        TopLevel.setBusyCursor(state);
     }
 }
