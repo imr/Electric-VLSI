@@ -1465,7 +1465,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// show standard things in the explorer (jobs, errors)
-		wf.jobExplorerNode = Job.getExplorerTree();
+		wf.jobExplorerNode = JobTree.getExplorerTree();
 		rootNode.add(wf.jobExplorerNode);
 		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		rootNode.add(wf.errorExplorerNode);

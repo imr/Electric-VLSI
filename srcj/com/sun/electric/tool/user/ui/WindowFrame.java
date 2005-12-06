@@ -259,6 +259,26 @@ public class WindowFrame extends Observable
         }
     }
 
+    public void loadDefaultExplorerTree(DefaultMutableTreeNode rootNode)
+    {
+        libraryExplorerNode = ExplorerTree.makeLibraryTree();
+		rootNode.add(libraryExplorerNode);
+		jobExplorerNode = JobTree.getExplorerTree();
+		rootNode.add(jobExplorerNode);
+		errorExplorerNode = ErrorLoggerTree.getExplorerTree();
+		rootNode.add(errorExplorerNode);
+
+		// no simulation data
+		genSignalExplorerNode = null;
+		transSignalExplorerNode = null;
+		transSweepExplorerNode = null;
+		acSignalExplorerNode = null;
+		acSweepExplorerNode = null;
+		dcSignalExplorerNode = null;
+		dcSweepExplorerNode = null;
+		measurementExplorerNode = null;
+    }
+
 	private Dimension buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
 		this.content = content;
@@ -655,7 +675,7 @@ public class WindowFrame extends Observable
 		if (wantToRedoLibraryTree)
 			libraryExplorerNode = ExplorerTree.makeLibraryTree();
 		if (wantToRedoJobTree)
-			jobExplorerNode = Job.getExplorerTree();
+			jobExplorerNode = JobTree.getExplorerTree();
 		if (wantToRedoErrorTree)
 			errorExplorerNode = ErrorLoggerTree.getExplorerTree();
 		wantToRedoLibraryTree = wantToRedoJobTree = wantToRedoErrorTree = wantToRedoSignalTree = false;

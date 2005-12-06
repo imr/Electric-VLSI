@@ -957,22 +957,7 @@ public class EditWindow extends JPanel
 
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
 	{
-		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		rootNode.add(wf.libraryExplorerNode);
-		wf.jobExplorerNode = Job.getExplorerTree();
-		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		rootNode.add(wf.errorExplorerNode);
-
-		// no simulation data
-		wf.genSignalExplorerNode = null;
-		wf.transSignalExplorerNode = null;
-		wf.transSweepExplorerNode = null;
-		wf.acSignalExplorerNode = null;
-		wf.acSweepExplorerNode = null;
-		wf.dcSignalExplorerNode = null;
-		wf.dcSweepExplorerNode = null;
-		wf.measurementExplorerNode = null;
+        wf.loadDefaultExplorerTree(rootNode);
 	}
 
 	/**

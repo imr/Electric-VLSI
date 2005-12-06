@@ -54,13 +54,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
-import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -612,22 +606,7 @@ public class View3DWindow extends JPanel
 	 */
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
 	{
-		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		rootNode.add(wf.libraryExplorerNode);
-		wf.jobExplorerNode = Job.getExplorerTree();
-		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		rootNode.add(wf.errorExplorerNode);
-
-		// no simulation data
-		wf.genSignalExplorerNode = null;
-		wf.transSignalExplorerNode = null;
-		wf.transSweepExplorerNode = null;
-		wf.acSignalExplorerNode = null;
-		wf.acSweepExplorerNode = null;
-		wf.dcSignalExplorerNode = null;
-		wf.dcSweepExplorerNode = null;
-		wf.measurementExplorerNode = null;
+        wf.loadDefaultExplorerTree(rootNode);
 	}
 
 	/**

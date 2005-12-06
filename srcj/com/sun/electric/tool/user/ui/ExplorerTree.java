@@ -740,9 +740,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                     setIcon(iconErrorMsg);
                 }
             }
-			if (nodeInfo instanceof Job)
+			if (nodeInfo instanceof JobTree.JobTreeNode)
 			{
-				Job j = (Job)nodeInfo;
+				JobTree.JobTreeNode j = (JobTree.JobTreeNode)nodeInfo;
 				//setToolTipText(j.getToolTip());
 				//System.out.println("set tool tip to "+j.getToolTip());
 			}
@@ -986,10 +986,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Object selectedObject = tree.currentSelectedObject;
 			// show Job menu if user clicked on a Job
-			if (selectedObject instanceof Job)
+			if (selectedObject instanceof JobTree.JobTreeNode)
 			{
-				Job job = (Job)selectedObject;
-				JPopupMenu popup = job.getPopupStatus();
+				JobTree.JobTreeNode job = (JobTree.JobTreeNode)selectedObject;
+				JPopupMenu popup = JobTree.getPopupStatus(job);
 				popup.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}

@@ -34,8 +34,6 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,10 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * Jobs are processes that will run in the background, such as 
@@ -70,7 +65,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author  gainsley
  */
-public abstract class Job implements ActionListener, Runnable {
+public abstract class Job implements Runnable {
 
     private static boolean DEBUG = false;
     private static boolean GLOBALDEBUG = false;
@@ -135,6 +130,10 @@ public abstract class Job implements ActionListener, Runnable {
 		/** Next lower priority: invisible changes. */	public static final Priority INVISCHANGES = new Priority("invisble-changes", 3);
 		/** Lowest priority: analysis. */				public static final Priority ANALYSIS     = new Priority("analysis", 4);
 	}
+
+    public static Iterator<Job> getDatabaseThreadJobs() {
+        return databaseChangesThread.getAllJobs();
+    }
 
 	/**
 	 * Thread which execute all database change Jobs.
@@ -303,19 +302,19 @@ public abstract class Job implements ActionListener, Runnable {
 		private static String jobNode = "JOBS";
 	
 		/** Build Job explorer tree */
-		public synchronized DefaultMutableTreeNode getExplorerTree() {
-			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-			for (Iterator<Job> it = allJobs.iterator(); it.hasNext();) {
-                Job j = (Job)it.next();
-                if (j.getDisplay()) {
-                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(j);
-                    j.myNode.setUserObject(null);       // remove reference to job on old node
-                    j.myNode = node;                    // get rid of old node, point to new node
-                    explorerTree.add(node);
-                }
-			}
-			return explorerTree;
-		}
+//		public synchronized DefaultMutableTreeNode getExplorerTree() {
+//			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
+//			for (Iterator<Job> it = allJobs.iterator(); it.hasNext();) {
+//                Job j = (Job)it.next();
+//                if (j.getDisplay()) {
+//                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(j);
+//                    j.myNode.setUserObject(null);       // remove reference to job on old node
+//                    j.myNode = node;                    // get rid of old node, point to new node
+//                    explorerTree.add(node);
+//                }
+//			}
+//			return explorerTree;
+//		}
     
 		private synchronized void endExamine(Job j) {
 			numExamine--;
@@ -356,7 +355,7 @@ public abstract class Job implements ActionListener, Runnable {
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              public static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
-    /** my tree node */                         private DefaultMutableTreeNode myNode;
+//    /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
     
@@ -405,7 +404,7 @@ public abstract class Job implements ActionListener, Runnable {
         this.deleteWhenDone = true;
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
-        myNode = null;
+//        myNode = null;
         thread = null;
         savedHighlights = new ArrayList<Object>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
@@ -435,8 +434,8 @@ public abstract class Job implements ActionListener, Runnable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
-        if (display)
-            myNode = new DefaultMutableTreeNode(this);
+//        if (display)
+//            myNode = new DefaultMutableTreeNode(this);
 
         if (NOTHREADING) {
             // turn off threading if needed for debugging
@@ -642,12 +641,13 @@ public abstract class Job implements ActionListener, Runnable {
     }
 
     /** Remove job from Job list if it is done */
-    public void remove() {
+    public boolean remove() {
         if (!finished && !aborted) {
             //System.out.println("Cannot delete running jobs.  Wait till finished or abort");
-            return;
+            return false;
         }
         databaseChangesThread.removeJob(this);
+        return true;
     }
 
     /**
@@ -920,38 +920,24 @@ public abstract class Job implements ActionListener, Runnable {
 	//-------------------------------JOB UI--------------------------------
     
     public String toString() { return jobName+" ("+getStatus()+")"; }
-        
-    /** Build Job explorer tree */
-    public static DefaultMutableTreeNode getExplorerTree() {
-		return databaseChangesThread.getExplorerTree();
-    }
-    
-    /** popup menu when user right-clicks on job in explorer tree */
-    public JPopupMenu getPopupStatus() {
-        JPopupMenu popup = new JPopupMenu();
-        JMenuItem m;
-        m = new JMenuItem("Get Info"); m.addActionListener(this); popup.add(m);
-        m = new JMenuItem("Abort"); m.addActionListener(this); popup.add(m);
-        m = new JMenuItem("Delete"); m.addActionListener(this); popup.add(m);
-        return popup;
-    }
-    
-    /** respond to menu item command */
-    public void actionPerformed(ActionEvent e) {
-        JMenuItem source = (JMenuItem)e.getSource();
-        // extract library and cell from string
-        if (source.getText().equals("Get Info"))
-            System.out.println(getInfo());
-        if (source.getText().equals("Abort"))
-            abort();
-        if (source.getText().equals("Delete")) {
-            if (!finished && !aborted) {
-                System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
-                return;
-            }
-            databaseChangesThread.removeJob(this);
-        }
-    }
+
+
+//    /** respond to menu item command */
+//    public void actionPerformed(ActionEvent e) {
+//        JMenuItem source = (JMenuItem)e.getSource();
+//        // extract library and cell from string
+//        if (source.getText().equals("Get Info"))
+//            System.out.println(getInfo());
+//        if (source.getText().equals("Abort"))
+//            abort();
+//        if (source.getText().equals("Delete")) {
+//            if (!finished && !aborted) {
+//                System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
+//                return;
+//            }
+//            databaseChangesThread.removeJob(this);
+//        }
+//    }
 
     /** Get info on Job */
     public String getInfo() {
