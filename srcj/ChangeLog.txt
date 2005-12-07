@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/7/05, SMR) Text Properties dialog sets offsets incorrectly (Bug #770).
+FIX: In TextInfoPanel.ChangeText.doIt() use proper offset determination.
+
+BUG: (12/7/05, SMR) PostScript writes incorrect text on cell instances (Bug #773).
+FIX: In PostScript.recurseCircuitLevel(), use untransformed cell bounds.
+
+BUG: (12/7/05, SMR) Waveform window always calls horizontal axis "seconds", even if it isn't time.
+FIX: Use pure numbers when a signal is on the X axis.
+
+IMP/MAN: (12/7/05, SMR) Added David Harris's "merged PostScript" output.
+     Fixed MOSIS CMOS technology color opacity.
+
 IMP: (12/7/05, GVG) Got rid of ExplorerTree activities in Job.java
 
 IMP: (12/6/05, GVG) Got rid of user.ui dependencies in ActivityLogger and Job

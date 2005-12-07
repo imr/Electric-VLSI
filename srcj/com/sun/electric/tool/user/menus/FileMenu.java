@@ -127,6 +127,11 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DXF); } });
 		importSubMenu.addMenuItem("S_UE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.SUE); } });
+		if (IOTool.hasDias())
+		{
+			importSubMenu.addMenuItem("Dias (Sun CAD)...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DIAS); } });
+        }
 		importSubMenu.addSeparator();
 		importSubMenu.addMenuItem("ELI_B...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.ELIB); } });
@@ -520,7 +525,14 @@ public class FileMenu {
 	 */
 	public static void importLibraryCommand(FileType type)
 	{
-		String fileName = OpenFile.chooseInputFile(type, null);
+		String fileName = null;
+		if (type == FileType.DIAS)
+		{
+			fileName = OpenFile.chooseDirectory(type.getDescription());
+		} else
+		{
+			fileName = OpenFile.chooseInputFile(type, null);
+		}
 		if (fileName != null)
 		{
 			// start a job to do the input

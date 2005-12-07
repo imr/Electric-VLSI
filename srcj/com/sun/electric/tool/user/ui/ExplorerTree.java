@@ -561,9 +561,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (sSig instanceof AnalogSignal)
 			{
 				AnalogSignal as = (AnalogSignal)sSig;
-				if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
-					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
-						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+				if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
+					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
+						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
 			}
 			Transferable transferable = new StringSelection(sigName);
 

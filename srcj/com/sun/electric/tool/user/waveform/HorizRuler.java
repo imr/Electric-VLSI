@@ -134,7 +134,12 @@ public class HorizRuler extends JPanel implements MouseListener
 		g.setColor(new Color(User.getColorWaveformForeground()));
 		g.setFont(waveWindow.getFont());
 		String xAxisName = "Time";
-		if (xAxisSig != null) xAxisName = xAxisSig.getSignalName();
+		String xAxisPostfix = "s";
+		if (xAxisSig != null)
+		{
+			xAxisName = xAxisSig.getSignalName();
+			xAxisPostfix = null;
+		}
 		g.drawLine(drawHere.getVertAxisPos() + offX, hei-1, wid+offX, hei-1);
 		g.drawString(xAxisName, offX+1, hei-6);
 
@@ -169,8 +174,8 @@ public class HorizRuler extends JPanel implements MouseListener
 						g.drawLine(intX, hei/2, intX, hei);
 					}
 				}
-				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, "s", ss.getStepScale());
-				g.drawString(xValueVal, x+2, hei-2);
+				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, xAxisPostfix, ss.getStepScale());
+				g.drawString(xValueVal, x+2, 10);
 				lastX = x;
 			}
 			xValue += ss.getSeparation();

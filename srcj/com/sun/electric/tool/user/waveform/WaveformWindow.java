@@ -50,10 +50,21 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.TimedSignal;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.JobTree;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -3170,8 +3181,12 @@ if (wp.getSignalButtons() != null)
 				return;
 			}
 			String sigName = (String)data;
-			Analysis.AnalysisType analysisType = Analysis.ANALYSIS_TRANS;
-			if (sigName.startsWith("MEASUREMENT "))
+			Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
+			if (sigName.startsWith("TRANS "))
+			{
+				sigName = sigName.substring(6);
+				analysisType = Analysis.ANALYSIS_TRANS;
+			} else if (sigName.startsWith("MEASUREMENT "))
 			{
 				sigName = sigName.substring(12);
 				analysisType = Analysis.ANALYSIS_MEAS;
@@ -3196,6 +3211,12 @@ if (wp.getSignalButtons() != null)
 					Panel panel = hr.getPanel();
 					WaveformWindow ww = hr.getWaveformWindow();
 					Analysis an = ww.getSimData().findAnalysis(analysisType);
+					if (an == null)
+					{
+						System.out.println("Cannot find " + analysisType + " data");
+						dtde.dropComplete(true);
+						return;
+					}
 					Signal sSig = ww.findSignal(sigName, an);
 					if (sSig != null)
 					{

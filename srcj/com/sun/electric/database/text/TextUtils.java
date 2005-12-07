@@ -485,8 +485,10 @@ public class TextUtils
 			negative = "-";
 			time = -time;
 		}
-		if (GenMath.doublesEqual(time, 0.0)) return "0" + unit;
-		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unit;
+		String unitPostfix = unit;
+		if (unitPostfix == null) unitPostfix = "";
+		if (GenMath.doublesEqual(time, 0.0)) return "0" + unitPostfix;
+		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unitPostfix;
 
 		// get proper time unit to use
 		double scaled = time * 1.0E17;
@@ -495,40 +497,45 @@ public class TextUtils
 		int scalePower = 0;
 		if (scaled < 200000.0 && intTime < 100000)
 		{
-			secType = "f" + unit;
+			if (unit == null) secType = "e-15"; else
+				secType = "f" + unit;
 			scalePower = -15;
 		} else
 		{
 			scaled = time * 1.0E14;   intTime = Math.round(scaled);
 			if (scaled < 200000.0 && intTime < 100000)
 			{
-				secType = "p" + unit;
+				if (unit == null) secType = "e-12"; else
+					secType = "p" + unit;
 				scalePower = -12;
 			} else
 			{
 				scaled = time * 1.0E11;   intTime = Math.round(scaled);
 				if (scaled < 200000.0 && intTime < 100000)
 				{
-					secType = "n" + unit;
+					if (unit == null) secType = "e-9"; else
+						secType = "n" + unit;
 					scalePower = -9;
 				} else
 				{
 					scaled = time * 1.0E8;   intTime = Math.round(scaled);
 					if (scaled < 200000.0 && intTime < 100000)
 					{
-						secType = "u" + unit;
+						if (unit == null) secType = "e-6"; else
+							secType = "u" + unit;
 						scalePower = -6;
 					} else
 					{
 						scaled = time * 1.0E5;   intTime = Math.round(scaled);
 						if (scaled < 200000.0 && intTime < 100000)
 						{
-							secType = "m" + unit;
+							if (unit == null) secType = "e-3"; else
+								secType = "m" + unit;
 							scalePower = -3;
 						} else
 						{
 							scaled = time * 1.0E2;  intTime = Math.round(scaled);
-							secType = unit;
+							secType = unitPostfix;
 							scalePower = 0;
 						}
 					}
@@ -1139,6 +1146,8 @@ public class TextUtils
 		String fileName = url.getFile();
 
 		// special case if the library path came from a different computer system and still has separators
+		while (fileName.endsWith("\\") || fileName.endsWith(":") || fileName.endsWith("/"))
+			fileName = fileName.substring(0, fileName.length()-1);
 		int backSlashPos = fileName.lastIndexOf('\\');
 		int colonPos = fileName.lastIndexOf(':');
 		int slashPos = fileName.lastIndexOf('/');

@@ -86,22 +86,18 @@ public class StepSize
 		}
 
 		// determine powers of ten in the range
-		while ( range >= 10.0 ) { range /= 10.0;   rangeScale++; }
-		while ( range <= 1.0  ) { range *= 10.0;   rangeScale--; }
+		while (range >= 10.0) { range /= 10.0;   rangeScale++; }
+		while (range <= 1.0 ) { range *= 10.0;   rangeScale--; }
 
 		// determine powers of ten in the step size
 		double d = Math.abs(h - l)/(double)n;
 		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1;
 		int mp = 0;
-		while ( d >= 10.0 ) { d /= 10.0;   mp++;   stepScale++; }
-		while ( d <= 1.0  ) { d *= 10.0;   mp--;   stepScale--; }
+		while (d >= 10.0) { d /= 10.0;   mp++;   stepScale++; }
+		while (d <= 1.0 ) { d *= 10.0;   mp--;   stepScale--; }
 		double m = Math.pow(10, mp);
 
 		int di = (int)d;
-		if (di == 0 || m == 0)
-		{
-			int ww = 9;
-		}
 		if (di > 2 && di <= 5) di = 5; else 
 			if (di > 5) di = 10;
 		int li = (int)(l / m);

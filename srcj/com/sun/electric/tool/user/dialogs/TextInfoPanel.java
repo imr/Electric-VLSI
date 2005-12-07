@@ -634,24 +634,59 @@ public class TextInfoPanel extends javax.swing.JPanel
             td.setRotation(rotation);
 
             // handle changes to the offset
-            if (owner instanceof NodeInst) {
-                NodeInst ni = (NodeInst)owner;
-                if (ni.getProto() == Generic.tech.invisiblePinNode) {
-                    double dX = xoffset - ni.getAnchorCenterX();
-                    double dY = yoffset - ni.getAnchorCenterY();
-                    ni.move(dX, dY);
-                } else td.setOff(xoffset, yoffset);
-            } else {
-            	if (unTransformNi != null)
-            	{
+			NodeInst ni = null;
+			if (owner != null)
+			{
+			    if (owner instanceof NodeInst)
+			    {
+			        ni = (NodeInst)owner;
+			        if (ni.getProto() != Generic.tech.invisiblePinNode)
+			        {
+			            ni = null;                  // ni is null unless owner is invisible pin
+			        }
+			    }
+			}
+
+			// set the offset
+			if (ni != null)
+			{
+                double dX = xoffset - ni.getAnchorCenterX();
+                double dY = yoffset - ni.getAnchorCenterY();
+                ni.move(dX, dY);
+			} else
+			{
+				if (unTransformNi != null)
+				{
             		Point2D off = new Point2D.Double(xoffset, yoffset);
             		AffineTransform trans = unTransformNi.pureRotateIn();
             		trans.transform(off, off);
             		xoffset = off.getX();
-            		yoffset = off.getY();
-            	}
+            		yoffset = off.getY();;
+				}
                 td.setOff(xoffset, yoffset);
-            }
+			}
+
+//			if (owner instanceof NodeInst) {
+//                NodeInst ni = (NodeInst)owner;
+//                if (ni.getProto() == Generic.tech.invisiblePinNode) {
+//                    double dX = xoffset - ni.getAnchorCenterX();
+//                    double dY = yoffset - ni.getAnchorCenterY();
+//                    ni.move(dX, dY);
+//                } else
+//                {
+//                	td.setOff(xoffset, yoffset);
+//                }
+//            } else {
+//            	if (unTransformNi != null)
+//            	{
+//            		Point2D off = new Point2D.Double(xoffset, yoffset);
+//            		AffineTransform trans = unTransformNi.pureRotateIn();
+//            		trans.transform(off, off);
+//            		xoffset = off.getX();
+//            		yoffset = off.getY();
+//            	}
+//                td.setOff(xoffset, yoffset);
+//            }
 
             // handle changes to "invisible outside cell"
             td.setInterior(invis);

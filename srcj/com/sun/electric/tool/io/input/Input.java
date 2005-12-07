@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -60,7 +61,7 @@ public class Input
 
 	// ---------------------- private and protected methods -----------------
 
-	Input()
+	public Input()
 	{
 	}
 
@@ -106,45 +107,50 @@ public class Input
 			// initialize progress
 			startProgressDialog("import", fileURL.getFile());
 
-			Input in;
-			if (type == FileType.CIF)
+			if (type == FileType.DIAS)
 			{
-				in = (Input)new CIF();
-				if (in.openTextInput(fileURL)) return null;
-			} else if (type == FileType.DEF)
-			{
-				in = (Input)new DEF();
-				if (in.openTextInput(fileURL)) return null;
-			} else if (type == FileType.DXF)
-			{
-				in = (Input)new DXF();
-				if (in.openTextInput(fileURL)) return null;
-			} else if (type == FileType.EDIF)
-			{
-				in = (Input)new EDIF();
-				if (in.openTextInput(fileURL)) return null;
-			} else if (type == FileType.GDS)
-			{
-				in = (Input)new GDS();
-				if (in.openBinaryInput(fileURL)) return null;
-			} else if (type == FileType.LEF)
-			{
-				in = (Input)new LEF();
-				if (in.openTextInput(fileURL)) return null;
-			} else if (type == FileType.SUE)
-			{
-				in = (Input)new Sue();
-				if (in.openTextInput(fileURL)) return null;
+				IOTool.readDias(lib);
 			} else
 			{
-				System.out.println("Unsupported input format");
-				return null;
+				Input in;
+				if (type == FileType.CIF)
+				{
+					in = (Input)new CIF();
+					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.DEF)
+				{
+					in = (Input)new DEF();
+					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.DXF)
+				{
+					in = (Input)new DXF();
+					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.EDIF)
+				{
+					in = (Input)new EDIF();
+					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.GDS)
+				{
+					in = (Input)new GDS();
+					if (in.openBinaryInput(fileURL)) return null;
+				} else if (type == FileType.LEF)
+				{
+					in = (Input)new LEF();
+					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.SUE)
+				{
+					in = (Input)new Sue();
+					if (in.openTextInput(fileURL)) return null;
+				} else
+				{
+					System.out.println("Unsupported input format");
+					return null;
+				}
+
+				// import the library
+				in.importALibrary(lib);
+				in.closeInput();
 			}
-
-			// import the library
-			in.importALibrary(lib);
-			in.closeInput();
-
 		} finally {
 			// clean up
 			stopProgressDialog();

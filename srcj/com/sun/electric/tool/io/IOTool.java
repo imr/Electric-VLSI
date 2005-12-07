@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
@@ -60,7 +61,9 @@ public class IOTool extends Listener
      */
     public static IOTool getIOTool() { return tool; }
 
-	private static boolean skillChecked = false;
+	/****************************** SKILL FORMAT INTERFACE ******************************/
+
+    private static boolean skillChecked = false;
 	private static Class skillClass = null;
 	private static Method skillOutputMethod;
 
@@ -116,6 +119,67 @@ public class IOTool extends Listener
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Skill output module");
+            e.printStackTrace(System.out);
+		}
+	}
+
+	/****************************** DIAS FORMAT INTERFACE ******************************/
+
+    private static boolean diasChecked = false;
+	private static Class diasClass = null;
+	private static Method diasInputMethod;
+
+	/**
+	 * Method to tell whether Dias input is available.
+	 * Dias is a proprietary format of Sun Microsystems.
+	 * This method dynamically figures out whether the Dias module is present by using reflection.
+	 * @return true if the Dias input module is available.
+	 */
+	public static boolean hasDias()
+	{
+		if (!diasChecked)
+		{
+			diasChecked = true;
+
+			// find the Dias class
+			try
+			{
+				diasClass = Class.forName("com.sun.electric.plugins.dias.Dias");
+			} catch (ClassNotFoundException e)
+			{
+				diasClass = null;
+				return false;
+			}
+
+			// find the necessary method on the Dias class
+			try
+			{
+				diasInputMethod = diasClass.getMethod("readDiasFile", new Class[] {Library.class});
+			} catch (NoSuchMethodException e)
+			{
+				diasClass = null;
+				return false;
+			}
+		}
+
+		// if already initialized, return
+		if (diasClass == null) return false;
+	 	return true;
+	}
+
+	/**
+	 * Method to invoke the Dias input module via reflection.
+	 * @param lib the Library to read.
+	 */
+	public static void readDias(Library lib)
+	{
+		if (!hasDias()) return;
+		try
+		{
+			diasInputMethod.invoke(diasClass, new Object[] {lib});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the Dias input module");
             e.printStackTrace(System.out);
 		}
 	}

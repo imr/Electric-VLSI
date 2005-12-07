@@ -120,9 +120,11 @@ public class PostScript extends Output
 		if (out.openTextOutputStream(filePath)) error = true;
         else // write out the cell
         {
-            out.start();
-            out.scanCircuit();
-            out.done();
+            if (out.start())
+            {
+	            out.scanCircuit();
+	            out.done();
+            }
 
             if (out.closeTextOutputStream()) error = true;
         }
@@ -142,8 +144,9 @@ public class PostScript extends Output
 
 	/**
 	 * Method to initialize for writing a cell.
+	 * @return false to abort the process.
 	 */
-	private void start()
+	private boolean start()
 	{
 		// find the edit window
 		UserInterface ui = Main.getUserInterface();
@@ -182,7 +185,7 @@ public class PostScript extends Output
 
 		// determine the area of interest
 		Rectangle2D printBounds = getAreaToPrint(cell, false, wnd);
-		if (printBounds == null) return;
+		if (printBounds == null) return false;
 
 		boolean rotatePlot = false;
 		switch (IOTool.getPrintRotation())
@@ -212,9 +215,8 @@ public class PostScript extends Output
 		// for pure color plotting, use special merging code
 		if (psUseColorMerge)
 		{
-			System.out.println("Cannot do color merging yet");
-			PostScriptColor.psColorPlot(printWriter, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
-			return;
+			PostScriptColor.psColorPlot(this, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
+			return false;
 		}
 
 		// PostScript: compute the transformation matrix
@@ -372,6 +374,7 @@ public class PostScript extends Output
 		// initialize list of EGraphics modules that have been put out
 		patternsEmitted = new HashMap<EGraphics,Integer>();
 		psNumPatternsEmitted = 0;
+		return true;
 	}
 
 	/**
@@ -587,7 +590,8 @@ public class PostScript extends Output
 				{
 					int numPolys = ni.numDisplayableVariables(true);
 					Poly [] polys = new Poly[numPolys];
-					Rectangle2D rect = ni.getBounds();
+					Rectangle2D rect = ni.getUntransformedBounds();
+//					Rectangle2D rect = ni.getBounds();
 					ni.addDisplayableVariables(rect, polys, 0, wnd, true);
 					for (int i=0; i<polys.length; i++)
 					{
@@ -1152,6 +1156,7 @@ public class PostScript extends Output
 		double cY = (psL.getY() + psH.getY()) / 2;
 		double sX = Math.abs(psH.getX() - psL.getX());
 		double sY = Math.abs(psH.getY() - psL.getY());
+System.out.println("FOR STRING '"+text+"' CENTER IS ("+poly.getCenterX()+","+poly.getCenterY()+") SIZE IS "+poly.getBounds2D().getWidth()+"x"+poly.getBounds2D().getHeight());
 		putPSHeader(HEADERSTRING);
 
 		boolean changedFont = false;
@@ -1372,7 +1377,7 @@ public class PostScript extends Output
 		"} def"
 	};
 
-	private String [] headerString =
+	String [] headerString =
 	{
 		/*
 		* Code to do super and subscripts:
@@ -1681,7 +1686,7 @@ public class PostScript extends Output
 		return result;
 	}
 
-	private void writePSString(String str)
+	public void writePSString(String str)
 	{
 		printWriter.print("(");
 		for(int i=0; i<str.length(); i++)
