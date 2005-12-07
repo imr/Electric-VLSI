@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.waveform;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -59,7 +58,6 @@ import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
