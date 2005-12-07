@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
