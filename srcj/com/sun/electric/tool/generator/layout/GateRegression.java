@@ -36,7 +36,6 @@ import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.io.output.CIF;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.Main;
 
 /*
  * Regression test for gate generators
@@ -53,9 +52,9 @@ public class GateRegression extends Job {
 		}
 	};
 
-	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
+//	private static void error(boolean pred, String msg) {
+//		LayoutLib.error(pred, msg);
+//	}
 
     private static void allSizes(StdCellParams stdCell, Technology technology) {
         double minSz = 0.1;
@@ -131,7 +130,7 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        aPass(8.18, stdCell, technology);
+        aPass(1.0, stdCell, technology);
 //         allSizes(stdCell, technology);
         //Inv2iKn.makePart(10, stdCell);
         //Inv2iKn_wideOutput.makePart(10, stdCell);

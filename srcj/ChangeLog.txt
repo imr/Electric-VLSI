@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/9/05, GVG) Rounding problem in GateGeneration regression noticed while working on the memo.
+FIX: Use StdCellParams.getResolution() instead of value stored in Technology.
+
+IMP: (12/8/05, GVG) No com.sun.electric.tools.user.ui dependencies in Cell.java and Pref.java.
+
 BUG: (12/7/05, SMR) Text Properties dialog sets offsets incorrectly (Bug #770).
 FIX: In TextInfoPanel.ChangeText.doIt() use proper offset determination.
 

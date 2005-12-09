@@ -403,10 +403,11 @@ public class StdCellParams {
             if (DBMath.isGreaterThan(diff, 0))
             {
                 // round diff to multiple of min precision otherwise diff/2 (or node center will generate DRC errors)
-                double minRe = f.getTechnology().getResolution()*2;
-                if (DBMath.hasRemainder(diff, minRe))
+//                double minRe = f.getTechnology().getResolution()*2;
+                double minRe = getGridResolution()*2;
+                if (minRe > 0 && DBMath.hasRemainder(diff, minRe))
                 {
-                    diff += f.getTechnology().getResolution(); // to ceil correctlu otherwise it could leave a notch
+                    diff += getGridResolution(); // to ceil correctlu otherwise it could leave a notch
                     diff = ((int)(Math.ceil(diff/minRe))) * minRe;
                 }
                 diffWid += diff;
