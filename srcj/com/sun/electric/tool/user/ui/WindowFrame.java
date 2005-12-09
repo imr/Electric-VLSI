@@ -32,7 +32,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -134,7 +133,7 @@ public class WindowFrame extends Observable
 	 */
 	public static WindowFrame createEditWindow(final Cell cell)
 	{
-        if (Job.BATCHMODE) return null;
+//        assert !Job.BATCHMODE;  // should not reach this code in case of batch jobs.
 		final WindowFrame frame = new WindowFrame();
 		if (cell != null && cell.getView().isTextView())
 		{
@@ -449,7 +448,7 @@ public class WindowFrame extends Observable
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
-			if (!Job.BATCHMODE) jf.setVisible(true);
+			/*if (!Job.BATCHMODE)*/ jf.setVisible(true);
 		}
 	}
 
@@ -601,8 +600,6 @@ public class WindowFrame extends Observable
      */
 	public static void wantToRedoLibraryTree()
 	{
-        if(Job.BATCHMODE) return;
-        
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
@@ -613,8 +610,6 @@ public class WindowFrame extends Observable
 
 	public static void wantToRedoJobTree()
 	{
-        if(Job.BATCHMODE) return;
-
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() { wantToRedoJobTree(); }
@@ -631,8 +626,6 @@ public class WindowFrame extends Observable
 
 	public static void wantToRedoErrorTree()
 	{
-        if(Job.BATCHMODE) return;
-
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() { wantToRedoErrorTree(); }
@@ -649,8 +642,6 @@ public class WindowFrame extends Observable
 
 	public void wantToRedoSignalTree()
 	{
-        if(Job.BATCHMODE) return;
-
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() { wantToRedoSignalTree(); }
@@ -843,12 +834,6 @@ public class WindowFrame extends Observable
 	 */
 	public static Cell getCurrentCell()
 	{
-		if (Job.BATCHMODE)
-		{
-			Library lib = Library.getCurrent();
-			if (lib == null) return null;
-			return lib.getCurCell();
-		}
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf == null) return null;
 		return wf.getContent().getCell();

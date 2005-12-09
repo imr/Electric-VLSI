@@ -29,6 +29,7 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
@@ -245,11 +246,22 @@ public final class Main
 			System.out.println("Batch mode Electric has no needed windows");
 			return null; 
 		}
-		public Cell getCurrentCell() { return null; }
+        /** Get current cell from current library */
+		public Cell getCurrentCell()
+        {
+			Library lib = Library.getCurrent();
+			if (lib == null) return null;
+			return lib.getCurCell();
+        }
 		public Cell needCurrentCell()
 		{
-			System.out.println("Batch mode Electric has no current cell");
-			return null; 
+            /** Current cell based on current library */
+            Cell curCell = getCurrentCell();
+            if (curCell == null)
+            {
+                System.out.println("There is no current cell for this operation.  To create one, use the 'New Cell' command from the 'Cell' menu.");
+            }
+            return curCell;
 		}
 		public void repaintAllEditWindows() {}
         public void adjustReferencePoint(Cell cell, double cX, double cY) {};

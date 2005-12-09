@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/9/05, GVG) getCurrentCell not defined in Main.UserInterfaceDummy but it is required (Compactation regression failed).
+FIX: Move code under BATCHMODE code to UserInterfaceDummy. In case of batch mode, current cell is from current library.
+Remove conditions in WindowFrame.java if Job.BATCHMODE.
+
 BUG: (12/9/05, GVG) Rounding problem in GateGeneration regression noticed while working on the memo.
 FIX: Use StdCellParams.getResolution() instead of value stored in Technology.
 
