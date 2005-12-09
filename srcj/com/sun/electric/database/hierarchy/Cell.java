@@ -51,7 +51,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -66,9 +65,6 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
@@ -1521,19 +1517,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			ni.move(in.getX(), in.getY());
 		}
 
-		// adjust all windows showing this cell
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			WindowContent content = wf.getContent();
-			if (!(content instanceof EditWindow_)) continue;
-			Cell cell = content.getCell();
-			if (cell != this) continue;
-			EditWindow_ wnd = (EditWindow_)content;
-			Point2D off = wnd.getOffset();
-			off.setLocation(off.getX()-cX, off.getY()-cY);
-			wnd.setOffset(off);
-		}
+        Main.getUserInterface().adjustReferencePoint(this, cX, cY);
+//		// adjust all windows showing this cell
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = (WindowFrame)it.next();
+//			WindowContent content = wf.getContent();
+//			if (!(content instanceof EditWindow_)) continue;
+//			Cell cell = content.getCell();
+//			if (cell != this) continue;
+//			EditWindow_ wnd = (EditWindow_)content;
+//			Point2D off = wnd.getOffset();
+//			off.setLocation(off.getX()-cX, off.getY()-cY);
+//			wnd.setOffset(off);
+//		}
 	}
 
 	/**
@@ -2857,7 +2854,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public String [] getTextViewContents()
 	{
 		// first see if this cell is being actively edited in a TextWindow
-		String [] strings = TextWindow.getEditedText(this);
+		String [] strings = Main.getUserInterface().getEditedText(this);
 		if (strings != null) return strings;
 
 		// look on the cell for its text
@@ -2879,7 +2876,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		Job.checkChanging();
 
 		// see if this cell is being actively edited in a TextWindow
-		TextWindow.updateText(this, strings);
+		Main.getUserInterface().updateText(this, strings);
 
 		newVar(Cell.CELL_TEXT_KEY, strings);
 	}

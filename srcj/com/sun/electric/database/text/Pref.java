@@ -26,10 +26,6 @@ package com.sun.electric.database.text;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.OptionReconcile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
@@ -218,14 +214,14 @@ public class Pref
 	 * Method to import the preferences from an XML file.
 	 * Prompts the user and reads the file.
 	 */
-	public static void importPrefs()
-	{
-		// prompt for the XML file
-        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
-        if (fileName == null) return;
-
-        importPrefs(fileName);
-    }
+//	public static void importPrefs()
+//	{
+//		// prompt for the XML file
+//        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
+//        if (fileName == null) return;
+//
+//        importPrefs(fileName);
+//    }
 
     /**
      * Method used in regressions so it has to be public.
@@ -325,10 +321,11 @@ public class Pref
 			return;
 		}
 
-        if (!Job.BATCHMODE) {
-            TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-            top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
-        }
+        Main.getUserInterface().restoreSavedBindings(false);
+//        if (!Job.BATCHMODE) {
+//            TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+//            top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+//        }
 
 		System.out.println("...preferences imported from " + fileURL.getFile());
 	}
@@ -337,14 +334,14 @@ public class Pref
 	 * Method to export the preferences to an XML file.
 	 * Prompts the user and writes the file.
 	 */
-	public static void exportPrefs()
-	{
-		// prompt for the XML file
-        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
-        if (fileName == null) return;
-
-        exportPrefs(fileName);
-    }
+//	public static void exportPrefs()
+//	{
+//		// prompt for the XML file
+//        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
+//        if (fileName == null) return;
+//
+//        exportPrefs(fileName);
+//    }
 
 	/**
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
@@ -906,13 +903,15 @@ public class Pref
 		}
 
 		if (meaningsToReconcile.size() == 0) return;
-		if (Job.BATCHMODE)
-		{
-            finishPrefReconcilation(meaningsToReconcile);
-			return;
-		}
- 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
-		dialog.setVisible(true);
+
+        Main.getUserInterface().finishPrefReconcilation(libName, meaningsToReconcile);
+//		if (Job.BATCHMODE)
+//		{
+//            finishPrefReconcilation(meaningsToReconcile);
+//			return;
+//		}
+// 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
+//		dialog.setVisible(true);
 	}
 
     /**

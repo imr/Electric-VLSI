@@ -25,9 +25,12 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ui.TextWindow;
 
 import java.awt.geom.Point2D;
+import java.util.List;
 
 /**
  * This interface provides information from the user interface.
@@ -58,6 +61,11 @@ public interface UserInterface
 	 * @return the current Cell (null if none).
 	 */
 	public Cell needCurrentCell();
+
+    /**
+     * Method to adjust reference point in WindowFrame containing the cell
+     */
+    public void adjustReferencePoint(Cell cell, double cX, double cY);
 
 	/**
 	 * Method to request that all windows be redisplayed.
@@ -140,4 +148,24 @@ public interface UserInterface
      * @return the string (null if cancelled).
      */
     public String askForInput(Object message, String title, String def);
+
+    /** For Pref */
+    public void restoreSavedBindings(boolean initialCall);
+    public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile);
+
+	/**
+	 * Method to import the preferences from an XML file.
+	 * Prompts the user and reads the file.
+	 */
+    public void importPrefs();
+
+    /**
+	 * Method to export the preferences to an XML file.
+	 * Prompts the user and writes the file.
+	 */
+	public void exportPrefs();
+
+    /** For TextWindow */
+    public String [] getEditedText(Cell cell);
+    public void updateText(Cell cell, String [] strings);
 }

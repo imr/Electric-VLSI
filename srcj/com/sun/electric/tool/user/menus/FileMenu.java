@@ -27,7 +27,6 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
@@ -56,6 +55,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -140,7 +140,7 @@ public class FileMenu {
 		importSubMenu.addMenuItem("_Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 		importSubMenu.addMenuItem("_Preferences...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.importPrefs(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Main.getUserInterface().importPrefs(); }});
 
 		fileMenu.addSeparator();
 
@@ -196,7 +196,7 @@ public class FileMenu {
 		exportSubMenu.addMenuItem("ELI_B (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
 		exportSubMenu.addMenuItem("P_references...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.exportPrefs(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Main.getUserInterface().exportPrefs(); }});
 
 		fileMenu.addSeparator();
 

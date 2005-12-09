@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
@@ -251,6 +252,7 @@ public final class Main
 			return null; 
 		}
 		public void repaintAllEditWindows() {}
+        public void adjustReferencePoint(Cell cell, double cX, double cY) {};
 		public void alignToGrid(Point2D pt) {}
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
@@ -326,6 +328,29 @@ public final class Main
          * @return the string (null if cancelled).
          */
         public String askForInput(Object message, String title, String def) { return def; }
+
+        /** For Pref */
+        public void restoreSavedBindings(boolean initialCall) {;}
+        public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
+        {
+            Pref.finishPrefReconcilation(meaningsToReconcile);
+        }
+
+        /**
+         * Method to import the preferences from an XML file.
+         * Prompts the user and reads the file.
+         */
+        public void importPrefs() {;}
+
+        /**
+         * Method to export the preferences to an XML file.
+         * Prompts the user and writes the file.
+         */
+        public void exportPrefs() {;}
+
+        /** For TextWindow */
+        public String [] getEditedText(Cell cell) { return null; }
+        public void updateText(Cell cell, String [] strings) { ; }
 	}
 
 	/**

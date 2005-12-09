@@ -27,15 +27,17 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.dialogs.OptionReconcile;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -52,6 +54,26 @@ public class UserInterfaceMain implements UserInterface
 	public Cell getCurrentCell() { return WindowFrame.getCurrentCell(); }
 
 	public Cell needCurrentCell() { return WindowFrame.needCurCell(); }
+
+    /**
+     * Method to adjust reference point in WindowFrame containing the cell
+     */
+    public void adjustReferencePoint(Cell theCell, double cX, double cY)
+    {
+        // adjust all windows showing this cell
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow_)) continue;
+			Cell cell = content.getCell();
+			if (cell != theCell) continue;
+			EditWindow_ wnd = (EditWindow_)content;
+			Point2D off = wnd.getOffset();
+			off.setLocation(off.getX()-cX, off.getY()-cY);
+			wnd.setOffset(off);
+		}
+    }
 
 	public void repaintAllEditWindows() { EditWindow.repaintAllContents(); }
 
@@ -300,4 +322,48 @@ public class UserInterfaceMain implements UserInterface
     {
     	return JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def).toString();
     }
+
+    /** For Pref */
+    public void restoreSavedBindings(boolean initialCall)
+    {
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+    }
+
+    public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
+    {
+        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
+		dialog.setVisible(true);
+    }
+
+	/**
+	 * Method to import the preferences from an XML file.
+	 * Prompts the user and reads the file.
+	 */
+    public void importPrefs()
+    {
+		// prompt for the XML file
+        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
+        if (fileName == null) return;
+
+        Pref.importPrefs(fileName);
+    }
+
+    /**
+	 * Method to export the preferences to an XML file.
+	 * Prompts the user and writes the file.
+	 */
+	public void exportPrefs()
+	{
+		// prompt for the XML file
+        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
+        if (fileName == null) return;
+
+        Pref.exportPrefs(fileName);
+    }
+
+    /** For TextWindow */
+    public String [] getEditedText(Cell cell) { return TextWindow.getEditedText(cell); }
+
+    public void updateText(Cell cell, String [] strings) { TextWindow.updateText(cell, strings); }
 }
