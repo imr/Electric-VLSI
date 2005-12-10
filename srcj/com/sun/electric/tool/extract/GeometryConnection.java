@@ -35,9 +35,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 
 import java.awt.geom.Rectangle2D;
