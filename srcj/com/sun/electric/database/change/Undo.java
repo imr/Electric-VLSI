@@ -798,16 +798,7 @@ public class Undo
         
 		if (Job.BATCHMODE) return;
 
-		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
-		for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); )
-		{
-			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-			SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
-// 			if (l.isGUIListener())
-// 				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
-// 			else
-// 				l.databaseEndChangeBatch(batch);
-		}
+		SwingUtilities.invokeLater(new DatabaseChangeRun(batch));
 	}
 
 	/** Add a property change listener. This generates Undo and Redo enabled property changes */
@@ -873,22 +864,76 @@ public class Undo
 		public void run() { l.propertyChange(e); }
 	}
 
-// 	private static class DatabaseBatchThread implements Runnable
-// 	{
-// 		private DatabaseChangeListener l;
-// 		private ChangeBatch batch;
-// 		private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
-// 		public void run() { l.databaseEndChangeBatch(batch); }
-// 	}
-
 	private static class DatabaseChangeRun implements Runnable
 	{
-		private DatabaseChangeListener l;
 		private DatabaseChangeEvent event;
-		private DatabaseChangeRun(DatabaseChangeListener l, DatabaseChangeEvent e) { this.l = l; this.event = e; }
-		public void run() { l.databaseChanged(event); }
+		private DatabaseChangeRun(ChangeBatch batch) { event = new DatabaseChangeEvent(batch); }
+        public void run() {
+            for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
+                DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+                l.databaseChanged(event);
+            }
+        }
 	}
 
+    /**
+     * Invokes in Swing thread a job which updates database from old immutable snapshot to new immutable snapshot.
+     * @param oldSnapshot old immutable snapshot.
+     * @param newSnapshot new immutable snapshot.
+     **/
+    public static void invokeSnapshotChange(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(oldSnapshot, newSnapshot));
+    }
+    
+    private static class SnapshotDatabaseChangeRun implements Runnable 
+	{
+		private Snapshot oldSnapshot;
+        private Snapshot newSnapshot;
+		private SnapshotDatabaseChangeRun(Snapshot oldSnapshot, Snapshot newSnapshot) {
+            this.oldSnapshot = oldSnapshot;
+            this.newSnapshot = newSnapshot;
+        }
+        public void run() {
+            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
+            for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
+                DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+                l.databaseChanged(event);
+            }
+        }
+	}
+    
+    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
+        private boolean cellTreeChanged;
+        
+        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
+            super(null);
+            this.cellTreeChanged = cellTreeChanged;
+        }
+        
+        /**
+         * Returns true if ElectricObject eObj was created, killed or modified
+         * in the new database state.
+         * @param eObj ElectricObject to test.
+         * @return true if the ElectricObject was changed.
+         */
+        public boolean objectChanged(ElectricObject eObj) { return true; }
+        
+        /**
+         * Returns true if cell explorer tree was changed
+         * in the new database state.
+         * @return true if cell explorer tree was changed.
+         */
+        public boolean cellTreeChanged() {
+            return cellTreeChanged;
+//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
+//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
+//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
+//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
+//                }
+        }
+    }
+    
 	/**
 	 * Method to record and broadcast a change.
 	 * <P>

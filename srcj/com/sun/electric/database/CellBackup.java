@@ -22,12 +22,9 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database;
-
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.technology.Technology;
 import java.io.IOException;
-
 /**
  *
  */
@@ -35,7 +32,7 @@ public class CellBackup {
     
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The CellName of the Cell. */								public final CellName cellName;
-	/** The CellGroup this Cell belongs to. */						public final Cell.CellGroup cellGroup;
+	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
 	/** The library this Cell belongs to. */						public final LibId libId;
 	/** The date this Cell was created. */							public final long creationDate;
 	/** The date this Cell was last modified. */					public final long revisionDate;
@@ -47,11 +44,11 @@ public class CellBackup {
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of ImmutableCell */
-    public CellBackup(ImmutableCell d, CellName cellName, Cell.CellGroup cellGroup, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
+    public CellBackup(ImmutableCell d, CellName cellName, boolean isMainSchematics, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
             ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages) {
         this.d = d;
         this.cellName = cellName;
-        this.cellGroup = cellGroup;
+        this.isMainSchematics = isMainSchematics;
         this.libId = libId;
         this.creationDate = creationDate;
         this.revisionDate = revisionDate;
@@ -70,7 +67,7 @@ public class CellBackup {
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
         writer.out.writeUTF(cellName != null ? cellName.toString() : "");
-        // cellGroup
+        writer.out.writeBoolean(isMainSchematics);
         writer.writeLibId(libId);
         writer.out.writeLong(creationDate);
         writer.out.writeLong(revisionDate);
@@ -97,7 +94,7 @@ public class CellBackup {
         ImmutableCell d = ImmutableCell.read(reader);
         String cellNameString = reader.in.readUTF();
         CellName cellName = cellNameString.length() > 0 ? CellName.parseName(cellNameString) : null;
-        // cellGroup
+        boolean isMainSchematics = reader.in.readBoolean();
         LibId libId = reader.readLibId();
         long creationDate = reader.in.readLong();
         long revisionDate = reader.in.readLong();
@@ -106,8 +103,21 @@ public class CellBackup {
         int userBits = reader.in.readInt();
         int nodesLength = reader.in.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
-        for (int i = 0; i < nodesLength; i++)
-            nodes[i] = ImmutableNodeInst.read(reader);
+        int[] cellUsages = new int[0];
+        for (int i = 0; i < nodesLength; i++) {
+            ImmutableNodeInst nid = ImmutableNodeInst.read(reader);
+            if (nid.protoId instanceof CellId) {
+                CellId subCellId = (CellId)nid.protoId;
+                CellUsage u = d.cellId.getUsageIn(subCellId);
+                if (cellUsages.length <= u.indexInParent) {
+                    int[] newCellUsages = new int[u.indexInParent + 1];
+                    System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
+                    cellUsages = newCellUsages;
+                }
+                cellUsages[u.indexInParent]++;
+            }
+            nodes[i] = nid;
+        }
         int arcsLength = reader.in.readInt();
         ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
         for (int i = 0; i < arcsLength; i++)
@@ -116,6 +126,7 @@ public class CellBackup {
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);
-        return new CellBackup(d, cellName, null/*?*/, libId, creationDate, revisionDate, tech, userBits, nodes, arcs, exports, null/*?*/);
+        return new CellBackup(d, cellName, isMainSchematics, libId, creationDate, revisionDate, tech, userBits,
+                nodes, arcs, exports, cellUsages);
     }
 }

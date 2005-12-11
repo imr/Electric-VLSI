@@ -36,7 +36,7 @@ public class DatabaseChangeEvent {
 
     private Undo.ChangeBatch batch;
 
-    DatabaseChangeEvent(Undo.ChangeBatch batch) { this.batch = batch; }
+    public DatabaseChangeEvent(Undo.ChangeBatch batch) { this.batch = batch; }
         
     /**
      * Returns true if ElectricObject eObj was created, killed or modified

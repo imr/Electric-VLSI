@@ -32,6 +32,7 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -360,7 +361,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
     /** Bounds need to be recomputed. */                            private static final byte BOUNDS_RECOMPUTE = 2;
     
-	/** static list of all linked cells indexed by CellId. */		private static final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
+	/** static list of all linked cells indexed by CellId. */		static final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
 
     /** Persistent data of this Cell. */                            private ImmutableCell d;
 	/** The CellName of the Cell. */								private CellName cellName;
@@ -952,9 +953,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ImmutableNodeInst[] n = backupNodes(oldN);
         ImmutableArcInst[] a = backupArcs(oldA);
         ImmutableExport[] e = backupExports(oldE);
+		boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (oldBackup != null && d == oldBackup.d &&
                 cellName == oldBackup.cellName &&
-                cellGroup == oldBackup.cellGroup &&
+			    isMainSchematics == oldBackup.isMainSchematics &&
                 lib.getId() == oldBackup.libId &&
                 creationDate.getTime() == oldBackup.creationDate &&
                 revisionDate.getTime() == oldBackup.revisionDate &&
@@ -964,7 +966,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 a == oldBackup.arcs &&
                 e == oldBackup.exports)
             return oldBackup;
-        return new CellBackup(d, cellName, cellGroup, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
+        return new CellBackup(d, cellName, isMainSchematics, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
                 tech, userBits, n, a, e, cellUsages);
     }
 
@@ -1014,6 +1016,57 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     public boolean checkBackup(CellBackup backup) {
         return backup(backup) == backup;
+    }
+    
+    static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        boolean mainSchematicsChanged = false;
+        for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (oldBackup == null) {
+                Cell cell = new Cell(newBackup.d, Library.inCurrentThread(newBackup.libId));
+                cell.update0(newBackup);
+                assert cell.d.cellId.cellIndex == i;
+                while (linkedCells.size() <= i) linkedCells.add(null);
+                Cell oldCell = linkedCells.set(i, cell);
+                assert oldCell == null;
+            } else if (newBackup == null) {
+                Cell oldCell = linkedCells.set(i, null);
+                assert oldCell != null;
+            } else {
+                Cell cell = linkedCells.get(i);
+                cell.update0(newBackup);
+                if (oldBackup.isMainSchematics != newBackup.isMainSchematics)
+                    mainSchematicsChanged = true;
+            }
+        }
+        if (oldSnapshot.cellGroups != newSnapshot.cellGroups || mainSchematicsChanged) {
+            updateCellGroups(newSnapshot.cellGroups);
+            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+                CellBackup cellBackup = newSnapshot.cellBackups.get(i);
+                if (cellBackup != null && cellBackup.isMainSchematics) {
+                    Cell cell = linkedCells.get(i);
+                    cell.cellGroup.setMainSchematics(cell);
+                }
+            }
+        }
+    }
+    
+    private static void updateCellGroups(int[] cellGroups) {
+        ArrayList<CellGroup> groups = new ArrayList<CellGroup>();
+        for (int i = 0; i < cellGroups.length; i++) {
+            int cellGroupIndex = cellGroups[i];
+            if (cellGroupIndex < 0) continue;
+            if (cellGroupIndex == groups.size())
+                groups.add(new CellGroup());
+            CellGroup cellGroup = groups.get(cellGroupIndex);
+            cellGroup.add(linkedCells.get(i));
+        }
+    }
+    
+    void update0(CellBackup newBackup) {
+        this.d = newBackup.d;
+        setCellName(newBackup.cellName);
     }
     
     public void update(CellBackup newBackup) {

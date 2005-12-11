@@ -73,6 +73,7 @@ public abstract class Job implements Runnable {
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     public static boolean SERVER; // to dump trace of snapshots.
+    public static boolean CLIENT; // to replay trace of snapshots.
 
     /**
 	 * Method to tell whether Electric is running in "debug" mode.

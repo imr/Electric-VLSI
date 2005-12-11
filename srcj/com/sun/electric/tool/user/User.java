@@ -104,7 +104,8 @@ public class User extends Listener
 		setOn();
 		setIncremental();
 
-		Clipboard.clear(); // To initialize Clibpoard Cell
+        if (!Job.CLIENT)
+            Clipboard.clear(); // To initialize Clibpoard Cell
 	}
 
     /**

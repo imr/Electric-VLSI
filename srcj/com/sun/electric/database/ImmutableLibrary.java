@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.Variable;
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -36,6 +37,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	/** name of this ImmutableLibrary  */                               public final String libName;
 	/** file location of this ImmutableLibrary */                       public final URL libFile;
 	/** version of Electric which wrote the ImmutableLibrary. */		public final Version version;
+    /** flags of ImmutableLibrary. */                                   public final int flags;
     
 	/**
 	 * The private constructor of ImmutableLibrary. Use the factory "newInstance" instead.
@@ -43,14 +45,16 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      * @param libName name of this ImmutableLibrary.
      * @param libFile file location of this ImmutableLibrary.
      * @param version version of Electric which wrote this ImmutableLibrary.
+     * @param flags flags of ImmutableLibrary.
      * @param vars array of Variables of this ImmutableLibrary
 	 */
-     private ImmutableLibrary(LibId libId, String libName, URL libFile, Version version, Variable[] vars) {
+     private ImmutableLibrary(LibId libId, String libName, URL libFile, Version version, int flags, Variable[] vars) {
         super(vars);
         this.libId = libId;
         this.libName = libName;
         this.libFile = libFile;
         this.version = version;
+        this.flags = flags;
         check();
     }
 
@@ -65,7 +69,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	 */
     public static ImmutableLibrary newInstance(LibId libId, String libName, URL libFile, Version version) {
         if (libId == null) throw new NullPointerException("libId");
-		return new ImmutableLibrary(libId, libName, libFile, version, Variable.NULL_ARRAY);
+		return new ImmutableLibrary(libId, libName, libFile, version, 0, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -78,7 +82,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	public ImmutableLibrary withName(String libName, URL libFile) {
 //		if (this.libName.equals(libName) && this.libFile.equals(libFile)) return this;
 		if (libName == null) throw new NullPointerException("libName");
-		return new ImmutableLibrary(this.libId, libName, libFile, this.version, getVars());
+		return new ImmutableLibrary(this.libId, libName, libFile, this.version, this.flags, getVars());
 	}
 
 	/**
@@ -89,7 +93,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	public ImmutableLibrary withVersion(Version version) {
         if (this.version == version) return this;
 		if (this.version != null && version != null && this.version.equals(version)) return this;
-		return new ImmutableLibrary(this.libId, this.libName, this.libFile, version, getVars());
+		return new ImmutableLibrary(this.libId, this.libName, this.libFile, version, this.flags, getVars());
 	}
 
 	/**
@@ -103,7 +107,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
     public ImmutableLibrary withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableLibrary(this.libId, this.libName, this.libFile, this.version, vars);
+		return new ImmutableLibrary(this.libId, this.libName, this.libFile, this.version, this.flags, vars);
     }
     
 	/**
@@ -116,7 +120,47 @@ public class ImmutableLibrary extends ImmutableElectricObject {
     public ImmutableLibrary withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableLibrary(this.libId, this.libName, this.libFile, this.version, vars);
+		return new ImmutableLibrary(this.libId, this.libName, this.libFile, this.version, this.flags, vars);
+    }
+    
+	/**
+	 * Returns ImmutableLibrary which differs from this ImmutableLibrary by flags.
+	 * @param flags new flags.
+	 * @return ImmutableLibrary with the specified flags.
+	 */
+    public ImmutableLibrary withFlags(int flags) {
+        if (this.flags == flags) return this;
+		return new ImmutableLibrary(this.libId, this.libName, this.libFile, this.version, flags, getVars());
+    }
+    
+    /**
+     * Writes this ImmutableLibrary to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        writer.writeLibId(libId);
+        writer.out.writeUTF(libName);
+        writer.out.writeUTF(libFile != null ? libFile.toString() : "");
+        writer.out.writeUTF(version != null ? version.toString() : "");
+        writer.out.writeInt(flags);
+        super.write(writer);
+    }
+    
+    /**
+     * Reads ImmutableLibrary from SnapshotReader.
+     * @param reader where to read.
+     */
+    static ImmutableLibrary read(SnapshotReader reader) throws IOException {
+        LibId libId = reader.readLibId();
+        String libName = reader.in.readUTF();
+        String libFileString = reader.in.readUTF();
+        URL libFile = libFileString.length() > 0 ? new URL(libFileString) : null;
+        String versionString = reader.in.readUTF();
+        Version version = versionString.length() > 0 ? Version.parseVersion(versionString) : null;
+        int flags = reader.in.readInt();
+        boolean hasVars = reader.in.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableLibrary(libId, libName, libFile, version, flags, vars);
     }
     
 	/**

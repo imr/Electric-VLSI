@@ -24,10 +24,13 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
@@ -80,7 +83,6 @@ public class Library extends ElectricObject implements Comparable<Library>
     /** persistent data of this Library. */                 private ImmutableLibrary d;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
-	/** flag bits */										private int userBits;
     /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
     /** preferences for this library */                     Preferences prefs;
 
@@ -557,6 +559,113 @@ public class Library extends ElectricObject implements Comparable<Library>
         return inCurrentThread(d.libId) == this;
 	}
 
+	/*
+	 * Low-level method to backup this Library to LibraryBackup.
+     * @return CellBackup which is the backup of this Cell.
+	 */
+    public LibraryBackup backup(LibraryBackup oldBackup) {
+        LibId[] oldRefs = oldBackup != null ? oldBackup.referencedLibs : new LibId[0];
+        LibId[] newRefs = backupReferencedLibs(oldRefs);
+        if (oldBackup != null && d == oldBackup.d && newRefs == oldBackup.referencedLibs)
+            return oldBackup;
+        return new LibraryBackup(d, newRefs);
+    }
+    
+    private LibId[] backupReferencedLibs(LibId[] oldReferencedLibs) {
+        int numRefs = Math.min(oldReferencedLibs.length, referencedLibs.size());
+        int matchedRefs = 0;
+        while (matchedRefs < numRefs && oldReferencedLibs[matchedRefs] == referencedLibs.get(matchedRefs).getId())
+            matchedRefs++;
+        if (matchedRefs == oldReferencedLibs.length && matchedRefs == referencedLibs.size()) return oldReferencedLibs;
+        LibId[] newRefs = new LibId[referencedLibs.size()];
+        System.arraycopy(oldReferencedLibs, 0, newRefs, 0, matchedRefs);
+        for (int i = matchedRefs; i < referencedLibs.size(); i++)
+            newRefs[i] = referencedLibs.get(i).getId();
+        return newRefs;
+    }
+    
+    /**
+     * Update database from old immutable snapshot to new immutable snapshot.
+     * @param oldSnapshot old immutable snapshot.
+     * @param newSnapshot new immutable snapshot.
+     */
+    public static boolean updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        boolean libChanged = false;
+        for (int i = 0, maxLibs = Math.max(oldSnapshot.libBackups.size(), newSnapshot.libBackups.size()); i < maxLibs; i++) {
+            LibraryBackup oldBackup = oldSnapshot.getLib(i);
+            LibraryBackup newBackup = newSnapshot.getLib(i);
+            if (oldBackup == newBackup) continue;
+            libChanged = true;
+            if (oldBackup == null) {
+                Library lib = new Library(newBackup.d);
+                assert newBackup.d.libId.libIndex == i;
+                while (linkedLibs.size() <= i) linkedLibs.add(null);
+                Library oldLib = linkedLibs.set(i, lib);
+                assert oldLib == null;
+            } else if (newBackup == null) {
+                Library oldLib = linkedLibs.set(i, null);
+                assert oldLib != null;
+                oldLib.cells.clear();
+            } else {
+                Library lib = linkedLibs.get(i);
+                lib.d = newBackup.d;
+                String libName = lib.d.libName;
+                if (!oldBackup.d.libName.equals(libName)) {
+                    Cell curCell = lib.getCurCell();
+                    lib.prefs = allPrefs.node(libName);
+                    lib.prefs.put("LIB", libName);
+                    lib.curCellPref = null;
+                    lib.setCurCell(curCell);
+                }
+            }
+        }
+        if (libChanged) {
+            System.out.println("Libraries changed");
+            libraries.clear();
+            for (int i = 0; i < linkedLibs.size(); i++) {
+                Library lib = linkedLibs.get(i);
+                if (lib == null) continue;
+                libraries.put(lib.getName(), lib);
+                LibraryBackup newBackup = newSnapshot.getLib(i);
+                lib.referencedLibs.clear();
+                for (int j = 0; j < newBackup.referencedLibs.length; j++)
+                    lib.referencedLibs.add(inCurrentThread(newBackup.referencedLibs[j]));
+            }
+            if (curLib == null || !curLib.isLinked()) {
+                curLib = null;
+                for(Library lib: libraries.values()) {
+    				if (lib.isHidden()) continue;
+        			curLib = lib;
+            		break;
+                }
+			}
+        }
+        
+        boolean cellTreeChanged = oldSnapshot.cellGroups != newSnapshot.cellGroups;
+        for (int i = 0, maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size()); i < maxCells; i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (oldBackup == newBackup) continue;
+            if (oldBackup != null && newBackup != null &&
+                    oldBackup.cellName.equals(newBackup.cellName) && oldBackup.isMainSchematics == newBackup.isMainSchematics)
+                cellTreeChanged = true;
+        }
+        if (cellTreeChanged)
+            System.out.println("Cell tree changed");
+        Cell.updateAll(oldSnapshot, newSnapshot);
+        if (libChanged || cellTreeChanged) {
+            for (Library lib: libraries.values())
+                lib.cells.clear();
+            for (Cell cell: Cell.linkedCells) {
+                if (cell == null) continue;
+                Library lib = cell.getLibrary();
+                assert lib.isLinked();
+                lib.cells.put(cell.getCellName(), cell);
+            }
+        }
+        return libChanged || cellTreeChanged;
+    }
+    
 	/**
 	 * Method to check and repair data structure errors in this Library.
 	 */
@@ -670,43 +779,51 @@ public class Library extends ElectricObject implements Comparable<Library>
 		return false;
 	}
 
+    private void setFlag(int mask, boolean value) {
+        d = d.withFlags(value ? d.flags | mask : d.flags & ~mask);
+    }
+    
+    private boolean isFlag(int mask) {
+        return (d.flags & mask) != 0;
+    }
+    
     /**
 	 * Method to indicate that this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */
-	public void setChangedMajor() { userBits |= LIBCHANGEDMAJOR; }
+	public void setChangedMajor() { setFlag(LIBCHANGEDMAJOR, true); }
 
 	/**
 	 * Method to indicate that this Library has not changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */
-	private void clearChangedMajor() { clearCellChanges(); userBits &= ~LIBCHANGEDMAJOR; }
+	private void clearChangedMajor() { clearCellChanges(); setFlag(LIBCHANGEDMAJOR, false); }
 
 	/**
 	 * Method to return true if this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 * @return true if this Library has changed in a major way.
 	 */
-	public boolean isChangedMajor() { return (userBits & LIBCHANGEDMAJOR) != 0; }
+	public boolean isChangedMajor() { return isFlag(LIBCHANGEDMAJOR); }
 
 	/**
 	 * Method to indicate that this Library has changed in a minor way.
 	 * Minor changes include changes to text and other things that are not essential to the circuitry.
 	 */
-	public void setChangedMinor() { userBits |= LIBCHANGEDMINOR; }
+	public void setChangedMinor() { setFlag(LIBCHANGEDMINOR, true); }
 
 	/**
 	 * Method to indicate that this Library has not changed in a minor way.
 	 * Minor changes include changes to text and other things that are not essential to the circuitry.
 	 */
-	private void clearChangedMinor() { clearCellChanges(); userBits &= ~LIBCHANGEDMINOR; }
+	private void clearChangedMinor() { clearCellChanges(); setFlag(LIBCHANGEDMINOR, false); }
 
 	/**
 	 * Method to return true if this Library has changed in a minor way.
 	 * Minor changes include changes to text and other things that are not essential to the circuitry.
 	 * @return true if this Library has changed in a minor way.
 	 */
-	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
+	public boolean isChangedMinor() { return isFlag(LIBCHANGEDMINOR); }
 
 	/**
 	 * Method to indicate that this Library has changed regardless if they are major or minor.
@@ -744,20 +861,20 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to indicate that this Library came from disk.
 	 * Libraries that come from disk are saved without a file-selection dialog.
 	 */
-	public void setFromDisk() { userBits |= READFROMDISK; }
+	public void setFromDisk() { setFlag(READFROMDISK, true); }
 
 	/**
 	 * Method to indicate that this Library did not come from disk.
 	 * Libraries that come from disk are saved without a file-selection dialog.
 	 */
-	public void clearFromDisk() { userBits &= ~READFROMDISK; }
+	public void clearFromDisk() { setFlag(READFROMDISK, false); }
 
 	/**
 	 * Method to return true if this Library came from disk.
 	 * Libraries that come from disk are saved without a file-selection dialog.
 	 * @return true if this Library came from disk.
 	 */
-	public boolean isFromDisk() { return (userBits & READFROMDISK) != 0; }
+	public boolean isFromDisk() { return isFlag(READFROMDISK); }
 
 	/**
 	 * Method to indicate that this Library is hidden.
@@ -765,7 +882,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * For example, the "clipboard" library is hidden because it is only used
 	 * internally for copying and pasting circuitry.
 	 */
-	public void setHidden() { userBits |= HIDDENLIBRARY; }
+	public void setHidden() { setFlag(HIDDENLIBRARY, true); }
 
 	/**
 	 * Method to indicate that this Library is not hidden.
@@ -773,7 +890,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * For example, the "clipboard" library is hidden because it is only used
 	 * internally for copying and pasting circuitry.
 	 */
-	public void clearHidden() { userBits &= ~HIDDENLIBRARY; }
+	public void clearHidden() { setFlag(HIDDENLIBRARY, false); }
 
 	/**
 	 * Method to return true if this Library is hidden.
@@ -782,7 +899,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * internally for copying and pasting circuitry.
 	 * @return true if this Library is hidden.
 	 */
-	public boolean isHidden() { return (userBits & HIDDENLIBRARY) != 0; }
+	public boolean isHidden() { return isFlag(HIDDENLIBRARY); }
 
 	/**
 	 * Method to return the current Library.
@@ -810,7 +927,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * This should not normally be called by any other part of the system.
 	 * @return the "user bits".
 	 */
-	public int lowLevelGetUserBits() { return userBits; }
+	public int lowLevelGetUserBits() { return d.flags; }
 	
 	/**
 	 * Low-level method to set the user bits.
@@ -821,7 +938,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
+	public void lowLevelSetUserBits(int userBits) { d = d.withFlags(userBits); }
 
 	/**
 	 * Get list of cells contained in other libraries

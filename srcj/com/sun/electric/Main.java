@@ -30,6 +30,7 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
@@ -137,6 +138,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-NOTHREADING")) Job.NOTHREADING = true;
 		if (hasCommandLineOption(argsList, "-batch")) Job.BATCHMODE = true;
         if (hasCommandLineOption(argsList, "-server")) Job.SERVER = true;
+        if (hasCommandLineOption(argsList, "-client") && !Job.SERVER) Job.CLIENT = true;
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
@@ -197,6 +199,7 @@ public final class Main
 	        System.out.println("\t-batch: running in batch mode.");
 	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
             System.out.println("\t-server: dump trace of snapshots");
+            System.out.println("\t-client: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -222,6 +225,13 @@ public final class Main
 		// initialize database
         if (Job.SERVER)
             Snapshot.initWriter("snapshot.trace");
+        else if (Job.CLIENT) {
+            Snapshot.initReader("snapshot.trace");
+            if (sw != null)
+                sw.removeNotify();
+            initClientDatabase();
+            return;
+        }
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{
@@ -581,6 +591,21 @@ public final class Main
             return true;
 		}
 	}
+    
+    private static void initClientDatabase() {
+        Technology.initAllTechnologies();
+        User.getUserTool().init();
+        NetworkTool.getNetworkTool().init();
+        //Tool.initAllTools();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // remove the splash screen
+                //if (sw != null) sw.removeNotify();
+                TopLevel.InitializeWindows();
+                WindowFrame.wantToOpenCurrentLibrary(true);
+            }
+        });
+    }
 
     /**
 	 * Method to return the amount of memory being used by Electric.
