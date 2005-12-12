@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/12/05, SMR) Interactive sizing disallows dragging on the other side of the anchor (Bug #558).
+FIX: In SizeListener.getNewNodeSize(), handle dragging beyond the opposite point.
+
 BUG: (12/9/05, GVG) getCurrentCell not defined in Main.UserInterfaceDummy but it is required (Compactation regression failed).
 FIX: Move code under BATCHMODE code to UserInterfaceDummy. In case of batch mode, current cell is from current library.
 Remove conditions in WindowFrame.java if Job.BATCHMODE.
