@@ -146,7 +146,7 @@ public class SizeListener
 		private JTextField xSize, ySize;
 		boolean nodes;
 
-		/** Creates new form About */
+		/** Creates new form Size all selected nodes/arcs */
 		public SizeObjects(java.awt.Frame parent, boolean modal, boolean nodes)
 		{
 			super(parent, modal);
@@ -535,10 +535,10 @@ public class SizeListener
 			growthRatioY = ptToCenterY / closestToCenterY;
 		} else
 		{
-			double ptToFarthestX = Math.abs(pt.getX() - farthest.getX());
-			double closestToFarthestX = Math.abs(closest.getX() - farthest.getX());
-			double ptToFarthestY = Math.abs(pt.getY() - farthest.getY());
-			double closestToFarthestY = Math.abs(closest.getY() - farthest.getY());
+			double ptToFarthestX = pt.getX() - farthest.getX();
+			double closestToFarthestX = closest.getX() - farthest.getX();
+			double ptToFarthestY = pt.getY() - farthest.getY();
+			double closestToFarthestY = closest.getY() - farthest.getY();
 			growthRatioX = ptToFarthestX / closestToFarthestX;
 			growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
@@ -569,7 +569,7 @@ public class SizeListener
 		}
 		if (square)
 		{
-			if (growthRatioX > growthRatioY) growthRatioY = growthRatioX; else
+			if (Math.abs(growthRatioX) > Math.abs(growthRatioY)) growthRatioY = growthRatioX; else
 				growthRatioX = growthRatioY;
 		}
 
@@ -594,16 +594,16 @@ public class SizeListener
 			AffineTransform pureTrans = ni.pureRotateOut();
 			Point2D xformedSize = new Point2D.Double();
 			pureTrans.transform(newSize, xformedSize);
-			if (closestX > farthestX) closestX = farthestX + Math.abs(xformedSize.getX()); else
-				closestX = farthestX - Math.abs(xformedSize.getX());
-			if (closestY > farthestY) closestY = farthestY + Math.abs(xformedSize.getY()); else
-				closestY = farthestY - Math.abs(xformedSize.getY());
+			if (closestX > farthestX) closestX = farthestX + xformedSize.getX(); else
+				closestX = farthestX - xformedSize.getX();
+			if (closestY > farthestY) closestY = farthestY + xformedSize.getY(); else
+				closestY = farthestY - xformedSize.getY();
 			newCenter.setLocation((closestX + farthestX) / 2, (closestY + farthestY) / 2);
 		}
 
 		// adjust size offset to produce real size
-		newSize.setLocation(newSize.getX() + so.getLowXOffset() + so.getHighXOffset(),
-			newSize.getY() + so.getLowYOffset() + so.getHighYOffset());
+		newSize.setLocation(Math.abs(newSize.getX() + so.getLowXOffset() + so.getHighXOffset()),
+			Math.abs(newSize.getY() + so.getLowYOffset() + so.getHighYOffset()));
 		return newSize;
 	}
 
