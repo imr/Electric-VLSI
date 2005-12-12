@@ -1186,9 +1186,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             {
                 closeDialog(evt);
             }
-                        public void windowActivated(java.awt.event.WindowEvent evt)
+
+            public void windowActivated(java.awt.event.WindowEvent evt)
             {
-                System.out.println("DD");
+//                System.out.println("DD");
             }
         });
 
