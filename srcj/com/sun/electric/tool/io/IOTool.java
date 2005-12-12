@@ -179,7 +179,7 @@ public class IOTool extends Listener
 			diasInputMethod.invoke(diasClass, new Object[] {lib});
 		} catch (Exception e)
 		{
-			System.out.println("Unable to run the Dias input module");
+			System.out.println("Unable to run the Dias input module (" + e.getClass() + ")");
             e.printStackTrace(System.out);
 		}
 	}

@@ -288,4 +288,85 @@ public class Input
 		}
 		return sb.toString();
 	}
+
+	private String lineBuffer;
+	private int    lineBufferPosition;
+
+	protected void initKeywordParsing()
+	{
+		lineBufferPosition = 0;
+		lineBuffer = "";
+	}
+
+	protected String getAKeyword()
+		throws IOException
+	{
+		// keep reading from file until something is found on a line
+		for(;;)
+		{
+			if (lineBuffer == null) return null;
+			if (lineBufferPosition >= lineBuffer.length())
+			{
+				lineBuffer = lineReader.readLine();
+
+				// manage special comment situations
+				if (lineBuffer != null) lineBuffer = preprocessLine(lineBuffer);
+
+				// look for the first text on the line
+				lineBufferPosition = 0;
+				continue;
+			}
+
+			// look for the first text on the line
+			while (lineBufferPosition < lineBuffer.length())
+			{
+				char chr = lineBuffer.charAt(lineBufferPosition);
+				if (chr != ' ' && chr != '\t') break;
+				lineBufferPosition++;
+			}
+			if (lineBufferPosition >= lineBuffer.length()) continue;
+
+			// remember where the keyword begins
+			int start = lineBufferPosition;
+
+			// recognize characters that are entire keywords
+			char chr = lineBuffer.charAt(lineBufferPosition);
+			if (isBreakCharacter(chr))
+			{
+				lineBufferPosition++;
+				return Character.toString(chr);
+			}
+
+			// scan to the end of the keyword
+			while (lineBufferPosition < lineBuffer.length())
+			{
+				chr = lineBuffer.charAt(lineBufferPosition);
+				if (chr == ' ' || chr == '\t' || isBreakCharacter(chr)) break;
+				lineBufferPosition++;
+			}
+
+			// advance to the start of the next keyword
+			return lineBuffer.substring(start, lineBufferPosition);
+		}
+	}
+
+	/**
+	 * Helper method for keyword processing which decides whether a character is its own keyword.
+	 * @param chr the character in question.
+	 * @return true if this character should be its own keyword.
+	 */
+	protected boolean isBreakCharacter(char chr)
+	{
+		return false;
+	}
+
+	/**
+	 * Helper method for keyword processing which removes comments.
+	 * @param line a line of text just read.
+	 * @return the line after comments have been removed. 
+	 */
+	protected String preprocessLine(String line)
+	{
+		return line;
+	}
 }

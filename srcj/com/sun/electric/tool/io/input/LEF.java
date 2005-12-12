@@ -77,9 +77,6 @@ public class LEF extends LEFDEF
 		}
 	};
 
-	private String lineBuffer;
-	private int    lineBufferPosition;
-
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
@@ -90,8 +87,7 @@ public class LEF extends LEFDEF
 		// remove any vias in the globals
 		firstViaDefFromLEF = null;
 		widthsFromLEF = new HashMap<ArcProto,Double>();
-		lineBufferPosition = 0;
-		lineBuffer = "";
+		initKeywordParsing();
 
 		try
 		{
@@ -104,6 +100,18 @@ public class LEF extends LEFDEF
 	}
 
 	/**
+	 * Helper method for keyword processing which removes comments.
+	 * @param line a line of text just read.
+	 * @return the line after comments have been removed. 
+	 */
+	protected String preprocessLine(String line)
+	{
+		int sharpPos = line.indexOf('#');
+		if (sharpPos >= 0) return line.substring(0, sharpPos);
+		return line;
+	}
+
+	/**
 	 * Method to read the LEF file.
 	 */
 	private boolean readFile(Library lib)
@@ -112,7 +120,7 @@ public class LEF extends LEFDEF
 		for(;;)
 		{
 			// get the next keyword
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null) break;
 			if (key.equalsIgnoreCase("LAYER"))
 			{
@@ -134,7 +142,7 @@ public class LEF extends LEFDEF
 		throws IOException
 	{
 		// get the via name
-		String viaName = getKeyword();
+		String viaName = getAKeyword();
 		if (viaName == null) return true;
 
 		// create a new via definition
@@ -150,7 +158,7 @@ public class LEF extends LEFDEF
 		for(;;)
 		{
 			// get the next keyword
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null) return true;
 			if (ignoreDefault)
 			{
@@ -159,7 +167,7 @@ public class LEF extends LEFDEF
 			}
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 			if (key.equalsIgnoreCase("RESISTANCE"))
@@ -169,7 +177,7 @@ public class LEF extends LEFDEF
 			}
 			if (key.equalsIgnoreCase("LAYER"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null) return true;
 				GetLayerInformation li = new GetLayerInformation(key);
 				if (li.arc != null)
@@ -183,19 +191,19 @@ public class LEF extends LEFDEF
 			if (key.equalsIgnoreCase("RECT"))
 			{
 				// handle definition of a via rectangle
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null) return true;
 				double lX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null) return true;
 				double lY = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null) return true;
 				double hX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null) return true;
 				double hY = convertLEFString(key);
 
@@ -227,7 +235,7 @@ public class LEF extends LEFDEF
 	private boolean readMacro(Library lib)
 		throws IOException
 	{
-		String cellName = getKeyword();
+		String cellName = getAKeyword();
 		if (cellName == null)
 		{
 			System.out.println("EOF parsing MACRO header");
@@ -244,7 +252,7 @@ public class LEF extends LEFDEF
 		for(;;)
 		{
 			// get the next keyword
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing MACRO");
@@ -253,7 +261,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -268,7 +276,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("ORIGIN"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading ORIGIN X");
@@ -276,7 +284,7 @@ public class LEF extends LEFDEF
 				}
 				double oX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading ORIGIN Y");
@@ -315,7 +323,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("SIZE"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading SIZE X");
@@ -323,7 +331,7 @@ public class LEF extends LEFDEF
 				}
 				double sX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading SIZE 'BY'");
@@ -335,7 +343,7 @@ public class LEF extends LEFDEF
 					return true;
 				}
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading SIZE Y");
@@ -370,7 +378,7 @@ public class LEF extends LEFDEF
 		NodeProto np = null;
 		for(;;)
 		{
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing OBS");
@@ -381,7 +389,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("LAYER"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading LAYER clause");
@@ -406,7 +414,7 @@ public class LEF extends LEFDEF
 					System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
 					return true;
 				}
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT low X");
@@ -414,7 +422,7 @@ public class LEF extends LEFDEF
 				}
 				double lX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT low Y");
@@ -422,7 +430,7 @@ public class LEF extends LEFDEF
 				}
 				double lY = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT high X");
@@ -430,7 +438,7 @@ public class LEF extends LEFDEF
 				}
 				double hX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT high Y");
@@ -460,7 +468,7 @@ public class LEF extends LEFDEF
 		throws IOException
 	{
 		// get the pin name
-		String key = getKeyword();
+		String key = getAKeyword();
 		if (key == null)
 		{
 			System.out.println("EOF parsing PIN name");
@@ -472,7 +480,7 @@ public class LEF extends LEFDEF
 		PortCharacteristic portCharacteristics = PortCharacteristic.UNKNOWN;
 		for(;;)
 		{
-			key = getKeyword();
+			key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing PIN");
@@ -481,7 +489,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -494,7 +502,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("USE"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading USE clause");
@@ -512,7 +520,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("DIRECTION"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading DIRECTION clause");
@@ -552,7 +560,7 @@ public class LEF extends LEFDEF
 		double lastIntX = 0, lastIntY = 0;
 		for(;;)
 		{
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing PORT");
@@ -566,7 +574,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("LAYER"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading LAYER clause");
@@ -581,7 +589,7 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("WIDTH"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading WIDTH clause");
@@ -599,7 +607,7 @@ public class LEF extends LEFDEF
 					System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
 					return true;
 				}
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT low X");
@@ -607,7 +615,7 @@ public class LEF extends LEFDEF
 				}
 				double lX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT low Y");
@@ -615,7 +623,7 @@ public class LEF extends LEFDEF
 				}
 				double lY = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT high X");
@@ -623,7 +631,7 @@ public class LEF extends LEFDEF
 				}
 				double hX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading RECT high Y");
@@ -663,7 +671,7 @@ public class LEF extends LEFDEF
 				}
 				for(int i=0; ; i++)
 				{
-					key = getKeyword();
+					key = getAKeyword();
 					if (key == null)
 					{
 						System.out.println("EOF reading PATH clause");
@@ -672,7 +680,7 @@ public class LEF extends LEFDEF
 					if (key.equals(";")) break;
 					double intx = convertLEFString(key);
 
-					key = getKeyword();
+					key = getAKeyword();
 					if (key == null)
 					{
 						System.out.println("EOF reading PATH clause");
@@ -701,7 +709,7 @@ public class LEF extends LEFDEF
 			if (key.equalsIgnoreCase("VIA"))
 			{
 				// get the coordinates
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading VIA clause");
@@ -709,7 +717,7 @@ public class LEF extends LEFDEF
 				}
 				double intX = convertLEFString(key);
 
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading VIA clause");
@@ -718,7 +726,7 @@ public class LEF extends LEFDEF
 				double intY = convertLEFString(key);
 
 				// find the proper via
-				key = getKeyword();
+				key = getAKeyword();
 				GetLayerInformation li = new GetLayerInformation(key);
 				if (li.pin == null)
 				{
@@ -848,7 +856,7 @@ public class LEF extends LEFDEF
 	private boolean readLayer(Library lib)
 		throws IOException
 	{
-		String layerName = getKeyword();
+		String layerName = getAKeyword();
 		if (layerName == null)
 		{
 			System.out.println("EOF parsing LAYER header");
@@ -860,7 +868,7 @@ public class LEF extends LEFDEF
 		for(;;)
 		{
 			// get the next keyword
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing LAYER");
@@ -869,13 +877,13 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
 			if (key.equalsIgnoreCase("WIDTH"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				if (key == null)
 				{
 					System.out.println("EOF reading WIDTH");
@@ -907,7 +915,7 @@ public class LEF extends LEFDEF
 		// ignore up to the next semicolon
 		for(;;)
 		{
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null)
 			{
 				System.out.println("EOF parsing " + command);
@@ -922,50 +930,5 @@ public class LEF extends LEFDEF
 	{
 		double v = TextUtils.atof(key) / 2;
 		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
-	}
-
-	private String getKeyword()
-		throws IOException
-	{
-		// keep reading from file until something is found on a line
-		for(;;)
-		{
-			if (lineBuffer == null) return null;
-			if (lineBufferPosition >= lineBuffer.length())
-			{
-				lineBuffer = lineReader.readLine();
-
-				// look for the first text on the line
-				lineBufferPosition = 0;
-				continue;
-			}
-
-			// remove comments from the line
-			int sharpPos = lineBuffer.indexOf('#');
-			if (sharpPos >= 0) lineBuffer = lineBuffer.substring(0, sharpPos);
-
-			// look for the first text on the line
-			while (lineBufferPosition < lineBuffer.length())
-			{
-				char chr = lineBuffer.charAt(lineBufferPosition);
-				if (chr != ' ' && chr != '\t') break;
-				lineBufferPosition++;
-			}
-			if (lineBufferPosition >= lineBuffer.length()) continue;
-
-			// remember where the keyword begins
-			int start = lineBufferPosition;
-
-			// scan to the end of the keyword
-			while (lineBufferPosition < lineBuffer.length())
-			{
-				char chr = lineBuffer.charAt(lineBufferPosition);
-				if (chr == ' ' || chr == '\t') break;
-				lineBufferPosition++;
-			}
-
-			// advance to the start of the next keyword
-			return lineBuffer.substring(start, lineBufferPosition);
-		}
 	}
 }

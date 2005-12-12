@@ -69,17 +69,19 @@ public class Layer
 		private final int height;
 		private final int extraBits;
 		private static HashMap<Integer,Function> metalLayers = new HashMap<Integer,Function>();
+		private static HashMap<Integer,Function> contactLayers = new HashMap<Integer,Function>();
 		private static HashMap<Integer,Function> polyLayers = new HashMap<Integer,Function>();
 		private static List<Function> allFunctions = new ArrayList<Function>();
 		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, PSEUDO, NONELEC, CONMETAL, CONPOLY, CONDIFF, INTRANS, THICK};
 
-		private Function(String name, String constantName, int metalLevel, int polyLevel, int height, int extraBits)
+		private Function(String name, String constantName, int metalLevel, int contactLevel, int polyLevel, int height, int extraBits)
 		{
 			this.name = name;
 			this.constantName = constantName;
 			this.height = height;
 			this.extraBits = extraBits;
 			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
+			if (contactLevel != 0) contactLayers.put(new Integer(this.level = contactLevel), this);
 			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
 			allFunctions.add(this);
 		}
@@ -196,59 +198,59 @@ public class Layer
             if (name.equalsIgnoreCase("vt")) return HLVT;
 			return 0;
 		}
-		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "UNKNOWN",    0, 0, 35, 0);
-		/** Describes a metal layer 1. */						public static final Function METAL1     = new Function("metal-1",    "METAL1",     1, 0, 17, 0);
-		/** Describes a metal layer 2. */						public static final Function METAL2     = new Function("metal-2",    "METAL2",     2, 0, 19, 0);
-		/** Describes a metal layer 3. */						public static final Function METAL3     = new Function("metal-3",    "METAL3",     3, 0, 21, 0);
-		/** Describes a metal layer 4. */						public static final Function METAL4     = new Function("metal-4",    "METAL4",     4, 0, 23, 0);
-		/** Describes a metal layer 5. */						public static final Function METAL5     = new Function("metal-5",    "METAL5",     5, 0, 25, 0);
-		/** Describes a metal layer 6. */						public static final Function METAL6     = new Function("metal-6",    "METAL6",     6, 0, 27, 0);
-		/** Describes a metal layer 7. */						public static final Function METAL7     = new Function("metal-7",    "METAL7",     7, 0, 29, 0);
-		/** Describes a metal layer 8. */						public static final Function METAL8     = new Function("metal-8",    "METAL8",     8, 0, 31, 0);
-		/** Describes a metal layer 9. */						public static final Function METAL9     = new Function("metal-9",    "METAL9",     9, 0, 33, 0);
-		/** Describes a metal layer 10. */						public static final Function METAL10    = new Function("metal-10",   "METAL10",   10, 0, 35, 0);
-		/** Describes a metal layer 11. */						public static final Function METAL11    = new Function("metal-11",   "METAL11",   11, 0, 37, 0);
-		/** Describes a metal layer 12. */						public static final Function METAL12    = new Function("metal-12",   "METAL12",   12, 0, 39, 0);
-		/** Describes a polysilicon layer 1. */					public static final Function POLY1      = new Function("poly-1",     "POLY1",      0, 1, 12, 0);
-		/** Describes a polysilicon layer 2. */					public static final Function POLY2      = new Function("poly-2",     "POLY2",      0, 2, 13, 0);
-		/** Describes a polysilicon layer 3. */					public static final Function POLY3      = new Function("poly-3",     "POLY3",      0, 3, 14, 0);
-		/** Describes a polysilicon gate layer. */				public static final Function GATE       = new Function("gate",       "GATE",       0, 0, 15, INTRANS);
-		/** Describes a diffusion layer. */						public static final Function DIFF       = new Function("diffusion",  "DIFF",       0, 0, 11, 0);
-		/** Describes a P-diffusion layer. */					public static final Function DIFFP      = new Function("p-diffusion","DIFF",       0, 0, 11, PTYPE);
-		/** Describes a N-diffusion layer. */					public static final Function DIFFN      = new Function("n-diffusion","DIFF",       0, 0, 11, NTYPE);
-		/** Describes an implant layer. */						public static final Function IMPLANT    = new Function("implant",    "IMPLANT",    0, 0, 2, 0);
-		/** Describes a P-implant layer. */						public static final Function IMPLANTP   = new Function("p-implant",  "IMPLANT",    0, 0, 2, PTYPE);
-		/** Describes an N-implant layer. */					public static final Function IMPLANTN   = new Function("n-implant",  "IMPLANT",    0, 0, 2, NTYPE);
-		/** Describes a contact layer 1. */						public static final Function CONTACT1   = new Function("contact-1",  "CONTACT1",   0, 0, 16, 0);
-		/** Describes a contact layer 2. */						public static final Function CONTACT2   = new Function("contact-2",  "CONTACT2",   0, 0, 18, 0);
-		/** Describes a contact layer 3. */						public static final Function CONTACT3   = new Function("contact-3",  "CONTACT3",   0, 0, 20, 0);
-		/** Describes a contact layer 4. */						public static final Function CONTACT4   = new Function("contact-4",  "CONTACT4",   0, 0, 22, 0);
-		/** Describes a contact layer 5. */						public static final Function CONTACT5   = new Function("contact-5",  "CONTACT5",   0, 0, 24, 0);
-		/** Describes a contact layer 6. */						public static final Function CONTACT6   = new Function("contact-6",  "CONTACT6",   0, 0, 26, 0);
-		/** Describes a contact layer 7. */						public static final Function CONTACT7   = new Function("contact-7",  "CONTACT7",   0, 0, 28, 0);
-		/** Describes a contact layer 8. */						public static final Function CONTACT8   = new Function("contact-8",  "CONTACT8",   0, 0, 30, 0);
-		/** Describes a contact layer 9. */						public static final Function CONTACT9   = new Function("contact-9",  "CONTACT9",   0, 0, 32, 0);
-		/** Describes a contact layer 10. */					public static final Function CONTACT10  = new Function("contact-10", "CONTACT10",  0, 0, 34, 0);
-		/** Describes a contact layer 11. */					public static final Function CONTACT11  = new Function("contact-11", "CONTACT11",  0, 0, 36, 0);
-		/** Describes a contact layer 12. */					public static final Function CONTACT12  = new Function("contact-12", "CONTACT12",  0, 0, 38, 0);
-		/** Describes a sinker (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "PLUG",       0, 0, 40, 0);
-		/** Describes an overglass layer (passivation). */		public static final Function OVERGLASS  = new Function("overglass",  "OVERGLASS",  0, 0, 41, 0);
-		/** Describes a resistor layer. */						public static final Function RESISTOR   = new Function("resistor",   "RESISTOR",   0, 0, 4, 0);
-		/** Describes a capacitor layer. */						public static final Function CAP        = new Function("capacitor",  "CAP",        0, 0, 5, 0);
-		/** Describes a transistor layer. */					public static final Function TRANSISTOR = new Function("transistor", "TRANSISTOR", 0, 0, 3, 0);
-		/** Describes an emitter of bipolar transistor. */		public static final Function EMITTER    = new Function("emitter",    "EMITTER",    0, 0, 6, 0);
-		/** Describes a base of bipolar transistor. */			public static final Function BASE       = new Function("base",       "BASE",       0, 0, 7, 0);
-		/** Describes a collector of bipolar transistor. */		public static final Function COLLECTOR  = new Function("collector",  "COLLECTOR",  0, 0, 8, 0);
-		/** Describes a substrate layer. */						public static final Function SUBSTRATE  = new Function("substrate",  "SUBSTRATE",  0, 0, 1, 0);
-		/** Describes a well layer. */							public static final Function WELL       = new Function("well",       "WELL",       0, 0, 0, 0);
-		/** Describes a P-well layer. */						public static final Function WELLP      = new Function("p-well",     "WELL",       0, 0, 0, PTYPE);
-		/** Describes a N-well layer. */						public static final Function WELLN      = new Function("n-well",     "WELL",       0, 0, 0, NTYPE);
-		/** Describes a guard layer. */							public static final Function GUARD      = new Function("guard",      "GUARD",      0, 0, 9, 0);
-		/** Describes an isolation layer (bipolar). */			public static final Function ISOLATION  = new Function("isolation",  "ISOLATION",  0, 0, 10, 0);
-		/** Describes a bus layer. */							public static final Function BUS        = new Function("bus",        "BUS",        0, 0, 42, 0);
-		/** Describes an artwork layer. */						public static final Function ART        = new Function("art",        "ART",        0, 0, 43, 0);
-		/** Describes a control layer. */						public static final Function CONTROL    = new Function("control",    "CONTROL",    0, 0, 44, 0);
-        /** Describes a tileNot layer. */						public static final Function TILENOT    = new Function("tileNot",    "TILENOT",    0, 0, 45, 0);
+		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "UNKNOWN",    0, 0, 0, 35, 0);
+		/** Describes a metal layer 1. */						public static final Function METAL1     = new Function("metal-1",    "METAL1",     1, 0, 0, 17, 0);
+		/** Describes a metal layer 2. */						public static final Function METAL2     = new Function("metal-2",    "METAL2",     2, 0, 0, 19, 0);
+		/** Describes a metal layer 3. */						public static final Function METAL3     = new Function("metal-3",    "METAL3",     3, 0, 0, 21, 0);
+		/** Describes a metal layer 4. */						public static final Function METAL4     = new Function("metal-4",    "METAL4",     4, 0, 0, 23, 0);
+		/** Describes a metal layer 5. */						public static final Function METAL5     = new Function("metal-5",    "METAL5",     5, 0, 0, 25, 0);
+		/** Describes a metal layer 6. */						public static final Function METAL6     = new Function("metal-6",    "METAL6",     6, 0, 0, 27, 0);
+		/** Describes a metal layer 7. */						public static final Function METAL7     = new Function("metal-7",    "METAL7",     7, 0, 0, 29, 0);
+		/** Describes a metal layer 8. */						public static final Function METAL8     = new Function("metal-8",    "METAL8",     8, 0, 0, 31, 0);
+		/** Describes a metal layer 9. */						public static final Function METAL9     = new Function("metal-9",    "METAL9",     9, 0, 0, 33, 0);
+		/** Describes a metal layer 10. */						public static final Function METAL10    = new Function("metal-10",   "METAL10",   10, 0, 0, 35, 0);
+		/** Describes a metal layer 11. */						public static final Function METAL11    = new Function("metal-11",   "METAL11",   11, 0, 0, 37, 0);
+		/** Describes a metal layer 12. */						public static final Function METAL12    = new Function("metal-12",   "METAL12",   12, 0, 0, 39, 0);
+		/** Describes a polysilicon layer 1. */					public static final Function POLY1      = new Function("poly-1",     "POLY1",      0, 0, 1, 12, 0);
+		/** Describes a polysilicon layer 2. */					public static final Function POLY2      = new Function("poly-2",     "POLY2",      0, 0, 2, 13, 0);
+		/** Describes a polysilicon layer 3. */					public static final Function POLY3      = new Function("poly-3",     "POLY3",      0, 0, 3, 14, 0);
+		/** Describes a polysilicon gate layer. */				public static final Function GATE       = new Function("gate",       "GATE",       0, 0, 0, 15, INTRANS);
+		/** Describes a diffusion layer. */						public static final Function DIFF       = new Function("diffusion",  "DIFF",       0, 0, 0, 11, 0);
+		/** Describes a P-diffusion layer. */					public static final Function DIFFP      = new Function("p-diffusion","DIFF",       0, 0, 0, 11, PTYPE);
+		/** Describes a N-diffusion layer. */					public static final Function DIFFN      = new Function("n-diffusion","DIFF",       0, 0, 0, 11, NTYPE);
+		/** Describes an implant layer. */						public static final Function IMPLANT    = new Function("implant",    "IMPLANT",    0, 0, 0, 2, 0);
+		/** Describes a P-implant layer. */						public static final Function IMPLANTP   = new Function("p-implant",  "IMPLANT",    0, 0, 0, 2, PTYPE);
+		/** Describes an N-implant layer. */					public static final Function IMPLANTN   = new Function("n-implant",  "IMPLANT",    0, 0, 0, 2, NTYPE);
+		/** Describes a contact layer 1. */						public static final Function CONTACT1   = new Function("contact-1",  "CONTACT1",   0, 1, 0, 16, 0);
+		/** Describes a contact layer 2. */						public static final Function CONTACT2   = new Function("contact-2",  "CONTACT2",   0, 2, 0, 18, 0);
+		/** Describes a contact layer 3. */						public static final Function CONTACT3   = new Function("contact-3",  "CONTACT3",   0, 3, 0, 20, 0);
+		/** Describes a contact layer 4. */						public static final Function CONTACT4   = new Function("contact-4",  "CONTACT4",   0, 4, 0, 22, 0);
+		/** Describes a contact layer 5. */						public static final Function CONTACT5   = new Function("contact-5",  "CONTACT5",   0, 5, 0, 24, 0);
+		/** Describes a contact layer 6. */						public static final Function CONTACT6   = new Function("contact-6",  "CONTACT6",   0, 6, 0, 26, 0);
+		/** Describes a contact layer 7. */						public static final Function CONTACT7   = new Function("contact-7",  "CONTACT7",   0, 7, 0, 28, 0);
+		/** Describes a contact layer 8. */						public static final Function CONTACT8   = new Function("contact-8",  "CONTACT8",   0, 8, 0, 30, 0);
+		/** Describes a contact layer 9. */						public static final Function CONTACT9   = new Function("contact-9",  "CONTACT9",   0, 9, 0, 32, 0);
+		/** Describes a contact layer 10. */					public static final Function CONTACT10  = new Function("contact-10", "CONTACT10",  0,10, 0, 34, 0);
+		/** Describes a contact layer 11. */					public static final Function CONTACT11  = new Function("contact-11", "CONTACT11",  0,11, 0, 36, 0);
+		/** Describes a contact layer 12. */					public static final Function CONTACT12  = new Function("contact-12", "CONTACT12",  0,12, 0, 38, 0);
+		/** Describes a sinker (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "PLUG",       0, 0, 0, 40, 0);
+		/** Describes an overglass layer (passivation). */		public static final Function OVERGLASS  = new Function("overglass",  "OVERGLASS",  0, 0, 0, 41, 0);
+		/** Describes a resistor layer. */						public static final Function RESISTOR   = new Function("resistor",   "RESISTOR",   0, 0, 0, 4, 0);
+		/** Describes a capacitor layer. */						public static final Function CAP        = new Function("capacitor",  "CAP",        0, 0, 0, 5, 0);
+		/** Describes a transistor layer. */					public static final Function TRANSISTOR = new Function("transistor", "TRANSISTOR", 0, 0, 0, 3, 0);
+		/** Describes an emitter of bipolar transistor. */		public static final Function EMITTER    = new Function("emitter",    "EMITTER",    0, 0, 0, 6, 0);
+		/** Describes a base of bipolar transistor. */			public static final Function BASE       = new Function("base",       "BASE",       0, 0, 0, 7, 0);
+		/** Describes a collector of bipolar transistor. */		public static final Function COLLECTOR  = new Function("collector",  "COLLECTOR",  0, 0, 0, 8, 0);
+		/** Describes a substrate layer. */						public static final Function SUBSTRATE  = new Function("substrate",  "SUBSTRATE",  0, 0, 0, 1, 0);
+		/** Describes a well layer. */							public static final Function WELL       = new Function("well",       "WELL",       0, 0, 0, 0, 0);
+		/** Describes a P-well layer. */						public static final Function WELLP      = new Function("p-well",     "WELL",       0, 0, 0, 0, PTYPE);
+		/** Describes a N-well layer. */						public static final Function WELLN      = new Function("n-well",     "WELL",       0, 0, 0, 0, NTYPE);
+		/** Describes a guard layer. */							public static final Function GUARD      = new Function("guard",      "GUARD",      0, 0, 0, 9, 0);
+		/** Describes an isolation layer (bipolar). */			public static final Function ISOLATION  = new Function("isolation",  "ISOLATION",  0, 0, 0, 10, 0);
+		/** Describes a bus layer. */							public static final Function BUS        = new Function("bus",        "BUS",        0, 0, 0, 42, 0);
+		/** Describes an artwork layer. */						public static final Function ART        = new Function("art",        "ART",        0, 0, 0, 43, 0);
+		/** Describes a control layer. */						public static final Function CONTROL    = new Function("control",    "CONTROL",    0, 0, 0, 44, 0);
+        /** Describes a tileNot layer. */						public static final Function TILENOT    = new Function("tileNot",    "TILENOT",    0, 0, 0, 45, 0);
 
 		/**
 		 * Method to get the level of this Layer.
@@ -266,6 +268,17 @@ public class Layer
 		public static Function getMetal(int level)
 		{
 			Function func = (Function)metalLayers.get(new Integer(level));
+			return func;
+		}
+
+		/**
+		 * Method to find the Function that corresponds to a contact on a given layer.
+		 * @param level the layer (starting at 1 for Contact-1).
+		 * @return the Function that represents that Contact layer.
+		 */
+		public static Function getContact(int level)
+		{
+			Function func = (Function)contactLayers.get(new Integer(level));
 			return func;
 		}
 

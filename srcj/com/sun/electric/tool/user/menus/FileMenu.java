@@ -108,7 +108,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("_Open Library...", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 
-		// mnemonic keys available: A    F HIJK  NO QRS  VW YZ
+		// mnemonic keys available: A    F HIJK  NO QR   VW YZ
 		MenuBar.Menu importSubMenu = MenuBar.makeMenu("_Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
@@ -129,7 +129,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.SUE); } });
 		if (IOTool.hasDias())
 		{
-			importSubMenu.addMenuItem("Dias (Sun CAD)...", null,
+			importSubMenu.addMenuItem("Dias (_Sun CAD)...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DIAS); } });
         }
 		importSubMenu.addSeparator();

@@ -298,8 +298,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public ImmutableNodeInst withSize(double width, double height) {
 		if (this.width == width && this.height == height) return this;
-        if (!(width >= 0)) throw new IllegalArgumentException("width");
-        if (!(height >= 0)) throw new IllegalArgumentException("height");
+        if (!(width >= 0)) throw new IllegalArgumentException("width is " + TextUtils.formatDouble(width));
+        if (!(height >= 0)) throw new IllegalArgumentException("height is " + TextUtils.formatDouble(height));
         if (protoId == Generic.tech.cellCenterNode) return this;
         if (protoId instanceof CellId) return this;
         width = DBMath.round(width);

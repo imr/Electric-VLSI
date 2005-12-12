@@ -61,8 +61,6 @@ import java.util.Iterator;
  */
 public class DEF extends LEFDEF
 {
-	private String  lineBuffer;
-	private int     lineBufferPosition;
 	private double  scaleUnits;
 	private ViaDef  firstViaDef;
 
@@ -73,8 +71,7 @@ public class DEF extends LEFDEF
 	 */
 	protected boolean importALibrary(Library lib)
 	{
-		lineBufferPosition = 0;
-		lineBuffer = "";
+		initKeywordParsing();
 		scaleUnits = 1000;
 		firstViaDef = null;
 
@@ -87,46 +84,6 @@ public class DEF extends LEFDEF
 			System.out.println("ERROR reading DEF libraries");
 		}
 		return false;
-	}
-
-	private String getKeyword()
-		throws IOException
-	{
-		// keep reading from file until something is found on a line
-		for(;;)
-		{
-			if (lineBuffer == null) return null;
-			if (lineBufferPosition >= lineBuffer.length())
-			{
-				lineBuffer = lineReader.readLine();
-
-				// look for the first text on the line
-				lineBufferPosition = 0;
-				continue;
-			}
-
-			while (lineBufferPosition < lineBuffer.length())
-			{
-				char chr = lineBuffer.charAt(lineBufferPosition);
-				if (chr != ' ' && chr != '\t') break;
-				lineBufferPosition++;
-			}
-			if (lineBufferPosition >= lineBuffer.length()) continue;
-
-			// remember where the keyword begins
-			int start = lineBufferPosition;
-
-			// scan to the end of the keyword
-			while (lineBufferPosition < lineBuffer.length())
-			{
-				char chr = lineBuffer.charAt(lineBufferPosition);
-				if (chr == ' ' || chr == '\t') break;
-				lineBufferPosition++;
-			}
-
-			// advance to the start of the next keyword
-			return lineBuffer.substring(start, lineBufferPosition);
-		}
 	}
 
 	private boolean ignoreToSemicolon(String command)
@@ -145,7 +102,7 @@ public class DEF extends LEFDEF
 	private String mustGetKeyword(String where)
 		throws IOException
 	{
-		String key = getKeyword();
+		String key = getAKeyword();
 		if (key == null) reportError("EOF parsing " + where);
 		return key;
 	}
@@ -171,7 +128,7 @@ public class DEF extends LEFDEF
 		for(;;)
 		{
 			// get the next keyword
-			String key = getKeyword();
+			String key = getAKeyword();
 			if (key == null) break;
 			if (key.equalsIgnoreCase("VERSION") || key.equalsIgnoreCase("NAMESCASESENSITIVE") ||
 				key.equalsIgnoreCase("DIVIDERCHAR") || key.equalsIgnoreCase("BUSBITCHARS") ||
@@ -245,7 +202,7 @@ public class DEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 		}
@@ -263,7 +220,7 @@ public class DEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				getKeyword();
+				getAKeyword();
 				break;
 			}
 		}
@@ -429,7 +386,7 @@ public class DEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -581,7 +538,7 @@ public class DEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -665,7 +622,7 @@ public class DEF extends LEFDEF
 			}
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -1083,7 +1040,7 @@ public class DEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
@@ -1174,7 +1131,7 @@ public class DEF extends LEFDEF
 			if (key == null) return true;
 			if (key.equalsIgnoreCase("END"))
 			{
-				key = getKeyword();
+				key = getAKeyword();
 				break;
 			}
 
