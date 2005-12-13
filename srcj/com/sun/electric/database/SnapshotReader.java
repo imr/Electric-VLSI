@@ -56,7 +56,7 @@ public class SnapshotReader {
     private ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
     /** Creates a new instance of SnapshotWriter */
-    SnapshotReader(DataInputStream in) {
+    public SnapshotReader(DataInputStream in) {
         this.in = in;
     }
 

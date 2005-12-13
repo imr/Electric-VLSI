@@ -301,9 +301,9 @@ public class DebugMenus {
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
-        if (Job.CLIENT)
-            dimaMenu.addMenuItem("Replay snapshot", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { Snapshot.updateSnapshot(); } });
+//        if (Job.CLIENT)
+//            dimaMenu.addMenuItem("Replay snapshot", null,
+//                new ActionListener() { public void actionPerformed(ActionEvent e) { Snapshot.updateSnapshot(); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,

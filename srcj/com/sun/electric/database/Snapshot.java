@@ -36,6 +36,8 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,11 +52,10 @@ public class Snapshot {
     public final ArrayList<LibraryBackup> libBackups = new ArrayList<LibraryBackup>();
 
     public static Snapshot currentSnapshot = new Snapshot();
-    public static SnapshotReader reader = null;
-    public static SnapshotWriter writer = null;
+    public static volatile SnapshotWriter writer = null;
     
     /** Creates a new instance of Snapshot */
-    private Snapshot() {
+    public Snapshot() {
         cellGroups = new int[0];
     }
     
@@ -127,25 +128,16 @@ public class Snapshot {
     }
     
     /**
-     * Initialize SnapshotReader to file with given name.
-     * @param dumpName file name of dump.
+     * Initialize SnapshotWriter to socket with given port.
+     * @param port port to write.
      */
-    public static void initReader(String dumpFile) {
-        try {
-            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(new FileInputStream(dumpFile))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void initWriter(OutputStream outStream) {
+        //try {
+            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(outStream)));
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
     }
-    
-//    public static void initReader(String dumpFile) {
-//        try {
-//            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(new FileInputStream(dumpFile))));
-//        } catch (IOException e) {
-//            ActivityLogger.logException(e);
-//        }
-//        
-//    }
     
     public static void advanceWriter() {
         if (writer == null) return;
@@ -216,51 +208,6 @@ public class Snapshot {
                 writer.out.writeInt(cellGroups[i]);
         }
     }
-    
-    public static void updateSnapshot() {
-            if (reader == null) {
-                System.out.println("No active snapshot reader");
-                return;
-            }
-            try {
-                Snapshot newSnapshot = readSnapshot(reader, currentSnapshot);
-                Undo.invokeSnapshotChange(currentSnapshot, newSnapshot);
-                currentSnapshot = newSnapshot;
-            } catch (IOException e) {
-                // reader.in.close();
-                reader = null;
-                System.out.println("END OF FILE");
-            }
-//        Job job = new UpdateSnapshotJob();
-//        job.startJob();
-    }
-    
-    private static class UpdateSnapshotJob extends Job {
-        
-        private CellBackup newBackup;
-        
-        UpdateSnapshotJob() {
-            super("UpdateSnapshot", null, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.newBackup = newBackup;
-        }
-        
-        public boolean doIt() {
-            if (reader == null) {
-                System.out.println("No active snapshot reader");
-                return true;
-            }
-            try {
-                Snapshot newSnapshot = readSnapshot(reader, currentSnapshot);
-                Undo.invokeSnapshotChange(currentSnapshot, newSnapshot);
-                currentSnapshot = newSnapshot;
-            } catch (IOException e) {
-                // reader.in.close();
-                reader = null;
-                System.out.println("END OF FILE");
-            }
-            return false;
-        }
-   };
     
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
         Snapshot newSnapshot = new Snapshot();

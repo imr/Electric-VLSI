@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -63,7 +64,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -211,7 +217,7 @@ public final class Main
 
 		SplashWindow sw = null;
 
-		if (!Job.BATCHMODE) sw = new SplashWindow();
+		if (!Job.BATCHMODE && !Job.SERVER && !Job.CLIENT) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
@@ -223,13 +229,11 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
-        if (Job.SERVER)
-            Snapshot.initWriter("snapshot.trace");
-        else if (Job.CLIENT) {
-            Snapshot.initReader("snapshot.trace");
-            if (sw != null)
-                sw.removeNotify();
-            initClientDatabase();
+        int port = 35742;
+        if (Job.SERVER) {
+            (new ConnectionWaiter(port)).start();
+        } else if (Job.CLIENT) {
+            clientLoop(port);
             return;
         }
 		InitDatabase job = new InitDatabase(argsList, sw);
@@ -592,7 +596,19 @@ public final class Main
 		}
 	}
     
-    private static void initClientDatabase() {
+    private static void clientLoop(int port) {
+        SnapshotReader reader = null;
+        Snapshot currentSnapshot = new Snapshot();
+        try {
+            System.out.println("Attempting to connect to port " + port + " ...");
+            Socket socket = new Socket((String)null, port);
+            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+            System.out.println("Connected");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+            
         Technology.initAllTechnologies();
         User.getUserTool().init();
         NetworkTool.getNetworkTool().init();
@@ -605,8 +621,21 @@ public final class Main
                 WindowFrame.wantToOpenCurrentLibrary(true);
             }
         });
+        
+        for (;;) {
+            try {
+                Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
+                Undo.invokeSnapshotChange(currentSnapshot, newSnapshot);
+                currentSnapshot = newSnapshot;
+            } catch (IOException e) {
+                // reader.in.close();
+                reader = null;
+                System.out.println("END OF FILE");
+                return;
+            }
+        }
     }
-
+    
     /**
 	 * Method to return the amount of memory being used by Electric.
 	 * Calls garbage collection and delays to allow completion, so the method is SLOW.
@@ -688,4 +717,23 @@ public final class Main
         }
     }
 
+    private static class ConnectionWaiter extends Thread {
+        private int port;
+        
+        ConnectionWaiter(int port) {
+            this.port = port;
+        }
+        
+        public void run() {
+            try {
+                ServerSocket ss = new ServerSocket(port, 1);
+                Socket socket = ss.accept();
+                System.out.println("Accepted connection to port " + port +  " ...");
+                Snapshot.initWriter(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
 }
