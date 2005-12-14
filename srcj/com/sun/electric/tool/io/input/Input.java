@@ -310,7 +310,11 @@ public class Input
 				lineBuffer = lineReader.readLine();
 
 				// manage special comment situations
-				if (lineBuffer != null) lineBuffer = preprocessLine(lineBuffer);
+				if (lineBuffer != null)
+				{
+					updateProgressDialog(lineBuffer.length());
+					lineBuffer = preprocessLine(lineBuffer);
+				}
 
 				// look for the first text on the line
 				lineBufferPosition = 0;

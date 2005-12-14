@@ -99,6 +99,8 @@ public class VectorDrawing
 	/** the color of text */								private Color textColor;
 
 	/** list of cell expansions. */							private static HashMap<Cell,VectorCellGroup> cachedCells = new HashMap<Cell,VectorCellGroup>();
+	/** list of polygons to include in cells */				private static HashMap<Cell,List<VectorBase>> addPolyToCell = new HashMap<Cell,List<VectorBase>>();
+	/** list of instances to include in cells */			private static HashMap<Cell,List<VectorSubCell>> addInstToCell = new HashMap<Cell,List<VectorSubCell>>();
 	/** the object that draws the rendered screen */		private static VectorDrawing topVD;
 	/** location for debugging icon displays */				private static int debugXP, debugYP;
 
@@ -319,12 +321,20 @@ public class VectorDrawing
 		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
 		{
 			this.ni = ni;
-			pureRotate = ni.getOrient();
-			subCell = (Cell)ni.getProto();
-			this.offsetX = (float)offset.getX();
-			this.offsetY = (float)offset.getY();
+			if (ni != null)
+			{
+				pureRotate = ni.getOrient();
+				subCell = (Cell)ni.getProto();
+				size = (float)Math.min(ni.getXSize(), ni.getYSize());
+			} else
+			{
+			}
+			if (offset == null) offsetX = offsetY = 0; else
+			{
+				offsetX = (float)offset.getX();
+				offsetY = (float)offset.getY();
+			}
 			this.outlinePoints = outlinePoints;
-			this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 			portShapes = new ArrayList<VectorBase>();
 		}
 	}
@@ -522,6 +532,57 @@ public class VectorDrawing
 		}
 	}
 
+	/**
+	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
+	 * @param lX the low X of the manhattan rectangle.
+	 * @param lY the low Y of the manhattan rectangle.
+	 * @param hX the high X of the manhattan rectangle.
+	 * @param hY the high Y of the manhattan rectangle.
+	 * @param layer the layer on which to draw the rectangle.
+	 * @param cell the Cell in which to insert the rectangle.
+	 */
+	public static void addBoxToCell(float lX, float lY, float hX, float hY, Layer layer, Cell cell)
+	{
+		List<VectorBase> addToThisCell = addPolyToCell.get(cell);
+		if (addToThisCell == null)
+		{
+			addToThisCell = new ArrayList<VectorBase>();
+			addPolyToCell.put(cell, addToThisCell);
+		}
+		EGraphics graphics = null;
+		if (layer != null)
+			graphics = layer.getGraphics();
+		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, false);
+		addToThisCell.add(vm);
+	}
+
+	/**
+	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
+	 * @param lX the low X of the manhattan rectangle.
+	 * @param lY the low Y of the manhattan rectangle.
+	 * @param hX the high X of the manhattan rectangle.
+	 * @param hY the high Y of the manhattan rectangle.
+	 * @param cell the Cell in which to insert the rectangle.
+	 */
+	public static void addInstanceToCell(float lX, float lY, float hX, float hY, Cell cell)
+	{
+		List<VectorSubCell> addToThisCell = addInstToCell.get(cell);
+		if (addToThisCell == null)
+		{
+			addToThisCell = new ArrayList<VectorSubCell>();
+			addInstToCell.put(cell, addToThisCell);
+		}
+
+		// store the subcell
+		Point2D [] points = new Point2D[4];
+		points[0] = new Point2D.Float(lX, lY);
+		points[1] = new Point2D.Float(lX, hY);
+		points[2] = new Point2D.Float(hX, hY);
+		points[3] = new Point2D.Float(hX, lY);
+		VectorSubCell vsc = new VectorSubCell(null, null, points);
+		addToThisCell.add(vsc);
+	}
+	
 	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
 
 	/**
@@ -688,6 +749,7 @@ public class VectorDrawing
 		// now render subcells
 		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
 		{
+			if (stopRendering) throw new AbortRenderingException();
 			VectorSubCell vsc = (VectorSubCell)it.next();
 			subCellCount++;
 
@@ -712,7 +774,7 @@ public class VectorDrawing
 			if (hY < screenLY || lY >= screenHY) continue;
 
 			// see if the cell is too tiny to draw
-			if (vsc.size < maxObjectSize)
+			if (vsc.size < maxObjectSize && vsc.ni != null)
 			{
 //				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 				Orientation thisOrient = vsc.ni.getOrient();
@@ -727,8 +789,12 @@ public class VectorDrawing
 				continue;
 			}
 
-			boolean expanded = vsc.ni.isExpanded();
-			if (fullInstantiate) expanded = true;
+			boolean expanded = false;
+			if (vsc.ni != null)
+			{
+				expanded = vsc.ni.isExpanded();
+				if (fullInstantiate) expanded = true;
+			}
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -800,7 +866,7 @@ public class VectorDrawing
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 
 				// draw the instance name
-				if (User.isTextVisibilityOnInstance())
+				if (User.isTextVisibilityOnInstance() && vsc.ni != null)
 				{
 					tempRect.setRect(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
@@ -810,7 +876,6 @@ public class VectorDrawing
 			}
 			drawList(oX, oY, vsc.portShapes, level);
 		}
-		if (stopRendering) throw new AbortRenderingException();
 	}
 
 	/**
@@ -821,10 +886,12 @@ public class VectorDrawing
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
 	private void drawList(float oX, float oY, List<VectorBase> shapes, int level)
+		throws AbortRenderingException
 	{
 		// render all shapes
 		for(Iterator<VectorBase> it = shapes.iterator(); it.hasNext(); )
 		{
+			if (stopRendering) throw new AbortRenderingException();
 			VectorBase vb = (VectorBase)it.next();
 			if (vb.hideOnLowLevel && level != 0) continue;
 
@@ -1506,6 +1573,26 @@ public class VectorDrawing
 		Poly [] polys = new Poly[numPolys];
 		cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
 		drawPolys(polys, DBMath.MATID, vc, true, VectorText.TEXTTYPECELL, false);
+
+		// add in anything "snuck" onto the cell
+		List<VectorBase> addThesePolys = addPolyToCell.get(cell);
+		if (addThesePolys != null)
+		{
+			for(Iterator<VectorBase> it = addThesePolys.iterator(); it.hasNext(); )
+			{
+				VectorBase vb = it.next();
+				vc.shapes.add(vb);
+			}
+		}
+		List<VectorSubCell> addTheseInsts = addInstToCell.get(cell);
+		if (addTheseInsts != null)
+		{
+			for(Iterator<VectorSubCell> it = addTheseInsts.iterator(); it.hasNext(); )
+			{
+				VectorSubCell vsc = it.next();
+				vc.subCells.add(vsc);
+			}
+		}
 
 		// icon cells should not get greeked because of their contents
 		if (cell.getView() == View.ICON) vc.maxFeatureSize = 0;
