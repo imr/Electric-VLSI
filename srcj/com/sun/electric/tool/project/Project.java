@@ -1225,6 +1225,26 @@ public class Project extends Listener
 
 		if (cellsThatChanged.size() > 0)
 		{
+			SwingUtilities.invokeLater(new UndoRunnable(lowBatch, cellsThatChanged));
+		}
+	}
+
+	/**
+	 * Class to undo changes made to cells that are not checked-out.
+	 */
+	private static class UndoRunnable implements Runnable
+	{
+		private int lowBatch;
+		private List<Cell> cellsThatChanged;
+
+		UndoRunnable(int lowBatch, List<Cell> cellsThatChanged)
+		{
+			this.lowBatch = lowBatch;
+			this.cellsThatChanged = cellsThatChanged;
+		}
+
+		public void run()
+		{
 			// construct an error message
 			boolean undoChange = true;
 			if (alwaysCheckOut) undoChange = false; else
@@ -1245,7 +1265,6 @@ public class Project extends Listener
 			new UndoBatchesJob(lowBatch, cellsThatChanged, undoChange);
 		}
 	}
-
 	/**
 	 * This class checks out a cell from Project Management.
 	 * It involves updating the project database and making a new version of the cell.
