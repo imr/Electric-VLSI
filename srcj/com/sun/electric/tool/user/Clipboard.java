@@ -405,6 +405,7 @@ public class Clipboard
 		int nTotal = clipCell.getNumNodes();
 		int aTotal = clipCell.getNumArcs();
         int vTotal = clipCell.getNumVariables();
+        if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
 		int total = nTotal + aTotal + vTotal;
 		if (total == 0)
 		{

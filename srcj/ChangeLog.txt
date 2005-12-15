@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/15/05, GVG) Can't not paste a single object in Clipboard (Bug #777)
+FIX: User.FRAME_LAST_CHANGED_BY should not be counted as Variable.
+
 BUG: (12/14/05, SMR) Project management crashes when changes are made to un-checked-out cells (Bug #776).
 FIX: In Project.detectIllegalChanges(), make the prompt happen in the GUI thread.
 
