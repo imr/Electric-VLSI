@@ -357,6 +357,25 @@ public class LETool extends Listener {
         return var;
     }
 
+    /**
+     * Quantize gate sizes so that the maximum error is less than or equal
+     * to 'error'.  This result always returns a whole integer, unless
+     * the number is less than or equal to the minValue.
+     * @param d the number to quantize
+     * @param error the percentage error as a number, so 0.1 for 10%
+     * @param minValue the minimum allowed value for the return value
+     * @return a quantized value for d
+     */
+    public static double quantize(double d, double error, double minValue) {
+        if (d <= minValue) return minValue;
+
+        // (1+error)^power = dd; dd is the quanitized value of d
+        double power = Math.log10(d)/Math.log10(1+error);
+        long p = Math.round(power);
+        long quan = Math.round( Math.pow(1+error, p));
+        return (double)quan;
+    }
+
     // ============================== Menu Commands ===================================
 
 
