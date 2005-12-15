@@ -1603,4 +1603,8 @@ public class Simulation extends Listener
     public static double getSpiceMaxSeriesResistance() { return cacheSpiceMaxSeriesResistance.getDouble(); }
     public static void setSpiceMaxSeriesResistance(double d) { cacheSpiceMaxSeriesResistance.setDouble(d); }
 
+    private static Pref cacheSpiceWriteEmptySubckts = Pref.makeBooleanPref("SpiceWriteEmptySubckts", tool.prefs, true);
+    public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
+    public static void setSpiceWriteEmptySubckts(boolean b) { cacheSpiceWriteEmptySubckts.setBoolean(b); }
+
 }

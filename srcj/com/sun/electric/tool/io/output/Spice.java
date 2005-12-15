@@ -711,7 +711,7 @@ public class Spice extends Topology
 			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe(false) + "\n");
 		} else
 		{
-            if (useCDL && !CDLWRITESEMPTYSUBCKTS) {
+            if ((useCDL && !CDLWRITESEMPTYSUBCKTS) || (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
                 if (cellIsEmpty(cell))
                     return;
             }
@@ -876,7 +876,7 @@ public class Spice extends Topology
 					varTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
 				} else
 				{
-					subCell.getVar(preferedEngineTemplateKey);
+					varTemplate = subCell.getVar(preferedEngineTemplateKey);
 					if (varTemplate == null)
 						varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 				}
@@ -913,7 +913,7 @@ public class Spice extends Topology
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 				if (subCni == null) continue;
 
-                if (useCDL && !CDLWRITESEMPTYSUBCKTS) {
+                if ((useCDL && !CDLWRITESEMPTYSUBCKTS) || (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
                     // do not instantiate if empty
                     if (cellIsEmpty((Cell)niProto))
                         continue;
