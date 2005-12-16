@@ -103,7 +103,7 @@ public class Quick
 {
 	private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
 
-    public static enum DRCErrorType
+    private static enum DRCErrorType
     {
 	    // the different types of errors
         SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,

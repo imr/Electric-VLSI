@@ -33,7 +33,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -256,7 +255,7 @@ public abstract class InteractiveRouter extends Router {
      * @param stayInside the area in which to route (null if not applicable).
      * @return a List of RouteElements denoting route
      */
-    protected Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside) {
+    public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside) {
 
         Route route = new Route();               // hold the route
         if (cell == null) return route;

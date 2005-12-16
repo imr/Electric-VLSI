@@ -598,7 +598,7 @@ public class User extends Listener
 	private static AudioClip clickSound = null;
 	private static boolean hasSound = true;
 
-	public static void playSound(int arcsCreated)
+	public static void playSound()
 	{
 		if (!hasSound) return;
 		if (!isPlayClickSoundsWhenCreatingArcs()) return;

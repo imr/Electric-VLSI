@@ -24,13 +24,9 @@
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.*;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -40,8 +36,15 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.*;
+import com.sun.electric.tool.user.ErrorLogger;
 
 // ---------------------------- Fill Cell Globals -----------------------------
 class G {
@@ -220,11 +223,11 @@ class MetalLayer implements VddGndStraps {
 										    G.DEF_SIZE, 0, cell
 										    ).getOnlyPortInst();
 		if (plan.horizontal) {
-			G.newArc(metal, plan.gndWidth, tl, tr);
-			G.newArc(metal, plan.gndWidth, bl, br);
+			G.noExtendArc(metal, plan.gndWidth, tl, tr);
+			G.noExtendArc(metal, plan.gndWidth, bl, br);
 		} else {
-			G.newArc(metal, plan.gndWidth, bl, tl);
-			G.newArc(metal, plan.gndWidth, br, tr);
+			G.noExtendArc(metal, plan.gndWidth, bl, tl);
+			G.noExtendArc(metal, plan.gndWidth, br, tr);
 		}
 		gndPorts.add(bl);
 		gndPorts.add(tr);
@@ -248,7 +251,7 @@ class MetalLayer implements VddGndStraps {
 			PortInst bl = LayoutLib.newNodeInst(pin, -pinX, -pinY, G.DEF_SIZE,
 												G.DEF_SIZE, 0, cell
 												).getOnlyPortInst();
-			G.newArc(metal, plan.vddWidth, bl, tr);
+			G.noExtendArc(metal, plan.vddWidth, bl, tr);
 			vddPorts.add(bl);
 			vddCenters.add(new Double(plan.vddCenter));
 		} else {
@@ -265,11 +268,11 @@ class MetalLayer implements VddGndStraps {
 												G.DEF_SIZE, 0, cell
 												).getOnlyPortInst();
 			if (plan.horizontal) {
-				G.newArc(metal, plan.vddWidth, tl, tr);
-				G.newArc(metal, plan.vddWidth, bl, br);
+				G.noExtendArc(metal, plan.vddWidth, tl, tr);
+				G.noExtendArc(metal, plan.vddWidth, bl, br);
 			} else {
-				G.newArc(metal, plan.vddWidth, bl, tl);
-				G.newArc(metal, plan.vddWidth, br, tr);
+				G.noExtendArc(metal, plan.vddWidth, bl, tl);
+				G.noExtendArc(metal, plan.vddWidth, br, tr);
 			}
 			vddPorts.add(bl);
 			vddPorts.add(tr);
@@ -816,16 +819,16 @@ class FillCell {
 	}
 }
 
-class Router {
+class FillRouter {
 	private HashMap<String,List<PortInst>> portMap = new HashMap<String,List<PortInst>>();
 	private String makeKey(PortInst pi) {
 		String x = ""+LayoutLib.roundCenterX(pi);
 		String y = ""+LayoutLib.roundCenterY(pi);
 		return x+"x"+y;
 	}
-	private boolean bothConnect(ArcProto a, PortProto pp1, PortProto pp2) {
-		return pp1.connectsTo(a) && pp2.connectsTo(a);
-	}
+//	private boolean bothConnect(ArcProto a, PortProto pp1, PortProto pp2) {
+//		return pp1.connectsTo(a) && pp2.connectsTo(a);
+//	}
 	private ArcProto findCommonArc(PortInst p1, PortInst p2) {
 		ArcProto[] metals = {Tech.m6, Tech.m5, Tech.m4, Tech.m3, Tech.m2, Tech.m1};
 		PortProto pp1 = p1.getPortProto();
@@ -849,7 +852,7 @@ class Router {
 			}
 		}
 	}
-	private Router(ArrayList<PortInst> ports) {
+	private FillRouter(ArrayList<PortInst> ports) {
 		for (Iterator<PortInst> it=ports.iterator(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			String key = makeKey(pi);
@@ -865,7 +868,7 @@ class Router {
 		}
 	}
 	public static void connectCoincident(ArrayList<PortInst> ports) {
-		new Router(ports);
+		new FillRouter(ports);
 	}
 }
 class TiledCell {
@@ -1052,7 +1055,7 @@ class TiledCell {
 			y += cellH;
 		}
 		ArrayList<PortInst> portInsts = getAllPortInsts(tiled);
-		Router.connectCoincident(portInsts);
+		FillRouter.connectCoincident(portInsts);
 		exportUnconnectedPortInsts(rows, plans, tiled, stdCell);
 		addEssentialBounds(cellW, cellH, numX, numY, tiled);
 	}
@@ -1169,12 +1172,13 @@ public class FillGenerator {
 			TiledCell.makeTiledCell(num, num, cell, plans, lib, stdCell);
 		}
 	}
-	private void makeAndTileCell(Library lib, Floorplan[] plans, int lowLay, 
+	private Cell makeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
 								 int hiLay, CapCell capCell, boolean wireLowest, 
 								 int[] tiledSizes, StdCellParams stdCell) {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
 									   wireLowest, stdCell);
 		makeTiledCells(c, plans, lib, tiledSizes, stdCell);
+        return c;
 	}
 
 	public static final Units LAMBDA = Units.LAMBDA;
@@ -1253,7 +1257,7 @@ public class FillGenerator {
 	/** This version of makeFillCell is deprecated. We should no longer need
 	 * to create fill cells with export type "POWER". Please use the version
 	 * of makeFillCell that has no PowerType argument. */
-	public void makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
 							 PowerType powerType, int[] tiledSizes) {
 		initFillParameters();
 		
@@ -1261,13 +1265,15 @@ public class FillGenerator {
 		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
 		LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
 		boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
+        Cell cell = null;
 		if (powerType==VDD) {
-			makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, 
+			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
 			                tiledSizes, stdCell);
 		} else {
-			makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest, 
+			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
 			                tiledSizes, stdCellP);
 		}
+        return cell;
 	}
 	/** Create a fill cell using the current library, fill cell width, fill cell 
 	 * height, layer orientation, and reserved spaces for each layer. Then 
@@ -1284,9 +1290,9 @@ public class FillGenerator {
 	 * @param tiledSizes Array specifying composite Cells we should build by
 	 * concatonating fill cells. For example int[] {2, 4, 7} means we should 
 	 * tile fill cell to build composites 2x2, 4x4, and 7x7. */
-	public void makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
 			 				 int[] tiledSizes) {
-		makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes);
+		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -1294,5 +1300,232 @@ public class FillGenerator {
 	public void writeLibrary() {
 		LayoutLib.writeLibrary(lib);
 	}
+
+    public static class FillGenJob extends Job
+    {
+        private FillGenerator fillGen = null;
+        private ExportConfig  perimeter;
+        private int firstMetal, lastMetal;
+        private int[] cellsList;
+        private Cell topCell;
+        private List<PortInst> portList;
+
+		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
+                          List<PortInst> list)
+		{
+			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
+            this.perimeter = perim;
+            this.fillGen = gen;
+            this.firstMetal = first;
+            this.lastMetal = last;
+            this.cellsList = cells;
+            this.topCell = cell; // Only if 1 cell is generated.
+            this.portList = list;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList); //new int[] {2,3,4,5,10,12});
+            fillGen.makeGallery();
+            if (topCell == null) return true;
+            ErrorLogger log = ErrorLogger.newInstance("Fill", true);
+            double globalWidth = Double.POSITIVE_INFINITY;
+            Rectangle2D bnd = topCell.getBounds();
+            NodeInst fillNi = LayoutLib.newNodeInst(fillCell, bnd.getCenterX(), bnd.getCenterY(),
+                    G.DEF_SIZE, G.DEF_SIZE, 0, topCell);
+            AffineTransform fillTransIn = fillNi.transformIn();
+            InteractiveRouter router  = new SimpleWirer();
+            List<PortInst> fillPortInstList = new ArrayList<PortInst>();
+            List<NodeInst> fillContactList = new ArrayList<NodeInst>();
+            List<PortInst> portNotReadList = new ArrayList<PortInst>();
+            List<Rectangle2D> bndNotReadList = new ArrayList<Rectangle2D>();
+            FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, fillPortInstList,
+                    fillContactList);
+
+            // First attempt if ports are below a power/ground bars
+            for (PortInst p : portList)
+            {
+                Rectangle2D nodeBounds = new Rectangle2D.Double(); // need a copy of the original
+                nodeBounds.setRect(p.getNodeInst().getBounds());
+
+                if (p.getPortProto() instanceof Export)
+                {
+                    Export ex = (Export)p.getPortProto();
+                    NodeInst ni = ex.getOriginalPort().getNodeInst();
+                    // Only pins for now
+                    if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN)
+                    {
+                        System.out.println("When is this case in FillGenJob:doIt()?");
+                        continue;
+                    }
+
+                    // Transformation of the cell instance containing this port
+                    AffineTransform trans = p.getNodeInst().transformOut();
+                    nodeBounds.setRect(ex.getOriginalPort().getNodeInst().getBounds());
+                    DBMath.transformRect(nodeBounds, trans);
+                }
+                DBMath.transformRect(nodeBounds, fillTransIn);
+
+                // Try to find closest arc. If not possible, then add to to-do list
+                Geometric geom = routeToClosestArc(container, p, nodeBounds);
+                if (geom == null)
+                {
+                    portNotReadList.add(p);
+                    bndNotReadList.add(nodeBounds);
+                }
+                else
+                {
+                    ErrorLogger.MessageLog l = log.logWarning(p.describe(false) + " connected", topCell, 0);
+                    l.addPoly(p.getPoly(), true, topCell);
+                    if (p.getPortProto() instanceof Export)
+                        l.addExport((Export)p.getPortProto(), true, topCell, null);
+                    l.addGeom(geom, true, fillCell, null);
+                    globalWidth = geom.getBounds().getWidth(); // assuming all contacts have the same width;
+                }
+            }
+
+            // Checking if ports not falling over power/gnd bars can be connected using existing contacts
+            // along same X axis
+            PortInst[] ports = new PortInst[portNotReadList.size()];
+            portNotReadList.toArray(ports);
+            portNotReadList.clear();
+            Rectangle2D[] rects = new Rectangle2D[ports.length];
+            bndNotReadList.toArray(rects);
+            bndNotReadList.clear();
+
+            for (int i = 0; i < ports.length; i++)
+            {
+                PortInst p = ports[i];
+                double minDist = Double.POSITIVE_INFINITY;
+                Rectangle2D portBnd = rects[i];
+                NodeInst minNi = null;
+
+                for (int j = 0; j < fillContactList.size(); j++)
+                {
+                    NodeInst ni = fillContactList.get(j);
+                    PortInst fillNiPort = fillPortInstList.get(j);
+                    // Checking only the X distance between a placed contact and the port
+                    Rectangle2D contBox = ni.getBounds();
+
+                    // check if contact is connected to the same grid
+                    if (fillNiPort.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
+                        continue; // no match in network type
+
+                    // If they are not aligned on Y, discard
+                    if (!DBMath.areEquals(contBox.getCenterY(), portBnd.getCenterY())) continue;
+                    double pdx = Math.abs(Math.max(contBox.getMinX()-portBnd.getMaxX(), portBnd.getMinX()-contBox.getMaxX()));
+                    if (pdx < minDist)
+                    {
+                        minNi = ni;
+                        minDist = pdx;
+                    }
+                }
+                if (minNi != null)
+                {
+                    int index = fillContactList.indexOf(minNi);
+                    PortInst fillNiPort = fillPortInstList.get(index);
+                    // Connecting the export in the top cell
+                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
+                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null);
+                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+                }
+                else
+                {
+                    portNotReadList.add(p);
+                    bndNotReadList.add(rects[i]);
+                }
+            }
+
+            // If nothing works, try to insert contacts in location with same Y
+            for (int i = 0; i < portNotReadList.size(); i++)
+            {
+                PortInst p = portNotReadList.get(i);
+                Rectangle2D r = bndNotReadList.get(i);
+                double newWid = r.getWidth()+globalWidth;
+                Rectangle2D rect = new Rectangle2D.Double(r.getX()-newWid/2, r.getY(),
+                        newWid, r.getHeight()); // copy the rectangle to add extra width
+
+                // Check possible new contacts added
+
+                // Searching arcs again
+                Geometric geom = routeToClosestArc(container, p, rect);
+                if (geom == null)
+                {
+                    ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
+                    l.addPoly(p.getPoly(), true, topCell);
+                    if (p.getPortProto() instanceof Export)
+                        l.addExport((Export)p.getPortProto(), true, topCell, null);
+                    l.addGeom(p.getNodeInst(), true, fillCell, null);
+                }
+            }
+            log.termLogging(false);
+
+            return true;
+        }
+
+        private static class FillGenJobContainer
+        {
+            InteractiveRouter router;
+            Cell fillCell;
+            NodeInst fillNi;
+            List<PortInst> fillPortInstList;
+            List<NodeInst> fillContactList;
+
+            FillGenJobContainer(InteractiveRouter r, Cell fC, NodeInst fNi, List<PortInst> pList, List<NodeInst> cList)
+            {
+                this.router = r;
+                this.fillCell = fC;
+                this.fillNi = fNi;
+                this.fillPortInstList = pList;
+                this.fillContactList = cList;
+            }
+        }
+
+        private Geometric routeToClosestArc(FillGenJobContainer container, PortInst p, Rectangle2D nodeBounds)
+        {
+            Netlist fillNetlist = container.fillCell.acquireUserNetlist();
+            for(Iterator<Geometric> it = container.fillCell.searchIterator(nodeBounds); it.hasNext(); )
+            {
+                // Check if there is a contact on that place already!
+                Geometric geom = it.next();
+                if (!(geom instanceof ArcInst)) continue;
+                ArcInst ai = (ArcInst)geom;
+                Network arcNet = fillNetlist.getNetwork(ai, 0);
+
+                // No export with the same characteristic found in this netlist
+                if (arcNet.findExportWithSameCharacteristic(p) == null)
+                    continue; // no match in network type
+
+                Rectangle2D geomBnd = geom.getBounds();
+                double width = geomBnd.getWidth();
+//                globalWidth = width; // assuming all contacts have the same width;
+                NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),
+                        width, 10, 0, container.fillCell);
+                container.fillContactList.add(added);
+                // It shouldn't matter which port is connected?
+                // Routing the contact to the arc in fill cell
+                Route contactRoute = container.router.planRoute(container.fillCell, added.getOnlyPortInst(), ai,
+                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null);
+                Router.createRouteNoJob(contactRoute, container.fillCell, true, false, null);
+
+                // Creating the export
+                Export export = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m2,
+                        10, nodeBounds.getCenterX(), nodeBounds.getCenterY());
+                Route contExportRoute = container.router.planRoute(container.fillCell, added.getOnlyPortInst(), export.getOriginalPort(),
+                        new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null);
+                Router.createRouteNoJob(contExportRoute, container.fillCell, true, false, null);
+
+                // Connecting the export in the top cell
+                PortInst fillNiPort = container.fillNi.findPortInstFromProto(export);
+                container.fillPortInstList.add(fillNiPort);
+                Route exportRoute = container.router.planRoute(topCell, p, fillNiPort,
+                        new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null);
+                Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+                return geom;
+            }
+            return null;
+        }
+    }
 }
 

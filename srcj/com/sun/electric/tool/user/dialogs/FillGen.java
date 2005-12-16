@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.database.text.TextUtils;
 
@@ -386,67 +385,53 @@ public class FillGen extends EDialog {
     }//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        new FillGenJob();
+
+        FillGenerator fg = new FillGenerator("tsmc180");
+        fg.setFillLibrary("fillLibGIlda");
+        fg.setFillCellWidth(TextUtils.atof(jTextField1.getText()));
+        fg.setFillCellHeight(TextUtils.atof(jTextField1.getText()));
+
+        if (jComboBox1.getModel().getSelectedItem().equals("horizontal"))
+            fg.makeEvenLayersHorizontal(true);
+        FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
+        FillGenerator.Units TRACKS = FillGenerator.TRACKS;
+        int firstMetal = -1, lastMetal = -1;
+
+        for (int i = 0; i < vddSpace.length; i++)
+        {
+            int vddS = TextUtils.atoi(vddSpace[i].getText());
+            int gndS = TextUtils.atoi(gndSpace[i].getText());
+            FillGenerator.Units vddU = TRACKS;
+            if (vddUnit[i].getModel().getSelectedItem().equals("lambda"))
+                vddU = LAMBDA;
+            FillGenerator.Units gndU = TRACKS;
+            if (gndUnit[i].getModel().getSelectedItem().equals("lambda"))
+                gndU = LAMBDA;
+            if (vddS > -1 && gndS > -1)
+            {
+                if (firstMetal == -1) firstMetal = i+2;
+                lastMetal = i+2;
+                fg.reserveSpaceOnLayer(i+2, vddS, vddU, gndS, gndU);
+            }
+        }
+        FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
+        List items = new ArrayList(12);
+
+        for (int i = 0; i < tiledCells.length; i++)
+        {
+            if (tiledCells[i].getModel().isSelected())
+                items.add(new Integer(i+2));
+        }
+        int[] cells = null;
+        if (items.size() > 0)
+        {
+            cells = new int[items.size()];
+            for (int i = 0; i < items.size(); i++)
+                cells[i] = ((Integer)items.get(i)).intValue();
+        }
+        new FillGenerator.FillGenJob(null, fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, null);
         setVisible(false);;
     }//GEN-LAST:event_jButton1ActionPerformed
-
-    private class FillGenJob extends Job
-    {
-		protected FillGenJob()
-		{
-			super("Fill generator job", null, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-            FillGenerator fg = new FillGenerator("tsmc180");
-            fg.setFillLibrary("fillLib");
-            fg.setFillCellWidth(TextUtils.atof(jTextField1.getText()));
-            fg.setFillCellHeight(TextUtils.atof(jTextField2.getText()));
-            if (jComboBox1.getModel().getSelectedItem().equals("horizontal"))
-                fg.makeEvenLayersHorizontal(true);
-            FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
-            FillGenerator.Units TRACKS = FillGenerator.TRACKS;
-            int firstMetal = -1, lastMetal = -1;
-
-            for (int i = 0; i < vddSpace.length; i++)
-            {
-                int vddS = TextUtils.atoi(vddSpace[i].getText());
-                int gndS = TextUtils.atoi(gndSpace[i].getText());
-                FillGenerator.Units vddU = TRACKS;
-                if (vddUnit[i].getModel().getSelectedItem().equals("lambda"))
-                    vddU = LAMBDA;
-                FillGenerator.Units gndU = TRACKS;
-                if (gndUnit[i].getModel().getSelectedItem().equals("lambda"))
-                    gndU = LAMBDA;
-                if (vddS > -1 && gndS > -1)
-                {
-                    if (firstMetal == -1) firstMetal = i+2;
-                    lastMetal = i+2;
-                    fg.reserveSpaceOnLayer(i+2, vddS, vddU, gndS, gndU);
-                }
-            }
-            FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
-            List items = new ArrayList(12);
-
-            for (int i = 0; i < tiledCells.length; i++)
-            {
-                if (tiledCells[i].getModel().isSelected())
-                    items.add(new Integer(i+2));
-            }
-            int[] cells = null;
-            if (items.size() > 0)
-            {
-                cells = new int[items.size()];
-                for (int i = 0; i < items.size(); i++)
-                    cells[i] = ((Integer)items.get(i)).intValue();
-            }
-            fg.makeFillCell(firstMetal, lastMetal, PERIMETER, cells); //new int[] {2,3,4,5,10,12});
-            fg.makeGallery();
-            return true;
-        }
-    }
 
     private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
         // TODO add your handling code here:

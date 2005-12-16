@@ -31,10 +31,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.PrimitiveNode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Specifies a route to be created.  Note that the order if items
@@ -78,6 +75,16 @@ public class Route extends ArrayList<RouteElement> {
 
     // ------------------------------- Route Methods -----------------------------------
 
+//    public RouteElement get(int index) {
+//        // return get(index);
+//        int count = 0;
+//        for (Iterator<RouteElement> it = iterator(); it.hasNext();)
+//        {
+//            if (count == index) return it.next();
+//            count++;
+//        }
+//        return null;
+//    }
 
     /** Sets the start of the Route */
     public void setStart(RouteElementPort startRE) {

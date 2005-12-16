@@ -592,7 +592,7 @@ public class SchemToLay {
 	
 	// Try to route physically adjacent ports in metal-1.  If we connect
 	// a pair of ports in metal-1, then remove the first of the two
-	// ports from the port list so the Track Router doesn't connect them
+	// ports from the port list so the Track FillRouter doesn't connect them
 	// also.
 	//
 	// The list of ports must be sorted in X from lowest to hightest.

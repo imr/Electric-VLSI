@@ -252,7 +252,20 @@ public class Network {
         if (withQuotes) name = "'"+name+"'";
         return name;
     }
-    
+
+    public Export findExportWithSameCharacteristic(PortInst p)
+    {
+        for (Iterator<Export> itP = getExports(); itP.hasNext(); )
+        {
+            Export exp = itP.next();
+            if (exp.getCharacteristic() == p.getPortProto().getCharacteristic())
+            {
+                return exp;
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns a printable version of this Network.
      * @return a printable version of this Network.

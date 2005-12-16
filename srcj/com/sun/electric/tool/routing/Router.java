@@ -41,7 +41,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -109,7 +108,7 @@ public abstract class Router {
      * @param verbose if true, prints objects created
      * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
      * highlights alone.
-     * @param highlighter the highlighter to use
+     * @param wnd EditWindow for the highlights
      */
     public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
                                            boolean highlightRouteEnd, EditWindow_ wnd) {
@@ -123,8 +122,8 @@ public abstract class Router {
             return false;
         }
 
-        int arcsCreated = 0;
-        int nodesCreated = 0;
+//        int arcsCreated = 0;
+//        int nodesCreated = 0;
         HashMap<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
         HashMap<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
         // pass 1: build all newNodes
@@ -133,7 +132,7 @@ public abstract class Router {
             if (e.getAction() == RouteElement.RouteElementAction.newNode) {
                 if (e.isDone()) continue;
                 e.doAction();
-                nodesCreated++;
+//                nodesCreated++;
                 RouteElementPort rep = (RouteElementPort)e;
                 Integer i = (Integer)nodesCreatedMap.get(rep.getPortProto().getParent());
                 if (i == null) {
@@ -148,7 +147,7 @@ public abstract class Router {
             RouteElement e = (RouteElement)it.next();
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
-                arcsCreated++;
+//                arcsCreated++;
                 RouteElementArc rea = (RouteElementArc)e;
                 Integer i = (Integer)arcsCreatedMap.get(rea.getArcProto());
                 if (i == null) {
@@ -199,7 +198,7 @@ public abstract class Router {
             else
                 System.out.println(nodesCreated+" nodes created");
 */
-			User.playSound(arcsCreated);
+			User.playSound();
         }
 
         if (highlightRouteEnd && (wnd != null)) {

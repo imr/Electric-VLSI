@@ -74,7 +74,6 @@ import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.Main;
-import com.sun.electric.database.CellBackup;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -249,7 +248,9 @@ public class DebugMenus {
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
         gildaMenu.addMenuItem("New fill", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();}});
+        gildaMenu.addMenuItem("Dialog fill", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
@@ -762,25 +763,32 @@ public class DebugMenus {
     {
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
-        ErrorLogger log = ErrorLogger.newInstance("Fill", true);
+        List<PortInst> list = new ArrayList<PortInst>();
 
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            NodeProto np = ni.getProto();
 
             for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
             {
                 PortInst p = itP.next();
 
                 if (!p.getPortProto().isGround() && !p.getPortProto().isPower()) continue;
-
-                ErrorLogger.MessageLog l = log.logError(p.describe(false), cell, 0);
-
-                l.addPoly(p.getPoly(), true, cell);
+                list.add(p);
             }
         }
-        log.termLogging(false);
+
+        // Creating fill template
+        FillGenerator fg = new FillGenerator("tsmc180");
+        fg.setFillLibrary("fillLibGIlda2");
+        Rectangle2D bnd = cell.getBounds();
+        fg.setFillCellWidth(bnd.getWidth());
+        fg.setFillCellHeight(bnd.getHeight());
+        fg.makeEvenLayersHorizontal(true);
+        double drcSpacingRule = 6;
+        fg.reserveSpaceOnLayer(3, drcSpacingRule*2, FillGenerator.TRACKS, drcSpacingRule*2, FillGenerator.TRACKS);
+//        fg.reserveSpaceOnLayer(4, drcSpacingRule, FillGenerator.LAMBDA, drcSpacingRule, FillGenerator.LAMBDA);
+        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 3, null, list);
     }
 
     private static void tsmcGateGenerator(String techNm)

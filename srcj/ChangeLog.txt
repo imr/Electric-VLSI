@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (12/15/05, GVG) Preliminary code for automatic fill.
+
 BUG: (12/15/05, GVG) Can't not paste a single object in Clipboard (Bug #777)
 FIX: User.FRAME_LAST_CHANGED_BY should not be counted as Variable.
 
