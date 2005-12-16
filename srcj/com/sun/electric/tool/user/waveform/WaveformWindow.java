@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.waveform;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1589,6 +1590,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
+	 * Method to add an array of signals to the waveform display.
+	 * @param sigs the signals to add
+	 * @param newPanel true to create new panels for each signal.
+	 */
+	public void showSignals(Signal [] sigs, boolean newPanel)
+	{
+		List<Signal> these = new ArrayList<Signal>();
+		for(int i=0; i<sigs.length; i++)
+			these.add(sigs[i]);
+		showTheseSignals(these, newPanel);
+	}
+
+	/**
 	 * Method to add a selection to the waveform display.
 	 * @param h a Highlighter of what is selected.
 	 * @param context the context of these networks
@@ -1598,7 +1612,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void showSignals(Highlighter h, VarContext context, boolean newPanel)
 	{
 		List<Signal> found = findSelectedSignals(h, context);
+		showTheseSignals(found, newPanel);
+	}
 
+	private void showTheseSignals(List<Signal> found, boolean newPanel)
+	{
 		// determine the current panel
 		Panel wp = null;
 		for(Iterator<Panel> pIt = wavePanels.iterator(); pIt.hasNext(); )
@@ -1639,6 +1657,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					double rangeExtra = range / 10;
 					wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
 					wp.makeSelectedPanel();
+					newPanel = false;
 				}
 			}
 
@@ -3184,32 +3203,60 @@ if (wp.getSignalButtons() != null)
 				dtde.dropComplete(false);
 				return;
 			}
-			String sigName = (String)data;
-			Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
-			if (sigName.startsWith("TRANS "))
+			String sigNameData = (String)data;
+			String [] sigNames = sigNameData.split("\n");
+			Analysis.AnalysisType analysisType = null;
+			for(int i=0; i<sigNames.length; i++)
 			{
-				sigName = sigName.substring(6);
-				analysisType = Analysis.ANALYSIS_TRANS;
-			} else if (sigName.startsWith("MEASUREMENT "))
+				Analysis.AnalysisType anAnalysisType = Analysis.ANALYSIS_SIGNALS;
+				String aSigName = sigNames[i];
+				if (aSigName.startsWith("TRANS "))
+				{
+					sigNames[i] = aSigName.substring(6);
+					anAnalysisType = Analysis.ANALYSIS_TRANS;
+				} else if (aSigName.startsWith("MEASUREMENT "))
+				{
+					sigNames[i] = aSigName.substring(12);
+					anAnalysisType = Analysis.ANALYSIS_MEAS;
+				} else if (aSigName.startsWith("AC "))
+				{
+					sigNames[i] = aSigName.substring(3);
+					anAnalysisType = Analysis.ANALYSIS_AC;
+				} else if (aSigName.startsWith("DC "))
+				{
+					sigNames[i] = aSigName.substring(3);
+					anAnalysisType = Analysis.ANALYSIS_DC;
+				}
+				if (analysisType == null) analysisType = anAnalysisType; else
+				{
+					if (analysisType != anAnalysisType)
+					{
+						Main.getUserInterface().showErrorMessage("All signals must be the same type", "Incorrect Signal Selection");
+						dtde.dropComplete(false);
+						return;
+					}
+				}
+			}
+			if (analysisType == null)
 			{
-				sigName = sigName.substring(12);
-				analysisType = Analysis.ANALYSIS_MEAS;
-			} else if (sigName.startsWith("AC "))
-			{
-				sigName = sigName.substring(3);
-				analysisType = Analysis.ANALYSIS_AC;
-			} else if (sigName.startsWith("DC "))
-			{
-				sigName = sigName.substring(3);
-				analysisType = Analysis.ANALYSIS_DC;
+				dtde.dropComplete(false);
+				return;
 			}
 
 			// see if the signal was dropped onto a ruler panel (setting x-axis)
 			DropTarget dt = (DropTarget)dtde.getSource();
 			if (dt.getComponent() instanceof HorizRuler)
 			{
+				// make sure only one signal was selected
+				if (sigNames.length != 1)
+				{
+					Main.getUserInterface().showErrorMessage("Only one signal can be dragged to a ruler", "Too Much Selected");
+					dtde.dropComplete(false);
+					return;			
+				}
+
 				// dragged a signal to the ruler panel: make that signal the X axis
-				if (!sigName.startsWith("PANEL "))
+				if (!sigNames[0].startsWith("PANEL "))
 				{
 					HorizRuler hr = (HorizRuler)dt.getComponent();
 					Panel panel = hr.getPanel();
@@ -3221,7 +3268,7 @@ if (wp.getSignalButtons() != null)
 						dtde.dropComplete(true);
 						return;
 					}
-					Signal sSig = ww.findSignal(sigName, an);
+					Signal sSig = ww.findSignal(sigNames[0], an);
 					if (sSig != null)
 					{
 						Rectangle2D bounds = sSig.getBounds();
@@ -3303,10 +3350,10 @@ if (wp.getSignalButtons() != null)
 			}
 
 			// see if rearranging the waveform window
-			if (sigName.startsWith("PANEL "))
+			if (sigNames[0].startsWith("PANEL "))
 			{
 				// rearranging signals and panels
-				int panelNumber = TextUtils.atoi(sigName.substring(6));
+				int panelNumber = TextUtils.atoi(sigNames[0].substring(6));
 				Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
 				if (sourcePanel == panel)
 				{
@@ -3316,7 +3363,7 @@ if (wp.getSignalButtons() != null)
 				}
 
 				// see if a signal button was grabbed
-				int sigPos = sigName.indexOf("BUTTON ");
+				int sigPos = sigNames[0].indexOf("BUTTON ");
 				if (panel.getAnalysisType() == null) sigPos = -1;
 				if (sigPos < 0)
 				{
@@ -3330,6 +3377,10 @@ if (wp.getSignalButtons() != null)
 					{
 						if (lefts[destIndex] == panel.getLeftHalf()) break;
 					}
+					if (dtde.getLocation().y > panel.getBounds().height/2)
+					{
+						destIndex++;
+					}
 					ww.left.add(sourcePanel.getLeftHalf(), destIndex);
 					ww.right.add(sourcePanel.getRightHalf(), destIndex);
 
@@ -3340,7 +3391,7 @@ if (wp.getSignalButtons() != null)
 				} else
 				{
 					// moving a signal (analog only)
-					String signalName = sigName.substring(sigPos + 7);
+					String signalName = sigNames[0].substring(sigPos + 7);
 					Signal sSig = null;
 					Color oldColor = null;
 					for(Iterator<WaveSignal> it = sourcePanel.getSignals().iterator(); it.hasNext(); )
@@ -3382,51 +3433,54 @@ if (wp.getSignalButtons() != null)
 
 			// not rearranging: dropped a signal onto a panel
 			Analysis an = ww.getSimData().findAnalysis(analysisType);
-			Signal sSig = ww.findSignal(sigName, an);
-			if (sSig == null)
+			for(int i=0; i<sigNames.length; i++)
 			{
-				dtde.dropComplete(false);
-				return;
-			}
-
-			// digital signals are always added in new panels
-			if (sSig instanceof DigitalSignal) panel = null;
-			if (panel != null)
-			{
-				// overlay this signal onto an existing panel
-				AnalogSignal as = (AnalogSignal)sSig;
-				if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+				Signal sSig = ww.findSignal(sigNames[i], an);
+				if (sSig == null)
 				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
-						"First convert the panel with the popup in the upper-left.",
-						"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
-					dtde.dropComplete(true);
-					return;					
+					dtde.dropComplete(false);
+					return;
 				}
-				WaveSignal.addSignalToPanel(sSig, panel);
-				panel.getWaveWindow().saveSignalOrder();
-				panel.makeSelectedPanel();
-				dtde.dropComplete(true);
-				return;
-			}
 
-			// add this signal in a new panel
-			panel = ww.makeNewPanel();
-			boolean isAnalog = false;
-			if (sSig instanceof AnalogSignal) isAnalog = true;
-			if (isAnalog)
-			{
-				AnalogSignal as = (AnalogSignal)sSig;
-				Rectangle2D rangeBounds = as.getBounds();
-				double lowValue = rangeBounds.getMinY();
-				double highValue = rangeBounds.getMaxY();
-				double range = highValue - lowValue;
-				if (range == 0) range = 2;
-				double rangeExtra = range / 10;
-				panel.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+				// digital signals are always added in new panels
+				if (sSig instanceof DigitalSignal) panel = null;
+				if (panel != null)
+				{
+					// overlay this signal onto an existing panel
+					AnalogSignal as = (AnalogSignal)sSig;
+					if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
+							"First convert the panel with the popup in the upper-left.",
+							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+						dtde.dropComplete(true);
+						return;					
+					}
+					WaveSignal.addSignalToPanel(sSig, panel);
+					panel.getWaveWindow().saveSignalOrder();
+					panel.makeSelectedPanel();
+					dtde.dropComplete(true);
+					return;
+				}
+
+				// add this signal in a new panel
+				panel = ww.makeNewPanel();
+				boolean isAnalog = false;
+				if (sSig instanceof AnalogSignal) isAnalog = true;
+				if (isAnalog)
+				{
+					AnalogSignal as = (AnalogSignal)sSig;
+					Rectangle2D rangeBounds = as.getBounds();
+					double lowValue = rangeBounds.getMinY();
+					double highValue = rangeBounds.getMaxY();
+					double range = highValue - lowValue;
+					if (range == 0) range = 2;
+					double rangeExtra = range / 10;
+					panel.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+				}
+				WaveSignal wsig = new WaveSignal(panel, sSig);
 			}
-			WaveSignal wsig = new WaveSignal(panel, sSig);
 			ww.overall.validate();
 			panel.repaintContents();
 			dtde.dropComplete(true);

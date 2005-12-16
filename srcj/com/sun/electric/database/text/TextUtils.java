@@ -463,7 +463,7 @@ public class TextUtils
 	/**
 	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
 	 * @param value floating point value to be converted to engineering notation.
-	 * @param unit a unit string to append to the result.
+	 * @param unit a unit string to append to the result (null for none).
 	 */
 	public static String convertToEngineeringNotation(double value, String unit)
 	{
@@ -473,7 +473,7 @@ public class TextUtils
 	/**
 	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
 	 * @param time floating point value to be converted to engineering notation.
-	 * @param unit a unit string to append to the result.
+	 * @param unit a unit string to append to the result (null for none).
 	 * @param precpower decimal power of necessary time precision.
 	 * Use a very large number to ignore this factor (9999).
 	 */
