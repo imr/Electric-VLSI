@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (12/16/05, SMR) Explorer window allows multiple selections where sensible
+     (waveform signals, sweeps, deleting cells, re-viewing cells) (Bug #774).
+
+IMP: (12/16/05, SMR) Dragging panels in the waveform window now places it above
+     or below according to the final mouse position (Bug #778).
+
 IMP: (12/16/05, DN) Preliminary code for EpicReader, spawned as another process.
 
 IMP: (12/15/05, GVG) Preliminary code for automatic fill.
