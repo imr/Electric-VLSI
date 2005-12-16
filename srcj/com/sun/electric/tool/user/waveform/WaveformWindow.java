@@ -631,6 +631,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		overall.removeComponentListener(wcl);
         highlighter.delete();
+        if (sd != null)
+            sd.finished();
 	}
 
 	public void fullRepaint() { repaint(); }
@@ -2408,6 +2410,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void setSimData(Stimuli sd)
 	{
+        if (this.sd != null)
+            this.sd.finished();
 		this.sd = sd;
 
 		// reload the sweeps

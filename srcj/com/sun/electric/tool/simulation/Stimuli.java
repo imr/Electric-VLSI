@@ -75,7 +75,14 @@ public class Stimuli
 		controlPointMap = new HashMap<Signal,Double[]>();
 	}
 
-	public void addAnalysis(Analysis an)
+    /**
+     * Free allocated resources before closing.
+     */
+    public void finished()
+    {
+    }
+    
+    public void addAnalysis(Analysis an)
 	{
 		analyses.put(an.getAnalysisType(), an);
 		analysisList.add(an);

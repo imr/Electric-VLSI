@@ -49,6 +49,8 @@ import java.net.URL;
  */
 public class Simulate extends Input
 {
+    /* Flag to run EpicReader as process. */ private static final boolean EPIC_PROCESS = false;
+    
 	Simulate() {}
 
 	/**
@@ -127,7 +129,10 @@ public class Simulate extends Input
 			is = (Simulate)new SpiceOut();
 		} else if (type == FileType.EPIC)
         {
-            is = (Simulate)new EpicOut();
+            if (EPIC_PROCESS)
+                is = (Simulate)new EpicOutProcess();
+            else
+               is = (Simulate)new EpicOut();
         } else if (type == FileType.VERILOGOUT)
 		{
 			is = (Simulate)new VerilogOut();
