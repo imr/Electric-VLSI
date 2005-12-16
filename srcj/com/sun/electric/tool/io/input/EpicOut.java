@@ -68,6 +68,7 @@ public class EpicOut extends Simulate
 
 		byte type;
 		byte[] waveform = null;
+        int position = -1;
 
 		EpicAnalogSignal(Analysis an) { super(an); }
 		
@@ -127,20 +128,31 @@ public class EpicOut extends Simulate
                 setValue(i, dataValue);
             }
         }
-        
+
         private void setBounds(Rectangle2D bounds)
         {
             this.bounds = bounds;
-        } 
-        
+        }
+
         private void putEvent(EpicProcessing ep, int t, int v)
         {
-            putUnsigned(t - ep.lastT);
-            putSigned(v - ep.lastV);
+            int val1 = t - ep.lastT;
+            int val2 = v - ep.lastV;
+            int totalSpace = calculateUnsignedSpace(val1) + calculateSignedSpace(val2);
+            makeCapacitity(totalSpace);
+            putUnsigned(val1);
+            putSigned(val2);
             ep.lastT = t;
             ep.lastV = v;
             ep.minV = Math.min(ep.minV, v);
             ep.maxV = Math.max(ep.maxV, v);
+        }
+
+        private int calculateUnsignedSpace(int value)
+        {
+            if (value < 0xC0) return 1;
+            else if (value < 0x3F00) return 2;
+            return 5;
         }
 
         private void putUnsigned(int value) {
@@ -152,7 +164,14 @@ public class EpicOut extends Simulate
                 put5Bytes(0xFF, value >> 24, value >> 16, value >> 8, value);
             }
         }
-        
+
+        private int calculateSignedSpace(int value)
+        {
+            if (-0x60 <= value && value < 0x60) return 1;
+            else if (-0x1F00 <= value && value < 0x2000) return 2;
+            return 5;
+        }
+
         private void putSigned(int value) {
             if (-0x60 <= value && value < 0x60) {
                 put1Byte(value + 0x60);
@@ -165,7 +184,8 @@ public class EpicOut extends Simulate
         
         private int[] getWaveform() {
             int count = 0;
-            for (int i = 0; i < waveform.length; count++) {
+            for (int i = 0; i < position; count++) {
+//            for (int i = 0; i < waveform.length; count++) {
                 int l;
                 int b = waveform[i++] & 0xff;
                 if (b < 0xC0)
@@ -188,7 +208,8 @@ public class EpicOut extends Simulate
             count = 0;
             int t = 0;
             int v = 0;
-            for (int i = 0; i < waveform.length; count++) {
+            for (int i = 0; i < position; count++) {
+//            for (int i = 0; i < waveform.length; count++) {
                 int l;
                 int b = waveform[i++] & 0xff;
                 if (b < 0xC0) {
@@ -248,15 +269,29 @@ public class EpicOut extends Simulate
         	waveform[fillPos] = (byte)value5;
         }
 
-        private int ensureCapacity(int l)
+        private void makeCapacitity(int l)
         {
-        	int waveformLen = 0;
+            int waveformLen = 0;
         	if (waveform != null) waveformLen = waveform.length;
             byte[] newWaveform = new byte[waveformLen + l];
             if (waveformLen > 0)
             	System.arraycopy(waveform, 0, newWaveform, 0, waveformLen);
             waveform = newWaveform;
-            return waveformLen;
+        }
+
+        private int ensureCapacity(int l)
+        {
+            assert (position + l < waveform.length);
+            int pos = position;
+            position += l;
+            return pos + 1;
+//        	int waveformLen = 0;
+//        	if (waveform != null) waveformLen = waveform.length;
+//            byte[] newWaveform = new byte[waveformLen + l];
+//            if (waveformLen > 0)
+//            	System.arraycopy(waveform, 0, newWaveform, 0, waveformLen);
+//            waveform = newWaveform;
+//            return waveformLen;
         }
     }
     
@@ -353,6 +388,51 @@ public class EpicOut extends Simulate
                 } catch (IOException e) {}
             }
         }
+
+//        boolean readFileTime(URL fileURL) {
+//        	filePath = fileURL.getFile();
+//            long startTime = System.currentTimeMillis();
+//    		URLConnection urlCon = null;
+//    		try
+//    		{
+//    			urlCon = fileURL.openConnection();
+//    			urlCon.setConnectTimeout(10000);
+//    			urlCon.setReadTimeout(1000);
+//                String contentLength = urlCon.getHeaderField("content-length");
+//                fileLength = -1;
+//                try {
+//                    fileLength = Long.parseLong(contentLength);
+//                } catch (Exception e) {}
+//    			inputStream = urlCon.getInputStream();
+//    		} catch (IOException e)
+//    		{
+//    			System.out.println("Could not find file: " + filePath);
+//    			return true;
+//    		}
+//    		byteCount = 0;
+//            try {
+//                String firstLine = getLine();
+//                if (firstLine == null || !firstLine.equals(VERSION_STRING)) {
+//                    System.out.println("Unknown Epic Version: " + firstLine);
+//                }
+//                for (;;) {
+//                    if (bufP >= bufL && readBuf()) break;
+//                    int startLine = bufP;
+//                    if (parseNumLineFast()) continue;
+//                    bufP = startLine;
+//                    String line = getLine();
+//                    assert bufP <= bufL;
+//                    if (line == null) break;
+//                    parseNumLine(line);
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            long stopTime = System.currentTimeMillis();
+//            System.out.println((stopTime - startTime)/1000.0 + " sec; file size is " + byteCount + " bytes");
+//            System.out.println("Found " + numSignals + " signals (" + timesC + " timepoints and " +  eventsC + " events)");
+//    		return false;
+//        }
 
         boolean readFile(URL fileURL) {
         	filePath = fileURL.getFile();
