@@ -179,11 +179,11 @@ public class Clipboard
 	 */
 	private static void copySelectedText()
 	{
-		List<Highlight> highlights = MenuCommands.getHighlighted();
+		List<Highlight2> highlights = MenuCommands.getHighlighted();
 		if (highlights.size() == 1)
 		{
-			Highlight h = (Highlight)highlights.get(0);
-			if (h.getType() == Highlight.Type.TEXT)
+			Highlight2 h = highlights.get(0);
+			if (h.isHighlightText())
 			{
 				String selected = null;
 				Variable var = h.getVar();
@@ -214,9 +214,9 @@ public class Clipboard
 
 	private static class CopyObjects extends Job
 	{
-        private List<Highlight> highlights;
+        private List<Highlight2> highlights;
 
-		protected CopyObjects(List<Highlight> highlights)
+		protected CopyObjects(List<Highlight2> highlights)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -242,7 +242,7 @@ public class Clipboard
 
 			// copy objects to clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
 			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0,0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
@@ -260,9 +260,9 @@ public class Clipboard
 
 	private static class CutObjects extends Job
 	{
-        private List<Highlight> highlights;
+        private List<Highlight2> highlights;
 
-		protected CutObjects(List<Highlight> highlights)
+		protected CutObjects(List<Highlight2> highlights)
 		{
 			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -289,11 +289,11 @@ public class Clipboard
 			// make sure deletion is allowed
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
             List<Geometric> deleteGeoms = new ArrayList<Geometric>();
-			List<Highlight> deleteList = new ArrayList<Highlight>();
-			for(Iterator<Highlight> it = highlights.iterator(); it.hasNext(); )
+			List<Highlight2> deleteList = new ArrayList<Highlight2>();
+			for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() == Highlight.Type.EOBJ)
+				Highlight2 h = it.next();
+				if (h.isHighlightEOBJ())
 				{
 					ElectricObject eObj = h.getElectricObject();
 					if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
@@ -313,7 +313,7 @@ public class Clipboard
 
 			// copy objects to clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
 			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
@@ -321,9 +321,9 @@ public class Clipboard
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, deleteGeoms);
             // kill variables on cells
-            for(Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
-                if (h.getType() != Highlight.Type.TEXT) continue;
+            for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
+                Highlight2 h = it.next();
+                if (!h.isHighlightText()) continue;
                 Variable var = h.getVar();
                 if (var == null) continue;
                 ElectricObject owner = h.getElectricObject();
@@ -357,9 +357,9 @@ public class Clipboard
 
 	private static class DuplicateObjects extends Job
     {
-        private List<Highlight> highlights;
+        private List<Highlight2> highlights;
 
-        protected DuplicateObjects(List<Highlight> highlights)
+        protected DuplicateObjects(List<Highlight2> highlights)
         {
             super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
@@ -385,7 +385,7 @@ public class Clipboard
 
             // copy objects to clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight> it=highlights.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
             copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
             	User.isDupCopiesExports(), User.isArcsAutoIncremented());
@@ -405,7 +405,6 @@ public class Clipboard
 		int nTotal = clipCell.getNumNodes();
 		int aTotal = clipCell.getNumArcs();
         int vTotal = clipCell.getNumVariables();
-        if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
 		int total = nTotal + aTotal + vTotal;
 		if (total == 0)
 		{
@@ -616,7 +615,7 @@ public class Clipboard
 		for(Iterator<Object> it = list.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (obj instanceof Highlight2) obj = ((Highlight2)obj).getGeometric();
 			if (!(obj instanceof Geometric)) continue;
 			Geometric geom = (Geometric)obj;
 
@@ -634,10 +633,10 @@ public class Clipboard
         for (Iterator<Object> it = list.iterator(); it.hasNext(); )
         {
 	        Object obj = it.next();
-            Highlight h = null;
-			if (obj instanceof Highlight)
+            Highlight2 h = null;
+			if (obj instanceof Highlight2)
             {
-                h = (Highlight)obj;
+                h = (Highlight2)obj;
                 obj = h.getGeometric();
             }
             if (obj instanceof Geometric)
@@ -659,7 +658,7 @@ public class Clipboard
                 }
             }
             // For text variables
-            if (h != null && h.getType() == Highlight.Type.TEXT)
+            if (h != null && h.isHighlightText())
             {
                 Variable var = h.getVar();
                 if (var != null && h.getElectricObject() instanceof Cell)
@@ -822,11 +821,11 @@ public class Clipboard
 					{
 						Poly poly = polys[i];
                         if (poly == null) continue;
-						Highlight h = highlighter.addText(ni, toCell, poly.getVariable(), poly.getName());
+						Highlight2 h = highlighter.addText(ni, toCell, poly.getVariable(), poly.getName());
 					}
 					continue;
 				}
-				Highlight h = highlighter.addElectricObject(ni, toCell);
+				Highlight2 h = highlighter.addElectricObject(ni, toCell);
 			}
 			for(Iterator<Object> it = list.iterator(); it.hasNext(); )
 			{
@@ -836,7 +835,7 @@ public class Clipboard
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
 				ai = (ArcInst)newArcs.get(ai);
-				Highlight h = highlighter.addElectricObject(ai, toCell);
+				Highlight2 h = highlighter.addElectricObject(ai, toCell);
 			}
 			highlighter.finished();
 		}

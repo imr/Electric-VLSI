@@ -30,11 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -595,7 +591,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             	NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
         		if (ni != null)
         		{
-        			Highlight high = highlighter.getOneHighlight();
+        			Highlight2 high = highlighter.getOneHighlight();
         			if (high != null)
         			{
         				high.setPoint(-1);

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -37,10 +36,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -336,10 +332,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	        {
 	            if (wnd.getHighlighter().getNumHighlights() == 1)
 	            {
-	                Highlight high = (Highlight)wnd.getHighlighter().getHighlights().iterator().next();
+	                Highlight2 high = wnd.getHighlighter().getHighlights().iterator().next();
 	                ElectricObject eobj = high.getElectricObject();
 	                selectedVar = high.getVar();
-	                if (high.getType() == Highlight.Type.EOBJ)
+	                if (high.isHighlightEOBJ())
 	                {
 	                    if (eobj instanceof ArcInst)
 	                    {
@@ -353,7 +349,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	                        selectedNode = (NodeInst)pi.getNodeInst();   selectedObject = selectedNode;   currentButton = currentNode;
 	                        selectedPort = pi;
 	                    }
-	                } else if (high.getType() == Highlight.Type.TEXT)
+	                } else if (high.isHighlightText())
 	                {
 	                    if (selectedVar != null)
 	                    {

@@ -43,12 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.ArtworkLook;
 import com.sun.electric.tool.user.dialogs.Attributes;
@@ -66,7 +61,6 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
-import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
@@ -90,7 +84,6 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -584,49 +577,50 @@ public class EditMenu {
             if (c != null) c.getInfo();
 		} else
 		{
+            int [] counts = new int[5];
+            NodeInst theNode = Highlight2.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
 			// information about the selected items
-			int arcCount = 0;
-			int nodeCount = 0;
-			int exportCount = 0;
-			int textCount = 0;
-			int graphicsCount = 0;
-			NodeInst theNode = null;
-			for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				ElectricObject eobj = h.getElectricObject();
-				if (h.getType() == Highlight.Type.EOBJ)
-				{
-					if (eobj instanceof NodeInst || eobj instanceof PortInst)
-					{
-						nodeCount++;
-						if (eobj instanceof NodeInst) theNode = (NodeInst)eobj; else
-							theNode = ((PortInst)eobj).getNodeInst();
-					} else if (eobj instanceof ArcInst)
-					{
-						arcCount++;
-					}
-				} else if (h.getType() == Highlight.Type.TEXT)
-				{
-					if (eobj instanceof Export)
-					{
-                        if (h.getVar() != null)
-                            textCount++;
-                        else
-                            exportCount++;
-                    } else
-                    {
-                    	if (eobj instanceof NodeInst) theNode = (NodeInst)eobj;
-						textCount++;
-                    }
-				} else if (h.getType() == Highlight.Type.BBOX)
-				{
-					graphicsCount++;
-				} else if (h.getType() == Highlight.Type.LINE)
-				{
-					graphicsCount++;
-				}
-			}
+			int arcCount = counts[0];
+			int nodeCount = counts[1];
+			int exportCount = counts[2];
+			int textCount = counts[3];
+			int graphicsCount = counts[4];
+//			for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+//			{
+//				Highlight2 h = it.next();
+//				ElectricObject eobj = h.getElectricObject();
+//				if (h.isHighlightEOBJ())
+//				{
+//					if (eobj instanceof NodeInst || eobj instanceof PortInst)
+//					{
+//						nodeCount++;
+//						if (eobj instanceof NodeInst) theNode = (NodeInst)eobj; else
+//							theNode = ((PortInst)eobj).getNodeInst();
+//					} else if (eobj instanceof ArcInst)
+//					{
+//						arcCount++;
+//					}
+//				} else if (h.getType() == Highlight.Type.TEXT)
+//				{
+//					if (eobj instanceof Export)
+//					{
+//                        if (h.getVar() != null)
+//                            textCount++;
+//                        else
+//                            exportCount++;
+//                    } else
+//                    {
+//                    	if (eobj instanceof NodeInst) theNode = (NodeInst)eobj;
+//						textCount++;
+//                    }
+//				} else if (h.getType() == Highlight.Type.BBOX)
+//				{
+//					graphicsCount++;
+//				} else if (h.getType() == Highlight.Type.LINE)
+//				{
+//					graphicsCount++;
+//				}
+//			}
 
 			// special dialogs for double-clicking on known nodes
 			if (doubleClick)
@@ -1121,11 +1115,11 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		List<Highlight> newHighList = new ArrayList<Highlight>();
-		for(Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
+		List<Highlight2> newHighList = new ArrayList<Highlight2>();
+		for(Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
+			Highlight2 h = it.next();
+			if (h.isHighlightEOBJ() || h.isHighlightText())
 			{
 				if (h.getElectricObject() instanceof ArcInst) continue;
 			}

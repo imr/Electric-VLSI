@@ -27,7 +27,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -37,10 +36,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -251,10 +247,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		// must have a single node selected
 		ArcInst ai = null;
 		int arcCount = 0;
-		for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.EOBJ)
+			Highlight2 h = it.next();
+			if (h.isHighlightEOBJ())
 			{
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)

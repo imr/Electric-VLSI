@@ -29,7 +29,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -37,10 +36,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.awt.Container;
@@ -517,7 +513,7 @@ public class PaletteFrame implements MouseListener
 			{
 				// text object: add initial text
 				Variable var = newNi.newVar(Variable.newKey(varName), "text", TextDescriptor.getAnnotationTextDescriptor());
-				Highlight h = highlighter.addText(newNi, cell, var, null);
+				Highlight2 h = highlighter.addText(newNi, cell, var, null);
 			} else
 			{
 				//if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());

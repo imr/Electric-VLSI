@@ -37,9 +37,9 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Highlight2;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -317,17 +317,17 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         {
             // count the number of nodes and arcs selected
             int nodeCount = 0, arcCount = 0, textCount = 0;
-            Highlight lastHighlight = null;
+            Highlight2 lastHighlight = null;
             Highlighter highlighter = getHighlighter();
             if (highlighter == null) {
                 fieldSelected.setText(selectedMsg);
                 return;
             }
 			NodeInst theNode = null;
-            for(Iterator<Highlight> hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
+            for(Iterator<Highlight2> hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
             {
-                Highlight h = (Highlight)hIt.next();
-                if (h.getType() == Highlight.Type.EOBJ)
+                Highlight2 h = hIt.next();
+                if (h.isHighlightEOBJ())
                 {
                     ElectricObject eObj = (ElectricObject)h.getElectricObject();
                     if (eObj instanceof PortInst)
@@ -345,7 +345,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                         lastHighlight = h;
                         arcCount++;
                     }
-                } else if (h.getType() == Highlight.Type.TEXT)
+                } else if (h.isHighlightText())
                 {
                     lastHighlight = h;
                     textCount++;
@@ -392,11 +392,11 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      * Get a String describing the Highlight, to display in the
      * "Selected" part of the status bar.
      */
-    private String getSelectedText(Highlight h) {
+    private String getSelectedText(Highlight2 h) {
         PortInst thePort;
         NodeInst theNode;
         ArcInst theArc;
-        if (h.getType() == Highlight.Type.EOBJ)
+        if (h.isHighlightEOBJ())
         {
             ElectricObject eObj = (ElectricObject)h.getElectricObject();
             if (eObj instanceof PortInst)
@@ -421,7 +421,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				String netMsg = (net != null) ? "NETWORK: "+net.describe(true)+ ", " : "";
 				return(netMsg + "ARC: " + theArc.describe(true));
             }
-        } else if (h.getType() == Highlight.Type.TEXT)
+        } else if (h.isHighlightText())
         {
             if (h.getVar() != null)
             {

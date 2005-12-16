@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -34,7 +34,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -82,11 +81,11 @@ public class Highlighter implements DatabaseChangeListener {
     private static Highlighter currentHighlighter = null;
 
     /** Screen offset for display of highlighting. */			private int highOffX; private int highOffY;
-    /** the highlighted objects. */								private List<Highlight> highlightList;
-    /** the stack of highlights. */								private List<List<Highlight>> highlightStack;
+    /** the highlighted objects. */								private List<Highlight2> highlightList;
+    /** the stack of highlights. */								private List<List<Highlight2>> highlightStack;
     /** true if highlights have changed recently */             private boolean changed;
     /** List of HighlightListeners */                           private List<HighlightListener> highlightListeners;
-    /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
+    /** last object selected before last clear() */             private Highlight2 lastHighlightListEndObj;
     /** what was the last level of "showNetwork" */             private int showNetworkLevel;
 	/** the type of highlighter */                              private int type;
 	/** the WindowFrame associated with the highlighter */      private WindowFrame wf;
@@ -95,7 +94,7 @@ public class Highlighter implements DatabaseChangeListener {
     /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
     /** the "measurement" highlighter type */   public static final int RULER_HIGHLIGHTER = 2;
 
-    private static final int EXACTSELECTDISTANCE = 5;
+    public static final int EXACTSELECTDISTANCE = 5;
 
     /**
      * Create a new Highlighter object
@@ -103,8 +102,8 @@ public class Highlighter implements DatabaseChangeListener {
      */
     public Highlighter(int type, WindowFrame wf) {
         highOffX = highOffY = 0;
-        highlightList = new ArrayList<Highlight>();
-        highlightStack = new ArrayList<List<Highlight>>();
+        highlightList = new ArrayList<Highlight2>();
+        highlightStack = new ArrayList<List<Highlight2>>();
         highlightListeners = new ArrayList<HighlightListener>();
         changed = false;
         Undo.addDatabaseChangeListener(this);
@@ -114,6 +113,8 @@ public class Highlighter implements DatabaseChangeListener {
 		this.type = type;
 		this.wf = wf;
     }
+
+    void setChanged(boolean c) { changed = c; }
 
     /**
      * Destructor
@@ -128,7 +129,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
-    public Highlight addElectricObject(ElectricObject eobj, Cell cell)
+    public Highlight2 addElectricObject(ElectricObject eobj, Cell cell)
     {
         return addElectricObject(eobj, cell, true);
     }
@@ -142,13 +143,14 @@ public class Highlighter implements DatabaseChangeListener {
      * things from being highlighted later that are not connected to the network.
      * @return the newly created Highlight object.
      */
-	public Highlight addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
+	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
 	{
-		Highlight h = new Highlight(Highlight.Type.EOBJ, eobj, cell);
-        h.setHighlightConnected(highlightConnected);
+        Highlight2 h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1);
+//		Highlight h = new Highlight(Highlight.Type.EOBJ, eobj, cell);
+//        h.setHighlightConnected(highlightConnected);
 
-		addHighlight(h);
-		return h;
+		addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -158,14 +160,15 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addText(ElectricObject eobj, Cell cell, Variable var, Name name)
+	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable var, Name name)
 	{
-		Highlight h = new Highlight(Highlight.Type.TEXT, eobj, cell);
-        h.setVar(var);
-        h.setName(name);
+        HighlightText h1 = new HighlightText(eobj, cell, var, name);
+//		Highlight h = new Highlight(Highlight.Type.TEXT, eobj, cell);
+//        h.setVar(var);
+//        h.setName(name);
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -175,14 +178,15 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param loc the location of the string (in database units).
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addMessage(Cell cell, String message, Point2D loc)
+	public Highlight2 addMessage(Cell cell, String message, Point2D loc)
 	{
-		Highlight h = new Highlight(Highlight.Type.MESSAGE, null, cell);
-        h.setMessage(message);
-		h.setLocation(loc);
+        Highlight2 h1 = new HighlightMessage(cell, message, loc);
+//		Highlight h = new Highlight(Highlight.Type.MESSAGE, null, cell);
+//        h.setMessage(message);
+//		h.setLocation(loc);
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -191,15 +195,16 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this area resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addArea(Rectangle2D area, Cell cell)
+	public Highlight2 addArea(Rectangle2D area, Cell cell)
 	{
-		Highlight h = new Highlight(Highlight.Type.BBOX, null, cell);
-		Rectangle2D bounds = new Rectangle2D.Double();
-		bounds.setRect(area);
-        h.setBounds(bounds);
+        Highlight2 h1 = new HighlightArea(cell, area);
+//		Highlight h = new Highlight(Highlight.Type.BBOX, null, cell);
+//		Rectangle2D bounds = new Rectangle2D.Double();
+//		bounds.setRect(area);
+//        h.setBounds(bounds);
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
 	/**
@@ -208,13 +213,14 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this object resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addObject(Object obj, Highlight.Type type, Cell cell)
+	public Highlight2 addObject(Object obj, Cell cell)
 	{
-		Highlight h = new Highlight(type, null, cell);
-		h.setObject(obj);
+        Highlight2 h1 = new HighlightObject(cell, obj);
+//		Highlight h = new Highlight(type, null, cell);
+//		h.setObject(obj);
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -224,14 +230,15 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addLine(Point2D start, Point2D end, Cell cell)
+	public Highlight2 addLine(Point2D start, Point2D end, Cell cell)
 	{
-		Highlight h = new Highlight(Highlight.Type.LINE, null, cell);
-		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
-		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
+        Highlight2 h1 = new HighlightLine(cell, start, end, null, false);
+//		Highlight h = new Highlight(Highlight.Type.LINE, null, cell);
+//		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
+//		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -241,15 +248,16 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
+	public Highlight2 addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
 	{
-		Highlight h = new Highlight(Highlight.Type.THICKLINE, null, cell);
-		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
-		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
-		h.setCenter(new Point2D.Double(center.getX(), center.getY()));
+        Highlight2 h1 = new HighlightLine(cell, start, end, center, true);
+//		Highlight h = new Highlight(Highlight.Type.THICKLINE, null, cell);
+//		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
+//		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
+//		h.setCenter(new Point2D.Double(center.getX(), center.getY()));
 
-        addHighlight(h);
-		return h;
+        addHighlight(h1);
+		return h1;
 	}
 
     /**
@@ -259,14 +267,15 @@ public class Highlighter implements DatabaseChangeListener {
      * @param color the color to draw the poly with (if null, uses default)
      * @return the newly created highlight object
      */
-    public Highlight addPoly(Poly poly, Cell cell, Color color)
+    public Highlight2 addPoly(Poly poly, Cell cell, Color color)
     {
-        Highlight h = new Highlight(Highlight.Type.POLY, null, cell);
-        h.setPoly(poly);
-        h.setColor(color);
+        Highlight2 h1 = new HighlightPoly(cell, poly, color);
+//        Highlight h = new Highlight(Highlight.Type.POLY, null, cell);
+//        h.setPoly(poly);
+//        h.setColor(color);
 
-        addHighlight(h);
-        return h;
+        addHighlight(h1);
+        return h1;
     }
 
     /**
@@ -285,9 +294,9 @@ public class Highlighter implements DatabaseChangeListener {
 		}
         HashSet<Network> nets = new HashSet<Network>();
         nets.add(net);
-        List<Highlight> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
-        for (Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+        List<Highlight2> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
+        for (Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
             addHighlight(h);
         }
 	}
@@ -315,10 +324,10 @@ public class Highlighter implements DatabaseChangeListener {
             clear();
         }
         int count = 0;
-        List<Highlight> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets,
+        List<Highlight2> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets,
                 showNetworkLevel, showNetworkLevel);
-        for (Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+        for (Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
             addHighlight(h);
             count++;
         }
@@ -344,7 +353,7 @@ public class Highlighter implements DatabaseChangeListener {
     /**
      * Add a Highlight
      */
-    private synchronized void addHighlight(Highlight h) {
+    private synchronized void addHighlight(Highlight2 h) {
         if (h == null) return;
         highlightList.add(h);
         changed = true;
@@ -366,7 +375,7 @@ public class Highlighter implements DatabaseChangeListener {
 
         // save last selected
         if (resetLastHighlightListEndObj)
-            lastHighlightListEndObj = (Highlight)highlightList.get(highlightList.size()-1);
+            lastHighlightListEndObj = highlightList.get(highlightList.size()-1);
         // clear
         highlightList.clear();
         changed = true;
@@ -382,8 +391,8 @@ public class Highlighter implements DatabaseChangeListener {
         // only do something if highlights changed
         synchronized(this) {
             // check to see if any highlights are now invalid
-            for (Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
+            for (Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); ) {
+                Highlight2 h = it.next();
                 if (!h.isValid()) {
                     // remove
                     remove(h); // we can do this because iterator is iterating over copy
@@ -396,12 +405,13 @@ public class Highlighter implements DatabaseChangeListener {
 		// see if arcs of a single type were selected
 		boolean mixedArc = false;
 		ArcProto foundArcProto = null;
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.EOBJ)
+			Highlight2 h = it.next();
+//			if (h.getType() == Highlight.Type.EOBJ)
+            if (h instanceof HighlightEOBJ)
 			{
-				ElectricObject eobj = h.getElectricObject();
+				ElectricObject eobj = ((HighlightEOBJ)h).eobj;
 				if (eobj instanceof ArcInst)
 				{
 					ArcProto ap = ((ArcInst)eobj).getProto();
@@ -447,7 +457,7 @@ public class Highlighter implements DatabaseChangeListener {
 		double boundsArea = bounds.getWidth() * bounds.getHeight();
 		Rectangle2D displayBounds = wnd.displayableBounds();
 		double displayArea = displayBounds.getWidth() * displayBounds.getHeight();
-		Highlight line1 = null, line2 = null, line3 = null, line4 = null;
+		Highlight2 line1 = null, line2 = null, line3 = null, line4 = null;
 
 		// if objects are offscreen, point the way
 		if (bounds.getMinX() >= displayBounds.getMaxX() ||
@@ -510,9 +520,9 @@ public class Highlighter implements DatabaseChangeListener {
 	private static class FlashActionListener implements ActionListener
 	{
 		private Highlighter hl;
-		private Highlight line1, line2, line3, line4;
+		private Highlight2 line1, line2, line3, line4;
 
-		FlashActionListener(Highlighter hl, Highlight line1, Highlight line2, Highlight line3, Highlight line4)
+		FlashActionListener(Highlighter hl, Highlight2 line1, Highlight2 line2, Highlight2 line3, Highlight2 line4)
 		{
 			this.hl = hl;
 			this.line1 = line1;
@@ -539,15 +549,15 @@ public class Highlighter implements DatabaseChangeListener {
      * @param underCursor a list of Highlights underCursor.
      * @return the last object that was selected
      */
-    private synchronized Highlight getLastSelected(List<Highlight> underCursor) {
-        List<Highlight> currentHighlights = getHighlights();               // not that this is a copy
+    private synchronized Highlight2 getLastSelected(List<Highlight2> underCursor) {
+        List<Highlight2> currentHighlights = getHighlights();               // not that this is a copy
 
         // check underCursor list
-        for (Iterator<Highlight> igIt = underCursor.iterator(); igIt.hasNext(); ) {
-            Highlight h = (Highlight)igIt.next();
+        for (Iterator<Highlight2> igIt = underCursor.iterator(); igIt.hasNext(); ) {
+            Highlight2 h = igIt.next();
 
-            for (Iterator<Highlight> it = currentHighlights.iterator(); it.hasNext(); ) {
-                Highlight curHigh = (Highlight)it.next();
+            for (Iterator<Highlight2> it = currentHighlights.iterator(); it.hasNext(); ) {
+                Highlight2 curHigh = it.next();
                 if (h.sameThing(curHigh)) {
                     return lastHighlightListEndObj;
                 }
@@ -555,7 +565,7 @@ public class Highlighter implements DatabaseChangeListener {
         }
 
         if (currentHighlights.size() > 0) {
-            return (Highlight)currentHighlights.get(currentHighlights.size()-1);
+            return currentHighlights.get(currentHighlights.size()-1);
         } else {
             return lastHighlightListEndObj;
         }
@@ -569,9 +579,9 @@ public class Highlighter implements DatabaseChangeListener {
     public synchronized void copyState(Highlighter highlighter) {
         clear();
         lastHighlightListEndObj = highlighter.lastHighlightListEndObj;
-        for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
-            Highlight copy = (Highlight)h.clone();
+        for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
+            Highlight2 copy = (Highlight2)h.clone();
             addHighlight(copy);
         }
         // don't inherit offset, messes up mouse over highlighter
@@ -592,19 +602,21 @@ public class Highlighter implements DatabaseChangeListener {
             highOffY = this.highOffY;
         }
 
-        for (Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+        for (Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
 
             // only show highlights for the current cell
             if (h.getCell() == wnd.getCell()) {
                 Color color = new Color(User.getColorHighlight());
-                Stroke stroke = Highlight.solidLine;
+                Stroke stroke = Highlight2.solidLine;
+                boolean setConnected = true;
                 if (type == MOUSEOVER_HIGHLIGHTER) {
                     color = new Color(51, 255, 255);
-                    stroke = Highlight.solidLine;
-                    h.setHighlightConnected(false);
+                    stroke = Highlight2.solidLine;
+//                    h.setHighlightConnected(false);
+                    setConnected = false;
                 }
-                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke);
+                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke, setConnected);
             }
         }
     }
@@ -674,8 +686,8 @@ public class Highlighter implements DatabaseChangeListener {
 	public synchronized void pushHighlight()
 	{
 		// make a copy of the highlighted list
-		List<Highlight> pushable = new ArrayList<Highlight>();
-		for(Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); )
+		List<Highlight2> pushable = new ArrayList<Highlight2>();
+		for(Iterator<Highlight2> it = highlightList.iterator(); it.hasNext(); )
 			pushable.add(it.next());
 		highlightStack.add(pushable);
 	}
@@ -693,42 +705,47 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 
 		// get the stacked highlight
-		List<Highlight> popable = (List<Highlight>)highlightStack.get(stackSize-1);
+		List<Highlight2> popable = (List<Highlight2>)highlightStack.get(stackSize-1);
 		highlightStack.remove(stackSize-1);
 
 		// validate each highlight as it is added
 		clear();
-		for(Iterator<Highlight> it = popable.iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = popable.iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
-            Highlight.Type type = h.getType();
+			Highlight2 h = it.next();
             Cell cell = h.getCell();
-            ElectricObject eobj = h.getElectricObject();
-			if (type == Highlight.Type.EOBJ)
+            if (h instanceof HighlightEOBJ)
 			{
+                HighlightEOBJ hh = (HighlightEOBJ)h;
+                ElectricObject eobj = hh.eobj;
 				if (cell.objInCell(eobj))
 				{
-					Highlight newH = addElectricObject(eobj, cell);
-					newH.setPoint(h.getPoint());
+					HighlightEOBJ newH = (HighlightEOBJ)addElectricObject(eobj, cell);
+                    newH.point = hh.point;
 				}
-			} else if (type == Highlight.Type.TEXT)
+			} else if (h instanceof HighlightText)
 			{
+                HighlightText hh = (HighlightText)h;
+                ElectricObject eobj = hh.eobj;
 				if (cell.objInCell(eobj))
 				{
-					Highlight newH = addText(eobj, cell, h.getVar(), h.getName());
+					addText(eobj, cell, hh.var, hh.name);
 				}
-			} else if (type == Highlight.Type.BBOX)
+			} else if (h instanceof HighlightArea)
 			{
-				Highlight newH = addArea(h.getBounds(), cell);
-			} else if (type == Highlight.Type.LINE)
+                HighlightArea hh = (HighlightArea)h;
+				addArea(hh.bounds, cell);
+			} else if (h instanceof HighlightLine)
 			{
-				Highlight newH = addLine(h.getLineStart(), h.getLineEnd(), cell);
-			} else if (type == Highlight.Type.THICKLINE)
-			{
-				Highlight newH = addThickLine(h.getLineStart(), h.getLineEnd(), h.getCenter(), cell);
-			} else if (type == Highlight.Type.MESSAGE)
-			{
-				Highlight newH = addMessage(cell, h.getMessage(), h.getCenter());
+                HighlightLine hh = (HighlightLine)h;
+                if (hh.thickLine)
+                    addThickLine(hh.start, hh.end, hh.center, cell);
+                else
+				    addLine(hh.start, hh.end, cell);
+			} else if (h instanceof HighlightMessage) //type == Highlight.Type.MESSAGE)
+            {
+                HighlightMessage hh = (HighlightMessage)h;
+				addMessage(cell, hh.msg, hh.loc);
 			}
 		}
 		finished();
@@ -738,7 +755,7 @@ public class Highlighter implements DatabaseChangeListener {
      * Removes a Highlight object from the current set of highlights.
      * @param h the Highlight to remove
      */
-    public synchronized void remove(Highlight h) {
+    public synchronized void remove(Highlight2 h) {
         highlightList.remove(h);
     }
 
@@ -752,8 +769,8 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to return a list that is a copy of the list of current highlights.
 	 * @return an list of highlights
 	 */
-	public synchronized List<Highlight> getHighlights() {
-        ArrayList<Highlight> highlightsCopy = new ArrayList<Highlight>(highlightList);
+	public synchronized List<Highlight2> getHighlights() {
+        ArrayList<Highlight2> highlightsCopy = new ArrayList<Highlight2>(highlightList);
         return highlightsCopy;
     }
 
@@ -767,7 +784,7 @@ public class Highlighter implements DatabaseChangeListener {
 		for(Iterator<Object> it = newHighlights.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
-			if (obj instanceof Highlight) highlightList.add((Highlight)obj);
+			if (obj instanceof Highlight2) highlightList.add((Highlight2)obj);
 		}
         changed = true;
 	}
@@ -776,13 +793,13 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public synchronized void setHighlightList(List<Highlight> newHighlights)
+	public synchronized void setHighlightList(List<Highlight2> newHighlights)
 	{
         clear();
-		for(Iterator<Highlight> it = newHighlights.iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = newHighlights.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
-			if (obj instanceof Highlight) highlightList.add((Highlight)obj);
+			if (obj instanceof Highlight2) highlightList.add((Highlight2)obj);
 		}
         changed = true;
 	}
@@ -797,47 +814,48 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<Geometric> highlightedGeoms = new ArrayList<Geometric>();
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 
-			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
-			{
-				Geometric geom = h.getGeometric();
-				if (geom == null) continue;
-				if (!wantNodes && geom instanceof NodeInst) continue;
-				if (!wantArcs && geom instanceof ArcInst) continue;
-
-				if (highlightedGeoms.contains(geom)) continue;
-				highlightedGeoms.add(geom);
-			}
-			if (h.getType() == Highlight.Type.BBOX)
-			{
-				List<Highlight> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
-				for(Iterator<Highlight> ait = inArea.iterator(); ait.hasNext(); )
-				{
-					Highlight ah = (Highlight)ait.next();
-					if (ah.getType() != Highlight.Type.EOBJ) continue;
-					ElectricObject eobj = ah.getElectricObject();
-                    if (eobj instanceof ArcInst) {
-                        if (wantArcs)
-                            highlightedGeoms.add((ArcInst)eobj);
-                    } else if (eobj instanceof NodeInst) {
-                        if (wantNodes)
-                            highlightedGeoms.add((NodeInst)eobj);
-                    } else if (eobj instanceof PortInst) {
-                        if (wantNodes)
-                            highlightedGeoms.add(((PortInst)eobj).getNodeInst());
-                    }
-//					if (!wantNodes)
-//					{
-//						if (eobj instanceof NodeInst || eobj instanceof PortInst) continue;
-//					}
-//					if (!wantArcs && eobj instanceof ArcInst) continue;
-//					if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-//					highlightedGeoms.add(eobj);
-				}
-			}
+            h.getHighlightedEObjs(this, highlightedGeoms, wantNodes, wantArcs);
+//			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
+//			{
+//				Geometric geom = h.getGeometric();
+//				if (geom == null) continue;
+//				if (!wantNodes && geom instanceof NodeInst) continue;
+//				if (!wantArcs && geom instanceof ArcInst) continue;
+//
+//				if (highlightedGeoms.contains(geom)) continue;
+//				highlightedGeoms.add(geom);
+//			}
+//			if (h.getType() == Highlight.Type.BBOX)
+//			{
+//				List<Highlight2> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
+//				for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+//				{
+//					Highlight2 ah = ait.next();
+//					if (ah.getType() != Highlight.Type.EOBJ) continue;
+//					ElectricObject eobj = ah.getElectricObject();
+//                    if (eobj instanceof ArcInst) {
+//                        if (wantArcs)
+//                            highlightedGeoms.add((ArcInst)eobj);
+//                    } else if (eobj instanceof NodeInst) {
+//                        if (wantNodes)
+//                            highlightedGeoms.add((NodeInst)eobj);
+//                    } else if (eobj instanceof PortInst) {
+//                        if (wantNodes)
+//                            highlightedGeoms.add(((PortInst)eobj).getNodeInst());
+//                    }
+////					if (!wantNodes)
+////					{
+////						if (eobj instanceof NodeInst || eobj instanceof PortInst) continue;
+////					}
+////					if (!wantArcs && eobj instanceof ArcInst) continue;
+////					if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+////					highlightedGeoms.add(eobj);
+//				}
+//			}
 		}
 		return highlightedGeoms;
 	}
@@ -850,32 +868,33 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<NodeInst> highlightedNodes = new ArrayList<NodeInst>();
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 
-			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
-			{
-				Geometric geom = h.getGeometric();
-				if (geom == null || !(geom instanceof NodeInst)) continue;
-                NodeInst ni = (NodeInst)geom;
-				if (highlightedNodes.contains(ni)) continue;
-				highlightedNodes.add(ni);
-			}
-			if (h.getType() == Highlight.Type.BBOX)
-			{
-				List<Highlight> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
-				for(Iterator<Highlight> ait = inArea.iterator(); ait.hasNext(); )
-				{
-					Highlight ah = (Highlight)ait.next();
-					if (ah.getType() != Highlight.Type.EOBJ) continue;
-					ElectricObject eobj = ah.getElectricObject();
-                    if (eobj instanceof NodeInst)
-                        highlightedNodes.add((NodeInst)eobj);
-                    else if (eobj instanceof PortInst)
-                        highlightedNodes.add(((PortInst)eobj).getNodeInst());
-				}
-			}
+            h.getHighlightedNodes(this, highlightedNodes);
+//			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
+//			{
+//				Geometric geom = h.getGeometric();
+//				if (geom == null || !(geom instanceof NodeInst)) continue;
+//                NodeInst ni = (NodeInst)geom;
+//				if (highlightedNodes.contains(ni)) continue;
+//				highlightedNodes.add(ni);
+//			}
+//			if (h.getType() == Highlight.Type.BBOX)
+//			{
+//				List<Highlight2> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
+//				for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+//				{
+//					Highlight2 ah = ait.next();
+//					if (ah.getType() != Highlight.Type.EOBJ) continue;
+//					ElectricObject eobj = ah.getElectricObject();
+//                    if (eobj instanceof NodeInst)
+//                        highlightedNodes.add((NodeInst)eobj);
+//                    else if (eobj instanceof PortInst)
+//                        highlightedNodes.add(((PortInst)eobj).getNodeInst());
+//				}
+//			}
 		}
 		return highlightedNodes;
 	}
@@ -888,31 +907,32 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<ArcInst> highlightedArcs = new ArrayList<ArcInst>();
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 
-			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
-			{
-				Geometric geom = h.getGeometric();
-				if (geom == null || !(geom instanceof ArcInst)) continue;
-                ArcInst ai = (ArcInst)geom;
-
-				if (highlightedArcs.contains(ai)) continue;
-				highlightedArcs.add(ai);
-			}
-			if (h.getType() == Highlight.Type.BBOX)
-			{
-				List<Highlight> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
-				for(Iterator<Highlight> ait = inArea.iterator(); ait.hasNext(); )
-				{
-					Highlight ah = (Highlight)ait.next();
-					if (ah.getType() != Highlight.Type.EOBJ) continue;
-					ElectricObject eobj = ah.getElectricObject();
-                    if (eobj instanceof ArcInst)
-                        highlightedArcs.add((ArcInst)eobj);
-				}
-			}
+            h.getHighlightedArcs(this, highlightedArcs);
+//			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
+//			{
+//				Geometric geom = h.getGeometric();
+//				if (geom == null || !(geom instanceof ArcInst)) continue;
+//                ArcInst ai = (ArcInst)geom;
+//
+//				if (highlightedArcs.contains(ai)) continue;
+//				highlightedArcs.add(ai);
+//			}
+//			if (h.getType() == Highlight.Type.BBOX)
+//			{
+//				List<Highlight2> inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
+//				for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+//				{
+//					Highlight2 ah = ait.next();
+//					if (ah.getType() != Highlight.Type.EOBJ) continue;
+//					ElectricObject eobj = ah.getElectricObject();
+//                    if (eobj instanceof ArcInst)
+//                        highlightedArcs.add((ArcInst)eobj);
+//				}
+//			}
 		}
 		return highlightedArcs;
 	}
@@ -942,70 +962,72 @@ public class Highlighter implements DatabaseChangeListener {
 				ActivityLogger.logMessage(msg);
 				return nets;
 			}
-			for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() == Highlight.Type.EOBJ)
-				{
-					ElectricObject eObj = h.getElectricObject();
-					if (eObj instanceof NodeInst)
-					{
-						NodeInst ni = (NodeInst)eObj;
-	                    if (ni.getNumPortInsts() == 1)
-	                    {
-	                        PortInst pi = ni.getOnlyPortInst();
-	                        if (pi != null) eObj = pi;
-	                    }
-					}
-					if (eObj instanceof PortInst)
-					{
-						PortInst pi = (PortInst)eObj;
-                        nets = NetworkTool.getNetworksOnPort(pi, netlist, nets);
-//						boolean added = false;
-//						for(Iterator<Connection> aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+				Highlight2 h = it.next();
+
+                h.getHighlightedNetworks(nets, netlist);
+//				if (h.getType() == Highlight.Type.EOBJ)
+//				{
+//					ElectricObject eObj = h.getElectricObject();
+//					if (eObj instanceof NodeInst)
+//					{
+//						NodeInst ni = (NodeInst)eObj;
+//	                    if (ni.getNumPortInsts() == 1)
+//	                    {
+//	                        PortInst pi = ni.getOnlyPortInst();
+//	                        if (pi != null) eObj = pi;
+//	                    }
+//					}
+//					if (eObj instanceof PortInst)
+//					{
+//						PortInst pi = (PortInst)eObj;
+//                        nets = NetworkTool.getNetworksOnPort(pi, netlist, nets);
+////						boolean added = false;
+////						for(Iterator<Connection> aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+////						{
+////							Connection con = (Connection)aIt.next();
+////							ArcInst ai = con.getArc();
+////							int wid = netlist.getBusWidth(ai);
+////							for(int i=0; i<wid; i++)
+////							{
+////								Network net = netlist.getNetwork(ai, i);
+////								if (net != null)
+////								{
+////									added = true;
+////									nets.add(net);
+////								}
+////							}
+////						}
+////						if (!added)
+////						{
+////							Network net = netlist.getNetwork(pi);
+////							if (net != null) nets.add(net);
+////						}
+//					} else if (eObj instanceof ArcInst)
+//					{
+//						ArcInst ai = (ArcInst)eObj;
+//						int width = netlist.getBusWidth(ai);
+//						for(int i=0; i<width; i++)
 //						{
-//							Connection con = (Connection)aIt.next();
-//							ArcInst ai = con.getArc();
-//							int wid = netlist.getBusWidth(ai);
-//							for(int i=0; i<wid; i++)
-//							{
-//								Network net = netlist.getNetwork(ai, i);
-//								if (net != null)
-//								{
-//									added = true;
-//									nets.add(net);
-//								}
-//							}
-//						}
-//						if (!added)
-//						{
-//							Network net = netlist.getNetwork(pi);
+//							Network net = netlist.getNetwork((ArcInst)eObj, i);
 //							if (net != null) nets.add(net);
 //						}
-					} else if (eObj instanceof ArcInst)
-					{
-						ArcInst ai = (ArcInst)eObj;
-						int width = netlist.getBusWidth(ai);
-						for(int i=0; i<width; i++)
-						{
-							Network net = netlist.getNetwork((ArcInst)eObj, i);
-							if (net != null) nets.add(net);
-						}
-					}
-				} else if (h.getType() == Highlight.Type.TEXT)
-				{
-					if (h.getVar() == null && h.getName() == null &&
-						h.getElectricObject() instanceof Export)
-					{
-						Export pp = (Export)h.getElectricObject();
-						int width = netlist.getBusWidth(pp);
-						for(int i=0; i<width; i++)
-						{
-							Network net = netlist.getNetwork(pp, i);
-							if (net != null) nets.add(net);
-						}
-					}
-				}
+//					}
+//				} else if (h.getType() == Highlight.Type.TEXT)
+//				{
+//					if (h.getVar() == null && h.getName() == null &&
+//						h.getElectricObject() instanceof Export)
+//					{
+//						Export pp = (Export)h.getElectricObject();
+//						int width = netlist.getBusWidth(pp);
+//						for(int i=0; i<width; i++)
+//						{
+//							Network net = netlist.getNetwork(pp, i);
+//							if (net != null) nets.add(net);
+//						}
+//					}
+//				}
 			}
 		}
 		return nets;
@@ -1019,71 +1041,74 @@ public class Highlighter implements DatabaseChangeListener {
 	 * the export text will not be included if "unique" is true.
 	 * @return a list with the Highlight objects that point to text.
 	 */
-	public List<Highlight> getHighlightedText(boolean unique)
+	public List<Highlight2> getHighlightedText(boolean unique)
 	{
 		// now place the objects in the list
-		List<Highlight> highlightedText = new ArrayList<Highlight>();
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		List<Highlight2> highlightedText = new ArrayList<Highlight2>();
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 
-			if (h.getType() == Highlight.Type.TEXT)
-			{
-				if (highlightedText.contains(h)) continue;
+            h.getHighlightedText(highlightedText, unique, getHighlights());
 
-				// if this text is on a selected object, don't include the text
-				if (unique)
-				{
-					ElectricObject eobj = h.getElectricObject();
-					ElectricObject onObj = null;
-					if (h.getVar() != null)
-					{
-						if (eobj instanceof Export)
-						{
-							onObj = ((Export)eobj).getOriginalPort().getNodeInst();
-						} else if (eobj instanceof PortInst)
-						{
-							onObj = ((PortInst)eobj).getNodeInst();
-						} else if (eobj instanceof Geometric)
-						{
-							onObj = eobj;
-						}
-					} else
-					{
-						if (h.getName() != null)
-						{
-							if (eobj instanceof Geometric) onObj = eobj;
-						} else
-						{
-							if (eobj instanceof Export)
-							{
-								onObj = ((Export)eobj).getOriginalPort().getNodeInst();
-							} else
-							{
-								if (eobj instanceof NodeInst) onObj = eobj;
-							}
-						}
-					}
-
-					// now see if the object is in the list
-					if (eobj != null)
-					{
-						boolean found = false;
-						for(Iterator<Highlight> fIt = getHighlights().iterator(); fIt.hasNext(); )
-						{
-							Highlight oH = (Highlight)fIt.next();
-							if (oH.getType() != Highlight.Type.EOBJ) continue;
-							ElectricObject fobj = oH.getElectricObject();
-							if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
-							if (fobj == onObj) { found = true;   break; }
-						}
-						if (found) continue;
-					}
-				}
-
-				// add this text
-				highlightedText.add(h);
-			}
+//			if (h.getType() == Highlight.Type.TEXT)
+//			{
+//
+//                    if (highlightedText.contains(h)) continue;
+//
+//                    // if this text is on a selected object, don't include the text
+//                    if (unique)
+//                    {
+//                        ElectricObject eobj = h.getElectricObject();
+//                        ElectricObject onObj = null;
+//                        if (h.getVar() != null)
+//                        {
+//                            if (eobj instanceof Export)
+//                            {
+//                                onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+//                            } else if (eobj instanceof PortInst)
+//                            {
+//                                onObj = ((PortInst)eobj).getNodeInst();
+//                            } else if (eobj instanceof Geometric)
+//                            {
+//                                onObj = eobj;
+//                            }
+//                        } else
+//                        {
+//                            if (h.getName() != null)
+//                            {
+//                                if (eobj instanceof Geometric) onObj = eobj;
+//                            } else
+//                            {
+//                                if (eobj instanceof Export)
+//                                {
+//                                    onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+//                                } else
+//                                {
+//                                    if (eobj instanceof NodeInst) onObj = eobj;
+//                                }
+//                            }
+//                        }
+//
+//                        // now see if the object is in the list
+//                        if (eobj != null)
+//                        {
+//                            boolean found = false;
+//                            for(Iterator<Highlight> fIt = getHighlights().iterator(); fIt.hasNext(); )
+//                            {
+//                                Highlight oH = (Highlight)fIt.next();
+//                                if (oH.getType() != Highlight.Type.EOBJ) continue;
+//                                ElectricObject fobj = oH.getElectricObject();
+//                                if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
+//                                if (fobj == onObj) { found = true;   break; }
+//                            }
+//                            if (found) continue;
+//                        }
+//					}
+//
+//				// add this text
+//				highlightedText.add(h);
+//			}
 		}
 		return highlightedText;
 	}
@@ -1099,44 +1124,44 @@ public class Highlighter implements DatabaseChangeListener {
 		Rectangle2D bounds = null;
 
 		// look at all highlighted objects
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 
 			// find the bounds of this highlight
-			Rectangle2D highBounds = null;
-			if (h.getType() == Highlight.Type.EOBJ)
-			{
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-				if (eobj instanceof Geometric)
-				{
-					Geometric geom = (Geometric)eobj;
-					highBounds = geom.getBounds();
-				}
-			} else if (h.getType() == Highlight.Type.TEXT)
-			{
-				if (wnd != null)
-				{
-					Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
-					if (poly != null) highBounds = poly.getBounds2D();
-				}
-			} else if (h.getType() == Highlight.Type.BBOX)
-			{
-				highBounds = h.getBounds();
-			} else if (h.getType() == Highlight.Type.LINE || h.getType() == Highlight.Type.THICKLINE)
-			{
-                Point2D pt1 = h.getLineStart();
-                Point2D pt2 = h.getLineEnd();
-				double cX = (pt1.getX() + pt2.getX()) / 2;
-				double cY = (pt1.getY() + pt2.getY()) / 2;
-				double sX = Math.abs(pt1.getX() - pt2.getX());
-				double sY = Math.abs(pt1.getY() - pt2.getY());
-				highBounds = new Rectangle2D.Double(cX, cY, sX, sY);
-			} else if (h.getType() == Highlight.Type.MESSAGE)
-			{
-				highBounds = new Rectangle2D.Double(h.getLocation().getX(), h.getLocation().getY(), 0, 0);
-			}
+			Rectangle2D highBounds = h.getHighlightedArea(wnd);
+//			if (h.getType() == Highlight.Type.EOBJ)
+//			{
+//				ElectricObject eobj = h.getElectricObject();
+//				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+//				if (eobj instanceof Geometric)
+//				{
+//					Geometric geom = (Geometric)eobj;
+//					highBounds = geom.getBounds();
+//				}
+//			} else if (h.getType() == Highlight.Type.TEXT)
+//			{
+//				if (wnd != null)
+//				{
+//					Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
+//					if (poly != null) highBounds = poly.getBounds2D();
+//				}
+//			} else if (h.getType() == Highlight.Type.BBOX)
+//			{
+//				highBounds = h.getBounds();
+//			} else if (h.getType() == Highlight.Type.LINE || h.getType() == Highlight.Type.THICKLINE)
+//			{
+//                Point2D pt1 = h.getLineStart();
+//                Point2D pt2 = h.getLineEnd();
+//				double cX = (pt1.getX() + pt2.getX()) / 2;
+//				double cY = (pt1.getY() + pt2.getY()) / 2;
+//				double sX = Math.abs(pt1.getX() - pt2.getX());
+//				double sY = Math.abs(pt1.getY() - pt2.getY());
+//				highBounds = new Rectangle2D.Double(cX, cY, sX, sY);
+//			} else if (h.getType() == Highlight.Type.MESSAGE)
+//			{
+//				highBounds = new Rectangle2D.Double(h.getLocation().getX(), h.getLocation().getY(), 0, 0);
+//			}
 
 			// combine this highlight's bounds with the overall one
 			if (highBounds != null)
@@ -1161,17 +1186,17 @@ public class Highlighter implements DatabaseChangeListener {
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlight that selects an object (null if error).
 	 */
-	public Highlight getOneHighlight()
+	public Highlight2 getOneHighlight()
 	{
 		if (getNumHighlights() == 0)
 		{
 			System.out.println("Must select an object first");
 			return null;
 		}
-		Highlight h = null;
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		Highlight2 h = null;
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight theH = (Highlight)it.next();
+			Highlight2 theH = it.next();
 
             if (theH.getElectricObject() != null) return theH;
 
@@ -1202,9 +1227,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public ElectricObject getOneElectricObject(Class type)
 	{
-		Highlight high = getOneHighlight();
+		Highlight2 high = getOneHighlight();
 		if (high == null) return null;
-		if (high.getType() != Highlight.Type.EOBJ)
+		if (!(high instanceof HighlightEOBJ))
 		{
             System.out.println("Must first select an object");
             return null;
@@ -1258,15 +1283,15 @@ public class Highlighter implements DatabaseChangeListener {
 		boolean invertSelection, boolean findSpecial)
 	{
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
-		List<Highlight> underCursor = findAllInArea(wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
+		List<Highlight2> underCursor = findAllInArea(this, wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
 		if (invertSelection)
 		{
-			for(Iterator<Highlight> it = underCursor.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = underCursor.iterator(); it.hasNext(); )
 			{
-				Highlight newHigh = (Highlight)it.next();
+				Highlight2 newHigh = it.next();
 				boolean found = false;
-                for (Iterator<Highlight> it2 = getHighlights().iterator(); it2.hasNext(); ) {
-                    Highlight oldHigh = (Highlight)it2.next();
+                for (Iterator<Highlight2> it2 = getHighlights().iterator(); it2.hasNext(); ) {
+                    Highlight2 oldHigh = it2.next();
                     if (newHigh.sameThing(oldHigh)) {
                         remove(oldHigh);
                         found = true;
@@ -1291,56 +1316,58 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public boolean overHighlighted(EditWindow wnd, int x, int y)
 	{
-		for(Iterator<Highlight> it = getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
-			Highlight.Type style = h.getType();
-			if (style == Highlight.Type.TEXT)
-			{
-				Point2D start = wnd.screenToDatabase((int)x, (int)y);
-				Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
-                if (poly != null)
-				    if (poly.isInside(start)) return true;
-			} else if (style == Highlight.Type.EOBJ)
-			{
-				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
-				double directHitDist = slop.getX();
-				Point2D start = wnd.screenToDatabase((int)x, (int)y);
-				Rectangle2D searchArea = new Rectangle2D.Double(start.getX(), start.getY(), 0, 0);
+			Highlight2 h = it.next();
 
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-				if (eobj instanceof Geometric)
-				{
-					Highlight got = checkOutObject((Geometric)eobj, true, false, true, searchArea, wnd, directHitDist, false);
-					if (got == null) continue;
-					ElectricObject hObj = got.getElectricObject();
-					ElectricObject hReal = hObj;
-					if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
-					for(Iterator<Highlight> sIt = getHighlights().iterator(); sIt.hasNext(); )
-					{
-						Highlight alreadyHighlighted = (Highlight)sIt.next();
-						if (alreadyHighlighted.getType() != got.getType()) continue;
-						ElectricObject aHObj = alreadyHighlighted.getElectricObject();
-						ElectricObject aHReal = aHObj;
-						if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
-						if (hReal == aHReal)
-						{
-							// found it: adjust the port/point
-							if (hObj != aHObj || alreadyHighlighted.getPoint() != got.getPoint())
-							{
-								alreadyHighlighted.setElectricObject(got.getElectricObject());
-								alreadyHighlighted.setPoint(got.getPoint());
-                                synchronized(this) {
-								    changed = true;
-                                }
-							}
-							break;
-						}
-					}
-					return true;
-				}
-			}
+            if (h.overHighlighted(wnd, x, y)) return true;
+//			Highlight.Type style = h.getType();
+//			if (style == Highlight.Type.TEXT)
+//			{
+//				Point2D start = wnd.screenToDatabase((int)x, (int)y);
+//				Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
+//                if (poly != null)
+//				    if (poly.isInside(start)) return true;
+//			} else if (style == Highlight.Type.EOBJ)
+//			{
+//				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
+//				double directHitDist = slop.getX();
+//				Point2D start = wnd.screenToDatabase((int)x, (int)y);
+//				Rectangle2D searchArea = new Rectangle2D.Double(start.getX(), start.getY(), 0, 0);
+//
+//				ElectricObject eobj = h.getElectricObject();
+//				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+//				if (eobj instanceof Geometric)
+//				{
+//					Highlight2 got = checkOutObject((Geometric)eobj, true, false, true, searchArea, wnd, directHitDist, false);
+//					if (got == null) continue;
+//					ElectricObject hObj = got.getElectricObject();
+//					ElectricObject hReal = hObj;
+//					if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
+//					for(Iterator<Highlight2> sIt = getHighlights().iterator(); sIt.hasNext(); )
+//					{
+//						Highlight2 alreadyHighlighted = sIt.next();
+//						if (alreadyHighlighted.getType() != got.getType()) continue;
+//						ElectricObject aHObj = alreadyHighlighted.getElectricObject();
+//						ElectricObject aHReal = aHObj;
+//						if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
+//						if (hReal == aHReal)
+//						{
+//							// found it: adjust the port/point
+//							if (hObj != aHObj || alreadyHighlighted.getPoint() != got.getPoint())
+//							{
+//								alreadyHighlighted.setElectricObject(got.getElectricObject());
+//								alreadyHighlighted.setPoint(got.getPoint());
+//                                synchronized(this) {
+//								    changed = true;
+//                                }
+//							}
+//							break;
+//						}
+//					}
+//					return true;
+//				}
+//			}
 		}
 		return false;
 	}
@@ -1515,7 +1542,7 @@ public class Highlighter implements DatabaseChangeListener {
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
         Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		List<Highlight> underCursor = findAllInArea(cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
+		List<Highlight2> underCursor = findAllInArea(this, cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
 
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
@@ -1529,14 +1556,14 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 
         // get last selected object. Next selected object should be related
-        Highlight lastSelected = getLastSelected(underCursor);
+        Highlight2 lastSelected = getLastSelected(underCursor);
 
         if (lastSelected != null) {
             //printHighlightList(underCursor);
             // sort under cursor by relevance to lastSelected. first object is most relevant.
-            List<Highlight> newUnderCursor = new ArrayList<Highlight>();
+            List<Highlight2> newUnderCursor = new ArrayList<Highlight2>();
             while (!underCursor.isEmpty()) {
-                Highlight h = getSimiliarHighlight(underCursor, lastSelected);
+                Highlight2 h = getSimiliarHighlight(underCursor, lastSelected);
                 newUnderCursor.add(h);
                 underCursor.remove(h);
             }
@@ -1548,11 +1575,11 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 			for(int j=0; j<getNumHighlights(); j++)
 			{
-                List<Highlight> highlightList = getHighlights();
-				Highlight oldHigh = (Highlight)highlightList.get(j);
+                List<Highlight2> highlightList = getHighlights();
+				Highlight2 oldHigh = highlightList.get(j);
 				for(int i=0; i<underCursor.size(); i++)
 				{
-					if (oldHigh.sameThing((Highlight)underCursor.get(i)))
+					if (oldHigh.sameThing(underCursor.get(i)))
 					{
 						// found the same thing: loop
 						if (invert)
@@ -1564,10 +1591,10 @@ public class Highlighter implements DatabaseChangeListener {
 						}
 						if (i < underCursor.size()-1)
 						{
-							addHighlight((Highlight)underCursor.get(i+1));
+							addHighlight(underCursor.get(i+1));
 						} else
 						{
-							addHighlight((Highlight)underCursor.get(0));
+							addHighlight(underCursor.get(0));
 						}
 						finished();
 						return 1;
@@ -1579,13 +1606,13 @@ public class Highlighter implements DatabaseChangeListener {
 		// just use the first in the list
 		if (invert)
 		{
-			Highlight newHigh = (Highlight)underCursor.get(0);
-            List<Highlight> highlightList = getHighlights();
+			Highlight2 newHigh = underCursor.get(0);
+            List<Highlight2> highlightList = getHighlights();
 			for(int i=0; i<highlightList.size(); i++)
 			{
-				if (newHigh.sameThing((Highlight)highlightList.get(i)))
+				if (newHigh.sameThing(highlightList.get(i)))
 				{
-					remove((Highlight)highlightList.get(i));
+					remove(highlightList.get(i));
 					finished();
 					return 1;
 				}
@@ -1595,7 +1622,7 @@ public class Highlighter implements DatabaseChangeListener {
 		} else
 		{
 			clear();
-			addHighlight((Highlight)underCursor.get(0));
+			addHighlight(underCursor.get(0));
 			finished();
 		}
 
@@ -1607,14 +1634,14 @@ public class Highlighter implements DatabaseChangeListener {
 		return 1;
 	}
 
-    private void printHighlightList(List<Highlight> highs) {
-        int i = 0;
-        for (Iterator<Highlight> it = highs.iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
-            System.out.println("highlight "+i+": "+h.getElectricObject());
-            i++;
-        }
-    }
+//    private void printHighlightList(List<Highlight> highs) {
+//        int i = 0;
+//        for (Iterator<Highlight> it = highs.iterator(); it.hasNext(); ) {
+//            Highlight h = (Highlight)it.next();
+//            System.out.println("highlight "+i+": "+h.getElectricObject());
+//            i++;
+//        }
+//    }
 
     /**
 	 * Method to search a Cell for all objects at a point.
@@ -1633,11 +1660,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
-	public List<Highlight> findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
+	public static List<Highlight2> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean another, boolean findPort,
 		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
-		List<Highlight> list = new ArrayList<Highlight>();
+		List<Highlight2> list = new ArrayList<Highlight2>();
 		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
 
 		// this is the distance from an object that is necessary for a "direct hit"
@@ -1674,8 +1701,9 @@ public class Highlighter implements DatabaseChangeListener {
                             {
                                 if (poly.polyDistance(bounds) >= directHitDist) continue;
                             }
-                            Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
-                            h.setVar(poly.getVariable());
+                            HighlightText h = new HighlightText(cell, cell, poly.getVariable(), null);
+//                            Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
+//                            h.setVar(poly.getVariable());
                             list.add(h);
                         }
                     }
@@ -1705,25 +1733,30 @@ public class Highlighter implements DatabaseChangeListener {
                             double hitdist = poly.polyDistance(bounds);
                             if (hitdist >= directHitDist) continue;
                         }
-                        Highlight h = new Highlight(Highlight.Type.TEXT, null, cell);
+//                        Highlight h = new Highlight(Highlight.Type.TEXT, null, cell);
+                        ElectricObject obj = null;
                         if (poly.getPort() != null)
                         {
                             PortProto pp = poly.getPort();
 							if (pp instanceof Export)
-								h.setElectricObject((Export)pp);
+//								h.setElectricObject((Export)pp);
+                               obj = (Export)pp;
                             for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
                             {
                                 PortInst pi = (PortInst)pIt.next();
                                 if (pi.getPortProto() == pp)
                                 {
-                                    h.setElectricObject(pi);
+                                    obj = pi;
+//                                    h.setElectricObject(pi);
                                     break;
                                 }
                             }
                         } else
-                            h.setElectricObject(ni);
-                        h.setVar(poly.getVariable());
-                        h.setName(poly.getName());
+                            obj = ni;
+//                            h.setElectricObject(ni);
+//                        h.setVar(poly.getVariable());
+//                        h.setName(poly.getName());
+                        HighlightText h = new HighlightText(obj, cell, poly.getVariable(), poly.getName());
                         list.add(h);
                     }
                 }
@@ -1749,9 +1782,10 @@ public class Highlighter implements DatabaseChangeListener {
                             {
                                 if (poly.polyDistance(bounds) >= directHitDist) continue;
                             }
-                            Highlight h = new Highlight(Highlight.Type.TEXT, ai, cell);
-                            h.setVar(poly.getVariable());
-                            h.setName(poly.getName());
+//                            Highlight h = new Highlight(Highlight.Type.TEXT, ai, cell);
+//                            h.setVar(poly.getVariable());
+//                            h.setName(poly.getName());
+                            HighlightText h = new HighlightText(ai, cell, poly.getVariable(), poly.getName());
                             list.add(h);
                         }
                     }
@@ -1761,10 +1795,10 @@ public class Highlighter implements DatabaseChangeListener {
             if (exclusively)
             {
                 // special case: only review what is already highlighted
-                for(Iterator<Highlight> sIt = getHighlights().iterator(); sIt.hasNext(); )
+                for(Iterator<Highlight2> sIt = highlighter.getHighlights().iterator(); sIt.hasNext(); )
                 {
-                    Highlight h = (Highlight)sIt.next();
-                    if (h.getType() != Highlight.Type.EOBJ) continue;
+                    Highlight2 h = sIt.next();
+                    if (!(h instanceof HighlightEOBJ)) continue;
                     ElectricObject eobj = h.getElectricObject();
                     if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
                     if (eobj instanceof NodeInst)
@@ -1791,7 +1825,7 @@ public class Highlighter implements DatabaseChangeListener {
                 for(Iterator<Geometric> it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
                     Geometric geom = (Geometric)it.next();
-                    Highlight h;
+                    Highlight2 h;
                     switch (phase)
                     {
                         case 0:			// check primitive nodes
@@ -1834,7 +1868,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
+	public static Highlight2 checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
 		if (geom instanceof NodeInst)
@@ -1861,10 +1895,11 @@ public class Highlighter implements DatabaseChangeListener {
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
-	        	Poly poly = Highlight.getNodeInstOutline(ni);
+	        	Poly poly = Highlight2.getNodeInstOutline(ni);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
-				return new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+//				return new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+                return new HighlightEOBJ(geom, geom.getParent(), true, -1);
 			}
 
 			// get the distance to the object
@@ -1873,7 +1908,8 @@ public class Highlighter implements DatabaseChangeListener {
 			// direct hit
 			if (dist <= directHitDist)
 			{
-				Highlight h = new Highlight(Highlight.Type.EOBJ, null, geom.getParent());
+//				Highlight h = new Highlight(Highlight.Type.EOBJ, null, geom.getParent());
+                HighlightEOBJ h = new HighlightEOBJ(null, geom.getParent(), true, -1);
 				ElectricObject eobj = geom;
 
 				// add the closest port
@@ -1917,10 +1953,10 @@ public class Highlighter implements DatabaseChangeListener {
 								bestPoint = i;
 							}
 						}
-						if (bestPoint >= 0) h.setPoint(bestPoint);
+						if (bestPoint >= 0) h.point = bestPoint;
 					}
 				}
-				h.setElectricObject(eobj);
+				h.eobj = eobj;
 				return h;
 			}
 		} else
@@ -1940,7 +1976,8 @@ public class Highlighter implements DatabaseChangeListener {
 	        	Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
-				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+//				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+                Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
 
@@ -1950,7 +1987,8 @@ public class Highlighter implements DatabaseChangeListener {
 			// direct hit
 			if (dist <= directHitDist)
 			{
-				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+//				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+                Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
 		}
@@ -1964,35 +2002,38 @@ public class Highlighter implements DatabaseChangeListener {
      * @param exampleHigh the Highlight that serves as an example of what type
      * of Highlight should be retrieved from the highlights list.
      */
-    public static Highlight getSimiliarHighlight(List<Highlight> highlights, Highlight exampleHigh) {
+    public static Highlight2 getSimiliarHighlight(List<Highlight2> highlights, Highlight2 exampleHigh) {
         if (highlights.size() == 0) return null;
-        if (exampleHigh == null) return (Highlight)highlights.get(0);
+        if (exampleHigh == null) return highlights.get(0);
 
         // get Highlights of the same type
-        List<Highlight> sameTypes = new ArrayList<Highlight>();
-        for (Iterator<Highlight> it = highlights.iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
-            if (h.getType() == exampleHigh.getType()) {
+        List<Highlight2> sameTypes = new ArrayList<Highlight2>();
+        for (Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
+//            if (h.getType() == exampleHigh.getType())
+            if (h.getClass() != exampleHigh.getClass())
+            {
                 sameTypes.add(h);
             }
         }
         // if only one, just return it
-        if (sameTypes.size() == 1) return (Highlight)sameTypes.get(0);
+        if (sameTypes.size() == 1) return sameTypes.get(0);
         // if none of same type, just return first in list of all highlights
-        if (sameTypes.size() == 0) return (Highlight)highlights.get(0);
+        if (sameTypes.size() == 0) return highlights.get(0);
 
         // we have different rules depending on the type
-        if (exampleHigh.getType() == Highlight.Type.EOBJ) {
-
+//        if (exampleHigh.getType() == Highlight.Type.EOBJ)
+        if (exampleHigh.isHighlightEOBJ())
+        {
             // get Highlights of the same electric object
-            List<Highlight> sameEObj = new ArrayList<Highlight>();
-            for (Iterator<Highlight> it = sameTypes.iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
+            List<Highlight2> sameEObj = new ArrayList<Highlight2>();
+            for (Iterator<Highlight2> it = sameTypes.iterator(); it.hasNext(); ) {
+                Highlight2 h = it.next();
                 if (h.getElectricObject().getClass() == exampleHigh.getElectricObject().getClass())
                     sameEObj.add(h);
             }
             // if only one of same object, return it
-            if (sameEObj.size() == 1) return (Highlight)sameEObj.get(0);
+            if (sameEObj.size() == 1) return sameEObj.get(0);
 
             // if more than one of the same ElectricObject, make decisions
             // for some of the common choices
@@ -2002,15 +2043,15 @@ public class Highlighter implements DatabaseChangeListener {
                     // see if we can find a port on the same NodeProto
                     PortInst exPi = (PortInst)exampleHigh.getElectricObject();
                     NodeProto exNp = exPi.getNodeInst().getProto();
-                    for (Iterator<Highlight> it = sameEObj.iterator(); it.hasNext(); ) {
-                        Highlight h = (Highlight)it.next();
+                    for (Iterator<Highlight2> it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight2 h = it.next();
                         PortInst pi = (PortInst)h.getElectricObject();
                         NodeProto np = pi.getNodeInst().getProto();
                         if (np == exNp) return h;
                     }
                     // nothing with the same prototype, see if we can find a port that can connect to it
-                    for (Iterator<Highlight> it = sameEObj.iterator(); it.hasNext(); ) {
-                        Highlight h = (Highlight)it.next();
+                    for (Iterator<Highlight2> it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight2 h = it.next();
                         PortInst pi = (PortInst)h.getElectricObject();
                         if (Router.getArcToUse(exPi.getPortProto(), pi.getPortProto()) != null) {
                             return h;
@@ -2021,8 +2062,8 @@ public class Highlighter implements DatabaseChangeListener {
                 if (exampleHigh.getElectricObject().getClass() == ArcInst.class) {
                     ArcInst exAi = (ArcInst)exampleHigh.getElectricObject();
                     ArcProto exAp = exAi.getProto();
-                    for (Iterator<Highlight> it = sameEObj.iterator(); it.hasNext(); ) {
-                        Highlight h = (Highlight)it.next();
+                    for (Iterator<Highlight2> it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight2 h = it.next();
                         ArcInst ai = (ArcInst)h.getElectricObject();
                         ArcProto ap = ai.getProto();
                         if (exAp == ap) return h;
@@ -2037,8 +2078,8 @@ public class Highlighter implements DatabaseChangeListener {
                     exAi = (ArcInst)exampleHigh.getElectricObject();
                 if (exampleHigh.getElectricObject().getClass() == PortInst.class)
                     exPi = (PortInst)exampleHigh.getElectricObject();
-                for (Iterator<Highlight> it = sameTypes.iterator(); it.hasNext(); ) {
-                    Highlight h = (Highlight)it.next();
+                for (Iterator<Highlight2> it = sameTypes.iterator(); it.hasNext(); ) {
+                    Highlight2 h = it.next();
                     // reset ai and pi
                     ArcInst ai = exAi;
                     PortInst pi = exPi;
@@ -2053,10 +2094,10 @@ public class Highlighter implements DatabaseChangeListener {
             }
             // couldn't find a highlight based on connectivity or same object class
             // return first in list if possible
-            if (sameEObj.size() > 0) return (Highlight)sameEObj.get(0);
+            if (sameEObj.size() > 0) return sameEObj.get(0);
         }
         // return first in list (list empty case handled above)
-        return (Highlight)sameTypes.get(0);
+        return sameTypes.get(0);
     }
 
     /**

@@ -25,8 +25,8 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Highlight2;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -50,7 +50,7 @@ public class MeasureListener
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
 	private static double lastValidMeasuredDistanceX = 0, lastValidMeasuredDistanceY = 0;
     private static boolean measuring = false;               // true if drawing measure line
-    private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
+    private static List<Highlight2> lastHighlights = new ArrayList<Highlight2>();
 	private Point2D dbStart;                 // start of measure in database units
 
 	private MeasureListener() {}
@@ -92,8 +92,8 @@ public class MeasureListener
             Point2D end = dbPoint;
             Highlighter highlighter = wnd.getRulerHighlighter();
 
-            for (Iterator<Highlight> it = lastHighlights.iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
+            for (Iterator<Highlight2> it = lastHighlights.iterator(); it.hasNext(); ) {
+                Highlight2 h = it.next();
                 highlighter.remove(h);
             }
 			lastHighlights.clear();
@@ -123,9 +123,9 @@ public class MeasureListener
         if (measuring)
 		{
             Highlighter highlighter = wnd.getRulerHighlighter();
-            for (Iterator<Highlight> it = lastHighlights.iterator(); it.hasNext(); )
+            for (Iterator<Highlight2> it = lastHighlights.iterator(); it.hasNext(); )
 			{
-                Highlight h = (Highlight)it.next();
+                Highlight2 h = it.next();
                 highlighter.remove(h);
             }
             highlighter.finished();

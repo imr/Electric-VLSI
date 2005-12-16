@@ -94,11 +94,7 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.GenerateVHDL;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -553,9 +549,9 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();) {
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
+		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();) {
+			Highlight2 h = it.next();
+        if (h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
 			if (eobj instanceof PortInst) {
@@ -731,9 +727,9 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();) {
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
+		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();) {
+			Highlight2 h = it.next();
+			if (!h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
 			if (eobj instanceof PortInst) {

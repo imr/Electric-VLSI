@@ -25,24 +25,17 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
 import javax.swing.JOptionPane;
 
 
@@ -264,10 +257,10 @@ public class NewExport extends EDialog
 		// get the current node and selected port
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		Highlight h = wnd.getHighlighter().getOneHighlight();
+		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null) return;
 
-		if (h.getType() != Highlight.Type.EOBJ)
+		if (h.isHighlightEOBJ())
 		{
 			System.out.println("Must select a node");
 			return;

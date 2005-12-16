@@ -214,7 +214,7 @@ public class Schematic
 				{
 					ErrorLogger.MessageLog err = errorLogger.logError("Invisible pin has text in different location", cell, 0);
 					err.addGeom(geom, true, cell, null);
-					err.addLine(ni.getAnchorCenterX(), ni.getAnchorCenterY(), pinLoc.getX(), pinLoc.getY(), cell);
+					err.addLine(ni.getAnchorCenterX(), ni.getAnchorCenterY(), pinLoc.getX(), pinLoc.getY(), cell, null, false);
 					return;
 				}
 			}
@@ -762,9 +762,9 @@ public class Schematic
 		fy = fy + gDist * sa;
 		tx = tx + gDist * ca;
 		ty = ty + gDist * sa;
-		err.addLine(frX, frY, toX, toY, cell);
-		err.addLine(frX, frY, fx, fy, cell);
-		err.addLine(tx, ty, toX, toY, cell);
+		err.addLine(frX, frY, toX, toY, cell, null, false);
+		err.addLine(frX, frY, fx, fy, cell, null, false);
+		err.addLine(tx, ty, toX, toY, cell, null, false);
 
 		frX = oFx - dist * ca;
 		frY = oFy - dist * sa;
@@ -774,9 +774,9 @@ public class Schematic
 		oFy = oFy - gDist * sa;
 		oTx = oTx - gDist * ca;
 		oTy = oTy - gDist * sa;
-		err.addLine(frX, frY, toX, toY, cell);
-		err.addLine(frX, frY, oFx, oFy, cell);
-		err.addLine(oTx, oTy, toX, toY, cell);
+		err.addLine(frX, frY, toX, toY, cell, null, false);
+		err.addLine(frX, frY, oFx, oFy, cell, null, false);
+		err.addLine(oTx, oTy, toX, toY, cell, null, false);
 		return true;
 	}
 }

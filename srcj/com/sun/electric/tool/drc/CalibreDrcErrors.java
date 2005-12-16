@@ -316,7 +316,7 @@ public class CalibreDrcErrors {
                     Shape shape = (Shape)it3.next();
                     if (shape instanceof Line2D) {
                         Line2D line = (Line2D)shape;
-                        log.addLine(line.getX1(), line.getY1(), line.getX2(), line.getY2(), cell);
+                        log.addLine(line.getX1(), line.getY1(), line.getX2(), line.getY2(), cell, null, false);
                     } else if (shape instanceof PolyBase) {
                         PolyBase poly = (PolyBase)shape;
                         log.addPoly(poly, false, cell);

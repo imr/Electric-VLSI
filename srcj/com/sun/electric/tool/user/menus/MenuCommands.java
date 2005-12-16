@@ -27,12 +27,12 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.Job;
 
 import java.awt.event.ActionListener;
@@ -190,11 +190,11 @@ public final class MenuCommands
      * Get list of Highlights in current highlighter
      * @return list of Highlights
      */
-    public static List<Highlight> getHighlighted() {
+    public static List<Highlight2> getHighlighted() {
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return new ArrayList<Highlight>();
+        if (wf == null) return new ArrayList<Highlight2>();
         Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return new ArrayList<Highlight>();
+        if (highlighter == null) return new ArrayList<Highlight2>();
 
         return highlighter.getHighlights();
     }

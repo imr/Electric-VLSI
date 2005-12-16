@@ -1305,9 +1305,9 @@ public class DebugMenus {
             cell.getInfo();
 			return;
 		}
-		for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
+		for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+			Highlight2 h = it.next();
+			if (!h.isHighlightEOBJ()) continue;
 			ElectricObject eobj = h.getElectricObject();
             if (eobj instanceof PortInst) {
                 PortInst pi = (PortInst)eobj;
@@ -1332,9 +1332,9 @@ public class DebugMenus {
         if (curEdit == null) return;
 
 		if (curEdit.getHighlighter().getNumHighlights() == 0) return;
-		for (Iterator<Highlight> it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
+		for (Iterator<Highlight2> it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+			Highlight2 h = it.next();
+            if (!h.isHighlightEOBJ()) continue;
 			ElectricObject eobj = h.getElectricObject();
 			Iterator<Variable> itVar = eobj.getVariables();
 			while(itVar.hasNext()) {
@@ -1362,9 +1362,9 @@ public class DebugMenus {
         if (wnd == null) return;
 
         if (wnd.getHighlighter().getNumHighlights() == 0) return;
-        for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-            Highlight h = (Highlight)it.next();
-            if (h.getType() == Highlight.Type.EOBJ) {
+        for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+            Highlight2 h = it.next();
+            if (h.isHighlightEOBJ()) {
                 ElectricObject eobj = h.getElectricObject();
                 AddStringVar job = new AddStringVar(eobj);
                 break;

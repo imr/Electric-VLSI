@@ -155,7 +155,7 @@ public class ActivityLogger {
         if (highlights.size() == 0) return;
         out.println("Currently highlighted: ");
         for (Iterator<Object> it = highlights.iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+            Highlight2 h = (Highlight2)it.next();
             out.println("    "+h.describe());
         }
     }

@@ -138,14 +138,11 @@ public class UserInterfaceMain implements UserInterface
         if (gPair != null)
         {
             Geometric geom1 = null, geom2 = null;
-            for(Iterator<ErrorLogger.ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
+            for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
             {
-                ErrorLogger.ErrorHighlight eh = (ErrorLogger.ErrorHighlight)it.next();
-                if (eh.getType() == ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM)
-                {
-                    if (geom1 == null) geom1 = eh.getGeom(); else
-                        if (geom2 == null) geom2 = eh.getGeom();
-                }
+                ErrorHighlight eh = it.next();
+                    if (geom1 == null) geom1 = (Geometric)eh.getObject();
+                    else if (geom2 == null) geom2 = (Geometric)eh.getObject();
             }
 
             // return geometry if requested
@@ -160,9 +157,9 @@ public class UserInterfaceMain implements UserInterface
             EditWindow wnd = null;
 
             // first show the geometry associated with this error
-            for(Iterator<ErrorLogger.ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
+            for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
             {
-                ErrorLogger.ErrorHighlight eh = (ErrorLogger.ErrorHighlight)it.next();
+                ErrorHighlight eh = it.next();
 
                 Cell cell = eh.getCell();
                 // validate the cell (it may have been deleted)
@@ -207,33 +204,7 @@ public class UserInterfaceMain implements UserInterface
 
                 if (highlighter == null) continue;
 
-                switch (eh.getType())
-                {
-                    case ERRORTYPEGEOM:
-                        if (!eh.getShowGeom()) break;
-                        highlighter.addElectricObject(eh.getGeom(), cell);
-                        break;
-                    case ERRORTYPEEXPORT:
-                        highlighter.addText(eh.getExport(), cell, null, null);
-//						if (havegeoms == 0) infstr = initinfstr(); else
-//							addtoinfstr(infstr, '\n');
-//						havegeoms++;
-//						formatinfstr(infstr, x_("CELL=%s TEXT=0%lo;0%lo;-"),
-//							describenodeproto(eh->pp->parent), (INTBIG)eh->pp->subnodeinst->geom,
-//								(INTBIG)eh->pp);
-                        break;
-                    case ERRORTYPELINE:
-                        highlighter.addLine(eh.getPoint(0, 0, 0), eh.getPoint(1, 0, 0), cell);
-                        break;
-                    case ERRORTYPETHICKLINE:
-                        highlighter.addThickLine(eh.getPoint(0, 0, 0), eh.getPoint(1, 0, 0), eh.getCenterPoint(), cell);
-                        break;
-                    case ERRORTYPEPOINT:
-                        double consize = 5;
-                        highlighter.addLine(eh.getPoint(0, -consize, -consize), eh.getPoint(0, consize, consize), cell);
-                        highlighter.addLine(eh.getPoint(0, -consize, consize), eh.getPoint(0, consize, -consize), cell);
-                        break;
-                }
+                eh.addToHighlighter(highlighter);
             }
 
             if (highlighter != null)

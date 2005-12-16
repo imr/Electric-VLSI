@@ -23,12 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlighter;
 
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;

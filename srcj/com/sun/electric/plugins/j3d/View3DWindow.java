@@ -48,11 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
@@ -847,11 +843,11 @@ public class View3DWindow extends JPanel
 			highlighter2D = view2D.getHighlighter();
 			highlighter2D.clear();
 		}
-		for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext();)
+		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();)
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 //			Shape3D obj = (Shape3D)h.getObject();
-            HighlightShape3D hObj = (HighlightShape3D)h.getObject();
+            HighlightShape3D hObj = (HighlightShape3D)(h.getObject());
             Shape3D obj = hObj.shape;
 			if (toSelect) // highlight cell, set transparency
 			{
@@ -918,7 +914,7 @@ public class View3DWindow extends JPanel
                 for (Iterator<Shape3D> lIt = list.iterator(); lIt.hasNext();)
                 {
                     Shape3D shape = (Shape3D)lIt.next();
-                    highlighter.addObject(new HighlightShape3D(shape), Highlight.Type.SHAPE3D, cell);
+                    highlighter.addObject(new HighlightShape3D(shape), cell);
                 }
             }
             selectObject(true, false);
@@ -1215,7 +1211,7 @@ public class View3DWindow extends JPanel
 			
 			if (s != null)
 			{
-				highlighter.addObject(new HighlightShape3D(s), Highlight.Type.SHAPE3D, cell);
+				highlighter.addObject(new HighlightShape3D(s), cell);
 				selectObject(true, true);
 			}
 		}

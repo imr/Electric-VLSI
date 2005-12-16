@@ -27,8 +27,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.Highlight;
 
 import java.awt.Font;
 import java.awt.Point;

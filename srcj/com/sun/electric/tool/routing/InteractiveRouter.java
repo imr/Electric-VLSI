@@ -39,8 +39,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Line2D;
@@ -70,7 +70,7 @@ import java.util.List;
  */
 public abstract class InteractiveRouter extends Router {
 
-    /** for highlighting the start of the route */  private List<Highlight> startRouteHighlights = new ArrayList<Highlight>();
+    /** for highlighting the start of the route */  private List<Highlight2> startRouteHighlights = new ArrayList<Highlight2>();
     /** if start has been called */                 private boolean started;
     /** EditWindow we are routing in */             private EditWindow wnd;
 
@@ -101,8 +101,8 @@ public abstract class InteractiveRouter extends Router {
         this.wnd = wnd;
         // copy current highlights
         startRouteHighlights.clear();
-        for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+        for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
             startRouteHighlights.add(h);
         }
         wnd.clearHighlighting();

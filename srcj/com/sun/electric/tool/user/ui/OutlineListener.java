@@ -29,12 +29,9 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;
@@ -58,7 +55,7 @@ public class OutlineListener
 	private boolean doingMotionDrag;
 	private int point;
 	private NodeInst outlineNode;
-	private Highlight high;
+	private Highlight2 high;
 
 	private OutlineListener() {}
 

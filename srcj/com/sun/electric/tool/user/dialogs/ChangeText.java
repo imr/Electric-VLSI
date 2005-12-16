@@ -39,8 +39,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -197,10 +197,10 @@ public class ChangeText extends EDialog
 
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd != null) {
-                for(Iterator<Highlight> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
+                for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
                 {
-                    Highlight h = (Highlight)it.next();
-                    if (h.getType() != Highlight.Type.TEXT) continue;
+                    Highlight2 h = it.next();
+                    if (!h.isHighlightText()) continue;
                     accumulateTextFound(h.getElectricObject(), h.getVar(), h.getName(), change);
                 }
             }

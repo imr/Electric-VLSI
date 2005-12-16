@@ -32,10 +32,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -153,10 +150,10 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		Export pp = null;
 		int exportCount = 0;
         if (wnd != null) {
-            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
-                Highlight h = (Highlight)it.next();
-                if (h.getType() != Highlight.Type.TEXT) continue;
+                Highlight2 h = it.next();
+                if (!h.isHighlightText()) continue;
                 if (h.getVar() != null) continue;
                 ElectricObject eobj = h.getElectricObject();
                 if (eobj instanceof Export)

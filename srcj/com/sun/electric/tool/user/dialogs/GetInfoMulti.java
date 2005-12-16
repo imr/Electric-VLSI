@@ -42,10 +42,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -56,7 +53,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,11 +120,11 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private JPanel changePanel;
 	private int [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
-	private List<Highlight> highlightList;
+	private List<Highlight2> highlightList;
 	List<NodeInst> nodeList;
 	List<ArcInst>arcList;
 	List<Export> exportList;
-	List<Highlight> textList;
+	List<Highlight2> textList;
 
     private EditWindow wnd;
 
@@ -219,8 +215,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
         boolean reload = false;
         // reload if any objects that changed are part of our list of highlighted objects
-		for (Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); ) {
-			Highlight h = (Highlight)it.next();
+		for (Iterator<Highlight2> it = highlightList.iterator(); it.hasNext(); ) {
+			Highlight2 h = it.next();
 			if (e.objectChanged(h.getElectricObject())) {
 				reload = true; break;
 			}
@@ -236,7 +232,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		highlightList = new ArrayList<Highlight>();
+		highlightList = new ArrayList<Highlight2>();
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -273,7 +269,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		// copy the selected objects to a private list and sort it
 		highlightList.clear();
         if (wnd != null) {
-            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
                 highlightList.add(it.next());
             }
@@ -284,7 +280,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		nodeList = new ArrayList<NodeInst>();
 		arcList = new ArrayList<ArcInst>();
 		exportList = new ArrayList<Export>();
-		textList = new ArrayList<Highlight>();
+		textList = new ArrayList<Highlight2>();
 		Geometric firstGeom = null, secondGeom = null;
 		double xPositionLow = Double.MAX_VALUE, xPositionHigh = -Double.MAX_VALUE;
 		double yPositionLow = Double.MAX_VALUE, yPositionHigh = -Double.MAX_VALUE;
@@ -293,13 +289,14 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		double widthLow = Double.MAX_VALUE, widthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		List<String> displayList = new ArrayList<String>();
-		for(Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); )
+        for(Highlight2 h : highlightList)
+//		for(Iterator<Highlight> it = highlightList.iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+//			Highlight h = (Highlight)it.next();
 			ElectricObject eobj = h.getElectricObject();
-			if (h.getType() == Highlight.Type.EOBJ)
+            h.getInfo(displayList);
+			if (h.isHighlightEOBJ())
 			{
-				String description = "";
 				if (eobj instanceof PortInst)
 					eobj = ((PortInst)eobj).getNodeInst();
 				if (eobj instanceof Geometric)
@@ -328,7 +325,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					xSizeHigh = Math.max(xSizeHigh, xVal);
 					ySizeLow = Math.min(ySizeLow, yVal);
 					ySizeHigh = Math.max(ySizeHigh, yVal);
-					description = "Node " + ni.describe(true);
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -336,47 +332,25 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					double trueWidth = ai.getWidth() - ai.getProto().getWidthOffset();
 					widthLow = Math.min(widthLow, trueWidth);
 					widthHigh = Math.max(widthHigh, trueWidth);
-					description = "Arc " + ai.describe(true);
 				}
-				displayList.add(description);
-			} else if (h.getType() == Highlight.Type.TEXT)
+			} else if (h.isHighlightText())
 			{
-				String description = "Text: unknown";
 				if (h.getVar() != null)
 				{
-					description = "Text: " + h.getVar().getFullDescription(eobj);
 					textList.add(h);
 				} else
 				{
 					if (h.getName() != null)
 					{
-						if (eobj instanceof NodeInst) description = "Node name for " + ((NodeInst)eobj).describe(true); else
-							if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe(true);
-						textList.add(h);
+                        textList.add(h);
 					} else if (eobj instanceof Export)
 					{
-						description = "Text: Export '" + ((Export)eobj).getName() + "'";
 						exportList.add((Export)eobj);
 					} else if (eobj instanceof NodeInst)
 					{
-						description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
 						textList.add(h);
 					}
 				}
-				displayList.add(description);
-			} else if (h.getType() == Highlight.Type.LINE)
-			{
-				Point2D pt1 = h.getLineStart();
-				Point2D pt2 = h.getLineEnd();
-				String description = "Line from (" + pt1.getX() + "," + pt1.getY() + ") to (" +
-					pt2.getX() + "," + pt2.getY() + ")";
-				displayList.add(description);
-			} else if (h.getType() == Highlight.Type.BBOX)
-			{
-				Rectangle2D bounds = h.getBounds();
-				String description = "Area from " + bounds.getMinX() + "<=X<=" + bounds.getMaxX() +
-					" and " + bounds.getMinY() + "<=Y<=" + bounds.getMaxY();
-				displayList.add(description);
 			}
 		}
 
@@ -640,18 +614,20 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
 	}
 
-	private static class SortMultipleHighlights implements Comparator<Highlight>
+	private static class SortMultipleHighlights implements Comparator<Highlight2>
 	{
-		public int compare(Highlight h1, Highlight h2)
+		public int compare(Highlight2 h1, Highlight2 h2)
 		{
 			// if the types are different, order by types
-			if (h1.getType() != h2.getType())
+			if (h1.getClass() != h2.getClass())
 			{
-				return h1.getType().getOrder() - h2.getType().getOrder();
+                System.out.println("Check this compare function");
+                return h1.getClass().hashCode() - h2.getClass().hashCode();
+//				return h1.getType().getOrder() - h2.getType().getOrder();
 			}
 
 			// if not a geometric, no order is available
-			if (h1.getType() != Highlight.Type.EOBJ) return 0;
+			if (!h1.isHighlightEOBJ()) return 0;
 
 			// sort on mix of NodeInst / ArcInst / PortInst
 			ElectricObject e1 = h1.getElectricObject();
@@ -1011,11 +987,11 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 			if (dialog.textList.size() > 0)
 			{
-				for(Iterator<Highlight> it = dialog.textList.iterator(); it.hasNext(); )
+				for(Iterator<Highlight2> it = dialog.textList.iterator(); it.hasNext(); )
 				{
-					Highlight h = (Highlight)it.next();
+					Highlight2 h = it.next();
 					ElectricObject eobj = h.getElectricObject();
-					if (h.getType() != Highlight.Type.TEXT) continue;
+					if (!h.isHighlightText()) continue;
 
 					Variable.Key descKey = null;
 					if (h.getVar() != null)

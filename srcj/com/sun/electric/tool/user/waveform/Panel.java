@@ -31,9 +31,9 @@ import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.ToolBar;
@@ -933,7 +933,7 @@ public class Panel extends JPanel
 		// draw the grid first (behind the signals)
 		if (analysisType != null && waveWindow.isShowGrid())
 		{
-			g2.setStroke(Highlight.dottedLine);
+			g2.setStroke(Highlight2.dottedLine);
 			offscreenGraphics.setColor(gridColor);
 
 			// draw the vertical grid lines
@@ -970,7 +970,7 @@ public class Panel extends JPanel
 					value += ss.getSeparation();
 				}
 			}
-			g2.setStroke(Highlight.solidLine);
+			g2.setStroke(Highlight2.solidLine);
 		}
 
 		processSignals(offscreenGraphics, null);
@@ -1036,7 +1036,7 @@ public class Panel extends JPanel
 		}
 
 		// draw the X position cursors
-		g2.setStroke(Highlight.dashedLine);
+		g2.setStroke(Highlight2.dashedLine);
 		int x = convertXDataToScreen(waveWindow.getMainXPositionCursor());
 		if (x >= vertAxisPos)
 			offscreenGraphics.drawLine(x, 0, x, hei);
@@ -1044,7 +1044,7 @@ public class Panel extends JPanel
 		x = convertXDataToScreen(waveWindow.getExtensionXPositionCursor());
 		if (x >= vertAxisPos)
 			offscreenGraphics.drawLine(x, 0, x, hei);
-		g2.setStroke(Highlight.solidLine);
+		g2.setStroke(Highlight2.solidLine);
 
 		// show dragged area if there
 		if (draggingArea)

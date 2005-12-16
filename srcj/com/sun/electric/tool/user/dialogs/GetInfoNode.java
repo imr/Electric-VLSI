@@ -38,9 +38,9 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
@@ -50,10 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -251,22 +248,20 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		PortProto pp = null;
 		int nodeCount = 0;
         if (wnd != null) {
-            for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
             {
-                Highlight h = (Highlight)it.next();
-                if (h.getType() == Highlight.Type.EOBJ)
+                Highlight2 h = it.next();
+                if (!h.isHighlightEOBJ()) continue;
+                ElectricObject eobj = h.getElectricObject();
+                if (eobj instanceof PortInst)
                 {
-                    ElectricObject eobj = h.getElectricObject();
-                    if (eobj instanceof PortInst)
-                    {
-                        pp = ((PortInst)eobj).getPortProto();
-                        eobj = ((PortInst)eobj).getNodeInst();
-                    }
-                    if (eobj instanceof NodeInst)
-                    {
-                        ni = (NodeInst)eobj;
-                        nodeCount++;
-                    }
+                    pp = ((PortInst)eobj).getPortProto();
+                    eobj = ((PortInst)eobj).getNodeInst();
+                }
+                if (eobj instanceof NodeInst)
+                {
+                    ni = (NodeInst)eobj;
+                    nodeCount++;
                 }
             }
         }

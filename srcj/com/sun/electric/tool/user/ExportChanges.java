@@ -34,7 +34,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -503,8 +502,8 @@ public final class ExportChanges
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
 		if (highlighter == null) return;
-		Highlight high = highlighter.getOneHighlight();
-		if (high == null || high.getType() != Highlight.Type.EOBJ || !(high.getElectricObject() instanceof PortInst))
+		Highlight2 high = highlighter.getOneHighlight();
+		if (high == null || !high.isHighlightEOBJ() || !(high.getElectricObject() instanceof PortInst))
 		{
             System.out.println("Must first select a single node and its port");
             return;
@@ -793,10 +792,10 @@ public final class ExportChanges
 
 		List<Export> exportsToDelete = new ArrayList<Export>();
         EditWindow wnd = EditWindow.getCurrent();
-		List<Highlight> highs = wnd.getHighlighter().getHighlightedText(true);
-		for(Iterator<Highlight> it = highs.iterator(); it.hasNext(); )
+		List<Highlight2> highs = wnd.getHighlighter().getHighlightedText(true);
+		for(Iterator<Highlight2> it = highs.iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 			if (h.getVar() != null) continue;
 			if (h.getName() != null) continue;
 			if (h.getElectricObject() instanceof Export)
@@ -892,11 +891,11 @@ public final class ExportChanges
 		Export source = null;
 		PortInst dest = null;
         EditWindow wnd = EditWindow.getCurrent();
-		for(Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 		{
-			Highlight h = (Highlight)it.next();
+			Highlight2 h = it.next();
 			boolean used = false;
-			if (h.getType() == Highlight.Type.EOBJ)
+			if (h.isHighlightEOBJ())
 			{
 				if (h.getElectricObject() instanceof PortInst)
 				{
@@ -908,7 +907,7 @@ public final class ExportChanges
 					dest = (PortInst)h.getElectricObject();
 					used = true;
 				}
-			} else if (h.getType() == Highlight.Type.TEXT)
+			} else if (h.isHighlightText())
 			{
 				if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
 				{
@@ -937,7 +936,7 @@ public final class ExportChanges
 	public static void renameExport()
 	{
         EditWindow wnd = EditWindow.getCurrent();
-		Highlight h = wnd.getHighlighter().getOneHighlight();
+		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null || h.getVar() != null || h.getName() != null || h.getElectricObject() != null && !(h.getElectricObject() instanceof Export))
 		{
 			System.out.println("Must select an export name before renaming it");

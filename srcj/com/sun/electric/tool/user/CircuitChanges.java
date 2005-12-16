@@ -960,9 +960,9 @@ public class CircuitChanges
 	private static class ChangeArcProperties extends Job
 	{
 		private int how;
-        private List<Highlight> highlighted;
+        private List<Highlight2> highlighted;
 
-		protected ChangeArcProperties(int how, List<Highlight> highlighted)
+		protected ChangeArcProperties(int how, List<Highlight2> highlighted)
 		{
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
@@ -978,10 +978,10 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0, numUnset = 0;
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
@@ -1089,9 +1089,9 @@ public class CircuitChanges
 
 	private static class ToggleNegationJob extends Job
 	{
-        private List<Highlight> highlighted;
+        private List<Highlight2> highlighted;
 
-		protected ToggleNegationJob(List<Highlight> highlighted)
+		protected ToggleNegationJob(List<Highlight2> highlighted)
 		{
 			super("Toggle negation", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlighted = highlighted;
@@ -1106,10 +1106,10 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0;
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst)
 				{
@@ -1364,8 +1364,8 @@ public class CircuitChanges
 			DeleteSelectedGeometry job = new DeleteSelectedGeometry(wnd.getCell(), bounds);
 		} else
 		{
-            List<Highlight> highlightedText = highlighter.getHighlightedText(true);
-            List<Highlight> highlighted = highlighter.getHighlights();
+            List<Highlight2> highlightedText = highlighter.getHighlightedText(true);
+            List<Highlight2> highlighted = highlighter.getHighlights();
             if (highlighted.size() == 0) return;
 	        DeleteSelected job = new DeleteSelected(highlightedText, highlighted);
 		}
@@ -1373,10 +1373,10 @@ public class CircuitChanges
 
 	private static class DeleteSelected extends Job
 	{
-        private List<Highlight> highlightedText;
-        private List<Highlight> highlighted;
+        private List<Highlight2> highlightedText;
+        private List<Highlight2> highlighted;
 
-		protected DeleteSelected(List<Highlight> highlightedText, List<Highlight> highlighted)
+		protected DeleteSelected(List<Highlight2> highlightedText, List<Highlight2> highlighted)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlightedText = highlightedText;
@@ -1395,12 +1395,12 @@ public class CircuitChanges
 
 			List<Geometric> deleteList = new ArrayList<Geometric>();
 //			Geometric oneGeom = null;
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
+				Highlight2 h = it.next();
 				Geometric geom = h.getGeometric();
 				if (geom == null) continue;
-				if (h.getType() == Highlight.Type.TEXT)
+				if (h.isHighlightText())
 				{
 					ElectricObject eobj = h.getElectricObject();
 					if (eobj instanceof Export) continue;
@@ -1443,9 +1443,9 @@ public class CircuitChanges
 			}*/
 
 			// delete the text
-			for(Iterator<Highlight> it = highlightedText.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlightedText.iterator(); it.hasNext(); )
 			{
-				Highlight high = (Highlight)it.next();
+				Highlight2 high = it.next();
 
 //				// do not deal with text on an object if the object is already in the list
 //				if (high.fromgeom != NOGEOM)
@@ -3688,15 +3688,15 @@ public class CircuitChanges
         Highlighter highlighter = wf.getContent().getHighlighter();
         if (highlighter == null) return;
 
-        List<Highlight> highlighted = highlighter.getHighlights();
+        List<Highlight2> highlighted = highlighter.getHighlights();
 
         // prevent mixing cell-center and non-cell-center
         int nonCellCenterCount = 0;
-        Highlight cellCenterHighlight = null;
-        for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+        Highlight2 cellCenterHighlight = null;
+        for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
         {
-        	Highlight h = (Highlight)it.next();
-        	if (h.getType() != Highlight.Type.EOBJ) continue;
+        	Highlight2 h = it.next();
+        	if (!h.isHighlightEOBJ()) continue;
         	ElectricObject eObj = h.getElectricObject();
         	if (eObj instanceof NodeInst)
         	{
@@ -3710,7 +3710,7 @@ public class CircuitChanges
         	System.out.println("Cannot move the Cell-center along with other objects.  Cell-center will not be moved.");
         	highlighted.remove(cellCenterHighlight);
         }
-        List<Highlight> highlightedText = highlighter.getHighlightedText(true);
+        List<Highlight2> highlightedText = highlighter.getHighlightedText(true);
         ManyMove job = new ManyMove(highlighted, highlightedText, dX, dY);
 	}
 
@@ -3718,10 +3718,10 @@ public class CircuitChanges
 	{
 		double dX, dY;
         static final boolean verbose = false;
-        private List<Highlight> highlighted;
-        private List<Highlight> highlightedText;
+        private List<Highlight2> highlighted;
+        private List<Highlight2> highlightedText;
 
-		protected ManyMove(List<Highlight> highlighted, List<Highlight> highlightedText, double dX, double dY)
+		protected ManyMove(List<Highlight2> highlighted, List<Highlight2> highlightedText, double dX, double dY)
 		{
 			super("Move", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dX = dX;   this.dY = dY;
@@ -3735,8 +3735,8 @@ public class CircuitChanges
 			// get information about what is highlighted
 			int total = highlighted.size();
 			if (total <= 0) return false;
-			Iterator<Highlight> oit = highlighted.iterator();
-			Highlight firstH = (Highlight)oit.next();
+			Iterator<Highlight2> oit = highlighted.iterator();
+			Highlight2 firstH = oit.next();
 			ElectricObject firstEObj = firstH.getElectricObject();
 			Cell cell = firstH.getCell();
 
@@ -3744,7 +3744,7 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			// special case if moving only one node
-			if (total == 1 && firstH.getType() == Highlight.Type.EOBJ &&
+			if (total == 1 && firstH.isHighlightEOBJ() && // getType() == Highlight.Type.EOBJ &&
 				((firstEObj instanceof NodeInst) || firstEObj instanceof PortInst))
 			{
                 NodeInst ni;
@@ -3765,10 +3765,11 @@ public class CircuitChanges
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
 			boolean found = false;
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+                if (!h.isHighlightEOBJ()) continue;
+//				if (h.getType() != Highlight.Type.EOBJ) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
@@ -3805,10 +3806,10 @@ public class CircuitChanges
 			if (found)
 			{
 				// meets the test: make the special move to slide other orthogonal arcs
-				for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+				for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 				{
-					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.EOBJ) continue;
+					Highlight2 h = it.next();
+                    if (!h.isHighlightEOBJ()) continue;
 					ElectricObject eobj = h.getElectricObject();
 					if (!(eobj instanceof ArcInst)) continue;
 					ArcInst ai = (ArcInst)eobj;
@@ -3865,10 +3866,10 @@ public class CircuitChanges
 
 			// special case if moving only arcs and they slide
 			boolean onlySlidable = true, foundArc = false;
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+                if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
@@ -3886,10 +3887,10 @@ public class CircuitChanges
 			}
 			if (foundArc && onlySlidable)
 			{
-				for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+				for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 				{
-					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.EOBJ) continue;
+					Highlight2 h = it.next();
+                    if (!h.isHighlightEOBJ()) continue;
 					ElectricObject eobj = h.getElectricObject();
 					if (eobj instanceof ArcInst)
 					{
@@ -3920,10 +3921,10 @@ public class CircuitChanges
 			}
 
 			// mark all nodes that want to move
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+                if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 				if (eobj instanceof NodeInst)
@@ -3987,10 +3988,10 @@ public class CircuitChanges
 			flag = null;
 
 			// look at all arcs and move them appropriately
-			for(Iterator<Highlight> it = highlighted.iterator(); it.hasNext(); )
+			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
+				Highlight2 h = it.next();
+				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (!(eobj instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)eobj;
@@ -4027,10 +4028,10 @@ public class CircuitChanges
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
-						for(Iterator<Highlight> oIt = highlighted.iterator(); oIt.hasNext(); )
+						for(Iterator<Highlight2> oIt = highlighted.iterator(); oIt.hasNext(); )
 						{
-							Highlight oH = (Highlight)oIt.next();
-							if (oH.getType() != Highlight.Type.EOBJ) continue;
+							Highlight2 oH = oIt.next();
+                            if (!oH.isHighlightEOBJ()) continue;
 							ElectricObject oEObj = oH.getElectricObject();
 							if (oEObj instanceof ArcInst)
 							{
@@ -4099,11 +4100,12 @@ public class CircuitChanges
 		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
 		 * is on these objects.
 		 */
-		private void moveSelectedText(List<Highlight> highlightedText)
+		private void moveSelectedText(List<Highlight2> highlightedText)
 		{
-			for(Iterator<Highlight> it = highlightedText.iterator(); it.hasNext(); )
+            for(Highlight2 high : highlightedText)
+//			for(Iterator<Highlight> it = highlightedText.iterator(); it.hasNext(); )
 			{
-				Highlight high = (Highlight)it.next();
+//				Highlight high = (Highlight)it.next();
 
 				// disallow moving if lock is on
 				Cell np = high.getCell();

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -47,7 +46,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -115,10 +113,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 /**
  * This class defines an editing window for displaying circuitry.
@@ -2750,7 +2746,7 @@ public class EditWindow extends JPanel
 	public List<Object> saveHighlightList()
 	{
 		List<Object> saveList = new ArrayList<Object>();
-		for(Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); )
+		for(Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); )
 			saveList.add(it.next());
 		return saveList;
 	}
@@ -2840,7 +2836,7 @@ public class EditWindow extends JPanel
     public void downHierarchy(boolean keepFocus, boolean newWindow, boolean inPlace)
     {
         // get highlighted
-        Highlight h = highlighter.getOneHighlight();
+        Highlight2 h = highlighter.getOneHighlight();
         if (h == null) return;
         ElectricObject eobj = h.getElectricObject();
 
@@ -3237,7 +3233,7 @@ public class EditWindow extends JPanel
         /** context */                  private VarContext context;
         /** offset */                   private Point2D offset;
         /** scale */                    private double scale;
-        /** highlights */               private List<Highlight> highlights;
+        /** highlights */               private List<Highlight2> highlights;
         /** highlight offset*/          private Point2D highlightOffset;
         public Cell getCell() { return cell; }
         public VarContext getContext() { return context; }
@@ -3353,10 +3349,10 @@ public class EditWindow extends JPanel
 
         current.offset = new Point2D.Double(offx, offy);
         current.scale = scale;
-        current.highlights = new ArrayList<Highlight>();
+        current.highlights = new ArrayList<Highlight2>();
         current.highlights.clear();
-        for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-            Highlight h = (Highlight)it.next();
+        for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+            Highlight2 h = it.next();
             if (h.getCell() == cell)
                 current.highlights.add(h);
         }
@@ -3394,7 +3390,7 @@ public class EditWindow extends JPanel
             history.cell = null;
             history.context = VarContext.globalContext;
             history.offset = new Point2D.Double(0,0);
-            history.highlights = new ArrayList<Highlight>();
+            history.highlights = new ArrayList<Highlight2>();
             history.highlightOffset = new Point2D.Double(0,0);
         }
 

@@ -84,7 +84,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List<Highlight> getHighlights(Cell cell, Netlist netlist, Set<Network> nets, int startDepth, int endDepth) {
+    public static synchronized List<Highlight2> getHighlights(Cell cell, Netlist netlist, Set<Network> nets, int startDepth, int endDepth) {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, nets, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);
@@ -251,7 +251,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
             } else if (o instanceof PortInst) {
                 PortInst pi = (PortInst)o;
                 NodeInst ni = pi.getNodeInst();
-                poly = Highlight.getNodeInstOutline(ni);
+                poly = Highlight2.getNodeInstOutline(ni);
             } else if (o instanceof Export) {
                 Export ep = (Export)o;
                 PortInst pi = ep.getOriginalPort();

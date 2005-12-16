@@ -35,11 +35,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -87,7 +83,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	 */
 	private static class CachedTextInfo
 	{
-		private Highlight shownText;
+		private Highlight2 shownText;
 		private String initialText;
 	    private Variable var;
 		private Variable.Key varKey;
@@ -101,7 +97,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		 * Method to load the field variables from a Highlight.
 		 * @param h the Highlight of text.
 		 */
-		CachedTextInfo(Highlight h)
+		CachedTextInfo(Highlight2 h)
 		{
 			shownText = h;
 			description = "Unknown text";
@@ -270,12 +266,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
  		}
 
         // must have a single text selected
-        Highlight textHighlight = null;
+        Highlight2 textHighlight = null;
         int textCount = 0;
         if (wnd != null) {
-            for (Iterator<Highlight> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-                Highlight h = (Highlight) it.next();
-                if (h.getType() != Highlight.Type.TEXT) continue;
+            for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+                Highlight2 h = it.next();
+                if (!h.isHighlightText()) continue;
                 // ignore export text
                 if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
                 textHighlight = h;
@@ -390,12 +386,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		if (curWnd == null) return;
 
 		// must have a single text selected
-		Highlight theHigh = null;
+		Highlight2 theHigh = null;
 		int textCount = 0;
-		for (Iterator<Highlight> it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
+		for (Iterator<Highlight2> it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.TEXT) continue;
+			Highlight2 h = it.next();
+			if (!h.isHighlightText()) continue;
 			theHigh = h;
 			textCount++;
 		}

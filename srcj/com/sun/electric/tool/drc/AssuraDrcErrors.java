@@ -148,13 +148,13 @@ public class AssuraDrcErrors {
                         Rectangle2D rect = new Rectangle2D.Double(x1, y1, x2-x1, y2-y1);
                         error = new DrcError(cell, rect);
                         ErrorLogger.MessageLog log = logger.logError(num+". "+cell.getName()+": "+rule.desc, cell, rule.number);
-                        log.addLine(x1, y1, x2, y1, cell);
-                        log.addLine(x1, y1, x1, y2, cell);
-                        log.addLine(x2, y2, x2, y1, cell);
-                        log.addLine(x2, y2, x1, y2, cell);
+                        log.addLine(x1, y1, x2, y1, cell, null, false);
+                        log.addLine(x1, y1, x1, y2, cell, null, false);
+                        log.addLine(x2, y2, x2, y1, cell, null, false);
+                        log.addLine(x2, y2, x1, y2, cell, null, false);
 
-                        log.addLine(x1, y1, x2, y2, cell);
-                        log.addLine(x1, y2, x2, y1, cell);
+                        log.addLine(x1, y1, x2, y2, cell, null, false);
+                        log.addLine(x1, y2, x2, y1, cell, null, false);
                         count++;
                         num++;
                     }

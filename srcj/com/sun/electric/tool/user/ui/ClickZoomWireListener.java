@@ -32,10 +32,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.EditMenu;
 
 import java.awt.event.ActionEvent;
@@ -102,7 +99,7 @@ public class ClickZoomWireListener
     private ArcProto currentArcWhenWiringPressed; /* current arc proto when mouse pressed to draw wire: later actions of this tool may change current arc */
 
     private int mouseX, mouseY;                 /* last known location of mouse */
-    private Highlight moveDelta;                /* highlight to display move delta */
+    private Highlight2 moveDelta;                /* highlight to display move delta */
 
     private EventListener oldListener;          /* used when swtiching back to old listener */
 
@@ -287,20 +284,20 @@ public class ClickZoomWireListener
 	            if (!invertSelection) {
                     // ignore anything that can't have a wire drawn to it
                     // (everything except nodes, ports, and arcs)
-                    List<Highlight> highlights = new ArrayList<Highlight>();
-                    for (Iterator<Highlight> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-                        Highlight h = (Highlight)it.next();
-                        if (h.getType() == Highlight.Type.EOBJ) {
+                    List<Highlight2> highlights = new ArrayList<Highlight2>();
+                    for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+                        Highlight2 h = it.next();
+                        if (h.isHighlightEOBJ()) {
                             ElectricObject eobj = h.getElectricObject();
                             if (eobj instanceof PortInst || eobj instanceof NodeInst || eobj instanceof ArcInst)
                                 highlights.add(h);
                         }
                     }
-                    Iterator<Highlight> hIt = highlights.iterator();
+                    Iterator<Highlight2> hIt = highlights.iterator();
 	                // if already 2 objects, wire them up
 	                if (highlights.size() == 2) {
-	                    Highlight h1 = (Highlight)hIt.next();
-	                    Highlight h2 = (Highlight)hIt.next();
+	                    Highlight2 h1 = hIt.next();
+	                    Highlight2 h2 = hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
                         ElectricObject eobj2 = h2.getElectricObject();
 	                    if (eobj1 != null && eobj2 != null) {
@@ -317,7 +314,7 @@ public class ClickZoomWireListener
 	                // if one object, put into wire find mode
 	                // which will draw possible wire route.
 	                if (highlights.size() == 1) {
-	                    Highlight h1 = (Highlight)hIt.next();
+	                    Highlight2 h1 = hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
 	                    if (eobj1 != null) {
 	                        modeRight = Mode.wiringFind;
@@ -332,7 +329,7 @@ public class ClickZoomWireListener
                                 endObj = null;
                                 wiringTarget = null;
                             } else {
-                                Highlight h2 = (Highlight)highlighter.getHighlights().iterator().next();
+                                Highlight2 h2 = highlighter.getHighlights().iterator().next();
                                 endObj = h2.getElectricObject();
                             }
                             currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
@@ -526,18 +523,18 @@ public class ClickZoomWireListener
 	                    endObj = null;
 	                    wiringTarget = null;
 	                } else {
-                        Iterator<Highlight> hIt = highlighter.getHighlights().iterator();
-                        Highlight h2 = (Highlight)hIt.next();                        
+                        Iterator<Highlight2> hIt = highlighter.getHighlights().iterator();
+                        Highlight2 h2 = hIt.next();
 	                    // The user can switch between wiring targets under the cursor using a key stroke
 	                    // if wiring target non-null, and still under cursor, use that
 	                    endObj = null;
 	                    if (wiringTarget != null) {
 	                        // check if still valid target
 	                        EditWindow.gridAlign(dbMouse);
-	                        List<Highlight> underCursor = highlighter.findAllInArea(cell, false, true, true, false, specialSelect, false,
+	                        List<Highlight2> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, true, false, specialSelect, false,
 	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
-	                        for (Iterator<Highlight> hs = underCursor.iterator(); hs.hasNext(); ) {
-	                            Highlight h = (Highlight)hs.next();
+	                        for (Iterator<Highlight2> hs = underCursor.iterator(); hs.hasNext(); ) {
+	                            Highlight2 h = hs.next();
 	                            ElectricObject eobj = h.getElectricObject();
 	                            if (eobj == wiringTarget) {
 	                                endObj = wiringTarget;
@@ -905,13 +902,13 @@ public class ClickZoomWireListener
             tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
         }
         // check if mouse-over highlight needs to change
-        List<Highlight> mouseOld = mouseOverHighlighter.getHighlights();
-        List<Highlight> mouseNew = tempHighlighter.getHighlights();
+        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
+        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
         boolean changed = false;
         if (mouseOld.size() == mouseNew.size()) {
             for (int i=0; i<mouseOld.size(); i++) {
-                Highlight h1 = (Highlight)mouseOld.get(i);
-                Highlight h2 = (Highlight)mouseNew.get(i);
+                Highlight2 h1 = mouseOld.get(i);
+                Highlight2 h2 = mouseNew.get(i);
                 if (!h1.equals(h2)) { changed = true; break; }
             }
         } else
@@ -1158,13 +1155,13 @@ public class ClickZoomWireListener
             //if (endObj != null) {
                 Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
-                List<Highlight> targets = highlighter.findAllInArea(wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
-                Iterator<Highlight> it = targets.iterator();
+                List<Highlight2> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
+                Iterator<Highlight2> it = targets.iterator();
                 // find wiringTarget in list, if it exists
                 boolean found = false;
                 if (wiringTarget == null) wiringTarget = endObj;
                 while (it.hasNext()) {
-                    if (((Highlight)it.next()).getElectricObject() == wiringTarget) {
+                    if ((it.next()).getElectricObject() == wiringTarget) {
                         found = true;
                         // get next object
                         if (!it.hasNext()) {
@@ -1173,14 +1170,14 @@ public class ClickZoomWireListener
                             wiringTarget = null;
                             break;
                         }
-                        wiringTarget = ((Highlight)it.next()).getElectricObject();
+                        wiringTarget = (it.next()).getElectricObject();
                         break;
                     }
                 }
                 // if not found in list, use head of list
                 if (!found) {
                     it = targets.iterator();
-                    if (it.hasNext()) wiringTarget = ((Highlight)it.next()).getElectricObject();
+                    if (it.hasNext()) wiringTarget = (it.next()).getElectricObject();
                     else wiringTarget = null;
                 }
                 // special case: switching modes to wire to space
@@ -1271,11 +1268,11 @@ public class ClickZoomWireListener
      * @param objects list of objects to put in menu
      * @return the popup menu
      */
-    public JPopupMenu selectPopupMenu(List<Highlight> objects) {
+    public JPopupMenu selectPopupMenu(List<Highlight2> objects) {
         JPopupMenu popup = new JPopupMenu("Choose One");
         JMenuItem m;
-        for (Iterator<Highlight> it = objects.iterator(); it.hasNext(); ) {
-            Highlight obj = (Highlight)it.next();
+        for (Iterator<Highlight2> it = objects.iterator(); it.hasNext(); ) {
+            Highlight2 obj = it.next();
             m = new JMenuItem(obj.toString()); m.addActionListener(this); popup.add(m);
         }
         //lastPopupMenu = "Select";
