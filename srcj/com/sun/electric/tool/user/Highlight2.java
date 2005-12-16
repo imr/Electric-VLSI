@@ -1326,6 +1326,12 @@ class HighlightText extends Highlight2
 
     boolean sameThing(Highlight2 obj)
     {
+        if (this == obj) return (true);
+
+		// Consider already obj==null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
         HighlightText other = (HighlightText)obj;
         if (eobj != other.eobj) return false;
         if (cell != other.cell) return false;
