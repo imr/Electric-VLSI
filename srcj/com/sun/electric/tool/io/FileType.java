@@ -45,7 +45,7 @@ public class FileType {
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
     /** Describes Calibre DRC Error files. */public static final FileType DB          = makeFileType("DB", new String[] {"db"}, "Calibre DRC Error File (db)");
 	/** Describes DEF output. */			public static final FileType DEF          = makeFileType("DEF", new String[] {"def"}, "DEF File (def)");
-	/** Describes Dias input. */			public static final FileType DIAS         = makeFileType("Dias", new String[] {""}, "Dias Workspace");
+	/** Describes Dais input. */			public static final FileType DAIS         = makeFileType("Dais", new String[] {""}, "Dais Workspace");
 	/** Describes DXF output. */			public static final FileType DXF          = makeFileType("DXF", new String[] {"dxf"}, "DXF File (dxf)");
 	/** Describes Eagle files.*/			public static final FileType EAGLE        = makeFileType("Eagle", new String[] {"txt"}, "Eagle File (txt)");
 	/** Describes ECAD files.*/				public static final FileType ECAD         = makeFileType("ECAD", new String[] {"enl"}, "ECAD File (enl)");

@@ -107,9 +107,9 @@ public class Input
 			// initialize progress
 			startProgressDialog("import", fileURL.getFile());
 
-			if (type == FileType.DIAS)
+			if (type == FileType.DAIS)
 			{
-				IOTool.readDias(lib);
+				IOTool.readDais(lib);
 			} else
 			{
 				Input in;

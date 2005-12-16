@@ -127,10 +127,10 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DXF); } });
 		importSubMenu.addMenuItem("S_UE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.SUE); } });
-		if (IOTool.hasDias())
+		if (IOTool.hasDais())
 		{
-			importSubMenu.addMenuItem("Dias (_Sun CAD)...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DIAS); } });
+			importSubMenu.addMenuItem("Dais (_Sun CAD)...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DAIS); } });
         }
 		importSubMenu.addSeparator();
 		importSubMenu.addMenuItem("ELI_B...", null,
@@ -526,7 +526,7 @@ public class FileMenu {
 	public static void importLibraryCommand(FileType type)
 	{
 		String fileName = null;
-		if (type == FileType.DIAS)
+		if (type == FileType.DAIS)
 		{
 			fileName = OpenFile.chooseDirectory(type.getDescription());
 		} else
