@@ -25,44 +25,50 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.Launcher;
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from Epic output.
  * These are contained in .out files.
  */
-public class EpicOutProcess extends Simulate
+public class EpicOutProcess extends Simulate implements Runnable
 {
     private static class EpicStimuli extends Stimuli
     {
-        Process readerProcess;
-        DataOutputStream readerStdIn;
-        DataInputStream readerStdOut;
-        double timeResolution;
-        double voltageResolution;
-        double currentResolution;
+        private File waveFileName;
+        private RandomAccessFile waveFile;
+        private double timeResolution;
+        private double voltageResolution;
+        private double currentResolution;
 
         /**
          * Free allocated resources before closing.
         */
         public void finished() {
             try {
-                readerStdIn.writeInt(-1);
-                readerStdOut.close();
-                readerStdIn.close();
+                waveFile.close();
+                waveFileName.delete();
             } catch (IOException e) {
             }
         }
@@ -75,7 +81,8 @@ public class EpicOutProcess extends Simulate
 		static final byte CURRENT_TYPE = 2;
 
 		byte type;
-        int index;
+        int start;
+        int len;
 
 		EpicAnalogSignal(Analysis an) { super(an); }
 		
@@ -91,11 +98,7 @@ public class EpicOutProcess extends Simulate
 			if (sweep != 0)
 				throw new IndexOutOfBoundsException();
 			if (getTimeVector() == null)
-                try {
-                    makeData();
-                } catch (IOException e) {
-                    result[0] = result[1] = 0;
-                }
+                makeData();
 			super.getEvent(sweep, index, result);
 		}
 		
@@ -110,15 +113,11 @@ public class EpicOutProcess extends Simulate
 		    if (sweep != 0)
 				throw new IndexOutOfBoundsException();
             if (getTimeVector() == null)
-                try {
-                    makeData();
-                } catch (IOException e) {
-                    return 0;
-                }
+                makeData();
             return super.getNumEvents(0);
         }
         
-        private void makeData() throws IOException
+        private void makeData()
         {
             EpicStimuli sd = (EpicStimuli)this.an.getStimuli();
             double resolution = 1;
@@ -131,33 +130,93 @@ public class EpicOutProcess extends Simulate
                     resolution = sd.currentResolution;
                     break;
             }
+
+            byte[] waveform = new byte[len];
             try {
-                sd.readerStdIn.writeInt(index);
-                sd.readerStdIn.flush();
-                int dataLength = sd.readerStdOut.readInt();
-                int len = dataLength/2;
-                buildTime(len);
-                buildValues(len);
-                for (int i = 0; i < len; i++) {
-                    int timeInt = sd.readerStdOut.readInt();
-                    int valueInt = sd.readerStdOut.readInt();
-                    double timeValue = timeInt * sd.timeResolution;
-                    setTime(i, timeValue);
-                    double dataValue = valueInt * resolution;
-                    setValue(i, dataValue);
-                }
-            } catch (Exception e) {
+                sd.waveFile.seek(start);
+                sd.waveFile.readFully(waveform);
+            } catch (IOException e) {
+                buildTime(0);
+                buildValues(0);
                 ActivityLogger.logException(e);
             }
+            
+            int count = 0;
+            for (int i = 0; i < len; count++) {
+                int l;
+                int b = waveform[i++] & 0xff;
+                if (b < 0xC0)
+                    l = 0;
+                else if (b < 0xFF)
+                    l = 1;
+                else
+                    l = 4;
+                i += l;
+                b = waveform[i++] & 0xff;
+                if (b < 0xC0)
+                    l = 0;
+                else if (b < 0xFF)
+                    l = 1;
+                else
+                    l = 4;
+                i += l;
+            }
+            
+            buildTime(count);
+            buildValues(count);
+            int[] w = new int[count*2];
+            count = 0;
+            int t = 0;
+            int v = 0;
+            for (int i = 0; i < len; count++) {
+                int l;
+                int b = waveform[i++] & 0xff;
+                if (b < 0xC0) {
+                    l = 0;
+                } else if (b < 0xFF) {
+                    l = 1;
+                    b -= 0xC0;
+                } else {
+                    l = 4;
+                }
+                while (l > 0) {
+                    b = (b << 8) | waveform[i++] & 0xff;
+                    l--;
+                }
+                t = t + b;
+                setTime(count, t * sd.timeResolution);
+                
+                b = waveform[i++] & 0xff;
+                if (b < 0xC0) {
+                    l = 0;
+                    b -= 0x60;
+                } else if (b < 0xFF) {
+                    l = 1;
+                    b -= 0xDF;
+                } else {
+                    l = 4;
+                }
+                while (l > 0) {
+                    b = (b << 8) | waveform[i++] & 0xff;
+                    l--;
+                }
+                v = v + b;
+                setValue(count, v * resolution);
+            }
+            assert count*2 == w.length;
         }
-        
+
         private void setBounds(Rectangle2D bounds)
         {
             this.bounds = bounds;
         } 
     }
     
-	EpicOutProcess() {}
+    private Process readerProcess;
+    private DataInputStream stdOut;
+    private ArrayList<String> strings = new ArrayList<String>();
+
+    EpicOutProcess() {}
 
 	/**
 	 * Method to read an Spice output file.
@@ -169,89 +228,120 @@ public class EpicOutProcess extends Simulate
 		startProgressDialog("EPIC output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
+        EpicStimuli sd = null;
+        boolean eof = false;
         try {
-            Process process = invokeEpicReader(fileURL);
-            DataInputStream stdOut = new DataInputStream(process.getInputStream());
-            EpicStimuli sd = null;
-            ArrayList<String> strings = new ArrayList<String>();
-            loop:
-                for (;;) {
-                    byte b = stdOut.readByte();
-                    switch (b) {
-                        case 'M':
-                            String message = stdOut.readUTF();
-                            System.out.println(message);
-                            break;
-                        case 'P':
-                            byte percent = stdOut.readByte();
-                            progress.setProgress(percent);
-                            break;
-                        case 'C':
-                            String s = stdOut.readUTF();
-                            strings.add(s);
-                            break;
-                        case 'S':
-                            long startTime = System.currentTimeMillis();
-                            sd = readEpicFile(stdOut, strings);
-                            long stopTime = System.currentTimeMillis();
-                            System.out.println((stopTime - startTime)/1000.0 + " sec to transmit data");
-                            sd.readerProcess = process;
-                            sd.readerStdOut = stdOut;
-                            sd.readerStdIn = new DataOutputStream(process.getOutputStream());
-                            break loop;
-                        default:
-                            for (;;) {
-                                int c = stdOut.readByte();
-                                System.out.print(c);
-                            }
-                    }
-                }
-                sd.setCell(cell);
+            readerProcess = invokeEpicReader(fileURL);
+            stdOut = new DataInputStream(readerProcess.getInputStream());
+            (new Thread(this, "EpicReaderErrors")).start();
+            sd = readEpicFile();
+            sd.setCell(cell);
                 
-                
-                // stop progress dialog
-                stopProgressDialog();
-                
-                // return the simulation data
-                return sd;
-        } catch (Exception e) {
-            ActivityLogger.logException(e);
-            return null;
+        } catch (EOFException e) {
+            eof = true;
         }
+
+        int exitCode = 0;
+        if (readerProcess != null) {
+            try {
+                exitCode = readerProcess.waitFor();
+            } catch (InterruptedException e) {}
+        }
+        
+        if (eof || exitCode != 0) {
+            String exitMsg = null;
+            switch (exitCode) {
+                case 0:
+                    exitMsg = "Ok";
+                    break;
+                case 1:
+                    exitMsg = "File not found";
+                    break;
+                case 2:
+                    exitMsg = "Out of memory";
+                    break;
+                default:
+                    exitMsg = "Error"; 
+            }
+            Main.getUserInterface().showErrorMessage("EpicReaderProcess exited with code " + exitCode + " (" + exitMsg + ")", "EpicReaderProcess");
+        }
+
+        // stop progress dialog
+        stopProgressDialog();
+            
+        // return the simulation data
+        return sd;
     }
     
     private static String VERSION_STRING = ";! output_format 5.3";
     
-	private EpicStimuli readEpicFile(DataInputStream stdOut, ArrayList<String> strings)
+	private EpicStimuli readEpicFile()
 		throws IOException
 	{
         char separator = '.';
         EpicStimuli sd = new EpicStimuli();
         Analysis an = new Analysis(sd, Analysis.ANALYSIS_TRANS);
         sd.setSeparatorChar(separator);
+        StringBuilder currentContextBuilder = new StringBuilder();
+        String currentContext = null;
+        int[] sepPos = new int[1];
+        int numSeps = 0;
+        
+        for (;;) {
+            byte type = stdOut.readByte();
+            if (type == 0) break;
+            switch (type) {
+                case EpicAnalogSignal.VOLTAGE_TYPE:
+                case EpicAnalogSignal.CURRENT_TYPE:
+                    String name = readString();
+                    EpicAnalogSignal s = new EpicAnalogSignal(an);
+                    s.type = type;
+                    s.setSignalName(name);
+                    if (currentContext != null)
+                        s.setSignalContext(currentContext);
+                    break;
+                case 'D':
+                    String down = readString();
+                    if (numSeps >= sepPos.length) {
+                        int[] newSepPos = new int[sepPos.length*2];
+                        System.arraycopy(sepPos, 0, newSepPos, 0, sepPos.length);
+                        sepPos = newSepPos;
+                    }
+                    sepPos[numSeps] = currentContextBuilder.length();
+                    if (numSeps != 0)
+                        currentContextBuilder.append(separator);
+                    currentContextBuilder.append(down);
+                    numSeps++;
+                    currentContext = currentContextBuilder.toString();
+                    break;
+                case 'U':
+                    assert numSeps > 0 && currentContext != null;
+                    int pos = sepPos[--numSeps];
+                    currentContextBuilder.setLength(pos);
+                    currentContext = numSeps > 0 ? currentContext.substring(0, pos) : null;
+                    break;
+                default:
+                    assert false;
+            }
+        }
+       
         sd.timeResolution = stdOut.readDouble();
         sd.voltageResolution = stdOut.readDouble();
         sd.currentResolution = stdOut.readDouble();
         int maxT = stdOut.readInt();
+        List<Signal> signals = an.getSignals();
         int numSignals = stdOut.readInt();
-        HashMap<String,String> contextNames = new HashMap<String,String>();
+        assert numSignals == signals.size();
         for (int i = 0; i < numSignals; i++) {
-            int contextIndex = stdOut.readInt();
-            int nameIndex = stdOut.readInt();
-            byte type = stdOut.readByte();
             int minV = stdOut.readInt();
             int maxV = stdOut.readInt();
+            int start = stdOut.readInt();
+            int len = stdOut.readInt();
 
-            EpicAnalogSignal s = new EpicAnalogSignal(an);
-            s.index = i;
+            EpicAnalogSignal s = (EpicAnalogSignal)signals.get(i);
+            s.start = start;
+            s.len = len;
             
-            // name the signal
-            String context = strings.get(contextIndex);
-            String name = strings.get(nameIndex);
-            if (context.length() > 0)
-                s.setSignalContext(context);
-            s.setSignalName(name);
-                    
             double resolution = 1;
             switch (s.type)
             {
@@ -265,8 +355,21 @@ public class EpicOutProcess extends Simulate
             Rectangle2D bounds = new Rectangle2D.Double(0, minV*resolution, maxT*sd.timeResolution, (maxV - minV)*resolution);
             s.setBounds(bounds);
         }
-        
+        sd.waveFileName = new File(stdOut.readUTF());
+        sd.waveFileName.deleteOnExit();
+        sd.waveFile = new RandomAccessFile(sd.waveFileName, "r");
+
         return sd;
+    }
+    
+    private String readString() throws IOException {
+        int stringIndex = stdOut.readInt();
+        if (stringIndex == -1) return null;
+        if (stringIndex == strings.size()) {
+            String s = stdOut.readUTF();
+            strings.add(s);
+        }
+        return strings.get(stringIndex);
     }
     
 	private Process invokeEpicReader(URL fileURL)
@@ -274,7 +377,7 @@ public class EpicOutProcess extends Simulate
 		// see if the required amount of memory is already present
 		Runtime runtime = Runtime.getRuntime();
         String program = "java";
-        int maxMemWanted = User.getMemorySize();
+        int maxMemWanted = Simulation.getSpiceEpicMemorySize();
 
         // get location of jar file
         String jarfile = "electric.jar";
@@ -296,11 +399,40 @@ public class EpicOutProcess extends Simulate
 		try
 		{
 			process = runtime.exec(command);
-            System.out.println("EpicReader Process launched");
+            System.out.println("EpicReaderProcess launched with memory limit " + maxMemWanted + "m");
 		} catch (java.io.IOException e)
 		{
-            System.out.println("EpicReader Process failed");
+            System.out.println("EpicReaderProcess failed to launch");
 		}
         return process;
 	}
+    
+    /**
+     * This methods implements Runnable interface for thread which polls stdErr of EpicReaderProcess
+     * and redirects it to System.out and progress indicator.
+     */
+    public void run() {
+        final String progressKey = "**PROGRESS ";
+        BufferedReader stdErr = new BufferedReader(new InputStreamReader(readerProcess.getErrorStream()));
+        try {
+            // read from stream
+            String line = null;
+            while ((line = stdErr.readLine()) != null) {
+                if (line.startsWith(progressKey)) {
+                    line = line.substring(progressKey.length());
+                    if (line.startsWith("!"))  {
+                        progress.setNote(line.substring(1));
+                        progress.setProgress(0);
+                    } else {
+                        progress.setProgress(TextUtils.atoi(line));
+                    }
+                    continue;
+                }
+                System.out.println("EpicReader: " + line);
+            }
+            stdErr.close();
+        } catch (java.io.IOException e) {
+            ActivityLogger.logException(e);
+        }
+    }
 }

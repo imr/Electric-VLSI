@@ -1607,4 +1607,20 @@ public class Simulation extends Listener
     public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
     public static void setSpiceWriteEmptySubckts(boolean b) { cacheSpiceWriteEmptySubckts.setBoolean(b); }
 
+    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, false);
+    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
+    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
+    
+	private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
+	/**
+	 * Method to tell the maximum memory to use for EpicReaderProcess, in megatybes.
+	 * The default is 1000 (1 gigabyte).
+	 * @return the maximum memory to use for EpicReaderProcess (in megabytes).
+	 */
+	public static int getSpiceEpicMemorySize() { return cacheSpiceEpicReaderMemorySize.getInt(); }
+	/**
+	 * Method to set the maximum memory to use for EpicReaderProcess.
+	 * @param limit maximum memory to use for EpicReaderProcess (in megabytes).
+	 */
+	public static void setSpiceEpicMemorySize(int limit) { cacheSpiceEpicReaderMemorySize.setInt(limit); }
 }

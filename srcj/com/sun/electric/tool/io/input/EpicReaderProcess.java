@@ -24,95 +24,89 @@
  */
 package com.sun.electric.tool.io.input;
 
-import java.io.DataInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 /**
  *
  */
 class EpicReaderProcess {
-    DataInputStream stdIn = new DataInputStream(System.in);
-    DataOutputStream stdOut = new DataOutputStream(System.out);
-    
-    String filePath;
-    InputStream inputStream;
-    long fileLength;
-    long byteCount;
-    byte[] buf = new byte[65536];
-    int bufL;
-    int bufP;
-    StringBuilder builder = new StringBuilder();
-    Pattern whiteSpace = Pattern.compile("[ \t]+");
-    
-    int timesC = 0;
-    int eventsC = 0;
-    ArrayList<EpicReaderSignal> signals = new ArrayList<EpicReaderSignal>();
-    ArrayList<String> stringPool = new ArrayList<String>();
+    private InputStream inputStream;
+    private long fileLength;
+    private long byteCount;
+    private byte[] buf = new byte[65536];
+    private int bufL;
+    private int bufP;
+    private int lineNum;
+    private StringBuilder builder = new StringBuilder();
+    private Pattern whiteSpace = Pattern.compile("[ \t]+");
+    private byte lastProgress;
+     
+    private int timesC = 0;
+    private int eventsC = 0;
+    private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
+    private ArrayList<EpicReaderSignal> signals = new ArrayList<EpicReaderSignal>();
+    private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
+    private double timeResolution;
+    private double voltageResolution;
+    private double currentResolution;
+    private int curTime = 0;
+    private int maxT = 0;
+    private String[] currentContext = new String[1];
+    private int currentContextSeps = 0;
+   
+    private DataOutputStream stdOut = new DataOutputStream(System.out);
 
-    ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
-    HashMap<String,Integer> stringIds = new HashMap<String,Integer>(); 
-    double timeResolution;
-    double voltageResolution;
-    double currentResolution;
-    int curTime = 0;
-    int maxT = 0;
-    
     private static final String VERSION_STRING = ";! output_format 5.3";
     private static final char separator = '.';
-        
-    EpicReaderProcess(URL fileURL) {}
+    
+    private EpicReaderProcess() {}
 
     public static void main(String args[]) {
         try {
-            EpicReaderProcess process = new EpicReaderProcess(new URL(args[0]));
-            process.readFile(new URL(args[0]));
-            process.reportWaveforms();
-        } catch (Exception e) {
-            System.out.print('E');
-            e.printStackTrace();
-        }
-    }
-    
-    private void reportWaveforms() throws IOException {
-        for (;;) {
-            int signalIndex = stdIn.readInt();
-            if (signalIndex < 0) return;
-            EpicReaderSignal s = signals.get(signalIndex);
-            int[] waveform = s.getWaveform();
-            stdOut.writeInt(waveform.length);
-            for (int i = 0; i < waveform.length; i++)
-                stdOut.writeInt(waveform[i]);
-            stdOut.flush();
-        }
-    }
-    
-    private boolean readFile(URL fileURL) throws IOException {
-    	filePath = fileURL.getFile();
-        long startTime = System.currentTimeMillis();
-		URLConnection urlCon = null;
-		try
-		{
-			urlCon = fileURL.openConnection();
-            urlCon.setConnectTimeout(10000);
-            urlCon.setReadTimeout(1000);
-            String contentLength = urlCon.getHeaderField("content-length");
-            fileLength = -1;
+            EpicReaderProcess process = new EpicReaderProcess();
             try {
-                fileLength = Long.parseLong(contentLength);
-            } catch (Exception e) {}
-			inputStream = urlCon.getInputStream();
-		} catch (IOException e)
-		{
-			message("Could not find file: " + filePath);
-			return true;
-		}
+                process.readEpic(args[0]);
+            } catch (IOException e) {
+                System.err.println("Failed to read " + args[0]);
+                e.printStackTrace(System.err);
+                System.exit(1);
+            } 
+
+            process.writeOut();
+        } catch (OutOfMemoryError e) {
+            System.err.println("Out of memory. Increase memory limit in preferences.");
+            e.printStackTrace(System.err);
+            System.exit(2);
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            System.exit(3);
+        }
+    }
+    
+    private boolean readEpic(String urlName) throws IOException {
+        URL fileURL = new URL(urlName);
+    	String filePath = fileURL.getFile();
+        long startTime = System.currentTimeMillis();
+		URLConnection urlCon = fileURL.openConnection();
+        urlCon.setConnectTimeout(10000);
+        urlCon.setReadTimeout(1000);
+        String contentLength = urlCon.getHeaderField("content-length");
+        fileLength = -1;
+        try {
+            fileLength = Long.parseLong(contentLength);
+        } catch (Exception e) {}
+        inputStream = urlCon.getInputStream();
 		byteCount = 0;
         String firstLine = getLine();
         if (firstLine == null || !firstLine.equals(VERSION_STRING)) {
@@ -129,42 +123,62 @@ class EpicReaderProcess {
             parseNumLine(line);
         }
         inputStream.close();
-        long memLength = 0;
-        for (int i = 0; i < signalsByEpicIndex.size(); i++) {
-            EpicReaderSignal s = (EpicReaderSignal)signalsByEpicIndex.get(i);
-            if (s == null) continue;
-            signals.add(s);
-            memLength += s.len;
-        }
-        signalsByEpicIndex.clear();
-        stringIds.clear();
-        stringPool.clear();
+        
         long stopTime = System.currentTimeMillis();
-        message((stopTime - startTime)/1000.0 + " sec " + byteCount + " bytes " + signals.size() + " signals " + stringPool.size() + " strings " + 
-                timesC + " timepoints " +  eventsC + " events " + memLength + " bytes in memory");
+        System.err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + signals.size() + " signals " + stringIds.size() + " strings " + 
+                timesC + " timepoints " +  eventsC + " events from " + urlName);
                 
-        stdOut.writeByte('S');
-        stdOut.writeDouble(timeResolution);
-        stdOut.writeDouble(voltageResolution);
-        stdOut.writeDouble(currentResolution);
-        stdOut.writeInt(maxT);
-        stdOut.writeInt(signals.size());
-        for (EpicReaderSignal s: signals) {
-            stdOut.writeInt(s.contextIndex);
-            stdOut.writeInt(s.nameIndex);
-            stdOut.writeByte(s.type);
-            stdOut.writeInt(s.minV);
-            stdOut.writeInt(s.maxV);
-        }
-        stdOut.flush();
-        
-        // Comapct memory
-        for (EpicReaderSignal s: signals)
-            s.freeWaveMemory();
-        System.gc();
-        
 		return false;
     }
+
+    private void writeOut() throws IOException {
+        File tempFile = null;
+        BufferedOutputStream waveStream = null;
+        boolean ok = false;
+        try {
+            long startTime = System.currentTimeMillis();
+            tempFile = File.createTempFile("elec", ".epic");
+            waveStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+        
+            showProgressNote("Writing " + tempFile);
+            stdOut.writeByte(0);
+            
+            stdOut.writeDouble(timeResolution);
+            stdOut.writeDouble(voltageResolution);
+            stdOut.writeDouble(currentResolution);
+            stdOut.writeInt(maxT);
+            stdOut.writeInt(signals.size());
+            int size = 0;
+            for (EpicReaderSignal s: signals)
+                size += s.len;
+            int start = 0;
+            for (EpicReaderSignal s: signals) {
+                waveStream.write(s.waveform, 0, s.len);
+                
+                stdOut.writeInt(s.minV);
+                stdOut.writeInt(s.maxV);
+                stdOut.writeInt(start);
+                stdOut.writeInt(s.len);
+                start += s.len;
+                showProgress(size != 0 ? start/(double)size : 0);
+            }
+            
+            waveStream.close();
+        
+            stdOut.writeUTF(tempFile.toString());
+            stdOut.close();
+            ok = true;
+            long stopTime = System.currentTimeMillis();
+            System.err.println((stopTime - startTime)/1000.0 + " sec to write " + tempFile.length() + " bytes to " + tempFile);
+        } finally {
+            if (ok)
+                return;
+            if (waveStream != null)
+                waveStream.close();
+            if (tempFile != null)
+                tempFile.delete();
+        }
+   }
     
     private void parseNumLine(String line) throws IOException {
         if (line.length() == 0) return;
@@ -189,6 +203,7 @@ class EpicReaderProcess {
                 if (s == null) {
                     s = new EpicReaderSignal();
                     signalsByEpicIndex.set(sigNum, s);
+                    signals.add(s);
                 }
                 
                 // name the signal
@@ -199,18 +214,16 @@ class EpicReaderProcess {
                 } else if (name.startsWith("i1(") && name.endsWith(")")) {
                     name = name.substring(3, name.length() - 1);
                 }
-                name = removeLeadingX(name);
                 int lastSlashPos = name.lastIndexOf(separator);
+                String contextName = "";
                 if (lastSlashPos > 0) {
-                    String contextName = name.substring(0, lastSlashPos);
-                    s.contextIndex = findString(contextName);
-                } else {
-                    s.contextIndex = findString("");
+                    contextName = name.substring(0, lastSlashPos + 1);
                 }
                 name = name.substring(lastSlashPos + 1);
-                if (s.type == EpicReaderSignal.CURRENT_TYPE) name = "i(" + name + ")";
-                s.nameIndex = findString(name);
-                s.type = type;
+                if (type == EpicReaderSignal.CURRENT_TYPE) name = "i(" + name + ")";
+                writeContext(contextName);
+                stdOut.writeByte(type);
+                writeString(name);
             } else if (split[0].equals(".vdd") && split.length == 2) {
             } else if (split[0].equals(".time_resolution") && split.length == 2) {
                 timeResolution = atof(split[1]) * 1e-9;
@@ -243,43 +256,63 @@ class EpicReaderProcess {
         }
     }
     
-    private int findString(String s) throws IOException {
-        Integer i = stringIds.get(s);
-        if (i == null) {
-            i = new Integer(stringPool.size());
-            s = new String(s); // To avoid long char array of substrings
-            stringPool.add(s);
-            stringIds.put(s, i);
-            stdOut.writeByte('C');
-            stdOut.writeUTF(s);
+    private void writeContext(String s) throws IOException {
+        int matchSeps = 0;
+        int pos = 0;
+        matchLoop:
+        while (matchSeps < currentContextSeps) {
+            String si = currentContext[matchSeps];
+            if (pos < s.length() && s.charAt(pos) == 'x')
+                pos++;
+            if (pos + si.length() >= s.length() || s.charAt(pos + si.length()) != separator)
+                break;
+            for (int k = 0; k < si.length(); k++)
+                if (s.charAt(pos + k) != si.charAt(k))
+                    break matchLoop;
+            matchSeps++;
+            pos += si.length() + 1;
         }
-        return i.intValue();
+        while (currentContextSeps > matchSeps) {
+            stdOut.writeByte('U');
+            currentContext[--currentContextSeps] = null;
+        }
+        assert currentContextSeps == matchSeps;
+        while (pos < s.length()) {
+            int indexOfSep = s.indexOf(separator, pos);
+            assert indexOfSep >= pos;
+            stdOut.writeByte('D');
+            if (pos < indexOfSep && s.charAt(pos) == 'x')
+                pos++;
+            String si = s.substring(pos, indexOfSep);
+            writeString(si);
+            if (currentContextSeps >= currentContext.length) {
+                String[] newCurrentContext = new String[currentContext.length*2];
+                System.arraycopy(currentContext, 0, newCurrentContext, 0, currentContext.length);
+                currentContext = newCurrentContext;
+            }
+            currentContext[currentContextSeps++] = si;
+            pos = indexOfSep + 1;
+        }
+        assert pos == s.length();
     }
     
-	/**
-	 * Method to remove the leading "x" character in each dotted part of a string.
-	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"
-	 * appears as "xme.xyou".
-	 * @param name the string from HSpice.
-	 * @return the string without leading "X"s.
-	 */
-	static String removeLeadingX(String name)
-	{
-		// remove all of the "x" characters at the start of every instance name
-		int dotPos = -1;
-		for(;;)
-		{
-			int xPos = dotPos + 1;
-			if (name.length() > xPos && name.charAt(xPos) == 'x')
-			{
-				name = name.substring(0, xPos) + name.substring(xPos+1);
-			}
-			dotPos = name.indexOf('.', xPos);
-			if (dotPos < 0) break;
-		}
-		return name;
-	}
-
+    private void writeString(String s) throws IOException {
+        if (s == null) {
+            stdOut.writeInt(-1);
+            return;
+        }
+        Integer i = stringIds.get(s);
+        if (i != null) {
+            stdOut.writeInt(i.intValue());
+            return;
+        }
+        stdOut.writeInt(stringIds.size());
+        i = new Integer(stringIds.size());
+        s = new String(s); // To avoid long char array of substrings
+        stringIds.put(s, i);
+        stdOut.writeUTF(s);
+    }
+    
     private boolean parseNumLineFast() {
         final int MAX_DIGITS = 9;
         if (bufP + (MAX_DIGITS*2 + 4) >= bufL) return false;
@@ -317,6 +350,7 @@ class EpicReaderProcess {
             putValue(num1, num2);
         else
             putTime(num1);
+        lineNum++;
         return true;
     }
     
@@ -326,16 +360,13 @@ class EpicReaderProcess {
     }
     
     private void putValue(int sigNum, int value) {
-        eventsC++;
-        
-        while (signalsByEpicIndex.size() <= sigNum)
-            signalsByEpicIndex.add(null);
         EpicReaderSignal s = (EpicReaderSignal)signalsByEpicIndex.get(sigNum);
         if (s == null) {
-            s = new EpicReaderSignal();
-            signalsByEpicIndex.set(sigNum, s);
+            message("Signal " + sigNum + " not defined");
+            return;
         }
         s.putEvent(curTime, value);
+        eventsC++;
     }
     
     private String getLine() throws IOException {
@@ -355,12 +386,14 @@ class EpicReaderProcess {
                 builder.append((char)ch);
             }
             if (readBuf()) {
-                return builder.length() != 0 ? builder.toString() : null; 
+                if (builder.length() == 0) return null;
+                lineNum++;
+                return builder.toString();
             }
         }
     }
     
-    private double atof(String s) throws IOException {
+    private double atof(String s) {
         double value = 0;
         try {
             value = Double.parseDouble(s);
@@ -370,7 +403,7 @@ class EpicReaderProcess {
         return value;
     }
     
-    private int atoi(String s) throws IOException {
+    private int atoi(String s) {
         int value = 0;
         try {
             value = Integer.parseInt(s);
@@ -393,28 +426,31 @@ class EpicReaderProcess {
         return false;
     }
     
-    private void showProgress(double ratio) throws IOException {
-        stdOut.writeByte('P');
-        stdOut.writeByte((byte)(ratio*100));
-        stdOut.flush();
+    private void showProgress(double ratio) {
+        byte progress = (byte)(ratio*100);
+        if (progress == lastProgress) return;
+        System.err.println("**PROGRESS " + progress);
+        lastProgress = progress;
+    }
+    
+    private void showProgressNote(String note) {
+        System.err.println("**PROGRESS !" + note);
+        lastProgress = 0;
     }
 
-    private void message(String s) throws IOException {
-        stdOut.writeByte('M');
-        stdOut.writeUTF(s);
-        stdOut.flush();
+    private void message(String s) {
+        System.err.println(s + " in line " + (lineNum + 1));
     }
 }
 
 class EpicReaderSignal {
-    int contextIndex;
-    int nameIndex;
     int type;
     int lastT;
     int lastV;
     int minV = Integer.MAX_VALUE;
     int maxV = Integer.MIN_VALUE;
     byte[] waveform = new byte[512];
+//  byte[] waveform = new byte[40];
     int len;
 
     static final int VOLTAGE_TYPE = 1;
@@ -536,12 +572,5 @@ class EpicReaderSignal {
         System.arraycopy(waveform, 0, newWaveform, 0, waveform.length);
         waveform = newWaveform;
         assert len + l <= waveform.length;
-    }
-    
-    void freeWaveMemory() {
-        if (len == waveform.length) return;
-        byte[] newWaveform = new byte[len];
-        System.arraycopy(waveform, 0, newWaveform, 0, len);
-        waveform = newWaveform;
     }
 }
