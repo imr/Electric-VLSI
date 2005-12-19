@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -40,8 +41,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.lang.reflect.Method;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 /**
  * Class to handle the "Colors and Layers" tab of the Preferences dialog.
@@ -137,6 +139,17 @@ public class LayersTab extends PreferencePanel
 		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE HIGH", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeHigh()));
 		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE UNDEFINED", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeX()));
 		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE FLOATING", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeZ()));
+
+        // 3D Stuff
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {HashMap.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{transAndSpecialMap});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method get3DColorsInTab: " + e.getMessage());
+            e.printStackTrace();
+        }
 
 		technology.setSelectedItem(Technology.getCurrent().getTechName());
 	}
@@ -269,6 +282,22 @@ public class LayersTab extends PreferencePanel
 		if ((c = specialMapColor("Special: WAVEFORM CROSSPROBE FLOATING", User.getColorWaveformCrossProbeZ())) >= 0)
 			{ User.setColorWaveformCrossProbeZ(c);   changed = true; }
 
+        // 3D Stuff
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("set3DColorsInTab", new Class[] {LayersTab.class});
+            Object color3DChanged = setMethod.invoke(j3DUtilsClass, new Object[]{this});
+            if (!changed && color3DChanged != null)
+            {
+                changed = ((Boolean)color3DChanged).booleanValue();
+            }
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method set3DColorsInTab: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
 		// redisplay if changes were made
 		if (changed)
 		{
@@ -278,7 +307,7 @@ public class LayersTab extends PreferencePanel
 		}
 	}
 
-	private int specialMapColor(String title, int curColor)
+	public int specialMapColor(String title, int curColor)
 	{
 		ColorPatternPanel.Info li = (ColorPatternPanel.Info)transAndSpecialMap.get(title);
 		if (li == null) return -1;

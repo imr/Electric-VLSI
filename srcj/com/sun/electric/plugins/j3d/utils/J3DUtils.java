@@ -26,12 +26,13 @@ package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.geometry.GeometryInfo;
@@ -74,7 +75,6 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
-import javax.swing.DefaultListModel;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -1184,91 +1184,51 @@ public final class J3DUtils
         return values;
     }
 
-    public static void get3DColorsInTab(DefaultListModel colorLayerModel, HashMap<String,GenMath.MutableInteger> transAndSpecialMap)
+    public static void get3DColorsInTab(HashMap<String,ColorPatternPanel.Info> transAndSpecialMap)
     {
-            // 3D Stuff
-        int color = get3DColorInstanceCell();
-		String name = "Special: 3D CELL INSTANCES";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+        // 3D Stuff
+		transAndSpecialMap.put("Special: 3D CELL INSTANCES", new ColorPatternPanel.Info(get3DColorInstanceCell()));
+        transAndSpecialMap.put("Special: 3D HIGHLIGHTED INSTANCES", new ColorPatternPanel.Info(get3DColorHighlighted()));
+        transAndSpecialMap.put("Special: 3D AMBIENT LIGHT", new ColorPatternPanel.Info(get3DColorAmbientLight()));
+        transAndSpecialMap.put("Special: 3D DIRECTIONAL LIGHT", new ColorPatternPanel.Info(get3DColorDirectionalLight()));
 
-        color = get3DColorHighlighted();
-		name = "Special: 3D HIGHLIGHTED INSTANCES";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        color = get3DColorAmbientLight();
-		name = "Special: 3D AMBIENT LIGHT";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        color = get3DColorDirectionalLight();
-		name = "Special: 3D DIRECTIONAL LIGHT";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
         double[] colors = transformIntoValues(get3DColorAxes());
         String[] axisNames = {" X", " Y", " Z"};
-		name = "Special: 3D AXIS";
+		String name = "Special: 3D AXIS";
         for (int i = 0; i < colors.length; i++)
         {
             String color3DName = name+axisNames[i];
-            colorLayerModel.addElement(color3DName);
-            transAndSpecialMap.put(color3DName, new GenMath.MutableInteger((int)colors[i]));
+            transAndSpecialMap.put(color3DName, new ColorPatternPanel.Info((int)colors[i]));
         }
     }
 
-    public static Boolean set3DColorsInTab(DefaultListModel colorLayerModel, HashMap<String,GenMath.MutableInteger> transAndSpecialMap)
+    public static Boolean set3DColorsInTab(LayersTab tab)
     {
-        GenMath.MutableInteger [] colors3D = new GenMath.MutableInteger[3];
+        int [] colors3D = new int[3];
 		boolean colorChanged = false;
+        int c = -1;
 
-		for(int i=0; i<colorLayerModel.getSize(); i++)
-		{
-			String layerName = (String)colorLayerModel.get(i);
-			if (layerName.startsWith("Special: "))
-			{
-				GenMath.MutableInteger color = (GenMath.MutableInteger)transAndSpecialMap.get(layerName);
-				if (layerName.equals("Special: 3D CELL INSTANCES"))
-				{
-					if (color.intValue() != get3DColorInstanceCell())
-					{
-						set3DColorInstanceCell(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D HIGHLIGHTED INSTANCES"))
-				{
-					if (color.intValue() != get3DColorHighlighted())
-					{
-						set3DColorHighlighted(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D AMBIENT LIGHT"))
-				{
-					if (color.intValue() != get3DColorAmbientLight())
-					{
-						set3DColorAmbientLight(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D DIRECTIONAL LIGHT"))
-				{
-					if (color.intValue() != get3DColorDirectionalLight())
-					{
-						set3DColorDirectionalLight(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D AXIS X"))
-                    colors3D[0] = color;
-                else if (layerName.equals("Special: 3D AXIS Y"))
-                    colors3D[1] = color;
-                else if (layerName.equals("Special: 3D AXIS Z"))
-                    colors3D[2] = color;
-			}
-		}
+        if ((c = tab.specialMapColor("Special: 3D CELL INSTANCES", get3DColorInstanceCell())) >= 0)
+        { set3DColorInstanceCell(c);   colorChanged = true; }
+        if ((c = tab.specialMapColor("Special: 3D HIGHLIGHTED INSTANCES", get3DColorHighlighted())) >= 0)
+        { set3DColorHighlighted(c);   colorChanged = true; }
+
+        if ((c = tab.specialMapColor("Special: 3D AMBIENT LIGHT", get3DColorAmbientLight())) >= 0)
+        { set3DColorAmbientLight(c);   colorChanged = true; }
+        if ((c = tab.specialMapColor("Special: 3D DIRECTIONAL LIGHT", get3DColorDirectionalLight())) >= 0)
+        { set3DColorDirectionalLight(c);   colorChanged = true; }
+        if ((c = tab.specialMapColor("Special: 3D AXIS X", get3DColorHighlighted())) >= 0)
+        { colors3D[0] = c;   colorChanged = true; }
+        if ((c = tab.specialMapColor("Special: 3D AXIS Y", get3DColorHighlighted())) >= 0)
+        { colors3D[1] = c;   colorChanged = true; }
+        if ((c = tab.specialMapColor("Special: 3D AXIS Z", get3DColorHighlighted())) >= 0)
+        { colors3D[2] = c;   colorChanged = true; }
+
         // For 3D colors as they are stored together
-        String newColors = "("+colors3D[0].intValue()+" "+
-                colors3D[1].intValue()+" "+
-                colors3D[2].intValue()+")";
+        String newColors = "("+colors3D[0]+" "+
+                colors3D[1]+" "+
+                colors3D[2]+")";
 
         if (!newColors.equals(get3DColorAxes()))
         {
