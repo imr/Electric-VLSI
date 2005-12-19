@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -39,14 +37,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 /**
  * Class to handle the "Colors and Layers" tab of the Preferences dialog.
