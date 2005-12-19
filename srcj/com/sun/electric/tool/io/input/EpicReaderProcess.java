@@ -34,7 +34,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.regex.Pattern;
 
 /**
@@ -96,7 +95,7 @@ class EpicReaderProcess {
     
     private boolean readEpic(String urlName) throws IOException {
         URL fileURL = new URL(urlName);
-    	String filePath = fileURL.getFile();
+//    	String filePath = fileURL.getFile();
         long startTime = System.currentTimeMillis();
 		URLConnection urlCon = fileURL.openConnection();
         urlCon.setConnectTimeout(10000);

@@ -44,7 +44,6 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
