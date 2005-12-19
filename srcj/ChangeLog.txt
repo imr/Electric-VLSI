@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (12/19/05, GVG) Two new Epic preferences in Spice tab.
+
 IMP: (12/16/05, GVG) Small change in EpicOut.java to speed up reading process. This is for Bug#779.
 
 IMP: (12/16/05, GVG) Major changes in ErrorLogger.ErrorHighlight and Highlight.
