@@ -486,7 +486,7 @@ public class ToolMenu {
 		MenuBar.Menu silCompSubMenu = MenuBar.makeMenu("Silicon Co_mpiler");
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(null); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(WindowFrame.needCurCell(), null); }});
 		silCompSubMenu.addSeparator();
 		silCompSubMenu.addMenuItem("Compile VHDL to _Netlist View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { compileVHDL();}});
@@ -1403,9 +1403,8 @@ public class ToolMenu {
 	 * Displays the resulting layout.
 	 * @param completion runnable to invoke when the compilation has finished.
 	 */
-	public static void doSiliconCompilation(Job completion)
+	public static void doSiliconCompilation(Cell cell, Job completion)
 	{
-		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
 
