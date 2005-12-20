@@ -230,7 +230,7 @@ public abstract class Highlight2 implements Cloneable{
 	 * @param y the Y screen coordinate of the point.
 	 * @return true if the point is over this Highlight.
 	 */
-    boolean overHighlighted(EditWindow wnd, int x, int y) { return false; }
+    boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter) { return false; }
 
     public void getInfo(List<String> displayList) {;}
 
@@ -1524,7 +1524,7 @@ class HighlightText extends Highlight2
         return null;
     }
 
-    boolean overHighlighted(EditWindow wnd, int x, int y)
+    boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter)
     {
         Point2D start = wnd.screenToDatabase((int)x, (int)y);
         Poly poly = eobj.computeTextPoly(wnd, var, name);

@@ -1320,7 +1320,7 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 			Highlight2 h = it.next();
 
-            if (h.overHighlighted(wnd, x, y)) return true;
+            if (h.overHighlighted(wnd, x, y, this)) return true;
 //			Highlight.Type style = h.getType();
 //			if (style == Highlight.Type.TEXT)
 //			{

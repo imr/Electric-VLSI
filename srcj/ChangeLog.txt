@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/19/05, GVG) Error in Highlighter.overHighlighted not calling correct HighlightEOBJ.overHighlighted()
+FIX: A parameter was missing with respect to the abstract function.
+
 BUG: (12/19/05, GVG) 3D Colors were gone since last changes in LayersTab.java
 FIX: Code is back again
 
