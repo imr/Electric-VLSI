@@ -296,10 +296,10 @@ public class EpicOutProcess extends Simulate implements Runnable
                     String name = readString();
                     EpicAnalogSignal s = new EpicAnalogSignal(an);
                     s.type = type;
-                    s.setSignalName(name);
                     if (currentContext != null)
                         s.setSignalContext(currentContext);
-                    break;
+                     s.setSignalName(name);
+                   break;
                 case 'D':
                     String down = readString();
                     if (numSeps >= sepPos.length) {
