@@ -1614,7 +1614,7 @@ public class ToolMenu {
 			    return true;
 			}
 
-			if ((activities&SHOW_CELL) != 0)
+			if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
 			{
 				// show the cell
 				WindowFrame.createEditWindow(cell);
