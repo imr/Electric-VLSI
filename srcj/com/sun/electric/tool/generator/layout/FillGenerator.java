@@ -28,9 +28,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.*;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -38,10 +36,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -1335,6 +1335,7 @@ public class FillGenerator {
             NodeInst fillNi = LayoutLib.newNodeInst(fillCell, bnd.getCenterX(), bnd.getCenterY(),
                     G.DEF_SIZE, G.DEF_SIZE, 0, topCell);
             AffineTransform fillTransIn = fillNi.transformIn();
+            AffineTransform fillTransOut = fillNi.transformOut();
             InteractiveRouter router  = new SimpleWirer();
             List<PortInst> fillPortInstList = new ArrayList<PortInst>();
             List<NodeInst> fillContactList = new ArrayList<NodeInst>();
@@ -1368,7 +1369,7 @@ public class FillGenerator {
                 DBMath.transformRect(nodeBounds, fillTransIn);
 
                 // Try to find closest arc. If not possible, then add to to-do list
-                Geometric geom = routeToClosestArc(container, p, nodeBounds);
+                Geometric geom = routeToClosestArc(container, p, nodeBounds, fillTransOut);
                 if (geom == null)
                 {
                     portNotReadList.add(p);
@@ -1443,13 +1444,13 @@ public class FillGenerator {
                 PortInst p = portNotReadList.get(i);
                 Rectangle2D r = bndNotReadList.get(i);
                 double newWid = r.getWidth()+globalWidth;
-                Rectangle2D rect = new Rectangle2D.Double(r.getX()-newWid/2, r.getY(),
-                        newWid, r.getHeight()); // copy the rectangle to add extra width
+                Rectangle2D rect = new Rectangle2D.Double(r.getX()-newWid, r.getY(),
+                        2*newWid, r.getHeight()); // copy the rectangle to add extra width
 
                 // Check possible new contacts added
 
                 // Searching arcs again
-                Geometric geom = routeToClosestArc(container, p, rect);
+                Geometric geom = routeToClosestArc(container, p, rect, fillTransOut);
                 if (geom == null)
                 {
                     ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
@@ -1482,7 +1483,41 @@ public class FillGenerator {
             }
         }
 
-        private Geometric routeToClosestArc(FillGenJobContainer container, PortInst p, Rectangle2D nodeBounds)
+        /**
+         * Method to determine if new contact will overlap with other metals in the configuration
+         * @param parent
+         * @param nodeBounds
+         * @param container
+         * @return
+         */
+        private boolean searchCollision(Cell parent, PortInst p, Rectangle2D nodeBounds, FillGenJobContainer container, AffineTransform upTrans)
+        {
+
+            for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
+            {
+                Geometric geom = it.next();
+                if (geom == container.fillNi) continue; // ignore this extra cell
+
+                if (geom instanceof NodeInst)
+                {
+                    System.out.println("No implemented");
+                }
+                else
+                {
+                    ArcInst ai = (ArcInst)geom;
+                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, fillLayers);
+                    int tot = subPolyList.length;
+
+                    // Something overlap
+                    if (tot > 0)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private Geometric routeToClosestArc(FillGenJobContainer container, PortInst p, Rectangle2D nodeBounds,
+                                            AffineTransform fillTransOut)
         {
             Netlist fillNetlist = container.fillCell.acquireUserNetlist();
             for(Iterator<Geometric> it = container.fillCell.searchIterator(nodeBounds); it.hasNext(); )
@@ -1499,7 +1534,15 @@ public class FillGenerator {
 
                 Rectangle2D geomBnd = geom.getBounds();
                 double width = geomBnd.getWidth();
-//                globalWidth = width; // assuming all contacts have the same width;
+
+                // Transform location of the new contact and make sure nothing else overlap
+                Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), nodeBounds.getY()-5, width, 10);
+                DBMath.transformRect(newElem, fillTransOut);
+
+                // Search if there is a collision with existing nodes/arcs
+                if (searchCollision(topCell, p, newElem, container, null))
+                    continue;
+
                 NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),
                         width, 10, 0, container.fillCell);
                 container.fillContactList.add(added);
@@ -1527,5 +1570,13 @@ public class FillGenerator {
             return null;
         }
     }
+
+    private static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
+
+    static {
+	    fillLayers.add(Layer.Function.METAL2);
+        fillLayers.add(Layer.Function.CONTACT3);
+        fillLayers.add(Layer.Function.METAL3);
+    };
 }
 
