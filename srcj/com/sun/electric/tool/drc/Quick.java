@@ -1320,11 +1320,6 @@ public class Quick
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
                         // On the corners?
-//						if (nPolyRect.getMinX() > rBound.getMaxX() ||
-//							nPolyRect.getMaxX() < rBound.getMinX() ||
-//							nPolyRect.getMinY() > rBound.getMaxY() ||
-//							nPolyRect.getMaxY() < rBound.getMinY())
-//                            continue;
                         if (DBMath.isGreaterThan(nPolyRect.getMinX(), rBound.getMaxX()) ||
 							DBMath.isGreaterThan(rBound.getMinX(), nPolyRect.getMaxX())  ||
 							DBMath.isGreaterThan(nPolyRect.getMinY(), rBound.getMaxY()) ||
@@ -4405,7 +4400,8 @@ public class Quick
 	 *  QuickAreaEnumerator class
 	 **************************************************************************************************************/
 	// Extra functions to check area
-	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
+	private class
+            QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
 		private Network jNet;
 		private GeometryHandler mainMerge;
@@ -4491,10 +4487,6 @@ public class Quick
 						poly.transform(rTrans);
 
                         addElement(poly, layer, false);
-//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-//						else
-//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					}
 				}
 			}
@@ -4505,11 +4497,7 @@ public class Quick
 		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
-//            if (mergeMode == GeometryHandler.ALGO_SWEEP)
-//            {
-//                ((PolySweepMerge)mainMerge).postProcess();
-//                ((PolySweepMerge)otherTypeMerge).postProcess();
-//            }
+            ;
         }
 
 		/**
@@ -4616,11 +4604,6 @@ public class Quick
 				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
 				poly.transform(trans);
                 addElement(poly, layer, true);
-//				// otherTypeMerge is null if nonExported nodes are analyzed
-//				if (otherTypeMerge == null || layer.getFunction().isMetal() || layer.getFunction().isPoly())
-//					mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-//				else
-//					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;
@@ -4638,11 +4621,6 @@ public class Quick
                 mainMerge.add(layer, obj, false);
             else
                 otherTypeMerge.add(layer, obj, false);
-
-//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-//						else
-//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
         }
     }
 
