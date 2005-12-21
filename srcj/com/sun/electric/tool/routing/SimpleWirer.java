@@ -25,7 +25,6 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
@@ -50,7 +49,7 @@ public class SimpleWirer extends InteractiveRouter {
 
     protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
                                 Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
-                                boolean contactsOnEndObj) {
+                                boolean contactsOnEndObj, boolean extendArc) {
 
         RouteElementPort startRE = route.getEnd();
 
@@ -150,7 +149,7 @@ public class SimpleWirer extends InteractiveRouter {
 		}
         if (singleArc) {
             // draw single
-            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null, extendArc);
             route.add(arcRE);
             return true;
         }
@@ -159,7 +158,7 @@ public class SimpleWirer extends InteractiveRouter {
         // if either X or Y coords are the same, create a single arc
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null, extendArc);
             route.add(arcRE);
         } else {
             // otherwise, create new pin and two arcs for corner
@@ -170,8 +169,8 @@ public class SimpleWirer extends InteractiveRouter {
             double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
             RouteElementPort pinRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     defwidth, defheight);
-            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null, null, null);
-            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null, null, null);
+            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null, null, null, extendArc);
+            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null, null, null, extendArc);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);

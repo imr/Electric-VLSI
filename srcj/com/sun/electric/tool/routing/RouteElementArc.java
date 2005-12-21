@@ -59,6 +59,7 @@ public class RouteElementArc extends RouteElement {
     /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
     /** inherit properties from this arc */         private ArcInst inheritFrom;
+    /** set the arc extension if inheritFrom is null */ private boolean extendArc;
 
     /** This contains the newly create instance, or the instance to delete */ private ArcInst arcInst;
 
@@ -75,10 +76,11 @@ public class RouteElementArc extends RouteElement {
      * @param tailRE RouteElement (must be newNode or existingPortInst) at tail or arc
      * @param nameTextDescriptor
      * @param inheritFrom
+     * @param extendArc only applied if inheritFrom is null
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
-                                         ArcInst inheritFrom) {
+                                         ArcInst inheritFrom, boolean extendArc) {
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
         e.arcProto = ap;
         e.arcWidth = arcWidth;
@@ -101,6 +103,7 @@ public class RouteElementArc extends RouteElement {
         e.arcAngle = 0;
         e.arcInst = null;
         e.inheritFrom = inheritFrom;
+        e.extendArc = extendArc;
         return e;
     }
 
@@ -121,6 +124,7 @@ public class RouteElementArc extends RouteElement {
         e.arcAngle = 0;
         e.arcInst = arcInstToDelete;
         e.inheritFrom = null;
+        e.extendArc = true;
         return e;
     }
 
@@ -309,7 +313,11 @@ public class RouteElementArc extends RouteElement {
             }
 
 			// now run the arc
-            ArcInst newAi = ArcInst.makeInstance(arcProto, arcWidth, headPi, tailPi, headPoint, tailPoint, arcName);
+            double thisWidth = arcWidth;
+            // The arc is zero length so better if arc width is min default width to avoid DRC errors
+            if (headPoint.equals(tailPoint))
+                thisWidth = arcProto.getDefaultWidth();
+            ArcInst newAi = ArcInst.makeInstance(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
@@ -319,6 +327,11 @@ public class RouteElementArc extends RouteElement {
             setDone();
             arcInst = newAi;
             arcInst.copyPropertiesFrom(inheritFrom);
+            if (inheritFrom == null)
+            {
+                arcInst.setHeadExtended(extendArc);
+                arcInst.setTailExtended(extendArc);
+            }
             return newAi;
         }
         if (getAction() == RouteElementAction.deleteArc) {

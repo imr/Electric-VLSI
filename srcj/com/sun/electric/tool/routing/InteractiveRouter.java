@@ -88,7 +88,7 @@ public abstract class InteractiveRouter extends Router {
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
                                 Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
-                                boolean contactsOnEndObject);
+                                boolean contactsOnEndObject, boolean extendArc);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -135,7 +135,7 @@ public abstract class InteractiveRouter extends Router {
     public void makeRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // plan the route
-        Route route = planRoute(cell, startObj, endObj, clicked, null);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         wnd.clearHighlighting();
@@ -222,7 +222,7 @@ public abstract class InteractiveRouter extends Router {
     public void highlightRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // highlight route
-        Route route = planRoute(cell, startObj, endObj, clicked, null);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true);
         highlightRoute(wnd, route, cell);
     }
 
@@ -253,9 +253,11 @@ public abstract class InteractiveRouter extends Router {
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      * @param stayInside the area in which to route (null if not applicable).
+     * @param extendArc
      * @return a List of RouteElements denoting route
      */
-    public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside) {
+    public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
+                           boolean extendArc) {
 
         Route route = new Route();               // hold the route
         if (cell == null) return route;
@@ -385,7 +387,8 @@ public abstract class InteractiveRouter extends Router {
         //route.add(endRE); route.setEnd(endRE);
 
         // Tell Router to route between startRE and endRE
-        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject)) {
+        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject,
+                extendArc)) {
             return route;
         } else
             return new Route();             // error, return empty route
@@ -727,9 +730,9 @@ public abstract class InteractiveRouter extends Router {
             name2 = arc.getName();
         // add two arcs to rebuild old startArc
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE,
-                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc);
+                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE,
-                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc);
+                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc

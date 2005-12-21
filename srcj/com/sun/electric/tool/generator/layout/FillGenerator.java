@@ -109,7 +109,7 @@ class MetalFloorplan extends Floorplan {
 			       double space, boolean horiz) {
 		super(cellWidth, cellHeight, horiz);
 		mergedVdd = vddReserve==0;
-		boolean mergedGnd = gndReserve==0;
+//		boolean mergedGnd = gndReserve==0;
 		double cellSpace = horiz ? cellHeight : cellWidth;
 		double metalSpace = cellSpace - 2*space - vddReserve - gndReserve;
 
@@ -125,7 +125,7 @@ class MetalFloorplan extends Floorplan {
 			vddWidth = gndWidth;
 			vddCenter = vddReserve/2 + vddWidth/2;
 		}
-		double vddEdge = vddCenter + vddWidth/2;
+//		double vddEdge = vddCenter + vddWidth/2;
 		
 		// compute coverage statistics
 		double cellArea = cellWidth * cellHeight;
@@ -1328,21 +1328,40 @@ public class FillGenerator {
 		{
             Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList); //new int[] {2,3,4,5,10,12});
             fillGen.makeGallery();
-            if (topCell == null) return true;
+
+            if (topCell == null || portList == null) return true;
+
+            Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill");
+            Rectangle2D bnd = topCell.getBounds();
+
+            LayoutLib.newNodeInst(Tech.essentialBounds,
+                      -bnd.getWidth()/2, -bnd.getHeight()/2,
+                      G.DEF_SIZE, G.DEF_SIZE, 180, connectionCell);
+		    LayoutLib.newNodeInst(Tech.essentialBounds,
+                      bnd.getWidth()/2, bnd.getHeight()/2,
+                      G.DEF_SIZE, G.DEF_SIZE, 0, connectionCell);
+
             ErrorLogger log = ErrorLogger.newInstance("Fill", true);
             double globalWidth = Double.POSITIVE_INFINITY;
-            Rectangle2D bnd = topCell.getBounds();
-            NodeInst fillNi = LayoutLib.newNodeInst(fillCell, bnd.getCenterX(), bnd.getCenterY(),
+
+            // Adding the connection cell into topCell
+            NodeInst conNi = LayoutLib.newNodeInst(connectionCell, bnd.getCenterX(), bnd.getCenterY(),
                     G.DEF_SIZE, G.DEF_SIZE, 0, topCell);
-            AffineTransform fillTransIn = fillNi.transformIn();
-            AffineTransform fillTransOut = fillNi.transformOut();
+
+            // Adding the fill cell into connectionCell
+            Rectangle2D conBnd = connectionCell.getBounds();
+            NodeInst fillNi = LayoutLib.newNodeInst(fillCell, conBnd.getCenterX(), conBnd.getCenterY(),
+                    G.DEF_SIZE, G.DEF_SIZE, 0, connectionCell);
+
+            AffineTransform fillTransIn = conNi.transformIn();
+            AffineTransform fillTransOut = conNi.transformOut();
             InteractiveRouter router  = new SimpleWirer();
             List<PortInst> fillPortInstList = new ArrayList<PortInst>();
             List<NodeInst> fillContactList = new ArrayList<NodeInst>();
             List<PortInst> portNotReadList = new ArrayList<PortInst>();
             List<Rectangle2D> bndNotReadList = new ArrayList<Rectangle2D>();
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, fillPortInstList,
-                    fillContactList);
+                    fillContactList, connectionCell, conNi);
 
             // First attempt if ports are below a power/ground bars
             for (PortInst p : portList)
@@ -1428,7 +1447,7 @@ public class FillGenerator {
                     PortInst fillNiPort = fillPortInstList.get(index);
                     // Connecting the export in the top cell
                     Route exportRoute = router.planRoute(topCell, p, fillNiPort,
-                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null);
+                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
                     Router.createRouteNoJob(exportRoute, topCell, true, false, null);
                 }
                 else
@@ -1468,16 +1487,19 @@ public class FillGenerator {
         private static class FillGenJobContainer
         {
             InteractiveRouter router;
-            Cell fillCell;
-            NodeInst fillNi;
+            Cell fillCell, connectionCell;
+            NodeInst fillNi, connectionNi;
             List<PortInst> fillPortInstList;
             List<NodeInst> fillContactList;
 
-            FillGenJobContainer(InteractiveRouter r, Cell fC, NodeInst fNi, List<PortInst> pList, List<NodeInst> cList)
+            FillGenJobContainer(InteractiveRouter r, Cell fC, NodeInst fNi, List<PortInst> pList, List<NodeInst> cList,
+                                Cell cC, NodeInst cNi)
             {
                 this.router = r;
                 this.fillCell = fC;
                 this.fillNi = fNi;
+                this.connectionCell = cC;
+                this.connectionNi = cNi;
                 this.fillPortInstList = pList;
                 this.fillContactList = cList;
             }
@@ -1526,6 +1548,7 @@ public class FillGenerator {
                 Geometric geom = it.next();
                 if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
+                if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
 
                 // No export with the same characteristic found in this netlist
@@ -1544,27 +1567,44 @@ public class FillGenerator {
                     continue;
 
                 NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),
-                        width, 10, 0, container.fillCell);
+                        width, 10, 0, container.connectionCell);
                 container.fillContactList.add(added);
-                // It shouldn't matter which port is connected?
-                // Routing the contact to the arc in fill cell
-                Route contactRoute = container.router.planRoute(container.fillCell, added.getOnlyPortInst(), ai,
-                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null);
-                Router.createRouteNoJob(contactRoute, container.fillCell, true, false, null);
-
-                // Creating the export
-                Export export = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m2,
+                 // Creating the export above the contact in the connection cell
+                Export conM2Export = LayoutLib.newExport(container.connectionCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m2,
                         10, nodeBounds.getCenterX(), nodeBounds.getCenterY());
-                Route contExportRoute = container.router.planRoute(container.fillCell, added.getOnlyPortInst(), export.getOriginalPort(),
-                        new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null);
-                Router.createRouteNoJob(contExportRoute, container.fillCell, true, false, null);
+                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
+                        new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null, false);
+                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false, null);
+                // Connecting the contact export in the top cell
+                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
+                container.fillPortInstList.add(conNiPort);
+                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
+                        new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false, null);
 
+//                // Adding pin in fill cell
+//                NodeInst pin = LayoutLib.newNodeInst(Tech.m3pin, geomBnd.getCenterX(), nodeBounds.getCenterY(),
+//                        width, 10, 0, container.fillCell);
+//                // Routing the pin to the arc in fill cell
+//                Route pinRoute = container.router.planRoute(container.fillCell, pin.getOnlyPortInst(), ai.getTailPortInst(),
+//                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
+//                Router.createRouteNoJob(pinRoute, container.fillCell, true, false, null);
+
+                // Creating the export above the pin in the fill cell
+                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
+//                        Tech.m3,
+                        10, geomBnd.getCenterX(), nodeBounds.getCenterY());
+                Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
+                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
+                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
                 // Connecting the export in the top cell
-                PortInst fillNiPort = container.fillNi.findPortInstFromProto(export);
-                container.fillPortInstList.add(fillNiPort);
-                Route exportRoute = container.router.planRoute(topCell, p, fillNiPort,
-                        new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null);
-                Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
+//                container.fillPortInstList.add(fillNiPort);
+                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
+                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
+                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
+
+                // Creating the export in tbe connection cell for the contact
                 return geom;
             }
             return null;

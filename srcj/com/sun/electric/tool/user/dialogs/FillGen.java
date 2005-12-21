@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.Main;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -429,7 +430,7 @@ public class FillGen extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = ((Integer)items.get(i)).intValue();
         }
-        new FillGenerator.FillGenJob(null, fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, null);
+        new FillGenerator.FillGenJob(Main.getUserInterface().getCurrentCell(), fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, null);
         setVisible(false);;
     }//GEN-LAST:event_jButton1ActionPerformed
 
