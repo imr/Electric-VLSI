@@ -467,7 +467,7 @@ public class MoCMOS extends Technology
 		theRules.add(new DRCTemplate("8.5 Mosis",        DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.NSV.mode(),       DRCTemplate.DRCRuleType.SPACINGE, "Via1",           "N-Active",       2,  null));
 
 		theRules.add(new DRCTemplate("9.1",  DRCTemplate.DRCMode.MOSIS.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            3,  null));
-        theRules.add(new DRCTemplate("Mx.W.1",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            2.8,  null));
+        theRules.add(new DRCTemplate("Mx.W.1 TSMC",  DRCTemplate.DRCMode.TSMC.mode(), DRCTemplate.DRCRuleType.MINWID,   "Metal-2",         null,            2.8,  null));
 
 		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.DE.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        4,  null));
 		theRules.add(new DRCTemplate("9.2 Mosis",  DRCTemplate.DRCMode.MOSIS.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode(), DRCTemplate.DRCRuleType.SPACING,  "Metal-2",        "Metal-2",        3,  null));
