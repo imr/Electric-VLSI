@@ -107,6 +107,8 @@ extends OutputStream
             printWriter.print(str);
             printWriter.flush();
         }
+        if (notifyGUI == null) return;
+        
         notifyGUI.setChanged();
         notifyGUI.notifyObservers(str);
         notifyGUI.clearChanged();
