@@ -43,7 +43,7 @@ public class FillGen extends EDialog {
     private JComboBox[] vddUnit;
     private JTextField[] gndSpace;
     private JComboBox[] gndUnit;
-    private Technology tech;
+//    private Technology tech;
     private JCheckBox[] tiledCells;
 
     /** Creates new form FillGen */
@@ -51,7 +51,7 @@ public class FillGen extends EDialog {
         super(parent, modal);
         initComponents();
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
-        this.tech = tech;
+//        this.tech = tech;
         int size = numMetals - 1;
         vddSpace = new JTextField[size];
         vddUnit = new JComboBox[size];
@@ -416,7 +416,7 @@ public class FillGen extends EDialog {
             }
         }
         FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
-        List items = new ArrayList(12);
+        List<Integer> items = new ArrayList<Integer>(12);
 
         for (int i = 0; i < tiledCells.length; i++)
         {
@@ -428,7 +428,7 @@ public class FillGen extends EDialog {
         {
             cells = new int[items.size()];
             for (int i = 0; i < items.size(); i++)
-                cells[i] = ((Integer)items.get(i)).intValue();
+                cells[i] = items.get(i).intValue();
         }
         new FillGenerator.FillGenJob(Main.getUserInterface().getCurrentCell(), fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, null);
         setVisible(false);;
