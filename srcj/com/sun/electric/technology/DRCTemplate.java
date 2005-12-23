@@ -314,11 +314,11 @@ public class DRCTemplate
         }
     }
 
-    public static void importDRCDeck(String fileName, Technology tech)
+    public static DRCXMLParser importDRCDeck(String fileName)
     {
         DRCXMLParser parser = new DRCXMLParser();
-        List<DRCTemplate> rules = parser.process(TextUtils.makeURLToFile(fileName));
-        tech.setState(rules);
+        parser.process(TextUtils.makeURLToFile(fileName));
+        return parser;
     }
 
     /**
@@ -490,12 +490,14 @@ public class DRCTemplate
         return n1;
     }
 
-    /** Private XML Parser for DRC decks **/
-    private static class DRCXMLParser
+    /** Public XML Parser for DRC decks **/
+    public static class DRCXMLParser
     {
-        public List<DRCTemplate> process(URL fileURL)
+        public List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
+        DRCTemplate.DRCMode foundry = DRCTemplate.DRCMode.NONE;
+
+        public void process(URL fileURL)
         {
-            List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
             try
             {
                 // Factory call
@@ -507,7 +509,7 @@ public class DRCTemplate
                 URLConnection urlCon = fileURL.openConnection();
                 InputStream inputStream = urlCon.getInputStream();
                 System.out.println("Parsing XML file \"" + fileURL + "\"");
-                parser.parse(inputStream, new DRCXMLHandler(drcRules));
+                parser.parse(inputStream, new DRCXMLHandler());
 
                 System.out.println("End Parsing XML file ...");
             }
@@ -515,17 +517,15 @@ public class DRCTemplate
             {
                 e.printStackTrace();
             }
-            return drcRules;
         }
 
         private class DRCXMLHandler extends DefaultHandler
         {
-            private List<DRCTemplate> drcRules = null;
-            private DRCTemplate.DRCMode foundry = DRCTemplate.DRCMode.NONE;
+//            private DRCXMLParser parser;
 
-            DRCXMLHandler(List<DRCTemplate> drcList)
+            DRCXMLHandler()
             {
-                this.drcRules = drcList;
+//                this.parser = parser;
             }
 
             public InputSource resolveEntity (String publicId, String systemId) throws IOException, SAXException
