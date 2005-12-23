@@ -1835,7 +1835,7 @@ public class FillGenerator {
                     NodeInst ni = (NodeInst)geom;
 				    NodeProto np = ni.getProto();
 
-                    if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
+                    if (NodeInst.isSpecialNode(ni)) continue;
 
                     // ignore nodes that are not primitive
                     if (np instanceof Cell)
