@@ -99,8 +99,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         if (currentDepth == 0) {
             // set the global net ID that will be used in sub cells
             netIDs = new BitSet();
-            for (Iterator<Network> it = nets.iterator(); it.hasNext(); ) {
-                Network net = (Network)it.next();
+            for (Network net : nets) {
                 netIDs.set(info.getNetID(net));
             }
         }
@@ -148,10 +147,10 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 		if (!TRIMMEDDISPLAY)
 		{
 	        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-	            NodeInst ni = (NodeInst)it.next();
+	            NodeInst ni = it.next();
 	            if (ni.getNameKey().isBus()) continue;
 	            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
-	                PortInst pi = (PortInst)pit.next();
+	                PortInst pi = pit.next();
 	                PortProto portProto = pi.getPortProto();
 	                if (portProto.getNameKey().isBus()) continue;
 	                if (!nets.contains(netlist.getNetwork(pi))) continue;
@@ -162,23 +161,26 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         
         // all arcs on the networks
         for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); ) {
-            ArcInst ai = (ArcInst)aIt.next();
+            ArcInst ai = aIt.next();
             int width = netlist.getBusWidth(ai);
             for(int i=0; i<width; i++) {
                 if (!nets.contains(netlist.getNetwork(ai, i))) continue;
                 objs.add(ai);
-                // also highlight end nodes of arc, if they are primitive nodes
-                PortInst pi = ai.getHeadPortInst();
-                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                    // ignore pins
-                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
-                        objs.add(pi);
-                }
-                pi = ai.getTailPortInst();
-                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
-                        objs.add(pi);
-                }
+        		if (!TRIMMEDDISPLAY)
+        		{
+	                // also highlight end nodes of arc, if they are primitive nodes
+	                PortInst pi = ai.getHeadPortInst();
+	                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
+	                    // ignore pins
+	                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+	                        objs.add(pi);
+	                }
+	                pi = ai.getTailPortInst();
+	                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
+	                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+	                        objs.add(pi);
+	                }
+        		}
             }
         }
 
@@ -204,8 +206,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         // highlight objects in this cell
         HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
 
-        for (Iterator<ElectricObject> it = objs.iterator(); it.hasNext(); ) {
-            ElectricObject eObj = (ElectricObject)it.next();
+        for (ElectricObject eObj : objs) {
             highlighter.addElectricObject(eObj, cell, false);
         }
     }
@@ -220,7 +221,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         // find all local networks in this cell that corresponds to global id
         HashSet<Network> localNets = new HashSet<Network>();
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
-            Network aNet = (Network)it.next();
+            Network aNet = it.next();
             if (netIDs.get(info.getNetID(aNet))) {
                 localNets.add(aNet);
             }
@@ -239,8 +240,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
         // get polys for each object and transform them to root
         AffineTransform trans = info.getTransformToRoot();
-        for (Iterator<ElectricObject> it = objs.iterator(); it.hasNext(); ) {
-			ElectricObject o = it.next();
+        for (ElectricObject o : objs) {
             Color color = null;
             Poly poly = null;
             if (o instanceof ArcInst) {
