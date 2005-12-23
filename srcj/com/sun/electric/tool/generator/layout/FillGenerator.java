@@ -31,9 +31,11 @@ import java.util.*;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
@@ -1624,6 +1626,23 @@ public class FillGenerator {
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, fillPortInstList,
                     fillContactList, connectionCell, conNi);
 
+            // Export all fillCell exports in connectCell before extra exports are added into fillCell
+            for (Iterator<Export> it = container.fillCell.getExports(); it.hasNext();)
+            {
+                Export export = it.next();
+                PortInst p = container.fillNi.findPortInstFromProto(export);
+                ArcInst ai = null;
+
+                for (Iterator<Connection> itC = export.getOriginalPort().getConnections(); itC.hasNext(); )
+                {
+                    Connection c = itC.next();
+                    ai = c.getArc();
+                    break;
+                }
+                Export e = Export.newInstance(container.connectionCell, p, p.getPortProto().getName());
+		        e.setCharacteristic(p.getPortProto().getCharacteristic());
+            }
+
             // First attempt if ports are below a power/ground bars
             for (PortInst p : portList)
             {
@@ -1734,32 +1753,6 @@ public class FillGenerator {
                     }
                 }
             }
-
-            // Export all fillCell exports in connectCell
-//            for (Iterator<Export> it = container.fillCell.getExports(); it.hasNext();)
-//            {
-//                Export export = it.next();
-//                PortInst p = container.fillNi.findPortInstFromProto(export);
-//
-//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(),
-//                        p.getPortProto().getCharacteristic(),
-//                        ai.getProto(),
-////                        Tech.m3,
-//                        10, geomBnd.getCenterX(), nodeBounds.getCenterY());
-//            }
-//            // Creating the export above the pin in the fill cell
-//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
-////                        Tech.m3,
-//                        10, geomBnd.getCenterX(), nodeBounds.getCenterY());
-//                Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
-//                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
-//                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
-//                // Connecting the export in the top cell
-//                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
-////                container.fillPortInstList.add(fillNiPort);
-//                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
-//                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-//                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
             log.termLogging(false);
 
             return true;
@@ -1824,24 +1817,76 @@ public class FillGenerator {
          */
         private boolean searchCollision(Cell parent, PortInst p, Rectangle2D nodeBounds, FillGenJobContainer container, AffineTransform upTrans)
         {
+            // Not checking if they belong to the same net!. If yes, ignore the collision
+            Rectangle2D subBound = new Rectangle2D.Double();
+            Netlist netlist = parent.acquireUserNetlist();
 
             for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
             {
                 Geometric geom = it.next();
-                if (geom == container.fillNi) continue; // ignore this extra cell
+
+                if (geom == p.getNodeInst())
+                    continue; // port belongs to this node
+
+                if (geom == container.fillNi || geom == container.connectionNi) continue; // ignore these extra cells
 
                 if (geom instanceof NodeInst)
                 {
-                    System.out.println("No implemented");
+                    NodeInst ni = (NodeInst)geom;
+				    NodeProto np = ni.getProto();
+
+                    if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
+
+                    // ignore nodes that are not primitive
+                    if (np instanceof Cell)
+                    {
+                        // instance found: look inside it for offending geometry
+                        AffineTransform rTransI = ni.rotateIn();
+                        AffineTransform tTransI = ni.translateIn();
+                        rTransI.preConcatenate(tTransI);
+                        subBound.setRect(nodeBounds);
+                        DBMath.transformRect(subBound, rTransI);
+
+                        if (searchCollision((Cell)np, p, subBound, container, upTrans))
+                            return true;
+                    } else
+                    {
+                        boolean found = false;
+                        for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                        {
+                            PortInst port = itP.next();
+                            Network net = netlist.getNetwork(port);
+                            // They export the same, power or gnd so no worries about overlapping
+                            if (net.findExportWithSameCharacteristic(p) != null)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                            continue; // no match in network type
+
+                        Poly [] subPolyList = parent.getTechnology().getShapeOfNode(ni, null, null, true, true,
+                                fillLayers);
+                        // Overlap found
+                        if (subPolyList.length > 0)
+                            return true;
+                    }
                 }
                 else
                 {
                     ArcInst ai = (ArcInst)geom;
-                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, fillLayers);
-                    int tot = subPolyList.length;
 
-                    // Something overlap
-                    if (tot > 0)
+                    Network net = netlist.getNetwork(ai, 0);
+
+                    // They export the same, power or gnd so no worries about overlapping
+                    if (net.findExportWithSameCharacteristic(p) != null)
+                        continue; // no match in network type
+
+                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, fillLayers);
+
+                    // Something overlaps
+                    if (subPolyList.length > 0)
                         return true;
                 }
             }
