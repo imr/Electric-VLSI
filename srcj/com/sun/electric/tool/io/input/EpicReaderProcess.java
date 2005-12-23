@@ -95,7 +95,6 @@ class EpicReaderProcess {
     
     private boolean readEpic(String urlName) throws IOException {
         URL fileURL = new URL(urlName);
-//    	String filePath = fileURL.getFile();
         long startTime = System.currentTimeMillis();
 		URLConnection urlCon = fileURL.openConnection();
         urlCon.setConnectTimeout(10000);
@@ -145,7 +144,7 @@ class EpicReaderProcess {
             stdOut.writeDouble(timeResolution);
             stdOut.writeDouble(voltageResolution);
             stdOut.writeDouble(currentResolution);
-            stdOut.writeInt(maxT);
+            stdOut.writeDouble(maxT*timeResolution);
             stdOut.writeInt(signals.size());
             int size = 0;
             for (EpicReaderSignal s: signals)
@@ -156,7 +155,6 @@ class EpicReaderProcess {
                 
                 stdOut.writeInt(s.minV);
                 stdOut.writeInt(s.maxV);
-                stdOut.writeInt(start);
                 stdOut.writeInt(s.len);
                 start += s.len;
                 showProgress(size != 0 ? start/(double)size : 0);

@@ -40,12 +40,12 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -54,164 +54,6 @@ import java.util.List;
  */
 public class EpicOutProcess extends Simulate implements Runnable
 {
-    private static class EpicStimuli extends Stimuli
-    {
-        private File waveFileName;
-        private RandomAccessFile waveFile;
-        private double timeResolution;
-        private double voltageResolution;
-        private double currentResolution;
-
-        /**
-         * Free allocated resources before closing.
-        */
-        public void finished() {
-            try {
-                waveFile.close();
-                waveFileName.delete();
-            } catch (IOException e) {
-            }
-        }
-    
-    }
-
-    private static class EpicAnalogSignal extends AnalogSignal
-	{
-		static final byte VOLTAGE_TYPE = 1;
-		static final byte CURRENT_TYPE = 2;
-
-		byte type;
-        int start;
-        int len;
-
-		EpicAnalogSignal(Analysis an) { super(an); }
-		
-		/**
-		 * Method to return the value of this signal at a given event index.
-		 * @param sweep sweep index
-		 * @param index the event index (0-based).
-		 * @param result double array of length 3 to return (time, lowValue, highValue)
-		 * If this signal is not a basic signal, return 0 and print an error message.
-		 */
-		public void getEvent(int sweep, int index, double[] result)
-		{
-			if (sweep != 0)
-				throw new IndexOutOfBoundsException();
-			if (getTimeVector() == null)
-                makeData();
-			super.getEvent(sweep, index, result);
-		}
-		
-		/**
-		 * Method to return the number of events in one sweep of this signal.
-		 * This is the number of events along the horizontal axis, usually "time".
-		 * The method only works for sweep signals.
-		 * @param sweep the sweep number to query.
-		 * @return the number of events in this signal.
-		 */
-		public int getNumEvents(int sweep) {
-		    if (sweep != 0)
-				throw new IndexOutOfBoundsException();
-            if (getTimeVector() == null)
-                makeData();
-            return super.getNumEvents(0);
-        }
-        
-        private void makeData()
-        {
-            EpicStimuli sd = (EpicStimuli)this.an.getStimuli();
-            double resolution = 1;
-            switch (type)
-            {
-                case VOLTAGE_TYPE:
-                    resolution = sd.voltageResolution;
-                    break;
-                case CURRENT_TYPE:
-                    resolution = sd.currentResolution;
-                    break;
-            }
-
-            byte[] waveform = new byte[len];
-            try {
-                sd.waveFile.seek(start);
-                sd.waveFile.readFully(waveform);
-            } catch (IOException e) {
-                buildTime(0);
-                buildValues(0);
-                ActivityLogger.logException(e);
-            }
-            
-            int count = 0;
-            for (int i = 0; i < len; count++) {
-                int l;
-                int b = waveform[i++] & 0xff;
-                if (b < 0xC0)
-                    l = 0;
-                else if (b < 0xFF)
-                    l = 1;
-                else
-                    l = 4;
-                i += l;
-                b = waveform[i++] & 0xff;
-                if (b < 0xC0)
-                    l = 0;
-                else if (b < 0xFF)
-                    l = 1;
-                else
-                    l = 4;
-                i += l;
-            }
-            
-            buildTime(count);
-            buildValues(count);
-            int[] w = new int[count*2];
-            count = 0;
-            int t = 0;
-            int v = 0;
-            for (int i = 0; i < len; count++) {
-                int l;
-                int b = waveform[i++] & 0xff;
-                if (b < 0xC0) {
-                    l = 0;
-                } else if (b < 0xFF) {
-                    l = 1;
-                    b -= 0xC0;
-                } else {
-                    l = 4;
-                }
-                while (l > 0) {
-                    b = (b << 8) | waveform[i++] & 0xff;
-                    l--;
-                }
-                t = t + b;
-                setTime(count, t * sd.timeResolution);
-                
-                b = waveform[i++] & 0xff;
-                if (b < 0xC0) {
-                    l = 0;
-                    b -= 0x60;
-                } else if (b < 0xFF) {
-                    l = 1;
-                    b -= 0xDF;
-                } else {
-                    l = 4;
-                }
-                while (l > 0) {
-                    b = (b << 8) | waveform[i++] & 0xff;
-                    l--;
-                }
-                v = v + b;
-                setValue(count, v * resolution);
-            }
-            assert count*2 == w.length;
-        }
-
-        private void setBounds(Rectangle2D bounds)
-        {
-            this.bounds = bounds;
-        } 
-    }
-    
     private Process readerProcess;
     private DataInputStream stdOut;
     private ArrayList<String> strings = new ArrayList<String>();
@@ -228,7 +70,7 @@ public class EpicOutProcess extends Simulate implements Runnable
 		startProgressDialog("EPIC output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-        EpicStimuli sd = null;
+        Stimuli sd = null;
         boolean eof = false;
         try {
             readerProcess = invokeEpicReader(fileURL);
@@ -265,99 +107,94 @@ public class EpicOutProcess extends Simulate implements Runnable
             }
             Main.getUserInterface().showErrorMessage("EpicReaderProcess exited with code " + exitCode + " (" + exitMsg + ")", "EpicReaderProcess");
         }
-
+        
         // stop progress dialog
         stopProgressDialog();
-            
+       
+        // free memory
+        strings = null;
+        stdOut.close();
+        stdOut = null;
+        readerProcess = null;
+        
         // return the simulation data
         return sd;
     }
     
     private static String VERSION_STRING = ";! output_format 5.3";
     
-	private EpicStimuli readEpicFile()
+	private Stimuli readEpicFile()
 		throws IOException
 	{
         char separator = '.';
-        EpicStimuli sd = new EpicStimuli();
-        Analysis an = new Analysis(sd, Analysis.ANALYSIS_TRANS);
+        Stimuli sd = new Stimuli();
         sd.setSeparatorChar(separator);
-        StringBuilder currentContextBuilder = new StringBuilder();
-        String currentContext = null;
-        int[] sepPos = new int[1];
-        int numSeps = 0;
+        EpicAnalysis an = new EpicAnalysis(sd);
+        int numSignals = 0;
+        ContextBuilder contextBuilder = new ContextBuilder();
+        ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
+        contextStack.add(contextBuilder);
+        int contextStackDepth = 1;
         
         for (;;) {
             byte type = stdOut.readByte();
             if (type == 0) break;
             switch (type) {
-                case EpicAnalogSignal.VOLTAGE_TYPE:
-                case EpicAnalogSignal.CURRENT_TYPE:
+                case EpicAnalysis.VOLTAGE_TYPE:
+                case EpicAnalysis.CURRENT_TYPE:
                     String name = readString();
-                    EpicAnalogSignal s = new EpicAnalogSignal(an);
-                    s.type = type;
-                    if (currentContext != null)
-                        s.setSignalContext(currentContext);
-                     s.setSignalName(name);
-                   break;
+                    contextBuilder.strings.add(name);
+                    contextBuilder.contexts.add(EpicAnalysis.getContext(type));
+                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++);
+                    s.setSignalName(name);
+                    break;
                 case 'D':
                     String down = readString();
-                    if (numSeps >= sepPos.length) {
-                        int[] newSepPos = new int[sepPos.length*2];
-                        System.arraycopy(sepPos, 0, newSepPos, 0, sepPos.length);
-                        sepPos = newSepPos;
-                    }
-                    sepPos[numSeps] = currentContextBuilder.length();
-                    if (numSeps != 0)
-                        currentContextBuilder.append(separator);
-                    currentContextBuilder.append(down);
-                    numSeps++;
-                    currentContext = currentContextBuilder.toString();
+                    contextBuilder.strings.add(down);
+                    
+                    if (contextStackDepth >= contextStack.size())
+                        contextStack.add(new ContextBuilder());
+                    contextBuilder = contextStack.get(contextStackDepth++);
                     break;
                 case 'U':
-                    assert numSeps > 0 && currentContext != null;
-                    int pos = sepPos[--numSeps];
-                    currentContextBuilder.setLength(pos);
-                    currentContext = numSeps > 0 ? currentContext.substring(0, pos) : null;
+                    EpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
+                    contextBuilder.clear();
+
+                    contextStackDepth--;
+                    contextBuilder = contextStack.get(contextStackDepth - 1);
+                    
+                    contextBuilder.contexts.add(newContext);
                     break;
                 default:
                     assert false;
             }
+            assert contextBuilder == contextStack.get(contextStackDepth - 1);
         }
+        assert contextStackDepth == 1;
+        an.setRootContext(an.getContext(contextBuilder.strings, contextBuilder.contexts));
        
-        sd.timeResolution = stdOut.readDouble();
-        sd.voltageResolution = stdOut.readDouble();
-        sd.currentResolution = stdOut.readDouble();
-        int maxT = stdOut.readInt();
+        an.setTimeResolution(stdOut.readDouble());
+        an.setVoltageResolution(stdOut.readDouble());
+        an.setCurrentResolution(stdOut.readDouble());
+        an.setMaxTime(stdOut.readDouble());
+        an.initSignals();
         List<Signal> signals = an.getSignals();
-        int numSignals = stdOut.readInt();
         assert numSignals == signals.size();
+        numSignals = stdOut.readInt();
+        assert numSignals == signals.size();
+        an.waveStarts = new int[numSignals + 1];
+        int start = 0;
         for (int i = 0; i < numSignals; i++) {
             int minV = stdOut.readInt();
             int maxV = stdOut.readInt();
-            int start = stdOut.readInt();
             int len = stdOut.readInt();
 
-            EpicAnalogSignal s = (EpicAnalogSignal)signals.get(i);
-            s.start = start;
-            s.len = len;
-            
-            double resolution = 1;
-            switch (s.type)
-            {
-                case EpicAnalogSignal.VOLTAGE_TYPE:
-                    resolution = sd.voltageResolution;
-                    break;
-                case EpicAnalogSignal.CURRENT_TYPE:
-                    resolution = sd.currentResolution;
-                    break;
-            }
-            Rectangle2D bounds = new Rectangle2D.Double(0, minV*resolution, maxT*sd.timeResolution, (maxV - minV)*resolution);
-            s.setBounds(bounds);
+            EpicAnalysis.EpicSignal s = (EpicAnalysis.EpicSignal)signals.get(i);
+            s.setBounds(minV, maxV);
+            start += len;
+            an.waveStarts[i + 1] = start;
         }
-        sd.waveFileName = new File(stdOut.readUTF());
-        sd.waveFileName.deleteOnExit();
-        sd.waveFile = new RandomAccessFile(sd.waveFileName, "r");
+        an.setWaveFile(new File(stdOut.readUTF()));
 
         return sd;
     }
@@ -434,5 +271,12 @@ public class EpicOutProcess extends Simulate implements Runnable
         } catch (java.io.IOException e) {
             ActivityLogger.logException(e);
         }
+    }
+    
+    private static class ContextBuilder {
+        ArrayList<String> strings = new ArrayList<String>();
+        ArrayList<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
+        
+        void clear() { strings.clear(); contexts.clear(); }
     }
 }

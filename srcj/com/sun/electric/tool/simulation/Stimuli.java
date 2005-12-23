@@ -80,6 +80,8 @@ public class Stimuli
      */
     public void finished()
     {
+        for (Analysis an: analysisList)
+            an.finished();
     }
     
     public void addAnalysis(Analysis an)

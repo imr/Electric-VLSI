@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.simulation.AnalogSignal;
@@ -1486,12 +1487,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		List<Signal> signals = an.getSignals();
 		if (signals.size() == 0) return null;
+		treeNodeFromSignal = new HashMap<Signal,DefaultMutableTreeNode>();
+        if (an instanceof EpicAnalysis) {
+            return ((EpicAnalysis)an).getSignalsForExplorer(analysis, treeNodeFromSignal);
+        }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		HashMap<String,DefaultMutableTreeNode> contextMap = new HashMap<String,DefaultMutableTreeNode>();
 		contextMap.put("", signalsExplorerTree);
 		Collections.sort(signals, new SignalsByName());
 
-		treeNodeFromSignal = new HashMap<Signal,DefaultMutableTreeNode>();
 
 		// add branches first
 		char separatorChar = sd.getSeparatorChar();

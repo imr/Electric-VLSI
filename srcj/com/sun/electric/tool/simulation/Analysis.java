@@ -93,6 +93,13 @@ public class Analysis
 		sd.addAnalysis(this);
 	}
 
+    /**
+     * Free allocated resources before closing.
+     */
+    public void finished()
+    {
+    }
+    
 	/**
 	 * Method to return the Stimuli in which this Analysis resides.
 	 * @return the Stimuli in which this Analysis resides.

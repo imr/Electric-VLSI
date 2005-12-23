@@ -305,6 +305,8 @@ public class DebugMenus {
 //        if (Job.CLIENT)
 //            dimaMenu.addMenuItem("Replay snapshot", null,
 //                new ActionListener() { public void actionPerformed(ActionEvent e) { Snapshot.updateSnapshot(); } });
+	    dimaMenu.addMenuItem("Show memory usage", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes"); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,
