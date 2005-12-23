@@ -784,19 +784,14 @@ public class DebugMenus {
         Rectangle2D bnd = cell.getBounds();
 
         double drcSpacingRule = 6;
-        double vddReserve = drcSpacingRule;
-        double gndReserve = drcSpacingRule;
-        double desiredWidth = 27;
-        double minWidth = vddReserve + gndReserve + 2*drcSpacingRule + 4*desiredWidth;
-        double realWidth = bnd.getWidth();
-//        int divider = (int)Math.floor(realWidth/minWidth);
-//        if (divider > 1) realWidth /= divider;
-        fg.setFillCellWidth(realWidth);
+        double vddReserve = drcSpacingRule*2;
+        double gndReserve = drcSpacingRule*3;
+        fg.setFillCellWidth(bnd.getWidth());
         fg.setFillCellHeight(bnd.getHeight());
         fg.makeEvenLayersHorizontal(true);
-        fg.reserveSpaceOnLayer(3, drcSpacingRule, FillGenerator.TRACKS, drcSpacingRule, FillGenerator.TRACKS);
-        fg.reserveSpaceOnLayer(4, drcSpacingRule, FillGenerator.LAMBDA, drcSpacingRule, FillGenerator.LAMBDA);
-        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, new int[] {2,3,4,5}, list);
+        fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
+        fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
+        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, list);
     }
 
     private static void tsmcGateGenerator(String techNm)

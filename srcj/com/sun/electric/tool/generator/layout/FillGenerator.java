@@ -74,6 +74,49 @@ class Floorplan {
 	}
 }
 
+abstract class MetalFloorplanBase extends Floorplan
+{
+	/** width Vdd wires */				public double vddWidth;
+	/** width Gnd wires */  			public double gndWidth;
+    MetalFloorplanBase(double cellWidth, double cellHeight, boolean horiz)
+    {
+        super(cellWidth, cellHeight, horiz);
+        vddWidth = gndWidth = 0;
+    }
+}
+
+// ------------------------------ MetalFloorplanFlex ------------------------------
+// Similar to Metalfloor but number of power/gnd lines is determined by cell size
+class MetalFloorplanFlex extends MetalFloorplanBase {
+
+    public final double minWidth, space, vddReserve, gndReserve;
+
+    MetalFloorplanFlex(double cellWidth, double cellHeight,
+			         double vddReserve, double gndReserve,
+			        double space, boolean horiz)
+    {
+        super(cellWidth, cellHeight, horiz);
+        vddWidth = 27;
+        gndWidth = 20;
+        this.space = space;
+        this.vddReserve = vddReserve;
+        this.gndReserve = gndReserve;
+        minWidth = vddReserve + gndReserve + 2*space + 2*gndWidth + 2*vddWidth;
+        int divider = 1;
+
+        if (horizontal)
+        {
+            divider = (int)Math.floor(cellHeight/minWidth);
+            if (divider > 1) cellHeight /= divider;
+        }
+        else
+        {
+            divider = (int)Math.floor(cellWidth/minWidth);
+            if (divider > 1) cellWidth /= divider;
+        }
+    }
+}
+
 // ------------------------------ MetalFloorplan ------------------------------
 // Floor plan:
 //
@@ -86,9 +129,7 @@ class Floorplan {
 //  wide space
 //  gggggggggggggggggggg
 //	half of Gnd reserved 
-class MetalFloorplan extends Floorplan {
-	/** width Vdd wires */				public final double vddWidth;
-	/** width Gnd wires */  			public final double gndWidth;
+class MetalFloorplan extends MetalFloorplanBase {
 	/** no gap between Vdd wires */		public final boolean mergedVdd;
 	/** if horizontal then y coordinate of top Vdd wire
 	 *  if vertical then x coordinate of right Vdd wire */
@@ -167,15 +208,20 @@ class MetalFloorplan extends Floorplan {
 
 /** Give access to the metal straps inside a MetalLayer or CapLayer */
 interface VddGndStraps {
+    static final ArcProto[] METALS =
+		{null, Tech.m1, Tech.m2, Tech.m3, Tech.m4, Tech.m5, Tech.m6};
+	static final PrimitiveNode[] PINS =
+		{null, Tech.m1pin, Tech.m2pin, Tech.m3pin, Tech.m4pin, Tech.m5pin,
+		 Tech.m6pin};
 	/** are metal straps horizontal? */		boolean isHorizontal();
 
 	/** how many Vdd straps? */				int numVdd();
-	/** get nth Vdd strap */				PortInst getVdd(int n);
+	/** get nth Vdd strap */				PortInst getVdd(int n, int pos);
 	/** if horizontal get Y else get X */	double getVddCenter(int n);
 	/** how wide is nth Vdd metal strap */	double getVddWidth(int n);
 
 	/** how many Gnd straps? */ 			int numGnd();
-	/** get nth Gnd strap */				PortInst getGnd(int n);
+	/** get nth Gnd strap */				PortInst getGnd(int n, int pos);
 	/** if horizontal get Y else X */ 		double getGndCenter(int n);
 	/** how wide is nth Gnd strap? */ 		double getGndWidth(int n);
 	
@@ -185,30 +231,45 @@ interface VddGndStraps {
 	double getCellHeight();
 }
 
-// ------------------------------- FillLayerMetal -----------------------------
-class MetalLayer implements VddGndStraps {
-	private static final ArcProto[] METALS = 
-		{null, Tech.m1, Tech.m2, Tech.m3, Tech.m4, Tech.m5, Tech.m6};
-	private static final PrimitiveNode[] PINS = 
-		{null, Tech.m1pin, Tech.m2pin, Tech.m3pin, Tech.m4pin, Tech.m5pin, 
-		 Tech.m6pin};
-	private final MetalFloorplan plan;
-	private final int layerNum;
-	private final PrimitiveNode pin;
-	private final ArcProto metal;
-	private ArrayList<PortInst> vddPorts = new ArrayList<PortInst>();
-	private ArrayList<PortInst> gndPorts = new ArrayList<PortInst>();
-	private ArrayList<Double> vddCenters = new ArrayList<Double>();
-	private ArrayList<Double> gndCenters = new ArrayList<Double>();
+// ------------------------------- ExportBars ---------------------------------
+class ExportBar
+{
+    PortInst[] ports = null;
+    Double center = null;
 
-	private void buildGnd(MetalFloorplan plan, Cell cell) {
+    ExportBar(PortInst p1, PortInst p2, double c)
+    {
+        ports = new PortInst[2];
+        ports[0] = p1;
+        ports[1] = p2;
+        center = new Double(c);
+    }
+}
+
+
+class MetalLayer implements VddGndStraps {
+	protected final Floorplan plan;
+	protected final int layerNum;
+	protected final PrimitiveNode pin;
+	protected final ArcProto metal;
+//	private ArrayList<PortInst> vddPorts = new ArrayList<PortInst>();
+//	private ArrayList<PortInst> gndPorts = new ArrayList<PortInst>();
+//	private ArrayList<Double> vddCenters = new ArrayList<Double>();
+//	private ArrayList<Double> gndCenters = new ArrayList<Double>();
+//
+    protected ArrayList<ExportBar> vddBars = new ArrayList<ExportBar>();
+    protected ArrayList<ExportBar> gndBars = new ArrayList<ExportBar>();
+
+	private void buildGnd(Cell cell) {
 		double pinX, pinY;
+        MetalFloorplan plan = (MetalFloorplan)this.plan;
+
 		if (plan.horizontal) {
-			pinX = plan.cellWidth/2 - plan.gndWidth/2;
+			pinX = plan.cellWidth/2; // - plan.gndWidth/2;
 			pinY = plan.gndCenter;				
 		} else {
 			pinX = plan.gndCenter;
-			pinY = plan.cellHeight/2 - plan.gndWidth/2;
+			pinY = plan.cellHeight/2; // - plan.gndWidth/2;
 		}
 		PortInst tl = LayoutLib.newNodeInst(pin, -pinX, pinY, G.DEF_SIZE, 
 										    G.DEF_SIZE, 0, cell
@@ -225,24 +286,30 @@ class MetalLayer implements VddGndStraps {
 		if (plan.horizontal) {
 			G.noExtendArc(metal, plan.gndWidth, tl, tr);
 			G.noExtendArc(metal, plan.gndWidth, bl, br);
+            gndBars.add(new ExportBar(bl, br, -plan.gndCenter));
+            gndBars.add(new ExportBar(tl, tr, plan.gndCenter));
 		} else {
 			G.noExtendArc(metal, plan.gndWidth, bl, tl);
 			G.noExtendArc(metal, plan.gndWidth, br, tr);
+            gndBars.add(new ExportBar(bl, tl, -plan.gndCenter));
+            gndBars.add(new ExportBar(br, tr, plan.gndCenter));
 		}
-		gndPorts.add(bl);
-		gndPorts.add(tr);
-		gndCenters.add(new Double(-plan.gndCenter));
-		gndCenters.add(new Double(plan.gndCenter));
+//		gndPorts.add(bl);
+//		gndPorts.add(tr);
+//		gndCenters.add(new Double(-plan.gndCenter));
+//		gndCenters.add(new Double(plan.gndCenter));
 	}
 	
-	private void buildVdd(MetalFloorplan plan, Cell cell) {
+	private void buildVdd(Cell cell) {
 		double pinX, pinY;
+        MetalFloorplan plan = (MetalFloorplan)this.plan;
+
 		if (plan.horizontal) {
-			pinX = plan.cellWidth/2 - plan.vddWidth/2;
+			pinX = plan.cellWidth/2; // - plan.vddWidth/2;
 			pinY = plan.vddCenter;
 		} else {
 			pinX = plan.vddCenter;
-			pinY = plan.cellHeight/2 - plan.vddWidth/2;
+			pinY = plan.cellHeight/2; // - plan.vddWidth/2;
 		}
 		if (plan.mergedVdd) {
 			PortInst tr = LayoutLib.newNodeInst(pin, pinX, pinY, G.DEF_SIZE, 
@@ -252,8 +319,9 @@ class MetalLayer implements VddGndStraps {
 												G.DEF_SIZE, 0, cell
 												).getOnlyPortInst();
 			G.noExtendArc(metal, plan.vddWidth, bl, tr);
-			vddPorts.add(bl);
-			vddCenters.add(new Double(plan.vddCenter));
+            vddBars.add(new ExportBar(bl, tr, plan.vddCenter));
+//			vddPorts.add(bl);
+//			vddCenters.add(new Double(plan.vddCenter));
 		} else {
 			PortInst tl = LayoutLib.newNodeInst(pin, -pinX, pinY, G.DEF_SIZE, 
 												G.DEF_SIZE, 0, cell
@@ -270,45 +338,216 @@ class MetalLayer implements VddGndStraps {
 			if (plan.horizontal) {
 				G.noExtendArc(metal, plan.vddWidth, tl, tr);
 				G.noExtendArc(metal, plan.vddWidth, bl, br);
+                vddBars.add(new ExportBar(bl, br, -plan.vddCenter));
+                vddBars.add(new ExportBar(tl, tr, plan.vddCenter));
 			} else {
 				G.noExtendArc(metal, plan.vddWidth, bl, tl);
 				G.noExtendArc(metal, plan.vddWidth, br, tr);
+                vddBars.add(new ExportBar(bl, tl, -plan.vddCenter));
+                vddBars.add(new ExportBar(br, tr, plan.vddCenter));
 			}
-			vddPorts.add(bl);
-			vddPorts.add(tr);
-			vddCenters.add(new Double(-plan.vddCenter));
-			vddCenters.add(new Double(plan.vddCenter));
+//			vddPorts.add(bl);
+//			vddPorts.add(tr);
+//			vddCenters.add(new Double(-plan.vddCenter));
+//			vddCenters.add(new Double(plan.vddCenter));
 		}
 	}
-	
-	public MetalLayer(int layerNum, MetalFloorplan plan, Cell cell) {
+
+    /** It has to be protected to be overwritten by sub classes */
+    protected void buildGndAndVdd(Cell cell)
+    {
+		buildGnd(cell);
+		buildVdd(cell);
+    }
+
+	public MetalLayer(int layerNum, Floorplan plan, Cell cell) {
 		this.plan = plan;
 		this.layerNum = layerNum;
 		metal = METALS[layerNum];
-		pin = PINS[layerNum]; 
-		buildGnd(plan, cell);
-		buildVdd(plan, cell);
+		pin = PINS[layerNum];
+        buildGndAndVdd(cell);
 	}
 	
-	public boolean isHorizontal() {return plan.horizontal;}
-	public int numVdd() {return vddPorts.size();}
-	public PortInst getVdd(int n) {return (PortInst) vddPorts.get(n);}
-	public double getVddCenter(int n) {
-		return ((Double)vddCenters.get(n)).doubleValue();
+    public boolean isHorizontal() {return plan.horizontal;}
+    public int numVdd() {return vddBars.size();}
+    public double getVddCenter(int n) {
+		return (vddBars.get(n).center.doubleValue());
 	}
-	public double getVddWidth(int n) {return plan.vddWidth;}
-	public int numGnd() {return gndPorts.size();}
-	public PortInst getGnd(int n) {return (PortInst) gndPorts.get(n);}
-	public double getGndCenter(int n) {
-		return ((Double)gndCenters.get(n)).doubleValue();
+    public PortInst getVdd(int n, int pos)
+    {return vddBars.get(n).ports[pos];}
+    public double getVddWidth(int n) {return ((MetalFloorplanBase)plan).vddWidth;}
+    public int numGnd() {return gndBars.size();}
+    public double getGndCenter(int n) {
+		return (gndBars.get(n).center.doubleValue());
 	}
-	public double getGndWidth(int n) {return plan.gndWidth;}
+    public PortInst getGnd(int n, int pos) {return gndBars.get(n).ports[pos];}
+    public double getGndWidth(int n) {return ((MetalFloorplanBase)plan).gndWidth;}
 
-	public PrimitiveNode getPinType() {return pin;}
+    public PrimitiveNode getPinType() {return pin;}
 	public ArcProto getMetalType() {return metal;}
 	public double getCellWidth() {return plan.cellWidth;}
 	public double getCellHeight() {return plan.cellHeight;}
 	public int getLayerNumber() {return layerNum;}
+}
+
+// ------------------------------- MetalLayerFlex -----------------------------
+
+class MetalLayerFlex extends MetalLayer {
+
+//    private final MetalFloorplanFlex plan;
+//	private final int layerNum;
+//	private final PrimitiveNode pin;
+//	private final ArcProto metal;
+//    private ArrayList<ExportBar> vddBars = new ArrayList<ExportBar>();
+//    private ArrayList<ExportBar> gndBars = new ArrayList<ExportBar>();
+
+    public MetalLayerFlex(int layerNum, Floorplan plan, Cell cell) {
+        super(layerNum, plan, cell);
+//		this.plan = (MetalFloorplanFlex)plan;
+//		this.layerNum = layerNum;
+//		metal = METALS[layerNum];
+//		pin = PINS[layerNum];
+//		buildGndAndVdd(cell);
+	}
+
+//    public boolean isHorizontal() {return plan.horizontal;}
+//    public int numVdd() {return vddBars.size();}
+//    public double getVddCenter(int n) {
+//		return (vddBars.get(n).center.doubleValue());
+//	}
+//    public PortInst getVdd(int n, int pos)
+//    {return vddBars.get(n).ports[pos];}
+//    public double getVddWidth(int n) {return ((MetalFloorplan)plan).vddWidth;}
+//    public int numGnd() {return gndBars.size();}
+//    public double getGndCenter(int n) {
+//		return (gndBars.get(n).center.doubleValue());
+//	}
+//    public PortInst getGnd(int n, int pos) {return gndBars.get(n).ports[pos];}
+//    public double getGndWidth(int n) {return ((MetalFloorplan)plan).gndWidth;}
+//
+//    public PrimitiveNode getPinType() {return pin;}
+//	public ArcProto getMetalType() {return metal;}
+//	public double getCellWidth() {return plan.cellWidth;}
+//	public double getCellHeight() {return plan.cellHeight;}
+//	public int getLayerNumber() {return layerNum;}
+
+    protected void buildGndAndVdd(Cell cell) {
+		double pinX, pinY;
+        double limit = 0;
+        MetalFloorplanFlex plan = (MetalFloorplanFlex)this.plan;
+
+        if (plan.horizontal)
+        {
+            limit = plan.cellHeight/2;
+        }
+        else
+        {
+            limit = plan.cellWidth/2;
+        }
+
+        double position = 0;
+        int i = 0;
+
+        while (position < limit)
+        {
+            boolean even = (i%2==0);
+            double maxDelta = 0, pos = 0;
+
+            if (even)
+            {
+                maxDelta = plan.vddReserve/2 + plan.vddWidth;
+                pos = plan.vddReserve/2 + plan.vddWidth/2 + position;
+            }
+            else
+            {
+                maxDelta = plan.gndReserve/2 + plan.gndWidth;
+                pos = plan.gndReserve/2 + plan.gndWidth/2 + position;
+            }
+
+            if (position + maxDelta > limit) return; // border was reached
+
+            if (plan.horizontal)
+            {
+                pinY =  pos;
+                pinX = plan.cellWidth/2;
+            }
+            else
+            {
+                pinX = pos;
+                pinY = plan.cellHeight/2;
+            }
+
+            // Vdd if even, gnd if odd
+            if (!even)
+                addBars(cell, pinX, pinY, plan.gndWidth, gndBars);
+            else
+                addBars(cell, pinX, pinY, plan.vddWidth, vddBars);
+
+            if (even)
+            {
+                maxDelta = plan.vddReserve/2 + plan.vddWidth + plan.space + plan.gndWidth;
+                pos = plan.vddReserve/2 + plan.vddWidth + plan.space + plan.gndWidth/2 + position;
+            }
+            else
+            {
+                maxDelta = plan.gndReserve/2 + plan.gndWidth + plan.space + plan.vddWidth;
+                pos = plan.gndReserve/2 + plan.gndWidth + plan.space + plan.vddWidth/2 + position;
+            }
+
+            if (position + maxDelta > limit) return; // border was reached
+
+            if (plan.horizontal)
+                pinY = pos;
+            else
+                pinX = pos;
+
+            // Gnd if even, vdd if odd
+            if (!even)
+            {
+                addBars(cell, pinX, pinY, plan.vddWidth, vddBars);
+                position = ((plan.horizontal)?pinY:pinX) + plan.vddWidth/2 + plan.vddReserve/2;
+            }
+            else
+            {
+                addBars(cell, pinX, pinY, plan.gndWidth, gndBars);
+                position = ((plan.horizontal)?pinY:pinX) + plan.gndWidth/2 + plan.gndReserve/2;
+            }
+            i++;
+        }
+	}
+
+    private void addBars(Cell cell, double pinX, double pinY, double width, ArrayList<ExportBar> bars)
+    {
+
+        PortInst tl = LayoutLib.newNodeInst(pin, -pinX, pinY, G.DEF_SIZE,
+                                            G.DEF_SIZE, 0, cell
+                                            ).getOnlyPortInst();
+        PortInst tr = LayoutLib.newNodeInst(pin, pinX, pinY, G.DEF_SIZE,
+                                            G.DEF_SIZE, 0, cell
+                                            ).getOnlyPortInst();
+        PortInst bl = LayoutLib.newNodeInst(pin, -pinX, -pinY, G.DEF_SIZE,
+                                            G.DEF_SIZE, 0, cell
+                                            ).getOnlyPortInst();
+        PortInst br = LayoutLib.newNodeInst(pin, pinX, -pinY, G.DEF_SIZE,
+                                            G.DEF_SIZE, 0, cell
+                                            ).getOnlyPortInst();
+
+        double center = 0;
+
+        if (plan.horizontal) {
+            G.noExtendArc(metal, width, tl, tr);
+            G.noExtendArc(metal, width, bl, br);
+            center = pinY;
+            bars.add(new ExportBar(bl, br, -center));
+            bars.add(new ExportBar(tl, tr, center));
+        } else {
+            G.noExtendArc(metal, width, bl, tl);
+            G.noExtendArc(metal, width, br, tr);
+            center = pinX;
+            bars.add(new ExportBar(bl, tl, -center));
+            bars.add(new ExportBar(br, tr, center));
+        }
+    }
 }
 
 //---------------------------------- CapFloorPlan -----------------------------
@@ -558,21 +797,21 @@ class CapLayer implements VddGndStraps {
 
 	public boolean isHorizontal() {return plan.horizontal;}
 	public int numVdd() {return capCell.numVdd();}
-	public PortInst getVdd(int n) {
+	public PortInst getVdd(int n, int pos) {
 		return capCellInst.findPortInst(vddName+"_"+n);
 	}
 	public double getVddCenter(int n) {
-		PortInst pi = getVdd(n);
+		PortInst pi = getVdd(n, 0);
 		return plan.horizontal ? LayoutLib.roundCenterY(pi) : 
 			                     LayoutLib.roundCenterX(pi);
 	}
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
 	public int numGnd() {return capCell.numGnd();}
-	public PortInst getGnd(int n) {
+	public PortInst getGnd(int n, int pos) {
 		return capCellInst.findPortInst(gndName+"_"+n);
 	}
 	public double getGndCenter(int n) {
-		PortInst pi = getGnd(n);
+		PortInst pi = getGnd(n, 0);
 		return plan.horizontal ? LayoutLib.roundCenterY(pi) :
 			                     LayoutLib.roundCenterX(pi);
 	}
@@ -615,16 +854,17 @@ class FillCell {
 		double edge = (lay.isHorizontal() ? lay.getCellWidth() : lay.getCellHeight())/2;
 		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
 		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
-		PortInst pi = gnd ? lay.getGnd(n) : lay.getVdd(n);
+		PortInst piLeft = gnd ? lay.getGnd(n, 0) : lay.getVdd(n, 0);
+        PortInst piRight = gnd ? lay.getGnd(n, 1) : lay.getVdd(n, 1);
 		if (lay.isHorizontal()) {
-			export(-edge, center, pin, metal, pi, width, 
+			export(-edge, center, pin, metal, piLeft, width,
 				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
-			export(edge, center, pin, metal, pi, width, 
+			export(edge, center, pin, metal, piRight, width,
 				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		} else {
-			export(center, -edge, pin, metal, pi, width, 
+			export(center, -edge, pin, metal, piLeft, width,
 				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
-			export(center, edge, pin, metal, pi, width, 
+			export(center, edge, pin, metal, piRight, width,
 				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		}
 	}
@@ -632,10 +872,10 @@ class FillCell {
 						ArcProto metal, PortInst conn, double w, 
 						String name, boolean gnd, Cell cell,
 						StdCellParams stdCell) {
-		PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 
-											0, cell).getOnlyPortInst();							 	
-		G.noExtendArc(metal, w, conn, pi);
-		Export e = Export.newInstance(cell, pi, name);
+//		PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE,
+//											0, cell).getOnlyPortInst();
+//		G.noExtendArc(metal, w, conn, pi);
+		Export e = Export.newInstance(cell, conn, name);
 		e.setCharacteristic(gnd ? stdCell.getGndExportRole() : 
 								  stdCell.getVddExportRole());
 	}
@@ -653,7 +893,7 @@ class FillCell {
 		ArcProto metal = lay.getMetalType();
 		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
 		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
-		PortInst pi = gnd ? lay.getGnd(n) : lay.getVdd(n);
+		PortInst pi = gnd ? lay.getGnd(n, 0) : lay.getVdd(n, 0); // Doesn't matter which bar end is taken
 		if (lay.isHorizontal()) {
 			export(0, center, pin, metal, pi, width, 
 				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
@@ -717,12 +957,13 @@ class FillCell {
 		double w = verLay.getVddWidth(verNdx);
 		double x = verLay.getVddCenter(verNdx);
 		ArcProto verMetal = verLay.getMetalType();
-		PortInst verPort = verLay.getVdd(verNdx);
+        // Try to select the closest pin in the other layer , even to the left, odd to the right
+		PortInst verPort = (horNdx%2==0) ? verLay.getVdd(verNdx, 0) : verLay.getVdd(verNdx, 1);
 		double h = horLay.getVddWidth(horNdx);
 		double y = horLay.getVddCenter(horNdx);
 		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
-		PortInst horPort = horLay.getVdd(horNdx);
+		PortInst horPort = (verNdx%2==0) ? horLay.getVdd(horNdx, 0) : horLay.getVdd(horNdx, 1);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
 
 		ViaDim d = new ViaDim(horLay, x, y, w, h);
@@ -730,8 +971,10 @@ class FillCell {
 		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0, 
 		                                     cell).getOnlyPortInst();
 
-		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
-		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
+        G.noExtendArc(horMetal, h, horPort, via);
+        G.noExtendArc(verMetal, w, via, verPort);
+//		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
+//		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
 	}
 
 	private void connectGndStraps(VddGndStraps horLay, int horNdx,
@@ -739,12 +982,13 @@ class FillCell {
 		double w = verLay.getGndWidth(verNdx);
 		double x = verLay.getGndCenter(verNdx);
 		ArcProto verMetal = verLay.getMetalType();
-		PortInst verPort = verLay.getGnd(verNdx);
+        // Try to select the closest pin in the other layer , even to the left, odd to the right
+		PortInst verPort = (horNdx%2==0) ? verLay.getGnd(verNdx, 0) : verLay.getGnd(verNdx, 1);
 		double h = horLay.getGndWidth(horNdx);
 		double y = horLay.getGndCenter(horNdx);
 		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
-		PortInst horPort = horLay.getGnd(horNdx);
+		PortInst horPort = (verNdx%2==0) ? horLay.getGnd(horNdx, 0) : horLay.getGnd(horNdx, 1);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
 
 		ViaDim d = new ViaDim(horLay, x, y, w, h);
@@ -752,8 +996,10 @@ class FillCell {
 		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0, 
 		 									 cell).getOnlyPortInst();
 
-		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
-		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
+        G.noExtendArc(horMetal, h, horPort, via);
+        G.noExtendArc(verMetal, w, via, verPort);
+//		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
+//		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
 	}
 	
 	private void connectLayers(VddGndStraps loLayer, VddGndStraps hiLayer,
@@ -775,7 +1021,7 @@ class FillCell {
 	
 	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer, 
 					 		   int topLayer, CapCell capCell, boolean wireLowest, 
-					 		   StdCellParams stdCell) {
+					 		   StdCellParams stdCell, boolean metalFlex) {
 		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
 		Cell cell = Cell.newInstance(lib, name);
 		VddGndStraps[] layers = new VddGndStraps[7];
@@ -784,8 +1030,11 @@ class FillCell {
 				layers[i] = new CapLayer(lib, (CapFloorplan) plans[i], capCell, 
 				                         cell, stdCell); 
 			} else {
-				layers[i] = new MetalLayer(i, (MetalFloorplan)plans[i], cell);
-			} 
+                if (metalFlex)
+				    layers[i] = new MetalLayerFlex(i, plans[i], cell);
+                else
+                    layers[i] = new MetalLayer(i, plans[i], cell);
+			}
 			if (i!=topLayer) {
 				// connect to upper level
 				connectLayers(layers[i], layers[i+1], cell);
@@ -811,11 +1060,11 @@ class FillCell {
 	}
 	public static Cell makeFillCell(Library lib, Floorplan[] plans, 
 								   int botLayer, int topLayer, CapCell capCell, 
-								   boolean wireLowest, StdCellParams stdCell) {
+								   boolean wireLowest, StdCellParams stdCell, boolean metalFlex) {
 		FillCell fc = new FillCell(stdCell);
 
 		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell, 
-		                        wireLowest, stdCell);
+		                        wireLowest, stdCell, metalFlex);
 	}
 }
 
@@ -1111,7 +1360,7 @@ public class FillGenerator {
 		if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
 		return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
 	}
-	private Floorplan[] makeFloorplans() {
+	private Floorplan[] makeFloorplans(boolean metalFlex) {
 		LayoutLib.error(width==Double.NaN, 
 						"width hasn't been specified. use setWidth()");
 		LayoutLib.error(height==Double.NaN, 
@@ -1121,6 +1370,18 @@ public class FillGenerator {
 		double[] vddRes = vddReserved;
 		double[] gndRes = gndReserved;
 		boolean evenHor = evenLayersHorizontal;
+        if (metalFlex)
+        {
+            return new Floorplan[] {
+			null,
+			new CapFloorplan(w, h, 			 	                 !evenHor),
+			new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], m1SP,  evenHor),
+			new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], m1SP, !evenHor),
+			new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], m1SP,  evenHor),
+			new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], m1SP, !evenHor),
+			new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
+		};
+        }
 		return new Floorplan[] {
 			null,
 			new CapFloorplan(w, h, 			 	                 !evenHor),
@@ -1138,13 +1399,13 @@ public class FillGenerator {
 		}
 	}
 
-	private void initFillParameters() {
+	private void initFillParameters(boolean metalFlex) {
 		if (libInitialized) return;
 		
 		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
 
-		plans = makeFloorplans();
-		printCoverage(plans);
+		plans = makeFloorplans(metalFlex);
+		if (!metalFlex) printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
 		stdCell = new StdCellParams(null, Tech.MOCMOS);
@@ -1174,9 +1435,9 @@ public class FillGenerator {
 	}
 	private Cell makeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
 								 int hiLay, CapCell capCell, boolean wireLowest, 
-								 int[] tiledSizes, StdCellParams stdCell) {
+								 int[] tiledSizes, StdCellParams stdCell, boolean metalFlex) {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
-									   wireLowest, stdCell);
+									   wireLowest, stdCell, metalFlex);
 		makeTiledCells(c, plans, lib, tiledSizes, stdCell);
         return c;
 	}
@@ -1258,8 +1519,8 @@ public class FillGenerator {
 	 * to create fill cells with export type "POWER". Please use the version
 	 * of makeFillCell that has no PowerType argument. */
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-							 PowerType powerType, int[] tiledSizes) {
-		initFillParameters();
+							 PowerType powerType, int[] tiledSizes, boolean metalFlex) {
+		initFillParameters(metalFlex);
 		
 		LayoutLib.error(loLayer<1, "loLayer must be >=1");
 		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
@@ -1268,10 +1529,10 @@ public class FillGenerator {
         Cell cell = null;
 		if (powerType==VDD) {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-			                tiledSizes, stdCell);
+			                tiledSizes, stdCell, metalFlex);
 		} else {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-			                tiledSizes, stdCellP);
+			                tiledSizes, stdCellP, metalFlex);
 		}
         return cell;
 	}
@@ -1291,8 +1552,8 @@ public class FillGenerator {
 	 * concatonating fill cells. For example int[] {2, 4, 7} means we should 
 	 * tile fill cell to build composites 2x2, 4x4, and 7x7. */
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-			 				 int[] tiledSizes) {
-		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes);
+			 				 int[] tiledSizes, boolean metalFlex) {
+		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -1326,7 +1587,7 @@ public class FillGenerator {
 
 		public boolean doIt()
 		{
-            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList); //new int[] {2,3,4,5,10,12});
+            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
             fillGen.makeGallery();
 
             if (topCell == null || portList == null) return true;
@@ -1417,30 +1678,9 @@ public class FillGenerator {
             for (int i = 0; i < ports.length; i++)
             {
                 PortInst p = ports[i];
-                double minDist = Double.POSITIVE_INFINITY;
                 Rectangle2D portBnd = rects[i];
-                NodeInst minNi = null;
+                NodeInst minNi = connectToExistingContacts(p, portBnd, fillContactList, fillPortInstList);
 
-                for (int j = 0; j < fillContactList.size(); j++)
-                {
-                    NodeInst ni = fillContactList.get(j);
-                    PortInst fillNiPort = fillPortInstList.get(j);
-                    // Checking only the X distance between a placed contact and the port
-                    Rectangle2D contBox = ni.getBounds();
-
-                    // check if contact is connected to the same grid
-                    if (fillNiPort.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
-                        continue; // no match in network type
-
-                    // If they are not aligned on Y, discard
-                    if (!DBMath.areEquals(contBox.getCenterY(), portBnd.getCenterY())) continue;
-                    double pdx = Math.abs(Math.max(contBox.getMinX()-portBnd.getMaxX(), portBnd.getMinX()-contBox.getMaxX()));
-                    if (pdx < minDist)
-                    {
-                        minNi = ni;
-                        minDist = pdx;
-                    }
-                }
                 if (minNi != null)
                 {
                     int index = fillContactList.indexOf(minNi);
@@ -1458,6 +1698,9 @@ public class FillGenerator {
             }
 
             // If nothing works, try to insert contacts in location with same Y
+            // Cleaning fillContacts so it doesn't try again with the same sets
+            fillPortInstList.clear();
+            fillContactList.clear();
             for (int i = 0; i < portNotReadList.size(); i++)
             {
                 PortInst p = portNotReadList.get(i);
@@ -1467,21 +1710,88 @@ public class FillGenerator {
                         2*newWid, r.getHeight()); // copy the rectangle to add extra width
 
                 // Check possible new contacts added
-
-                // Searching arcs again
-                Geometric geom = routeToClosestArc(container, p, rect, fillTransOut);
-                if (geom == null)
+                NodeInst minNi = connectToExistingContacts(p, rect, fillContactList, fillPortInstList);
+                if (minNi != null)
                 {
-                    ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
-                    l.addPoly(p.getPoly(), true, topCell);
-                    if (p.getPortProto() instanceof Export)
-                        l.addExport((Export)p.getPortProto(), true, topCell, null);
-                    l.addGeom(p.getNodeInst(), true, fillCell, null);
+                    int index = fillContactList.indexOf(minNi);
+                    PortInst fillNiPort = fillPortInstList.get(index);
+                    // Connecting the export in the top cell
+                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
+                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
+                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+                }
+                else
+                {
+                    // Searching arcs again
+                    Geometric geom = routeToClosestArc(container, p, rect, fillTransOut);
+                    if (geom == null)
+                    {
+                        ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
+                        l.addPoly(p.getPoly(), true, topCell);
+                        if (p.getPortProto() instanceof Export)
+                            l.addExport((Export)p.getPortProto(), true, topCell, null);
+                        l.addGeom(p.getNodeInst(), true, fillCell, null);
+                    }
                 }
             }
+
+            // Export all fillCell exports in connectCell
+//            for (Iterator<Export> it = container.fillCell.getExports(); it.hasNext();)
+//            {
+//                Export export = it.next();
+//                PortInst p = container.fillNi.findPortInstFromProto(export);
+//
+//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(),
+//                        p.getPortProto().getCharacteristic(),
+//                        ai.getProto(),
+////                        Tech.m3,
+//                        10, geomBnd.getCenterX(), nodeBounds.getCenterY());
+//            }
+//            // Creating the export above the pin in the fill cell
+//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
+////                        Tech.m3,
+//                        10, geomBnd.getCenterX(), nodeBounds.getCenterY());
+//                Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
+//                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
+//                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
+//                // Connecting the export in the top cell
+//                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
+////                container.fillPortInstList.add(fillNiPort);
+//                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
+//                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
+//                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
             log.termLogging(false);
 
             return true;
+        }
+        
+        private NodeInst connectToExistingContacts(PortInst p, Rectangle2D portBnd,
+                                               List<NodeInst> fillContactList, List<PortInst> fillPortInstList)
+        {
+            double minDist = Double.POSITIVE_INFINITY;
+            NodeInst minNi = null;
+
+            for (int j = 0; j < fillContactList.size(); j++)
+            {
+                NodeInst ni = fillContactList.get(j);
+                PortInst fillNiPort = fillPortInstList.get(j);
+                // Checking only the X distance between a placed contact and the port
+                Rectangle2D contBox = ni.getBounds();
+
+                // check if contact is connected to the same grid
+                if (fillNiPort.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
+                    continue; // no match in network type
+
+                // If they are not aligned on Y, discard
+                if (!DBMath.areEquals(contBox.getCenterY(), portBnd.getCenterY())) continue;
+                double pdx = Math.abs(Math.max(contBox.getMinX()-portBnd.getMaxX(), portBnd.getMinX()-contBox.getMaxX()));
+                if (pdx < minDist)
+                {
+                    minNi = ni;
+                    minDist = pdx;
+                }
+            }
+            return minNi;
         }
 
         private static class FillGenJobContainer
@@ -1604,7 +1914,6 @@ public class FillGenerator {
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
                 Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
 
-                // Creating the export in tbe connection cell for the contact
                 return geom;
             }
             return null;
