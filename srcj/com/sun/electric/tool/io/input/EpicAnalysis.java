@@ -49,46 +49,78 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
- /**
+/**
  * Class to define a set of simulation data producet by Epic simulators.
- * This class encapsulates all of the simulation data that is displayed in a waveform window.
- * It includes the labels and values.
- * It handles analog waveforms only.
+ * This class differs from Anylisis base class by less memory consumption.
+ * Waveforms are stored in a file in packed form. They are loaded to memory by
+ * denand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
+ * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
+ * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
 public class EpicAnalysis extends Analysis {
     
-    static final char separator = '.';
+    /** Separator in Epic signal names. */              static final char separator = '.';
     
-    static final byte VOLTAGE_TYPE = 1;
-    static final byte CURRENT_TYPE = 2;
+    /** Type of voltage signal. */                      static final byte VOLTAGE_TYPE = 1;
+    /** Type of current signal. */                      static final byte CURRENT_TYPE = 2;
     
-    static final Context VOLTAGE_CONTEXT = new Context(VOLTAGE_TYPE);
-    static final Context CURRENT_CONTEXT = new Context(VOLTAGE_TYPE);
+    /** Fake context which denotes voltage signal. */   static final Context VOLTAGE_CONTEXT = new Context(VOLTAGE_TYPE);
+    /** Fake context which denotes current signal. */   static final Context CURRENT_CONTEXT = new Context(VOLTAGE_TYPE);
     
-    private File waveFileName;
-    private RandomAccessFile waveFile;
-    int[] waveStarts;
+    /** File name of File with waveforms. */            private File waveFileName;
+    /** Opened file with waveforms. */                  private RandomAccessFile waveFile;
+    /** Offsets of packed waveforms in the file. */     int[] waveStarts;
     
-    private double timeResolution;
-    private double voltageResolution;
-    private double currentResolution;
-    private double maxTime;
+    /** Time resolution of integer time unit. */        private double timeResolution;
+    /** Voltage resolution of integer voltage unit. */  private double voltageResolution;
+    /** Current resolution of integer current unit. */  private double currentResolution;
+    /** Simulation time. */                             private double maxTime;
     
-    private List<Signal> signalsUnmodifiable;
-    private Context rootContext;
-    private Context[] contextHash = EMPTY_HASH;
-    private int numContexts = 0;
-    /** Empty hash for initialization. */
-    private static final Context[] EMPTY_HASH = { null };
-    
+    /** Unmodifieable view of signals list. */          private List<Signal> signalsUnmodifiable;
+    /** Top-most context. */                            private Context rootContext;
+    /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
+    /** Count of contexts in the hash. */               private int numContexts = 0;
+
+    /**
+     * Package-private constructor.
+     * @param sd Stimuli.
+     */
     EpicAnalysis(Stimuli sd) { super(sd, Analysis.ANALYSIS_TRANS); }
     
+    /**
+     * Set time resolution of this EpicAnalysis.
+     * @param timeResolution time resolution in nanoseconds.
+     */
     void setTimeResolution(double timeResolution) { this.timeResolution = timeResolution; }
+    
+    /**
+     * Set voltage resolution of this EpicAnalysys.
+     * @param voltageResolution voltage resolution in volts.
+     */
     void setVoltageResolution(double voltageResolution) { this.voltageResolution = voltageResolution; }
+    
+    /**
+     * Set current resolution of this EpicAnalysys.
+     * @param currentResolution in amperes ( milliamperes? ).
+     */
     void setCurrentResolution(double currentResolution) { this.currentResolution = currentResolution; }
+    
+    /**
+     * Set simulation time of this EpicAnalysis.
+     * @param maxTime simulation time in nanoseconds.
+     */
     void setMaxTime(double maxTime) { this.maxTime = maxTime; }
+    
+    /**
+     * Set root context of this EpicAnalysys.
+     * @param context root context.
+     */
     void setRootContext(Context context) { rootContext = context; }
     
+    /**
+     * Set waveform file of this EpicAnalysis.
+     * @param waveFileName File object with name of waveform file.
+     */
     void setWaveFile(File waveFileName) throws FileNotFoundException {
         this.waveFileName = waveFileName;
         waveFileName.deleteOnExit();
@@ -108,8 +140,8 @@ public class EpicAnalysis extends Analysis {
     
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.
-	 * Not all names may be found (because of name mangling, which this method does not handle).
-	 * But the lookup is faster than "findSignalForNetwork".
+     * This method overrides the m,ethod from Analysis class.
+     * It doesn't use signalNames hash map.
 	 * @param netName the Network name to find.
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
@@ -124,21 +156,29 @@ public class EpicAnalysis extends Analysis {
             return null;
         }
         Signal sig = signalsUnmodifiable.get(index);
-//        assert sig == old;
         return sig;
     }
 
-	public DefaultMutableTreeNode getSignalsForExplorer(String analysis) {
-		DefaultMutableTreeNode signalsExplorerTree = new EpicRootTreeNode(this, analysis);
-        return signalsExplorerTree;
-    }
-    
+    /**
+     * Public method to build tree of DefaultMutableTreeNodes.
+     * The size of tree is number of all signals.
+     * @param analysis name of root DefaultMutableTreeNode.
+     * @param treeNodeFromSignal map from Signal to DefaultMutableTreeNode.
+     * @return root DefaultMutableTreeNode of the tree.
+     */
     public DefaultMutableTreeNode getSignalsForExplorer(String analysis, HashMap<Signal,DefaultMutableTreeNode> treeNodeFromSignal) {
         DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
         getSignalsForExplorer(rootContext, signalsExplorerTree, 0, treeNodeFromSignal);
         return signalsExplorerTree;
     }
     
+    /**
+     * Method to build DefaultMutableTreeNodes subtree with given root context.
+     * @param parentContex root context.
+     * @param parentNode root DefaultMutableTreeNode.
+     * @param sigIndex starting index of Signals in this instance of parentContext.
+     * @param treeNodeFromSignal map from Signal to DefaultMutableTreeNode.
+     */
     private void getSignalsForExplorer(Context parentContext, DefaultMutableTreeNode parentNode, int sigIndex,
             HashMap<Signal,DefaultMutableTreeNode> treeNodeFromSignal) {
         for (EpicTreeNode etn: parentContext.sortedNodes) {
@@ -156,7 +196,23 @@ public class EpicAnalysis extends Analysis {
         }
     }
             
+    /**
+     * Public method to build tree of EpicTreeNodes.
+     * Root of the tree us EpicRootTreeNode objects.
+     * Deeper nodes are EpicTreeNode objects.
+     * @param analysis name of root DefaultMutableTreeNode.
+     * @return root EpicRootTreeNode of the tree.
+     */
+	public DefaultMutableTreeNode getSignalsForExplorer(String analysis) {
+		DefaultMutableTreeNode signalsExplorerTree = new EpicRootTreeNode(this, analysis);
+        return signalsExplorerTree;
+    }
     
+    /**
+     * Returns EpicSignal by its TreePath.
+     * @param treePath specified TreePath.
+     * @return EpicSignal or null.
+     */
     public static EpicSignal getSignal(TreePath treePath) {
         Object[] path = treePath.getPath();
         int i = 0;
@@ -175,10 +231,14 @@ public class EpicAnalysis extends Analysis {
     
 	/**
 	 * Method to get the list of signals in this Simulation Data object.
+     * List is unmodifieable.
 	 * @return a List of signals.
 	 */
 	public List<Signal> getSignals() { return signalsUnmodifiable; }
 
+    /**
+     * Package-private method to init unmodifiable List of signals.
+     */
     void initSignals() {
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
@@ -189,6 +249,11 @@ public class EpicAnalysis extends Analysis {
      */
 	public void nameSignal(Signal ws, String sigName) {}
     
+    /**
+     * Finds signal index of Signal with given full name.
+     * @param name full name.
+     * @return signal index of Signal in unmodifiable list of signals or -1.
+     */
     int searchName(String name) {
         Context context = rootContext;
         for (int pos = 0, index = 0;;) { 
@@ -205,6 +270,11 @@ public class EpicAnalysis extends Analysis {
         }
     }
         
+    /**
+     * Makes fullName or signalContext of signal with specified index.
+     * @param index signal index.
+     * @param full true to request full name.
+     */
     String makeName(int index, boolean full) {
         StringBuilder sb = new StringBuilder();
         Context context = rootContext;
@@ -231,6 +301,13 @@ public class EpicAnalysis extends Analysis {
         }
     }
     
+    /**
+     * Extends TreePath from TreePath of EpicAnalyis to specified Signal.
+     * TreePath is extended by EpicTreeNodes.
+     * @param rootTreePath TreePath of EpicAnalysis.
+     * @paran s target Signal for the TreePath.
+     * @return TreePath to the Signal.
+     */
     public TreePath getTreePath(TreePath rootTreePath, Signal s) {
         TreePath treePath = rootTreePath;
         assert ((EpicRootTreeNode)treePath.getLastPathComponent()).an == this;
@@ -248,6 +325,11 @@ public class EpicAnalysis extends Analysis {
         }
     }
     
+    /**
+     * Method to get Fake context of Signal.
+     * @param byte physical type of Signal.
+     * @return Fake context.
+     */ 
     static Context getContext(byte type) {
         switch (type) {
             case VOLTAGE_TYPE:
@@ -258,6 +340,11 @@ public class EpicAnalysis extends Analysis {
         throw new IllegalArgumentException();
     }
 
+    /**
+     * Method to get Context by list of names and list of contexts.
+     * @param strings list of names.
+     * @param contexts list of contexts.
+     */
     Context getContext(ArrayList<String> strings, ArrayList<Context> contexts) {
         assert strings.size() == contexts.size();
         int hashCode = Context.hashValue(strings, contexts);
@@ -307,10 +394,20 @@ public class EpicAnalysis extends Analysis {
         contextHash = newHash;
     }
 
-    public static class EpicRootTreeNode extends DefaultMutableTreeNode {
-        private EpicAnalysis an;
+    
+    /************************* EpicRootTreeNode *********************************************
+     * This class is for root node of EpicTreeNode tree.
+     * It contains children from rootContext of specified EpicAnalysis.
+     */
+    private static class EpicRootTreeNode extends DefaultMutableTreeNode {
+        /** EpicAnalysis which owns the tree. */    private EpicAnalysis an;
         
-        EpicRootTreeNode(EpicAnalysis an, String name) {
+        /**
+         * Private constructor.
+         * @param an specified EpicAnalysy.
+         * @paran name name of bwq EpicRootTreeNode
+         */
+        private EpicRootTreeNode(EpicAnalysis an, String name) {
             super(name);
             this.an = an;
             children = new Vector();
@@ -344,16 +441,44 @@ public class EpicAnalysis extends Analysis {
         }
     }
     
+    /************************* Context *********************************************
+     * This class denotes a group of siignals. It may have a few instance in signal tree.
+     */
     static class Context {
+        /**
+         * Type of context.
+         * it is nonzero for leaf context and it is zero for non-leaf contexts.
+         */
         private final byte type;
+        /**
+         * Hash code of this Context
+         */
         private final int hashCode;
+        /**
+         * Nodes of this Context in chronological order.
+         */
         private final EpicTreeNode[] nodes;
+        /**
+         * Nodes of this Context sorted by type and name.
+         */
         private final EpicTreeNode[] sortedNodes;
+        /**
+         * Flat number of signals in tree whose root is this context.
+         */
         private final int treeSize;
         
+        /**
+         * Map from name of subcontext to EpicTreeNode.
+         */
         private final HashMap<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
+        /**
+         * Map from name of leaf npde to EpicTreeNode.
+         */
         private final HashMap<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
  
+        /**
+         * Constructor of leaf fake context.
+         */
         private Context(byte type) {
             assert type != 0;
             this.type = type;
@@ -364,6 +489,12 @@ public class EpicAnalysis extends Analysis {
             treeSize = 1;
         }
         
+        /**
+         * Constructor of real context.
+         * @param names list of names.
+         * @param contexts list of contexts.
+         * @param hashCode precalculated hash code of new Context.
+         */
         private Context(ArrayList<String> names, ArrayList<Context> contexts, int hashCode) {
             assert names.size() == contexts.size();
             type = 0;
@@ -389,8 +520,16 @@ public class EpicAnalysis extends Analysis {
             this.treeSize = treeSize;
         }
         
+        /**
+         * Returns true if this context is fake leaf context.
+         * @return true if this context is fake leaf context.
+         */
         boolean isLeaf() { return type != 0; }
         
+        /**
+         * Returns true if contenst of this Context is equal to specified lists.
+         * @returns true if contenst of this Context is equal to specified lists.
+         */
         private boolean equals(ArrayList<String> names, ArrayList<Context> contexts) {
             int len = nodes.length;
             if (names.size() != len || contexts.size() != len) return false;
@@ -401,8 +540,18 @@ public class EpicAnalysis extends Analysis {
             return true;
         }
         
+        /**
+         * Returns hash code of this Context.
+         * @return hash code of this Context.
+         */
         public int hashCode() { return hashCode; }
         
+        /**
+         * Private method to calculate hash code.
+         * @param names list of names.
+         * @param contexts list of contexts.
+         * @return hash code
+         */
         private static int hashValue(ArrayList<String> names, ArrayList<Context> contexts) {
             assert names.size() == contexts.size();
             int hash = 0;
@@ -411,6 +560,11 @@ public class EpicAnalysis extends Analysis {
             return hash;
         }
         
+        /**
+         * Searches an EpicTreeNode in this context where signal with specified flat offset lives.
+         * @param offset flat offset of Signal.
+         * @return index of EpicTreeNode in this Context or -1.
+         */
         private int localSearch(int offset) {
             assert offset >= 0 && offset < treeSize;
             assert nodes.length > 0;
@@ -427,14 +581,21 @@ public class EpicAnalysis extends Analysis {
         }
     }
     
+    /************************* EpicTreeNode *********************************************
+     * This class denotes an element of a Context.
+     * It partially implements TreeNode (without getParent).
+     */
     public static class EpicTreeNode implements TreeNode {
         private final int chronIndex;
         private final String name;
         private final Context context;
         private final int nodeOffset;
         private int sortedIndex;
-        
-        EpicTreeNode(int chronIndex, String name, Context context, int nodeOffset) {
+
+        /**
+         * Private constructor.
+         */
+        private EpicTreeNode(int chronIndex, String name, Context context, int nodeOffset) {
             this.chronIndex = chronIndex;
             this.name = name;
             this.context = context;
@@ -519,6 +680,9 @@ public class EpicAnalysis extends Analysis {
         public String toString() { return name; }
     }
     
+    /**
+     * Comparator which compares EpicTreeNodes by type and by name.
+     */
     private static Comparator<EpicTreeNode> TREE_NODE_ORDER = new Comparator<EpicTreeNode>() {
       
         public int compare(EpicTreeNode tn1, EpicTreeNode tn2) {
@@ -528,9 +692,18 @@ public class EpicAnalysis extends Analysis {
         }
     };
     
+    /************************* EpicSignal *********************************************
+     * Class which represents Epic AnalogSignal.
+     */
     static class EpicSignal extends AnalogSignal {
         
+        /**
+         * Physical type of this EpicSignal.
+         */
         byte type;
+        /**
+         * Chronological index of this EpicSignal.
+         */
         int index;
         
         EpicSignal(EpicAnalysis an, byte type, int index) {

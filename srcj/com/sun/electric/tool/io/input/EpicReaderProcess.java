@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EpicReaderProcess.java
- * Input/output tool: reader for EPIC output (.out)
+ * Input/output tool: external reader for EPIC output (.out)
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -37,40 +37,72 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 
 /**
+ * This class is a launched in external JVM to read Epic output file.
+ * It doesn't import other Electric modules.
+ * Waveforms are stored in temporary file.
+ * Signal names are passed to std out using the following syntax:
+ * StdOut :== signames resolutions signalInfo* fileName
+ * signames :== ( up | down | signal )* 'F' 
+ * up :== 'U'
+ * down :== 'D' stringRef
+ * signal :== ( 'V' | 'I' ) stringRef
+ * stringRef= INT [ UDF ]
+ * resolutions :== timeResolution voltageResolution currentResolution timeMax
+ * timeResolution :== DOUBLE
+ * voltageResolution :== DOUBLE
+ * currentResolution :== DOUBLE
+ * timeMax :== DOUBLE
+ * signalInfo :== minV maxV packedLength
+ * minV :== INT
+ * maxV :== INT
+ * packedLength :== INT
+ * fileName :== UDF
  *
+ * Inititially current context i sempty.
+ * 'D' pushes a string to it.
+ * 'U' pops a string.
+ * 'V' and 'I' use the current context.
+ *
+ * stringRef  starts with a number. If this number is a new number then it is followed by definition of this string,
+ * otherwise it is reference of previously defined string.
+ * Number of signalInfo is equal to number of defined signals.
+ * fileName is a name of temporary file on local machine with packed waveform data.
+ * length in signalInfo is a number of bytes occupied in the file by this signal.
  */
 class EpicReaderProcess {
-    private InputStream inputStream;
-    private long fileLength;
-    private long byteCount;
-    private byte[] buf = new byte[65536];
-    private int bufL;
-    private int bufP;
-    private int lineNum;
-    private StringBuilder builder = new StringBuilder();
-    private Pattern whiteSpace = Pattern.compile("[ \t]+");
-    private byte lastProgress;
+    /** Input stream with Epic data. */                         private InputStream inputStream;
+    /** File length of inputStream. */                          private long fileLength;
+    /** Number of bytes read from stream to buffer. */          private long byteCount;
+    /** Buffer for parsing. */                                  private byte[] buf = new byte[65536];
+    /** Count of valid bytes in buffer. */                      private int bufL;
+    /** Count of parsed bytes in buffer. */                     private int bufP;
+    /** Count of parsed lines. */                               private int lineNum;
+    /** String builder to build input line. */                  private StringBuilder builder = new StringBuilder();
+    /** Pattern used to split input line into pieces. */        private Pattern whiteSpace = Pattern.compile("[ \t]+");
+    /** Last value of progress indicater (percents(.*/          private byte lastProgress;
      
-    private int timesC = 0;
-    private int eventsC = 0;
-    private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
-    private ArrayList<EpicReaderSignal> signals = new ArrayList<EpicReaderSignal>();
-    private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
-    private double timeResolution;
-    private double voltageResolution;
-    private double currentResolution;
-    private int curTime = 0;
-    private int maxT = 0;
-    private String[] currentContext = new String[1];
-    private int currentContextSeps = 0;
-   
-    private DataOutputStream stdOut = new DataOutputStream(System.out);
-
-    private static final String VERSION_STRING = ";! output_format 5.3";
-    private static final char separator = '.';
+    /** A map from Strings to Integer ids. */                   private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
+    /** Chronological list of signals. */                       private ArrayList<EpicReaderSignal> signals = new ArrayList<EpicReaderSignal>();
+    /** Sparce list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
+    /** Time resolution from input file. */                     private double timeResolution;
+    /** Voltage resolution from input file. */                  private double voltageResolution;
+    /** Current resolution from input file. */                  private double currentResolution;
+    /** Current time (in integer units). */                     private int curTime = 0;
+    /** A stack of signal context pieces. */                    private ArrayList<String> contextStack = new ArrayList<String>();
+    /** Count of timepoints for statistics. */                  private int timesC = 0;
+    /** Count of signal events for statistics. */               private int eventsC = 0;
     
+    /* DataOutputStream view of standard output. */             private DataOutputStream stdOut = new DataOutputStream(System.out);
+
+    /** Epic format we are able to read. */                     private static final String VERSION_STRING = ";! output_format 5.3";
+    /** Epic separator char. */                                 private static final char separator = '.';
+    
+    /** Private constructor. */
     private EpicReaderProcess() {}
 
+    /**
+     * Main program of external JVM for reading Epic files.
+     */
     public static void main(String args[]) {
         try {
             EpicReaderProcess process = new EpicReaderProcess();
@@ -93,7 +125,12 @@ class EpicReaderProcess {
         }
     }
     
-    private boolean readEpic(String urlName) throws IOException {
+    /**
+     * Reads Epic file into memory.
+     * Writes signal names to stdout. 
+     * @param urlName url name of Epic file.
+     */
+    private void readEpic(String urlName) throws IOException {
         URL fileURL = new URL(urlName);
         long startTime = System.currentTimeMillis();
 		URLConnection urlCon = fileURL.openConnection();
@@ -125,69 +162,22 @@ class EpicReaderProcess {
         long stopTime = System.currentTimeMillis();
         System.err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + signals.size() + " signals " + stringIds.size() + " strings " + 
                 timesC + " timepoints " +  eventsC + " events from " + urlName);
-                
-		return false;
     }
 
-    private void writeOut() throws IOException {
-        File tempFile = null;
-        BufferedOutputStream waveStream = null;
-        boolean ok = false;
-        try {
-            long startTime = System.currentTimeMillis();
-            tempFile = File.createTempFile("elec", ".epic");
-            waveStream = new BufferedOutputStream(new FileOutputStream(tempFile));
-        
-            showProgressNote("Writing " + tempFile);
-            stdOut.writeByte(0);
-            
-            stdOut.writeDouble(timeResolution);
-            stdOut.writeDouble(voltageResolution);
-            stdOut.writeDouble(currentResolution);
-            stdOut.writeDouble(maxT*timeResolution);
-            stdOut.writeInt(signals.size());
-            int size = 0;
-            for (EpicReaderSignal s: signals)
-                size += s.len;
-            int start = 0;
-            for (EpicReaderSignal s: signals) {
-                waveStream.write(s.waveform, 0, s.len);
-                
-                stdOut.writeInt(s.minV);
-                stdOut.writeInt(s.maxV);
-                stdOut.writeInt(s.len);
-                start += s.len;
-                showProgress(size != 0 ? start/(double)size : 0);
-            }
-            
-            waveStream.close();
-        
-            stdOut.writeUTF(tempFile.toString());
-            stdOut.close();
-            ok = true;
-            long stopTime = System.currentTimeMillis();
-            System.err.println((stopTime - startTime)/1000.0 + " sec to write " + tempFile.length() + " bytes to " + tempFile);
-        } finally {
-            if (ok)
-                return;
-            if (waveStream != null)
-                waveStream.close();
-            if (tempFile != null)
-                tempFile.delete();
-        }
-   }
-    
+    /**
+     * Parses line from Epic file.
+     */
     private void parseNumLine(String line) throws IOException {
         if (line.length() == 0) return;
         char ch = line.charAt(0);
         if (ch == '.') {
             String[] split = whiteSpace.split(line);
             if (split[0].equals(".index") && split.length == 4) {
-                int type;
+                byte type;
                 if (split[3].equals("v"))
-                    type = EpicReaderSignal.VOLTAGE_TYPE;
+                    type = 'V';
                 else if (split[3].equals("i"))
-                    type = EpicReaderSignal.CURRENT_TYPE;
+                    type = 'I';
                 else {
                     message("Unknown waveform type: " + line);
                     return;
@@ -217,7 +207,7 @@ class EpicReaderProcess {
                     contextName = name.substring(0, lastSlashPos + 1);
                 }
                 name = name.substring(lastSlashPos + 1);
-                if (type == EpicReaderSignal.CURRENT_TYPE) name = "i(" + name + ")";
+                if (type == 'I') name = "i(" + name + ")";
                 writeContext(contextName);
                 stdOut.writeByte(type);
                 writeString(name);
@@ -253,12 +243,16 @@ class EpicReaderProcess {
         }
     }
     
+    /**
+     * Writes new context as diff to previous context.
+     * @param s string with new context.
+     */
     private void writeContext(String s) throws IOException {
         int matchSeps = 0;
         int pos = 0;
         matchLoop:
-        while (matchSeps < currentContextSeps) {
-            String si = currentContext[matchSeps];
+        while (matchSeps < contextStack.size()) {
+            String si = contextStack.get(matchSeps);
             if (pos < s.length() && s.charAt(pos) == 'x')
                 pos++;
             if (pos + si.length() >= s.length() || s.charAt(pos + si.length()) != separator)
@@ -269,11 +263,11 @@ class EpicReaderProcess {
             matchSeps++;
             pos += si.length() + 1;
         }
-        while (currentContextSeps > matchSeps) {
+        while (contextStack.size() > matchSeps) {
             stdOut.writeByte('U');
-            currentContext[--currentContextSeps] = null;
+            contextStack.remove(contextStack.size() - 1);
         }
-        assert currentContextSeps == matchSeps;
+        assert contextStack.size() == matchSeps;
         while (pos < s.length()) {
             int indexOfSep = s.indexOf(separator, pos);
             assert indexOfSep >= pos;
@@ -282,17 +276,18 @@ class EpicReaderProcess {
                 pos++;
             String si = s.substring(pos, indexOfSep);
             writeString(si);
-            if (currentContextSeps >= currentContext.length) {
-                String[] newCurrentContext = new String[currentContext.length*2];
-                System.arraycopy(currentContext, 0, newCurrentContext, 0, currentContext.length);
-                currentContext = newCurrentContext;
-            }
-            currentContext[currentContextSeps++] = si;
+            contextStack.add(si);
             pos = indexOfSep + 1;
         }
         assert pos == s.length();
     }
     
+    /**
+     * Writes string to stdOut.
+     * It writes its chronological number.
+     * It writes string itself, if it is a new string.
+     * @param s string to write.
+     */
     private void writeString(String s) throws IOException {
         if (s == null) {
             stdOut.writeInt(-1);
@@ -310,6 +305,11 @@ class EpicReaderProcess {
         stdOut.writeUTF(s);
     }
     
+    /**
+     * Fast routine to parse a line from buffer.
+     * It either recognizes a simple line or rejects.
+     * @return true if this method recognized a line.
+     */
     private boolean parseNumLineFast() {
         final int MAX_DIGITS = 9;
         if (bufP + (MAX_DIGITS*2 + 4) >= bufL) return false;
@@ -351,11 +351,21 @@ class EpicReaderProcess {
         return true;
     }
     
+    /**
+     * Sets new current time.
+     * This current time will be used in PutBValue method.
+     * @param time time as int value.
+     */
     private void putTime(int time) {
         timesC++;
-        maxT = curTime = Math.max(curTime, time);
+        curTime = Math.max(curTime, time);
     }
     
+    /**
+     * Puts event into packed waveforms.
+     * @param sigNum Epic signal index of signal.
+     * @param value new value of signal.
+     */
     private void putValue(int sigNum, int value) {
         EpicReaderSignal s = (EpicReaderSignal)signalsByEpicIndex.get(sigNum);
         if (s == null) {
@@ -366,6 +376,10 @@ class EpicReaderProcess {
         eventsC++;
     }
     
+    /**
+     * Gets new line from buffer.
+     * @return String line read.
+     */
     private String getLine() throws IOException {
         builder.setLength(0);
         for (;;) {
@@ -390,6 +404,11 @@ class EpicReaderProcess {
         }
     }
     
+    /**
+     * ASCII to double.
+     * @param s ASCII string. 
+     * @return double value of string.
+     */
     private double atof(String s) {
         double value = 0;
         try {
@@ -400,6 +419,11 @@ class EpicReaderProcess {
         return value;
     }
     
+    /**
+     * ASCII to int.
+     * @param s ASCII string. 
+     * @return int value of string.
+     */
     private int atoi(String s) {
         int value = 0;
         try {
@@ -410,6 +434,9 @@ class EpicReaderProcess {
         return value;
     }
     
+    /**
+     * Reads buffer from Epic file.
+     */
     private boolean readBuf() throws IOException {
         assert bufP == bufL;
         bufP = bufL = 0;
@@ -423,6 +450,59 @@ class EpicReaderProcess {
         return false;
     }
     
+    /**
+     * Writes resolutions, signalInfo and fileName to stdOut.
+     */
+    private void writeOut() throws IOException {
+        File tempFile = null;
+        BufferedOutputStream waveStream = null;
+        boolean ok = false;
+        try {
+            long startTime = System.currentTimeMillis();
+            tempFile = File.createTempFile("elec", ".epic");
+            waveStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+            
+            showProgressNote("Writing " + tempFile);
+            stdOut.writeByte('F');
+            
+            stdOut.writeDouble(timeResolution);
+            stdOut.writeDouble(voltageResolution);
+            stdOut.writeDouble(currentResolution);
+            stdOut.writeDouble(curTime*timeResolution);
+            int size = 0;
+            for (EpicReaderSignal s: signals)
+                size += s.len;
+            int start = 0;
+            for (EpicReaderSignal s: signals) {
+                waveStream.write(s.waveform, 0, s.len);
+                
+                stdOut.writeInt(s.minV);
+                stdOut.writeInt(s.maxV);
+                stdOut.writeInt(s.len);
+                start += s.len;
+                showProgress(size != 0 ? start/(double)size : 0);
+            }
+            
+            waveStream.close();
+            
+            stdOut.writeUTF(tempFile.toString());
+            stdOut.close();
+            ok = true;
+            long stopTime = System.currentTimeMillis();
+            System.err.println((stopTime - startTime)/1000.0 + " sec to write " + tempFile.length() + " bytes to " + tempFile);
+        } finally {
+            if (ok)
+                return;
+            if (waveStream != null)
+                waveStream.close();
+            if (tempFile != null)
+                tempFile.delete();
+        }
+    }
+    
+    /**
+     * Puts progress mark into stdErr.
+     */
     private void showProgress(double ratio) {
         byte progress = (byte)(ratio*100);
         if (progress == lastProgress) return;
@@ -430,29 +510,39 @@ class EpicReaderProcess {
         lastProgress = progress;
     }
     
+    /**
+     * Puts progress not mark into stdErr.
+     */
     private void showProgressNote(String note) {
         System.err.println("**PROGRESS !" + note);
         lastProgress = 0;
     }
 
+    /**
+     * Puts message int stdErr.
+     */
     private void message(String s) {
         System.err.println(s + " in line " + (lineNum + 1));
     }
 }
 
+/**
+ * This class is a buffer to pack waveform of Epic signal.
+ */
 class EpicReaderSignal {
-    int type;
-    int lastT;
-    int lastV;
-    int minV = Integer.MAX_VALUE;
-    int maxV = Integer.MIN_VALUE;
-    byte[] waveform = new byte[512];
-//  byte[] waveform = new byte[40];
-    int len;
+    /** Time of last event.*/               int lastT;
+    /** Value of last event. */             int lastV;
+    /** Minimal value among events. */      int minV = Integer.MAX_VALUE;
+    /** Maximal value among events. */      int maxV = Integer.MIN_VALUE;
 
-    static final int VOLTAGE_TYPE = 1;
-    static final int CURRENT_TYPE = 2;
-    
+    /** Packed waveform. */                 byte[] waveform = new byte[512];
+    /** Count of bytes used in waveform. */ int len;
+
+    /**
+     * Puts event into waveform. 
+     * @param t time of event.
+     * @param v value of event.
+     */
     void putEvent(int t, int v) {
         putUnsigned(t - lastT);
         putSigned(v - lastV);
@@ -462,6 +552,10 @@ class EpicReaderSignal {
         maxV = Math.max(maxV, v);
     }
 
+    /**
+     * Packes unsigned int.
+     * @param value value to pack.
+     */
     void putUnsigned(int value) {
         if (value < 0xC0) {
             ensureCapacity(1);
@@ -480,6 +574,10 @@ class EpicReaderSignal {
         }
     }
     
+    /**
+     * Packes signed int.
+     * @param value value to pack.
+     */
     void putSigned(int value) {
         if (-0x60 <= value && value < 0x60) {
             ensureCapacity(1);
@@ -496,9 +594,12 @@ class EpicReaderSignal {
             putByte(value >> 8);
             putByte(value);
         }
-            
     }
     
+    /**
+     * Unpackes waveform.
+     * @return array with time/value pairs.
+     */    
     int[] getWaveform() {
         int count = 0;
         for (int i = 0; i < len; count++) {
@@ -561,8 +662,16 @@ class EpicReaderSignal {
         return w;
     }
     
+    /**
+     * Puts byte int packed array.
+     * @param value byte to but.
+     */
     void putByte(int value) { waveform[len++] = (byte)value; }
     
+    /**
+     * Ensures that it is possible to add specified number of bytes to packed waveform.
+     * @param l number of bytes.
+     */
     void ensureCapacity(int l) {
         if (len + l <= waveform.length) return;
         byte[] newWaveform = new byte[waveform.length*3/2];

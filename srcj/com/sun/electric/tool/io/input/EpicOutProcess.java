@@ -3,7 +3,6 @@
  * Electric(tm) VLSI Design System
  *
  * File: EpicOutProcess.java
- * Input/output tool: reader for EPIC output (.out)
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -51,6 +50,7 @@ import java.util.List;
 /**
  * Class for reading and displaying waveforms from Epic output.
  * These are contained in .out files.
+ * This class invokes external JVM to read the EpicFile.
  */
 public class EpicOutProcess extends Simulate implements Runnable
 {
@@ -137,13 +137,14 @@ public class EpicOutProcess extends Simulate implements Runnable
         int contextStackDepth = 1;
         
         for (;;) {
-            byte type = stdOut.readByte();
-            if (type == 0) break;
-            switch (type) {
-                case EpicAnalysis.VOLTAGE_TYPE:
-                case EpicAnalysis.CURRENT_TYPE:
+            byte b = stdOut.readByte();
+            if (b == 'F') break;
+            switch (b) {
+                case 'V':
+                case 'I':
                     String name = readString();
                     contextBuilder.strings.add(name);
+                    byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
                     EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++);
                     s.setSignalName(name);
@@ -179,8 +180,6 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.setMaxTime(stdOut.readDouble());
         an.initSignals();
         List<Signal> signals = an.getSignals();
-        assert numSignals == signals.size();
-        numSignals = stdOut.readInt();
         assert numSignals == signals.size();
         an.waveStarts = new int[numSignals + 1];
         int start = 0;
@@ -273,6 +272,9 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
     }
     
+    /**
+     * Class which is used to restore Contexts from flat list of Signals.
+     */
     private static class ContextBuilder {
         ArrayList<String> strings = new ArrayList<String>();
         ArrayList<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
