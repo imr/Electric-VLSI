@@ -1692,7 +1692,8 @@ public class VectorDrawing
 			{
 				Poly [] polys = new Poly[numPolys];
 				e.addDisplayableVariables(rect, polys, 0, wnd, true);
-				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT, false);
+				drawPolys(polys, trans, vc, true, VectorText.TEXTTYPEEXPORT, false);
+//				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT, false);
 			}
 		}
 	}

@@ -602,7 +602,7 @@ public class Array extends EDialog
 					portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(portInstsToExport, false, true, false, originalExports);
+				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, false, originalExports);
 			}
 
 			// rename the replicated objects

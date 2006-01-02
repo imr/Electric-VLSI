@@ -222,7 +222,7 @@ public class Spread extends EDialog
 	{
 		Spread dialog;
 
-		protected SpreadJob(Spread dialog)
+		private SpreadJob(Spread dialog)
 		{
 			super("Spread Circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;

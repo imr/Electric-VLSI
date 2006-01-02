@@ -1270,13 +1270,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				Poly poly = pp.getOriginalPort().getPoly();
 				int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
 				for(int i=0; i<numadded; i++)
+				{
 					polys[start+i].setPort(pp);
+					polys[start+i].transform(unTrans);
+				}
 				start += numadded;
 			}
 		}
 
 		// add in the displayable variables
-		if (dispVars > 0) addDisplayableVariables(getUntransformedBounds(), polys, start, wnd, false);
+		if (dispVars > 0)
+		{
+			addDisplayableVariables(getUntransformedBounds(), polys, start, wnd, false);
+		}
 		return polys;
 	}
 

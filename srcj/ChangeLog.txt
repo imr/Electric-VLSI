@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (12/28/05, SMR) Dragging or deleting text fails.
+FIX: In Highlight2.getHighlightedText() changed "return" to "continue" in last loop.
+
+IMP: (12/27/05, SMR) Added commands "Edit / Properties /  Parameterize Bus Name"
+     and "Edit / Properties / Edit Bus Parameters..." to parameterize busses.
+
+IMP: (12/26/05, SMR) Sped up exporting many ports by a factor of 3.
+
+BUG: (12/23/05, SMR) Changing an instance size may not redisplay the parent cell.
+FIX: In User.markCellForRedraw(), recurse if the cell changed.
+
 IMP: (12/23/05, SMR) "Show Network" used repeatedly does not show dots on nodes.
 
 IMP: (12/23/05, DN) Reduced the amount of memory used by Epic signals (Bug #712).

@@ -738,7 +738,7 @@ public class Clipboard
 			}
 		}
 		if (copyExports)
-			ExportChanges.reExportPorts(portInstsToExport, true, true, false, originalExports);
+			ExportChanges.reExportPorts(toCell, portInstsToExport, true, true, false, originalExports);
 
 		HashMap<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();
 		if (theArcs.size() > 0)

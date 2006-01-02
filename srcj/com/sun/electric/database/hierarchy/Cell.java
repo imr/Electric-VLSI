@@ -109,6 +109,8 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 {
+	private static final boolean EXPORT_NAMES_CASE_INSENSITIVE = false;
+
 	// ------------------------- private classes -----------------------------
 
 	/**
@@ -2503,7 +2505,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 void addExport(Export export)
 	{
 		checkChanging();
-		int portIndex = - searchExport(export.getName()) - 1;
+
+		int portIndex;
+		if (EXPORT_NAMES_CASE_INSENSITIVE)
+		{
+			portIndex = - searchExportCanonic(export.getNameKey().canonicString()) - 1;
+		} else
+		{
+			portIndex = - searchExport(export.getName()) - 1;
+		}
+		
 		assert portIndex >= 0;
 		export.setPortIndex(portIndex);
 
@@ -2584,7 +2595,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	void moveExport(int oldPortIndex, String newName)
 	{
 		Export export = exports[oldPortIndex];
-		int newPortIndex = - searchExport(newName) - 1;
+		int newPortIndex;
+		if (EXPORT_NAMES_CASE_INSENSITIVE)
+		{
+			newPortIndex = - searchExportCanonic(TextUtils.canonicString(newName)) - 1;
+		} else
+		{
+			newPortIndex = - searchExport(newName) - 1;
+		}
+		
 		if (newPortIndex < 0) return;
 		if (newPortIndex > oldPortIndex)
 			newPortIndex--;
@@ -2662,17 +2681,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public PortProto findPortProto(Name name)
 	{
-        if (name == null) return null;
-		int portIndex = searchExport(name.toString());
-		if (portIndex >= 0) return exports[portIndex];
-		String nameString = name.canonicString();
-		for (int i = 0; i < exports.length; i++)
+		if (EXPORT_NAMES_CASE_INSENSITIVE)
 		{
-			Export e = exports[i];
-			if (e.getNameKey().canonicString() == nameString)
-				return e;
+	        if (name == null) return null;
+			int portIndex = searchExportCanonic(name.canonicString());
+			if (portIndex >= 0) return exports[portIndex];
+			return null;
+		} else
+		{
+			if (name == null) return null;
+			int portIndex = searchExport(name.toString());
+			if (portIndex >= 0) return exports[portIndex];
+			String nameString = name.canonicString();
+			for (int i = 0; i < exports.length; i++)
+			{
+				Export e = exports[i];
+				if (e.getNameKey().canonicString() == nameString)
+					return e;
+			}
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -2780,6 +2808,39 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			int mid = (low + high) >> 1;
 			Export e = exports[mid];
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(e.getName(), name);
+
+			if (cmp < 0)
+				low = mid + 1;
+			else if (cmp > 0)
+				high = mid - 1;
+			else
+				return mid; // Export found
+		}
+		return -(low + 1);  // Export not found.
+    }
+
+    /**
+     * Searches the exports for the specified name using the binary
+     * search algorithm (case insensitive).
+     * @param name the name to be searched.
+     * @return index of the search name, if it is contained in the exports;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       Export would be inserted into the list: the index of the first
+     *	       element greater than the name, or <tt>exports.length()</tt>, if all
+     *	       elements in the list are less than the specified name.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the Export is found.
+     */
+	private int searchExportCanonic(String name)
+	{
+		int low = 0;
+		int high = exports.length-1;
+
+		while (low <= high) {
+			int mid = (low + high) >> 1;
+			Export e = exports[mid];
+			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(e.getNameKey().canonicString(), name);
 
 			if (cmp < 0)
 				low = mid + 1;
@@ -4245,7 +4306,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			assert e.getParent() == this;
 			assert e.getPortIndex() == i : e;
 			if (i > 0)
-				assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getName(), e.getName()) < 0) : i;
+			{
+				if (EXPORT_NAMES_CASE_INSENSITIVE)
+				{
+					assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getNameKey().canonicString(), e.getNameKey().canonicString()) < 0) : i;
+				} else
+				{
+					assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getName(), e.getName()) < 0) : i;
+				}
+			}
 			e.check();
             assert e == chronExports[e.getExportId().chronIndex]; 
 		}

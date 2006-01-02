@@ -1376,7 +1376,7 @@ public class CircuitChanges
         private List<Highlight2> highlightedText;
         private List<Highlight2> highlighted;
 
-		protected DeleteSelected(List<Highlight2> highlightedText, List<Highlight2> highlighted)
+        private DeleteSelected(List<Highlight2> highlightedText, List<Highlight2> highlighted)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlightedText = highlightedText;
@@ -1399,12 +1399,12 @@ public class CircuitChanges
 			{
 				Highlight2 h = it.next();
 				Geometric geom = h.getGeometric();
-				if (geom == null) continue;
 				if (h.isHighlightText())
 				{
 					ElectricObject eobj = h.getElectricObject();
 					if (eobj instanceof Export) continue;
 				}
+				if (geom == null) continue;
 
 				if (cell != h.getCell())
 				{

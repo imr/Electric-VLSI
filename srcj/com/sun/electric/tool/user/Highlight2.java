@@ -1501,7 +1501,7 @@ class HighlightText extends Highlight2
                 for(Iterator<Highlight2> fIt = getHighlights.iterator(); fIt.hasNext(); )
                 {
                     Highlight2 oH = fIt.next();
-                    if (!(oH instanceof HighlightEOBJ)) return;
+                    if (!(oH instanceof HighlightEOBJ)) continue;
                     ElectricObject fobj = ((HighlightEOBJ)oH).eobj;
                     if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
                     if (fobj == onObj) { found = true;   break; }

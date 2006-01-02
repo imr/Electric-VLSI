@@ -47,6 +47,7 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.ArtworkLook;
 import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.dialogs.BusParameters;
 import com.sun.electric.tool.user.dialogs.Change;
 import com.sun.electric.tool.user.dialogs.ChangeText;
 import com.sun.electric.tool.user.dialogs.EditKeyBindings;
@@ -231,7 +232,7 @@ public class EditMenu {
 		editInfoSubMenu.addMenuItem("Show _Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
-		// mnemonic keys available:  BC EFG IJK M  PQR TUVWXYZ
+		// mnemonic keys available:   C  FG IJK M  PQR TUVWXYZ
 		MenuBar.Menu editPropertiesSubMenu = MenuBar.makeMenu("Propert_ies");
 		editMenu.add(editPropertiesSubMenu);
 		editPropertiesSubMenu.addMenuItem("_Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
@@ -249,6 +250,11 @@ public class EditMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(false); } });
         editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance all _Libraries", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(true); } });
+		editPropertiesSubMenu.addSeparator();
+        editPropertiesSubMenu.addMenuItem("Parameterize _Bus Name", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { BusParameters.makeBusParameter(); } });
+        editPropertiesSubMenu.addMenuItem("_Edit Bus Parameters...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { BusParameters.showBusParametersDialog(); } });
 
 		// mnemonic keys available:     E G I KL  OPQ S  VWXYZ
 		MenuBar.Menu arcSubMenu = MenuBar.makeMenu("Ar_c");

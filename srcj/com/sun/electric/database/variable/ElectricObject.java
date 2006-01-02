@@ -24,18 +24,15 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -48,7 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Set;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -66,18 +63,18 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 */
 	protected ElectricObject() {}
 
-    /**
-     * Returns persistent data of this ElectricObject with Variables.
-     * @return persistent data of this ElectricObject.
-     */
-    public abstract ImmutableElectricObject getImmutable();
-    
-    // ------------------------ public methods -------------------
+	/**
+	 * Returns persistent data of this ElectricObject with Variables.
+	 * @return persistent data of this ElectricObject.
+	 */
+	public abstract ImmutableElectricObject getImmutable();
 
-    /**
-     * Returns true if object is linked into database
-     */
-    public abstract boolean isLinked();
+	// ------------------------ public methods -------------------
+
+	/**
+	 * Returns true if object is linked into database
+	 */
+	public abstract boolean isLinked();
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given name.
@@ -85,10 +82,10 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
 	public Variable getVar(String name)
-    {
-        Variable.Key key = Variable.findKey(name);
-        return getVar(key, null);
-    }
+	{
+		Variable.Key key = Variable.findKey(name);
+		return getVar(key, null);
+	}
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key.
@@ -107,32 +104,32 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @return the Variable with that name and type, or null if there is no such Variable.
 	 */
 	public Variable getVar(String name, Class type)
-    {
-        Variable.Key key = Variable.findKey(name);
-        return getVar(key, type);
-    }
+	{
+		Variable.Key key = Variable.findKey(name);
+		return getVar(key, type);
+	}
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key and type.
 	 * @param key the key of the Variable. Returns null if key is null.
 	 * @param type the required type of the Variable. Ignored if null.
 	 * @return the Variable with that key and type, or null if there is no such Variable
-     * or default Variable value.
+	 * or default Variable value.
 	 */
 	public Variable getVar(Variable.Key key, Class type)
 	{
-        checkExamine();
-        if (key == null) return null;
-        Variable var;
-        synchronized(this) {
-            var = getImmutable().getVar(key);
-        }
+		checkExamine();
+		if (key == null) return null;
+		Variable var;
+		synchronized(this) {
+			var = getImmutable().getVar(key);
+		}
 		if (var != null) {
-            if (type == null) return var;                   // null type means any type
-            if (type.isInstance(var.getObject())) return var;
-        }
-        return null;
-    }
+			if (type == null) return var;				   // null type means any type
+			if (type.isInstance(var.getObject())) return var;
+		}
+		return null;
+	}
 
 	/**
 	 * Returns the TextDescriptor on this ElectricObject selected by variable key.
@@ -152,7 +149,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		if (var == null) return null;
 		return var.getTextDescriptor();
 	}
-    
+
  	/**
 	 * Returns the TextDescriptor on this ElectricObject selected by variable key.
 	 * This key may be a key of variable on this ElectricObject or one of the
@@ -177,11 +174,11 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on Cell and NodeInst objects.
-     * @param varKey key to test
+	 * @param varKey key to test
 	 * @return true if the Variable with given key is a parameter.
 	 */
-    public boolean isParam(Variable.Key varKey) { return false; }
-    
+	public boolean isParam(Variable.Key varKey) { return false; }
+
 	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
@@ -194,7 +191,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		int numVars = 0;
 		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (var.isDisplay())
 			{
 				int len = var.getLength();
@@ -217,20 +214,20 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 */
 	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow0 wnd, boolean multipleStrings)
 	{
-        checkExamine();
+		checkExamine();
 		int numAddedVariables = 0;
-        double cX = rect.getCenterX();
-        double cY = rect.getCenterY();
+		double cX = rect.getCenterX();
+		double cY = rect.getCenterY();
 		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (!var.isDisplay()) continue;
 			Poly [] polyList = getPolyList(var, cX, cY, wnd, multipleStrings);
 			for(int i=0; i<polyList.length; i++)
 			{
 				int index = start + numAddedVariables;
 				polys[index] = polyList[i];
-                polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
+				polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 				numAddedVariables++;
 			}
 		}
@@ -251,7 +248,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 */
 	public Poly computeTextPoly(EditWindow0 wnd, Variable var, Name name)
 	{
-        checkExamine();
+		checkExamine();
 		Poly poly = null;
 		if (var != null)
 		{
@@ -259,12 +256,14 @@ public abstract class ElectricObject // extends Observable implements Observer
 			{
 				Export pp = (Export)this;
 				PortInst pi = pp.getOriginalPort();
-				Rectangle2D bounds = pi.getPoly().getBounds2D();
+//				Rectangle2D bounds = pi.getPoly().getBounds2D();
+				Rectangle2D bounds = pp.getNamePoly().getBounds2D();
+				TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
 				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
 				if (polys.length > 0)
 				{
 					poly = polys[0];
-					poly.transform(pi.getNodeInst().rotateOut());
+//					poly.transform(pi.getNodeInst().rotateOut());
 				}
 			} else if (this instanceof PortInst)
 			{
@@ -373,7 +372,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		Rectangle2D bounds = null;
 		for(Iterator<Variable> vIt = getVariables(); vIt.hasNext(); )
 		{
-			Variable var = (Variable)vIt.next();
+			Variable var = vIt.next();
 			if (!var.isDisplay()) continue;
 			TextDescriptor td = var.getTextDescriptor();
 //			if (td.getSize().isAbsolute()) continue;
@@ -415,7 +414,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			}
 			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
-				Export pp = (Export)it.next();
+				Export pp = it.next();
 				Poly poly = pp.computeTextPoly(wnd, null, null);
 				if (poly != null)
 				{
@@ -448,7 +447,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 		TextDescriptor td = var.getTextDescriptor();
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
 		{
-            td = td.withOff(0, 0);
+			td = td.withOff(0, 0);
 //			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
 //			mtd.setOff(0, 0);
 //			td = mtd;
@@ -534,7 +533,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 				if (i == 0)
 				{
 					message = var.getTrueName()+ "[" + (varLength-1) + "]:";
-                    entryTD = entryTD.withUnderline(true);
+					entryTD = entryTD.withUnderline(true);
 //					MutableTextDescriptor mtd = new MutableTextDescriptor(td);
 //					mtd.setUnderline(true);
 //					entryTD = mtd;
@@ -586,70 +585,70 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-    public Variable newDisplayVar(Variable.Key key, Object value) { return newVar(key, value, true); }
-    
+	public Variable newDisplayVar(Variable.Key key, Object value) { return newVar(key, value, true); }
+
 	/**
 	 * Method to create a non-displayable Variable on this ElectricObject with the specified values.
-     * Notify to observers as well.
+	 * Notify to observers as well.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-    public Variable newVar(Variable.Key key, Object value)
-    {
-        return newVar(key, value, false);
-    }
-    
+	public Variable newVar(Variable.Key key, Object value)
+	{
+		return newVar(key, value, false);
+	}
+
  	/**
 	 * Method to create a Variable on this ElectricObject with the specified values.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
-     * @param display true if the Variale is displayable.
+	 * @param display true if the Variale is displayable.
 	 * @return the Variable that has been created.
 	 */
-    public Variable newVar(Variable.Key key, Object value, boolean display) {
-        TextDescriptor td = null;
-        if (this instanceof Cell) td = TextDescriptor.cacheCellDescriptor.newTextDescriptor(display);
-        else if (this instanceof Export) td = TextDescriptor.cacheExportDescriptor.newTextDescriptor(display);
-        else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
-        else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
-        else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
-        return newVar(key, value, td);
-    }
-    
+	public Variable newVar(Variable.Key key, Object value, boolean display) {
+		TextDescriptor td = null;
+		if (this instanceof Cell) td = TextDescriptor.cacheCellDescriptor.newTextDescriptor(display);
+		else if (this instanceof Export) td = TextDescriptor.cacheExportDescriptor.newTextDescriptor(display);
+		else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
+		else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
+		else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
+		return newVar(key, value, td);
+	}
+
  	/**
 	 * Method to create a Variable on this ElectricObject with the specified values.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
-     * @param td text descriptor of the Variable
+	 * @param td text descriptor of the Variable
 	 * @return the Variable that has been created.
 	 */
-    public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
-    {
-        if (value == null) return null;
+	public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
+	{
+		if (value == null) return null;
  		if (isDeprecatedVariable(key)) {
 			System.out.println("Deprecated variable " + key + " on " + this);
 		}
-        Variable var = null;
-        try {
-            var = Variable.newInstance(key, value, td);
-        } catch (IllegalArgumentException e) {
-            ActivityLogger.logException(e);
-            return null;
-        }
-        addVar(var);
-        return getVar(key);
+		Variable var = null;
+		try {
+			var = Variable.newInstance(key, value, td);
+		} catch (IllegalArgumentException e) {
+			ActivityLogger.logException(e);
+			return null;
+		}
+		addVar(var);
+		return getVar(key);
 //        setChanged();
 //        notifyObservers(v);
 //        clearChanged();
-    }
+	}
 
  	/**
 	 * Method to add a Variable on this ElectricObject.
-     * It may add a repaired copy of this Variable in some cases.
+	 * It may add a repaired copy of this Variable in some cases.
 	 * @param var Variable to add.
 	 */
-     public abstract void addVar(Variable var);
+	public abstract void addVar(Variable var);
 
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
@@ -661,12 +660,12 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public Variable updateVar(Variable.Key key, Object value)
 	{
 		Variable var = getVar(key);
-        if (var == null) return newVar(key, value);
-        addVar(var.withObject(value));
-        return getVar(key);
+		if (var == null) return newVar(key, value);
+		addVar(var.withObject(value));
+		return getVar(key);
 	}
 
-    /**
+	/**
 	 * Updates the TextDescriptor on this ElectricObject selected by varKey.
 	 * The varKey may be a key of variable on this ElectricObject or one of the
 	 * special keys:
@@ -680,12 +679,12 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param td new value TextDescriptor
 	 */
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td) {
-        Variable var = getVar(varKey);
-        if (var == null) return;
-        if (!(this instanceof Cell))
-            td = td.withParam(false);
-        addVar(var.withTextDescriptor(td));
-    }
+		Variable var = getVar(varKey);
+		if (var == null) return;
+		if (!(this instanceof Cell))
+			td = td.withParam(false);
+		addVar(var.withTextDescriptor(td));
+	}
 
 	/**
 	 * Method to set the X and Y offsets of the text in the TextDescriptor selected by key of
@@ -698,8 +697,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @see com.sun.electric.database.variable.Variable#withOff(double,double)
 	 */
 	public synchronized void setOff(Variable.Key varKey, double xd, double yd) {
-        TextDescriptor td = getTextDescriptor(varKey);
-        if (td != null) setTextDescriptor(varKey, td.withOff(xd, yd));
+		TextDescriptor td = getTextDescriptor(varKey);
+		if (td != null) setTextDescriptor(varKey, td.withOff(xd, yd));
 	}
 
 	/**
@@ -714,54 +713,54 @@ public abstract class ElectricObject // extends Observable implements Observer
 		setTextDescriptor(varKey, td);
 	}
 
-    /**
-     * Rename a Variable. Note that this creates a new variable of
-     * the new name and copies all values from the old variable, and
-     * then deletes the old variable.
-     * @param name the name of the var to rename
-     * @param newName the new name of the variable
-     * @return the new renamed variable
-     */
-    public Variable renameVar(String name, String newName) {
-        return renameVar(Variable.findKey(name), newName);
-    }
+	/**
+	 * Rename a Variable. Note that this creates a new variable of
+	 * the new name and copies all values from the old variable, and
+	 * then deletes the old variable.
+	 * @param name the name of the var to rename
+	 * @param newName the new name of the variable
+	 * @return the new renamed variable
+	 */
+	public Variable renameVar(String name, String newName) {
+		return renameVar(Variable.findKey(name), newName);
+	}
 
-    /**
-     * Rename a Variable. Note that this creates a new variable of
-     * the new name and copies all values from the old variable, and
-     * then deletes the old variable.
-     * @param key the name key of the var to rename
-     * @param newName the new name of the variable
-     * @return the new renamed variable, or null on error (no action taken)
-     */
-    public Variable renameVar(Variable.Key key, String newName) {
-        // see if newName exists already
-        Variable.Key newKey = Variable.newKey(newName);
-        Variable var = getVar(newKey);
-        if (var != null) return null;            // name already exists
+	/**
+	 * Rename a Variable. Note that this creates a new variable of
+	 * the new name and copies all values from the old variable, and
+	 * then deletes the old variable.
+	 * @param key the name key of the var to rename
+	 * @param newName the new name of the variable
+	 * @return the new renamed variable, or null on error (no action taken)
+	 */
+	public Variable renameVar(Variable.Key key, String newName) {
+		// see if newName exists already
+		Variable.Key newKey = Variable.newKey(newName);
+		Variable var = getVar(newKey);
+		if (var != null) return null;            // name already exists
 
-        // get current Variable
-        Variable oldvar = getVar(key);
-        if (oldvar == null) return null;
+		// get current Variable
+		Variable oldvar = getVar(key);
+		if (oldvar == null) return null;
 
-        // create new var
-        Variable newVar = newVar(newKey, oldvar.getObject(), oldvar.getTextDescriptor());
-        if (newVar == null) return null;
-        // copy settings from old var to new var
+		// create new var
+		Variable newVar = newVar(newKey, oldvar.getObject(), oldvar.getTextDescriptor());
+		if (newVar == null) return null;
+		// copy settings from old var to new var
 //        newVar.setTextDescriptor();
 //        newVar.copyFlags(oldvar);
-        // delete old var
-        delVar(oldvar.getKey());
+		// delete old var
+		delVar(oldvar.getKey());
 
-        return newVar;
-    }
+		return newVar;
+	}
 
 	/**
 	 * Method to delete a Variable from this ElectricObject.
 	 * @param key the key of the Variable to delete.
 	 */
 	public abstract void delVar(Variable.Key key);
-    
+
 	/**
 	 * Method to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
@@ -769,19 +768,19 @@ public abstract class ElectricObject // extends Observable implements Observer
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-        Iterator<Variable> it = other.getVariables();
-        synchronized(this) {
-            while(it.hasNext())
-            {
-                Variable var = (Variable)it.next();
-                Variable newVar = this.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
-                if (newVar != null)
-                {
+		Iterator<Variable> it = other.getVariables();
+		synchronized(this) {
+			while(it.hasNext())
+			{
+				Variable var = it.next();
+				Variable newVar = this.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
+				if (newVar != null)
+				{
  //                   newVar.copyFlags(var);
  //                   newVar.setTextDescriptor();
-                }
-            }
-        }
+				}
+			}
+		}
 	}
 
 	private static class ArrayName
@@ -797,22 +796,55 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @param cls the class of the object on which this name resides.
 	 * @return a unique name for that class in that Cell.
 	 */
-    public static String uniqueObjectName(String name, Cell cell, Class cls) {
-        String newName = name;
-        for (int i = 0; !cell.isUniqueName(newName, cls, null); i++) {
-            newName = uniqueObjectNameLow(newName, cell, cls);
-            if (i > 100) {
-                System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
-                return null;
-            }
-        }
-        return newName;
-    }
+	public static String uniqueObjectName(String name, Cell cell, Class cls) {
+		String newName = name;
+		for (int i = 0; !cell.isUniqueName(newName, cls, null); i++) {
+			newName = uniqueObjectNameLow(newName, cell, cls, null, null);
+			if (i > 100) {
+				System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
+				return null;
+			}
+		}
+		return newName;
+	}
 
-	private static String uniqueObjectNameLow(String name, Cell cell, Class cls)
+	/**
+	 * Method to return a unique object name in a Cell.
+	 * @param name the original name that is not unique.
+	 * @param cell the Cell in which this name resides.
+	 * @param cls the class of the object on which this name resides.
+	 * @param already a Set of names already in use (lower case).
+	 * @return a unique name for that class in that Cell.
+	 */
+	public static String uniqueObjectName(String name, Cell cell, Class cls,
+		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex)
+	{
+		String newName = name;
+		String lcName = TextUtils.canonicString(newName);
+		for (int i = 0; already.contains(lcName); i++)
+		{
+			newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex);
+			if (i > 100)
+			{
+				System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
+				return null;
+			}
+			lcName = TextUtils.canonicString(newName);
+		}
+		return newName;
+	}
+
+	private static String uniqueObjectNameLow(String name, Cell cell, Class cls,
+		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex)
 	{
 		// first see if the name is unique
-		if (cell.isUniqueName(name, cls, null)) return name;
+		if (already != null)
+		{
+			if (!already.contains(name)) return name;
+		} else
+		{
+			if (cell.isUniqueName(name, cls, null)) return name;
+		}
 
 		// see if there is a "++" anywhere to tell us what to increment
 		int plusPlusPos = name.indexOf("++");
@@ -826,7 +858,13 @@ public abstract class ElectricObject // extends Observable implements Observer
 				for( ; ; nextIndex++)
 				{
 					String newname = name.substring(0, numStart) + nextIndex + name.substring(plusPlusPos);
-					if (cell.isUniqueName(newname, cls, null)) return newname;
+					if (already != null)
+					{
+						if (!already.contains(newname)) return newname;
+					} else
+					{
+						if (cell.isUniqueName(newname, cls, null)) return newname;
+					}
 				}
 			}
 		}
@@ -843,7 +881,13 @@ public abstract class ElectricObject // extends Observable implements Observer
 				for( ; nextIndex >= 0; nextIndex--)
 				{
 					String newname = name.substring(0, numStart) + nextIndex + name.substring(minusMinusPos);
-					if (cell.isUniqueName(newname, cls, null)) return newname;
+					if (already != null)
+					{
+						if (!already.contains(newname)) return newname;
+					} else
+					{
+						if (cell.isUniqueName(newname, cls, null)) return newname;
+					}
 				}
 			}
 		}
@@ -879,10 +923,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 		}
 
 		char separateChar = '_';
-		for(Iterator<ArrayName> it = names.iterator(); it.hasNext(); )
+		for(ArrayName an : names)
 		{
-			ArrayName an = (ArrayName)it.next();
-
 			// adjust the index part if possible
 			boolean indexAdjusted = false;
 			String index = an.indexPart;
@@ -929,7 +971,15 @@ public abstract class ElectricObject // extends Observable implements Observer
 							{
 								String newIndex = index.substring(0, startPos) + "[" + (startIndex+spacing*nextIndex) +
 									":" + (endIndex+spacing*nextIndex) + index.substring(endPos);
-								if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+								boolean unique;
+								if (already != null)
+								{
+									unique = !already.contains(an.baseName + newIndex);
+								} else
+								{
+									unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+								}
+								if (unique)
 								{
 									indexAdjusted = true;
 									an.indexPart = newIndex;
@@ -956,7 +1006,15 @@ public abstract class ElectricObject // extends Observable implements Observer
 						for(; ; nextIndex++)
 						{
 							String newIndex = index.substring(0, startPos) + "[" + nextIndex + index.substring(endPos);
-							if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+							boolean unique;
+							if (already != null)
+							{
+								unique = !already.contains(an.baseName + newIndex);
+							} else
+							{
+								unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+							}
+							if (unique)
 							{
 								indexAdjusted = true;
 								an.indexPart = newIndex;
@@ -995,7 +1053,15 @@ public abstract class ElectricObject // extends Observable implements Observer
 					for(; ; nextIndex++)
 					{
 						String newIndex = index.substring(0, startPos) + separateChar + nextIndex + index.substring(possibleEnd);
-						if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+						boolean unique;
+						if (already != null)
+						{
+							unique = !already.contains(an.baseName + newIndex);
+						} else
+						{
+							unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+						}
+						if (unique)
 						{
 							indexAdjusted = true;
 							an.indexPart = newIndex;
@@ -1028,17 +1094,29 @@ public abstract class ElectricObject // extends Observable implements Observer
 
 				// find the unique index to use
 				String prefix = base.substring(0, startPos) + localSepString;
-				nextIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+				if (nextPlainIndex != null)
+				{
+					GenMath.MutableInteger nxt = nextPlainIndex.get(prefix);
+					if (nxt == null)
+					{
+						nxt = new GenMath.MutableInteger(cell.getUniqueNameIndex(prefix, cls, nextIndex));
+						nextPlainIndex.put(prefix, nxt);
+					}
+					nextIndex = nxt.intValue();
+					nxt.increment();
+				} else
+				{
+					nextIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+				}
 				an.baseName = prefix + nextIndex + base.substring(endPos);
 			}
 		}
 		StringBuffer result = new StringBuffer();
 		boolean first = true;
-		for(Iterator<ArrayName> it = names.iterator(); it.hasNext(); )
+		for(ArrayName an : names)
 		{
 			if (first) first = false; else
 				result.append(",");
-			ArrayName an = (ArrayName)it.next();
 			result.append(an.baseName);
 			if (an.indexPart != null) result.append(an.indexPart);
 		}
@@ -1074,37 +1152,37 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
-    public synchronized int getNumVariables() { return getImmutable().getNumVariables(); }
-    
+	public synchronized int getNumVariables() { return getImmutable().getNumVariables(); }
+
 	/**
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
 	public void checkChanging() {
 //        if (!isDatabaseObject()) return;
-        Job.checkChanging();
+		Job.checkChanging();
 // 		if (!isLinked())
 // 		{
 // 			String msg = "Changing ElectricObject is not in Database";
 //             System.out.println(msg);
 // 			ActivityLogger.logException(new IllegalStateException(msg));
 // 		}
-    }
+	}
 
 	/**
 	 * Method to make sure that this object can be examined.
 	 * Ensures that an examine job is running.
 	 */
-    public void checkExamine() {
-        if (!isDatabaseObject()) return;
-        Job.checkExamine();
-    }
+	public void checkExamine() {
+		if (!isDatabaseObject()) return;
+		Job.checkExamine();
+	}
 
 	/**
 	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database, false if it is not a database object,
-     * or if it is a dummy database object (considered not to be in the database).
+	 * or if it is a dummy database object (considered not to be in the database).
 	 */
 	protected boolean isDatabaseObject() { return true; }
 
@@ -1121,17 +1199,17 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 */
 	public void getInfo()
 	{
-        checkExamine();
+		checkExamine();
 		boolean firstvar = true;
 		for(Iterator<Variable> it = getVariables(); it.hasNext() ;)
 		{
-            Variable val = (Variable)it.next();
-            Variable.Key key = val.getKey();
+			Variable val = it.next();
+			Variable.Key key = val.getKey();
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
-            String par = isParam(key) ? "(param)" : "";
-//            String par = val.isParam() ? "(param)" : "";
+			String par = isParam(key) ? "(param)" : "";
+//			String par = val.isParam() ? "(param)" : "";
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;
@@ -1216,5 +1294,5 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * @exception AssertionError if invariants are not valid
 	 */
 	protected void check() {
-    }
+	}
 }

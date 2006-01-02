@@ -1033,10 +1033,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public boolean setName(String name)
 	{
 		assert isLinked();
-		if (name.equals(getName())) return false;
 		Name key;
 		if (name != null && name.length() > 0)
 		{
+			if (name.equals(getName())) return false;
 			key = Name.findName(name);
 		} else
 		{

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -131,7 +132,7 @@ public class User extends Listener
         ni.getD().computeBounds(ni, newBounds);	// TODO Why can't we use "ni.getBounds()" ?
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
@@ -166,7 +167,7 @@ public class User extends Listener
 		Rectangle2D newBounds = ai.getBounds();
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
@@ -203,7 +204,7 @@ public class User extends Listener
 		Rectangle2D newBounds = newNi.getBounds();
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
@@ -257,7 +258,7 @@ public class User extends Listener
 		if (cell == null) return;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
@@ -314,7 +315,7 @@ public class User extends Listener
 		if (cell == null) return;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
@@ -348,7 +349,7 @@ public class User extends Listener
 			}
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				WindowContent content = wf.getContent();
 				if (content.getCell() != cell) continue;
 				content.setWindowTitle();
@@ -379,7 +380,7 @@ public class User extends Listener
 			markCellForRedraw(cell, true);
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				if (wf.getContent() instanceof EditWindow)
 				{
 					EditWindow wnd = (EditWindow)wf.getContent();
@@ -428,7 +429,7 @@ public class User extends Listener
 		// redraw all windows with Cells that changed
 		for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			markCellForRedraw(cell, true);
 		}
 
@@ -440,7 +441,7 @@ public class User extends Listener
 	
 			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (!cell.isLinked()) continue;
 
 				// see if the "last designer" should be changed on the cell
@@ -481,9 +482,8 @@ public class User extends Listener
 		public boolean doIt()
 		{
 			String userName = System.getProperty("user.name");
-			for(Iterator<Cell> it = updateLastDesigner.iterator(); it.hasNext(); )
+			for(Cell cell : updateLastDesigner)
 			{
-				Cell cell = (Cell)it.next();
 				cell.newVar(FRAME_LAST_CHANGED_BY, userName);
 			}
 			return true;
@@ -543,7 +543,7 @@ public class User extends Listener
 		}
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)wit.next();
+			WindowFrame wf = wit.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			Cell winCell = content.getCell();
@@ -557,8 +557,9 @@ public class User extends Listener
 		// recurse up the hierarchy so that all windows showing the cell get redrawn
 		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni.isExpanded()) markCellForRedraw(ni.getParent(), false);
+			NodeInst ni = it.next();
+			if (ni.isExpanded() || cellChanged)
+				markCellForRedraw(ni.getParent(), false);
 		}
 	}
 
@@ -1293,7 +1294,7 @@ public class User extends Listener
 
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
