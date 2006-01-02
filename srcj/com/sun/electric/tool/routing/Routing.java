@@ -251,7 +251,6 @@ public class Routing extends Listener
 
 			// convert requested nets
 			Cell cell = wnd.getCell();
-//			Netlist netList = cell.getUserNetlist();
 			Netlist netList = cell.acquireUserNetlist();
 			if (netList == null)
 			{
@@ -267,9 +266,8 @@ public class Routing extends Listener
 			HashSet<ArcInst> [] arcsToDelete = new HashSet[total];
 			HashSet<NodeInst> [] nodesToDelete = new HashSet[total];
 			int i = 0;
-			for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+			for(Network net : nets)
 			{
-				Network net = (Network)it.next();
 				netsToUnroute[i] = net;
 				arcsToDelete[i] = new HashSet<ArcInst>();
 				nodesToDelete[i] = new HashSet<NodeInst>();
@@ -290,14 +288,12 @@ public class Routing extends Listener
 			List<Connection> netEnds, Netlist netList, EditWindow_ wnd)
 		{
 			// remove marked nodes and arcs
-			for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
+			for(ArcInst ai : arcsToDelete)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				ai.kill();
 			}
-			for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
+			for(NodeInst ni : nodesToDelete)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				ni.kill();
 			}
 
@@ -370,7 +366,7 @@ public class Routing extends Listener
 		// look at every arc and see if it is part of the network
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
 			arcsToDelete.add(ai);
@@ -383,7 +379,7 @@ public class Routing extends Listener
 				boolean term = true;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
 				if (ni.getNumExports() > 0) term = true;
@@ -536,7 +532,7 @@ public class Routing extends Listener
 		// look for associations
 		for(Iterator<NodeInst> it = toCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode || ni.getProto() == Generic.tech.essentialBoundsNode) continue;
 			if (nodesAssoc.get(ni) != null) continue;
 
@@ -553,7 +549,7 @@ public class Routing extends Listener
 						// an export on a simple node: find the equivalent
 						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 						{
-							Export e = (Export)eIt.next();
+							Export e = eIt.next();
 							Export fromE = fromCell.findExport(e.getName());
 							if (fromE != null)
 							{
@@ -570,7 +566,7 @@ public class Routing extends Listener
 			List<NodeInst> fromList = new ArrayList<NodeInst>();
 			for(Iterator<NodeInst> nIt = fromCell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst oNi = (NodeInst)nIt.next();
+				NodeInst oNi = nIt.next();
 				if (ni.getProto() instanceof Cell)
 				{
 					if (((Cell)oNi.getProto()).getCellGroup() == ((Cell)ni.getProto()).getCellGroup()) fromList.add(oNi);
@@ -583,7 +579,7 @@ public class Routing extends Listener
 			List<NodeInst> toList = new ArrayList<NodeInst>();
 			for(Iterator<NodeInst> nIt = toCell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst oNi = (NodeInst)nIt.next();
+				NodeInst oNi = nIt.next();
 				if (ni.getProto() instanceof Cell)
 				{
 					if (oNi.getProto() == ni.getProto()) toList.add(oNi);
@@ -605,15 +601,13 @@ public class Routing extends Listener
 
 			// look for name matches
 			List<NodeInst> copyList = new ArrayList<NodeInst>();
-			for(Iterator<NodeInst> fIt = fromList.iterator(); fIt.hasNext(); ) copyList.add((NodeInst)fIt.next());
-			for(Iterator<NodeInst> fIt = copyList.iterator(); fIt.hasNext(); )
+			for(NodeInst fNi : fromList) copyList.add(fNi);
+			for(NodeInst fNi : copyList)
 			{
-				NodeInst fNi = (NodeInst)fIt.next();
 				String fName = fNi.getName();
 				NodeInst matchedNode = null;
-				for(Iterator<NodeInst> tIt = toList.iterator(); tIt.hasNext();  )
+				for(NodeInst tNi : toList)
 				{
-					NodeInst tNi = (NodeInst)tIt.next();
 					String tName = tNi.getName();
 					if (fName.equals(tName)) { matchedNode = tNi;   break; }
 				}
@@ -645,8 +639,6 @@ public class Routing extends Listener
 		}
 
 		// association made, now copy the topology
-//		Netlist fNl = fromCell.getUserNetlist();
-//		Netlist tNl = toCell.getUserNetlist();
 		Netlist fNl = fromCell.acquireUserNetlist();
 		Netlist tNl = toCell.acquireUserNetlist();
 		if (fNl == null || tNl == null)
@@ -656,14 +648,14 @@ public class Routing extends Listener
 		}
 		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
 		{
-			NodeInst tNi = (NodeInst)tIt.next();
+			NodeInst tNi = tIt.next();
 			NodeInst fNi = (NodeInst)nodesAssoc.get(tNi);
 			if (fNi == null) continue;
 
 			// look for another node that may match
 			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
 			{
-				NodeInst oTNi = (NodeInst)oTIt.next();
+				NodeInst oTNi = oTIt.next();
 				if (tNi == oTNi) continue;
 				NodeInst oFNi = (NodeInst)nodesAssoc.get(oTNi);
 				if (oFNi == null) continue;
@@ -673,11 +665,11 @@ public class Routing extends Listener
 				PortInst oFPi = null;
 				for(Iterator<PortInst> fPIt = fNi.getPortInsts(); fPIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)fPIt.next();
+					PortInst pi = fPIt.next();
 					Network net = fNl.getNetwork(pi);
 					for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
 					{
-						PortInst oPi = (PortInst)oFPIt.next();
+						PortInst oPi = oFPIt.next();
 						Network oNet = fNl.getNetwork(oPi);
 						if (net == oNet) { fPi = pi;   oFPi = oPi;   break; }
 					}
@@ -705,7 +697,7 @@ public class Routing extends Listener
 		// add in any exported but unconnected pins
 		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
 		{
-			NodeInst tNi = (NodeInst)tIt.next();
+			NodeInst tNi = tIt.next();
 			if (nodesAssoc.get(tNi) != null) continue;
 			if (tNi.getProto() instanceof Cell) continue;
 			if (tNi.getNumExports() == 0) continue;
@@ -713,8 +705,7 @@ public class Routing extends Listener
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;
 
 			// find that export in the source cell
-			PortProto tPp = tNi.getProto().getPort(0);
-			String matchName = ((Export)tNi.getExports().next()).getName();
+			String matchName = (tNi.getExports().next()).getName();
 			Network net = null;
 			for(Iterator<PortProto> fIt = fromCell.getPorts(); fIt.hasNext(); )
 			{
@@ -735,14 +726,14 @@ public class Routing extends Listener
 			NodeInst oTNi = null;
 			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)oTIt.next();
+				NodeInst ni = oTIt.next();
 				NodeInst oFNi = (NodeInst)nodesAssoc.get(ni);
 				if (oFNi == null) continue;
 
 				// see if they share a connection in the original
 				for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)oFPIt.next();
+					PortInst pi = oFPIt.next();
 					Network oNet = fNl.getNetwork(pi);
 					if (oNet == null) continue;
 					if (oNet == net) { oFPi = pi;   break; }
@@ -777,7 +768,6 @@ public class Routing extends Listener
 		// see if they are already connected
 		if (fPi != null && tPi != null)
 		{
-//			Netlist nl = cell.getUserNetlist();
 			Network fNet = nl.getNetwork(fPi);
 			Network tNet = nl.getNetwork(tPi);
 			if (fNet == tNet) return 0;
@@ -842,18 +832,18 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchOn(boolean on) { cacheMimicStitchOn.setBoolean(on); }
 
-	private static Pref cacheMimicStitchCanUnstitch = Pref.makeBooleanPref("MimicStitchCanUnstitch", Routing.tool.prefs, false);
-	/**
-	 * Method to tell whether Mimic-stitching can remove arcs (unstitch).
-	 * The default is "false".
-	 * @return true if Mimic-stitching can remove arcs (unstitch).
-	 */
-	public static boolean isMimicStitchCanUnstitch() { return cacheMimicStitchCanUnstitch.getBoolean(); }
-	/**
-	 * Method to set whether Mimic-stitching can remove arcs (unstitch).
-	 * @param on true if Mimic-stitching can remove arcs (unstitch).
-	 */
-	public static void setMimicStitchCanUnstitch(boolean on) { cacheMimicStitchCanUnstitch.setBoolean(on); }
+//	private static Pref cacheMimicStitchCanUnstitch = Pref.makeBooleanPref("MimicStitchCanUnstitch", Routing.tool.prefs, false);
+//	/**
+//	 * Method to tell whether Mimic-stitching can remove arcs (unstitch).
+//	 * The default is "false".
+//	 * @return true if Mimic-stitching can remove arcs (unstitch).
+//	 */
+//	public static boolean isMimicStitchCanUnstitch() { return cacheMimicStitchCanUnstitch.getBoolean(); }
+//	/**
+//	 * Method to set whether Mimic-stitching can remove arcs (unstitch).
+//	 * @param on true if Mimic-stitching can remove arcs (unstitch).
+//	 */
+//	public static void setMimicStitchCanUnstitch(boolean on) { cacheMimicStitchCanUnstitch.setBoolean(on); }
 
 	private static Pref cacheMimicStitchInteractive = Pref.makeBooleanPref("MimicStitchInteractive", Routing.tool.prefs, false);
 	/**

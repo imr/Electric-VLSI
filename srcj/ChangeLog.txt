@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/2/06, SMR) New command: Export / Manipulate Ports on Node (Bug #697).
+
+BUG: (1/2/06, SMR) Changing default text font doesn't update display (Bug #771).
+FIX: In TextTab.term() redraw all edit windows if font changes.
+
+IMP: (1/2/06, SMR) Mimic unstitch now works interactively (Bug #488).
+
 BUG: (12/28/05, SMR) Dragging or deleting text fails.
 FIX: In Highlight2.getHighlightedText() changed "return" to "continue" in last loop.
 

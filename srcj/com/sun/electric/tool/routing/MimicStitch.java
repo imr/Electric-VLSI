@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -38,6 +37,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -117,6 +118,7 @@ public class MimicStitch
 	private static class PossibleArc
 	{
 		private int       situation;
+		private ArcInst   ai;
 		private NodeInst  ni1, ni2;
 		private PortProto pp1, pp2;
 		private Point2D   pt1, pt2;
@@ -139,11 +141,10 @@ public class MimicStitch
 			return;
 		}
 
-		// if a single arc was deleted, and that is being mimiced, do it
-		if (lastActivity.numDeletedArcs == 1 && Routing.isMimicStitchCanUnstitch())
+		// if a single arc was deleted, mimiced it
+		if (lastActivity.numDeletedArcs == 1)
 		{
-			ArcProto ap = lastActivity.deletedArcs[0].getProto();
-			mimicdelete(ap, lastActivity);
+			mimicdelete(lastActivity);
 			lastActivity.numDeletedArcs = 0;
 			return;
 		}
@@ -236,48 +237,34 @@ public class MimicStitch
 	}
 
 	/**
-	 * Method to mimic the unrouting of an arc that ran from nodes[0]/ports[0] to
-	 * nodes[1]/ports[1] with type "typ".
+	 * Method to mimic the deletion of an arc.
 	 */
-	private static void mimicdelete(ArcProto typ, Routing.Activity activity)
+	private static void mimicdelete(Routing.Activity activity)
 	{
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.needCurrentEditWindow_();
+		if (wnd == null) return;
+
 		// determine length of deleted arc
-		Point2D pt0 = activity.deletedArcs[0].getHeadLocation();
-		Point2D pt1 = activity.deletedArcs[0].getTailLocation();
+		ArcInst mimicAi = activity.deletedArcs[0];
+		NodeInst mimicNiHead = mimicAi.getHeadPortInst().getNodeInst();
+		NodeInst mimicNiTail = mimicAi.getTailPortInst().getNodeInst();
+		ArcProto typ = mimicAi.getProto();
+		Point2D pt0 = mimicAi.getHeadLocation();
+		Point2D pt1 = mimicAi.getTailLocation();
 		double dist = pt0.distance(pt1);
 		int angle = 0;
 		if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
 
 		// look for a similar situation to delete
 		Cell cell = activity.deletedNodes[0].getParent();
-		List<ArcInst> arcKills = new ArrayList<ArcInst>();
+		List<PossibleArc> arcKills = new ArrayList<PossibleArc>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
+
 			// arc must be of the same type
 			if (ai.getProto() != typ) continue;
-
-			// arc must connect to the same type of node
-			if (Routing.isMimicStitchMatchNodeType())
-			{
-				boolean match = false;
-				if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
-					ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto()) match = true;
-				if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
-					ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto()) match = true;
-				if (!match) continue;
-			}
-
-			// arc must connect to the same type of port
-			if (Routing.isMimicStitchMatchPorts())
-			{
-				boolean match = false;
-				if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
-					ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) match = true;
-				if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
-					ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) match = true;
-				if (!match) continue;
-			}
 
 			// must be the same length and angle
 			Point2D end0 = ai.getHeadLocation();
@@ -289,43 +276,65 @@ public class MimicStitch
 				int thisAngle = DBMath.figureAngle(end0, end1);
 				if ((angle%1800) != (thisAngle%1800)) continue;
 			}
+			
+			PossibleArc pa = new PossibleArc();
+			pa.ai = ai;
+			pa.situation = 0;
+
+			// arc must connect to the same type of port
+			boolean matchPort = false;
+			if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
+				ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) matchPort = true;
+			if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
+				ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) matchPort = true;
+			if (!matchPort) pa.situation |= LIKELYDIFFPORT;
+
+			NodeInst niHead = ai.getHeadPortInst().getNodeInst();
+			NodeInst niTail = ai.getTailPortInst().getNodeInst();
+			int con1 = mimicNiHead.getNumConnections() + mimicNiTail.getNumConnections() + 2;
+			int con2 = niHead.getNumConnections() + niTail.getNumConnections();
+			if (con1 != con2) pa.situation |= LIKELYDIFFARCCOUNT;
+
+			// arc must connect to the same type of node
+			boolean matchNode = false;
+			if (niHead.getProto() == mimicNiHead.getProto() && niTail.getProto() == mimicNiTail.getProto())
+				matchNode = true;
+			if (niHead.getProto() == mimicNiTail.getProto() && niTail.getProto() == mimicNiHead.getProto())
+				matchNode = true;
+			if (!matchNode) pa.situation |= LIKELYDIFFNODETYPE;
+
+			// determine size of nodes on mimic arc
+			SizeOffset so = mimicNiHead.getSizeOffset();
+			double mimicWidHead = mimicNiHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double mimicHeiHead = mimicNiHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			so = mimicNiTail.getSizeOffset();
+			double mimicWidTail = mimicNiTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double mimicHeiTail = mimicNiTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+
+			// determine size of nodes on possible deleted arc
+			so = niHead.getSizeOffset();
+			double widHead = niHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double heiHead = niHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			so = niTail.getSizeOffset();
+			double widTail = niTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double heiTail = niTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+
+			// flag if the sizes differ
+			if (widHead != mimicWidHead || heiHead != mimicHeiHead) pa.situation |= LIKELYDIFFNODESIZE;
+			if (widTail != mimicWidHead || heiTail != mimicHeiHead) pa.situation |= LIKELYDIFFNODESIZE;
 
 			// the same! queue it for deletion
-			arcKills.add(ai);
-		}
-		MimicUnstitchJob job = new MimicUnstitchJob(arcKills);
-	}
-
-	/**
-	 * Class to change the node/arc type in a new thread.
-	 */
-	private static class MimicUnstitchJob extends Job
-	{
-		private List<ArcInst> arcKills;
-
-		private MimicUnstitchJob(List<ArcInst> arcKills)
-		{
-			super("Mimic-Unstitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.arcKills = arcKills;
-			setReportExecutionFlag(true);
-			startJob();
+			arcKills.add(pa);
 		}
 
-		public boolean doIt()
-		{
-			// now delete those arcs
-			int deleted = 0;
-			for(Iterator<ArcInst> it = arcKills.iterator(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-
-				ai.kill();
-				deleted++;
-			}
-			if (deleted != 0)
-				System.out.println("MIMIC ROUTING: deleted " + deleted + " wires");
-			return true;
-		}
+		boolean mimicInteractive = Routing.isMimicStitchInteractive();
+		boolean matchPorts = Routing.isMimicStitchMatchPorts();
+		boolean matchArcCount = Routing.isMimicStitchMatchNumArcs();
+		boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
+		boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
+		boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
+		processPossibilities(cell, arcKills, 0, 0, wnd, Job.Type.EXAMINE, true,
+			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 	}
 
 	/**
@@ -419,10 +428,10 @@ public class MimicStitch
 		HashMap<PortInst,Poly> cachedPortPoly = new HashMap<PortInst,Poly>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 				if (oProto != null)
 				{
 					if (!pi.getPortProto().connectsTo(oProto)) continue;
@@ -470,13 +479,13 @@ public class MimicStitch
 			// now search every node in the cell
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				Rectangle2D bounds = ni.getBounds();
 
 				// now look for another node that matches the situation
 				for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
 				{
-					NodeInst oNi = (NodeInst)oIt.next();
+					NodeInst oNi = oIt.next();
 					Rectangle2D oBounds = oNi.getBounds();
 
 					// ensure that intra-node wirings stay that way
@@ -511,7 +520,7 @@ public class MimicStitch
 					// compare each port
 					for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
-						PortInst pi = (PortInst)pIt.next();
+						PortInst pi = pIt.next();
 						PortProto pp = pi.getPortProto();
 
 						// if this port is not cached, it cannot connect, so ignore it
@@ -539,7 +548,7 @@ public class MimicStitch
 
 						for(Iterator<PortInst> oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
 						{
-							PortInst oPi = (PortInst)oPIt.next();
+							PortInst oPi = oPIt.next();
 							PortProto oPp = oPi.getPortProto();
 
 							// if this port is not cached, it cannot connect, so ignore it
@@ -553,6 +562,9 @@ public class MimicStitch
 							boolean ptInPoly = thisPoly.isInside(want1);
 							if (!ptInPoly) continue;
 
+							// if there is a network that already connects these, ignore
+							if (netlist.sameNetwork(ni, pp, oNi, oPp)) continue;
+
 							// figure out the wiring situation here
 							int situation = 0;
 
@@ -563,7 +575,7 @@ public class MimicStitch
 							PortInst piNet0 = null;
 							for(Iterator<Connection> pII = ni.getConnections(); pII.hasNext(); )
 							{
-								Connection con = (Connection)pII.next();
+								Connection con = pII.next();
 								PortInst aPi = con.getPortInst();
 								if (aPi.getPortProto() != pp) continue;
 								ArcInst oAi = con.getArc();
@@ -599,7 +611,7 @@ public class MimicStitch
 							PortInst piNet1 = null;
 							for(Iterator<Connection> pII = oNi.getConnections(); pII.hasNext(); )
 							{
-								Connection con = (Connection)pII.next();
+								Connection con = pII.next();
 								PortInst aPi = con.getPortInst();
 								if (aPi.getPortProto() != oPp) continue;
 								ArcInst oAi = con.getArc();
@@ -629,12 +641,6 @@ public class MimicStitch
 								}
 							}
 
-							// if there is a network that already connects these, ignore
-							if (piNet0 != null && piNet1 != null)
-							{
-								if (netlist.sameNetwork(piNet0.getNodeInst(), piNet0.getPortProto(),
-									piNet1.getNodeInst(), piNet1.getPortProto())) continue;
-							}
 							if (pp != port0 || oPp != port1)
 								situation |= LIKELYDIFFPORT;
 							int con2 = ni.getNumConnections() + oNi.getNumConnections();
@@ -653,9 +659,8 @@ public class MimicStitch
 
 							// see if this combination has already been considered
 							PossibleArc found = null;
-							for(Iterator<PossibleArc> paIt = possibleArcs.iterator(); paIt.hasNext(); )
+							for(PossibleArc pa : possibleArcs)
 							{
-								PossibleArc pa = (PossibleArc)paIt.next();
 								if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == oPp)
 								{ found = pa;   break; }
 								if (pa.ni2 == ni && pa.pp2 == pp && pa.ni1 == oNi && pa.pp1 == oPp)
@@ -688,26 +693,45 @@ public class MimicStitch
 		}
 
 		// now create the mimiced arcs
+		processPossibilities(cell, possibleArcs, prefX, prefY, wnd, method, forced,
+			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+	}
+	
+	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY, EditWindow_ wnd,
+		Job.Type method, boolean forced, boolean mimicInteractive,
+		boolean matchPorts, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+	{
 		if (mimicInteractive)
 		{
 			// do this in a separate thread so that this examine job can finish
 			MimicInteractive task = new MimicInteractive(cell, possibleArcs, prefX, prefY, wnd);
 			SwingUtilities.invokeLater(task);
-		} else
-		{
-			// not interactive: follow rules in the Preferences
-			int ifIgnorePorts = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0,
-				ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
-			int count = 0;
-			for(int j=0; j<situations.length; j++)
-			{
-				// see if this situation is possible
-				List<Route> allRoutes = new ArrayList<Route>();
-				for(Iterator<PossibleArc> it = possibleArcs.iterator(); it.hasNext(); )
-				{
-					PossibleArc pa = (PossibleArc)it.next();
-					if (pa.situation != situations[j]) continue;
+			return;
+		}
 
+		// not interactive: follow rules in the Preferences
+		int ifIgnorePorts = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0, ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
+		int count = 0;
+		boolean deletion = false;
+		for(int j=0; j<situations.length; j++)
+		{
+			// see if this situation is possible
+			List<Route> allRoutes = new ArrayList<Route>();
+			List<ArcInst> allKills = new ArrayList<ArcInst>();
+			int total = 0;
+			for(PossibleArc pa : possibleArcs)
+			{
+				if (pa.ai != null) deletion = true;
+				if (pa.situation != situations[j]) continue;
+				total++;
+
+				if (pa.ai != null)
+				{
+					// plan an arc deletion
+					allKills.add(pa.ai);
+				} else
+				{
+					// plan an arc creation
 					Poly portPoly1 = pa.ni1.getShapeOfPort(pa.pp1);
 					Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
 					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
@@ -722,51 +746,51 @@ public class MimicStitch
 					}
 					allRoutes.add(route);
 				}
-				int total = allRoutes.size();
-				if (total == 0) continue;
-
-				// make sure this situation is the desired one
-				if (matchPorts && (situations[j]&LIKELYDIFFPORT) != 0) { ifIgnorePorts += total;   continue; }
-				if (matchArcCount && (situations[j]&LIKELYDIFFARCCOUNT) != 0) { ifIgnoreArcCount += total;   continue; }
-				if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
-				if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
-				if (noOtherArcsThisDir && (situations[j]&LIKELYARCSSAMEDIR) != 0) { ifIgnoreOtherSameDir += total;   continue; }
-
-				// create the routes
-				if (method == Job.Type.EXAMINE)
-				{
-					// since this is an examine job, queue a change job to make the wires
-					MimicWireJob job = new MimicWireJob(allRoutes, wnd, false);
-				} else
-				{
-					// since this is a change job, do the wires now
-					runTheWires(allRoutes, wnd, false);
-				}
-				count += total;
 			}
+			if (total == 0) continue;
 
-			if (count != 0)
+			// make sure this situation is the desired one
+			if (matchPorts && (situations[j]&LIKELYDIFFPORT) != 0) { ifIgnorePorts += total;   continue; }
+			if (matchArcCount && (situations[j]&LIKELYDIFFARCCOUNT) != 0) { ifIgnoreArcCount += total;   continue; }
+			if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
+			if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
+			if (noOtherArcsThisDir && (situations[j]&LIKELYARCSSAMEDIR) != 0) { ifIgnoreOtherSameDir += total;   continue; }
+
+			// create the routes
+			if (method == Job.Type.EXAMINE)
 			{
-				System.out.println("MIMIC ROUTING: Created " + count + " arcs");
+				// since this is an examine job, queue a change job to make the wires
+				MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, false);
 			} else
 			{
-				if (forced)
-				{
-					String msg = "No wires added";
-					if (ifIgnorePorts != 0)
-						msg += ", might have added " + ifIgnorePorts + " wires if 'ports must match' were off";
-					if (ifIgnoreArcCount != 0)
-						msg += ", might have added " + ifIgnoreArcCount + " wires if 'number of existing arcs must match' were off";
-					if (ifIgnoreNodeType != 0)
-						msg += ", might have added " + ifIgnoreNodeType + " wires if 'node types must match' were off";
-					if (ifIgnoreNodeSize != 0)
-						msg += ", might have added " + ifIgnoreNodeSize + " wires if 'nodes sizes must match' were off";
-					if (ifIgnoreOtherSameDir != 0)
-						msg += ", might have added " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
-					System.out.println(msg);
-					if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
-						System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
-				}
+				// since this is a change job, do the wires now
+				runTheWires(allRoutes, wnd, false);
+			}
+			count += total;
+		}
+
+		if (count != 0)
+		{
+			System.out.println("MIMIC ROUTING: " +  (deletion ? "Deleted " : "Created ") + count + " arcs");
+		} else
+		{
+			if (forced)
+			{
+				String activity = deletion ? "deleted" : "added";
+				String msg = "No wires " + activity;
+				if (ifIgnorePorts != 0)
+					msg += ", might have " + activity + " " + ifIgnorePorts + " wires if 'ports must match' were off";
+				if (ifIgnoreArcCount != 0)
+					msg += ", might have " + activity + " " + ifIgnoreArcCount + " wires if 'number of existing arcs must match' were off";
+				if (ifIgnoreNodeType != 0)
+					msg += ", might have " + activity + " " + ifIgnoreNodeType + " wires if 'node types must match' were off";
+				if (ifIgnoreNodeSize != 0)
+					msg += ", might have " + activity + " " + ifIgnoreNodeSize + " wires if 'nodes sizes must match' were off";
+				if (ifIgnoreOtherSameDir != 0)
+					msg += ", might have " + activity + " " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
+				System.out.println(msg);
+				if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
+					System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
 			}
 		}
 	}
@@ -774,9 +798,8 @@ public class MimicStitch
 	private static void runTheWires(List<Route> allRoutes, EditWindow_ wnd, boolean redisplay)
 	{
 		// create the routes
-		for (Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
+		for (Route route : allRoutes)
 		{
-			Route route = (Route)it.next();
 			RouteElement re = (RouteElement)route.get(0);
 			Cell c = re.getCell();
 			Router.createRouteNoJob(route, c, false, false, wnd);
@@ -789,18 +812,20 @@ public class MimicStitch
 	}
 
 	/**
-	 * Class to implement actual wire creation in a new thread.
+	 * Class to implement actual wire creation/deletion in a new thread.
 	 */
 	private static class MimicWireJob extends Job
 	{
 		private List<Route> allRoutes;
+		private List<ArcInst> allKills;
 		private EditWindow_ wnd;
 		private boolean redisplay;
 
-		private MimicWireJob(List<Route> allRoutes, EditWindow_ wnd, boolean redisplay)
+		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, EditWindow_ wnd, boolean redisplay)
 		{
 			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.allRoutes = allRoutes;
+			this.allKills = allKills;
 			this.wnd = wnd;
 			this.redisplay = redisplay;
 			startJob();
@@ -808,7 +833,37 @@ public class MimicStitch
 
 		public boolean doIt()
 		{
-			runTheWires(allRoutes, wnd, redisplay);
+			if (allRoutes.size() > 0)
+			{
+				// create the routes
+				runTheWires(allRoutes, wnd, redisplay);
+			} else
+			{
+				// delete the arcs
+				for (ArcInst ai : allKills)
+				{
+					NodeInst h = ai.getHeadPortInst().getNodeInst();
+					NodeInst t = ai.getTailPortInst().getNodeInst();
+					ai.kill();
+
+					// also delete freed pin nodes
+					if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+						h.getNumConnections() == 0 && h.getNumExports() == 0)
+					{
+						h.kill();
+					}
+					if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+						t.getNumConnections() == 0 && t.getNumExports() == 0)
+					{
+						t.kill();
+					}
+				}
+				if (redisplay)
+				{
+					UserInterface ui = Main.getUserInterface();
+					ui.repaintAllEditWindows();
+				}
+			}
 			return true;
 		}
 	}
@@ -860,36 +915,44 @@ public class MimicStitch
 		{
 			// make a list of mimics that match the situation
 			List<Route> allRoutes = new ArrayList<Route>();
-			for(Iterator<PossibleArc> it = possibleArcs.iterator(); it.hasNext(); )
+			List<ArcInst> allKills = new ArrayList<ArcInst>();
+			int total = 0;
+			for(PossibleArc pa : possibleArcs)
 			{
-				PossibleArc pa = (PossibleArc)it.next();
 				if (pa.situation != situations[j]) continue;
+				total++;
 
-				Poly portPoly1 = pa.ni1.getShapeOfPort(pa.pp1);
-				Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
-				Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
-					(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
-				PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
-				PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
-				Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true);
-				if (route.size() == 0)
+				if (pa.ai != null)
 				{
-					System.out.println("Problem creating arc");
-					continue;
+					// consider a deletion
+					allKills.add(pa.ai);
+				} else
+				{
+					// consider a creation
+					Poly portPoly1 = pa.ni1.getShapeOfPort(pa.pp1);
+					Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
+					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
+						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
+					PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
+					PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
+					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true);
+					if (route.size() == 0)
+					{
+						System.out.println("Problem creating arc");
+						continue;
+					}
+					allRoutes.add(route);
 				}
-				allRoutes.add(route);
 			}
-			if (allRoutes.size() == 0) continue;
+			if (total == 0) continue;
 
 			// save what is highlighted
 			List<Object> saveHighlights = wnd.saveHighlightList();
 
-			// show the wires to be created
+			// show the wires to be created/deleted
 			wnd.clearHighlighting();
-			for(Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
+			for(Route route : allRoutes)
 			{
-				Route route = (Route)it.next();
-
 				// determine the actual endpoints of the route
 				Poly sPi = route.getStart().getPortInst().getPoly();
 				Poly ePi = route.getEnd().getPortInst().getPoly();
@@ -904,10 +967,14 @@ public class MimicStitch
 					wnd.addHighlightLine(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), cell);
 				}
 			}
+			for(ArcInst ai : allKills)
+			{
+				wnd.addHighlightLine(ai.getHeadLocation().mutable(), ai.getTailLocation().mutable(), cell);
+			}
 			wnd.finishedHighlighting();
 
 			// ask if the user wants to do it
-			MimicDialog md = new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
+			MimicDialog md = new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
 			return;
 		}
  
@@ -923,6 +990,7 @@ public class MimicStitch
 	{
 		private int count;
 		private List<Route> allRoutes;
+		private List<ArcInst> allKills;
 		private List<Object> saveHighlights;
 		private EditWindow_ wnd;
 		private int nextSituationNumber;
@@ -930,12 +998,13 @@ public class MimicStitch
 		private Cell cell;
 		private double prefX, prefY;
 
-		private MimicDialog(Frame parent, int count, List<Route> allRoutes, List<Object> saveHighlights, EditWindow_ wnd, int nextSituationNumber,
-			List<PossibleArc> possibleArcs, Cell cell, double prefX, double prefY)
+		private MimicDialog(Frame parent, int count, List<Route> allRoutes, List<ArcInst> allKills, List<Object> saveHighlights,
+			EditWindow_ wnd, int nextSituationNumber, List<PossibleArc> possibleArcs, Cell cell, double prefX, double prefY)
 		{
 			super(parent, false);
 			this.count = count;
 			this.allRoutes = allRoutes;
+			this.allKills = allKills;
 			this.saveHighlights = saveHighlights;
 			this.wnd = wnd;
 			this.nextSituationNumber = nextSituationNumber;
@@ -944,11 +1013,12 @@ public class MimicStitch
 			this.prefX = prefX;
 			this.prefY = prefY;
 
+			String activity = (allKills.size() > 0 ? "Delete" : "Create");
 	        getContentPane().setLayout(new GridBagLayout());
-	        setTitle("Create wires?");
+	        setTitle(activity + " wires?");
 	        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-	        JLabel question = new JLabel("Create " + allRoutes.size() + " wires shown here?");
+	        JLabel question = new JLabel(activity + " " + (allRoutes.size()+allKills.size()) + " wires shown here?");
 		    GridBagConstraints gbc = new GridBagConstraints();
 		    gbc.gridx = 0;   gbc.gridy = 0;
 		    gbc.gridwidth = 4;
@@ -1010,8 +1080,8 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, wnd, true);
-			count += allRoutes.size();
+			MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, true);
+			count += allRoutes.size() + allKills.size();
 			presentNextSituation(count, situations.length, possibleArcs, cell, wnd, prefX, prefY);
 
 			setVisible(false);
@@ -1036,8 +1106,8 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, wnd, true);
-			count += allRoutes.size();
+			MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, true);
+			count += allRoutes.size() + allKills.size();
 			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, wnd, prefX, prefY);
 
 			setVisible(false);

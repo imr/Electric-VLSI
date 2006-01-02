@@ -248,9 +248,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		PortProto pp = null;
 		int nodeCount = 0;
         if (wnd != null) {
-            for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Highlight2 h : wnd.getHighlighter().getHighlights())
             {
-                Highlight2 h = it.next();
                 if (!h.isHighlightEOBJ()) continue;
                 ElectricObject eobj = h.getElectricObject();
                 if (eobj instanceof PortInst)
@@ -423,7 +422,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			String name = var.getKey().getName();
 			if (!name.startsWith("ATTR_")) continue;
 
@@ -438,7 +437,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		attributes.setEnabled(allAttributes.size() != 0);
         attributesTable.setEnabled(allAttributes.size() != 0);
         attributesTable.setElectricObject(ni);
-		//if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
+		if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
 		showProperList();
 
 		// special lines default to empty
@@ -629,9 +628,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 			popupLabel.setText("Characteristics:");
 			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
-			for(Iterator<PortCharacteristic> it = characteristics.iterator(); it.hasNext(); )
+			for(PortCharacteristic ch : characteristics)
 			{
-				PortCharacteristic ch = (PortCharacteristic)it.next();
 				popup.addItem(ch.getName());
 			}
 			PortCharacteristic ch = PortCharacteristic.findCharacteristic(ni.getTechSpecific());
@@ -677,11 +675,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (ports.isSelected())
 		{
 			// show ports
+            listPane.setViewportView(list);
 			NodeProto np = shownNode.getProto();
 			List<String> portMessages = new ArrayList<String>();
 			for(Iterator<PortInst> it = shownNode.getPortInsts(); it.hasNext(); )
 			{
-				PortInst pi = (PortInst)it.next();
+				PortInst pi = it.next();
 				PortProto pp = pi.getPortProto();
 				PortCharacteristic ch = pp.getCharacteristic();
 				String description;
@@ -703,12 +702,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (pp == shownPort) moreInfo = true;
 				for(Iterator<Connection> aIt = shownNode.getConnections(); aIt.hasNext(); )
 				{
-					Connection con = (Connection)aIt.next();
+					Connection con = aIt.next();
 					if (con.getPortInst() == pi) { moreInfo = true;   break; }
 				}
 				for(Iterator<Export> eIt = shownNode.getExports(); eIt.hasNext(); )
 				{
-					Export e = (Export)eIt.next();
+					Export e = eIt.next();
 					if (e.getOriginalPort() == pi) { moreInfo = true;   break; }
 				}
 				if (moreInfo) description += ":";
@@ -725,7 +724,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				// talk about any arcs on this prototype
 				for(Iterator<Connection> aIt = shownNode.getConnections(); aIt.hasNext(); )
 				{
-					Connection con = (Connection)aIt.next();
+					Connection con = aIt.next();
 					if (con.getPortInst() != pi) continue;
 					ArcInst ai = con.getArc();
 					description = "  Connected at (" + con.getLocation().getX() + "," + con.getLocation().getY() +
@@ -737,7 +736,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				// talk about any exports of this prototype
 				for(Iterator<Export> eIt = shownNode.getExports(); eIt.hasNext(); )
 				{
-					Export e = (Export)eIt.next();
+					Export e = eIt.next();
 					if (e.getOriginalPort() != pi) continue;
 					description = "  Available as " + e.getCharacteristic().getName() + " export '" + e.getName() + "'";
 					portMessages.add(description);

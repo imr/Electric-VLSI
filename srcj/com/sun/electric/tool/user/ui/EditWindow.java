@@ -1260,6 +1260,8 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 * @param bounds the area to redraw (null to draw everything).
+	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
 	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate)
 	{

@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.dialogs.ManipulatePorts;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -43,7 +44,7 @@ public class ExportMenu {
 
         /****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available:  B   F  IJK     Q   UV  Y 
+		// mnemonic keys available:  B   F  IJK     Q    V  Y 
         MenuBar.Menu exportMenu = MenuBar.makeMenu("E_xport");
         menuBar.add(exportMenu);
 
@@ -93,6 +94,8 @@ public class ExportMenu {
 
         exportMenu.addMenuItem("Show Ports on _Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showPorts(); } });
+        exportMenu.addMenuItem("Manip_ulate Ports on Node...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ManipulatePorts.showDialog(); } });
 
         exportMenu.addSeparator();
 

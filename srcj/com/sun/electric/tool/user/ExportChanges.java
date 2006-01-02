@@ -592,7 +592,7 @@ public final class ExportChanges
         }
     }
 
-    private static class ReExportPorts extends Job {
+    public static class ReExportPorts extends Job {
         private Cell cell;
         private List<PortInst> portInsts;
         private boolean sort;
@@ -952,12 +952,12 @@ public final class ExportChanges
 		RenameExport job = new RenameExport(pp, response);
 	}
 
-	private static class DeleteExports extends Job
+	public static class DeleteExports extends Job
 	{
         Cell cell;
 		List<Export> exportsToDelete;
 
-		protected DeleteExports(Cell cell, List<Export> exportsToDelete)
+		public DeleteExports(Cell cell, List<Export> exportsToDelete)
 		{
 			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;

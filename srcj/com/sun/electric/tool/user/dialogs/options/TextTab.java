@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -74,7 +75,7 @@ public class TextTab extends PreferencePanel
 	{
 		for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); )
 		{
-			TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
+			TextDescriptor.Position pos = it.next();
 			textAnchor.addItem(pos);
 		}
 
@@ -298,11 +299,16 @@ public class TextTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean editCellsChanged = false;
+		boolean textCellsChanged = false;
+
 		String currentFontName = (String)textDefaultFont.getSelectedItem();
 		if (!currentFontName.equalsIgnoreCase(User.getDefaultFont()))
+		{
 			User.setDefaultFont(currentFontName);
+			editCellsChanged = true;
+		}
 
-		boolean textCellsChanged = false;
 		currentFontName = (String)textCellFont.getSelectedItem();
 		if (!currentFontName.equalsIgnoreCase(User.getDefaultTextCellFont()))
 		{
@@ -344,18 +350,26 @@ public class TextTab extends PreferencePanel
 
 		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
 		if (currentGlobalScale != User.getGlobalTextScale())
-			User.setGlobalTextScale(currentGlobalScale);
-
-		if (textCellsChanged)
 		{
-			// redraw text cells
+			User.setGlobalTextScale(currentGlobalScale);
+			editCellsChanged = true;
+		}
+
+		if (textCellsChanged || editCellsChanged)
+		{
+			// redraw appropriate cells
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
-				if (wf.getContent() instanceof TextWindow)
+				WindowFrame wf = it.next();
+				if (textCellsChanged && wf.getContent() instanceof TextWindow)
 				{
 					TextWindow tw = (TextWindow)wf.getContent();
 					tw.updateFontInformation();
+				}
+				if (editCellsChanged && wf.getContent() instanceof EditWindow)
+				{
+					EditWindow wnd = (EditWindow)wf.getContent();
+					wnd.repaintContents(null, false);
 				}
 			}
 		}
