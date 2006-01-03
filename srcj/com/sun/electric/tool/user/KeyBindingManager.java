@@ -35,6 +35,9 @@ import java.util.*;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 /**
@@ -280,9 +283,7 @@ public class KeyBindingManager {
         // get set of action strings, iterate over them
         Set<String> keyBindingList = (Set<String>)inputMapToUse.get(stroke);
         if (keyBindingList != null) {
-            for (Iterator<String> it = keyBindingList.iterator(); it.hasNext(); ) {
-                String actionDesc = (String)it.next();
-
+            for (String actionDesc : keyBindingList) {
                 // get KeyBinding object from action map, activate its action
                 // note that if this is a prefixed action, this could actually be a
                 // PrefixAction object instead of a KeyBinding object.
@@ -334,8 +335,7 @@ public class KeyBindingManager {
     public static List<KeyBindings> getConflictsAllManagers(KeyStrokePair pair) {
         List<KeyBindings> conflicts = new ArrayList<KeyBindings>();
         synchronized(allManagers) {
-            for (Iterator<KeyBindingManager> it = allManagers.iterator(); it.hasNext(); ) {
-                KeyBindingManager m = (KeyBindingManager)it.next();
+            for (KeyBindingManager m : allManagers) {
                 conflicts.addAll(m.getConflictingKeyBindings(pair));
             }
         }
@@ -413,8 +413,7 @@ public class KeyBindingManager {
         if (k.getPrefixStroke() != null) {
             List<String> list = (List<String>)inputMap.get(k.getPrefixStroke());
             if (list != null) {
-                for (Iterator<String> it = list.iterator(); it.hasNext(); ) {
-                    String str = (String)it.next();
+                for (String str : list) {
                     if (str.equals(PrefixAction.actionDesc)) {
                         list.remove(str);
                         break;
@@ -466,7 +465,7 @@ public class KeyBindingManager {
             while(true) {
                 Iterator<KeyStrokePair> it = keys.getKeyStrokePairs();
                 if (!it.hasNext()) break;
-                KeyStrokePair pair = (KeyStrokePair)it.next();
+                KeyStrokePair pair = it.next();
                 removeKeyBinding(actionDesc, pair);
             }
         }
@@ -475,7 +474,7 @@ public class KeyBindingManager {
         prefs.remove(prefPrefix+actionDesc);
         // add in default key bindings
         for (Iterator<KeyStrokePair> it = keys.getDefaultKeyStrokePairs(); it.hasNext(); ) {
-            KeyStrokePair k = (KeyStrokePair)it.next();
+            KeyStrokePair k = it.next();
             addKeyBinding(actionDesc, k);
         }
         keys.setUsingDefaultKeys(true);
@@ -488,6 +487,60 @@ public class KeyBindingManager {
      */
     public synchronized KeyBindings getKeyBindings(String actionDesc) {
         return (KeyBindings)actionMap.get(actionDesc);
+    }
+
+    /**
+     * Class that converts internal key mappings to InputMap and ActionMap objects.
+     */
+    public static class KeyMaps
+    {
+    	private InputMap im;
+    	private ActionMap am;
+
+    	KeyMaps(KeyBindingManager kbm, HashMap<KeyStroke,Set<String>> inputMap, HashMap<String,Object> actionMap)
+    	{
+        	im = new InputMap();
+        	am = new ActionMap();
+        	for(KeyStroke ks : inputMap.keySet())
+        	{
+        		Set<String> theSet = inputMap.get(ks);
+        		String actionName = (String)theSet.iterator().next();
+        		im.put(ks, actionName);
+        		am.put(actionName, new MyAbstractAction(actionName, kbm));
+        	}
+        }
+
+    	public InputMap getInputMap() { return im; }
+
+    	public ActionMap getActionMap() { return am; }
+    }
+
+    private static class MyAbstractAction extends AbstractAction
+    {
+    	private String actionName;
+    	private KeyBindingManager kbm;
+
+    	MyAbstractAction(String actionName, KeyBindingManager kbm)
+    	{
+    		this.actionName = actionName;
+    		this.kbm = kbm;
+    	}
+
+    	public void actionPerformed(ActionEvent event)
+    	{
+    		KeyBindings kb = kbm.getKeyBindings(actionName);
+    		kb.actionPerformed(event);
+    	}
+    }
+
+    /**
+     * Method to return an object that has real InputMap and ActionMap objects.
+     * @return a KeyMaps object.
+     */
+    public KeyMaps getKeyMaps()
+    {
+    	KeyMaps km = new KeyMaps(this, inputMap, actionMap);
+    	return km;
     }
 
     /**
@@ -546,8 +599,7 @@ public class KeyBindingManager {
             // check if conflicts with any single key Binding
             Set<String> set = (Set<String>)inputMap.get(pair.getPrefixStroke());
             if (set != null) {
-                for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
-                    String str = (String)it.next();
+                for (String str : set) {
                     if (str.equals(PrefixAction.actionDesc)) continue;
                     // add to conflicts
                     conflictsStrings.add(str);
@@ -559,9 +611,7 @@ public class KeyBindingManager {
         if (inputMapToUse != null) {
             Set<String> set = (Set<String>)inputMapToUse.get(pair.getStroke());
             if (set != null) {
-                for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
-                    String str = (String)it.next();
-
+                for (String str : set) {
                     if (str.equals(PrefixAction.actionDesc)) {
                         // find all string associated with prefix in prefix map
                         // NOTE: this condition is never true if prefixStroke is valid
@@ -581,8 +631,8 @@ public class KeyBindingManager {
             }
         }
         // get all KeyBindings from ActionMap
-        for (Iterator<String> it = conflictsStrings.iterator(); it.hasNext(); ) {
-            ActionListener action = (ActionListener)actionMap.get((String)it.next());
+        for (String aln : conflictsStrings) {
+            ActionListener action = (ActionListener)actionMap.get(aln);
             if (action == null) continue;
             if (action instanceof PrefixAction) continue;
             KeyBindings keys = (KeyBindings)action;
@@ -591,7 +641,7 @@ public class KeyBindingManager {
                 // Unfortunately, any keyBinding can map to this action, including
                 // ones that don't actually conflict.  So we need to double check
                 // if binding really conflicts.
-                KeyStrokePair pair2 = (KeyStrokePair)it2.next();
+                KeyStrokePair pair2 = it2.next();
                 if (pair.getPrefixStroke() != null) {
                     // check prefix conflict
                     if (pair2.getPrefixStroke() != null) {
@@ -657,8 +707,7 @@ public class KeyBindingManager {
      */
     public synchronized void deleteEmptyBindings() {
         Set<String> keys = actionMap.keySet();
-        for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
-            String key = (String)it.next();
+        for (String key : keys) {
             ActionListener action = (ActionListener)actionMap.get(key);
             if (action instanceof KeyBindings) {
                 KeyBindings bindings = (KeyBindings)action;
@@ -688,8 +737,7 @@ public class KeyBindingManager {
         List<KeyBindings> conflicts = getConflictingKeyBindings(pair);
         if (conflicts.size() > 0) {
             System.out.println("WARNING: Key binding for "+actionDesc+" [ " +pair.toString()+" ] conflicts with:");
-            for (Iterator<KeyBindings> it = conflicts.iterator(); it.hasNext(); ) {
-                KeyBindings k = (KeyBindings)it.next();
+            for (KeyBindings k : conflicts) {
                 System.out.println("  > "+k.getActionDesc()+" [ "+k.bindingsToString()+" ]");
             }
         }
@@ -778,7 +826,7 @@ public class KeyBindingManager {
         if (debugPrefs) System.out.println("  turned into: "+k.describe());
         List<KeyStrokePair> bindings = new ArrayList<KeyStrokePair>();
         for (Iterator<KeyStrokePair> it = k.getKeyStrokePairs(); it.hasNext(); ) {
-            bindings.add((KeyStrokePair)it.next());
+            bindings.add(it.next());
         }
         return bindings;
     }
@@ -792,8 +840,7 @@ public class KeyBindingManager {
         initialized = true;
         if (prefs == null) return;
         // try to see if binding saved in preferences for each action
-        for (Iterator<Map.Entry<String,Object>> it = actionMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String,Object> entry = (Map.Entry<String,Object>)it.next();
+        for (Map.Entry<String,Object> entry : actionMap.entrySet()) {
             String actionDesc = (String)entry.getKey();
             if (actionDesc == null || actionDesc.equals("")) continue;
             // clear current bindings
@@ -808,14 +855,13 @@ public class KeyBindingManager {
                 // no entry found, use default settings
                 bindings.setUsingDefaultKeys(true);
                 for (Iterator<KeyStrokePair> it2 = bindings.getDefaultKeyStrokePairs(); it2.hasNext(); ) {
-                    KeyStrokePair pair = (KeyStrokePair)it2.next();
+                    KeyStrokePair pair = it2.next();
                     addKeyBinding(actionDesc, pair);
                 }
             } else {
                 // otherwise, add bindings found
                 bindings.setUsingDefaultKeys(false);
-                for (Iterator<KeyStrokePair> it2 = keyPairs.iterator(); it2.hasNext(); ) {
-                    KeyStrokePair pair = (KeyStrokePair)it2.next();
+                for (KeyStrokePair pair : keyPairs) {
                     addKeyBinding(actionDesc, pair);
                 }
             }

@@ -117,7 +117,7 @@ public class EditMenu {
 
 		/****************************** THE EDIT MENU ******************************/
 
-		// mnemonic keys available:  B       JK     Q     W  
+		// mnemonic keys available:  B   F   JK     Q        
 		// still don't have mnemonic for "Repeat Last Action"
 		MenuBar.Menu editMenu = MenuBar.makeMenu("_Edit");
         menuBar.add(editMenu);
@@ -146,7 +146,9 @@ public class EditMenu {
         Undo.addPropertyChangeListener(redoLis);
 		TextWindow.addTextRedoListener(redoLis);
         redo.setEnabled(Undo.getRedoEnabled());
-        // TODO: figure out how to remove this property change listener for correct garbage collection
+        editMenu.addMenuItem("Sho_w Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+		// TODO: figure out how to remove this property change listener for correct garbage collection
         KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0);
         KeyStrokePair.addSpecialStrokePair(key);
         editMenu.addMenuItem("Repeat Last Action", key,
@@ -210,27 +212,27 @@ public class EditMenu {
 
 		editMenu.addSeparator();
 
-        key = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+		// mnemonic keys available:   CDEF HIJKLMNOPQRSTUVWXYZ
+		MenuBar.Menu eraseSubMenu = MenuBar.makeMenu("_Erase");
+		editMenu.add(eraseSubMenu);
+		key = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
         KeyStrokePair.addSpecialStrokePair(key);
-		m=editMenu.addMenuItem("_Erase", key,
+		m=eraseSubMenu.addMenuItem("_Geometry", key,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
         key = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0);
         KeyStrokePair.addSpecialStrokePair(key);
         menuBar.addDefaultKeyBinding(m, key, null);
-		editMenu.addMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
+        eraseSubMenu.addMenuItem("_Arcs Connected to Selected Nodes", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteArcsOnSelected(false); }});
+        eraseSubMenu.addMenuItem("Arcs Connected _Between Selected Nodes", null,
+    		new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteArcsOnSelected(true); }});
+
+        editMenu.addMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
 		editMenu.addMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
 		editMenu.addSeparator();
-
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRS  VWXYZ
-		MenuBar.Menu editInfoSubMenu = MenuBar.makeMenu("In_fo");
-		editMenu.add(editInfoSubMenu);
-//		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
-		editInfoSubMenu.addMenuItem("Show _Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
 		// mnemonic keys available:   C  FG IJK M  PQR TUVWXYZ
 		MenuBar.Menu editPropertiesSubMenu = MenuBar.makeMenu("Propert_ies");
@@ -591,9 +593,8 @@ public class EditMenu {
 			int exportCount = counts[2];
 			int textCount = counts[3];
 			int graphicsCount = counts[4];
-//			for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+//			for(Highlight2 h : wnd.getHighlighter().getHighlights())
 //			{
-//				Highlight2 h = it.next();
 //				ElectricObject eobj = h.getElectricObject();
 //				if (h.isHighlightEOBJ())
 //				{
@@ -745,7 +746,7 @@ public class EditMenu {
 				boolean changed = false;
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					Variable nVar = findParameterSource(var, ni);
 					if (nVar == null) continue;
 					switch (how)
@@ -805,7 +806,7 @@ public class EditMenu {
 		if (cnp != null) np = cnp;
 		for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
 		{
-			Variable nVar = (Variable)it.next();
+			Variable nVar = it.next();
 			if (var.getKey() == nVar.getKey()) return nVar;
 		}
 		return null;
@@ -842,11 +843,11 @@ public class EditMenu {
             int count = 0;
             if (allLibraries) {
                 for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                    Library lib = (Library)it.next();
+                    Library lib = it.next();
                     for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
-                        Cell c = (Cell)it2.next();
+                        Cell c = it2.next();
                         for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
-                            NodeInst ni = (NodeInst)it3.next();
+                            NodeInst ni = it3.next();
                             if (ni.getProto() instanceof Cell) {
                                 if (whatToUpdate == 0) {
                                     updateInheritance(ni, (Cell)ni.getProto());
@@ -861,8 +862,7 @@ public class EditMenu {
                     }
                 }
             } else {
-                for (Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); ) {
-					Geometric eobj = (Geometric)it.next();
+                for (Geometric eobj : highlighted) {
                     if (eobj instanceof NodeInst) {
                         NodeInst ni = (NodeInst)eobj;
                         if (ni.getProto() instanceof Cell) {
@@ -961,7 +961,7 @@ public class EditMenu {
 		highlighter.clear();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 
 			// for multipage schematics, restrict to current page
 			if (thisPageBounds != null)
@@ -983,7 +983,7 @@ public class EditMenu {
 					highlighter.addText(ni, curCell, null, ni.getNameKey());
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					if (var.isDisplay())
 						highlighter.addText(ni, curCell, var, null);
 				}
@@ -991,7 +991,7 @@ public class EditMenu {
 		}
 		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 
 			// for multipage schematics, restrict to current page
 			if (thisPageBounds != null)
@@ -1008,7 +1008,7 @@ public class EditMenu {
 					highlighter.addText(ai, curCell, null, ai.getNameKey());
 				for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					if (var.isDisplay())
 						highlighter.addText(ai, curCell, var, null);
 				}
@@ -1025,7 +1025,7 @@ public class EditMenu {
 		{
 			for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
 			{
-				Variable var = (Variable)it.next();
+				Variable var = it.next();
 				if (var.isAttribute())
 				{
 					// for multipage schematics, restrict to current page
@@ -1054,9 +1054,8 @@ public class EditMenu {
 
 		HashMap<Object,Object> likeThis = new HashMap<Object,Object>();
 		List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
-		for(Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); )
+		for(Geometric geom : highlighted)
 		{
-			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
@@ -1071,14 +1070,14 @@ public class EditMenu {
 		highlighter.clear();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Object isLikeThis = likeThis.get(ni.getProto());
 			if (isLikeThis == null) continue;
 			if (ni.isInvisiblePinWithText())
 			{
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					if (var.isDisplay())
 					{
 						highlighter.addText(ni, curCell, var, null);
@@ -1092,7 +1091,7 @@ public class EditMenu {
 		}
 		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Object isLikeThis = likeThis.get(ai.getProto());
 			if (isLikeThis == null) continue;
 			highlighter.addElectricObject(ai, curCell);
@@ -1122,9 +1121,8 @@ public class EditMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
 		List<Highlight2> newHighList = new ArrayList<Highlight2>();
-		for(Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); )
+		for(Highlight2 h : highlighter.getHighlights())
 		{
-			Highlight2 h = it.next();
 			if (h.isHighlightEOBJ() || h.isHighlightText())
 			{
 				if (h.getElectricObject() instanceof ArcInst) continue;
@@ -1176,9 +1174,8 @@ public class EditMenu {
 	
 	    public boolean doIt()
 		{
-			for(Iterator<Geometric> it = highlighted.iterator(); it.hasNext(); )
+			for(Geometric geom : highlighted)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)geom;
@@ -1514,14 +1511,14 @@ public class EditMenu {
         int arcCount = 0;
         for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
         {
-            ArcProto ap = (ArcProto)it.next();
+            ArcProto ap = it.next();
             if (!ap.isNotUsed()) arcCount++;
         }
         StringBuffer sb = new StringBuffer();
         sb.append("    Has " + arcCount + " arcs (wires):");
         for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
         {
-            ArcProto ap = (ArcProto)it.next();
+            ArcProto ap = it.next();
             if (ap.isNotUsed()) continue;
             sb.append(" " + ap.getName());
         }
@@ -1530,7 +1527,7 @@ public class EditMenu {
         int pinCount = 0, totalCount = 0, pureCount = 0, contactCount = 0;
         for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
         {
-            PrimitiveNode np = (PrimitiveNode)it.next();
+            PrimitiveNode np = it.next();
             if (np.isNotUsed()) continue;
             PrimitiveNode.Function fun = np.getFunction();
             totalCount++;
@@ -1544,7 +1541,7 @@ public class EditMenu {
             sb.append("    Has " + pinCount + " pin nodes for making bends in arcs:");
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
-                PrimitiveNode np = (PrimitiveNode)it.next();
+                PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun == PrimitiveNode.Function.PIN) sb.append(" " + np.getName());
@@ -1557,7 +1554,7 @@ public class EditMenu {
             sb.append("    Has " + contactCount + " contact nodes for joining different arcs:");
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
-                PrimitiveNode np = (PrimitiveNode)it.next();
+                PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)
@@ -1571,7 +1568,7 @@ public class EditMenu {
             sb.append("    Has " + (totalCount-pinCount-contactCount-pureCount) + " regular nodes:");
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
-                PrimitiveNode np = (PrimitiveNode)it.next();
+                PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
@@ -1586,7 +1583,7 @@ public class EditMenu {
             sb.append("    Has " + pureCount + " pure-layer nodes for creating custom geometry:");
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
-                PrimitiveNode np = (PrimitiveNode)it.next();
+                PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun == PrimitiveNode.Function.NODE) sb.append(" " + np.getName());

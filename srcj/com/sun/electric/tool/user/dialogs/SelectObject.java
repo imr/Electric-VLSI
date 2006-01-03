@@ -28,29 +28,39 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Collections;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JList;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 
 
@@ -83,7 +93,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		getRootPane().setDefaultButton(done);
 		Undo.addDatabaseChangeListener(this);
 
-		switch (what)
+        switch (what)
 		{
 			case NODES:   nodes.setSelected(true);      break;
 			case ARCS:    arcs.setSelected(true);       break;
@@ -122,6 +132,21 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
 		});
 		buttonClicked();
+
+		// special case for this dialog: allow Electric quick-keys to pass-through
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        if (top != null && top.getTheMenuBar() != null)
+        {
+        	KeyBindingManager.KeyMaps km = top.getTheMenuBar().getKeyMaps();
+        	InputMap im = km.getInputMap();
+        	ActionMap am = km.getActionMap();
+    		getRootPane().getInputMap().setParent(im);
+    		getRootPane().getActionMap().setParent(am);
+    		findText.getInputMap().setParent(im);
+    		findText.getActionMap().setParent(am);
+    		list.getInputMap().setParent(im);
+    		list.getActionMap().setParent(am);
+        }
 		finishInitialization();
 	}
 
@@ -156,7 +181,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 				// find nodes
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
 					if (s.equals(ni.getName()))
 					{
 						highlighter.addElectricObject(ni, cell);
@@ -168,7 +193,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 				// find arcs
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)it.next();
+					ArcInst ai = it.next();
 					if (s.equals(ai.getName()))
 					{
 						highlighter.addElectricObject(ai, cell);
@@ -192,7 +217,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 				// find networks
 				for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 				{
-					Network net = (Network)it.next();
+					Network net = it.next();
 					String netName = net.describe(false);
 					if (netName.length() == 0) continue;
 					if (s.equals(netName))
@@ -230,7 +255,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			what = NODES;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				allNames.add(ni.getName());
 			}
 		} else if (arcs.isSelected())
@@ -239,7 +264,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			what = ARCS;
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				allNames.add(ai.getName());
 			}
 		} else if (exports.isSelected())
@@ -258,16 +283,15 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			Netlist netlist = cell.getUserNetlist();
 			for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 			{
-				Network net = (Network)it.next();
+				Network net = it.next();
 				String netName = net.describe(false);
 				if (netName.length() == 0) continue;
 				allNames.add(netName);
 			}
 		}
 		Collections.sort(allNames, TextUtils.STRING_NUMBER_ORDER);
-		for(Iterator<String> it = allNames.iterator(); it.hasNext(); )
+		for(String s: allNames)
 		{
-			String s = (String)it.next();
 			model.addElement(s);
 		}
 	}
@@ -430,8 +454,8 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			int [] indices = new int[selected.size()];
 			int i = 0;
-			for(Iterator<Integer> it = selected.iterator(); it.hasNext(); )
-				indices[i++] = ((Integer)it.next()).intValue();
+			for(Integer iO: selected)
+				indices[i++] = iO.intValue();
 			list.setSelectedIndices(indices);
 		}
 		listClicked();

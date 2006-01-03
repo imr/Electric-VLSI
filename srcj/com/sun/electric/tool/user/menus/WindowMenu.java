@@ -50,6 +50,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.util.EventListener;
@@ -71,7 +72,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: A         K    PQ       Y 
+		// mnemonic keys available: A         K     Q  T    Y 
         MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
@@ -98,7 +99,7 @@ public class WindowMenu {
         specialZoomSubMenu.addMenuItem("Make _Grid Just Visible", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
         specialZoomSubMenu.addMenuItem("Match Other _Window", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(0); }});
 
         windowMenu.addSeparator();
 
@@ -115,13 +116,17 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
-		// mnemonic keys available: AB DEFGHIJKLMNOPQR TUVWXYZ
-        MenuBar.Menu centerSubMenu = MenuBar.makeMenu("Cen_ter");
-        windowMenu.add(centerSubMenu);
-        centerSubMenu.addMenuItem("_Selection", null,
+		// mnemonic keys available: AB DEFGHIJKLMNOPQR TUVW  Z
+        MenuBar.Menu specialPanSubMenu = MenuBar.makeMenu("Special _Pan");
+        windowMenu.add(specialPanSubMenu);
+        specialPanSubMenu.addMenuItem("Center _Selection", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerSelection(); }});
-        centerSubMenu.addMenuItem("_Cursor", KeyStroke.getKeyStroke('5', buckyBit),
+        specialPanSubMenu.addMenuItem("Center _Cursor", KeyStroke.getKeyStroke('5', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
+        specialPanSubMenu.addMenuItem("Match Other Window in _X", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(1); }});
+        specialPanSubMenu.addMenuItem("Match Other Window in _Y", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(2); }});
 
         //windowMenu.addMenuItem("Saved Views...", null,
         //    new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
@@ -265,10 +270,11 @@ public class WindowMenu {
     }
 
     /**
-     * Method to zoom the current window so that its scale matches that of the "other" window.
+     * Method to adjust the current window so that it matches that of the "other" window.
      * For this to work, there must be exactly one other window shown.
+     * @param how 0 to match scale; 1 to match in X; 2 to match in Y.
      */
-    public static void matchOtherWindowCommand()
+    public static void matchOtherWindowCommand(int how)
     {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
@@ -276,7 +282,7 @@ public class WindowMenu {
         EditWindow other = null;
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-            WindowFrame wf = (WindowFrame)it.next();
+            WindowFrame wf = it.next();
             if (wf.getContent() instanceof EditWindow)
             {
                 EditWindow wfWnd = (EditWindow)wf.getContent();
@@ -290,7 +296,18 @@ public class WindowMenu {
             System.out.println("There must be exactly two windows in order for one to match the other");
             return;
         }
-        wnd.setScale(other.getScale());
+        switch (how)
+        {
+        	case 0:
+        		wnd.setScale(other.getScale());
+        		break;
+        	case 1:
+        		wnd.setOffset(new Point2D.Double(other.getOffset().getX(), wnd.getOffset().getY()));
+        		break;
+        	case 2:
+        		wnd.setOffset(new Point2D.Double(wnd.getOffset().getX(), other.getOffset().getY()));
+        		break;
+        }
         wnd.repaintContents(null, false);
     }
 
@@ -344,7 +361,7 @@ public class WindowMenu {
         	int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -357,7 +374,7 @@ public class WindowMenu {
 			count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -389,7 +406,7 @@ public class WindowMenu {
 			int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -402,7 +419,7 @@ public class WindowMenu {
 			count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -434,7 +451,7 @@ public class WindowMenu {
 			int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -464,7 +481,7 @@ public class WindowMenu {
 			count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
 				int locX = (int)wfBounds.getCenterX();
 				int locY = (int)wfBounds.getCenterY();
@@ -580,7 +597,7 @@ public class WindowMenu {
         EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-        	WindowFrame wf = (WindowFrame)it.next();
+        	WindowFrame wf = it.next();
         	wf.loadComponentMenuForTechnology();
         }
     }
@@ -607,7 +624,7 @@ public class WindowMenu {
 		EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-        	WindowFrame wf = (WindowFrame)it.next();
+        	WindowFrame wf = it.next();
         	wf.loadComponentMenuForTechnology();
         }
     }
@@ -634,7 +651,7 @@ public class WindowMenu {
         EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-        	WindowFrame wf = (WindowFrame)it.next();
+        	WindowFrame wf = it.next();
         	wf.loadComponentMenuForTechnology();
         }
     }

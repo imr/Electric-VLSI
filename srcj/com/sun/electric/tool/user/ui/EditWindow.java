@@ -259,18 +259,82 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
-        highlighter.addHighlightListener(this);
-        highlighter.addHighlightListener(WaveformWindow.getStaticHighlightListener());
-        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
-        mouseOverHighlighter.addHighlightListener(this);
-		rulerHighlighter = new Highlighter(Highlighter.RULER_HIGHLIGHTER, wf);
-//		rulerHighlighter.addHighlightListener(this);
-        Undo.addDatabaseChangeListener(this);
+
+		// make a highlighter for this window
+		installHighlighters();
+
+		Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
 
-	/**
+    private void installHighlighters()
+    {
+		// see if this cell is displayed elsewhere
+		highlighter = mouseOverHighlighter = rulerHighlighter = null;
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame oWf = it.next();
+			if (oWf.getContent() instanceof EditWindow)
+			{
+				EditWindow oWnd = (EditWindow)oWf.getContent();
+				if (oWnd == this) continue;
+				if (oWnd.getCell() == cell)
+				{
+					highlighter = oWnd.highlighter;
+					mouseOverHighlighter = oWnd.mouseOverHighlighter;
+					rulerHighlighter = oWnd.rulerHighlighter;
+					break;
+				}
+			}
+		}
+		if (highlighter == null)
+		{
+			// not shown elsewhere: create highlighters
+			highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
+	        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
+			rulerHighlighter = new Highlighter(Highlighter.RULER_HIGHLIGHTER, wf);
+		}
+
+		// install highlighters
+        highlighter.addHighlightListener(this);
+        highlighter.addHighlightListener(WaveformWindow.getStaticHighlightListener());
+        mouseOverHighlighter.addHighlightListener(this);
+//		rulerHighlighter.addHighlightListener(this);
+   }
+
+    private void uninstallHighlighters()
+    {
+    	// uninstall highlighters
+        highlighter.removeHighlightListener(this);
+		highlighter.removeHighlightListener(WaveformWindow.getStaticHighlightListener());
+        mouseOverHighlighter.removeHighlightListener(this);
+
+        // see if the highlighters are used elsewhere
+        boolean used = false;
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame oWf = it.next();
+			if (oWf.getContent() instanceof EditWindow)
+			{
+				EditWindow oWnd = (EditWindow)oWf.getContent();
+				if (oWnd == this) continue;
+				if (oWnd.getCell() == cell)
+				{
+					used = true;
+					break;
+				}
+			}
+		}
+
+		if (!used)
+		{
+	        highlighter.delete();
+	        mouseOverHighlighter.delete();
+			rulerHighlighter.delete();
+		}
+    }
+
+    /**
 	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
 	 * @param cell the cell in this EditWindow.
 	 * @param wf the WindowFrame that this EditWindow lives in.
@@ -302,7 +366,7 @@ public class EditWindow extends JPanel
         // Highlight an instance of cell we came from in current cell
         highlighter.clear();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (ni.getProto() instanceof Cell) {
                 Cell nodeCell = (Cell)ni.getProto();
                 if (nodeCell == currentCell) {
@@ -875,6 +939,9 @@ public class EditWindow extends JPanel
 		// record current history before switching to new cell
 		saveCurrentCellHistoryState();
 
+		// remove highlighters from the window
+		uninstallHighlighters();
+
 		// set new values
 		this.cell = cell;
 		inPlaceDisplay = inPlace;
@@ -886,12 +953,9 @@ public class EditWindow extends JPanel
         }
 		//Library curLib = Library.getCurrent();
 		//curLib.setCurCell(cell);
-		highlighter.clear();
-		highlighter.finished();
-        mouseOverHighlighter.clear();
-        mouseOverHighlighter.finished();
-		rulerHighlighter.clear();
-		rulerHighlighter.finished();
+
+        // add new highlighters from the window
+		installHighlighters();
         viewBrowser.clear();
 
 		setWindowTitle();
@@ -936,7 +1000,7 @@ public class EditWindow extends JPanel
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			if (content.getCell() == cell) return (EditWindow)content;
@@ -970,13 +1034,8 @@ public class EditWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
-        highlighter.removeHighlightListener(this);
-		highlighter.removeHighlightListener(WaveformWindow.getStaticHighlightListener());
-        mouseOverHighlighter.removeHighlightListener(this);
+		uninstallHighlighters();
         Undo.removeDatabaseChangeListener(this);
-        highlighter.delete();
-        mouseOverHighlighter.delete();
-		rulerHighlighter.delete();
 	}
 
 	// ************************************* SCROLLING *************************************
@@ -1164,7 +1223,7 @@ public class EditWindow extends JPanel
 		// draw any components that are on top (such as in-line text edits)
 //		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
 //		{
-//			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
+//			GetInfoText.EditInPlaceListener tl = it.next();
 //			tl.getTextComponent().paint(g);
 //		}
 //		super.paint(g);
@@ -1217,11 +1276,10 @@ public class EditWindow extends JPanel
 	public void removeAllInPlaceTextObjects()
 	{
 		List<GetInfoText.EditInPlaceListener> allTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
-		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
-			allTextObjects.add(it.next());
-		for(Iterator<GetInfoText.EditInPlaceListener> it = allTextObjects.iterator(); it.hasNext(); )
+		for(GetInfoText.EditInPlaceListener eip : inPlaceTextObjects)
+			allTextObjects.add(eip);
+		for(GetInfoText.EditInPlaceListener tl : allTextObjects)
 		{
-			GetInfoText.EditInPlaceListener tl = (GetInfoText.EditInPlaceListener)it.next();
 			tl.closeEditInPlace();
 		}
 	}
@@ -1235,7 +1293,7 @@ public class EditWindow extends JPanel
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
@@ -1250,7 +1308,7 @@ public class EditWindow extends JPanel
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
@@ -1460,9 +1518,8 @@ public class EditWindow extends JPanel
 
 	private void showCrossProbeLevels(Graphics g)
 	{
-		for(Iterator<CrossProbe> it = crossProbeObjects.iterator(); it.hasNext(); )
+		for(CrossProbe cp : crossProbeObjects)
 		{
-			CrossProbe cp = (CrossProbe)it.next();
 			g.setColor(cp.color);
 			if (cp.isLine)
 			{
@@ -1815,7 +1872,7 @@ public class EditWindow extends JPanel
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.NODE_VAR);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (what!=null) 
 			{
 				Name name = ni.getNameKey();
@@ -1841,7 +1898,7 @@ public class EditWindow extends JPanel
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.ARC_VAR);
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			if (what!=null) 
 			{
 				Name name = ai.getNameKey();
@@ -1865,7 +1922,7 @@ public class EditWindow extends JPanel
 		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.EXPORT_VAR);
 		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 			if (what!=null) {
 				Name name = pp.getNameKey();
 				findAllMatches(pp, null, 0, null, name.toString(), foundInCell, 
@@ -1883,7 +1940,7 @@ public class EditWindow extends JPanel
 		if (whatVar!=null) {
 			for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 			{
-				Variable var = (Variable)it.next();
+				Variable var = it.next();
 				if (!var.isDisplay()) continue;
 				findAllMatches(null, var, -1, null, var.getPureValue(-1), 
 							   foundInCell, search, caseSensitive, regExp, 
@@ -2001,7 +2058,7 @@ public class EditWindow extends JPanel
 	{
 		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (!var.isDisplay()) continue;
 			Object obj = var.getObject();
 			if (obj instanceof String)
@@ -2219,9 +2276,8 @@ public class EditWindow extends JPanel
 		if (delta != 0)
 		{
 			// because the replacement changes the line length, must update other search strings
-			for(Iterator<StringsInCell> it = foundInCell.iterator(); it.hasNext(); )
+			for(StringsInCell oSIC : foundInCell )
 			{
-				StringsInCell oSIC = (StringsInCell)it.next();
 				if (oSIC == sic) continue;
 				if (oSIC.object != sic.object) continue;
 				if (oSIC.key != sic.key) continue;
@@ -2345,9 +2401,8 @@ public class EditWindow extends JPanel
 	{
 		boolean changed = false;
 		List<WindowChangeRequest> notThisWindow = null;
-		for(Iterator<WindowChangeRequest> it = windowChangeRequests.iterator(); it.hasNext(); )
+		for(WindowChangeRequest zap : windowChangeRequests)
 		{
-			WindowChangeRequest zap = (WindowChangeRequest)it.next();
 			if (zap.wnd != wnd)
 			{
 				if (notThisWindow == null) notThisWindow = new ArrayList<WindowChangeRequest>();
@@ -2399,9 +2454,8 @@ public class EditWindow extends JPanel
 		double oY = offy;
 		synchronized (redrawThese)
 		{
-			for(Iterator<WindowChangeRequest> it = windowChangeRequests.iterator(); it.hasNext(); )
+			for(WindowChangeRequest zap : windowChangeRequests)
 			{
-				WindowChangeRequest zap = (WindowChangeRequest)it.next();
 				if (zap.requestType != WindowChangeRequest.PANREQUEST) continue;
 				oX = zap.offx;
 				oY = zap.offy;
@@ -2748,8 +2802,8 @@ public class EditWindow extends JPanel
 	public List<Object> saveHighlightList()
 	{
 		List<Object> saveList = new ArrayList<Object>();
-		for(Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); )
-			saveList.add(it.next());
+		for(Highlight2 h : highlighter.getHighlights())
+			saveList.add(h);
 		return saveList;
 	}
 
@@ -2909,7 +2963,7 @@ public class EditWindow extends JPanel
 		}
 		for(Iterator<Nodable> it = nl.getNodables(); it.hasNext(); )
 		{
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			if (no.getNodeInst() == ni)
 			{
 				possibleNodables.add(no);
@@ -2925,14 +2979,13 @@ public class EditWindow extends JPanel
 			{
 				String [] manyOptions = new String[possibleNodables.size()];
 				int i = 0;
-				for(Iterator<Nodable> it = possibleNodables.iterator(); it.hasNext(); )
-					manyOptions[i++] = ((Nodable)it.next()).getName();
+				for(Nodable no : possibleNodables)
+					manyOptions[i++] = no.getName();
 		        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
 		            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
 		        if (chosen == null) return;
-				for(Iterator<Nodable> it = possibleNodables.iterator(); it.hasNext(); )
+				for(Nodable no : possibleNodables)
 				{
-					Nodable no = (Nodable)it.next();
 					if (no.getName().equals(chosen)) { desiredNO = no;   break; }
 				}
 			}
@@ -2995,13 +3048,13 @@ public class EditWindow extends JPanel
 		// matters if there is a waveform window open
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-            WindowFrame wf = (WindowFrame)it.next();
+            WindowFrame wf = it.next();
             if (wf.getContent() instanceof WaveformWindow) return true;
         }
 
 		// if getdrive is called
         for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
-            Variable var = (Variable)it.next();
+            Variable var = it.next();
             Object obj = var.getObject();
             if (obj instanceof String) {
                 String str = (String)obj;
@@ -3024,12 +3077,11 @@ public class EditWindow extends JPanel
         // determine which export is selected so it can be shown in the upper level
         Export selectedExport = null;
         Set<Network> nets = highlighter.getHighlightedNetworks();
-        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+        for(Network net : nets)
         {
-        	Network net = (Network)it.next();
         	for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
         	{
-        		Export e = (Export)eIt.next();
+        		Export e = eIt.next();
         		selectedExport = e;
         		break;
         	}
@@ -3038,7 +3090,7 @@ public class EditWindow extends JPanel
 //        List what>Highlight> = highlighter.getHighlights();
 //        for(Iterator<Highlight> it = what.iterator(); it.hasNext(); )
 //        {
-//        	Highlight h = (Highlight)it.next();
+//        	Highlight h = it.next();
 //        	if (h.getType() == Highlight.Type.EOBJ)
 //        	{
 //        		ElectricObject eObj = h.getElectricObject();
@@ -3047,7 +3099,7 @@ public class EditWindow extends JPanel
 //        			PortInst pi = (PortInst)eObj;
 //        			for(Iterator<Export> eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
 //        			{
-//        				Export e = (Export)eIt.next();
+//        				Export e = eIt.next();
 //        				if (e.getOriginalPort() == pi)
 //        				{
 //        					selectedExport = e;
@@ -3143,7 +3195,7 @@ public class EditWindow extends JPanel
 			Set<Cell> found = new HashSet<Cell>();
 			for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				Cell parent = ni.getParent();
                 if (parent.getLibrary().isHidden()) continue;
 				found.add(parent);
@@ -3155,7 +3207,7 @@ public class EditWindow extends JPanel
 				{
 					for(Iterator<NodeInst> it = iconView.getInstancesOf(); it.hasNext(); )
 					{
-						NodeInst ni = (NodeInst)it.next();
+						NodeInst ni = it.next();
 						if (ni.isIconOfParent()) continue;
 						Cell parent = ni.getParent();
                         if (parent.getLibrary().isHidden()) continue;
@@ -3178,7 +3230,7 @@ public class EditWindow extends JPanel
 //                NodeInst highlightNi = null;
                 for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
                 {
-                    NodeInst ni = (NodeInst)it.next();
+                    NodeInst ni = it.next();
                     if (ni.getProto() instanceof Cell)
                     {
                         Cell nodeCell = (Cell)ni.getProto();
@@ -3202,9 +3254,8 @@ public class EditWindow extends JPanel
 				// Unfortunately, this is a known bug in Java's JPopupMenu object.
 				// I also tried: JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 				JPopupMenu parents = new JPopupMenu("parents");
-				for(Iterator<Cell> it = found.iterator(); it.hasNext(); )
+				for(Cell parent : found)
 				{
-                    Cell parent = (Cell)it.next();
                     String cellName = parent.describe(false);
 					JMenuItem menuItem = new JMenuItem(cellName);
 					menuItem.addActionListener(this);
@@ -3353,8 +3404,7 @@ public class EditWindow extends JPanel
         current.scale = scale;
         current.highlights = new ArrayList<Highlight2>();
         current.highlights.clear();
-        for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-            Highlight2 h = it.next();
+        for (Highlight2 h : highlighter.getHighlights()) {
             if (h.getCell() == cell)
                 current.highlights.add(h);
         }

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.KeyBindingManager.KeyMaps;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.ToolBarButton;
@@ -130,8 +131,7 @@ public class MenuBar extends JMenuBar
             synchronized(this) {
                 ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)menuItems.get(name);
                 if (list == null) return;
-                for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
-                    AbstractButton b = (AbstractButton)it.next();
+                for (AbstractButton b : list) {
                     if (b == source) continue;
                     //String name2;
                     //if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
@@ -517,6 +517,15 @@ public class MenuBar extends JMenuBar
     }
 
     /**
+     * Method to return an object that has real InputMap and ActionMap objects.
+     * @return a KeyMaps object.
+     */
+    public KeyMaps getKeyMaps()
+    {
+    	return menuBarGroup.keyBindingManager.getKeyMaps();
+    }
+
+    /**
      * Adds a default key binding to the MenuItem.  Default key bindings are overridden
      * by any user stored key bindings, but may be restored via the Edit Key Bindings dialog.
      * @param item the MenuItem to add a default key binding
@@ -571,8 +580,7 @@ public class MenuBar extends JMenuBar
     public void resetAllKeyBindings() {
         synchronized(menuBarGroup) {
             Collection<List<AbstractButton>> c = menuBarGroup.menuItems.values();
-            for (Iterator<List<AbstractButton>> it = c.iterator(); it.hasNext(); ) {
-                List<AbstractButton> list = (List<AbstractButton>)it.next();
+            for (List<AbstractButton> list : c) {
                 JMenuItem m = (JMenuItem)list.get(0);
                 // call set to default only on one, others will get reset by that method
                 resetKeyBindings(m);
@@ -609,7 +617,7 @@ public class MenuBar extends JMenuBar
             if (bindings.getUsingDefaultKeys()) it = bindings.getDefaultKeyStrokePairs(); else
                 it = bindings.getKeyStrokePairs();
             while (it.hasNext()) {
-                KeyStrokePair pair = (KeyStrokePair)it.next();
+                KeyStrokePair pair = it.next();
                 if (pair.getPrefixStroke() != null) continue;         // menus can't display two-stroke key bindings
                 accelerator = pair.getStroke();
                 break;
@@ -619,8 +627,8 @@ public class MenuBar extends JMenuBar
         synchronized(menuBarGroup) {
             List<AbstractButton> list = (List<AbstractButton>)menuBarGroup.menuItems.get(actionDesc);
             if (list != null) {
-                for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
-                    JMenuItem m = (JMenuItem)it.next();
+                for (AbstractButton ab : list) {
+                    JMenuItem m = (JMenuItem)ab;
                     m.setAccelerator(accelerator);
                 }
             }
@@ -639,8 +647,7 @@ public class MenuBar extends JMenuBar
         menuBarGroup.keyBindingManager.restoreSavedBindings(initialCall);
         // update all accelerators
         synchronized(menuBarGroup) {
-            for (Iterator<String> it = menuBarGroup.menuItems.keySet().iterator(); it.hasNext(); ) {
-                String actionDesc = (String)it.next();
+            for (String actionDesc : menuBarGroup.menuItems.keySet()) {
                 updateAccelerator(actionDesc);
             }
         }

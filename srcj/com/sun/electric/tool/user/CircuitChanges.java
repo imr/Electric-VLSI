@@ -176,9 +176,8 @@ public class CircuitChanges
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
-			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+			for(Geometric geom : highs)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				if (cantEdit(cell, ni, true) != 0)
@@ -212,7 +211,7 @@ public class CircuitChanges
 				double bestdist = Integer.MAX_VALUE;
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
 					if (!markObj.contains(ni)) continue;
 					double dist = center.distance(ni.getTrueCenter());
 
@@ -227,9 +226,8 @@ public class CircuitChanges
 
 			// see which nodes already connect to the main rotation/mirror node (theNi)
 			markObj.clear();
-			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+			for(Geometric geom : highs)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 				markObj.add(ai);
@@ -237,9 +235,8 @@ public class CircuitChanges
 			spreadRotateConnection(theNi, markObj);
 
 			// now make sure that it is all connected
-			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+			for(Geometric geom : highs)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				spreadRotateConnection(ni, markObj);
@@ -262,8 +259,7 @@ public class CircuitChanges
             
             // Rotate nodes in markObj
 //            System.out.println("markObj:");
-            for (Iterator<Geometric> it = markObj.iterator(); it.hasNext(); ) {
-                Geometric geom = (Geometric)it.next();
+            for (Geometric geom : markObj) {
                 if (!(geom instanceof NodeInst)) continue;
                 NodeInst ni = (NodeInst)geom;
 //                System.out.println("\t" + ni);
@@ -272,8 +268,7 @@ public class CircuitChanges
                 ni.move(tmpPt1.getX() - ni.getAnchorCenterX(), tmpPt1.getY() - ni.getAnchorCenterY());
             }
             // Rotate arcs in markObj
-            for (Iterator<Geometric> it = markObj.iterator(); it.hasNext(); ) {
-                Geometric geom = (Geometric)it.next();
+            for (Geometric geom : markObj) {
                 if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
 //                System.out.println("\t" + ai);
@@ -304,7 +299,7 @@ public class CircuitChanges
 //			Rectangle2D selectedBounds = new Rectangle2D.Double();
 //			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 //			{
-//				Geometric geom = (Geometric)it.next();
+//				Geometric geom = it.next();
 //				if (!(geom instanceof NodeInst)) continue;
 //				NodeInst ni = (NodeInst)geom;
 //				if (cantEdit(cell, ni, true) != 0)
@@ -338,7 +333,7 @@ public class CircuitChanges
 //				double bestdist = Integer.MAX_VALUE;
 //				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 //				{
-//					NodeInst ni = (NodeInst)it.next();
+//					NodeInst ni = it.next();
 //					if (!markObj.contains(ni)) continue;
 //					double dist = center.distance(ni.getTrueCenter());
 //
@@ -356,7 +351,7 @@ public class CircuitChanges
 //			markObj.add(theNi);
 //			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 //			{
-//				Geometric geom = (Geometric)it.next();
+//				Geometric geom = it.next();
 //				if (!(geom instanceof ArcInst)) continue;
 //				ArcInst ai = (ArcInst)geom;
 //				markObj.add(ai);
@@ -368,7 +363,7 @@ public class CircuitChanges
 //			List<ArcInst> aiList = new ArrayList<ArcInst>();
 //			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 //			{
-//				Geometric geom = (Geometric)it.next();
+//				Geometric geom = it.next();
 //				if (!(geom instanceof NodeInst)) continue;
 //				NodeInst ni = (NodeInst)geom;
 //				if (ni == theNi) continue;
@@ -400,7 +395,7 @@ public class CircuitChanges
 //			// make all selected arcs temporarily rigid
 //			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
 //			{
-//				Geometric geom = (Geometric)it.next();
+//				Geometric geom = it.next();
 //				if (!(geom instanceof ArcInst)) continue;
 //				Layout.setTempRigid((ArcInst)geom, true);
 //			}
@@ -433,14 +428,14 @@ public class CircuitChanges
 //			// delete intermediate arcs used to constrain
 //			for(Iterator<ArcInst> it = aiList.iterator(); it.hasNext(); )
 //			{
-//				ArcInst ai = (ArcInst)it.next();
+//				ArcInst ai = it.next();
 //				ai.kill();
 //			}
 //
 //			// delete intermediate nodes used to constrain
 //			for(Iterator<NodeInst> it = niList.iterator(); it.hasNext(); )
 //			{
-//				NodeInst ni = (NodeInst)it.next();
+//				NodeInst ni = it.next();
 ////				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
 //				ni.kill();
 //			}
@@ -458,7 +453,7 @@ public class CircuitChanges
         markObj.add(theNi);
 		for(Iterator<Connection> it = theNi.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			if (!markObj.contains(ai)) continue;
             int otherEnd = 1 - con.getEndIndex();
@@ -483,17 +478,15 @@ public class CircuitChanges
 
 		// make a set of selected nodes
 		HashSet<NodeInst> selectedNodes = new HashSet<NodeInst>();
-		for(Iterator<Geometric> it = selected.iterator(); it.hasNext(); )
+		for(Geometric geom : selected)
 		{
-			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) selectedNodes.add((NodeInst)geom);
 		}
 
 		// make a list of nodes at the ends of arcs that should be added to the list
 		List<NodeInst> addedNodes = new ArrayList<NodeInst>();
-		for(Iterator<Geometric> it = selected.iterator(); it.hasNext(); )
+		for(Geometric geom : selected)
 		{
-			Geometric geom = (Geometric)it.next();
 			if (!(geom instanceof ArcInst)) continue;
 			ArcInst ai = (ArcInst)geom;
 			NodeInst head = ai.getHead().getPortInst().getNodeInst();
@@ -509,8 +502,8 @@ public class CircuitChanges
 				selectedNodes.add(tail);
 			}
 		}
-		for(Iterator<NodeInst> it = addedNodes.iterator(); it.hasNext(); )
-			selected.add(it.next());
+		for(NodeInst ni : addedNodes)
+			selected.add(ni);
 
 		// now align them
 		AlignObjects job = new AlignObjects(selected);
@@ -545,9 +538,8 @@ public class CircuitChanges
 
 			// first adjust the nodes
 			int adjustedNodes = 0;
-			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+			for(Geometric geom : list)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 
@@ -564,7 +556,7 @@ public class CircuitChanges
 				boolean firstPort = true;
 				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)pIt.next();
+					PortInst pi = pIt.next();
 					Poly poly = pi.getPoly();
 					Point2D portCenter = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 					EditWindow.gridAlign(portCenter);
@@ -618,7 +610,7 @@ public class CircuitChanges
 					HashMap<ArcInst,Integer> constraints = new HashMap<ArcInst,Integer>();
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						Connection con = (Connection)aIt.next();
+						Connection con = aIt.next();
 						ArcInst ai = con.getArc();
 						int constr = 0;
 						if (ai.isRigid()) constr |= 1;
@@ -633,7 +625,7 @@ public class CircuitChanges
 					// restore arc constraints
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						Connection con = (Connection)aIt.next();
+						Connection con = aIt.next();
 						ArcInst ai = con.getArc();
 						Integer constr = (Integer)constraints.get(ai);
 						if (constr == null) continue;
@@ -645,9 +637,8 @@ public class CircuitChanges
 	
 			// now adjust the arcs
 			int adjustedArcs = 0;
-			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+			for(Geometric geom : list)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 				if (!ai.isLinked()) continue;
@@ -730,9 +721,8 @@ public class CircuitChanges
 		}
 
 		// make sure they are all in the same cell
-		for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+		for(Geometric geom : list)
 		{
-			Geometric geom = (Geometric)it.next();
 			if (geom.getParent() != np)
 			{
 				System.out.println("All moved objects must be in the same cell");
@@ -742,9 +732,8 @@ public class CircuitChanges
 
 		// count the number of nodes
 		List<NodeInst> nodes = new ArrayList<NodeInst>();
-		for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+		for(Geometric geom : list)
 		{
-			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) nodes.add((NodeInst)geom);
 		}
 		int total = nodes.size();
@@ -978,9 +967,8 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0, numUnset = 0;
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
 				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
@@ -1106,9 +1094,8 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0;
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
 				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst)
@@ -1117,7 +1104,7 @@ public class CircuitChanges
 					NodeInst ni = pi.getNodeInst();
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
-						Connection con = (Connection)cIt.next();
+						Connection con = cIt.next();
 						if (con.getPortInst() != pi) continue;
 						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
 						{
@@ -1191,9 +1178,8 @@ public class CircuitChanges
 			if (cell == null) return false;
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
-			for(Iterator<ArcInst> it = list.iterator(); it.hasNext(); )
+			for(ArcInst ai : list)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				if (ai.getProto() != Schematics.tech.bus_arc) continue;
 				Netlist netList = ai.getParent().acquireUserNetlist();
 				if (netList == null)
@@ -1395,9 +1381,8 @@ public class CircuitChanges
 
 			List<Geometric> deleteList = new ArrayList<Geometric>();
 //			Geometric oneGeom = null;
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
 				Geometric geom = h.getGeometric();
 				if (h.isHighlightText())
 				{
@@ -1434,7 +1419,7 @@ public class CircuitChanges
 				{
 					List arcs = re.reconnectArcs();
                     for (Iterator it = arcs.iterator(); it.hasNext(); ) {
-                        ArcInst ai = (ArcInst)it.next();
+                        ArcInst ai = it.next();
 					    Highlight.addElectricObject(ai, cell);
 					    Highlight.finished();
                     }
@@ -1443,10 +1428,8 @@ public class CircuitChanges
 			}*/
 
 			// delete the text
-			for(Iterator<Highlight2> it = highlightedText.iterator(); it.hasNext(); )
+			for(Highlight2 high : highlightedText)
 			{
-				Highlight2 high = it.next();
-
 //				// do not deal with text on an object if the object is already in the list
 //				if (high.fromgeom != NOGEOM)
 //				{
@@ -1553,10 +1536,8 @@ public class CircuitChanges
 			List<ArcInst> arcsInCell = new ArrayList<ArcInst>();
 			for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				arcsInCell.add(aIt.next());
-			for(Iterator<ArcInst> aIt = arcsInCell.iterator(); aIt.hasNext(); )
+			for(ArcInst ai : arcsInCell)
 			{
-				ArcInst ai = (ArcInst)aIt.next();
-
 				// if an end is inside, ignore
 				Point2D headPt = ai.getHeadLocation();
 				Point2D tailPt = ai.getTailLocation();
@@ -1633,7 +1614,7 @@ public class CircuitChanges
 			List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
 			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)nIt.next();
+				NodeInst ni = nIt.next();
 		
 				// if the node is outside of the area, ignore it
 				double cX = ni.getTrueCenterX();
@@ -1648,11 +1629,92 @@ public class CircuitChanges
 			}
 
 			// delete the nodes
-			for(Iterator<NodeInst> nIt = nodesToDelete.iterator(); nIt.hasNext(); )
+			for(NodeInst ni : nodesToDelete)
 			{
-				NodeInst ni = (NodeInst)nIt.next();
 				eraseNodeInst(ni);		
 			}
+			return true;
+		}
+	}
+
+	/**
+	 * Method to delete arcs connected to selected nodes.
+	 * @param both true if both ends of the arc must be selected.
+	 */
+	public static void deleteArcsOnSelected(boolean both)
+	{
+		// get the selection
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+
+		// make sure the cell is editable
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+		if (cantEdit(cell, null, true) != 0) return;
+
+		// make a set of selected nodes
+        Highlighter highlighter = wnd.getHighlighter();
+        if (highlighter == null) return;
+        Set<NodeInst> selectedNodes = new HashSet<NodeInst>();
+        for(Geometric g : highlighter.getHighlightedEObjs(true, false))
+        	selectedNodes.add((NodeInst)g);
+
+        // make a set of arcs to delete
+        Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
+        for(NodeInst ni : selectedNodes)
+        {
+        	for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+        	{
+        		Connection con = it.next();
+        		ArcInst ai = con.getArc();
+        		if (both)
+        		{
+        			if (!selectedNodes.contains(ai.getHeadPortInst().getNodeInst())) continue;
+        			if (!selectedNodes.contains(ai.getTailPortInst().getNodeInst())) continue;
+        		}
+        		arcsToDelete.add(ai);
+        	}
+        }
+        if (arcsToDelete.size() == 0)
+        {
+        	System.out.println("There are no arcs on the selected nodes that can be deleted");
+        	return;
+        }
+        new DeleteArcs(arcsToDelete);
+	}
+
+	private static class DeleteArcs extends Job
+	{
+        private Set<ArcInst> arcsToDelete;
+
+		protected DeleteArcs(Set<ArcInst> arcsToDelete)
+		{
+			super("Delete arcs", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.arcsToDelete = arcsToDelete;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			for(ArcInst ai : arcsToDelete)
+			{
+				NodeInst h = ai.getHeadPortInst().getNodeInst();
+				NodeInst t = ai.getTailPortInst().getNodeInst();
+				ai.kill();
+
+				// also delete freed pin nodes
+				if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+					h.getNumConnections() == 0 && h.getNumExports() == 0)
+				{
+					h.kill();
+				}
+				if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+					t.getNumConnections() == 0 && t.getNumExports() == 0)
+				{
+					t.kill();
+				}
+			}
+			System.out.println("Deleted " + arcsToDelete.size() + " arcs");
 			return true;
 		}
 	}
@@ -1669,17 +1731,16 @@ public class CircuitChanges
 		// make sets of all of the arcs and nodes explicitly selected for deletion
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-		for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+		for(Geometric geom : list)
 		{
-			Object obj = it.next();
-//			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (obj instanceof ArcInst)
+//			if (geom instanceof Highlight) geom = ((Highlight)geom).getGeometric();
+			if (geom instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)obj;
+				ArcInst ai = (ArcInst)geom;
 				arcsToDelete.add(ai);
-			} else if (obj instanceof NodeInst)
+			} else if (geom instanceof NodeInst)
 			{
-				NodeInst ni = (NodeInst)obj;
+				NodeInst ni = (NodeInst)geom;
 				nodesToDelete.add(ni);
 			}
 		}
@@ -1688,9 +1749,8 @@ public class CircuitChanges
 		HashSet<NodeInst> alsoDeleteTheseNodes = new HashSet<NodeInst>();
 
 		// also (potentially) delete nodes on the end of deleted arcs
-		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcsToDelete)
 		{
-			ArcInst ai = (ArcInst)it.next();
 			alsoDeleteTheseNodes.add(ai.getHeadPortInst().getNodeInst());
 			alsoDeleteTheseNodes.add(ai.getTailPortInst().getNodeInst());
 		}
@@ -1706,13 +1766,11 @@ public class CircuitChanges
 //		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
-		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToDelete)
 		{
-			NodeInst ni = (NodeInst)it.next();
-
 			for(Iterator<Connection> sit = ni.getConnections(); sit.hasNext(); )
 			{
-				Connection con = (Connection)sit.next();
+				Connection con = sit.next();
 				ArcInst ai = con.getArc();
                 int otherEnd = 1 - con.getEndIndex();
 				NodeInst oNi = ai.getPortInst(otherEnd).getNodeInst();
@@ -1723,15 +1781,14 @@ public class CircuitChanges
 		// reconnect hair to cells (if requested)
 		if (User.isReconstructArcsToDeletedCells())
 		{
-			for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
+			for(NodeInst ni : nodesToDelete)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
 
 				// reconstruct each connection to a deleted cell instance
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					ArcInst ai = con.getArc();
 					if (arcsToDelete.contains(ai)) continue;
 
@@ -1756,17 +1813,14 @@ public class CircuitChanges
 		}
 
 		// now kill all of the arcs
-		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcsToDelete)
 		{
-			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
 
 		// next kill all of the nodes
-		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToDelete)
 		{
-			NodeInst ni = (NodeInst)it.next();
-
             // see if any arcs can be reconnected as a result of this kill
             Reconnect re = Reconnect.erasePassThru(ni, false);
             if (re != null) re.reconnectArcs();
@@ -1776,9 +1830,8 @@ public class CircuitChanges
 
 		// kill all pin nodes that touched an arc and no longer do
 		List<NodeInst> deleteTheseNodes = new ArrayList<NodeInst>();
-		for(Iterator<NodeInst> it = alsoDeleteTheseNodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
@@ -1786,17 +1839,15 @@ public class CircuitChanges
 				deleteTheseNodes.add(ni);
 			}
 		}
-		for(Iterator<NodeInst> it = deleteTheseNodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : deleteTheseNodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.isLinked()) eraseNodeInst(ni);
 		}
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
 		List<NodeInst> nodesToPassThru = new ArrayList<NodeInst>();
-		for(Iterator<NodeInst> it = alsoDeleteTheseNodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
@@ -1805,9 +1856,8 @@ public class CircuitChanges
 				nodesToPassThru.add(ni);
 			}
 		}
-		for(Iterator<NodeInst> it = nodesToPassThru.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToPassThru)
 		{
-            NodeInst ni = (NodeInst)it.next();
             Reconnect re = Reconnect.erasePassThru(ni, false);
 			if (re != null)
 			{
@@ -1843,13 +1893,11 @@ public class CircuitChanges
 			HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				arcsToDelete.add(con.getArc());
 			}
-			for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
+			for(ArcInst ai : arcsToDelete)
 			{
-				ArcInst ai = (ArcInst)it.next();
-
 				// delete the ArcInst
 				ai.kill();
 			}
@@ -1876,7 +1924,7 @@ public class CircuitChanges
 		int i = 0;		
 		for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 			exportsToDelete[i++] = pp;
 		}
 		for(int j=0; j<numExports; j++)
@@ -1950,7 +1998,7 @@ public class CircuitChanges
 		// close windows that reference this cell
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (content == null) continue;
 			if (content.getCell() == cell)
@@ -1999,7 +2047,7 @@ public class CircuitChanges
 		Cell.CellGroup newGroup = null;
 		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 		{
-			Cell oCell = (Cell)it.next();
+			Cell oCell = it.next();
 			if (oCell.getName().equalsIgnoreCase(newName) && oCell.getCellGroup() != cell.getCellGroup())
 			{
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
@@ -2066,10 +2114,8 @@ public class CircuitChanges
 			ArrayList<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
 				cells.add(it.next());
-			for(Iterator<Cell> it = cells.iterator(); it.hasNext(); )
-//			for(Iterator it = cellGroup.getCells(); it.hasNext(); )
+			for(Cell cell : cells)
 			{
-				Cell cell = (Cell)it.next();
 				cell.rename(newName);
 			}
 			return true;
@@ -2103,7 +2149,7 @@ public class CircuitChanges
 				found = false;
 				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 				{
-					Cell cell = (Cell)it.next();
+					Cell cell = it.next();
 					if (cell.getNewestVersion() == cell) continue;
 					if (cell.getInstancesOf().hasNext()) continue;
 					System.out.println("Deleting " + cell);
@@ -2180,11 +2226,11 @@ public class CircuitChanges
 			HashMap<Cell,CellGraphNode> cellGraphNodes = new HashMap<Cell,CellGraphNode>();
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					CellGraphNode cgn = new CellGraphNode();
 					cgn.depth = -1;
 					cellGraphNodes.put(cell, cgn);
@@ -2200,7 +2246,7 @@ public class CircuitChanges
 			{
 				for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell.getNumUsagesIn() == 0)
 					{
 						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
@@ -2217,16 +2263,16 @@ public class CircuitChanges
 				more = false;
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					if (lib.isHidden()) continue;
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 						if (cgn.depth == -1) continue;
 						for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 						{
-							NodeInst ni = (NodeInst)nIt.next();
+							NodeInst ni = nIt.next();
 							if (!(ni.getProto() instanceof Cell)) continue;
 							Cell sub = (Cell)ni.getProto();
 	
@@ -2258,7 +2304,7 @@ public class CircuitChanges
 				{
 					for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 						if (cgn.depth >= 0) continue;
 						cgn.depth = 0;
@@ -2275,11 +2321,11 @@ public class CircuitChanges
 			for(int i=0; i<maxDepth; i++) xval[i] = yoff[i] = 0;
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 
 					// ignore icon cells from the graph (merge with contents)
@@ -2306,11 +2352,11 @@ public class CircuitChanges
 			// now center each row
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 					if (xval[(int)cgn.y] < maxWidth)
@@ -2327,11 +2373,11 @@ public class CircuitChanges
 			double yOffset = 0.5;
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 					double x = cgn.x;   double y = cgn.y;
@@ -2346,11 +2392,11 @@ public class CircuitChanges
 			{
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					if (lib.isHidden()) continue;
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 						if (cgn.depth != -1) continue;
 
@@ -2394,11 +2440,11 @@ public class CircuitChanges
 			// place the components
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell == graphCell) continue;
 					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
@@ -2423,11 +2469,11 @@ public class CircuitChanges
 			// attach related components with rigid arcs
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell == graphCell) continue;
 					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
@@ -2448,11 +2494,11 @@ public class CircuitChanges
 			int clock = 0;
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				if (lib.isHidden()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell == graphCell) continue;
 
 					// always use the contents cell, not the icon
@@ -2464,7 +2510,7 @@ public class CircuitChanges
 					clock++;
 					for(Iterator<NodeInst> nIt = trueCell.getNodes(); nIt.hasNext(); )
 					{
-						NodeInst ni = (NodeInst)nIt.next();
+						NodeInst ni = nIt.next();
 						if (!(ni.getProto() instanceof Cell)) continue;
 
 						// ignore recursive references (showing icon in contents)
@@ -2511,7 +2557,7 @@ public class CircuitChanges
 		if (mainSchem != null) return mainSchem;
 // 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 // 		{
-// 			Cell cellInGroup = (Cell)it.next();
+// 			Cell cellInGroup = it.next();
 // 			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
 // 			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
 // 		}
@@ -2519,14 +2565,14 @@ public class CircuitChanges
 		// now check to see if there is any layout link
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
 		}
 
 		// finally check to see if there is any "unknown" link
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
 		}
 
@@ -2597,7 +2643,7 @@ public class CircuitChanges
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = (Geometric)sIt.next();
+				Geometric look = sIt.next();
 				if (!(look instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)look;
 
@@ -2617,7 +2663,7 @@ public class CircuitChanges
 				// make ports where this nodeinst has them
 				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				{
-					Export pp = (Export)it.next();
+					Export pp = it.next();
 					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
 					Export newPp = Export.newInstance(cell, pi, pp.getName());
 					if (newPp != null)
@@ -2632,7 +2678,7 @@ public class CircuitChanges
 			// copy the arcs into the new cell
 			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = (Geometric)sIt.next();
+				Geometric look = sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
 				NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
@@ -2683,9 +2729,8 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			boolean foundInstance = false;
-			for(Iterator<NodeInst> it = nodes.iterator(); it.hasNext(); )
+			for(NodeInst ni : nodes)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
 				if (!(np instanceof Cell)) continue;
 				foundInstance = true;
@@ -2716,10 +2761,8 @@ public class CircuitChanges
 
 		// copy the nodes
 		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-		for(Iterator<NodeInst> it = nodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
-
 			// do not extract "cell center" or "essential bounds" primitives
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
@@ -2757,10 +2800,8 @@ public class CircuitChanges
 			arcs.add(it.next());
 
 		// extract the arcs
-		for(Iterator<ArcInst> it = arcs.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcs)
 		{
-			ArcInst ai = (ArcInst)it.next();
-
 			// ignore arcs connected to nodes that didn't get yanked
 			NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
 			NodeInst niHead = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
@@ -2799,12 +2840,11 @@ public class CircuitChanges
 		List<ArcInst> replaceTheseArcs = new ArrayList<ArcInst>();
 		for(Iterator<Connection> it = topno.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			replaceTheseArcs.add(con.getArc());
 		}
-		for(Iterator<ArcInst> it = replaceTheseArcs.iterator(); it.hasNext(); )
+		for(ArcInst ai : replaceTheseArcs)
 		{
-			ArcInst ai = (ArcInst)it.next();
 //			if ((ai->userbits&DEADA) != 0) continue;
 			ArcProto ap = ai.getProto();
 			double wid = ai.getWidth();
@@ -2836,9 +2876,8 @@ public class CircuitChanges
 		List<Export> existingExports = new ArrayList<Export>();
 		for(Iterator<Export> it = topno.getExports(); it.hasNext(); )
 			existingExports.add(it.next());
-		for(Iterator<Export> it = existingExports.iterator(); it.hasNext(); )
+		for(Export pp : existingExports)
 		{
-			Export pp = (Export)it.next();
 			Export subPp = (Export)pp.getOriginalPort().getPortProto();
 			NodeInst subNi = subPp.getOriginalPort().getNodeInst();
 			NodeInst newNi = (NodeInst)newNodes.get(subNi);
@@ -2853,7 +2892,7 @@ public class CircuitChanges
 			// initialize for queueing creation of new exports
 			for(Iterator<Export> it = subCell.getExports(); it.hasNext(); )
 			{
-				Export pp = (Export)it.next();
+				Export pp = it.next();
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();
 				NodeInst newNi = (NodeInst)newNodes.get(subNi);
 				if (newNi == null) continue;
@@ -2863,7 +2902,7 @@ public class CircuitChanges
 				boolean alreadyDone = false;
 				for(Iterator<Export> eIt = newNi.getExports(); eIt.hasNext(); )
 				{
-					Export oPp = (Export)eIt.next();
+					Export oPp = eIt.next();
 					if (oPp.getOriginalPort() == pi)
 					{
 						alreadyDone = true;
@@ -2902,7 +2941,7 @@ public class CircuitChanges
 			boolean cleaned = false;
 			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cleanupCell(cell, false, highlighter)) cleaned = true;
 			}
 			if (!cleaned) System.out.println("Nothing to clean");
@@ -2933,7 +2972,7 @@ public class CircuitChanges
 		List<Reconnect> pinsToPassThrough = getPinsToPassThrough(cell);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// if the pin is an export, save it
@@ -2946,7 +2985,7 @@ public class CircuitChanges
 				boolean hasDisplayable = false;
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					if (var.isDisplay()) { hasDisplayable = true;   break; }
 				}
 				if (hasDisplayable) continue;
@@ -2961,7 +3000,7 @@ public class CircuitChanges
 		HashMap<NodeInst,Point2D.Double> pinsToScale = new HashMap<NodeInst,Point2D.Double>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// if the pin is standard size, leave it alone
@@ -2975,7 +3014,7 @@ public class CircuitChanges
 			boolean arcsInCenter = true;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				if (ai.getHeadPortInst().getNodeInst() == ni)
 				{
@@ -2994,7 +3033,7 @@ public class CircuitChanges
 			double overSizeArc = 0;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				double overSize = ai.getWidth() - ai.getProto().getDefaultWidth();
 				if (overSize < 0) overSize = 0;
@@ -3014,7 +3053,7 @@ public class CircuitChanges
 		List<NodeInst> textToMove = new ArrayList<NodeInst>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Point2D pt = ni.invisiblePinWithOffsetText(false);
 			if (pt != null)
 				textToMove.add(ni);
@@ -3024,20 +3063,20 @@ public class CircuitChanges
 		int overSizePins = 0;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// make sure all arcs touch each other
 			boolean nodeIsBad = false;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				double i = ai.getWidth() - ai.getProto().getWidthOffset();
 				Poly poly = ai.makePoly(i, Poly.Type.FILLED);
 				for(Iterator<Connection> oCIt = ni.getConnections(); oCIt.hasNext(); )
 				{
-					Connection oCon = (Connection)oCIt.next();
+					Connection oCon = oCIt.next();
 					ArcInst oAi = oCon.getArc();
 					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
 					double oI = oAi.getWidth() - oAi.getProto().getWidthOffset();
@@ -3066,7 +3105,7 @@ public class CircuitChanges
             if (arcsToKill.contains(ai)) continue;
             PortInst pi = ai.getHeadPortInst();
             for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
-                Connection con = (Connection)it.next();
+                Connection con = it.next();
                 ArcInst oAi = con.getArc();
                 if (oAi.getArcIndex() >= i) continue;
                 if (ai.getProto() != oAi.getProto()) continue;
@@ -3081,10 +3120,10 @@ public class CircuitChanges
 //		HashMap arcsToKill = new HashMap();
 //		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 //		{
-//			NodeInst ni = (NodeInst)it.next();
+//			NodeInst ni = it.next();
 //			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 //			{
-//				Connection con = (Connection)cIt.next();
+//				Connection con = cIt.next();
 //				ArcInst ai = con.getArc();
 //                int otherEnd = 1 - con.getEndIndex();
 ////				int otherEnd = 0;
@@ -3092,7 +3131,7 @@ public class CircuitChanges
 //				boolean foundAnother = false;
 //				for(Iterator<Connection> oCIt = ni.getConnections(); oCIt.hasNext(); )
 //				{
-//					Connection oCon = (Connection)oCIt.next();
+//					Connection oCon = oCIt.next();
 //					ArcInst oAi = oCon.getArc();
 //					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
 //					if (con.getPortInst().getPortProto() != oCon.getPortInst().getPortProto()) continue;
@@ -3118,7 +3157,7 @@ public class CircuitChanges
 		int zeroSize = 0, negSize = 0;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode ||
 				ni.getProto() == Generic.tech.invisiblePinNode ||
 				ni.getProto() == Generic.tech.universalPinNode ||
@@ -3159,7 +3198,7 @@ public class CircuitChanges
 		List<Reconnect> pinsToPassThrough = new ArrayList<Reconnect>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 	
 			// if the pin is an export, save it
@@ -3215,18 +3254,16 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			// do the queued operations
-			for(Iterator<NodeInst> it = pinsToRemove.iterator(); it.hasNext(); )
+			for(NodeInst ni : pinsToRemove)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				ni.kill();
 			}
             int pinsPassedThrough = 0;
             for(;;)
             {
             	boolean found = false;
-				for(Iterator<Reconnect> it = pinsToPassThrough.iterator(); it.hasNext(); )
+				for(Reconnect re : pinsToPassThrough)
 				{
-					Reconnect re = (Reconnect)it.next();
 					if (!re.ni.isLinked()) continue;
 					List created = re.reconnectArcs();
 					if (created.size() > 0)
@@ -3239,21 +3276,18 @@ public class CircuitChanges
 				if (!found) break;
 				pinsToPassThrough = getPinsToPassThrough(cell);
             }
-			for(Iterator<NodeInst> it = pinsToScale.keySet().iterator(); it.hasNext(); )
+			for(NodeInst ni : pinsToScale.keySet())
 			{
-				NodeInst ni = (NodeInst)it.next();
 				Point2D scale = (Point2D)pinsToScale.get(ni);
 				ni.resize(scale.getX(), scale.getY());
 //				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
 			}
-			for(Iterator<NodeInst> it = textToMove.iterator(); it.hasNext(); )
+			for(NodeInst ni : textToMove)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				ni.invisiblePinWithOffsetText(true);
 			}
-			for(Iterator<ArcInst> it = arcsToKill.iterator(); it.hasNext(); )
+			for(ArcInst ai : arcsToKill)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				if (!ai.isLinked()) continue;
 				ai.kill();
 			}
@@ -3343,13 +3377,13 @@ public class CircuitChanges
         HashSet<Cell> cellsSeen = new HashSet<Cell>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)aIt.next();
+					ArcInst ai = aIt.next();
 					ArcProto ap = ai.getProto();
 					if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
 						ap.getTechnology() == Schematics.tech) continue;
@@ -3361,7 +3395,7 @@ public class CircuitChanges
 				}
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					if ((ni.getAngle() % 900) != 0) cellsSeen.add(cell);
 				}
 			}
@@ -3371,7 +3405,7 @@ public class CircuitChanges
 		int i = 0;
 		for(Iterator<ArcInst> aIt = curCell.getArcs(); aIt.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)aIt.next();
+			ArcInst ai = aIt.next();
 			ArcProto ap = ai.getProto();
 			if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
 				ap.getTechnology() == Schematics.tech) continue;
@@ -3390,7 +3424,7 @@ public class CircuitChanges
 		}
 		for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nIt.next();
+			NodeInst ni = nIt.next();
 			if ((ni.getAngle() % 900) == 0) continue;
 			if (i == 0) highlighter.clear();
 			highlighter.addElectricObject(ni, curCell);
@@ -3405,12 +3439,12 @@ public class CircuitChanges
 		// tell about other non-manhatten-ness elsewhere
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			if (lib.isHidden()) continue;
 			int numBad = 0;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				if (cellsSeen.contains(cell) && cell != curCell) numBad++;
 			}
 			if (numBad == 0) continue;
@@ -3420,7 +3454,7 @@ public class CircuitChanges
 				String infstr = "";
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell == curCell || !cellsSeen.contains(cell)) continue;
 					if (cellsFound > 0) infstr += " ";;
 					infstr += cell.describe(true);
@@ -3457,7 +3491,7 @@ public class CircuitChanges
 		int i = 0;
 		for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nIt.next();
+			NodeInst ni = nIt.next();
 			if (ni.getFunction() != PrimitiveNode.Function.NODE) continue;
 			if (i == 0) highlighter.clear();
 			highlighter.addElectricObject(ni, curCell);
@@ -3505,9 +3539,8 @@ public class CircuitChanges
 			int l = 0;
 			double [] dX = new double[2];
 			double [] dY = new double[2];
-			for(Iterator<ArcInst> it = selected.iterator(); it.hasNext(); )
+			for(ArcInst ai : selected)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				for(int j=0; j<2; j++)
 				{
 					Poly portPoly = ai.getPortInst(j).getPoly();
@@ -3566,7 +3599,7 @@ public class CircuitChanges
 			// change the display of old versions to the new one
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
@@ -3621,7 +3654,7 @@ public class CircuitChanges
 
             // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 if (ni.getProtoEquivalent() == cell) {
                     // this is the icon, duplicate it as well
                     Cell icon = (Cell)ni.getProto();
@@ -3634,7 +3667,7 @@ public class CircuitChanges
 
                     // replace old icon(s) in duplicated cell
                     for (Iterator<NodeInst> it2 = dupCell.getNodes(); it2.hasNext(); ) {
-                        NodeInst ni2 = (NodeInst)it2.next();
+                        NodeInst ni2 = it2.next();
                         if (ni2.getProto() == icon) {
                             NodeInst newNi2 = ni2.replace(dupIcon, true, true);
                             // replace name on old self-icon
@@ -3662,7 +3695,7 @@ public class CircuitChanges
             // current cell was not duplicated: see if any displayed cell is
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
@@ -3693,9 +3726,8 @@ public class CircuitChanges
         // prevent mixing cell-center and non-cell-center
         int nonCellCenterCount = 0;
         Highlight2 cellCenterHighlight = null;
-        for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+        for(Highlight2 h : highlighted)
         {
-        	Highlight2 h = it.next();
         	if (!h.isHighlightEOBJ()) continue;
         	ElectricObject eObj = h.getElectricObject();
         	if (eObj instanceof NodeInst)
@@ -3765,9 +3797,8 @@ public class CircuitChanges
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
 			boolean found = false;
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
                 if (!h.isHighlightEOBJ()) continue;
 //				if (h.getType() != Highlight.Type.EOBJ) continue;
 				ElectricObject eobj = h.getElectricObject();
@@ -3786,7 +3817,7 @@ public class CircuitChanges
 								ArcInst oai = null;
 								for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 								{
-									Connection con = (Connection)pIt.next();
+									Connection con = pIt.next();
 									if (con.getArc() == ai) continue;
 									if (oai == null) oai = con.getArc(); else
 									{
@@ -3806,9 +3837,8 @@ public class CircuitChanges
 			if (found)
 			{
 				// meets the test: make the special move to slide other orthogonal arcs
-				for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+				for(Highlight2 h : highlighted)
 				{
-					Highlight2 h = it.next();
                     if (!h.isHighlightEOBJ()) continue;
 					ElectricObject eobj = h.getElectricObject();
 					if (!(eobj instanceof ArcInst)) continue;
@@ -3830,7 +3860,7 @@ public class CircuitChanges
 						ArcInst oai = null;
 						for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 						{
-							Connection con = (Connection)pIt.next();
+							Connection con = pIt.next();
 							if (con.getArc() != ai) { oai = con.getArc();   break; }
 						}
 						if (oai == null) break;
@@ -3866,9 +3896,8 @@ public class CircuitChanges
 
 			// special case if moving only arcs and they slide
 			boolean onlySlidable = true, foundArc = false;
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
                 if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
@@ -3887,9 +3916,8 @@ public class CircuitChanges
 			}
 			if (foundArc && onlySlidable)
 			{
-				for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+				for(Highlight2 h : highlighted)
 				{
-					Highlight2 h = it.next();
                     if (!h.isHighlightEOBJ()) continue;
 					ElectricObject eobj = h.getElectricObject();
 					if (eobj instanceof ArcInst)
@@ -3910,20 +3938,19 @@ public class CircuitChanges
 			HashMap<NodeInst,Point2D.Double> nodeLocation = new HashMap<NodeInst,Point2D.Double>();
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				nodeLocation.put(ni, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
 			HashMap<ArcInst,Point2D.Double> arcLocation = new HashMap<ArcInst,Point2D.Double>();
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				arcLocation.put(ai, new Point2D.Double(ai.getTrueCenterX(), ai.getTrueCenterY()));
 			}
 
 			// mark all nodes that want to move
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
                 if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
@@ -3946,7 +3973,7 @@ public class CircuitChanges
 			int numNodes = 0;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (!flag.contains(ni)) continue;
 
 				// make sure moving the node is allowed
@@ -3972,7 +3999,7 @@ public class CircuitChanges
 				numNodes = 0;
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
 					if (!flag.contains(ni)) continue;
 					nis[numNodes] = ni;
 					dXs[numNodes] = dX;
@@ -3988,9 +4015,8 @@ public class CircuitChanges
 			flag = null;
 
 			// look at all arcs and move them appropriately
-			for(Iterator<Highlight2> it = highlighted.iterator(); it.hasNext(); )
+			for(Highlight2 h : highlighted)
 			{
-				Highlight2 h = it.next();
 				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();
 				if (!(eobj instanceof ArcInst)) continue;
@@ -4028,9 +4054,8 @@ public class CircuitChanges
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
-						for(Iterator<Highlight2> oIt = highlighted.iterator(); oIt.hasNext(); )
+						for(Highlight2 oH : highlighted)
 						{
-							Highlight2 oH = oIt.next();
                             if (!oH.isHighlightEOBJ()) continue;
 							ElectricObject oEObj = oH.getElectricObject();
 							if (oEObj instanceof ArcInst)
@@ -4103,10 +4128,7 @@ public class CircuitChanges
 		private void moveSelectedText(List<Highlight2> highlightedText)
 		{
             for(Highlight2 high : highlightedText)
-//			for(Iterator<Highlight> it = highlightedText.iterator(); it.hasNext(); )
 			{
-//				Highlight high = (Highlight)it.next();
-
 				// disallow moving if lock is on
 				Cell np = high.getCell();
 				if (np != null)
@@ -4247,11 +4269,11 @@ public class CircuitChanges
 
             // get all arcs connected to each portinst on node
             for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); ) {
-                PortInst pi = (PortInst)it.next();
+                PortInst pi = it.next();
 
                 ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
                 for (Iterator<Connection> it2 = pi.getConnections(); it2.hasNext(); ) {
-                    Connection conn = (Connection)it2.next();
+                    Connection conn = it2.next();
                     ArcInst ai = conn.getArc();
                     // ignore arcs that connect from the node to itself
                     if (ai.getHeadPortInst().getNodeInst() == ai.getTailPortInst().getNodeInst())
@@ -4262,9 +4284,7 @@ public class CircuitChanges
                 // go through all arcs on this portinst and see if any can be reconnected
                 while (arcs.size() > 1) {
                     ArcInst ai1 = (ArcInst)arcs.remove(0);
-                    for (Iterator<ArcInst> it2 = arcs.iterator(); it2.hasNext(); ) {
-                        ArcInst ai2 = (ArcInst)it2.next();
-
+                    for (ArcInst ai2 : arcs) {
                         ReconnectedArc ra = reconnectArcs(pi, ai1, ai2, allowdiffs);
                         // if reconnection to be made, add to list
                         if (ra != null) recon.reconnectedArcs.add(ra);
@@ -4378,9 +4398,8 @@ public class CircuitChanges
             List<ArcInst> newArcs = new ArrayList<ArcInst>();
 
 			// reconnect the arcs
-            for (Iterator<ReconnectedArc> it = reconnectedArcs.iterator(); it.hasNext(); )
+            for (ReconnectedArc ra : reconnectedArcs)
             {
-                ReconnectedArc ra = (ReconnectedArc)it.next();
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
                 if (newAi == null) continue;
@@ -4432,7 +4451,7 @@ public class CircuitChanges
 		// set "already done" flag for nodes that completely cover spread node or are in its line
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst oNi = (NodeInst)it.next();
+			NodeInst oNi = it.next();
 			SizeOffset oSo = oNi.getSizeOffset();
 			if (direction == 'l' || direction == 'r')
 			{
@@ -4454,7 +4473,7 @@ public class CircuitChanges
 		// mark those arcinsts that should stretch during spread
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			NodeInst no1 = ai.getTailPortInst().getNodeInst();
 			NodeInst no2 = ai.getHeadPortInst().getNodeInst();
 			double xC1 = no1.getTrueCenterX();
@@ -4514,7 +4533,7 @@ public class CircuitChanges
 			again = false;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst oNi = (NodeInst)it.next();
+				NodeInst oNi = it.next();
 
 				// ignore this nodeinst if it has been spread already
 				if (geomSeen.contains(oNi)) continue;
@@ -4535,7 +4554,7 @@ public class CircuitChanges
 				// set every connecting nodeinst to be "spread"
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)aIt.next();
+					ArcInst ai = aIt.next();
 					if (geomSeen.contains(ai))
 					{
 						// make arc temporarily unrigid
@@ -4586,7 +4605,7 @@ public class CircuitChanges
 
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			if (geomSeen.contains(ai)) continue;
 			netTravel(ai.getHeadPortInst().getNodeInst(), geomSeen);
@@ -4607,7 +4626,7 @@ public class CircuitChanges
 		geomSeen.add(ni);
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			int angle = ai.getAngle();
 			if (hor)
@@ -4688,9 +4707,8 @@ public class CircuitChanges
 //		boolean topLevel = subDescript.length() == 0;
 
 		// see if the cell is already there
-		for(Iterator<Cell> it = existing.iterator(); it.hasNext(); )
+		for(Cell copiedCell : existing)
 		{
-			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
 				return copiedCell;
 		}
@@ -4704,7 +4722,7 @@ public class CircuitChanges
 				found = false;
 				for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
                     if (!copySubCells && !ni.isIconOfParent()) continue;
 					NodeProto np = ni.getProto();
 					if (!(np instanceof Cell)) continue;
@@ -4752,7 +4770,7 @@ public class CircuitChanges
 					found = false;
 					for(Iterator<Cell> it = fromCell.getCellGroup().getCells(); it.hasNext(); )
 					{
-						Cell np = (Cell)it.next();
+						Cell np = it.next();
 						if (np.getView() != View.SCHEMATIC) continue;
 
 						// see if the cell is already there
@@ -4782,7 +4800,7 @@ public class CircuitChanges
 				found = false;
 				for(Iterator<Cell> it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
-					Cell np = (Cell)it.next();
+					Cell np = it.next();
 					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
@@ -4809,7 +4827,7 @@ public class CircuitChanges
 				found = false;
 				for(Iterator<Cell> it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
-					Cell np = (Cell)it.next();
+					Cell np = it.next();
 					if (np.isIcon()) continue;
 
 					// see if the cell is already there
@@ -4831,9 +4849,8 @@ public class CircuitChanges
 		}
 
 		// see if the cell is NOW there
-		for(Iterator<Cell> it = existing.iterator(); it.hasNext(); )
+		for(Cell copiedCell : existing)
 		{
-			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
 				return copiedCell;
 		}
@@ -4892,17 +4909,17 @@ public class CircuitChanges
 			// now replace old instances with the moved one
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell np = (Cell)cIt.next();
+					Cell np = cIt.next();
 					boolean found = true;
 					while (found)
 					{
 						found = false;
 						for(Iterator<NodeInst> nIt = np.getNodes(); nIt.hasNext(); )
 						{
-							NodeInst ni = (NodeInst)nIt.next();
+							NodeInst ni = nIt.next();
 							if (ni.getProto() == fromCell)
 							{
 								NodeInst replacedNi = ni.replace(newFromCell, false, false);
@@ -4930,9 +4947,8 @@ public class CircuitChanges
 	 */
 	private static boolean inDestLib(Cell cell, HashSet<Cell> existing)
 	{
-		for(Iterator<Cell> it = existing.iterator(); it.hasNext(); )
+		for(Cell copiedCell : existing)
 		{
-			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(cell.getName()) && copiedCell.getView() == cell.getView())
 				return true;
 		}
@@ -5042,9 +5058,8 @@ public class CircuitChanges
 			expandFlagBit = new HashSet<NodeInst>();
 			if (unExpand)
 			{
-				for(Iterator<NodeInst> it = list.iterator(); it.hasNext(); )
+				for(NodeInst ni : list)
 				{
-					NodeInst ni = (NodeInst)it.next();
 					NodeProto np = ni.getProto();
 					if (!(np instanceof Cell)) continue;
 					{
@@ -5053,9 +5068,8 @@ public class CircuitChanges
 					}
 				}
 			}
-			for(Iterator<NodeInst> it = list.iterator(); it.hasNext(); )
+			for(NodeInst ni : list)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				if (unExpand) doUnExpand(ni); else
 					doExpand(ni, amount, 0);
 				if (User.isUseOlderDisplayAlgorithm())
@@ -5089,7 +5103,7 @@ public class CircuitChanges
 		Cell cell = (Cell)np;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst subNi = (NodeInst)it.next();
+			NodeInst subNi = it.next();
 			NodeProto subNp = subNi.getProto();
 			if (!(subNp instanceof Cell)) continue;
 			Cell subCell = (Cell)subNp;
@@ -5109,7 +5123,7 @@ public class CircuitChanges
 		Cell cell = (Cell)np;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst subNi = (NodeInst)it.next();
+			NodeInst subNi = it.next();
 			NodeProto subNp = subNi.getProto();
 			if (!(subNp instanceof Cell)) continue;
 
@@ -5136,7 +5150,7 @@ public class CircuitChanges
 			Cell cell = (Cell)np;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst subNi = (NodeInst)it.next();
+				NodeInst subNi = it.next();
 				NodeProto subNp = subNi.getProto();
 				if (!(subNp instanceof Cell)) continue;
 
@@ -5225,7 +5239,7 @@ public class CircuitChanges
 			{
 				// remove variables that make no sense
                 for (Iterator<Variable> it = newNi.getVariables(); it.hasNext(); ) {
-                    Variable var = (Variable)it.next();
+                    Variable var = it.next();
                     Variable.Key key = var.getKey();
                     if (key != NodeInst.TRACE && !PossibleVariables.validKey(key, (PrimitiveNode)newNp)) 
                     {
@@ -5241,7 +5255,7 @@ public class CircuitChanges
 					varList.add(it.next());
 				for(Iterator<Variable> it = varList.iterator(); it.hasNext(); )
 				{
-					Variable var = (Variable)it.next();
+					Variable var = it.next();
 					if (!var.isParam()) continue;
 
 					// see if this parameter exists on the new prototype
@@ -5249,7 +5263,7 @@ public class CircuitChanges
 					if (cNp == null) cNp = newCell;
 					for(Iterator<Variable> cIt = cNp.getVariables(); it.hasNext(); )
 					{
-						Variable cVar = (Variable)cIt.next();
+						Variable cVar = cIt.next();
 						if (!(var.getKey().equals(cVar.getKey()))) continue;
 						if (cVar.isParam())
 						{
@@ -5286,7 +5300,7 @@ public class CircuitChanges
 		// first inherit directly from this node's prototype
 		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (!var.getTextDescriptor().isInherit()) continue;
 			inheritCellAttribute(var, ni, cell, null);
 		}
@@ -5294,7 +5308,7 @@ public class CircuitChanges
 		// inherit directly from each port's prototype
 		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 			inheritExportAttributes(pp, ni, cell);
 		}
 
@@ -5306,7 +5320,7 @@ public class CircuitChanges
 			NodeInst icon = null;
 			for(Iterator<NodeInst> it = cNp.getNodes(); it.hasNext(); )
 			{
-				icon = (NodeInst)it.next();
+				icon = it.next();
 				if (icon.getProto() == cell) break;
 				icon = null;
 			}
@@ -5315,13 +5329,13 @@ public class CircuitChanges
 
 			for(Iterator<Variable> it = cNp.getVariables(); it.hasNext(); )
 			{
-				Variable var = (Variable)it.next();
+				Variable var = it.next();
 				if (!var.getTextDescriptor().isInherit()) continue;
 				inheritCellAttribute(var, ni, cNp, icon);
 			}
 			for(Iterator<Export> it = cNp.getExports(); it.hasNext(); )
 			{
-				Export cpp = (Export)it.next();
+				Export cpp = it.next();
 				inheritExportAttributes(cpp, ni, cNp);
 			}
 		}
@@ -5337,7 +5351,7 @@ public class CircuitChanges
                 // look through all parameters on instance
 				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 				{
-					Variable var = (Variable)it.next();
+					Variable var = it.next();
 					if (!ni.isParam(var.getKey())) continue;
 //					if (!var.isParam()) continue;
 					Variable oVar = null;
@@ -5346,7 +5360,7 @@ public class CircuitChanges
                     boolean delete = true;
 					while (oIt.hasNext())
 					{
-						oVar = (Variable)oIt.next();
+						oVar = oIt.next();
 						if (!cNp.isParam(oVar.getKey())) continue;
 //						if (!oVar.isParam()) continue;
 						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
@@ -5371,7 +5385,7 @@ public class CircuitChanges
 	{
 		for(Iterator<Variable> it = pp.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (!var.getTextDescriptor().isInherit()) continue;
 
 			Variable.Key attrKey = var.getKey();
@@ -5541,7 +5555,7 @@ public class CircuitChanges
 //        {
 //            for(Iterator<Variable> it = icon.getVariables(); it.hasNext(); )
 //            {
-//                Variable ivar = (Variable)it.next();
+//                Variable ivar = it.next();
 //                if (ivar.getKey().equals(nivar.getKey()))
 //                {
 //                    posVar = ivar;
@@ -5643,10 +5657,8 @@ public class CircuitChanges
 	{
 		System.out.println("----- Libraries: -----");
 		int k = 0;
-		/*for(Library lib: Library.getVisibleLibraries())*/
-		for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for (Library lib : Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(lib.getName());
@@ -5664,10 +5676,10 @@ public class CircuitChanges
 			HashSet<Library> markedLibs = new HashSet<Library>();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					if (!(ni.getProto() instanceof Cell)) continue;
 					Cell subCell = (Cell)ni.getProto();
 					Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
@@ -5681,7 +5693,7 @@ public class CircuitChanges
 			}
 			for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
-				Library oLib = (Library)lIt.next();
+				Library oLib = lIt.next();
 				if (oLib == lib) continue;
 				if (!markedLibs.contains(oLib)) continue;
 				System.out.println("   Makes use of cells in " + oLib);
@@ -5689,11 +5701,11 @@ public class CircuitChanges
 				infstr.append("      These cells make reference to that library:");
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					boolean found = false;
 					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 					{
-						NodeInst ni = (NodeInst)nIt.next();
+						NodeInst ni = nIt.next();
 						if (!(ni.getProto() instanceof Cell)) continue;
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() == oLib) { found = true;   break; }
@@ -5702,19 +5714,18 @@ public class CircuitChanges
 				}
 				System.out.println(infstr.toString());
 			}
-			for(Iterator<String> dIt = dummyLibs.iterator(); dIt.hasNext(); )
+			for(String dummyLibName : dummyLibs)
 			{
-				String dummyLibName = (String)dIt.next();
 				System.out.println("   Has dummy cells that should be in library " + dummyLibName);
 				infstr = new StringBuffer();
 				infstr.append("      Instances of these dummy cells are in:");
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					boolean found = false;
 					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 					{
-						NodeInst ni = (NodeInst)nIt.next();
+						NodeInst ni = nIt.next();
 						if (!(ni.getProto() instanceof Cell)) continue;
 						Cell subCell = (Cell)ni.getProto();
 						Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
@@ -5767,7 +5778,7 @@ public class CircuitChanges
 			// mark all libraries for saving
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library oLib = (Library)it.next();
+				Library oLib = it.next();
 				if (oLib.isHidden()) continue;
 	            oLib.setChanged();
 			}
@@ -5820,7 +5831,7 @@ public class CircuitChanges
 			// mark for saving, all libraries that depend on this
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library oLib = (Library)it.next();
+				Library oLib = it.next();
 				if (oLib.isHidden()) continue;
 				if (oLib == lib) continue;
 				if (oLib.isChanged()) continue;
@@ -5841,7 +5852,7 @@ public class CircuitChanges
 		// mark all libraries as "changed"
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			if (lib.isHidden()) continue;
 
 			// make sure all old format library extensions are converted
@@ -5898,7 +5909,7 @@ public class CircuitChanges
 				int errorCount = 0;
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					errorCount += lib.checkAndRepair(repair, errorLogger);
 				}
 				if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
@@ -5934,7 +5945,7 @@ public class CircuitChanges
             // Checking all
             for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
             {
-                Library lib = (Library)libIter.next();
+                Library lib = libIter.next();
                 cleanUnusedNodesInLibrary(lib);
             }
             return true;
@@ -5947,7 +5958,7 @@ public class CircuitChanges
 
             for (Iterator<Cell> cellsIter = lib.getCells(); cellsIter.hasNext();)
             {
-                Cell cell = (Cell)cellsIter.next();
+                Cell cell = cellsIter.next();
                 if (cell.getView() != View.LAYOUT) continue; // only layout
                 list.clear();
                 Technology tech = cell.getTechnology();

@@ -4,17 +4,33 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
-IMP: (1/2/06, SMR) New command: Export / Manipulate Ports on Node (Bug #697).
+IMP/MAN: (1/3/06, SMR) The "Edit / Erase" command is now a submenu and has
+     two new entries: "Arcs Connected to Selected Nodes" and
+     "Arcs Connected Between Selected Nodes" (Bug #610).
+
+IMP/MAN: (1/3/06, SMR) Moved "Edit / Info / Show Undo List" to "Edit / Show Undo List".
+
+IMP: (1/3/06, SMR) When two EditWindows share the same cell, they share Highlighters,
+     too (Bug #402).
+
+IMP/MAN: (1/3/06, SMR) The "Window / Center" submenu is now called "Window / Special Pan"
+     and includes two new commands: "Match Other Window in X" and
+     "Match Other Window in Y" (Bug #402).
+
+IMP: (1/3/06, SMR) "Select Object" dialog allows quick-key commands to "pass through"
+     (but it works only when the "Find" button or no dialog item is current) (Bug #370).
+
+IMP/MAN: (1/2/06, SMR) New command: Export / Manipulate Ports on Node (Bug #697).
 
 BUG: (1/2/06, SMR) Changing default text font doesn't update display (Bug #771).
 FIX: In TextTab.term() redraw all edit windows if font changes.
 
-IMP: (1/2/06, SMR) Mimic unstitch now works interactively (Bug #488).
+IMP/MAN: (1/2/06, SMR) Mimic unstitch now works interactively (Bug #488).
 
 BUG: (12/28/05, SMR) Dragging or deleting text fails.
 FIX: In Highlight2.getHighlightedText() changed "return" to "continue" in last loop.
 
-IMP: (12/27/05, SMR) Added commands "Edit / Properties /  Parameterize Bus Name"
+IMP/MAN: (12/27/05, SMR) Added commands "Edit / Properties /  Parameterize Bus Name"
      and "Edit / Properties / Edit Bus Parameters..." to parameterize busses.
 
 IMP: (12/26/05, SMR) Sped up exporting many ports by a factor of 3.
