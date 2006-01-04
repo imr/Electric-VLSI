@@ -1133,6 +1133,13 @@ public class Spice extends Topology
 			Variable modelVar = ni.getVar(SPICE_MODEL_KEY);
 			if (modelVar != null) modelName = modelVar.getObject().toString();
 
+            // special case for ST090 technology which has stupid non-standard transistor
+            // models which are subcircuits
+            boolean st090laytrans = false;
+            if (cell.getView() == View.LAYOUT && layoutTechnology == Technology.getTSMC90Technology()) {
+                st090laytrans = true;
+            }
+
 			String modelChar = "";
 			if (fun == PrimitiveNode.Function.TRANSREF)					// self-referential transistor
 			{
@@ -1145,10 +1152,18 @@ public class Spice extends Topology
 				biasCs = cni.getCellSignal(groundNet);
                 defaultBulkName = "gnd";
 				if (modelName == null) modelName = "N";
+                if (st090laytrans) {
+                    modelChar = "XM";
+                    modelName = "nsvt";
+                }
 			} else if (fun == PrimitiveNode.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "N";
+                if (st090laytrans) {
+                    modelChar = "XM";
+                    modelName = "nsvt";
+                }
 			} else if (fun == PrimitiveNode.Function.TRADMOS)			// DMOS (Depletion) transistor
 			{
 				modelChar = "M";
@@ -1164,10 +1179,18 @@ public class Spice extends Topology
 				biasCs = cni.getCellSignal(powerNet);
                 defaultBulkName = "vdd";
 				if (modelName == null) modelName = "P";
+                if (st090laytrans) {
+                    modelChar = "XM";
+                    modelName = "psvt";
+                }
 			} else if (fun == PrimitiveNode.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "P";
+                if (st090laytrans) {
+                    modelChar = "XM";
+                    modelName = "psvt";
+                }
 			} else if (fun == PrimitiveNode.Function.TRANPN)			// NPN (Junction) transistor
 			{
 				modelChar = "Q";
@@ -1276,13 +1299,13 @@ public class Spice extends Topology
                             infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
                     } else {
                         infstr.append(" L=" + TextUtils.formatDouble(l, 2));
-                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+                        if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
                         infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
                     } else {
                         infstr.append(" W=" + TextUtils.formatDouble(w, 2));
-                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+                        if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                     }
 				}
 				if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
@@ -1342,22 +1365,22 @@ public class Spice extends Topology
 					if (as > 0.0)
 					{
 						infstr.append(" AS=" + TextUtils.formatDouble(as, 3));
-						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
 					}
 					if (ad > 0.0)
 					{
 						infstr.append(" AD=" + TextUtils.formatDouble(ad, 3));
-						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
 					}
 					if (ps > 0.0)
 					{
 						infstr.append(" PS=" + TextUtils.formatDouble(ps, 3));
-						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
 					}
 					if (pd > 0.0)
 					{
 						infstr.append(" PD=" + TextUtils.formatDouble(pd, 3));
-						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
 					}
 				}
 			}
