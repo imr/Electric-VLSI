@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (1/5/06, SMR) PolyMerge.contains(Layer, Rectangle2D) does not work.
+FIX: Must use same method as in PolyMerge.contains(Layer, PolyBase),
+     subtracting areas and seeing if the result has near-zero size.
+
+IMP/MAN: (1/5/06, SMR) Added option to merge geometry while reading GDS in.
+
 IMP/MAN: (1/3/06, SMR) The "Edit / Erase" command is now a submenu and has
      two new entries: "Arcs Connected to Selected Nodes" and
      "Arcs Connected Between Selected Nodes" (Bug #610).

@@ -56,7 +56,7 @@ import org.xml.sax.SAXParseException;
  * Class for logging errors.
  * Holds a log of errors:
  * <p>ErrorLogger errorLogger = ErrorLogger.newInstance(String s): get new logger for s
- * <p>ErrorLog errorLog = errorLogger.logError(string msg, cell c, int k):
+ * <p>MessageLog errorLog = errorLogger.logError(string msg, cell c, int k):
  * Create a new log with message 'msg', for cell 'c', with sortKey 'k'.
  * <p>Various methods for adding highlights to errorLog:
  * <pre>
@@ -64,7 +64,7 @@ import org.xml.sax.SAXParseException;
  *                                          add geom "g" to error (show if "s" nonzero)
  *   addExport(Export p, boolean s)         add export "pp" to error
  *   addLine(x1, y1, x2, y2)                add line to error
- *   addPoly(POLYGON *p)                    add polygon to error
+ *   addPoly(POLYGON *p, thick, cell)       add polygon to error
  *   addPoint(x, y)                         add point to error
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).

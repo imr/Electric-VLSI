@@ -137,9 +137,8 @@ public class PolyMerge
 	 */
 	public void addMerge(PolyMerge other, AffineTransform trans)
 	{
-		for(Iterator<Layer> it = other.layers.keySet().iterator(); it.hasNext(); )
+		for(Layer subLayer : other.layers.keySet())
 		{
-			Layer subLayer = (Layer)it.next();
 			Area subArea = (Area)other.layers.get(subLayer);
 
 			Area area = (Area)layers.get(subLayer);
@@ -242,9 +241,8 @@ public class PolyMerge
 			if (amount == 0) return;
 			List<PolyBase> orig = getAreaPoints(sourceArea, source, true);
 			Point2D [] subtractPoints = new Point2D[4];
-			for(Iterator<PolyBase> it = orig.iterator(); it.hasNext(); )
+			for(PolyBase poly : orig)
 			{
-				PolyBase poly = (PolyBase)it.next();
 				Point2D [] points = poly.getPoints();
 				for(int i=0; i<points.length; i++)
 				{
@@ -301,7 +299,17 @@ public class PolyMerge
 	{
 		Area area = (Area)layers.get(layer);
 		if (area == null) return false;
-		return area.contains(rect);
+		if (area.contains(rect)) return true;
+
+		Area rectArea = new Area(rect);
+		rectArea.subtract(area);
+		
+		// if the new area is empty, then the poly is completely contained in the merge
+		if (rectArea.isEmpty()) return true;
+		double remainingArea = getAreaOfArea(rectArea);
+		if (DBMath.areEquals(remainingArea, 0)) return true;
+
+		return false;
 	}
 
 	/**
@@ -331,9 +339,8 @@ public class PolyMerge
 	{
 		List<PolyBase> pointList = getAreaPoints(area, null, true);
 		double totalArea = 0;
-		for(Iterator<PolyBase> iit = pointList.iterator(); iit.hasNext(); )
+		for(PolyBase p : pointList)
 		{
-			PolyBase p = (PolyBase)iit.next();
 			totalArea += p.getArea();
 		}
 		return totalArea;
@@ -415,8 +422,8 @@ public class PolyMerge
 				if (lastMoveTo != null) pointList.add(lastMoveTo);
 				Point2D [] points = new Point2D[pointList.size()];
 				int i = 0;
-				for(Iterator<Point2D> it = pointList.iterator(); it.hasNext(); )
-					points[i++] = (Point2D)it.next();
+				for(Point2D pt : pointList)
+					points[i++] = pt;
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
@@ -427,7 +434,7 @@ public class PolyMerge
 					Iterator<PolyBase> it = polyList.iterator();
 					while (it.hasNext())
 					{
-						PolyBase pn = (PolyBase)it.next();
+						PolyBase pn = it.next();
 						if (pn.contains((Point2D)pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
 						/*
@@ -467,13 +474,11 @@ public class PolyMerge
             else
             {
                 boolean foundError = false;
-                for (Iterator<PolyBase> it = polyList.iterator(); it.hasNext(); )
+                for (PolyBase poly : polyList)
                 {
-                    PolyBase poly = (PolyBase)it.next();
                     boolean found = false;
-                    for (Iterator<PolyBase> iter = polyList.iterator(); iter.hasNext(); )
+                    for (PolyBase poly1 : polyList)
                     {
-                       PolyBase poly1 = (PolyBase)iter.next();
                        if (poly1.polySame(poly)) { found = true; break;};
                     }
                     if (!found) {foundError=true; break;}

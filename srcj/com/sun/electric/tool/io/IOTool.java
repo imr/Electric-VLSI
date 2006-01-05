@@ -483,6 +483,21 @@ public class IOTool extends Listener
      */
     public static void setGDSOutputConvertsBracketsInExports(boolean b) { cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
 
+	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether GDS Input merges boxes into complex polygons.
+	 * This takes more time but produces a smaller database.
+	 * The default is "false".
+	 * @return true if GDS Input merges boxes into complex polygons.
+	 */
+	public static boolean isGDSInMergesBoxes() { return cacheGDSInMergesBoxes.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input merges boxes into complex polygons.
+	 * This takes more time but produces a smaller database.
+	 * @param on true if GDS Input merges boxes into complex polygons.
+	 */
+	public static void setGDSInMergesBoxes(boolean on) { cacheGDSInMergesBoxes.setBoolean(on); }
+
 	private static Pref cacheGDSInIncludesText = Pref.makeBooleanPref("GDSInIncludesText", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input ignores text.
