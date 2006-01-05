@@ -354,20 +354,20 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			}
 		}
 
-		// reload the list (much more efficient than clearing and reloading if it is already displayed)
-		list.setListData(displayList.toArray());
-
 		// with exactly 2 objects, show the distance between them
 		if (nodeList.size() + arcList.size() == 2)
 		{
-			listModel.addElement("---------------------------");
+			displayList.add("---------------------------");
 			Point2D firstPt = firstGeom.getTrueCenter();
 			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getAnchorCenter();
 			Point2D secondPt = secondGeom.getTrueCenter();
 			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getAnchorCenter();
-			listModel.addElement("Distance between centers: X=" + Math.abs(firstPt.getX() - secondPt.getX()) +
+			displayList.add("Distance between centers: X=" + Math.abs(firstPt.getX() - secondPt.getX()) +
 			   " Y=" + Math.abs(firstPt.getY() - secondPt.getY()));
 		}
+
+		// reload the list (much more efficient than clearing and reloading if it is already displayed)
+		list.setListData(displayList.toArray());
 
 		// figure out what can be edited here
 		int index = 0;
