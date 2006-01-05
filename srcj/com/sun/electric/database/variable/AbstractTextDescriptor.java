@@ -189,9 +189,8 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public static Position getPosition(Poly.Type type)
 		{
-			for(Iterator<Position> it = positions.iterator(); it.hasNext(); )
+			for(Position pos : positions)
 			{
-				Position pos = (Position)it.next();
 				if (type == pos.pt) return pos;
 			}
 			return CENT;
@@ -314,9 +313,10 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * @param index the DispPos number desired.
 		 * @return the DispPos at a given index.
 		 */
-		public static DispPos getShowStylesAt(int index) {
-            for (Iterator<DispPos> it = positions.iterator(); it.hasNext(); ) {
-                DispPos d = (DispPos)it.next();
+		public static DispPos getShowStylesAt(int index)
+		{
+            for (DispPos d : positions)
+            {
                 if (d.index == index) return d;
             }
             return NAMEVALUE;
@@ -489,9 +489,10 @@ abstract class AbstractTextDescriptor implements Serializable
          * @param angle the angle.
          * @return a Rotation for the given angle, or null if non exists.
          */
-        public static Rotation getRotation(int angle) {
-            for (Iterator<Rotation> it = rotations.iterator(); it.hasNext(); ) {
-                Rotation rot = (Rotation)it.next();
+        public static Rotation getRotation(int angle)
+        {
+            for (Rotation rot : rotations)
+            {
                 if (rot.getAngle() == angle) return rot;
             }
             return null;
@@ -980,15 +981,15 @@ abstract class AbstractTextDescriptor implements Serializable
 		return Position.getPositionAt(pos);
 	}
 
-	/**
-	 * Returns true if this ImmutableTextDescriptor describes absolute text.
-	 * Text may be either absolute text (in points) or relative text (in quarter units).
-	 * @return true if this ImmutableTextDescriptor describes absolute text.
-	 */
-	public boolean isAbsoluteSize() {
-		int textSize = getField(VTSIZE, VTSIZESH);
-        return textSize > 0 || textSize <= Size.TXTMAXPOINTS;
-	}
+//	/**
+//	 * Returns true if this ImmutableTextDescriptor describes absolute text.
+//	 * Text may be either absolute text (in points) or relative text (in quarter units).
+//	 * @return true if this ImmutableTextDescriptor describes absolute text.
+//	 */
+//	public boolean isAbsoluteSize() {
+//		int textSize = getField(VTSIZE, VTSIZESH);
+//        return textSize > 0 || textSize <= Size.TXTMAXPOINTS;
+//	}
 
 	/**
 	 * Method to return the text size of the text in this TextDescriptor.

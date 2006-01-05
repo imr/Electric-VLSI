@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/5/06, SMR) Removed unused method AbstractTextDescriptor.isAbsoluteSize().
+
 BUG: (1/5/06, SMR) PolyMerge.contains(Layer, Rectangle2D) does not work.
 FIX: Must use same method as in PolyMerge.contains(Layer, PolyBase),
      subtracting areas and seeing if the result has near-zero size.
