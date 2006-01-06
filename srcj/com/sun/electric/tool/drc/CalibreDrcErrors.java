@@ -4,6 +4,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -13,11 +14,7 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * This reads an ASCII Calibre DRC error database
@@ -34,6 +31,7 @@ public class CalibreDrcErrors {
     private BufferedReader in;
     private List<DrcRuleViolation> ruleViolations;            // list of DrcRuleViolations
     private int lineno;
+    private HashMap<Cell,String> mangledNames;
 
     private static final String spaces = "[\\s\\t ]+";
 
@@ -42,7 +40,7 @@ public class CalibreDrcErrors {
      * and then convert them to the ErrorLogger.
      * @param filename the ASCII calibre drc results database file
      */
-    public static void importErrors(String filename) {
+    public static void importErrors(String filename, HashMap<Cell,String> mangledNames) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
@@ -53,7 +51,7 @@ public class CalibreDrcErrors {
         }
 
         if (in == null) return;
-        CalibreDrcErrors errors = new CalibreDrcErrors(in);
+        CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames);
         // read first line
         if (!errors.readTop()) return;
         // read all rule violations
@@ -63,11 +61,12 @@ public class CalibreDrcErrors {
     }
 
     // Constructor
-    private CalibreDrcErrors(BufferedReader in) {
+    private CalibreDrcErrors(BufferedReader in, HashMap<Cell,String> mangledNames) {
         assert(in != null);
         this.in = in;
         lineno = 0;
         ruleViolations = new ArrayList<DrcRuleViolation>();
+        this.mangledNames = mangledNames;
     }
 
     // read the cell name and precision, if any
@@ -98,7 +97,7 @@ public class CalibreDrcErrors {
             System.out.println("Error on first line: Expected cell name and precision, or 'drc'");
             return false;
         }
-        topCell = getCell(topCellName);
+        topCell = getCell(topCellName, mangledNames);
         if (topCell == null) {
             System.out.println("Cannot find cell "+topCellName+" specified in error file, line number "+lineno+", aborting");
             return false;
@@ -214,7 +213,7 @@ public class CalibreDrcErrors {
                 String coordSpace = parts[2];
                 if (coordSpace.equals("c")) {
                     // coords are in sub cell coord system
-                    incell = getCell(cellname);
+                    incell = getCell(cellname, mangledNames);
                     if (incell == null) incell = topCell;
                 }
                 nextLine = readLine();
@@ -415,6 +414,28 @@ public class CalibreDrcErrors {
         return line;
     }
 
+    public static Cell getCell(String cellName, HashMap<Cell,String> mangledNames) {
+        List<Cell> matchedNames = new ArrayList<Cell>();
+        for (Map.Entry<Cell,String> entry : mangledNames.entrySet()) {
+            String name = entry.getValue();
+            if (name.equals(cellName))
+                matchedNames.add(entry.getKey());
+        }
+        if (matchedNames.size() == 0) return null;
+        if (matchedNames.size() == 1) return matchedNames.get(0);
+
+        // more than one match, ask user to choose, or just return the first one in non-interactive mode
+        UserInterface ui = Main.getUserInterface();
+        String choices[] = new String[matchedNames.size()];
+        for (int i=0; i<choices.length; i++) {
+            choices[i] = matchedNames.get(i).describe(false);
+        }
+        int c = ui.askForChoice("Multiple cells matches, please choose one for \""+cellName+"\":",
+                "Ambiguity Found", choices, choices[0]);
+        return matchedNames.get(c);
+    }
+
+/*
     public static Cell getCell(String cellName) {
         // try blind search
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
@@ -453,4 +474,5 @@ public class CalibreDrcErrors {
         }
         return null;
     }
+*/
 }

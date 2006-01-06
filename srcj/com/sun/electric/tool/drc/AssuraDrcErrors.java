@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  * Class to read DRC errors from Assura.
@@ -81,7 +82,7 @@ public class AssuraDrcErrors {
 	 * Method to import Assura DRC errors from a file.
 	 * @param filename the file to read.
 	 */
-    public static void importErrors(String filename) {
+    public static void importErrors(String filename, HashMap<Cell,String> mangledNames) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
@@ -120,7 +121,7 @@ public class AssuraDrcErrors {
                     continue;
                 }
                 if (strings[0].equals("Cell")) {
-                    cell = CalibreDrcErrors.getCell(strings[3]);
+                    cell = CalibreDrcErrors.getCell(strings[3], mangledNames);
                     if (cell == null) {
                         System.out.println("Couldn't find cell "+strings[3]+"{lay}");
                     }

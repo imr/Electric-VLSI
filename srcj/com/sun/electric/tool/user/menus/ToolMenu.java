@@ -156,9 +156,9 @@ public class ToolMenu {
                         LayerCoverage.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
 		drcSubMenu.addSeparator();
-		drcSubMenu.addMenuItem("Import _Assura DRC Errors...", null,
+		drcSubMenu.addMenuItem("Import _Assura DRC Errors for Current Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
-        drcSubMenu.addMenuItem("Import Calibre _DRC Errors...", null,
+        drcSubMenu.addMenuItem("Import Calibre _DRC Errors for Current Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importCalibreDrcErrors();}});
 
         drcSubMenu.addSeparator();
@@ -1649,13 +1649,23 @@ public class ToolMenu {
     public static void importAssuraDrcErrors() {
         String fileName = OpenFile.chooseInputFile(FileType.ERR, null);
         if (fileName == null) return;
-        AssuraDrcErrors.importErrors(fileName);
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
+        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
+        AssuraDrcErrors.importErrors(fileName, mangledNames);
     }    
 
     public static void importCalibreDrcErrors() {
         String fileName = OpenFile.chooseInputFile(FileType.DB, null);
         if (fileName == null) return;
-        CalibreDrcErrors.importErrors(fileName);
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
+        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
+        CalibreDrcErrors.importErrors(fileName, mangledNames);
     }
 
     public static void exportDRCDeck() {
