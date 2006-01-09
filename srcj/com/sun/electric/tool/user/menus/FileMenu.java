@@ -24,7 +24,9 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -54,8 +56,9 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.HorizRuler;
+import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -65,11 +68,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.Point2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -397,8 +402,7 @@ public class FileMenu {
 
             // try to open initial libraries
             boolean success = false;
-            for (Iterator<URL> it = fileURLs.iterator(); it.hasNext(); ) {
-                URL file = (URL)it.next();
+            for (URL file : fileURLs) {
                 FileType defType = null;
                 String fileName = file.getFile();
                 defType = getLibraryFormat(fileName, defType);
@@ -502,7 +506,7 @@ public class FileMenu {
             // check if edit window open with null cell, use that one if exists
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
             {
-                WindowFrame wf = (WindowFrame)it.next();
+                WindowFrame wf = it.next();
                 WindowContent content = wf.getContent();
                 if (content.getCell() == null)
                 {
@@ -555,9 +559,8 @@ public class FileMenu {
 
 		// if all references are from the clipboard, request that the clipboard be cleared, too
 		boolean clearClipboard = false, nonClipboard = false;
-	    for (Iterator<Cell> i = found.iterator(); i.hasNext();)
+	    for (Cell cell : found)
 	    {
-		   Cell cell = (Cell)i.next();
 		   if (cell.getLibrary().isHidden()) clearClipboard = true; else
 			   nonClipboard = true;
 	    }
@@ -568,9 +571,8 @@ public class FileMenu {
 		    System.out.println("Cannot close " + lib + ":");
 		    System.out.print("\t Cells ");
 
-		    for (Iterator<Cell> i = found.iterator(); i.hasNext();)
+		    for (Cell cell : found)
 		    {
-			   Cell cell = (Cell)i.next();
 			   System.out.print("'" + cell.getName() + "'(" + cell.getLibrary().getName() + ") ");
 		    }
 		    System.out.println("refer to it.");
@@ -657,7 +659,7 @@ public class FileMenu {
             // mark for saving, all libraries that depend on this
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
-                Library oLib = (Library)it.next();
+                Library oLib = it.next();
                 if (oLib.isHidden()) continue;
                 if (oLib == lib) continue;
                 if (oLib.isChangedMajor()) continue;
@@ -751,7 +753,7 @@ public class FileMenu {
 		HashMap<Library,FileType> libsToSave = new HashMap<Library,FileType>();
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChanged()) continue;
             if (lib.getLibFile() != null)
@@ -761,7 +763,7 @@ public class FileMenu {
 		boolean justSkip = false;
 		for(Iterator<Library> it = libsToSave.keySet().iterator(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			type = (FileType)libsToSave.get(lib);
             if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType))
 			{
@@ -788,7 +790,7 @@ public class FileMenu {
         if (format == null) return; // cancel operation
         FileType outType = (FileType)format;
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
             if (lib.getLibFile() != null) {
@@ -859,15 +861,62 @@ public class FileMenu {
         }
         VarContext context = (wnd instanceof EditWindow) ? ((EditWindow)wnd).getVarContext() : null;
 
+        List<PolyBase> override = null;
         if (type == FileType.POSTSCRIPT)
         {
             if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
 			if (wnd instanceof WaveformWindow)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Cannot write PostScript for a Waveform window.  Try printing it instead",
-					"Cannot Write PostScript", JOptionPane.ERROR_MESSAGE);
-				return;
+				WaveformWindow ww = (WaveformWindow)wnd;
+				int offY = 0;
+				override = new ArrayList<PolyBase>();
+				HorizRuler mainHR = ww.getMainHorizRuler();
+				if (mainHR != null)
+				{
+					List<PolyBase> horizPolys = mainHR.getPolysInPanel(ww.getPanels().next());
+					for(PolyBase poly : horizPolys)
+					{
+						Point2D [] pts = poly.getPoints();
+						for(int i=0; i<pts.length; i++)
+						{
+							pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+						}
+						override.add(poly);
+					}
+					offY += mainHR.getHeight();
+				}
+				for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
+				{
+					Panel panel = it.next();
+					HorizRuler hr = panel.getHorizRuler();
+					if (hr != null)
+					{
+						offY += hr.getHeight();
+						List<PolyBase> horizPolys = hr.getPolysInPanel(panel);
+						for(PolyBase poly : horizPolys)
+						{
+							Point2D [] pts = poly.getPoints();
+							for(int i=0; i<pts.length; i++)
+							{
+								pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+							}
+							override.add(poly);
+						}
+						offY += hr.getHeight();
+					}
+					List<PolyBase> panelList = panel.getPolysInPanel();
+					for(PolyBase poly : panelList)
+					{
+						Point2D [] pts = poly.getPoints();
+						for(int i=0; i<pts.length; i++)
+						{
+							pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+						}
+						override.add(poly);
+					}
+					offY += panel.getHeight();
+					if (hr == null) offY += 20;
+				}
 			}
         }
 
@@ -891,7 +940,7 @@ public class FileMenu {
                 if (filePath == null) return;
             }
 
-            Output.exportCellCommand(cell, context, filePath, type, true);
+            Output.exportCellCommand(cell, context, filePath, type, true, override);
             return;
         }
 
@@ -912,7 +961,7 @@ public class FileMenu {
 			return;
 	    }
 
-        Output.exportCellCommand(cell, context, filePath, type, true);
+        Output.exportCellCommand(cell, context, filePath, type, true, override);
     }
 
     private static class ExportImage extends Job
@@ -1137,7 +1186,7 @@ public class FileMenu {
         boolean saveCancelled = false;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (desiredLib != null && desiredLib != lib) continue;
             if (lib.isHidden()) continue;
             if (!lib.isChanged()) continue;
@@ -1249,7 +1298,7 @@ public class FileMenu {
         boolean dirty = false;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChanged()) continue;
             dirty = true;
@@ -1290,7 +1339,7 @@ public class FileMenu {
         boolean dirty = false;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChanged()) continue;
             dirty = true;
@@ -1324,7 +1373,7 @@ public class FileMenu {
         FileType type = FileType.DEFAULTLIB;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             if (lib.isHidden()) continue;
             System.out.print("."); System.out.flush();
             URL libURL = lib.getLibFile();

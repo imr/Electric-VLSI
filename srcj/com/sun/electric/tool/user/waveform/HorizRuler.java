@@ -22,10 +22,12 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -40,8 +42,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -93,16 +98,28 @@ public class HorizRuler extends JPanel implements MouseListener
 	 */
 	public void paint(Graphics g)
 	{
+		doPaint(g, null, wavePanel);
+	}
+
+	public List<PolyBase> getPolysInPanel(Panel drawHere)
+	{
+		List<PolyBase> polys = new ArrayList<PolyBase>();
+		doPaint(null, polys, drawHere);
+		return polys;
+	}
+
+	private void doPaint(Graphics g, List<PolyBase> polys, Panel drawHere)
+	{
 		Dimension sz = getSize();
 		int wid = sz.width;
 		int hei = sz.height;
 		int offX = 0;
-		Panel drawHere = wavePanel;
 		Signal xAxisSig = waveWindow.getXAxisSignalAll();
 		if (drawHere != null)
 		{
 			xAxisSig = drawHere.getXAxisSignal();
-		} else
+		}
+		if (g != null)
 		{
 			// this is the main horizontal ruler panel for all panels
 			Point screenLoc = getLocationOnScreen();
@@ -121,18 +138,19 @@ public class HorizRuler extends JPanel implements MouseListener
 			if (offX + newWid > wid) newWid = wid - offX;
 			wid = newWid;
 
-			drawHere = (Panel)waveWindow.getPanels().next();
+			drawHere = waveWindow.getPanels().next();
 			waveWindow.setMainHorizRulerNeedsRepaint(false);
 			g.setClip(offX, 0, wid, hei);
+
+			// draw the background
+			g.setColor(new Color(User.getColorWaveformBackground()));
+			g.fillRect(offX, 0, wid, hei);
+
+			// draw the name of the signal on the horizontal ruler axis
+			g.setColor(new Color(User.getColorWaveformForeground()));
+			g.setFont(waveWindow.getFont());
 		}
 
-		// draw the background
-		g.setColor(new Color(User.getColorWaveformBackground()));
-		g.fillRect(offX, 0, wid, hei);
-
-		// draw the name of the signal on the horizontal ruler axis
-		g.setColor(new Color(User.getColorWaveformForeground()));
-		g.setFont(waveWindow.getFont());
 		String xAxisName = "Time";
 		String xAxisPostfix = "s";
 		if (xAxisSig != null)
@@ -140,8 +158,26 @@ public class HorizRuler extends JPanel implements MouseListener
 			xAxisName = xAxisSig.getSignalName();
 			xAxisPostfix = null;
 		}
-		g.drawLine(drawHere.getVertAxisPos() + offX, hei-1, wid+offX, hei-1);
-		g.drawString(xAxisName, offX+1, hei-6);
+		if (polys != null)
+		{
+			Point2D [] pts = new Point2D[2];
+			pts[0] = new Point2D.Double(drawHere.getVertAxisPos() + offX, hei-1);
+			pts[1] = new Point2D.Double(wid+offX, hei-1);
+			Poly poly = new Poly(pts);
+			polys.add(poly);
+
+			pts = new Point2D[1];
+			pts[0] = new Point2D.Double(wid/2, 0);
+			poly = new Poly(pts);
+			poly.setStyle(Poly.Type.TEXTBOT);
+			poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(12));
+			poly.setString(xAxisName);
+			polys.add(poly);
+		} else
+		{
+			g.drawLine(drawHere.getVertAxisPos() + offX, hei-1, wid+offX, hei-1);
+			g.drawString(xAxisName, offX+1, hei-6);
+		}
 
 		// draw the ruler ticks
 		double displayedLow = drawHere.convertXScreenToData(drawHere.getVertAxisPos());
@@ -156,7 +192,16 @@ public class HorizRuler extends JPanel implements MouseListener
 			if (xValue >= displayedLow)
 			{
 				int x = drawHere.convertXDataToScreen(xValue) + offX;
-				g.drawLine(x, 0, x, hei);
+				if (polys != null)
+				{
+					Point2D [] pts = new Point2D[2];
+					pts[0] = new Point2D.Double(x, 0);
+					pts[1] = new Point2D.Double(x, hei);
+					polys.add(new Poly(pts));
+				} else
+				{
+					g.drawLine(x, 0, x, hei);
+				}
 				if (lastX >= 0)
 				{
 					if (x - lastX > 100)
@@ -165,17 +210,47 @@ public class HorizRuler extends JPanel implements MouseListener
 						for(int i=1; i<5; i++)
 						{
 							int intX = (x - lastX) / 5 * i + lastX;
-							g.drawLine(intX, hei/2, intX, hei);
+							if (polys != null)
+							{
+								Point2D [] pts = new Point2D[2];
+								pts[0] = new Point2D.Double(intX, hei/2);
+								pts[1] = new Point2D.Double(intX, hei);
+								polys.add(new Poly(pts));
+							} else
+							{
+								g.drawLine(intX, hei/2, intX, hei);
+							}
 						}
 					} else if (x - lastX > 25)
 					{
 						// add 1 tick mark
 						int intX = (x - lastX) / 2 + lastX;
-						g.drawLine(intX, hei/2, intX, hei);
+						if (polys != null)
+						{
+							Point2D [] pts = new Point2D[2];
+							pts[0] = new Point2D.Double(intX, hei/2);
+							pts[1] = new Point2D.Double(intX, hei);
+							polys.add(new Poly(pts));
+						} else
+						{
+							g.drawLine(intX, hei/2, intX, hei);
+						}
 					}
 				}
 				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, xAxisPostfix, ss.getStepScale());
-				g.drawString(xValueVal, x+2, 10);
+				if (polys != null)
+				{
+					Point2D [] pts = new Point2D[1];
+					pts[0] = new Point2D.Double(x+2, 4);
+					Poly poly = new Poly(pts);
+					poly.setStyle(Poly.Type.TEXTLEFT);
+					poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(6));
+					poly.setString(xValueVal);
+					polys.add(poly);
+				} else
+				{
+					g.drawString(xValueVal, x+2, 10);
+				}
 				lastX = x;
 			}
 			xValue += ss.getSeparation();
@@ -255,7 +330,7 @@ public class HorizRuler extends JPanel implements MouseListener
 		boolean notWarned = true;
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
+			Panel wp = it.next();
 			if (!waveWindow.isXAxisLocked() && wp != wavePanel) continue;
 			if (wp.getAnalysisType() == Analysis.ANALYSIS_MEAS)
 			{

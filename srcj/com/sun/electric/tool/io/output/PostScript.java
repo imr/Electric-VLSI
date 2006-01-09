@@ -29,6 +29,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -88,7 +89,8 @@ public class PostScript extends Output
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
     /** the Job being run for this operation */                         private Job job;
-//	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
+    private Rectangle2D printBounds;
+    /** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
 	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
@@ -110,13 +112,13 @@ public class PostScript extends Output
 	public static void writePostScriptFile(OutputCellInfo cellJob)
 	{
 		// just do this file
-		writeCellToFile(cellJob.cell, cellJob.filePath, cellJob);
+		writeCellToFile(cellJob.cell, cellJob.filePath, cellJob, cellJob.override);
 	}
 
-	private static boolean writeCellToFile(Cell cell, String filePath, Job job)
+	private static boolean writeCellToFile(Cell cell, String filePath, Job job, List<PolyBase> override)
 	{
 		boolean error = false;
-		PostScript out = new PostScript(cell, job);
+		PostScript out = new PostScript(cell, job, override);
 		if (out.openTextOutputStream(filePath)) error = true;
         else // write out the cell
         {
@@ -136,10 +138,11 @@ public class PostScript extends Output
 	}
 
 	/** Creates a new instance of PostScript */
-	private PostScript(Cell cell, Job job)
+	private PostScript(Cell cell, Job job, List<PolyBase> override)
 	{
         this.cell = cell;
         this.job = job;
+        this.override = override;
 	}
 
 	/**
@@ -184,7 +187,37 @@ public class PostScript extends Output
 		double pageMargin = pageMarginPS;		// not right!!!
 
 		// determine the area of interest
-		Rectangle2D printBounds = getAreaToPrint(cell, false, wnd);
+		printBounds = null;
+		if (override != null)
+		{
+			double lX=0, hX=0, lY=0, hY=0;
+			boolean first = true;
+			for(PolyBase poly : override)
+			{
+				Point2D [] points = poly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					double x = points[i].getX();
+					double y = points[i].getY();
+					if (first)
+					{
+						first = false;
+						lX = hX = x;
+						lY = hY = y;
+					} else
+					{
+						if (x < lX) lX = x;
+						if (x > hX) hX = x;
+						if (y < lY) lY = y;
+						if (y > hY) hY = y;
+					}
+				}
+			}
+			printBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+		} else
+		{
+			printBounds = getAreaToPrint(cell, false, wnd);
+		}
 		if (printBounds == null) return false;
 
 		boolean rotatePlot = false;
@@ -213,7 +246,7 @@ public class PostScript extends Output
 		}
 
 		// for pure color plotting, use special merging code
-		if (psUseColorMerge)
+		if (psUseColorMerge && override == null)
 		{
 			PostScriptColor.psColorPlot(this, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
 			return false;
@@ -514,13 +547,21 @@ public class PostScript extends Output
 	{
 		lastColor = -1;
 
+        if (override != null)
+        {
+			for (PolyBase poly : override)
+			{
+				Point2D [] pts = poly.getPoints();
+				for(int i=0; i<pts.length; i++)
+					pts[i].setLocation(pts[i].getX(), printBounds.getHeight() - pts[i].getY());
+			}
+        }
 		if (psUseColor)
 		{
 			// color: plot layers in proper order
 			List<Layer> layerList = Technology.getCurrent().getLayersSortedByHeight();
-			for(Iterator<Layer> it = layerList.iterator(); it.hasNext(); )
+			for(Layer layer : layerList)
 			{
-				Layer layer = (Layer)it.next();
 				currentLayer = layer.getIndex() + 1;
 				recurseCircuitLevel(cell, DBMath.MATID, true);
 			}
@@ -539,10 +580,19 @@ public class PostScript extends Output
         // Job has been aborted
         if (job != null && job.checkAbort()) return;
 
-		// write the cells
+        if (override != null)
+        {
+			for (PolyBase poly : override)
+			{
+				psPoly(poly);
+			}
+			return;
+        }
+
+        // write the cells
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			AffineTransform subRot = ni.rotateOut();
 			subRot.preConcatenate(trans);
 			NodeProto np = ni.getProto();
@@ -608,7 +658,7 @@ public class PostScript extends Output
 				int exportDisplayLevel = User.getExportDisplayLevel();
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
-					Export e = (Export)eIt.next();
+					Export e = eIt.next();
 					Poly poly = e.getNamePoly();
 					if (exportDisplayLevel == 2)
 					{
@@ -645,7 +695,7 @@ public class PostScript extends Output
 		// write the arcs
 		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 		{
-    		ArcInst ai = (ArcInst) it.next();
+    		ArcInst ai = it.next();
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
 			Poly [] polys = tech.getShapeOfArc(ai, wnd);
@@ -678,13 +728,13 @@ public class PostScript extends Output
 		boolean[] shownPorts = new boolean[numPorts];
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
-			Connection con = (Connection) it.next();
+			Connection con = it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
 		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
-			Export exp = (Export) it.next();
+			Export exp = it.next();
 			PortInst pi = exp.getOriginalPort();
 			shownPorts[pi.getPortIndex()] = true;
 		}
@@ -741,10 +791,10 @@ public class PostScript extends Output
 		boolean syncOther = false;
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell aCell = (Cell)cIt.next();
+				Cell aCell = cIt.next();
 				Variable var = aCell.getVar(IOTool.POSTSCRIPT_FILENAME);
 				if (var != null)
 				{
@@ -779,10 +829,10 @@ public class PostScript extends Output
 		int numSyncs = 0;
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library oLib = (Library)lIt.next();
+			Library oLib = lIt.next();
 			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
-				Cell oCell = (Cell)cIt.next();
+				Cell oCell = cIt.next();
 				String syncFileName = IOTool.getPrintEPSSynchronizeFile(oCell);
 				if (syncFileName.length() == 0) continue;
 
@@ -793,7 +843,7 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-				boolean err = writeCellToFile(oCell, syncFileName, null);
+				boolean err = writeCellToFile(oCell, syncFileName, null, null);
 				if (err) return true;
 
 				// mark the synchronized date
@@ -824,7 +874,7 @@ public class PostScript extends Output
 	/**
 	 * Method to plot the polygon "poly"
 	 */
-	private void psPoly(Poly poly)
+	private void psPoly(PolyBase poly)
 	{
 		// ignore null layers
 		Layer layer = poly.getLayer();
@@ -956,7 +1006,7 @@ public class PostScript extends Output
 		}
 
 		// text
-		psText(poly);
+		psText((Poly)poly);
 	}
 
 	/**
@@ -1059,7 +1109,7 @@ public class PostScript extends Output
 	/**
 	 * draw a polygon
 	 */
-	private void psPolygon(Poly poly)
+	private void psPolygon(PolyBase poly)
 	{
 		Point2D [] points = poly.getPoints();
 		if (points.length == 0) return;
@@ -1156,7 +1206,7 @@ public class PostScript extends Output
 		double cY = (psL.getY() + psH.getY()) / 2;
 		double sX = Math.abs(psH.getX() - psL.getX());
 		double sY = Math.abs(psH.getY() - psL.getY());
-System.out.println("FOR STRING '"+text+"' CENTER IS ("+poly.getCenterX()+","+poly.getCenterY()+") SIZE IS "+poly.getBounds2D().getWidth()+"x"+poly.getBounds2D().getHeight());
+//System.out.println("FOR STRING '"+text+"' CENTER IS ("+poly.getCenterX()+","+poly.getCenterY()+") SIZE IS "+poly.getBounds2D().getWidth()+"x"+poly.getBounds2D().getHeight());
 		putPSHeader(HEADERSTRING);
 
 		boolean changedFont = false;

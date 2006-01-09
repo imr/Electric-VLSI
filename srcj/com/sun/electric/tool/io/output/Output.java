@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -86,23 +87,21 @@ public class Output
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
      * @param startJob to start job immediately. In case of regressions, job is manually started.
+     * @param override a list of Polys to draw instead of the cell contents.
      * @return Job representing this task
     */
     public static OutputCellInfo exportCellCommand(Cell cell, VarContext context, String filePath,
-                                                   FileType type, boolean startJob)
+                                                   FileType type, boolean startJob, List<PolyBase> override)
     {
         Job.Type jtype = Job.Type.EXAMINE;
         if (type == FileType.EDIF) jtype = Job.Type.CHANGE;
-        return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype));
+        return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype, override));
     }
 
 	static class OrderedExports implements Comparator<Export>
 	{
-/*5*/	public int compare(Export e1, Export e2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(Export e1, Export e2)
 		{
-//4*/		Export e1 = (Export)o1;
-//4*/		Export e2 = (Export)o2;
 			int i1 = e1.getOriginalPort().getPortProto().getPortIndex();
 			int i2 = e2.getOriginalPort().getPortProto().getPortIndex();
 			int cmp = i1 - i2;
@@ -164,7 +163,7 @@ public class Output
         List<String> dummyCells = new ArrayList<String>();
         dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell c = (Cell)it.next();
+            Cell c = it.next();
             if (c.getVar(LibraryFiles.IO_DUMMY_OBJECT) != null) {
                 dummyCells.add("   "+c.noLibDescribe());
             }
@@ -183,7 +182,7 @@ public class Output
 		// make sure that this library save is announced
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
-			Listener listener = (Listener)it.next();
+			Listener listener = it.next();
 			listener.writeLibrary(lib);
 		}
 
@@ -191,14 +190,14 @@ public class Output
 		double largestScale = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (tech.isScaleRelevant()) continue;
 			if (tech == Generic.tech) continue;
 			if (tech.getScale() > largestScale) largestScale = tech.getScale();
 		}
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (tech.isScaleRelevant()) continue;
 			if (tech == Generic.tech) continue;
 			tech.setScale(largestScale);
@@ -410,12 +409,12 @@ public class Output
 		nameSpace = needVars ? new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER) : null;
 		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
-			Cell cell = (Cell)cIt.next();
+			Cell cell = cIt.next();
 			gatherCell(cell);
 
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getName() == null)
 					System.out.println("ERROR: " + cell + " has " + ni + " with no name");
 				NodeProto np = ni.getProto();
@@ -429,7 +428,7 @@ public class Output
 				}
 				for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)pIt.next();
+					PortInst pi = pIt.next();
 					gatherVariables(pi);
 				}
 				gatherVariables(ni);
@@ -442,7 +441,7 @@ public class Output
 
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				gatherObj(ap);
 				gatherObj(ap.getTechnology());
@@ -454,7 +453,7 @@ public class Output
 
 			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
-				Export e = (Export)it.next();
+				Export e = it.next();
 				//gatherObj(e.getOriginalPort().getPortProto());
 				gatherVariables(e);
 				if (needVars) gatherFont(e.getTextDescriptor(Export.EXPORT_NAME));
@@ -476,9 +475,8 @@ public class Output
 			putNameSpace(NodeInst.NODE_NAME.getName());
 			putNameSpace(ArcInst.ARC_NAME.getName());
 			short varIndex = 0;
-			for (Iterator<Map.Entry<String,Short>> it = nameSpace.entrySet().iterator(); it.hasNext(); )
+			for (Map.Entry<String,Short> e : nameSpace.entrySet())
 			{
-				Map.Entry<String,Short> e = (Map.Entry<String,Short>)it.next();
 				e.setValue(new Short(varIndex++));
 			}
 		}
@@ -492,7 +490,7 @@ public class Output
 	{
 		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			Object value = var.getObjectInCurrentThread();
 			if (value == null) continue;
 			if (nameSpace != null) putNameSpace(diskName(eObj, var));
@@ -535,10 +533,9 @@ public class Output
 	 */
 	private void gatherMeaningPrefs(Object obj)
 	{
-		for(Iterator<Pref> it = Pref.getMeaningVariables(obj).iterator(); it.hasNext(); )
+		for(Pref pref : Pref.getMeaningVariables(obj))
 		{
 			gatherObj(obj);
-			Pref pref = (Pref)it.next();
 			String name = pref.getPrefName();
 			if (nameSpace != null) putNameSpace(name);
 		}
@@ -639,9 +636,8 @@ public class Output
 		if (sortedFonts.size() == 0) return null;
 		String[] fontAssociation = new String[sortedFonts.size()];
 		int face = 0;
-		for (Iterator<TextDescriptor.ActiveFont> it = sortedFonts.values().iterator(); it.hasNext(); )
+		for (TextDescriptor.ActiveFont af : sortedFonts.values())
 		{
-			TextDescriptor.ActiveFont af = (TextDescriptor.ActiveFont)it.next();
 			face++;
 			faceMap[af.getIndex()] = face;
 			fontAssociation[face-1] = face + "/" + af.getName();
@@ -873,6 +869,7 @@ public class Output
         VarContext context;
         String filePath;
         FileType type;
+        List<PolyBase> override;
 
         /**
          * @param cell the Cell to be written.
@@ -880,14 +877,17 @@ public class Output
          * @param filePath the path to the disk file to be written.
          * @param type the format of the output file.
          * @param startJob to start job immediately
+         * @param override the list of Polys to write instead of cell contents.
          */
-        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob, Job.Type jobType)
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob,
+        	Job.Type jobType, List<PolyBase> override)
         {
             super("Export "+cell+" ("+type+")", IOTool.getIOTool(), jobType, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
             this.type = type;
+            this.override = override;
             if (startJob)
                 startJob();
         }

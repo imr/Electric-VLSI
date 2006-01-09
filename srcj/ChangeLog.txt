@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/8/06, SMR) Initial implementation of PostScript output for Waveform Window (Bug #564).
+
 BUG: (1/5/06, SMR) Multi-object "Properties" dialog doesn't show distance when two are selected (Bug #781).
 FIX: In GetInfoMulti.loadMultiInfo(), include distance information in the list of text.
 

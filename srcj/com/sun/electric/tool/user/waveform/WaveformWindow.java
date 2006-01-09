@@ -626,9 +626,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void finished()
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.finished();
 		}
 		overall.removeComponentListener(wcl);
@@ -641,9 +640,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void repaint()
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.repaintContents();
 		}
 		if (mainHorizRulerPanel != null)
@@ -726,9 +724,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		double hRange = maxXPosition - minXPosition;
 		double vRange = -1;
 		double vRangeAny = -1;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			vRangeAny = wp.getYAxisRange();
 			if (wp.isSelected())
 			{
@@ -740,9 +737,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (vRange < 0) vRange = vRangeAny;
 
 		double distance = ticks * panningAmounts[User.getPanningDistance()];
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (direction == 0)
 			{
 				// pan horizontally
@@ -824,7 +820,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// look for the original cell to highlight it
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent().getCell() != cell) continue;
 			if (wf.getContent() instanceof EditWindow) return wf;
 		}
@@ -841,7 +837,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// look for the original cell to highlight it
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent().getCell() != cell) continue;
 			if (wf.getContent() instanceof WaveformWindow)
 				return (WaveformWindow)wf.getContent();
@@ -962,9 +958,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	private Panel getPanelFromNumber(int panelNumber)
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (wp.getPanelNumber() == panelNumber) return wp;
 		}
 		return null;
@@ -979,9 +974,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		int index = TextUtils.atoi(panelName);
 
 		// toggle its state
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (wp.getPanelNumber() == index)
 			{
 				if (wp.isHidden())
@@ -1003,9 +997,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		rebuildingSignalNameList = true;
 		signalNameList.removeAllItems();
 		boolean hasSignals = false;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next(); 
 			signalNameList.addItem("Panel " + Integer.toString(wp.getPanelNumber()) + (wp.isHidden() ? " (HIDDEN)" : ""));
 			hasSignals = true;
 		}
@@ -1017,9 +1010,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		left.repaint();
 		right.repaint();
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.repaintContents();
 		}
 	}
@@ -1075,9 +1067,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		panelSizeDigital = (int)(panelSizeDigital * scale);
 		panelSizeAnalog = (int)(panelSizeAnalog * scale);
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			Dimension sz = wp.getSize();
 			sz.height = (int)(sz.height * scale);
 			wp.setSize(sz.width, sz.height);
@@ -1113,9 +1104,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		while (found)
 		{
 			found = false;
-			for(Iterator<WaveSignal> it = wp.getSignals().iterator(); it.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)it.next();
 				if (!ws.isHighlighted()) continue;
 				wp.removeHighlightedSignal(ws);
 				wp.removeSignal(ws.getButton());
@@ -1203,9 +1193,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		List<Object> sweeps = an.getSweepList();
 		if (sweeps == null) return;
-		for(Iterator<Object> it = sweeps.iterator(); it.hasNext(); )
+		for(Object obj : sweeps)
 		{
-			Object obj = it.next();
 			SweepSignal ss = new SweepSignal(obj, this, an);
 		}
 	}
@@ -1226,7 +1215,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		vcrLastAdvance = curtime;
 
 		if (wavePanels.size() == 0) return;
-		Panel wp = (Panel)wavePanels.iterator().next();
+		Panel wp = wavePanels.iterator().next();
 		int xValueScreen = wp.convertXDataToScreen(mainXPosition);
 		Rectangle2D bounds = sd.getBounds();
 		if (vcrPlayingBackwards)
@@ -1333,15 +1322,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void clearHighlighting()
 	{
 		// look at all signal names in the cell
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
-
 			// look at all traces in this panel
 			boolean changed = false;
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.isHighlighted()) changed = true;
 				ws.setHighlighted(false);
 			}
@@ -1358,14 +1344,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		List<Signal> highlightedSignals = new ArrayList<Signal>();
 
 		// look at all signal names in the cell
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
-
 			// look at all traces in this panel
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.isHighlighted()) highlightedSignals.add(ws.getSignal());
 			}
 		}
@@ -1401,14 +1384,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// look at all signal names in the cell
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
-
 			// look at all traces in this panel
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				Network net = findNetwork(netlist, ws.getSignal().getSignalName());
 				if (net != null) nets.add(net);
 			}
@@ -1499,18 +1479,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// add branches first
 		char separatorChar = sd.getSeparatorChar();
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sSig : signals)
 		{
-			Signal sSig = (Signal)it.next();
 			if (!(sSig instanceof TimedSignal)) continue;
 			if (sSig.getSignalContext() != null)
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
 		// add all signals to the tree
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sSig : signals)
 		{
-			Signal sSig = (Signal)it.next();
 			if (!(sSig instanceof TimedSignal)) continue;
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
@@ -1566,9 +1544,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		DefaultMutableTreeNode sweepsExplorerTree = null;
 		boolean first = true;
-		for(Iterator<SweepSignal> it = sweepSignals.iterator(); it.hasNext(); )
+		for(SweepSignal ss : sweepSignals)
 		{
-			SweepSignal ss = (SweepSignal)it.next();
 			if (ss.getAnalysis() != an) continue;
 			if (first)
 			{
@@ -1584,9 +1561,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private Signal findSignal(String name, Analysis an)
 	{
-		for(Iterator<Signal> it = an.getSignals().iterator(); it.hasNext(); )
+		for(Signal sSig : an.getSignals())
 		{
-			Signal sSig = (Signal)it.next();
 			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
 		}
@@ -1623,9 +1599,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		// determine the current panel
 		Panel wp = null;
-		for(Iterator<Panel> pIt = wavePanels.iterator(); pIt.hasNext(); )
+		for(Panel oWp : wavePanels)
 		{
-			Panel oWp = (Panel)pIt.next();
 			if (oWp.isSelected())
 			{
 				wp = oWp;
@@ -1640,10 +1615,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		boolean added = false;
-		for(Iterator<Signal> it = found.iterator(); it.hasNext(); )
+		for(Signal sSig : found)
 		{
-			Signal sSig = (Signal)it.next();
-
 			// add the signal
 			if (newPanel)
 			{
@@ -1667,9 +1640,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// check if signal already in panel
 			boolean alreadyPlotted = false;
-			for(Iterator<WaveSignal> pIt = wp.getSignals().iterator(); pIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)pIt.next();
 				String name = ws.getSignal().getFullName();
 				if (name.equals(sSig.getFullName())) {
 					alreadyPlotted = true;
@@ -1698,9 +1670,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void removeSignals(Set<Network> nets, VarContext context)
 	{
-		for(Iterator<Network> nIt = nets.iterator(); nIt.hasNext(); )
+		for(Network net : nets)
 		{
-			Network net = (Network)nIt.next();
 			String netName = getSpiceNetName(context, net);
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
@@ -1714,11 +1685,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					found = false;
 					for(Iterator<Panel> pIt = getPanels(); pIt.hasNext(); )
 					{
-						Panel wp = (Panel)pIt.next();
+						Panel wp = pIt.next();
 						if (wp.getAnalysisType() != an.getAnalysisType()) continue;
-						for(Iterator<WaveSignal> it = wp.getSignals().iterator(); it.hasNext(); )
+						for(WaveSignal ws : wp.getSignals())
 						{
-							WaveSignal ws = (WaveSignal)it.next();
 							if (ws.getSignal() != sSig) continue;
 							wp.removeHighlightedSignal(ws);
 							wp.removeSignal(ws.getButton());
@@ -1850,9 +1820,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public WaveSignal findDisplayedSignal(Signal sSig)
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			WaveSignal ws = wp.findWaveSignal(sSig);
 			if (ws != null) return ws;
 		}
@@ -1909,9 +1878,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void setZoomExtents(double lowVert, double highVert, double lowHoriz, double highHoriz, Panel thePanel)
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			boolean changed = false;
 			if (wp == thePanel)
 			{
@@ -1941,9 +1909,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			double minXPosition = 0, maxXPosition = 0;
 			int vertAxis = 0;
 			boolean first = true;
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel wp = (Panel)it.next();
 				wp.removeHorizRulerPanel();
 				if (first)
 				{
@@ -1963,18 +1930,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 
 			// force all panels to be at the same X position
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel wp = (Panel)it.next();
 				wp.setXAxisRange(minXPosition, maxXPosition);
 			}
 		} else
 		{
 			// X axes are unlocked: put a ruler in each panel, remove main ruler
 			xAxisLockButton.setIcon(iconUnLockXAxes);
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel wp = (Panel)it.next();
 				wp.addHorizRulerPanel();
 			}
 			removeMainHorizRulerPanel();
@@ -1999,9 +1964,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (loc.getWaveformWindow() != this) return;
 
 		// start by removing all highlighting in the waveform
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.clearHighlightedSignals();
 		}
 
@@ -2015,15 +1979,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// show it in every panel
 		boolean foundSignal = false;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
-				for(Iterator<Signal> fIt = found.iterator(); fIt.hasNext(); )
+				for(Signal sSig : found)
 				{
-					Signal sSig = (Signal)fIt.next();
 					if (ws.getSignal() == sSig)
 					{
 						wp.addHighlightedSignal(ws);
@@ -2037,9 +1998,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// show only one in the "Signals" tree
 		Collections.sort(found, new SignalsByName());
 		DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
-		for(Iterator<Signal> fIt = found.iterator(); fIt.hasNext(); )
+		for(Signal sSig : found)
 		{
-			Signal sSig = (Signal)fIt.next();
 			Object treeNode = (Object)treeNodeFromSignal.get(sSig);
 			if (treeNode != null)
 			{
@@ -2089,9 +2049,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// convert all networks to signals
 		Set<Network> nets = h.getHighlightedNetworks();
-		for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+		for(Network net : nets)
 		{
-			Network net = (Network)it.next();
 			String netName = getSpiceNetName(context, net);
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
@@ -2116,14 +2075,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
 		for(Iterator<Network> nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
-			Network net = (Network)nIt.next();
+			Network net = nIt.next();
 			if (getSpiceNetName(net).equalsIgnoreCase(name)) return net;
 		}
 
 		// try converting "@" in network names
 		for(Iterator<Network> nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
-			Network net = (Network)nIt.next();
+			Network net = nIt.next();
 			String convertedName = getSpiceNetName(net).replace('@', '_');
 			if (convertedName.equalsIgnoreCase(name)) return net;
 		}
@@ -2139,7 +2098,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		freezeWaveformHighlighting = true;
 		for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
 		{
-			WindowFrame wfr = (WindowFrame)wIt.next();
+			WindowFrame wfr = wIt.next();
 			if (!(wfr.getContent() instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)wfr.getContent();
 			Locator loc = new Locator(wnd, this);
@@ -2157,12 +2116,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 
 			hl.clear();
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel wp = (Panel)it.next();
-				for(Iterator<WaveSignal> pIt = wp.getSignals().iterator(); pIt.hasNext(); )
+				for(WaveSignal ws : wp.getSignals())
 				{
-					WaveSignal ws = (WaveSignal)pIt.next();
 					if (!ws.isHighlighted()) continue;
 					String want = ws.getSignal().getFullName();
 					Stack<Nodable> upNodables = new Stack<Nodable>();
@@ -2279,22 +2236,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		netValues = new HashMap<Network,Integer>();
 
 		// assign values from simulation window traces to networks
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (wp.isHidden()) continue;
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
 				List<Signal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
 					int busWidth = bussedSignals.size();
-					for(Iterator<Signal> bIt = bussedSignals.iterator(); bIt.hasNext(); )
+					for(Signal subSig : bussedSignals)
 					{
-						DigitalSignal subDS = (DigitalSignal)bIt.next();
+						DigitalSignal subDS = (DigitalSignal)subSig;
 						putValueOnTrace(subDS, cell, netValues, netlist);
 					}
 				} else
@@ -2308,12 +2263,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// light up any simulation-probe objects
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() != Generic.tech.simProbeNode) continue;
 			Network net = null;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				net = netlist.getNetwork(con.getArc(), 0);
 				break;
 			}
@@ -2330,7 +2285,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// redraw all arcs in the layout/schematic window
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			int width = netlist.getBusWidth(ai);
 			for(int i=0; i<width; i++)
 			{
@@ -2397,9 +2352,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		boolean havePanel = false;
 		double lowXValue = 0, highXValue = 0;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			double low = wp.getMinXAxis();
 			double high = wp.getMaxXAxis();
 			if (havePanel)
@@ -2417,9 +2371,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		double center = (lowXValue + highXValue) / 2;
 		if (main) setMainXPositionCursor(center); else
 			setExtensionXPositionCursor(center);
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.repaintWithRulers();
 		}
 	}
@@ -2441,16 +2394,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		resetSweeps();
 
 		List<Panel> panelList = new ArrayList<Panel>();
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
-			panelList.add(it.next());
-		for(Iterator<Panel> it = panelList.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
+			panelList.add(wp);
+		for(Panel wp : panelList)
 		{
-			Panel wp = (Panel)it.next();
 			Analysis an = sd.findAnalysis(wp.getAnalysisType());
 			boolean redoPanel = false;
-			for(Iterator<WaveSignal> pIt = wp.getSignals().iterator(); pIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)pIt.next();
 				Signal ss = ws.getSignal();
 				if (ss.getBussedSignals() != null)
 				{
@@ -2460,9 +2411,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						Signal subDS = (Signal)inBus.get(b);
 						String oldSigName = subDS.getFullName();
 						Signal newBus = null;
-						for(Iterator<Signal> sIt = an.getSignals().iterator(); sIt.hasNext(); )
+						for(Signal newSs :  an.getSignals() )
 						{
-							Signal newSs = (Signal)sIt.next();
 							String newSigName = newSs.getFullName();
 							if (!newSigName.equals(oldSigName)) continue;
 							newBus = newSs;
@@ -2483,9 +2433,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					// single signal: find the name in the new list
 					String oldSigName = ss.getFullName();
 					ws.setSignal(null);
-					for(Iterator<Signal> sIt = an.getSignals().iterator(); sIt.hasNext(); )
+					for(Signal newSs : an.getSignals())
 					{
-						Signal newSs = (Signal)sIt.next();
 						String newSigName = newSs.getFullName();
 						if (!newSigName.equals(oldSigName)) continue;
 						ws.setSignal(newSs);
@@ -2501,9 +2450,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			while (redoPanel)
 			{
 				redoPanel = false;
-				for(Iterator<WaveSignal> pIt = wp.getSignals().iterator(); pIt.hasNext(); )
+				for(WaveSignal ws : wp.getSignals())
 				{
-					WaveSignal ws = (WaveSignal)pIt.next();
 					if (ws.getSignal() == null ||
 						(ws.getSignal().getBussedSignals() != null && ws.getSignal().getBussedSignals().size() == 0))
 					{
@@ -2580,15 +2528,13 @@ if (wp.getSignalButtons() != null)
 			for(int i=0; i<total; i++)
 			{
 				JPanel rightPart = (JPanel)ww.right.getComponent(i);
-				for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+				for(Panel wp : ww.wavePanels)
 				{
-					Panel wp = (Panel)it.next();
 					if (wp.getRightHalf() == rightPart)
 					{
 						boolean first = true;
-						for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+						for(WaveSignal ws : wp.getSignals())
 						{
-							WaveSignal ws = (WaveSignal)sIt.next();
 							String sigName = ws.getSignal().getFullName();
 							if (first)
 							{
@@ -2642,11 +2588,10 @@ if (wp.getSignalButtons() != null)
 
 		// clear the display
 		List<Panel> closeList = new ArrayList<Panel>();
-		for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
-			closeList.add(it.next());
-		for(Iterator<Panel> it = closeList.iterator(); it.hasNext(); )
+		for(Panel wp : ww.wavePanels)
+			closeList.add(wp);
+		for(Panel wp : closeList)
 		{
-			Panel wp = (Panel)it.next();
 			ww.closePanel(wp);
 		}
 
@@ -2736,9 +2681,8 @@ if (wp.getSignalButtons() != null)
 				}
 			}
 			lineReader.close();
-			for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+			for(Panel panel : ww.wavePanels)
 			{
-				Panel panel = it.next();
 				panel.repaintWithRulers();
 			}
 			ww.saveSignalOrder();
@@ -2763,15 +2707,13 @@ if (wp.getSignalButtons() != null)
 		for(int i=0; i<total; i++)
 		{
 			JPanel rightPart = (JPanel)right.getComponent(i);
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel wp = (Panel)it.next();
 				if (wp.getRightHalf() == rightPart)
 				{
 					boolean first = true;
-					for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+					for(WaveSignal ws : wp.getSignals())
 					{
-						WaveSignal ws = (WaveSignal)sIt.next();
 						String sigName = ws.getSignal().getFullName();
 						if (first)
 						{
@@ -2798,9 +2740,8 @@ if (wp.getSignalButtons() != null)
 	 */
 	public static void preserveSignalOrder()
 	{
-		for(Iterator<String> it = savedSignalOrder.keySet().iterator(); it.hasNext(); )
+		for(String cellName : savedSignalOrder.keySet())
 		{
-			String cellName = (String)it.next();
 			String savedOrder = (String)savedSignalOrder.get(cellName);
 			int colonPos = cellName.indexOf(':');
 			if (colonPos < 0) continue;
@@ -2841,8 +2782,8 @@ if (wp.getSignalButtons() != null)
 		}
 		String [] ret = new String[panels.size()];
 		int i=0;
-		for(Iterator<String> it = panels.iterator(); it.hasNext(); )
-			ret[i++] = (String)it.next();
+		for(String s : panels)
+			ret[i++] = s;
 		return ret;
 	}
 
@@ -2872,9 +2813,8 @@ if (wp.getSignalButtons() != null)
 			case 1: showPoints.setIcon(iconLineOnPointOn);    break;
 			case 2: showPoints.setIcon(iconLineOffPointOn);   break;
 		}
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.repaintWithRulers();
 		}
 	}
@@ -2892,9 +2832,8 @@ if (wp.getSignalButtons() != null)
 	public void toggleGridPoints()
 	{
 		showGrid = !showGrid;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			wp.repaintWithRulers();
 		}
 	}
@@ -2912,20 +2851,19 @@ if (wp.getSignalButtons() != null)
 		{
 			// add analog signal on top of current panel
 			AnalogSignal as = (AnalogSignal)sig;
-			for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+			for(Panel wp : wavePanels)
 			{
-				Panel panel = (Panel)it.next();
-				if (panel.isSelected())
+				if (wp.isSelected())
 				{
-					if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					if (as.getAnalysis().getAnalysisType() != wp.getAnalysisType())
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
+							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + wp.getAnalysisType() + " panel.  " +
 							"First convert the panel with the popup in the upper-left.",
 							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 						return;					
 					}
-					WaveSignal.addSignalToPanel(sig, panel);
+					WaveSignal.addSignalToPanel(sig, wp);
 					break;
 				}
 			}
@@ -2947,14 +2885,12 @@ if (wp.getSignalButtons() != null)
 	 */
 	public void deleteSelectedSignals()
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (!wp.isSelected()) continue;
 
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.getSelectedControlPoints() != null)
 				{
 					if (se != null)
@@ -2975,9 +2911,8 @@ if (wp.getSignalButtons() != null)
 	{
 		// accumulate bounds for all displayed panels
 		Rectangle2D xBounds = null;
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (wp.getXAxisSignal() != null) continue;
 			Analysis an = sd.findAnalysis(wp.getAnalysisType());
 			Rectangle2D bounds = an.getBounds();
@@ -2998,9 +2933,8 @@ if (wp.getSignalButtons() != null)
 			xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
 		}
 
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (!xAxisLocked)
 			{
 				if (!wp.isSelected()) continue;
@@ -3018,9 +2952,8 @@ if (wp.getSignalButtons() != null)
 			}
 
 			Rectangle2D yBounds = null;
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				Rectangle2D sigBounds = ws.getSignal().getBounds();
 				if (yBounds == null)
 				{
@@ -3069,9 +3002,8 @@ if (wp.getSignalButtons() != null)
 
 	public void zoomOutContents()
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (!xAxisLocked && !wp.isSelected()) continue;
 
 			boolean timeInXAxis = true;
@@ -3095,9 +3027,8 @@ if (wp.getSignalButtons() != null)
 
 	public void zoomInContents()
 	{
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (!xAxisLocked && !wp.isSelected()) continue;
 
 			boolean repaint = false;
@@ -3122,9 +3053,8 @@ if (wp.getSignalButtons() != null)
 			maxXPosition = extXPosition + size;
 			minXPosition = mainXPosition - size;
 		}
-		for(Iterator<Panel> it = wavePanels.iterator(); it.hasNext(); )
+		for(Panel wp : wavePanels)
 		{
-			Panel wp = (Panel)it.next();
 			if (!xAxisLocked && !wp.isSelected()) continue;
 			if (wp.getMinXAxis() != minXPosition || wp.getMaxXAxis() != maxXPosition)
 			{
@@ -3280,9 +3210,8 @@ if (wp.getSignalButtons() != null)
 						{
 							// dropped signal onto main time ruler: make sure it is the right type
 							boolean warn = false;
-							for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+							for(Panel wp : ww.wavePanels)
 							{
-								Panel wp = (Panel)it.next();
 								if (wp.getAnalysisType() != analysisType && wp.getNumSignals() > 0) warn = true;
 							}
 							if (warn)
@@ -3295,16 +3224,14 @@ if (wp.getSignalButtons() != null)
 									dtde.dropComplete(true);
 									return;
 								}
-								for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+								for(Panel wp : ww.wavePanels)
 								{
-									Panel wp = (Panel)it.next();
 									ww.deleteAllSignalsFromPanel(wp);
 								}
 							}
 							ww.xAxisSignalAll = sSig;
-							for(Iterator<Panel> it = ww.wavePanels.iterator(); it.hasNext(); )
+							for(Panel wp : ww.wavePanels)
 							{
-								Panel wp = (Panel)it.next();
 								wp.setAnalysisType(analysisType);
 								wp.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
 							}
@@ -3398,9 +3325,8 @@ if (wp.getSignalButtons() != null)
 					String signalName = sigNames[0].substring(sigPos + 7);
 					Signal sSig = null;
 					Color oldColor = null;
-					for(Iterator<WaveSignal> it = sourcePanel.getSignals().iterator(); it.hasNext(); )
+					for(WaveSignal ws : sourcePanel.getSignals())
 					{
-						WaveSignal ws = (WaveSignal)it.next();
 						if (!ws.getSignal().getFullName().equals(signalName)) continue;
 						sSig = ws.getSignal();
 						if (sSig.getAnalysis().getAnalysisType() != panel.getAnalysisType())
@@ -3594,7 +3520,7 @@ if (wp.getSignalButtons() != null)
 			// loop through all windows, looking for waveform windows
 			for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)wIt.next();
+				WindowFrame wf = wIt.next();
 				if (!(wf.getContent() instanceof WaveformWindow)) continue;
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
 				ww.crossProbeEditWindowToWaveform(wnd, which);
