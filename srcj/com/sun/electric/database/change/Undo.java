@@ -24,6 +24,8 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -895,6 +897,14 @@ public class Undo
         }
         public void run() {
             boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+            	CellBackup newBackup = newSnapshot.getCell(i);
+            	CellBackup oldBackup = oldSnapshot.getCell(i);
+            	if (newBackup != oldBackup) {
+            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            		User.markCellForRedraw(cell, true);
+            	}
+            }
             SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
             for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
                 DatabaseChangeListener l = (DatabaseChangeListener)it.next();

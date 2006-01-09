@@ -1981,6 +1981,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         portInsts = newPortInsts;
     }
     
+    /**
+     * Updaten PortInsts of this NodeInst according to PortProtos in prototype.
+     */
+    public void updatePortInsts() {
+        PortInst[] newPortInsts = new PortInst[protoType.getNumPorts()];
+        for (int i = 0; i < portInsts.length; i++) {
+            PortInst pi = portInsts[i];
+            int portIndex = pi.getPortIndex();
+            if (portIndex < 0) continue;
+            newPortInsts[portIndex] = pi;
+        }
+        for (int i = 0; i < newPortInsts.length; i++) {
+            if (newPortInsts[i] != null) continue;
+            newPortInsts[i] = PortInst.newInstance(protoType.getPort(i), this);
+        }
+    }
+    
 	/**
 	 * Method to move Connections on this NodeInst.
 	 * @param pp PortProto whose connections to move.

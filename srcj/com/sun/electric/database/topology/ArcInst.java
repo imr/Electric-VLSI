@@ -872,7 +872,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		// the cell must recompute its bounds
 		if (parent != null) parent.setDirty();
 	}
-
+	
 	/****************************** CONNECTIONS ******************************/
 
 	/**

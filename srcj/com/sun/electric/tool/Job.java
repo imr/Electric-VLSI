@@ -887,6 +887,7 @@ public abstract class Job implements Runnable {
 		if (Thread.currentThread() != databaseChangesThread)
 		{
 			if (NOTHREADING) return;
+			if (CLIENT) return;
 			String msg = "Database is being changed by another thread";
             System.out.println(msg);
 			throw new IllegalStateException(msg);

@@ -534,7 +534,7 @@ public class User extends Listener
 	 * @param cell the Cell that changed.
 	 * @param cellChanged true if the cell changed and should be marked so.
 	 */
-	private void markCellForRedraw(Cell cell, boolean cellChanged)
+	public static void markCellForRedraw(Cell cell, boolean cellChanged)
 	{
 		if (cellChanged)
 		{

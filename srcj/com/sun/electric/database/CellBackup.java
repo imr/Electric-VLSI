@@ -40,7 +40,7 @@ public class CellBackup {
 	/** Internal flag bits. */										public final int userBits;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
-//    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
+    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of ImmutableCell */
@@ -57,7 +57,7 @@ public class CellBackup {
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
-//        this.cellUsages = cellUsages.clone();
+        this.cellUsages = cellUsages;
     }
     
     /**
@@ -128,5 +128,15 @@ public class CellBackup {
             exports[i] = ImmutableExport.read(reader);
         return new CellBackup(d, cellName, isMainSchematics, libId, creationDate, revisionDate, tech, userBits,
                 nodes, arcs, exports, cellUsages);
+    }
+    
+    public boolean sameExports(CellBackup thatBackup) {
+    	if (exports.length != thatBackup.exports.length)
+    		return false;
+    	for (int i = 0; i < exports.length; i++) {
+    		if (exports[i].exportId != thatBackup.exports[i].exportId)
+    			return false;
+    	}
+    	return true;
     }
 }

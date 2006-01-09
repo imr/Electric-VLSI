@@ -72,6 +72,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -969,7 +970,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 e == oldBackup.exports)
             return oldBackup;
         return new CellBackup(d, cellName, isMainSchematics, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
-                tech, userBits, n, a, e, cellUsages);
+                tech, userBits, n, a, e, cellUsages.clone());
     }
 
     private ImmutableNodeInst[] backupNodes(ImmutableNodeInst[] oldNodes) {
@@ -1021,26 +1022,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
     
     static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        BitSet updated = new BitSet();
+        BitSet exportsModified = new BitSet();
+        for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (newBackup == null) {
+            	if (oldBackup != null) {
+            		Cell oldCell = linkedCells.set(i, null);
+            		assert oldCell != null;
+            	}
+            	continue;
+            }
+            updateTree(oldSnapshot, newSnapshot, i, updated, exportsModified);
+        }
         boolean mainSchematicsChanged = false;
         for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = newSnapshot.getCell(i);
-            if (oldBackup == null) {
-                Cell cell = new Cell(newBackup.d, Library.inCurrentThread(newBackup.libId));
-                cell.update0(newBackup);
-                assert cell.d.cellId.cellIndex == i;
-                while (linkedCells.size() <= i) linkedCells.add(null);
-                Cell oldCell = linkedCells.set(i, cell);
-                assert oldCell == null;
-            } else if (newBackup == null) {
-                Cell oldCell = linkedCells.set(i, null);
-                assert oldCell != null;
-            } else {
-                Cell cell = linkedCells.get(i);
-                cell.update0(newBackup);
-                if (oldBackup.isMainSchematics != newBackup.isMainSchematics)
-                    mainSchematicsChanged = true;
-            }
+            if (oldBackup != null && newBackup != null && oldBackup.isMainSchematics != newBackup.isMainSchematics)
+            	mainSchematicsChanged = true;
         }
         if (oldSnapshot.cellGroups != newSnapshot.cellGroups || mainSchematicsChanged) {
             updateCellGroups(newSnapshot.cellGroups);
@@ -1066,13 +1067,48 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
     }
     
-    void update0(CellBackup newBackup) {
-        this.d = newBackup.d;
-        setCellName(newBackup.cellName);
+    private static void updateTree(Snapshot oldSnapshot, Snapshot newSnapshot, int cellIndex, BitSet updated, BitSet exportsModified) {
+    	if (updated.get(cellIndex)) return;
+        CellBackup newBackup = newSnapshot.getCell(cellIndex);
+        CellId cellId = CellId.getByIndex(cellIndex);
+        assert cellId != null;
+        boolean subCellsModified = false;
+        for (int i = 0; i < newBackup.cellUsages.length; i++) {
+        	if (newBackup.cellUsages[i] <= 0) continue;
+        	CellUsage u = cellId.getUsageIn(i);
+        	int subCellIndex = u.protoId.cellIndex;
+        	if (exportsModified.get(subCellIndex))
+        		subCellsModified = true;
+        	updateTree(oldSnapshot, newSnapshot, subCellIndex, updated, exportsModified);
+        }
+        CellBackup oldBackup = oldSnapshot.getCell(cellIndex);
+        if (!subCellsModified)
+            exportsModified = null;
+        if (oldBackup == null) {
+            Cell cell = new Cell(newBackup.d, Library.inCurrentThread(newBackup.libId));
+            cell.update(newBackup, exportsModified);
+            assert cell.d.cellId.cellIndex == cellIndex;
+            while (linkedCells.size() <= cellIndex) linkedCells.add(null);
+            Cell oldCell = linkedCells.set(cellIndex, cell);
+            assert oldCell == null;
+        } else {
+            Cell cell = linkedCells.get(cellIndex);
+            if (newBackup != oldBackup) {
+            	if (!newBackup.sameExports(oldBackup))
+            		exportsModified.set(cellIndex);
+            	cell.update(newBackup, exportsModified);
+            } else if (subCellsModified)
+                cell.updatePortInsts(exportsModified);
+        }
+    	updated.set(cellIndex);
     }
-    
-    public void update(CellBackup newBackup) {
-        // Update NodeInsts
+ 
+     
+    public void update(CellBackup newBackup, BitSet exportsModified) {
+     	this.d = newBackup.d;
+    	setCellName(newBackup.cellName);
+       	System.out.println("Update cell " + this);
+       // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
         int tempNodeCount = 0;
@@ -1082,7 +1118,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeInst ni = chronNodes.get(d.nodeId);
             if (ni != null) {
                 ni.setD(d, false);
-                /* Perhaps update PortInsts. */
+                if (exportsModified != null && ni.getProto() instanceof Cell) {
+                    if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
+                        ni.updatePortInsts();
+                }
                 ni.lowLevelClearConnections();
             } else {
                 ni = new NodeInst(d, this);
@@ -1090,13 +1129,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
             ni.setNodeIndex(i);
             nodes.add(ni);
-            // CellUsages
             if (!ni.isUsernamed()) {
                 tempNodeCount++;
                 addTempName(ni);
             }
         }
         assert nodes.size() == newBackup.nodes.length;
+        cellUsages = newBackup.cellUsages;
 
         int nodeCount = 0;
         for (int i = 0; i < chronNodes.size(); i++) {
@@ -1106,6 +1145,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (nodeIndex >= nodes.size() || ni != nodes.get(nodeIndex)) {
                 ni.setNodeIndex(-1);
                 chronNodes.set(i, null);
+                continue;
             }
             nodeCount++;
         }
@@ -1149,6 +1189,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
                 ai.setArcIndex(-1);
                 chronArcs.set(i, null);
+                continue;
             }
             arcCount++;
         }
@@ -1171,8 +1212,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
             Export e = chronExports[chronIndex];
             if (e != null) {
-                e.setD(d, false);
-                /* OriginalPort */
+                e.updateD(d);
             } else {
                 e = new Export(d, this);
                 chronExports[chronIndex] = e;
@@ -1212,6 +1252,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
+            if (exportsModified != null && ni.getProto() instanceof Cell) {
+                if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
+                    ni.sortConnections();
+            }
             ni.computeWipeState();
             ni.updateShrinkage();
             ni.redoGeometric();
@@ -1223,84 +1267,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ai.updateGeometric();
             linkArc(ai);
         }
+        
+        getBounds();
     }
-    
-//    private static int[] portCounts = new int[100000];
-//    
-//    public Connection sortConnections1() {
-//        Connection[] connections = new Connection[arcs.size()*2];
-//        int maxPort = 0;
-//        int[] counts = new int[nodes.size()];
-//        for (int i = 0; i < arcs.size(); i++) {
-//            ArcInst ai = arcs.get(i);
-//            
-//            PortInst tail = ai.getTailPortInst();
-//            counts[tail.getNodeInst().getNodeIndex()]++;
-//            int tailPort = tail.getPortIndex();
-//            while (maxPort <= tailPort)
-//                portCounts[maxPort++] = 0;
-//            portCounts[tailPort]++;
-//            
-//            PortInst head = ai.getHeadPortInst();
-//            counts[head.getNodeInst().getNodeIndex()]++;
-//            int headPort = head.getPortIndex();
-//            while (maxPort <= headPort)
-//                portCounts[maxPort++] = 0;
-//            portCounts[headPort]++;
-//        }
-//        int sum = 0;
-//        for (int i = 0; i < maxPort; i++) {
-//            int c = portCounts[i];
-//            portCounts[i] = sum;
-//            sum += c;
-//        }
-//        assert sum == arcs.size()*2;
-//            
-//        sum = 0;
-//        for (int i = 0; i < counts.length; i++) {
-//            int c = counts[i];
-//            counts[i] = sum;
-//            sum += c;
-//        }
-//        assert sum == arcs.size()*2;
-//        
-//        int[] connections0 = new int[arcs.size()*2]; 
-//        for (int i = 0; i < arcs.size(); i++) {
-//            ArcInst ai = arcs.get(i);
-//            Connection tailCon = ai.getTail();
-//            PortInst tail = ai.getTailPortInst();
-//            int tailPort = tail.getPortIndex();
-//            connections0[portCounts[tailPort]++] = i*2 + ArcInst.TAILEND;
-//            Connection headCon = ai.getHead();
-//            PortInst head = ai.getHeadPortInst();
-//            int headPort = head.getPortIndex();
-//            connections0[portCounts[headPort]++] = i*2 + ArcInst.HEADEND;
-//        }
-//        for (int i = 0; i < connections0.length; i++) {
-//            int v = connections0[i];
-//            ArcInst ai = arcs.get(v >> 1);
-//            int end = v & 1;
-//            int nodeIndex = ai.getPortInst(end).getNodeInst().getNodeIndex();
-//            connections[counts[nodeIndex]++] = ai.getConnection(end);
-//        }
-//        for (int i = 0; i < connections.length; i++)
-//            assert connections[i] != null;
-//        return connections.length > 0 ? connections[0] : null;
-//    }
-//    
-//    private static Comparator<Connection> CONNECTION_ORDER = new Comparator<Connection>() {
-//        public int compare(Connection c1, Connection c2) {
-//            PortInst p1 = c1.getPortInst();
-//            PortInst p2 = c2.getPortInst();
-//            int cmp = p1.getNodeInst().getNodeIndex() - p2.getNodeInst().getNodeIndex();
-//            if (cmp != 0) return cmp;
-//            cmp = p1.getPortIndex() - p2.getPortIndex();
-//            if (cmp != 0) return cmp;
-//            cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
-//            return c1.getEndIndex() - c2.getEndIndex();
-//        }
-//    };
-    
+
+    /**
+     * Update PortInsts of subcells with modified exports.
+     * @param exportsModified set of cellIndices with modified exports.
+     */
+    private void updatePortInsts(BitSet exportsModified) {
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            if (ni.getProto() instanceof Cell) {
+                if (exportsModified.get(((Cell)ni.getProto()).getCellIndex())) {
+                    ni.updatePortInsts();
+                    ni.sortConnections();
+                }
+            }
+        }
+    }
+   
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -1399,7 +1385,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
         // Don't recalculate in GUI thread.
         if (boundsDirty == BOUNDS_CORRECT ||
-            Thread.currentThread() != Job.databaseChangesThread && !Job.NOTHREADING)
+            Thread.currentThread() != Job.databaseChangesThread && !Job.NOTHREADING && !Job.CLIENT)
             return cellBounds;
         
         // Current bounds are correct if subcell bounds are the same

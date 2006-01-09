@@ -521,6 +521,19 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     }
 
     /**
+     * Modifies persistent data of this Export.
+     * @param newD new persistent data.
+     */
+    void updateD(ImmutableExport newD) {
+        if (newD == d) return;
+        d = newD;
+        if (originalPort.getNodeInst().getD().nodeId != d.originalNodeId ||
+                originalPort.getPortProto().getId() != d.originalPortId) {
+            originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
+        }
+    }
+    
+    /**
      * Returns persistent data of this ElectricObject.
      * @return persistent data of this ElectricObject.
      */
