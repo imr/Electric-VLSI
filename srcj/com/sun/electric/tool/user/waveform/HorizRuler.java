@@ -98,17 +98,28 @@ public class HorizRuler extends JPanel implements MouseListener
 	 */
 	public void paint(Graphics g)
 	{
-		doPaint(g, null, wavePanel);
+		renderRuler(g, null, wavePanel);
 	}
 
-	public List<PolyBase> getPolysInPanel(Panel drawHere)
+	/**
+	 * Method to get a list of polygons describing this ruler.
+	 * @param drawHere the Panel associated with the ruler.
+	 * @return a List of PolyBase objects that describe this ruler.
+	 */
+	public List<PolyBase> getPolysForPrinting(Panel drawHere)
 	{
 		List<PolyBase> polys = new ArrayList<PolyBase>();
-		doPaint(null, polys, drawHere);
+		renderRuler(null, polys, drawHere);
 		return polys;
 	}
 
-	private void doPaint(Graphics g, List<PolyBase> polys, Panel drawHere)
+	/**
+	 * Method to render a ruler (to the screen or for printing).
+	 * @param g the Graphics that will be drawn (null if not rendering to the screen).
+	 * @param polys the list of PolyBases to fill (null if not printing).
+	 * @param drawHere the Panel associated with the ruler.
+	 */
+	private void renderRuler(Graphics g, List<PolyBase> polys, Panel drawHere)
 	{
 		Dimension sz = getSize();
 		int wid = sz.width;
@@ -138,7 +149,8 @@ public class HorizRuler extends JPanel implements MouseListener
 			if (offX + newWid > wid) newWid = wid - offX;
 			wid = newWid;
 
-			drawHere = waveWindow.getPanels().next();
+			if (drawHere == null)
+				drawHere = waveWindow.getPanels().next();
 			waveWindow.setMainHorizRulerNeedsRepaint(false);
 			g.setClip(offX, 0, wid, hei);
 
@@ -160,15 +172,12 @@ public class HorizRuler extends JPanel implements MouseListener
 		}
 		if (polys != null)
 		{
-			Point2D [] pts = new Point2D[2];
-			pts[0] = new Point2D.Double(drawHere.getVertAxisPos() + offX, hei-1);
-			pts[1] = new Point2D.Double(wid+offX, hei-1);
-			Poly poly = new Poly(pts);
+			Poly poly = new Poly(new Point2D[] {
+				new Point2D.Double(drawHere.getVertAxisPos() + offX, hei-1),
+				new Point2D.Double(wid+offX, hei-1)});
 			polys.add(poly);
 
-			pts = new Point2D[1];
-			pts[0] = new Point2D.Double(wid/2, 0);
-			poly = new Poly(pts);
+			poly = new Poly(new Point2D[] {new Point2D.Double(wid/2, 0)});
 			poly.setStyle(Poly.Type.TEXTBOT);
 			poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(12));
 			poly.setString(xAxisName);
@@ -194,10 +203,9 @@ public class HorizRuler extends JPanel implements MouseListener
 				int x = drawHere.convertXDataToScreen(xValue) + offX;
 				if (polys != null)
 				{
-					Point2D [] pts = new Point2D[2];
-					pts[0] = new Point2D.Double(x, 0);
-					pts[1] = new Point2D.Double(x, hei);
-					polys.add(new Poly(pts));
+					polys.add(new Poly(new Point2D[]{
+						new Point2D.Double(x, 0),
+						new Point2D.Double(x, hei)}));
 				} else
 				{
 					g.drawLine(x, 0, x, hei);
@@ -212,10 +220,9 @@ public class HorizRuler extends JPanel implements MouseListener
 							int intX = (x - lastX) / 5 * i + lastX;
 							if (polys != null)
 							{
-								Point2D [] pts = new Point2D[2];
-								pts[0] = new Point2D.Double(intX, hei/2);
-								pts[1] = new Point2D.Double(intX, hei);
-								polys.add(new Poly(pts));
+								polys.add(new Poly(new Point2D[]{
+									new Point2D.Double(intX, hei/2),
+									new Point2D.Double(intX, hei)}));
 							} else
 							{
 								g.drawLine(intX, hei/2, intX, hei);
@@ -227,10 +234,9 @@ public class HorizRuler extends JPanel implements MouseListener
 						int intX = (x - lastX) / 2 + lastX;
 						if (polys != null)
 						{
-							Point2D [] pts = new Point2D[2];
-							pts[0] = new Point2D.Double(intX, hei/2);
-							pts[1] = new Point2D.Double(intX, hei);
-							polys.add(new Poly(pts));
+							polys.add(new Poly(new Point2D[]{
+								new Point2D.Double(intX, hei/2),
+								new Point2D.Double(intX, hei)}));
 						} else
 						{
 							g.drawLine(intX, hei/2, intX, hei);
@@ -240,9 +246,8 @@ public class HorizRuler extends JPanel implements MouseListener
 				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, xAxisPostfix, ss.getStepScale());
 				if (polys != null)
 				{
-					Point2D [] pts = new Point2D[1];
-					pts[0] = new Point2D.Double(x+2, 4);
-					Poly poly = new Poly(pts);
+					Poly poly = new Poly(new Point2D[]{
+						new Point2D.Double(x+2, 4)});
 					poly.setStyle(Poly.Type.TEXTLEFT);
 					poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(6));
 					poly.setString(xValueVal);

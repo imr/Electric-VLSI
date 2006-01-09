@@ -1113,7 +1113,6 @@ public class PostScript extends Output
 	{
 		Point2D [] points = poly.getPoints();
 		if (points.length == 0) return;
-
 		// ignore if too small
 		Rectangle2D polyBounds = null;
 		for(int i=0; i<points.length; i++)

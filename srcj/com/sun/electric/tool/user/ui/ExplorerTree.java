@@ -965,6 +965,25 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             // popup menu event (right click)
             if (e.isPopupTrigger())
             {
+    			TreePath cp = tree.getPathForLocation(e.getX(), e.getY());
+    			if (cp != null)
+    			{
+    				DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
+    				Object obj = node.getUserObject();
+    				boolean selected = false;
+    				for(int i=0; i<tree.currentSelectedObjects.length; i++)
+    				{
+    					if (tree.currentSelectedObjects[i] == obj) { selected = true;   break; }
+    				}
+    				if (!selected)
+    				{
+    					tree.currentSelectedObjects = new Object[1];
+    					tree.currentSelectedObjects[0] = obj;
+    					tree.clearSelection();
+    					tree.addSelectionPath(cp);
+    					tree.updateUI();
+    				}
+    			}
                 cacheEvent(e);
                 doContextMenu();
             }

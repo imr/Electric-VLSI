@@ -66,7 +66,7 @@ public class AnnularRing extends EDialog
 		int total = 0;
 		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np.getFunction() == PrimitiveNode.Function.NODE) total++;
 		}
 		if (total == 0)
@@ -92,7 +92,7 @@ public class AnnularRing extends EDialog
 		layerPane.setViewportView(layerJList);
 		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
 			layerModel.addElement(np.getName());
 		}
@@ -184,7 +184,7 @@ public class AnnularRing extends EDialog
 			double cX = (lX + hX) / 2;
 			double cY = (lY + hY) / 2;
 			for(int i=0; i<points.length; i++)
-				points[i].setLocation(points[i].getX() - cX, points[i].getY() - cY);
+				points[i] = new EPoint(points[i].getX() - cX, points[i].getY() - cY);
 			double sX = hX - lX;
 			double sY = hY - lY;
 

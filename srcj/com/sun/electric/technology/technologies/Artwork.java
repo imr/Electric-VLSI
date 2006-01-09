@@ -83,7 +83,7 @@ public class Artwork extends Technology
 	/** Defines a Dotted arc. */					public ArcProto dottedArc;
 	/** Defines a Dashed arc. */					public ArcProto dashedArc;
 	/** Defines a Thick arc. */						public ArcProto thickerArc;
-	/** the layer */								private Layer G_lay;
+	/** the layer */								public Layer defaultLayer;
 
 	// -------------------- private and protected methods ------------------------
 	private Artwork()
@@ -100,26 +100,26 @@ public class Artwork extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** Graphics layer */
-		G_lay = Layer.newInstance(this, "Graphics",
+		defaultLayer = Layer.newInstance(this, "Graphics",
 			new EGraphics(false, false, null, 0, 0,0,0,0.8,true,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
 		// The layer functions
-		G_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);		// Graphics
+		defaultLayer.setFunction(Layer.Function.ART, Layer.Function.NONELEC);		// Graphics
 
 		// The DXF names
-		G_lay.setFactoryDXFLayer("OBJECT");		// Graphics
+		defaultLayer.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		G_lay.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// Graphics
+		defaultLayer.setFactoryGDSLayer("1", DRCTemplate.DRCMode.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************
 
 		/** Solid arc */
 		solidArc = ArcProto.newInstance(this, "Solid", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.FILLED)
 		});
 		solidArc.setFunction(ArcProto.Function.NONELEC);
 		solidArc.setFactoryFixedAngle(false);
@@ -130,7 +130,7 @@ public class Artwork extends Technology
 		/** Dotted arc */
 		dottedArc = ArcProto.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT1)
+			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT1)
 		});
 		dottedArc.setFunction(ArcProto.Function.NONELEC);
 		dottedArc.setFactoryFixedAngle(false);
@@ -141,7 +141,7 @@ public class Artwork extends Technology
 		/** Dashed arc */
 		dashedArc = ArcProto.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT2)
+			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT2)
 		});
 		dashedArc.setFunction(ArcProto.Function.NONELEC);
 		dashedArc.setFactoryFixedAngle(false);
@@ -152,7 +152,7 @@ public class Artwork extends Technology
 		/** Thicker arc */
 		thickerArc = ArcProto.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT3)
+			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT3)
 		});
 		thickerArc.setFunction(ArcProto.Function.NONELEC);
 		thickerArc.setFactoryFixedAngle(false);
@@ -190,7 +190,7 @@ public class Artwork extends Technology
 		pinNode = PrimitiveNode.newInstance("Pin", this, 1, 1, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
 			});
 		pinNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -205,7 +205,7 @@ public class Artwork extends Technology
 		boxNode = PrimitiveNode.newInstance("Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		boxNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -219,7 +219,7 @@ public class Artwork extends Technology
 		crossedBoxNode = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		crossedBoxNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -232,7 +232,7 @@ public class Artwork extends Technology
 		filledBoxNode = PrimitiveNode.newInstance("Filled-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		filledBoxNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -246,7 +246,7 @@ public class Artwork extends Technology
 		circleNode = PrimitiveNode.newInstance("Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_6)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_6)
 			});
 		circleNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -260,7 +260,7 @@ public class Artwork extends Technology
 		filledCircleNode = PrimitiveNode.newInstance("Filled-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
 			});
 		filledCircleNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -275,7 +275,7 @@ public class Artwork extends Technology
 		splineNode = PrimitiveNode.newInstance("Spline", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
 			});
 		splineNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -290,7 +290,7 @@ public class Artwork extends Technology
 		triangleNode = PrimitiveNode.newInstance("Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_4)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_4)
 			});
 		triangleNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -304,7 +304,7 @@ public class Artwork extends Technology
 		filledTriangleNode = PrimitiveNode.newInstance("Filled-Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_4)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_4)
 			});
 		filledTriangleNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -318,7 +318,7 @@ public class Artwork extends Technology
 		arrowNode = PrimitiveNode.newInstance("Arrow", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint[]
 					{
 						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
@@ -338,7 +338,7 @@ public class Artwork extends Technology
 		openedPolygonNode = PrimitiveNode.newInstance("Opened-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
 			});
 		openedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -353,7 +353,7 @@ public class Artwork extends Technology
 		openedDottedPolygonNode = PrimitiveNode.newInstance("Opened-Dotted-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, box_2)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, box_2)
 			});
 		openedDottedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -368,7 +368,7 @@ public class Artwork extends Technology
 		openedDashedPolygonNode = PrimitiveNode.newInstance("Opened-Dashed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, box_2)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, box_2)
 			});
 		openedDashedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -383,7 +383,7 @@ public class Artwork extends Technology
 		openedThickerPolygonNode = PrimitiveNode.newInstance("Opened-Thicker-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, box_2)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, box_2)
 			});
 		openedThickerPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -398,7 +398,7 @@ public class Artwork extends Technology
 		closedPolygonNode = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.MINBOX, box_1)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.MINBOX, box_1)
 			});
 		closedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -413,7 +413,7 @@ public class Artwork extends Technology
 		filledPolygonNode = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1)
 			});
 		filledPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -428,7 +428,7 @@ public class Artwork extends Technology
 		thickCircleNode = PrimitiveNode.newInstance("Thick-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.THICKCIRCLE, Technology.NodeLayer.POINTS, box_6)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.THICKCIRCLE, Technology.NodeLayer.POINTS, box_6)
 			});
 		thickCircleNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -516,14 +516,14 @@ public class Artwork extends Technology
 			if (isFilledArrowHeads())
 			{
 				primLayers = new Technology.NodeLayer[2];
-				primLayers[0] = new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+				primLayers[0] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint[]
 					{
 						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
 						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					});
-				primLayers[1] = new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+				primLayers[1] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint[]
 					{
 						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
@@ -753,7 +753,7 @@ public class Artwork extends Technology
 	private Layer getProperLayer(ElectricObject eObj)
 	{
 		EGraphics graphics = makeGraphics(eObj);
-		if (graphics == null) return G_lay;
+		if (graphics == null) return defaultLayer;
 		Layer thisLayer = Layer.newInstance(null, "Graphics", graphics);
 		return thisLayer;
 	}

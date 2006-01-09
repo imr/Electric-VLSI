@@ -867,56 +867,9 @@ public class FileMenu {
             if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
 			if (wnd instanceof WaveformWindow)
 			{
+				// waveform windows provide a list of polygons to print
 				WaveformWindow ww = (WaveformWindow)wnd;
-				int offY = 0;
-				override = new ArrayList<PolyBase>();
-				HorizRuler mainHR = ww.getMainHorizRuler();
-				if (mainHR != null)
-				{
-					List<PolyBase> horizPolys = mainHR.getPolysInPanel(ww.getPanels().next());
-					for(PolyBase poly : horizPolys)
-					{
-						Point2D [] pts = poly.getPoints();
-						for(int i=0; i<pts.length; i++)
-						{
-							pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
-						}
-						override.add(poly);
-					}
-					offY += mainHR.getHeight();
-				}
-				for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-				{
-					Panel panel = it.next();
-					HorizRuler hr = panel.getHorizRuler();
-					if (hr != null)
-					{
-						offY += hr.getHeight();
-						List<PolyBase> horizPolys = hr.getPolysInPanel(panel);
-						for(PolyBase poly : horizPolys)
-						{
-							Point2D [] pts = poly.getPoints();
-							for(int i=0; i<pts.length; i++)
-							{
-								pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
-							}
-							override.add(poly);
-						}
-						offY += hr.getHeight();
-					}
-					List<PolyBase> panelList = panel.getPolysInPanel();
-					for(PolyBase poly : panelList)
-					{
-						Point2D [] pts = poly.getPoints();
-						for(int i=0; i<pts.length; i++)
-						{
-							pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
-						}
-						override.add(poly);
-					}
-					offY += panel.getHeight();
-					if (hr == null) offY += 20;
-				}
+				override = ww.getPolysForPrinting();
 			}
         }
 

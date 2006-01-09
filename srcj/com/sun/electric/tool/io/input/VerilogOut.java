@@ -28,17 +28,14 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.TimedSignal;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -201,9 +198,6 @@ public class VerilogOut extends Simulate
 					if (index.length() > 0 && width == 1)
 					{
 						curArray.add(sig);
-					} else
-					{
-						an.addSignal(sig);
 					}
 
 					if (width > 1)
@@ -298,9 +292,9 @@ public class VerilogOut extends Simulate
 						if (entry instanceof List) entry = ((List)entry).get(0);
 						DigitalSignal sig = (DigitalSignal)entry;
 						int i = 0;
-						for(Iterator<Signal> it = sig.getBussedSignals().iterator(); it.hasNext(); )
+						for(Signal anySig : sig.getBussedSignals())
 						{
-							DigitalSignal subSig = (DigitalSignal)it.next();
+							DigitalSignal subSig = (DigitalSignal)anySig;
 							char bit = restOfLine.charAt(i++);
 							int state = 0;
 							switch (bit)
@@ -323,9 +317,8 @@ public class VerilogOut extends Simulate
 		}
 
 		// convert the stimuli
-		for(Iterator<Object> it = symbolTable.values().iterator(); it.hasNext(); )
+		for(Object entry : symbolTable.values())
 		{
-			Object entry = it.next();
 			List<DigitalSignal> fullList = null;
 			if (entry instanceof List)
 			{
@@ -339,18 +332,16 @@ public class VerilogOut extends Simulate
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;
-			for(Iterator<VerilogStimuli> sIt = listForSig.iterator(); sIt.hasNext(); )
+			for(VerilogStimuli vs : listForSig)
 			{
-				VerilogStimuli vs = (VerilogStimuli)sIt.next();
 				sig.setTime(i, vs.time);
 				sig.setState(i, vs.state);
 				i++;
 			}
 			if (fullList != null)
 			{
-				for(Iterator<DigitalSignal> lIt = fullList.iterator(); lIt.hasNext(); )
+				for(DigitalSignal oSig : fullList)
 				{
-					DigitalSignal oSig = (DigitalSignal)lIt.next();
 					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
 					if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
 				}
@@ -359,9 +350,8 @@ public class VerilogOut extends Simulate
 
 		// remove singular top-level signal name
 		String singularPrefix = null;
-		for(Iterator<Signal> it = an.getSignals().iterator(); it.hasNext(); )
+		for(Signal sSig : an.getSignals())
 		{
-			Signal sSig = (Signal)it.next();
 			String context = sSig.getSignalContext();
 			if (context == null) { singularPrefix = null;   break; }
 			int dotPos = context.indexOf('.');
@@ -374,12 +364,13 @@ public class VerilogOut extends Simulate
 		if (singularPrefix != null)
 		{
 			int len = singularPrefix.length();
-			for(Iterator<Signal> it = an.getSignals().iterator(); it.hasNext(); )
+			for(Signal sSig : an.getSignals())
 			{
-				Signal sSig = (Signal)it.next();
 				String context = sSig.getSignalContext();
 				if (context == null || context.length() <= len) sSig.setSignalContext(null); else
+				{
 					sSig.setSignalContext(context.substring(len+1));
+				}
 			}
 		}
 		return sd;

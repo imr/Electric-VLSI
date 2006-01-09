@@ -28,7 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -1120,10 +1120,9 @@ public class Panel extends JPanel
 						int x = convertXDataToScreen(value);
 						if (polys != null)
 						{
-							Point2D [] pts = new Point2D[2];
-							pts[0] = new Point2D.Double(x, 0);
-							pts[1] = new Point2D.Double(x, hei);
-							polys.add(new Poly(pts));
+							polys.add(new Poly(new Point2D[] {
+								new Point2D.Double(x, 0),
+								new Point2D.Double(x, hei)}));
 						} else
 						{
 							localGraphics.drawLine(x, 0, x, hei);
@@ -1145,10 +1144,9 @@ public class Panel extends JPanel
 						int y = convertYDataToScreen(value);
 						if (polys != null)
 						{
-							Point2D [] pts = new Point2D[2];
-							pts[0] = new Point2D.Double(vertAxisPos, y);
-							pts[1] = new Point2D.Double(wid, y);
-							polys.add(new Poly(pts));
+							polys.add(new Poly(new Point2D[] {
+								new Point2D.Double(vertAxisPos, y),
+								new Point2D.Double(wid, y)}));
 						} else
 						{
 							localGraphics.drawLine(vertAxisPos, y, wid, y);
@@ -1168,15 +1166,14 @@ public class Panel extends JPanel
 		processSignals(localGraphics, bounds, polys);
 
 		// draw all of the control points
-		processControlPoints(localGraphics, bounds, polys);
+		if (localGraphics != null) processControlPoints(localGraphics, bounds);
 
 		// draw the vertical label
 		if (polys != null)
 		{
-			Point2D [] pts = new Point2D[2];
-			pts[0] = new Point2D.Double(vertAxisPos, 0);
-			pts[1] = new Point2D.Double(vertAxisPos, hei);
-			polys.add(new Poly(pts));
+			polys.add(new Poly(new Point2D[] {
+				new Point2D.Double(vertAxisPos, 0),
+				new Point2D.Double(vertAxisPos, hei)}));
 		} else
 		{
 			localGraphics.setColor(new Color(User.getColorWaveformForeground()));
@@ -1215,10 +1212,9 @@ public class Panel extends JPanel
 									int intY = (lastY - y) / 5 * j + y;
 									if (polys != null)
 									{
-										Point2D [] pts = new Point2D[2];
-										pts[0] = new Point2D.Double(vertAxisPos-5, intY);
-										pts[1] = new Point2D.Double(vertAxisPos, intY);
-										polys.add(new Poly(pts));
+										polys.add(new Poly(new Point2D[] {
+											new Point2D.Double(vertAxisPos-5, intY),
+											new Point2D.Double(vertAxisPos, intY)}));
 									} else
 									{
 										localGraphics.drawLine(vertAxisPos-5, intY, vertAxisPos, intY);
@@ -1230,10 +1226,9 @@ public class Panel extends JPanel
 								int intY = (lastY - y) / 2 + y;
 								if (polys != null)
 								{
-									Point2D [] pts = new Point2D[2];
-									pts[0] = new Point2D.Double(vertAxisPos-5, intY);
-									pts[1] = new Point2D.Double(vertAxisPos, intY);
-									polys.add(new Poly(pts));
+									polys.add(new Poly(new Point2D[] {
+										new Point2D.Double(vertAxisPos-5, intY),
+										new Point2D.Double(vertAxisPos, intY)}));
 								} else
 								{
 									localGraphics.drawLine(vertAxisPos-5, intY, vertAxisPos, intY);
@@ -1243,10 +1238,9 @@ public class Panel extends JPanel
 
 						if (polys != null)
 						{
-							Point2D [] pts = new Point2D[2];
-							pts[0] = new Point2D.Double(vertAxisPos-10, y);
-							pts[1] = new Point2D.Double(vertAxisPos, y);
-							polys.add(new Poly(pts));
+							polys.add(new Poly(new Point2D[] {
+								new Point2D.Double(vertAxisPos-10, y),
+								new Point2D.Double(vertAxisPos, y)}));
 						} else
 						{
 							localGraphics.drawLine(vertAxisPos-10, y, vertAxisPos, y);
@@ -1255,9 +1249,8 @@ public class Panel extends JPanel
 						String yValue = TextUtils.convertToEngineeringNotation(value, null);
 						if (polys != null)
 						{
-							Point2D [] pts = new Point2D[1];
-							pts[0] = new Point2D.Double(vertAxisPos-12, y);
-							Poly poly = new Poly(pts);
+							Poly poly = new Poly(new Point2D[] {
+								new Point2D.Double(vertAxisPos-12, y)});
 							poly.setStyle(Poly.Type.TEXTRIGHT);
 							poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(6));
 							poly.setString(yValue);
@@ -1291,9 +1284,29 @@ public class Panel extends JPanel
         double[] result = new double[3];
 
         int linePointMode = waveWindow.getLinePointMode();
-		for(WaveSignal ws : waveSignals.values())
+        Collection<WaveSignal> sigs = waveSignals.values();
+        int sigIndex = 0;
+		for(WaveSignal ws : sigs)
 		{
 			if (g != null) g.setColor(ws.getColor());
+
+			if (forPs != null)
+			{
+				double yPos = hei / 2;
+				Poly.Type style = Poly.Type.TEXTRIGHT;
+				if (sigs.size() > 1)
+				{
+					if (sigIndex == sigs.size()-1) style = Poly.Type.TEXTBOTRIGHT; else
+						if (sigIndex == 0) style = Poly.Type.TEXTTOPRIGHT;
+					yPos = ((double)(hei * sigIndex)) / (sigs.size()-1);
+				}
+				Poly poly = new Poly(new Point2D[] {new Point2D.Double(0, yPos)});
+				poly.setStyle(style);
+				poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(12));
+				poly.setString(ws.getSignal().getFullName());
+				forPs.add(poly);
+			}
+			sigIndex++;
 			if (ws.getSignal() instanceof AnalogSignal)
 			{
 				// draw analog trace
@@ -1353,16 +1366,6 @@ public class Panel extends JPanel
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
 				List<Signal> bussedSignals = ds.getBussedSignals();
-				if (forPs != null)
-				{
-					Point2D [] pts = new Point2D[1];
-					pts[0] = new Point2D.Double(0, hei/2);
-					Poly poly = new Poly(pts);
-					poly.setStyle(Poly.Type.TEXTRIGHT);
-					poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(9));
-					poly.setString(ds.getFullName());
-					forPs.add(poly);
-				}
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
@@ -1434,10 +1437,10 @@ public class Panel extends JPanel
 							if (forPs != null)
 							{
 								Point2D [] pts = new Point2D[1];
-								pts[0] = new Point2D.Double(x, hei/2);
+								pts[0] = new Point2D.Double(x+2, hei/2);
 								Poly poly = new Poly(pts);
-								poly.setStyle(Poly.Type.TEXTCENT);
-								poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(9));
+								poly.setStyle(Poly.Type.TEXTLEFT);
+								poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(8));
 								poly.setString(valString);
 								forPs.add(poly);
 							}
@@ -1526,7 +1529,7 @@ public class Panel extends JPanel
 		return selectedObjects;
 	}
 
-	private List<WaveSelection> processControlPoints(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
+	private List<WaveSelection> processControlPoints(Graphics g, Rectangle2D bounds)
 	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
@@ -1544,7 +1547,7 @@ public class Panel extends JPanel
 				double xValue = points[i].doubleValue();
 				int x = convertXDataToScreen(xValue);
 				if (processABox(g, x-CONTROLPOINTSIZE, sz.height-CONTROLPOINTSIZE*2, x+CONTROLPOINTSIZE, sz.height,
-					bounds, forPs, selectedObjects, ws, true, xValue)) break;
+					bounds, null, selectedObjects, ws, true, xValue)) break;
 
 				// see if the control point is selected
 				boolean found = false;
@@ -1557,7 +1560,7 @@ public class Panel extends JPanel
 				{
 					g.setColor(Color.GREEN);
 					if (processABox(g, x-CONTROLPOINTSIZE+2, sz.height-CONTROLPOINTSIZE*2+2, x+CONTROLPOINTSIZE-2, sz.height-2,
-						bounds, forPs, selectedObjects, ws, true, xValue)) break;
+						bounds, null, selectedObjects, ws, true, xValue)) break;
 					g.setColor(ws.getColor());
 				}
 			}
@@ -1578,7 +1581,7 @@ public class Panel extends JPanel
 				{
 					PolyBase poly = new PolyBase((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
 					poly.setStyle(Poly.Type.FILLED);
-					poly.setLayer(Generic.tech.glyph_lay);
+					poly.setLayer(Artwork.tech.defaultLayer);
 					forPs.add(poly);
 					return false;
 				} else
@@ -1615,11 +1618,7 @@ public class Panel extends JPanel
 			{
 				if (forPs != null)
 				{
-					Point2D [] pts = new Point2D[2];
-					pts[0] = from;
-					pts[1] = to;
-					PolyBase poly = new PolyBase(pts);
-					forPs.add(poly);
+					forPs.add(new PolyBase(new Point2D[] {from, to}));
 					return false;
 				} else
 				{
@@ -1862,7 +1861,7 @@ public class Panel extends JPanel
 		if (lYd > hYd) { double swap = lYd;   lYd = hYd;   hYd = swap; }
 		Rectangle2D bounds = new Rectangle2D.Double(lXd, lYd, hXd-lXd, hYd-lYd);
 		List<WaveSelection> sigs = processSignals(null, bounds, null);
-		List<WaveSelection> cps = processControlPoints(null, bounds, null);
+		List<WaveSelection> cps = processControlPoints(null, bounds);
 		for(WaveSelection ws : sigs)
 			cps.add(ws);
 		return cps;
@@ -1872,7 +1871,7 @@ public class Panel extends JPanel
 	 * Method to find a list of PolyBase objects that describe Signals in this panel.
 	 * @return a list of PolyBase objects.
 	 */
-	public List<PolyBase> getPolysInPanel()
+	public List<PolyBase> getPolysForPrinting()
 	{
 		if (!szValid)
 		{

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.waveform;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -88,6 +89,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -891,10 +893,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// determine panel's analysis type
-		Analysis.AnalysisType analysisType = null;
+		Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
 		if (sd.isAnalog())
 		{
-			analysisType = Analysis.ANALYSIS_SIGNALS;
 			if (sd.getNumAnalyses() > 0)
 				analysisType = sd.getAnalyses().next().getAnalysisType();
 			if (xAxisLocked)
@@ -1417,6 +1418,67 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return the static HighlightListener to use for all waveform windows.
 	 */
 	public static HighlightListener getStaticHighlightListener() { return waveHighlighter; }
+
+
+	// ************************************* THE EXPLORER TREE *************************************
+
+	/**
+	 * Method to get a list of polygons describing the waveform window.
+	 * @return a List of PolyBase objects that describe this window.
+	 */
+	public List<PolyBase> getPolysForPrinting()
+	{
+		int offY = 0;
+		List<PolyBase> override = new ArrayList<PolyBase>();
+		HorizRuler mainHR = getMainHorizRuler();
+		if (mainHR != null)
+		{
+			List<PolyBase> horizPolys = mainHR.getPolysForPrinting(getPanels().next());
+			for(PolyBase poly : horizPolys)
+			{
+				Point2D [] pts = poly.getPoints();
+				for(int i=0; i<pts.length; i++)
+				{
+					pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+				}
+				override.add(poly);
+			}
+			offY += mainHR.getHeight();
+		}
+		for(Iterator<Panel> it = getPanels(); it.hasNext(); )
+		{
+			Panel panel = it.next();
+			HorizRuler hr = panel.getHorizRuler();
+			if (hr != null)
+			{
+				offY += hr.getHeight();
+				List<PolyBase> horizPolys = hr.getPolysForPrinting(panel);
+				for(PolyBase poly : horizPolys)
+				{
+					Point2D [] pts = poly.getPoints();
+					for(int i=0; i<pts.length; i++)
+					{
+						pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+					}
+					override.add(poly);
+				}
+				offY += hr.getHeight();
+			}
+			List<PolyBase> panelList = panel.getPolysForPrinting();
+			for(PolyBase poly : panelList)
+			{
+				Point2D [] pts = poly.getPoints();
+				for(int i=0; i<pts.length; i++)
+				{
+					pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+				}
+				override.add(poly);
+			}
+			offY += panel.getHeight();
+			if (hr == null) offY += 20;
+		}
+		return override;
+	}
 
 	// ************************************* THE EXPLORER TREE *************************************
 

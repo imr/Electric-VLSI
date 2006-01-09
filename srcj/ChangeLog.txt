@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/9/06, SMR) Sweeps in the waveform window now show inclusion and exclusion
+     more distinctly (Bug #782).
+
+IMP: (1/9/06, SMR) Waveform windows can now be exported as PostScript (Bug #564).
+
+BUG: (1/9/06, SMR) Annular ring construction crashes.
+FIX: In AnnularRing.MakeAnnulus.doIt() do not try to change EPoint coordinates.
+
 IMP: (1/8/06, SMR) Initial implementation of PostScript output for Waveform Window (Bug #564).
 
 BUG: (1/5/06, SMR) Multi-object "Properties" dialog doesn't show distance when two are selected (Bug #781).
