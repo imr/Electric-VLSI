@@ -260,7 +260,7 @@ public class NewExport extends EDialog
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null) return;
 
-		if (h.isHighlightEOBJ())
+		if (!h.isHighlightEOBJ())
 		{
 			System.out.println("Must select a node");
 			return;
