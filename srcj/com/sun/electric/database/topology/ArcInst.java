@@ -476,6 +476,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         }
         return true;
     }
+    
+    public void setDInClient(ImmutableArcInst newD) {
+        assert Job.CLIENT;
+        d = newD;
+    }
 
     /**
      * Returns persistent data of this ElectricObject with Variables.
@@ -873,6 +878,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (parent != null) parent.setDirty();
 	}
 	
+    public void updateGeometricInClient() {
+        assert Job.CLIENT;
+		// compute the bounds
+		Poly poly = makePoly(d.width, Poly.Type.FILLED);
+		visBounds.setRect(poly.getBounds2D());
+        parent.setDirty();
+    }
+    
 	/****************************** CONNECTIONS ******************************/
 
 	/**

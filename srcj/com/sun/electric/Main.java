@@ -23,8 +23,11 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -36,6 +39,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
@@ -625,7 +629,7 @@ public final class Main
         for (;;) {
             try {
                 Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                Undo.invokeSnapshotChange(currentSnapshot, newSnapshot);
+                SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
                 currentSnapshot = newSnapshot;
             } catch (IOException e) {
                 // reader.in.close();
@@ -633,6 +637,60 @@ public final class Main
                 System.out.println("END OF FILE");
                 return;
             }
+        }
+    }
+    
+    private static class SnapshotDatabaseChangeRun implements Runnable 
+	{
+		private Snapshot oldSnapshot;
+        private Snapshot newSnapshot;
+		private SnapshotDatabaseChangeRun(Snapshot oldSnapshot, Snapshot newSnapshot) {
+            this.oldSnapshot = oldSnapshot;
+            this.newSnapshot = newSnapshot;
+        }
+        public void run() {
+            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+            	CellBackup newBackup = newSnapshot.getCell(i);
+            	CellBackup oldBackup = oldSnapshot.getCell(i);
+            	if (newBackup != oldBackup) {
+            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            		User.markCellForRedraw(cell, true);
+            	}
+            }
+            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
+            Undo.fireDatabaseChangeEvent(event);
+        }
+	}
+    
+    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
+        private boolean cellTreeChanged;
+        
+        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
+            super(null);
+            this.cellTreeChanged = cellTreeChanged;
+        }
+        
+        /**
+         * Returns true if ElectricObject eObj was created, killed or modified
+         * in the new database state.
+         * @param eObj ElectricObject to test.
+         * @return true if the ElectricObject was changed.
+         */
+        public boolean objectChanged(ElectricObject eObj) { return true; }
+        
+        /**
+         * Returns true if cell explorer tree was changed
+         * in the new database state.
+         * @return true if cell explorer tree was changed.
+         */
+        public boolean cellTreeChanged() {
+            return cellTreeChanged;
+//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
+//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
+//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
+//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
+//                }
         }
     }
     

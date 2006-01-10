@@ -1225,8 +1225,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (int i = 0; i < chronExports.length; i++) {
             Export e = chronExports[i];
             if (e == null) continue;
-            int chronIndex = e.getId().getChronIndex();
-            if (chronIndex >= exports.length || e != exports[chronIndex]) {
+            int portIndex = e.getPortIndex();
+            if (portIndex >= exports.length || e != exports[portIndex]) {
                 e.setPortIndex(-1);
                 chronExports[i] = null;
             }

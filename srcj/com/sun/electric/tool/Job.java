@@ -435,6 +435,10 @@ public abstract class Job implements Runnable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
+        if (CLIENT && jobType != Type.EXAMINE) {
+            System.out.println("Job " + this + " was not launched in CLIENT mode");
+            return;
+        }
 //        if (display)
 //            myNode = new DefaultMutableTreeNode(this);
 
@@ -859,24 +863,24 @@ public abstract class Job implements Runnable {
         */
     }
 
-	/**
-	 * Returns thread which activated current changes or null if no changes.
-	 * @return thread which activated current changes or null if no changes.
-	 */
-	public static Thread getChangingThread() { return changingJob != null ? databaseChangesThread : null; }
-
-    /**
-     * Returns the current Changing job (there can be only one)
-     * @return the current Changing job (there can be only one). Returns null if no changing job.
-     */
-    public static Job getChangingJob() { return changingJob; }
-
-
-	/**
-	 * Returns cell which is root of up-tree of current changes or null, if no changes or whole database changes.
-	 * @return cell which is root of up-tree of current changes or null, if no changes or whole database changes.
-	 */
-	public static Cell getChangingCell() { return changingJob != null ? changingJob.upCell : null; }
+//	/**
+//	 * Returns thread which activated current changes or null if no changes.
+//	 * @return thread which activated current changes or null if no changes.
+//	 */
+//	public static Thread getChangingThread() { return changingJob != null ? databaseChangesThread : null; }
+//
+//    /**
+//     * Returns the current Changing job (there can be only one)
+//     * @return the current Changing job (there can be only one). Returns null if no changing job.
+//     */
+//    public static Job getChangingJob() { return changingJob; }
+//
+//
+//	/**
+//	 * Returns cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+//	 * @return cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+//	 */
+//	public static Cell getChangingCell() { return changingJob != null ? changingJob.upCell : null; }
 
 	/**
 	 * Method to check whether changing of whole database is allowed.
@@ -887,7 +891,6 @@ public abstract class Job implements Runnable {
 		if (Thread.currentThread() != databaseChangesThread)
 		{
 			if (NOTHREADING) return;
-			if (CLIENT) return;
 			String msg = "Database is being changed by another thread";
             System.out.println(msg);
 			throw new IllegalStateException(msg);

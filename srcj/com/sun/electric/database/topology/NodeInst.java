@@ -882,6 +882,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         return true;
     }
+    
+    public void setDInClient(ImmutableNodeInst newD) {
+        assert Job.CLIENT;
+        d = newD;
+    }
 
     /**
      * Returns persistent data of this ElectricObject with Variables.

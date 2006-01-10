@@ -24,8 +24,6 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -871,79 +869,23 @@ public class Undo
 		private DatabaseChangeEvent event;
 		private DatabaseChangeRun(ChangeBatch batch) { event = new DatabaseChangeEvent(batch); }
         public void run() {
-            for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
-                DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-                l.databaseChanged(event);
-            }
+            fireDatabaseChangeEvent(event);
         }
 	}
 
+   
     /**
-     * Invokes in Swing thread a job which updates database from old immutable snapshot to new immutable snapshot.
-     * @param oldSnapshot old immutable snapshot.
-     * @param newSnapshot new immutable snapshot.
-     **/
-    public static void invokeSnapshotChange(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(oldSnapshot, newSnapshot));
+     * Fire DatabaseChangeEvent to DatabaseChangeListeners.
+     * @param e DatabaseChangeEvent.
+     */
+    public static void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
+        for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
+            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+            l.databaseChanged(e);
+        }
+        
     }
-    
-    private static class SnapshotDatabaseChangeRun implements Runnable 
-	{
-		private Snapshot oldSnapshot;
-        private Snapshot newSnapshot;
-		private SnapshotDatabaseChangeRun(Snapshot oldSnapshot, Snapshot newSnapshot) {
-            this.oldSnapshot = oldSnapshot;
-            this.newSnapshot = newSnapshot;
-        }
-        public void run() {
-            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
-            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
-            	CellBackup newBackup = newSnapshot.getCell(i);
-            	CellBackup oldBackup = oldSnapshot.getCell(i);
-            	if (newBackup != oldBackup) {
-            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            		User.markCellForRedraw(cell, true);
-            	}
-            }
-            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
-            for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
-                DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-                l.databaseChanged(event);
-            }
-        }
-	}
-    
-    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
-        private boolean cellTreeChanged;
-        
-        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
-            super(null);
-            this.cellTreeChanged = cellTreeChanged;
-        }
-        
-        /**
-         * Returns true if ElectricObject eObj was created, killed or modified
-         * in the new database state.
-         * @param eObj ElectricObject to test.
-         * @return true if the ElectricObject was changed.
-         */
-        public boolean objectChanged(ElectricObject eObj) { return true; }
-        
-        /**
-         * Returns true if cell explorer tree was changed
-         * in the new database state.
-         * @return true if cell explorer tree was changed.
-         */
-        public boolean cellTreeChanged() {
-            return cellTreeChanged;
-//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
-//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
-//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
-//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
-//                }
-        }
-    }
-    
+   
 	/**
 	 * Method to record and broadcast a change.
 	 * <P>
