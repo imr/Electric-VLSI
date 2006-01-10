@@ -512,6 +512,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public void lowLevelLink()
 	{
         assert isDatabaseObject();
+        checkChanging();
 
 		// attach this arc to the two nodes it connects
 		headPortInst.getNodeInst().addConnection(headEnd);
@@ -530,6 +531,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void lowLevelUnlink()
 	{
+        checkChanging();
 		// remove this arc from the two nodes it connects
 		headPortInst.getNodeInst().removeConnection(headEnd);
 		tailPortInst.getNodeInst().removeConnection(tailEnd);
@@ -883,7 +885,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		// compute the bounds
 		Poly poly = makePoly(d.width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());
-        parent.setDirty();
     }
     
 	/****************************** CONNECTIONS ******************************/

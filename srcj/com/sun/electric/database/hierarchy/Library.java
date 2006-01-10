@@ -646,8 +646,8 @@ public class Library extends ElectricObject implements Comparable<Library>
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = newSnapshot.getCell(i);
             if (oldBackup == newBackup) continue;
-            if (oldBackup != null && newBackup != null &&
-                    oldBackup.cellName.equals(newBackup.cellName) && oldBackup.isMainSchematics == newBackup.isMainSchematics)
+            if (oldBackup == null || newBackup == null ||
+                    !oldBackup.cellName.equals(newBackup.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
         if (cellTreeChanged)

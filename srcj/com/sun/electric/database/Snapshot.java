@@ -23,25 +23,21 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+
 /**
  *
  */
@@ -49,6 +45,7 @@ public class Snapshot {
     
     public final ArrayList<CellBackup> cellBackups = new ArrayList<CellBackup>();
     public int[] cellGroups;
+    public final ArrayList<ERectangle> cellBounds = new ArrayList<ERectangle>();
     public final ArrayList<LibraryBackup> libBackups = new ArrayList<LibraryBackup>();
 
     public static Snapshot currentSnapshot = new Snapshot();
@@ -71,9 +68,16 @@ public class Snapshot {
                 Cell cell = cit.next();
                 CellBackup oldBackup = oldSnapshot.getCell((CellId)cell.getId());
                 int cellIndex = cell.getCellIndex();
-                while (cellBackups.size() <= cellIndex) cellBackups.add(null);
+                while (cellBackups.size() <= cellIndex) {
+                    cellBackups.add(null);
+                    cellBounds.add(null);
+                }
                 assert cellBackups.get(cellIndex) == null;
                 cellBackups.set(cellIndex, cell.backup(oldBackup));
+                assert cellBounds.get(cellIndex) == null;
+                ERectangle newBounds = cell.getBounds();
+                assert newBounds != null;
+                cellBounds.set(cellIndex, cell.getBounds());
             }
         }
         HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
@@ -104,6 +108,10 @@ public class Snapshot {
     
     public CellBackup getCell(int cellIndex) {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
+    }
+    
+    public ERectangle getCellBounds(int cellIndex) {
+        return cellIndex < cellBounds.size() ? cellBounds.get(cellIndex) : null; 
     }
     
     public LibraryBackup getLib(LibId libId) {
@@ -199,6 +207,23 @@ public class Snapshot {
         }
         writer.out.writeInt(Integer.MAX_VALUE);
         
+        for (int i = 0; i < numCells; i++) {
+            CellBackup newBackup = getCell(i);
+            if (newBackup == null) continue;
+            ERectangle oldBounds = oldSnapshot.getCellBounds(i);
+            ERectangle newBounds = getCellBounds(i);
+            assert newBounds != null;
+            if (oldBounds != newBounds) {
+                System.out.println("New cell bounds " + i + " " + newBounds);
+                writer.out.writeInt(i);
+                writer.out.writeDouble(newBounds.getX());
+                writer.out.writeDouble(newBounds.getY());
+                writer.out.writeDouble(newBounds.getWidth());
+                writer.out.writeDouble(newBounds.getHeight());
+            }
+        }
+        writer.out.writeInt(Integer.MAX_VALUE);
+        
         boolean cellGroupsChanged = cellGroups != oldSnapshot.cellGroups;
         writer.out.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
@@ -237,6 +262,7 @@ public class Snapshot {
 
         assert cellBackups.size() == 0;
         cellBackups.addAll(oldSnapshot.cellBackups);
+        cellBounds.addAll(oldSnapshot.cellBounds);
         assert cellBackups.size() == oldSnapshot.cellBackups.size();
         for (;;) {
             int cellIndex = reader.in.readInt();
@@ -249,10 +275,29 @@ public class Snapshot {
                 cellIndex = ~cellIndex;
                 CellBackup oldBackup = cellBackups.set(cellIndex, null);
                 assert oldBackup != null;
+                ERectangle oldBounds = cellBounds.set(cellIndex, null);
+                assert oldBounds != null;
             }
+        }
+        
+        for (;;) {
+            int cellIndex = reader.in.readInt();
+            if (cellIndex == Integer.MAX_VALUE) break;
+            double x = reader.in.readDouble();
+            double y = reader.in.readDouble();
+            double width = reader.in.readDouble();
+            double height = reader.in.readDouble();
+            ERectangle newBounds = new ERectangle(x, y, width, height);
+            while (cellIndex >= cellBounds.size()) cellBounds.add(null);
+            cellBounds.set(cellIndex, newBounds);
         }
         while (cellBackups.size() > 0 && cellBackups.get(cellBackups.size() - 1) == null)
             cellBackups.remove(cellBackups.size() - 1);
+        while (cellBounds.size() > 0 && cellBounds.get(cellBounds.size() - 1) == null)
+            cellBounds.remove(cellBounds.size() - 1);
+        assert cellBackups.size() == cellBounds.size();
+        for (int i = 0; i < cellBackups.size(); i++)
+            assert (getCell(i) != null) == (getCellBounds(i) != null);
         
         boolean cellGroupsChanged = reader.in.readBoolean();
         if (cellGroupsChanged) {

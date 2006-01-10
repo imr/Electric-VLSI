@@ -982,6 +982,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public void lowLevelModify(ImmutableNodeInst d)
 	{
         if (parent != null) {
+            checkChanging();
             // remove from the R-Tree structure
             parent.unLinkNode(this);
             boolean renamed = this.d.name != d.name;

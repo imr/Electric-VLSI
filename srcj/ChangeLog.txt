@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/10/06, DN) Cell bounds are stored in immutable class ERectangle and are shared with Snapshot.
+
 IMP" (1/9/06, GVG) Reorganizing and cleaning TechPalette.
 New bits for special transistors (H/L VT, native, etc).
 

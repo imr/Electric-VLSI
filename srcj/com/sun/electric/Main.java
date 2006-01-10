@@ -31,6 +31,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -653,7 +654,9 @@ public final class Main
             for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
             	CellBackup newBackup = newSnapshot.getCell(i);
             	CellBackup oldBackup = oldSnapshot.getCell(i);
-            	if (newBackup != oldBackup) {
+                ERectangle newBounds = newSnapshot.getCellBounds(i);
+                ERectangle oldBounds = oldSnapshot.getCellBounds(i);
+            	if (newBackup != oldBackup || newBounds != oldBounds) {
             		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
             		User.markCellForRedraw(cell, true);
             	}
