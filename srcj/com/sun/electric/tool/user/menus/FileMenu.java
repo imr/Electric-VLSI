@@ -44,6 +44,7 @@ import com.sun.electric.tool.io.output.PostScript;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
@@ -212,7 +213,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("Rena_me Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibrary(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Mar_k All Libraries for Saving", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChangeJobs.markAllLibrariesForSavingCommand(); } });
 
 		// mnemonic keys available: AB DEFGHIJKLMNOPQ STUVWXYZ
 		MenuBar.Menu checkSubMenu = MenuBar.makeMenu("C_heck Libraries");

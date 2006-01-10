@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -291,13 +292,13 @@ public class CellMenu {
 				double ctrY = ai.getBounds().getCenterY();
 				if (ctrY > lY && ctrY < hY) deleteList.add(ai);
 			}
-			CircuitChanges.eraseObjectsInList(cell, deleteList);
+			CircuitChangeJobs.eraseObjectsInList(cell, deleteList);
 
 			// now slide circuitry down if this isn't the last page
 			int numPages = cell.getNumMultiPages();
 			if (page+1 < numPages)
 			{
-				CircuitChanges.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
+				CircuitChangeJobs.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
 			}
 	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
 	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )

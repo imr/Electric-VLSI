@@ -36,6 +36,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -292,7 +293,7 @@ public class SizeListener
 			// make sure moving the node is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
             EditWindow wnd = EditWindow.needCurrent();
             if (wnd == null) return false;
@@ -652,7 +653,7 @@ public class SizeListener
 		public boolean doIt()
 		{
 			// make sure scaling the node is allowed
-			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
             double dWid = newWidth - stretchNode.getXSize();
             double dHei = newHeight - stretchNode.getYSize();
@@ -678,7 +679,7 @@ public class SizeListener
 		public boolean doIt()
 		{
 			// make sure scaling the arc is allowed
-			if (CircuitChanges.cantEdit(stretchArc.getParent(), null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(stretchArc.getParent(), null, true) != 0) return false;
 
 			stretchArc.modify(newWidth - stretchArc.getWidth(), 0, 0, 0, 0);
 			return true;

@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -252,7 +253,7 @@ public class Spread extends EDialog
 			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 
 			// spread it
-			CircuitChanges.spreadCircuitry(cell, ni, direction, amount, sLx, sHx, sLy, sHy);
+			CircuitChangeJobs.spreadCircuitry(cell, ni, direction, amount, sLx, sHx, sLy, sHy);
 			return true;
 		}
 	}

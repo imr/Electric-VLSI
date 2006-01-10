@@ -886,7 +886,7 @@ public class EditMenu {
         }
 
         private void updateInheritance(NodeInst ni, Cell proto) {
-            CircuitChanges.inheritAttributes(ni, true);
+        	CircuitChangeJobs.inheritAttributes(ni, true);
         }
 
         private void updateLocations(NodeInst ni, Cell proto) {
@@ -1403,7 +1403,7 @@ public class EditMenu {
 
             public boolean doIt()
             {
-                if (CircuitChanges.cantEdit(ai.getParent(), null, true) != 0) return false;
+                if (CircuitChangeJobs.cantEdit(ai.getParent(), null, true) != 0) return false;
 
                 // create the break pins
                 ArcProto ap = ai.getProto();

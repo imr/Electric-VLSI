@@ -60,6 +60,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -211,7 +212,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 
 			// create inheritable variables
-			CircuitChanges.inheritAttributes(ni, false);
+			CircuitChangeJobs.inheritAttributes(ni, false);
 		}
 		return ni;
 	}

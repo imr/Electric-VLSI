@@ -52,6 +52,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 
@@ -391,11 +392,11 @@ public class AutoStitch
         }
 
         // check for any inline pins due to created wires
-        List<CircuitChanges.Reconnect> pinsToPassThrough = new ArrayList<CircuitChanges.Reconnect>();
+        List<CircuitChangeJobs.Reconnect> pinsToPassThrough = new ArrayList<CircuitChangeJobs.Reconnect>();
         for (Iterator<NodeInst> it = possibleInlinePins.iterator(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.isInlinePin()) {
-                CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
+            	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
                 if (re != null) {
                     pinsToPassThrough.add(re);
                 }
@@ -403,7 +404,7 @@ public class AutoStitch
         }
         if (pinsToPassThrough.size() > 0)
         {
-            CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
+        	CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
                 pinsToPassThrough, new HashMap<NodeInst,Point2D.Double>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
             job.doIt();
         }

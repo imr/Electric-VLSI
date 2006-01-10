@@ -287,7 +287,7 @@ public class Clipboard
 			clear();
 
 			// make sure deletion is allowed
-			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(parent, null, true) != 0) return false;
             List<Geometric> deleteGeoms = new ArrayList<Geometric>();
 			List<Highlight2> deleteList = new ArrayList<Highlight2>();
 			for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); )
@@ -299,7 +299,7 @@ public class Clipboard
 					if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
 					if (eObj instanceof NodeInst)
 					{
-						int errorCode = CircuitChanges.cantEdit(parent, (NodeInst)eObj, true);
+						int errorCode = CircuitChangeJobs.cantEdit(parent, (NodeInst)eObj, true);
 						if (errorCode < 0) return false;
 						if (errorCode > 0) continue;
 					}
@@ -319,7 +319,7 @@ public class Clipboard
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
-			CircuitChanges.eraseObjectsInList(parent, deleteGeoms);
+			CircuitChangeJobs.eraseObjectsInList(parent, deleteGeoms);
             // kill variables on cells
             for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
                 Highlight2 h = it.next();
@@ -505,7 +505,7 @@ public class Clipboard
 		public boolean doIt()
 		{
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(dst.getParent(), null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
 
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
@@ -535,7 +535,7 @@ public class Clipboard
 		public boolean doIt()
 		{
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(dst.getParent(), null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
 
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
@@ -570,7 +570,7 @@ public class Clipboard
 			Cell parent = wnd.getCell();
 
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(parent, null, true) != 0) return false;
 
 			// paste them into the current cell
 			copyListToCell(wnd, pasteList, clipCell, parent, new Point2D.Double(dX, dY),
@@ -924,7 +924,7 @@ public class Clipboard
 	 */
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
-		destNode = CircuitChanges.replaceNodeInst(destNode, srcNode.getProto(), true, false);
+		destNode = CircuitChangeJobs.replaceNodeInst(destNode, srcNode.getProto(), true, false);
         if (destNode == null) return null;
 
         destNode.clearExpanded();

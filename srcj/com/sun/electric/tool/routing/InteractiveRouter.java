@@ -38,6 +38,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Highlight2;
@@ -200,7 +201,7 @@ public abstract class InteractiveRouter extends Router {
                 PortInst pi = startRE.getPortInst();
                 NodeInst ni = pi.getNodeInst();
                 if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN) {
-                    CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
+                	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
                     if (re != null) re.reconnectArcs();
                     ni.kill();
                 }

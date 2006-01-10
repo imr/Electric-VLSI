@@ -384,7 +384,7 @@ public class OutlineListener
 		public boolean doIt()
 		{
 			// make sure outline adjustment is allowed
-			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
 			// get the extent of the data
 			NodeInst ni = listener.outlineNode;

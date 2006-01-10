@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/10/06, SMR) Reorganized "CircuitChanges.java" into client and server parts.
+     Created "CircuitChangeJobs.java" with server parts.
+     Created com.sun.tool.JobException (no contents) and subclass CantEditException.
+
 IMP: (1/10/06, DN) Cell bounds are stored in immutable class ERectangle and are shared with Snapshot.
 
-IMP" (1/9/06, GVG) Reorganizing and cleaning TechPalette.
-New bits for special transistors (H/L VT, native, etc).
+IMP: (1/9/06, GVG) Reorganizing and cleaning TechPalette.
+     New bits for special transistors (H/L VT, native, etc).
 
 IMP: (1/9/06, SMR) Sweeps in the waveform window now show inclusion and exclusion
      more distinctly (Bug #782).

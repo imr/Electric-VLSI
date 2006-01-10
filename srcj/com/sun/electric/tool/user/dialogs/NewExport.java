@@ -343,7 +343,7 @@ public class NewExport extends EDialog
 			}
 
 			// make sure the export is possible
-	        if (CircuitChanges.cantEdit(cell, pi.getNodeInst(), true) != 0) return false;
+	        if (CircuitChangeJobs.cantEdit(cell, pi.getNodeInst(), true) != 0) return false;
 
 			e = Export.newInstance(cell, pi, name);
 			if (e == null)

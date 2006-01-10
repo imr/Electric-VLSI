@@ -64,6 +64,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -4273,7 +4274,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			errorCount += ni.checkAndRepair(repair, list, errorLogger);
 		}
         if (repair && list.size() > 0)
-            CircuitChanges.eraseObjectsInList(this, list);
+        	CircuitChangeJobs.eraseObjectsInList(this, list);
 		return errorCount;
 	}
 

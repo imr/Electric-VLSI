@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.User;
@@ -363,10 +364,10 @@ public class Array extends EDialog
 				cell = geom.getParent();
 				if (geom instanceof NodeInst)
 				{
-					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true) != 0) return false;
+					if (CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true) != 0) return false;
 				} else
 				{
-					if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+					if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 				}
 			}
 
