@@ -984,7 +984,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 PrimitiveNode otherNp = (PrimitiveNode)it.next();
                 if (otherNp.getGroupFunction() != groupFunction) continue;
-                if (otherNp.isSpecialNode()) continue;
+                if (otherNp.isSkipSizeInPalette()) continue;
                 if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
                 if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
             }

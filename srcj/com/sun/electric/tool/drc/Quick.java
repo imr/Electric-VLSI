@@ -3280,7 +3280,7 @@ public class Quick
 //            {
 //                NodeInst ni = (NodeInst)g;
 //                NodeProto np = ni.getProto();
-//                if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
+//                if (NodeInst.isSkipSizeInPalette(ni)) continue; // Nov 4;
 //                if (np instanceof Cell)
 //                {
 //                    System.out.println("Not implemented in checkExtensionRule");

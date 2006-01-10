@@ -451,7 +451,6 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
-	/** Defines a high/low transistor. */			public static final int HIGHLOWVT =  4;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
@@ -463,12 +462,11 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =      0400000;
-	/** set if nodes are in same group in menu */           private static final int NODESPECIAL =    01000000;
+	/** set if node will be considered in palette */        private static final int SKIPSIZEINPALETTE =    01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
-	/** set if nodes are in same group in menu */           private static final int NODEGROUP =      04000000;
-    /** set if node is a low vt transistor */               public static final int LOWVTTRANS =          010;
-    /** set if node is a high vt transistor */              public static final int HIGHVTTRANS =         020;
-    /** set if node is a native transistor */               public static final int NATIVETRANS =         040;
+    /** set if node is a low vt transistor */               public static final int LOWVTBIT =          010;
+    /** set if node is a high vt transistor */              public static final int HIGHVTBIT =         020;
+    /** set if node is a native transistor */               public static final int NATIVEBIT =         040;
     /** set if node is a od18 transistor */                 public static final int OD18BIT =          0100;
     /** set if node is a od25 transistor */                 public static final int OD25BIT =          0200;
     /** set if node is a od33 transistor */                 public static final int OD33BIT =          0400;
@@ -1097,9 +1095,9 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      */
     public boolean isNodeBitOn(int bit)
     {
-        assert (bit == LOWVTTRANS ||
-            bit == HIGHVTTRANS ||
-            bit == NATIVETRANS ||
+        assert (bit == LOWVTBIT ||
+            bit == HIGHVTBIT ||
+            bit == NATIVEBIT ||
             bit == OD18BIT ||
             bit == OD25BIT ||
             bit == OD33BIT);
@@ -1113,28 +1111,18 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      */
     public void setNodeBit(int bit) { checkChanging(); userBits |= bit; }
 
-//	/**
-//	 * Method to allow instances of this PrimitiveNode to be grouped with other instances
-//	 * Valid for menu display
-//	 */
-//	public void setGroupNode() { checkChanging(); userBits |= NODEGROUP; }
-//
-//	/**
-//	 * Method to tell if instaces of this PrimitiveNode are grouped.
-//	 */
-//	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
-
 	/**
-	 * Method to allow instances of this PrimitiveNode to be special in menu.
+	 * Method to allow instances of this PrimitiveNode not to be considered in
+     * tech palette for the calculation of the largest icon.
 	 * Valid for menu display
 	 */
-	public void setSpecialNode() { checkChanging(); userBits |= NODESPECIAL; }
+	public void setSkipSizeInPalette() { checkChanging(); userBits |= SKIPSIZEINPALETTE; }
 
 	/**
 	 * Method to tell if instaces of this PrimitiveNode are special (don't appear in menu).
 	 * Valid for menu display
 	 */
-	public boolean isSpecialNode() { return (userBits & NODESPECIAL) != 0; }
+	public boolean isSkipSizeInPalette() { return (userBits & SKIPSIZEINPALETTE) != 0; }
 
 	/**
 	 * Method to allow instances of this PrimitiveNode to shrink.
