@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP" (1/9/06, GVG) Reorganizing and cleaning TechPalette.
+New bits for special transistors (H/L VT, native, etc).
+
 IMP: (1/9/06, SMR) Sweeps in the waveform window now show inclusion and exclusion
      more distinctly (Bug #782).
 

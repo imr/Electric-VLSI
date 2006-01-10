@@ -189,6 +189,18 @@ public class FPGA extends Technology
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
 		repeaterNode.setFunction(PrimitiveNode.Function.CONNECT);
+
+        // Building information for palette
+        nodeGroups = new Object[8][1];
+        int count = -1;
+
+        nodeGroups[++count][0] = wireArc;
+        nodeGroups[++count][0] = "Cell";
+        nodeGroups[++count][0] = "Misc.";
+        nodeGroups[++count][0] = "Pure";
+        nodeGroups[++count][0] = wirePinNode;
+        nodeGroups[++count][0] = pipNode;
+        nodeGroups[++count][0] = repeaterNode;
 	}
 
 	/******************** TREE STRUCTURE FOR ARCHITECTURE FILE ********************/
@@ -292,8 +304,8 @@ public class FPGA extends Technology
 
 	/** key of Variable holding active pips. */				private static final Variable.Key ACTIVEPIPS_KEY = Variable.newKey("FPGA_activepips");
 	/** key of Variable holding active repeaters. */		private static final Variable.Key ACTIVEREPEATERS_KEY = Variable.newKey("FPGA_activerepeaters");
-	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = Variable.newKey("FPGA_nodepipcache");
-	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = Variable.newKey("FPGA_arcactivecache");
+//	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = Variable.newKey("FPGA_nodepipcache");
+//	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = Variable.newKey("FPGA_arcactivecache");
 	/** name of current repeater for activity examining */	private static String         repeaterName;
 	/** nonzero if current repeater is found to be active */private static boolean        repeaterActive;
 	/** what is being displayed */							private static int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
@@ -363,7 +375,7 @@ public class FPGA extends Technology
 					// propagate inactive segments to others that may be active
 					if (context != null && context.getNodable() != null)
 					{
-						NodeInst oNi = (NodeInst)context.getNodable();
+//						NodeInst oNi = (NodeInst)context.getNodable();
 						VarContext higher = context.pop();
 						for(int i=0; i<fn.numNets(); i++)
 						{
@@ -804,7 +816,7 @@ public class FPGA extends Technology
 				String [] pipParts = start.split("\\.");
 				if (pipParts.length == 0 || pipParts.length > depth) continue;
 				boolean pathGood = true;
-				VarContext climb = context;
+//				VarContext climb = context;
 				for(int j=0; j<pipParts.length-1; j++)
 				{
 					if (!pipParts[j].equalsIgnoreCase(path[depth-2-j].getName()))

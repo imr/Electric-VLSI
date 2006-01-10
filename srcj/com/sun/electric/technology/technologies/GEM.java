@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -304,6 +303,20 @@ public class GEM extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		g_node.setFunction(PrimitiveNode.Function.UNKNOWN);
+
+        // Building information for palette
+        nodeGroups = new Object[9][2];
+        int count = -1;
+
+        nodeGroups[++count][0] = General_arc; nodeGroups[count][1] = gp_node;
+        nodeGroups[++count][0] = Temporal_arc; nodeGroups[count][1] = tp_node;
+        nodeGroups[++count][0] = Causal_arc; nodeGroups[count][1] = cp_node;
+        nodeGroups[++count][0] = Prerequisite_arc; nodeGroups[count][1] = pp_node;
+        nodeGroups[++count][0] = Nondeterministic_arc; nodeGroups[count][1] = np_node;
+        nodeGroups[++count][0] = Nondeterministic_fork_arc; nodeGroups[count][1] = fp_node;
+        nodeGroups[++count][0] = "Cell"; nodeGroups[count][1] = e_node;
+        nodeGroups[++count][0] = "Misc."; nodeGroups[count][1] = g_node;
+        nodeGroups[++count][0] = "Pure.";
 	};
 
 	//**************************************** METHODS ****************************************

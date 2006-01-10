@@ -296,135 +296,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         	}
         } else
         {
-            int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
-            ArcProto firstHighlightedArc = null;
-            highlightedNode = null;
-            List<ArcProto> arcList = new ArrayList<ArcProto>();
-            List<PrimitiveNode> contactList = new ArrayList<PrimitiveNode>();
-            List<Object> groupContactList = new ArrayList<Object>();
-            List<PrimitiveNode> pinList = new ArrayList<PrimitiveNode>();
-            List<Object> transList = new ArrayList<Object>();
-            List<Object> wellList = new ArrayList<Object>();
-
-            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-            {
-                ArcProto ap = (ArcProto)it.next();
-                if (ap.isNotUsed()) continue;
-                PrimitiveNode np = ap.findPinProto();
-                if (np != null && np.isNotUsed()) continue;
-                if (firstHighlightedArc == null) firstHighlightedArc = ap;
-                arcTotal++;
-                arcList.add(ap);
-                inPalette.add(ap);
-            }
-
-            inPalette.add("Cell");
-            inPalette.add("Misc.");
-            inPalette.add("Pure");
-
-            for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-            {
-                PrimitiveNode np = (PrimitiveNode)it.next();
-                if (np.isNotUsed()) continue;
-                PrimitiveNode.Function fun = np.getFunction();
-
-                if (fun == PrimitiveNode.Function.PIN)
-                {
-                    pinTotal++;
-                    inPalette.add(np);
-                    pinList.add(np);
-                } else if (fun == PrimitiveNode.Function.NODE)
-	                pureTotal++;
-                else
-                {
-                    boolean found = false;
-	                Object toAdd = np;
-                    List<Object> list = null;
-                    Object map = null;
-	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
-                    {
-                        map = fun;
-                        transList.add(map);
-                    } else if (fun == PrimitiveNode.Function.CONTACT)
-                    {
-                        if (np.isGroupNode())
-                        {
-                            map = np.getLayers()[2].getLayer(); // vias as mapping
-                            if (!np.isSpecialNode()) groupContactList.add(map);
-                        } else
-                            contactList.add(np);
-	                // Trick to get "well" in well contacts
-                    } else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
-                    {
-	                    toAdd = Technology.makeNodeInst(np, fun, 0, true, "Well", 4.5);
-                        if (np.isGroupNode())
-                        {
-                            map = fun;
-                            if (!np.isSpecialNode())
-                                wellList.add(map);
-                        } else
-                           wellList.add(toAdd);
-                    }
-                    if (map != null)
-                    {
-                        list = (List<Object>)elementsMap.get(map);
-                        if (list == null)
-                        {
-                            list = new ArrayList<Object>();
-                            elementsMap.put(map, list);
-                            inPalette.add(list);
-                        }
-                        list.add(toAdd);
-                        found = true;
-                    }
-
-					// Leaving standard transistors or contact
-	                if (!np.isSpecialNode())
-	                {
-                        compTotal++;
-                        if (!found) inPalette.add(toAdd);
-	                }
-                }
-            }
-
-			// Sorting list elements and leaving !isSpecialNode() as default
-            for (Iterator<Object> it = elementsMap.keySet().iterator(); it.hasNext(); )
-            {
-                Object map = it.next();
-                List<Object> list = (List<Object>)elementsMap.get(map);
-
-				// Only for more than 1
-                if (list.size() > 1)
-                {
-                    Object obj = list.get(0);
-                    PrimitiveNode np = null;
-
-                    // Contact and transistor cases
-                    if (obj instanceof PrimitiveNode)
-                        np = (PrimitiveNode)obj;
-                    else if (obj instanceof NodeInst)
-                        np = (PrimitiveNode)((NodeInst)obj).getProto();
-                   // Not default -> swap
-                   if (np != null && np.isSpecialNode()) Collections.swap(list, 0, 1);
-                }
-            }
-            if (pinTotal + compTotal == 0) pinTotal = pureTotal;
-            menuY = arcTotal + pinTotal + compTotal + 3;
-            menuX = 1;
-            if (menuY > 36)
-            {
-                menuY = (menuY+3) / 4;
-                menuX = 4;
-            } else if (menuY > 24)
-            {
-                menuY = (menuY+2) / 3;
-                menuX = 3;
-            } else if (menuY > 12)
-            {
-                menuY = (menuY+1) / 2;
-                menuX = 2;
-            }
-
             Object[][] paletteMatrix = tech.getNodesGrouped();
 
             if (paletteMatrix != null)
@@ -441,6 +312,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                }
 	            }
             }
+            else
+                System.out.println("Error: no palette information found for " + tech.getTechName());
         }
         Dimension size = TopLevel.getScreenSize();
         entrySize = (int)size.getWidth() / menuX;

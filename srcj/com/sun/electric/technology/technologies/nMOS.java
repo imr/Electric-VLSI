@@ -1078,6 +1078,18 @@ public class nMOS extends Technology
 		OC_lay.setPureLayerNode(ocn_node);		// Oversize-Contact
 		HE_lay.setPureLayerNode(hen_node);		// Hard-Enhancement
 		LE_lay.setPureLayerNode(len_node);		// Light-Enhancement
+
+        // Building information for palette
+        nodeGroups = new Object[7][3];
+        int count = -1;
+
+        nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
+        nodeGroups[++count][0] = Metal_arc; nodeGroups[count][1] = mp_node; nodeGroups[count][2] = bc_node;
+        nodeGroups[++count][0] = Diffusion_arc; nodeGroups[count][1] = dp_node; nodeGroups[count][2] = mdc_node;
+        nodeGroups[++count][0] = bcc_node; nodeGroups[count][1] = t_node; nodeGroups[count][2] = it_node;
+        nodeGroups[++count][0] = bccs_node; nodeGroups[count][1] = bcct_node; nodeGroups[count][2] = bcp_node;
+        nodeGroups[++count][0] = bcdi_node; nodeGroups[count][1] = bcdt_node; nodeGroups[count][2] = bcdl_node;
+        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	};
 
 

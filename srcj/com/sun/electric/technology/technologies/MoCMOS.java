@@ -2247,6 +2247,7 @@ public class MoCMOS extends Technology
 			thickTransistorNodes[i].setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
 			thickTransistorNodes[i].setMinSize(15, 22, "2.1, 3.1");
 			thickTransistorNodes[i].setSpecialNode(); // For display purposes
+            thickTransistorNodes[i].setNodeBit(PrimitiveNode.OD18BIT);
 		}
 
 		/** Scalable-P-Transistor */

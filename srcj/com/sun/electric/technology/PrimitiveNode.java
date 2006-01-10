@@ -466,6 +466,12 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** set if nodes are in same group in menu */           private static final int NODESPECIAL =    01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
 	/** set if nodes are in same group in menu */           private static final int NODEGROUP =      04000000;
+    /** set if node is a low vt transistor */               public static final int LOWVTTRANS =          010;
+    /** set if node is a high vt transistor */              public static final int HIGHVTTRANS =         020;
+    /** set if node is a native transistor */               public static final int NATIVETRANS =         040;
+    /** set if node is a od18 transistor */                 public static final int OD18BIT =          0100;
+    /** set if node is a od25 transistor */                 public static final int OD25BIT =          0200;
+    /** set if node is a od33 transistor */                 public static final int OD33BIT =          0400;
 
 	// --------------------- private data -----------------------------------
 	
@@ -979,7 +985,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * Method to return the PortProto by thread-independent PortProtoId.
 	 * @param portProtoId thread-independent PortProtoId.
 	 * @return the PortProto.
-     * @throws IllagalArgumentException if portProtoId is not from this NodeProto.
+     * @throws IllegalArgumentException if portProtoId is not from this NodeProto.
 	 */
 	public PortProto getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != this) throw new IllegalArgumentException();
@@ -1083,16 +1089,40 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
         return (withQuotes) ? "'"+name+"'" : name;
 	}
 
-	/**
-	 * Method to allow instances of this PrimitiveNode to be grouped with other instances
-	 * Valid for menu display
-	 */
-	public void setGroupNode() { checkChanging(); userBits |= NODEGROUP; }
+    /**
+     * Method to determine if node has a given bit on. This is usefull for different
+     * @param bit bit containing information to query. It could be LOWVTTRANS,
+     * HIGHVTTRANS, NATIVETRANS, OD18TRANS, OD25TRANS or OD33TRANS in case of transistors.
+     * @return
+     */
+    public boolean isNodeBitOn(int bit)
+    {
+        assert (bit == LOWVTTRANS ||
+            bit == HIGHVTTRANS ||
+            bit == NATIVETRANS ||
+            bit == OD18BIT ||
+            bit == OD25BIT ||
+            bit == OD33BIT);
 
-	/**
-	 * Method to tell if instaces of this PrimitiveNode are grouped.
-	 */
-	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
+        return (userBits & bit) != 0;
+    }
+
+    /**
+     * Method to set certain bit during construction
+     * @param bit
+     */
+    public void setNodeBit(int bit) { checkChanging(); userBits |= bit; }
+
+//	/**
+//	 * Method to allow instances of this PrimitiveNode to be grouped with other instances
+//	 * Valid for menu display
+//	 */
+//	public void setGroupNode() { checkChanging(); userBits |= NODEGROUP; }
+//
+//	/**
+//	 * Method to tell if instaces of this PrimitiveNode are grouped.
+//	 */
+//	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
 
 	/**
 	 * Method to allow instances of this PrimitiveNode to be special in menu.

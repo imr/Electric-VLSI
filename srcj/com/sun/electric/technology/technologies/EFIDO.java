@@ -396,5 +396,18 @@ public class EFIDO extends Technology
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		p0_node.setFunction(PrimitiveNode.Function.CONNECT);
+
+        // Building information for palette
+        nodeGroups = new Object[8][2];
+        int count = -1;
+
+        nodeGroups[++count][0] = wire_arc; nodeGroups[count][1] = m_node;
+        nodeGroups[++count][0] = bus_arc; nodeGroups[count][1] = t_node;
+        nodeGroups[++count][0] = "Cell"; nodeGroups[count][1] = m0_node;
+        nodeGroups[++count][0] = "Misc."; nodeGroups[count][1] = s_node;
+        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = d_node;
+        nodeGroups[++count][0] = wp_node; nodeGroups[count][1] = p_node;
+        nodeGroups[++count][0] = bp_node; nodeGroups[count][1] = p0_node;
+        nodeGroups[++count][0] = a_node;
 	};
 }
