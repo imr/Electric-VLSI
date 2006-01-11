@@ -42,7 +42,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -169,29 +168,29 @@ public class Clipboard
 
 	public static void copy()
 	{
-		Cell cell = WindowFrame.needCurCell();
-		if (cell == null) return;
-
-		// special case: if one text object is selected, copy its text to the system clipboard
-		copySelectedText();
-
-		// get highlights to copy
-		List<Highlight2> highlights = MenuCommands.getHighlighted();
+		// see what is highlighted
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+		List<Highlight2> highlights = highlighter.getHighlights();
 		if (highlights.size() == 0)
 		{
 			System.out.println("First select objects to copy");
 			return;
 		}
 
-		CopyObjects job = new CopyObjects(cell, highlights);
+		// special case: if one text object is selected, copy its text to the system clipboard
+		copySelectedText(highlights);
+
+		// copy to Electric clipboard cell
+		new CopyObjects(wnd.getCell(), highlights);
 	}
 
 	/**
 	 * Method to copy any selected text to the system-wide clipboard.
 	 */
-	private static void copySelectedText()
+	private static void copySelectedText(List<Highlight2> highlights)
 	{
-		List<Highlight2> highlights = MenuCommands.getHighlighted();
 		if (highlights.size() == 1)
 		{
 			Highlight2 h = highlights.get(0);
@@ -254,21 +253,22 @@ public class Clipboard
 
 	public static void cut()
 	{
-		Cell cell = WindowFrame.needCurCell();
-		if (cell == null) return;
-
-		// special case: if one text object is selected, copy its text to the system clipboard
-		copySelectedText();
-
-		// get objects to cut
-		List<Highlight2> highlights = MenuCommands.getHighlighted();
+		// see what is highlighted
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+		List<Highlight2> highlights = highlighter.getHighlights();
 		if (highlights.size() == 0)
 		{
 			System.out.println("First select objects to cut");
 			return;
 		}
 
-		CutObjects job = new CutObjects(cell, highlights);
+		// special case: if one text object is selected, copy its text to the system clipboard
+		copySelectedText(highlights);
+
+		// cut from Electric, copy to clipboard cell
+		CutObjects job = new CutObjects(wnd.getCell(), highlights);
 	}
 
 	private static class CutObjects extends Job
@@ -341,18 +341,19 @@ public class Clipboard
 
     public static void duplicate()
     {
-    	Cell cell = WindowFrame.needCurCell();
-    	if (cell == null) return;
+		// see what is highlighted
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+		List<Highlight2> highlights = highlighter.getHighlights();
+		if (highlights.size() == 0)
+		{
+			System.out.println("First select objects to duplicate");
+			return;
+		}
 
-    	// get objects to copy
-		List<Highlight2> highlights = MenuCommands.getHighlighted();
-        if (highlights.size() == 0)
-        {
-            System.out.println("First select objects to duplicate");
-            return;
-        }
-
-        DuplicateObjects job = new DuplicateObjects(cell, highlights);
+		// do duplication
+        new DuplicateObjects(wnd.getCell(), highlights);
     }
 
 	/**

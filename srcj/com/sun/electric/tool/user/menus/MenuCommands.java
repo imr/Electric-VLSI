@@ -186,17 +186,4 @@ public final class MenuCommands
         return highlighter.getHighlightedArcs();
     }
 
-    /**
-     * Get list of Highlights in current highlighter
-     * @return list of Highlights
-     */
-    public static List<Highlight2> getHighlighted() {
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return new ArrayList<Highlight2>();
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return new ArrayList<Highlight2>();
-
-        return highlighter.getHighlights();
-    }
-
 }

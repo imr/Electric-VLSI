@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -437,11 +438,22 @@ public class CellMenu {
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-
-        String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Name of duplicated cell",
-            curCell.getName() + "NEW");
+        duplicateCell(curCell);
+    }
+    
+    public static void duplicateCell(Cell cell)
+    {
+        String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+        	"Name of duplicated cell", cell.getName() + "NEW");
         if (newName == null) return;
-        new CellChangeJobs.DuplicateCell(curCell, newName);
+		if (cell.getLibrary().findNodeProto(newName) != null)
+		{
+			int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				"Cell " + newName + " already exists.  Make this a new version?", "Confirm duplication",
+				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
+			if (response != 0) return;
+		}
+        new CellChangeJobs.DuplicateCell(cell, newName);
     }
 
     /**
@@ -449,6 +461,13 @@ public class CellMenu {
      */
     private static void deleteOldCellVersionsCommand()
     {
+		for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+    	{
+    		Cell cell = it.next();
+			if (cell.getNewestVersion() == cell) continue;
+			if (cell.getInstancesOf().hasNext()) continue;
+	    	CircuitChanges.cleanCellRef(cell);
+    	}
     	new CellChangeJobs.DeleteUnusedOldCells();
     }
     

@@ -464,25 +464,26 @@ public class User extends Listener
 			if (updateLastDesigner.size() > 0)
 			{
 				// change the "last designer" on these cells
-				new SetLastDesigner(updateLastDesigner);
+				new SetLastDesigner(userName, updateLastDesigner);
 			}
 		}
 	}
 
 	private static class SetLastDesigner extends Job
 	{
+		private String userName;
 		private List<Cell> updateLastDesigner;
 
-		protected SetLastDesigner(List<Cell> updateLastDesigner)
+		protected SetLastDesigner(String userName, List<Cell> updateLastDesigner)
 		{
 			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.userName = userName;
 			this.updateLastDesigner = updateLastDesigner;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			String userName = System.getProperty("user.name");
 			for(Cell cell : updateLastDesigner)
 			{
 				cell.newVar(FRAME_LAST_CHANGED_BY, userName);

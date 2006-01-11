@@ -1720,11 +1720,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void duplicateCellAction()
 		{
 			Cell cell = (Cell)tree.currentSelectedObjects[0];
-
-			String newName = JOptionPane.showInputDialog(tree, "Name of duplicated cell",
-				cell.getName() + "NEW");
-			if (newName == null) return;
-			new CellChangeJobs.DuplicateCell(cell, newName);
+            CellMenu.duplicateCell(cell);
 		}
 
 		private void deleteCellAction()

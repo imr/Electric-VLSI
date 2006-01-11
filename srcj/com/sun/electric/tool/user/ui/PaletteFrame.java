@@ -37,7 +37,10 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.awt.Container;
@@ -590,7 +593,7 @@ public class PaletteFrame implements MouseListener
 			highlighter.finished();
 			if (export)
 			{
-				ExportChanges.newExportCommand();
+				new NewExport(TopLevel.getCurrentJFrame(), true);
 //				System.out.println("SHOULD EXPORT IT NOW");
 			}
 			return true;

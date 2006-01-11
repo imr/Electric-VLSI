@@ -53,6 +53,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.user.User;
@@ -2098,7 +2099,13 @@ public class EDIF extends Input
 			if (activeView == VNETLIST)
 			{
 				// create a black-box symbol at the current scale
-				Cell nnp = ViewChanges.makeIconForCell(curCell);
+				Cell nnp = null;
+				try
+				{
+					nnp = ViewChanges.makeIconForCell(curCell);
+				} catch (JobException e)
+				{
+				}
 				if (nnp == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon <" + curCell.describe(true) + ">");

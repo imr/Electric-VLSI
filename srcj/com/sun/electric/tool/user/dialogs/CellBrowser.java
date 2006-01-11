@@ -32,7 +32,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
@@ -626,11 +628,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         } else if (action == DoAction.duplicateCell) {
             Cell cell = getSelectedCell();
             if (cell == null) return;
-
-            String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
-                cell.getName() + "NEW");
-            if (newName == null) return;
-            new CellChangeJobs.DuplicateCell(cell, newName);
+            CellMenu.duplicateCell(cell);
             closeDialog(null);                     // we have performed the action
             updateCellList();
         } else if (action == DoAction.selectCell)

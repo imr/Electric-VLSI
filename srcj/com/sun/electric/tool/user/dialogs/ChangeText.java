@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -198,12 +199,12 @@ public class ChangeText extends EDialog
 			}
 
             EditWindow wnd = EditWindow.getCurrent();
-            if (wnd != null) {
-                for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
+            if (wnd != null)
+            {
+                for(Iterator<DisplayedText> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
                 {
-                    Highlight2 h = it.next();
-                    if (!h.isHighlightText()) continue;
-                    accumulateTextFound(h.getElectricObject(), h.getVar(), h.getName(), change);
+                	DisplayedText dt = it.next();
+                    accumulateTextFound(dt.getElectricObject(), dt.getVariableKey(), change);
                 }
             }
 		} else if (changeAllInCell.isSelected())
@@ -276,18 +277,18 @@ public class ChangeText extends EDialog
 			if (ni.getProto() instanceof Cell && !ni.isExpanded())
 			{
 				// cell instance text
-				accumulateTextFound(ni, null, null, change);
+				accumulateTextFound(ni, NodeInst.NODE_PROTO, change);
 			}
 			if (!ni.getNameKey().isTempname())
 			{
 				// node name
-				accumulateTextFound(ni, null, ni.getNameKey(), change);
+				accumulateTextFound(ni, NodeInst.NODE_NAME, change);
 			}
 			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(ni, var, null, change);
+				accumulateTextFound(ni, var.getKey(), change);
 			}
 		}
 
@@ -298,13 +299,13 @@ public class ChangeText extends EDialog
 			if (!ai.getNameKey().isTempname())
 			{
 				// arc name
-				accumulateTextFound(ai, null, ai.getNameKey(), change);
+				accumulateTextFound(ai, ArcInst.ARC_NAME, change);
 			}
 			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(ai, var, null, change);
+				accumulateTextFound(ai, var.getKey(), change);
 			}
 		}
 
@@ -312,12 +313,12 @@ public class ChangeText extends EDialog
 		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
-			accumulateTextFound(pp, null, null, change);
+			accumulateTextFound(pp, Export.EXPORT_NAME, change);
 			for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = (Variable)vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(pp, var, null, change);
+				accumulateTextFound(pp, var.getKey(), change);
 			}
 		}
 
@@ -326,7 +327,7 @@ public class ChangeText extends EDialog
 		{
 			Variable var = (Variable)vIt.next();
 			if (!var.isDisplay()) continue;
-			accumulateTextFound(cell, var, null, change);
+			accumulateTextFound(cell, var.getKey(), change);
 		}
 	}
 
@@ -338,82 +339,53 @@ public class ChangeText extends EDialog
 	 * @param change true to change the text the cell according to the bottom of the dialog;
 	 * false to gather the text sizes for display.
 	 */
-	private void accumulateTextFound(ElectricObject eObj, Variable var, Name name, boolean change)
+	private void accumulateTextFound(ElectricObject eObj, Variable.Key varKey, boolean change)
 	{
-		if (var != null)
+		if (eObj instanceof NodeInst)
 		{
-			Variable.Key varKey = var.getKey();
-			// a variable on an object
-			if (eObj instanceof NodeInst)
+			NodeInst ni = (NodeInst)eObj;
+			if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
-				NodeInst ni = (NodeInst)eObj;
-				if (ni.getProto() == Generic.tech.invisiblePinNode)
-				{
-					if (changeAnnotationText.isSelected())
-					{
-						if (processText(eObj, varKey, change))
-							numAnnotationsChanged++;
-					}
-				} else
-				{
-					if (changeNodeText.isSelected())
-					{
-						if (processText(eObj, varKey, change))
-							numNodesChanged++;
-					}
-				}
-			} else if (eObj instanceof ArcInst)
-			{
-				if (changeArcText.isSelected())
+				if (changeAnnotationText.isSelected())
 				{
 					if (processText(eObj, varKey, change))
-						numArcsChanged++;
+						numAnnotationsChanged++;
 				}
-			} else if (eObj instanceof Cell)
+			} else if (varKey == NodeInst.NODE_PROTO)
 			{
-				if (changeCellText.isSelected())
-				{
-					if (processText(eObj, varKey, change))
-						numCellsChanged++;
-				}
-			}
-		} else if (name != null)
-		{
-			if (eObj instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)eObj;
-				if (changeNodeText.isSelected())
-				{
-					if (processText(ni, NodeInst.NODE_NAME, change))
-						numNodesChanged++;
-				}
-			} else
-			{
-				ArcInst ai = (ArcInst)eObj;
-				if (changeArcText.isSelected())
-				{
-					if (processText(ai, ArcInst.ARC_NAME, change))
-						numNodesChanged++;
-				}
-			}
-		} else
-		{
-			if (eObj instanceof Export)
-			{
-				Export pp = (Export)eObj;
-				if (changeExportText.isSelected())
-				{
-					if (processText(pp, Export.EXPORT_NAME, change))
-						numExportsChanged++;
-				}
-			} else
-			{
-				NodeInst ni = (NodeInst)eObj;
 				if (changeInstanceText.isSelected())
 				{
-					if (processText(ni, NodeInst.NODE_PROTO, change))
+					if (processText(eObj, varKey, change))
 						numInstancesChanged++;
 				}
+			} else
+			{
+				if (changeNodeText.isSelected())
+				{
+					if (processText(eObj, varKey, change))
+						numNodesChanged++;
+				}
+			}
+		} else if (eObj instanceof ArcInst)
+		{
+			if (changeArcText.isSelected())
+			{
+				if (processText(eObj, varKey, change))
+					numArcsChanged++;
+			}
+		} else if (eObj instanceof Cell)
+		{
+			if (changeCellText.isSelected())
+			{
+				if (processText(eObj, varKey, change))
+					numCellsChanged++;
+			}
+		} else if (eObj instanceof Export)
+		{
+			if (changeExportText.isSelected())
+			{
+				if (processText(eObj, varKey, change))
+					numExportsChanged++;
 			}
 		}
 	}

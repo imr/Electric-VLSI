@@ -42,6 +42,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -1041,10 +1042,10 @@ public class Highlighter implements DatabaseChangeListener {
 	 * the export text will not be included if "unique" is true.
 	 * @return a list with the Highlight objects that point to text.
 	 */
-	public List<Highlight2> getHighlightedText(boolean unique)
+	public List<DisplayedText> getHighlightedText(boolean unique)
 	{
 		// now place the objects in the list
-		List<Highlight2> highlightedText = new ArrayList<Highlight2>();
+		List<DisplayedText> highlightedText = new ArrayList<DisplayedText>();
 		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight2 h = it.next();

@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.dialogs.ManipulatePorts;
+import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -49,7 +51,7 @@ public class ExportMenu {
         menuBar.add(exportMenu);
 
         exportMenu.addMenuItem("_Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.newExportCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { new NewExport(TopLevel.getCurrentJFrame(), true); } });
 
         exportMenu.addSeparator();
 

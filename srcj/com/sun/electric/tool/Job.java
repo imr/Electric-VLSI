@@ -466,6 +466,12 @@ public abstract class Job implements Runnable {
         }
     }
 
+    /**
+     * Method to remember that a field variable of the Job has been changed by the doIt() method.
+     * @param variableName the name of the variable that changed.
+     */
+    protected void fieldVariableChanged(String variableName) {}
+
     void printFields() throws IllegalAccessException {
         Class cls = getClass();
         while (cls != Job.class) {

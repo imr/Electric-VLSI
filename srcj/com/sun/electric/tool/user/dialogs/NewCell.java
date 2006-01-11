@@ -366,6 +366,7 @@ public class NewCell extends EDialog
 		String cellName;
 		boolean newWindow;
         Technology tech;
+        private Cell newCell;
 
 		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
 		{
@@ -380,24 +381,27 @@ public class NewCell extends EDialog
 		public boolean doIt() throws JobException
 		{
 			// should ensure that the name is valid
-			Cell cell = Cell.makeInstance(lib, cellName);
-			if (cell == null)
+			newCell = Cell.makeInstance(lib, cellName);
+			if (newCell == null)
 			{
 				throw new JobException("Unable to create cell " + cellName);
 			}
-            cell.setTechnology(tech); // no need for checking if tech is null
-
+			newCell.setTechnology(tech); // no need for checking if tech is null
+			fieldVariableChanged("newCell");
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException) {
-            if (jobException == null) {
-                Cell cell = lib.findNodeProto(cellName);
-                if (newWindow) {
-                    WindowFrame.createEditWindow(cell);
-                } else {
+        public void terminateIt(Throwable jobException)
+        {
+            if (jobException == null)
+            {
+                if (newWindow)
+                {
+                    WindowFrame.createEditWindow(newCell);
+                } else
+                {
                     WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                    wf.setCellWindow(cell);
+                    wf.setCellWindow(newCell);
                 }
             }
             super.terminateIt(jobException);

@@ -66,6 +66,7 @@ public class NewExport extends EDialog
 		referenceExport.setEditable(false);
 		exportName.grabFocus();
 		finishInitialization();
+		setVisible(true);
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

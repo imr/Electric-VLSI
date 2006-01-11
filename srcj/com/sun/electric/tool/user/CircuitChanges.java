@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -42,11 +43,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.Project;
-import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
@@ -289,7 +287,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 1, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 1, getHighlighted());
 	}
 
 	/**
@@ -299,7 +297,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 2, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 2, getHighlighted());
 	}
 
 	/**
@@ -309,7 +307,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 3, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 3, getHighlighted());
 	}
 
 	/**
@@ -319,7 +317,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 4, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 4, getHighlighted());
 	}
 
 	/**
@@ -329,7 +327,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 5, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 5, getHighlighted());
 	}
 
 	/**
@@ -339,7 +337,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 6, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 6, getHighlighted());
 	}
 
 	/**
@@ -349,7 +347,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 7, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, 7, getHighlighted());
 	}
 
 	/**
@@ -359,10 +357,24 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ToggleNegationJob(cell, MenuCommands.getHighlighted());
+		new CircuitChangeJobs.ToggleNegationJob(cell, getHighlighted());
 	}
 
-	/**
+
+    /**
+     * Get list of Highlights in current highlighter
+     * @return list of Highlights
+     */
+    public static List<Highlight2> getHighlighted()
+    {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return new ArrayList<Highlight2>();
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return new ArrayList<Highlight2>();
+        return highlighter.getHighlights();
+    }
+
+    /**
 	 * Method to rip the currently selected bus arc out into individual wires.
 	 */
 	public static void ripBus()
@@ -411,7 +423,7 @@ public class CircuitChanges
 			new CircuitChangeJobs.DeleteSelectedGeometry(cell, bounds);
 		} else
 		{
-            List<Highlight2> highlightedText = highlighter.getHighlightedText(true);
+            List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
             List<Highlight2> highlighted = highlighter.getHighlights();
             if (highlighted.size() == 0) return;
 	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted);
@@ -486,6 +498,9 @@ public class CircuitChanges
 			if (response != JOptionPane.YES_OPTION) return false;
 		}
 
+		// delete references to cell
+		cleanCellRef(cell);
+
 		// delete the cell
 		new CellChangeJobs.DeleteCell(cell);
 		return true;
@@ -495,7 +510,7 @@ public class CircuitChanges
 	 * Method to delete cell "cell".  Validity checks are assumed to be made (i.e. the
 	 * cell is not used and is not locked).
 	 */
-	private static void doKillCell(Cell cell)
+	public static void cleanCellRef(Cell cell)
 	{
 		// delete random references to this cell
 		Library lib = cell.getLibrary();
@@ -519,30 +534,6 @@ public class CircuitChanges
 				}
 			}
 		}
-
-		cell.kill();
-
-//		// see if this was the latest version of a cell
-//		if (prevversion != NONODEPROTO)
-//		{
-//			// newest version was deleted: rename next older version
-//			for(ni = prevversion->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//			{
-//				if ((ni->userbits&NEXPAND) != 0) continue;
-//				startobjectchange((INTBIG)ni, VNODEINST);
-//				endobjectchange((INTBIG)ni, VNODEINST);
-//			}
-//		}
-//
-//		// update status display if necessary
-//		if (us_curnodeproto != NONODEPROTO && us_curnodeproto->primindex == 0)
-//		{
-//			if (cell == us_curnodeproto)
-//			{
-//				if ((us_state&NONPERSISTENTCURNODE) != 0) us_setnodeproto(NONODEPROTO); else
-//					us_setnodeproto(el_curtech->firstnodeproto);
-//			}
-//		}
 	}
 
 	/****************************** RENAME CELLS ******************************/
@@ -1084,6 +1075,7 @@ public class CircuitChanges
 	{
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
         if (wf == null) return;
+        Cell cell = wf.getContent().getCell();
         Highlighter highlighter = wf.getContent().getHighlighter();
         if (highlighter == null) return;
 
@@ -1092,10 +1084,15 @@ public class CircuitChanges
         // prevent mixing cell-center and non-cell-center
         int nonCellCenterCount = 0;
         Highlight2 cellCenterHighlight = null;
+        List<ElectricObject> highlightedEObjs = new ArrayList<ElectricObject>();
         for(Highlight2 h : highlighted)
         {
-        	if (!h.isHighlightEOBJ()) continue;
         	ElectricObject eObj = h.getElectricObject();
+        	if (h.isHighlightEOBJ())
+        	{
+        		highlightedEObjs.add(eObj);
+        		continue;
+        	}
         	if (eObj instanceof NodeInst)
         	{
         		NodeInst ni = (NodeInst)eObj;
@@ -1108,8 +1105,8 @@ public class CircuitChanges
         	System.out.println("Cannot move the Cell-center along with other objects.  Cell-center will not be moved.");
         	highlighted.remove(cellCenterHighlight);
         }
-        List<Highlight2> highlightedText = highlighter.getHighlightedText(true);
-        new CircuitChangeJobs.ManyMove(highlighted, highlightedText, dX, dY);
+        List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
+        new CircuitChangeJobs.ManyMove(cell, highlightedEObjs, highlightedText, dX, dY);
 	}
 
 	/****************************** CHANGE CELL EXPANSION ******************************/

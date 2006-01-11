@@ -28,7 +28,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -354,9 +356,10 @@ public class CrossLibCopy extends EDialog
 
 	private static class CrossLibraryCopyJob extends Job
 	{
-		Cell fromCell;
-		Library toLibrary;
-		CrossLibCopy dialog;
+		private Cell fromCell;
+		private Library toLibrary;
+		private CrossLibCopy dialog;
+		private List<Cell> deletedCells;
 
 		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
 		{
@@ -377,12 +380,23 @@ public class CrossLibCopy extends EDialog
 			boolean copyRelated = dialog.copyRelatedViews.isSelected();
 			boolean copySubs = dialog.copySubcells.isSelected();
 			boolean useExisting = dialog.useExistingSubcells.isSelected();
-			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
+			deletedCells = new ArrayList<Cell>();
+			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting, deletedCells);
+			fieldVariableChanged("deletedCells");
 
 			// schedule the dialog to refresh
 			SwingUtilities.invokeLater(new DoneCopying(dialog, index));
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	for(Cell cell : deletedCells)
+        	{
+        		CircuitChanges.cleanCellRef(cell);
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/** This method is called from within the constructor to

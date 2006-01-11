@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -681,6 +682,7 @@ public class CircuitChangeJobs
 		private Cell cell;
 		private int how;
         private List<Highlight2> highlighted;
+        private boolean repaintContents, repaintAny;
 
         public ChangeArcProperties(Cell cell, int how, List<Highlight2> highlighted)
 		{
@@ -773,10 +775,12 @@ public class CircuitChangeJobs
 				}
 			}
 
+			repaintAny = false;
 			if (numSet == 0 && numUnset == 0) System.out.println("No changes were made"); else
 			{
 				String action = "";
-				boolean repaintContents = false;
+				repaintAny = true;
+				repaintContents = false;
 				switch (how)
 				{
 					case 1: action = "Rigid";   break;
@@ -790,17 +794,28 @@ public class CircuitChangeJobs
 				if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
 					if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
 						System.out.println("Made " + numSet + " arcs " + action + "; and " + numUnset + " arcs not " + action);
-				if (repaintContents) EditWindow.repaintAllContents(); else
-					EditWindow.repaintAll();
 			}
+			fieldVariableChanged("repaintAny");
+			fieldVariableChanged("repaintContents");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (repaintAny)
+        	{
+				if (repaintContents) EditWindow.repaintAllContents(); else
+					EditWindow.repaintAll();
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	public static class ToggleNegationJob extends Job
 	{
 		private Cell cell;
         private List<Highlight2> highlighted;
+        private int numSet;
 
         public ToggleNegationJob(Cell cell, List<Highlight2> highlighted)
 		{
@@ -815,7 +830,7 @@ public class CircuitChangeJobs
 			// make sure negation is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
 
-			int numSet = 0;
+			numSet = 0;
 			for(Highlight2 h : highlighted)
 			{
 				if (!h.isHighlightEOBJ()) continue;
@@ -859,13 +874,22 @@ public class CircuitChangeJobs
 					}
 				}
 			}
+			fieldVariableChanged("numSet");
 			if (numSet == 0) System.out.println("No ports negated"); else
 			{
 				System.out.println("Negated " + numSet + " ports");
-				EditWindow.repaintAllContents();
 			}
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (numSet != 0)
+        	{
+        		EditWindow.repaintAllContents();
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	public static class RipTheBus extends Job
@@ -1032,10 +1056,10 @@ public class CircuitChangeJobs
 	public static class DeleteSelected extends Job
 	{
 		private Cell cell;
-        private List<Highlight2> highlightedText;
+        private List<DisplayedText> highlightedText;
         private List<Highlight2> highlighted;
 
-        public DeleteSelected(Cell cell, List<Highlight2> highlightedText, List<Highlight2> highlighted)
+        public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Highlight2> highlighted)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -1063,10 +1087,7 @@ public class CircuitChangeJobs
 
 				if (cell != h.getCell())
 				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"All objects to be deleted must be in the same cell",
-							"Delete failed", JOptionPane.ERROR_MESSAGE);
-					return false;
+					throw new JobException("All objects to be deleted must be in the same cell");
 				}
 				if (geom instanceof NodeInst)
 				{
@@ -1098,52 +1119,35 @@ public class CircuitChangeJobs
 			}*/
 
 			// delete the text
-			for(Highlight2 high : highlightedText)
+			for(DisplayedText dt : highlightedText)
 			{
-//				// do not deal with text on an object if the object is already in the list
-//				if (high.fromgeom != NOGEOM)
-//				{
-//					for(j=0; list[j] != NOGEOM; j++)
-//						if (list[j] == high.fromgeom) break;
-//					if (list[j] != NOGEOM) continue;
-//				}
-
 				// deleting variable on object
-				Variable var = high.getVar();
-				ElectricObject eobj = high.getElectricObject();
-				if (var != null)
+				Variable.Key key = dt.getVariableKey();
+				ElectricObject eobj = dt.getElectricObject();
+				if (key == NodeInst.NODE_NAME)
 				{
-					eobj.delVar(var.getKey());
+					// deleting the name of a node
+					NodeInst ni = (NodeInst)eobj;
+					ni.setName(null);
+					ni.move(0, 0);
+				} else if (key == ArcInst.ARC_NAME)
+				{
+					// deleting the name of an arc
+					ArcInst ai = (ArcInst)eobj;
+					ai.setName(null);
+					ai.modify(0, 0, 0, 0, 0);
+				} else if (key == Export.EXPORT_NAME)
+				{
+					// deleting the name of an export
+					Export pp = (Export)eobj;
+					int errCode = cantEdit(cell, pp.getOriginalPort().getNodeInst(), true);
+					if (errCode < 0) return false;
+					if (errCode > 0) continue;
+					pp.kill();
 				} else
 				{
-					if (high.getName() != null)
-					{
-						if (eobj instanceof Geometric)
-						{
-							Geometric geom = (Geometric)eobj;
-							if (geom instanceof NodeInst)
-							{
-								NodeInst ni = (NodeInst)geom;
-								ni.setName(null);
-								ni.move(0, 0);
-							} else
-							{
-								ArcInst ai = (ArcInst)geom;
-								ai.setName(null);
-								ai.modify(0, 0, 0, 0, 0);
-							}
-						}
-					} else
-					{
-						if (eobj instanceof Export)
-						{
-							Export pp = (Export)eobj;
-							int errCode = cantEdit(cell, pp.getOriginalPort().getNodeInst(), true);
-							if (errCode < 0) return false;
-							if (errCode > 0) continue;
-							pp.kill();
-						}
-					}
+					// deleting a variable
+					eobj.delVar(key);
 				}
 			}
 			if (cell != null)
@@ -1738,60 +1742,60 @@ public class CircuitChangeJobs
 
 	public static class ManyMove extends Job
 	{
-		double dX, dY;
         static final boolean verbose = false;
-        private List<Highlight2> highlighted;
-        private List<Highlight2> highlightedText;
+        private Cell cell;
+        private List<ElectricObject> highlightedObjs;
+        private List<DisplayedText> highlightedText;
+		private double dX, dY;
+		private boolean updateStatusBar;
 
-        public ManyMove(List<Highlight2> highlighted, List<Highlight2> highlightedText, double dX, double dY)
+        public ManyMove(Cell cell, List<ElectricObject> highlightedObjs, List<DisplayedText> highlightedText, double dX, double dY)
 		{
 			super("Move", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dX = dX;   this.dY = dY;
-            this.highlighted = highlighted;
+            this.cell = cell;
+            this.highlightedObjs = highlightedObjs;
             this.highlightedText = highlightedText;
+			this.dX = dX;
+			this.dY = dY;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// get information about what is highlighted
-			int total = highlighted.size();
-			if (total <= 0) return false;
-			Iterator<Highlight2> oit = highlighted.iterator();
-			Highlight2 firstH = oit.next();
-			ElectricObject firstEObj = firstH.getElectricObject();
-			Cell cell = firstH.getCell();
+			if (highlightedObjs.size() + highlightedText.size() == 0) return false;
 
 			// make sure moving is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
 
 			// special case if moving only one node
-			if (total == 1 && firstH.isHighlightEOBJ() && // getType() == Highlight.Type.EOBJ &&
-				((firstEObj instanceof NodeInst) || firstEObj instanceof PortInst))
+			if (highlightedObjs.size() == 1 && highlightedText.size() == 0)
 			{
-                NodeInst ni;
-                if (firstEObj instanceof PortInst) {
-                    ni = ((PortInst)firstEObj).getNodeInst();
-                } else {
-				    ni = (NodeInst)firstEObj;
-                }
-
-				// make sure moving the node is allowed
-				if (cantEdit(cell, ni, true) != 0) return false;
-
-				ni.move(dX, dY);
-                if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
-                StatusBar.updateStatusBar();
-				return true;
+				ElectricObject firstEObj = highlightedObjs.get(0);
+				if (firstEObj instanceof NodeInst || firstEObj instanceof PortInst)
+				{
+	                NodeInst ni;
+	                if (firstEObj instanceof PortInst) {
+	                    ni = ((PortInst)firstEObj).getNodeInst();
+	                } else {
+					    ni = (NodeInst)firstEObj;
+	                }
+	
+					// make sure moving the node is allowed
+					if (cantEdit(cell, ni, true) != 0) return false;
+	
+					ni.move(dX, dY);
+	                if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
+	                updateStatusBar = true;
+	    			fieldVariableChanged("updateStatusBar");
+					return true;
+				}
 			}
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
 			boolean found = false;
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : highlightedObjs)
 			{
-                if (!h.isHighlightEOBJ()) continue;
-//				if (h.getType() != Highlight.Type.EOBJ) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -1827,19 +1831,14 @@ public class CircuitChangeJobs
 			if (found)
 			{
 				// meets the test: make the special move to slide other orthogonal arcs
-				for(Highlight2 h : highlighted)
+				for(ElectricObject eobj : highlightedObjs)
 				{
-                    if (!h.isHighlightEOBJ()) continue;
-					ElectricObject eobj = h.getElectricObject();
 					if (!(eobj instanceof ArcInst)) continue;
 					ArcInst ai = (ArcInst)eobj;
 
 					double [] deltaXs = new double[2];
 					double [] deltaYs = new double[2];
-//					double [] deltaNulls = new double[2];
-//					int [] deltaRots = new int[2];
 					NodeInst [] niList = new NodeInst[2];
-//					deltaNulls[0] = deltaNulls[1] = 0;
 					deltaXs[0] = deltaYs[0] = deltaXs[1] = deltaYs[1] = 0;
 					int arcangle = ai.getAngle();
 					int j;
@@ -1875,21 +1874,18 @@ public class CircuitChangeJobs
 						}
 					}
 					if (j < 2) continue;
-//					deltaRots[0] = deltaRots[1] = 0;
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, null, null);
-//					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
 				}
                 if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
-                StatusBar.updateStatusBar();
+                updateStatusBar = true;
+    			fieldVariableChanged("updateStatusBar");
 				return true;
 			}
 
 			// special case if moving only arcs and they slide
 			boolean onlySlidable = true, foundArc = false;
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : highlightedObjs)
 			{
-                if (!h.isHighlightEOBJ()) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -1906,10 +1902,8 @@ public class CircuitChangeJobs
 			}
 			if (foundArc && onlySlidable)
 			{
-				for(Highlight2 h : highlighted)
+				for(ElectricObject eobj : highlightedObjs)
 				{
-                    if (!h.isHighlightEOBJ()) continue;
-					ElectricObject eobj = h.getElectricObject();
 					if (eobj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eobj;
@@ -1917,7 +1911,8 @@ public class CircuitChangeJobs
                         if (verbose) System.out.println("Moved "+ai+": delta(X,Y) = ("+dX+","+dY+")");
 					}
 				}
-                StatusBar.updateStatusBar();
+                updateStatusBar = true;
+    			fieldVariableChanged("updateStatusBar");
 				return true;
 			}
 
@@ -1939,10 +1934,8 @@ public class CircuitChangeJobs
 			}
 
 			// mark all nodes that want to move
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : highlightedObjs)
 			{
-                if (!h.isHighlightEOBJ()) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 				if (eobj instanceof NodeInst)
 				{
@@ -1983,9 +1976,6 @@ public class CircuitChangeJobs
 				NodeInst [] nis = new NodeInst[numNodes];
 				double [] dXs = new double[numNodes];
 				double [] dYs = new double[numNodes];
-//				double [] dSize = new double[numNodes];
-//				int [] dRot = new int[numNodes];
-//				boolean [] dTrn = new boolean[numNodes];
 				numNodes = 0;
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
@@ -1994,21 +1984,15 @@ public class CircuitChangeJobs
 					nis[numNodes] = ni;
 					dXs[numNodes] = dX;
 					dYs[numNodes] = dY;
-//					dSize[numNodes] = 0;
-//					dRot[numNodes] = 0;
-//					dTrn[numNodes] = false;
 					numNodes++;
 				}
                 NodeInst.modifyInstances(nis, dXs, dYs, null, null);
-//				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
 			}
 			flag = null;
 
 			// look at all arcs and move them appropriately
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : highlightedObjs)
 			{
-				if (!h.isHighlightEOBJ()) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (!(eobj instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)eobj;
 				Point2D pt = (Point2D)arcLocation.get(ai);
@@ -2044,10 +2028,8 @@ public class CircuitChangeJobs
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
-						for(Highlight2 oH : highlighted)
+						for(ElectricObject oEObj : highlightedObjs)
 						{
-                            if (!oH.isHighlightEOBJ()) continue;
-							ElectricObject oEObj = oH.getElectricObject();
 							if (oEObj instanceof ArcInst)
 							{
 								ArcInst oai = (ArcInst)oEObj;
@@ -2103,11 +2085,18 @@ public class CircuitChangeJobs
 			}
 
 			// also move selected text
-			moveSelectedText(highlightedText);
+			moveSelectedText(cell, highlightedText);
             if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
-            StatusBar.updateStatusBar();
+            updateStatusBar = true;
+			fieldVariableChanged("updateStatusBar");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			if (updateStatusBar) StatusBar.updateStatusBar();
+            super.terminateIt(jobException);
+        }
 
 		/**
 		 * Method to move the "numtexts" text objects described (as highlight strings)
@@ -2115,22 +2104,21 @@ public class CircuitChangeJobs
 		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
 		 * is on these objects.
 		 */
-		private void moveSelectedText(List<Highlight2> highlightedText)
+		private void moveSelectedText(Cell cell, List<DisplayedText> highlightedText)
 		{
-            for(Highlight2 high : highlightedText)
+            for(DisplayedText dt : highlightedText)
 			{
 				// disallow moving if lock is on
-				Cell np = high.getCell();
-				if (np != null)
+				if (cell != null)
 				{
-					int errorCode = cantEdit(np, null, true);
+					int errorCode = cantEdit(cell, null, true);
 					if (errorCode < 0) return;
 					if (errorCode > 0) continue;
 				}
 
 				// handle nodes that move with text
-				ElectricObject eobj = high.getElectricObject();
-				if (high.nodeMovesWithText())
+				ElectricObject eobj = dt.getElectricObject();
+				if (dt.movesWithText())
 				{
 					NodeInst ni = null;
 					if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
@@ -2143,40 +2131,13 @@ public class CircuitChangeJobs
 				}
 
 				// moving variable on object
-				Variable var = high.getVar();
-				NodeInst ni = null;
-				Variable.Key varKey = null;
-				if (var != null)
-				{
-					varKey = var.getKey();
-					if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
-					else if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst();
-					else if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
-				} else
-				{
-					if (high.getName() != null)
-					{
-						if (eobj instanceof NodeInst)
-						{
-							ni = (NodeInst)eobj;
-							varKey = NodeInst.NODE_NAME;
-						} else
-						{
-							varKey = ArcInst.ARC_NAME;
-						}
-					} else
-					{
-						if (eobj instanceof Export)
-						{
-							Export pp = (Export)eobj;
-							ni = pp.getOriginalPort().getNodeInst();
-							varKey = Export.EXPORT_NAME;
-						}
-						// What about NodeInst.NODE_PROTO_TD ?
-					}
-				}
+				Variable.Key varKey = dt.getVariableKey();
 				TextDescriptor td = eobj.getTextDescriptor(varKey);
 				if (td == null) continue;
+				NodeInst ni = null;
+				if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
+					if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
+						if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
 				if (ni != null)
 				{
 					Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
@@ -3279,77 +3240,77 @@ public class CircuitChangeJobs
 
     /****************************** DELETE UNUSED NODES ******************************/
 
-    public static class RemoveUnusedLayers extends Job
-    {
-        private Library library;
-
-        public RemoveUnusedLayers(Library lib)
-		{
-			super("Remove unused metal layers", null, Type.CHANGE, null, null, Priority.USER);
-            library = lib;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            // Only one library, the given one
-            if (library != null)
-            {
-                cleanUnusedNodesInLibrary(library);
-                return true;
-            }
-
-            // Checking all
-            for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
-            {
-                Library lib = libIter.next();
-                cleanUnusedNodesInLibrary(lib);
-            }
-            return true;
-        }
-
-        private void cleanUnusedNodesInLibrary(Library lib)
-        {
-            int action = -1;
-            List<Geometric> list = new ArrayList<Geometric>();
-
-            for (Iterator<Cell> cellsIter = lib.getCells(); cellsIter.hasNext();)
-            {
-                Cell cell = cellsIter.next();
-                if (cell.getView() != View.LAYOUT) continue; // only layout
-                list.clear();
-                Technology tech = cell.getTechnology();
-
-                for (int i = 0; i < cell.getNumArcs(); i++)
-                {
-                    ArcInst ai = cell.getArc(i);
-                    ArcProto ap = ai.getProto();
-                    if (ap.isNotUsed())
-                        list.add(ai);
-                }
-                for (int i = 0; i < cell.getNumNodes(); i++)
-                {
-                    NodeInst ni = cell.getNode(i);
-                    tech.cleanUnusedNodesInLibrary(ni, list);
-                }
-                if (action != 3 && list.size() > 0)
-                {
-                    String [] options = {"Yes", "No", "Cancel", "Yes to All"};
-
-                    action = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-                            "Remove unused nodes in " + cell.libDescribe(), "Warning",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                            null, options, options[0]);
-                    if (action == 2) return; // cancel
-                }
-                if (action != 1) // 1 is No to this local modification
-                {
-                    System.out.println("Removing " + list.size() + " unused nodes in " + cell.libDescribe());
-                     eraseObjectsInList(cell, list);
-                }
-            }
-        }
-    }
+//    public static class RemoveUnusedLayers extends Job
+//    {
+//        private Library library;
+//
+//        public RemoveUnusedLayers(Library lib)
+//		{
+//			super("Remove unused metal layers", null, Type.CHANGE, null, null, Priority.USER);
+//            library = lib;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//            // Only one library, the given one
+//            if (library != null)
+//            {
+//                cleanUnusedNodesInLibrary(library);
+//                return true;
+//            }
+//
+//            // Checking all
+//            for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
+//            {
+//                Library lib = libIter.next();
+//                cleanUnusedNodesInLibrary(lib);
+//            }
+//            return true;
+//        }
+//
+//        private void cleanUnusedNodesInLibrary(Library lib)
+//        {
+//            int action = -1;
+//            List<Geometric> list = new ArrayList<Geometric>();
+//
+//            for (Iterator<Cell> cellsIter = lib.getCells(); cellsIter.hasNext();)
+//            {
+//                Cell cell = cellsIter.next();
+//                if (cell.getView() != View.LAYOUT) continue; // only layout
+//                list.clear();
+//                Technology tech = cell.getTechnology();
+//
+//                for (int i = 0; i < cell.getNumArcs(); i++)
+//                {
+//                    ArcInst ai = cell.getArc(i);
+//                    ArcProto ap = ai.getProto();
+//                    if (ap.isNotUsed())
+//                        list.add(ai);
+//                }
+//                for (int i = 0; i < cell.getNumNodes(); i++)
+//                {
+//                    NodeInst ni = cell.getNode(i);
+//                    tech.cleanUnusedNodesInLibrary(ni, list);
+//                }
+//                if (action != 3 && list.size() > 0)
+//                {
+//                    String [] options = {"Yes", "No", "Cancel", "Yes to All"};
+//
+//                    action = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+//                            "Remove unused nodes in " + cell.libDescribe(), "Warning",
+//                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+//                            null, options, options[0]);
+//                    if (action == 2) return; // cancel
+//                }
+//                if (action != 1) // 1 is No to this local modification
+//                {
+//                    System.out.println("Removing " + list.size() + " unused nodes in " + cell.libDescribe());
+//                     eraseObjectsInList(cell, list);
+//                }
+//            }
+//        }
+//    }
 
 	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/
 

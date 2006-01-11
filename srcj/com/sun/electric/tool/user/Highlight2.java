@@ -1,5 +1,6 @@
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
@@ -208,7 +209,7 @@ public abstract class Highlight2 implements Cloneable{
 	 * the export text will not be included if "unique" is true.
 	 * Return a list with the Highlight objects that point to text.
 	 */
-    void getHighlightedText(List<Highlight2> list, boolean unique, List<Highlight2> getHighlights) {;}
+    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight2> getHighlights) {;}
 
     /**
 	 * Method to return the bounds of the highlighted objects.
@@ -1457,9 +1458,32 @@ class HighlightText extends Highlight2
         }
     }
 
-    void getHighlightedText(List<Highlight2> list, boolean unique, List<Highlight2> getHighlights)
+    DisplayedText makeDisplayedText()
     {
-        if (list.contains(this)) return;
+    	DisplayedText dt = null;
+    	if (var != null)
+    	{
+    		dt = new DisplayedText(eobj, var.getKey());
+    	} else
+    	{
+    		if (name != null)
+    		{
+    			if (eobj instanceof NodeInst) dt = DisplayedText.makeDisplayedNodeName((NodeInst)eobj); else
+    				if (eobj instanceof ArcInst) dt = DisplayedText.makeDisplayedArcName((ArcInst)eobj);
+    		} else
+    		{
+    			if (eobj instanceof Export) dt = DisplayedText.makeDisplayedExport((Export)eobj); else
+    				dt = DisplayedText.makeDisplayedNodeProtoName((NodeInst)eobj);
+    		}
+    	}
+    	return dt;
+    }
+
+    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight2> getHighlights)
+    {
+    	DisplayedText dt = makeDisplayedText();
+    	if (dt == null) return;
+        if (list.contains(dt)) return;
 
         // if this text is on a selected object, don't include the text
         if (unique)
@@ -1511,7 +1535,7 @@ class HighlightText extends Highlight2
         }
 
         // add this text
-        list.add(this);
+        list.add(dt);
     }
 
     Rectangle2D getHighlightedArea(EditWindow wnd)

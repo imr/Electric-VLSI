@@ -48,7 +48,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -60,8 +59,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JOptionPane;
 
 /**
  * Class for Jobs that make changes to the cells.
@@ -91,63 +88,9 @@ public class CellChangeJobs
 		{
 			// check cell usage once more
 			if (cell.isInUse("delete", false)) return false;
-			doKillCell(cell);
+			cell.kill();
 			return true;
 		}
-	}
-
-	/**
-	 * Method to delete cell "cell".  Validity checks are assumed to be made (i.e. the
-	 * cell is not used and is not locked).
-	 */
-	private static void doKillCell(Cell cell)
-	{
-		// delete random references to this cell
-		Library lib = cell.getLibrary();
-		if (cell == lib.getCurCell()) lib.setCurCell(null);
-
-		// close windows that reference this cell
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			WindowContent content = wf.getContent();
-			if (content == null) continue;
-			if (content.getCell() == cell)
-			{
-				if (!(content instanceof EditWindow))
-				{
-					wf.setCellWindow(null);
-				} else
-				{
-					content.setCell(null, null);
-					content.fullRepaint();
-				}
-			}
-		}
-
-		cell.kill();
-
-//		// see if this was the latest version of a cell
-//		if (prevversion != NONODEPROTO)
-//		{
-//			// newest version was deleted: rename next older version
-//			for(ni = prevversion->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//			{
-//				if ((ni->userbits&NEXPAND) != 0) continue;
-//				startobjectchange((INTBIG)ni, VNODEINST);
-//				endobjectchange((INTBIG)ni, VNODEINST);
-//			}
-//		}
-//
-//		// update status display if necessary
-//		if (us_curnodeproto != NONODEPROTO && us_curnodeproto->primindex == 0)
-//		{
-//			if (cell == us_curnodeproto)
-//			{
-//				if ((us_state&NONPERSISTENTCURNODE) != 0) us_setnodeproto(NONODEPROTO); else
-//					us_setnodeproto(el_curtech->firstnodeproto);
-//			}
-//		}
 	}
 
 	/****************************** RENAME CELLS ******************************/
@@ -217,6 +160,8 @@ public class CellChangeJobs
 	 */
 	public static class DeleteUnusedOldCells extends Job
 	{
+		private int totalDeleted;
+
 		public DeleteUnusedOldCells()
 		{
 			super("Delete Unused Old Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -226,7 +171,7 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			boolean found = true;
-			int totalDeleted = 0;
+			totalDeleted = 0;
 			while (found)
 			{
 				found = false;
@@ -236,18 +181,24 @@ public class CellChangeJobs
 					if (cell.getNewestVersion() == cell) continue;
 					if (cell.getInstancesOf().hasNext()) continue;
 					System.out.println("Deleting " + cell);
-					doKillCell(cell);
+					cell.kill();
 					found = true;
 					totalDeleted++;
 					break;
 				}
 			}
+			fieldVariableChanged("totalDeleted");
+			return true;
+		}
+
+		public void terminateIt(Throwable jobException)
+		{
 			if (totalDeleted == 0) System.out.println("No unused old cell versions to delete"); else
 			{
 				System.out.println("Deleted " + totalDeleted + " cells");
 				EditWindow.repaintAll();
 			}
-			return true;
+            super.terminateIt(jobException);
 		}
 	}
 
@@ -941,7 +892,8 @@ public class CellChangeJobs
 	 */
 	public static class NewCellVersion extends Job
 	{
-		Cell cell;
+		private Cell cell;
+		private Cell newVersion;
 
 		public NewCellVersion(Cell cell)
 		{
@@ -952,8 +904,15 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			Cell newVersion = cell.makeNewVersion();
+			newVersion = cell.makeNewVersion();
 			if (newVersion == null) return false;
+			fieldVariableChanged("newVersion");
+			return true;
+		}
+
+		public void terminateIt(Throwable jobException)
+		{
+			if (newVersion == null) return;
 
 			// change the display of old versions to the new one
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -964,9 +923,10 @@ public class CellChangeJobs
 				if (content.getCell() == cell)
 					content.setCell(newVersion, VarContext.globalContext);
 			}
+
 			EditWindow.repaintAll();
             System.out.println("Created new version: "+newVersion+", old version renamed to "+cell);
-			return true;
+            super.terminateIt(jobException);
 		}
 	}
 
@@ -977,8 +937,9 @@ public class CellChangeJobs
 	 */
 	public static class DuplicateCell extends Job
 	{
-		Cell cell;
-		String newName;
+		private Cell cell;
+		private String newName;
+		private Cell dupCell;
 
 		public DuplicateCell(Cell cell, String newName)
 		{
@@ -991,49 +952,52 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
-			if (cell.getLibrary().findNodeProto(newCellName) != null)
-			{
-				int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-						"Cell " + newCellName + " already exists.  Make this a new version?", "Confirm duplication",
-					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
-				if (response != 0) return false;
-			}
-			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
+			dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {
                 System.out.println("Could not duplicate "+cell);
                 return false;
             }
+			fieldVariableChanged("dupCell");
 
             System.out.println("Duplicated cell "+cell+". New cell is "+dupCell+".");
 
             // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
-            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
                 NodeInst ni = it.next();
-                if (ni.getProtoEquivalent() == cell) {
+                if (ni.getProtoEquivalent() == cell)
+                {
                     // this is the icon, duplicate it as well
                     Cell icon = (Cell)ni.getProto();
                     Cell dupIcon = Cell.copyNodeProto(icon, icon.getLibrary(), newName + "{" + icon.getView().getAbbreviation() + "}", false);
-                    if (dupIcon == null) {
+                    if (dupIcon == null)
+                    {
                         System.out.println("Could not duplicate icon "+icon);
                         break;
                     }
                     System.out.println("  Also duplicated icon view, cell "+icon+". New cell is "+dupIcon+".");
 
                     // replace old icon(s) in duplicated cell
-                    for (Iterator<NodeInst> it2 = dupCell.getNodes(); it2.hasNext(); ) {
+                    for (Iterator<NodeInst> it2 = dupCell.getNodes(); it2.hasNext(); )
+                    {
                         NodeInst ni2 = it2.next();
-                        if (ni2.getProto() == icon) {
+                        if (ni2.getProto() == icon)
+                        {
                             NodeInst newNi2 = ni2.replace(dupIcon, true, true);
                             // replace name on old self-icon
                             newNi2.setName(null);
                         }
                     }
-
                     break;
                 }
             }
+			return true;
+		}
 
+        public void terminateIt(Throwable jobException)
+        {
 			// change the display of old cell to the new one
+        	boolean found = false;
             WindowFrame curWf = WindowFrame.getCurrentWindowFrame();
             if (curWf != null)
             {
@@ -1042,25 +1006,28 @@ public class CellChangeJobs
 				{
 					content.setCell(dupCell, VarContext.globalContext);
 					content.repaint();
-					return true;
+					found = true;
 				}
             }
 
             // current cell was not duplicated: see if any displayed cell is
-			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = it.next();
-				WindowContent content = wf.getContent();
-				if (content == null) continue;
-				if (content.getCell() == cell)
+            if (!found)
+            {
+				for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 				{
-					content.setCell(dupCell, VarContext.globalContext);
-					content.repaint();
-					return true;
+					WindowFrame wf = it.next();
+					WindowContent content = wf.getContent();
+					if (content == null) continue;
+					if (content.getCell() == cell)
+					{
+						content.setCell(dupCell, VarContext.globalContext);
+						content.repaint();
+						break;
+					}
 				}
-			}
-			return true;
-		}
+            }
+            super.terminateIt(jobException);
+        }
 	}
 
 	/****************************** COPY CELLS ******************************/
@@ -1076,14 +1043,15 @@ public class CellChangeJobs
 	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
+	 * @param deletedCells a list (filled by this method) of cells that are deleted.
 	 */
 	public static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move,
-        boolean allRelatedViews, boolean copySubCells, boolean useExisting)
+        boolean allRelatedViews, boolean copySubCells, boolean useExisting, List<Cell> deletedCells)
     {
         Cell.setAllowCircularLibraryDependences(true);
         try {
             return copyRecursively(fromCell, fromCell.getName(), toLib, fromCell.getView(), verbose, move, "", true,
-                allRelatedViews, allRelatedViews, copySubCells, useExisting, new HashSet<Cell>());
+                allRelatedViews, allRelatedViews, copySubCells, useExisting, new HashSet<Cell>(), deletedCells);
         } finally {
             Cell.setAllowCircularLibraryDependences(false);
         }
@@ -1113,7 +1081,7 @@ public class CellChangeJobs
 	 */
 	private static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
 		View toView, boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
-		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing)
+		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing, List<Cell> deletedCells)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1157,7 +1125,8 @@ public class CellChangeJobs
 					boolean doCopySchematicView = true;
 					if (ni.isIconOfParent()) doCopySchematicView = false;
 					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(), verbose,
-						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel, copySubCells, useExisting, existing);
+						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel,
+						copySubCells, useExisting, existing, deletedCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
@@ -1191,7 +1160,7 @@ public class CellChangeJobs
 
 						// copy equivalent view if not already there
 						Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
 						if (oNp == null)
 						{
 							if (move) System.out.println("Move of schematic view " + np + " failed"); else
@@ -1221,7 +1190,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1248,7 +1217,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1349,8 +1318,8 @@ public class CellChangeJobs
 					}
 				}
 			}
-			doKillCell(fromCell);
-			fromCell = null;
+			if (deletedCells != null) deletedCells.add(fromCell);
+			fromCell.kill();
 		}
 		return newFromCell;
 	}

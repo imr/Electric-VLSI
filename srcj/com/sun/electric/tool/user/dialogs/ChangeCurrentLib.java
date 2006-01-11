@@ -24,38 +24,14 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
-import java.awt.Insets;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
-import javax.swing.JDialog;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JSeparator;
+import java.util.Iterator;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;

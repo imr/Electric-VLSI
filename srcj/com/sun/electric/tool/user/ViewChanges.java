@@ -22,9 +22,9 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -38,16 +38,19 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.*;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -84,11 +87,11 @@ public class ViewChanges
 		List<Cell> multiPageCells = new ArrayList<Cell>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			if (lib.isHidden()) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				if (cell.getView().getFullName().startsWith("schematic-page-")) multiPageCells.add(cell);
 			}
 		}
@@ -118,9 +121,8 @@ public class ViewChanges
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator<Cell> it = multiPageCells.iterator(); it.hasNext(); )
+			for(Cell cell : multiPageCells)
 			{
-				Cell cell = (Cell)it.next();
 				int pageNo = TextUtils.atoi(cell.getView().getFullName().substring(15));
 				String destCellName = cell.getName() + "{sch}";
 				Cell destCell = cell.getLibrary().findNodeProto(destCellName);
@@ -141,12 +143,12 @@ public class ViewChanges
 				List<Object> pasteList = new ArrayList<Object>();
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					pasteList.add(ni);
 				}
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)aIt.next();
+					ArcInst ai = aIt.next();
 					pasteList.add(ai);
 				}
 				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true, true);
@@ -154,7 +156,7 @@ public class ViewChanges
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 				{
-					Variable var = (Variable)vIt.next();
+					Variable var = vIt.next();
 					if (!var.isDisplay()) continue;
                     destCell.addVar(var.withOff(var.getXOff(), var.getYOff() + dY));
 //					Variable cellVar = destCell.newVar(var.getKey(), var.getObject());
@@ -182,7 +184,7 @@ public class ViewChanges
 		// warn if there is already a cell with that view
 		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 		{
-			Cell other = (Cell)it.next();
+			Cell other = it.next();
 			if (other.getView() != newView) continue;
 			if (!other.getName().equalsIgnoreCase(cell.getName())) continue;
 
@@ -192,7 +194,7 @@ public class ViewChanges
 			if (response != JOptionPane.YES_OPTION) return;
 			break;
 		}
-		ChangeCellView job = new ChangeCellView(cell, newView);
+		new ChangeCellView(cell, newView);
 	}
 
 	/**
@@ -200,13 +202,13 @@ public class ViewChanges
 	 */
 	private static class ChangeCellView extends Job
 	{
-		Cell cell;
-		View newView;
+		private Cell cell;
+		private View newView;
 
 		protected ChangeCellView(Cell cell, View newView)
 		{
 			super("Change View of " + cell + " to " + newView.getFullName(),
-					User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+				User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newView = newView;
 			startJob();
@@ -216,17 +218,22 @@ public class ViewChanges
 		{
 			cell.setView(newView);
 			cell.setTechnology(null);
+			return true;
+		}
+
+        public void terminateIt(Throwable jobException)
+        {
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				if (wf.getContent().getCell() == cell)
 				{
 					wf.getContent().setCell(cell, VarContext.globalContext);
 				}
 			}
 			EditWindow.repaintAll();
-			return true;
-		}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/****************************** MAKE A SKELETON FOR A CELL ******************************/
@@ -250,12 +257,13 @@ public class ViewChanges
 			System.out.println("Warning: skeletonization only makes sense for layout cells, not " +
 				curCell.getView().getFullName());
 
-		MakeSkeletonView job = new MakeSkeletonView(curCell);
+		new MakeSkeletonView(curCell);
 	}
 
 	private static class MakeSkeletonView extends Job
 	{
 		private Cell curCell;
+		private Cell skeletonCell;
 
 		protected MakeSkeletonView(Cell curCell)
 		{
@@ -268,24 +276,30 @@ public class ViewChanges
 		{
 			// create the new icon cell
 			String skeletonCellName = curCell.getName() + "{lay.sk}";
-			Cell skeletonCell = Cell.makeInstance(curCell.getLibrary(), skeletonCellName);
+			skeletonCell = Cell.makeInstance(curCell.getLibrary(), skeletonCellName);
 			if (skeletonCell == null)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Cannot create Skeleton cell " + skeletonCellName,
-						"Skeleton creation failed", JOptionPane.ERROR_MESSAGE);
-				return false;
+				throw new JobException("Cannot create Skeleton cell " + skeletonCellName);
 			}
 
 			boolean error = skeletonizeCell(curCell, skeletonCell);
+			if (error) skeletonCell = null;
+			fieldVariableChanged("skeletonCell");
+
 			if (error) return false;
-
-			System.out.println("Cell " + skeletonCell.describe(true) + " created with a skeletal representation of " +
-				curCell);
-			WindowFrame.createEditWindow(skeletonCell);
-
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (skeletonCell != null)
+        	{
+				System.out.println("Cell " + skeletonCell.describe(true) + " created with a skeletal representation of " +
+					curCell);
+				WindowFrame.createEditWindow(skeletonCell);
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -347,7 +361,7 @@ public class ViewChanges
 		HashMap<Export,Network> netMap = new HashMap<Export,Network>();
 		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
 		{
-			Export e = (Export)it.next();
+			Export e = it.next();
 			Network net = netlist.getNetwork(e, 0);
 			netMap.put(e, net);
 		}
@@ -381,7 +395,7 @@ public class ViewChanges
 		// copy the essential-bounds nodes if they exist
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (np != Generic.tech.essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
@@ -416,14 +430,31 @@ public class ViewChanges
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
+		if (!curCell.isSchematic())
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"The current cell must be a schematic in order to generate an icon",
+					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		// see if the icon already exists and issue a warning if so
+		Cell iconCell = curCell.iconView();
+		if (iconCell != null)
+		{
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
+			if (response != JOptionPane.YES_OPTION) return;
+		}
 		MakeIconView job = new MakeIconView(curCell);
 	}
 
 	private static class MakeIconView extends Job
 	{
 		private Cell curCell;
+		private NodeInst iconNode;
 
-		protected MakeIconView(Cell cell)
+		private MakeIconView(Cell cell)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
@@ -434,24 +465,7 @@ public class ViewChanges
 		{
 			Library lib = curCell.getLibrary();
 
-			if (!curCell.isSchematic())
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"The current cell must be a schematic in order to generate an icon",
-						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-
-			// see if the icon already exists and issue a warning if so
-			Cell iconCell = curCell.iconView();
-			if (iconCell != null)
-			{
-				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-					"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
-				if (response != JOptionPane.YES_OPTION) return false;
-			}
-
-			iconCell = makeIconForCell(curCell);
+			Cell iconCell = makeIconForCell(curCell);
 			if (iconCell == null) return false;
 
 			// place an icon in the schematic
@@ -479,23 +493,31 @@ public class ViewChanges
 			EditWindow.gridAlign(iconPos);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
+			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
+			fieldVariableChanged("iconNode");
 //            ni.addObserver(curCell); // adding observer to notify icons if there are changes in master cell
 //            curCell.addObserver(ni);
-			if (ni != null)
+			return true;
+		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			if (iconNode != null)
 			{
 				EditWindow wnd = EditWindow.getCurrent();
-				if (wnd != null) {
-					if (wnd.getCell() == curCell) {
+				if (wnd != null)
+				{
+					if (wnd.getCell() == curCell)
+					{
 						Highlighter highlighter = wnd.getHighlighter();
 						highlighter.clear();
-						highlighter.addElectricObject(ni, curCell);
+						highlighter.addElectricObject(iconNode, curCell);
 						highlighter.finished();
 					}
 				}
 			}
-			return true;
-		}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -504,6 +526,7 @@ public class ViewChanges
 	 * @return the icon cell (null on error).
 	 */
 	public static Cell makeIconForCell(Cell curCell)
+		throws JobException
 	{
 		// get icon style controls
 		double leadLength = User.getIconGenLeadLength();
@@ -522,19 +545,15 @@ public class ViewChanges
 		Cell iconCell = Cell.makeInstance(curCell.getLibrary(), iconCellName);
 		if (iconCell == null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Cannot create Icon cell " + iconCellName,
-					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
-			return null;
+			throw new JobException("Cannot create Icon cell " + iconCellName);
 		}
 		iconCell.setWantExpanded();
 
 		// determine number of inputs and outputs
 		int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
 		HashMap<Export,Integer> portIndex = new HashMap<Export,Integer>();
-		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
+		for(Export pp : exportList)
 		{
-			Export pp = (Export)it.next();
 			if (pp.isBodyOnly()) continue;
 			int index = iconPosition(pp);
 			switch (index)
@@ -572,9 +591,8 @@ public class ViewChanges
 
 		// place pins around the Black Box
 		int total = 0;
-		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
+		for(Export pp : exportList)
 		{
-			Export pp = (Export)it.next();
 			if (pp.isBodyOnly()) continue;
 			Integer portPosition = (Integer)portIndex.get(pp);
 
@@ -790,6 +808,7 @@ public class ViewChanges
 	private static class MakeSchematicView extends Job
 	{
 		private Cell oldCell;
+		private Cell newCell;
 
 		protected MakeSchematicView(Cell cell)
 		{
@@ -800,12 +819,21 @@ public class ViewChanges
 
 		public boolean doIt() throws JobException
 		{
-			Cell newCell = convertSchematicCell(oldCell);
+			newCell = convertSchematicCell(oldCell);
 			if (newCell == null) return false;
-			System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
-			WindowFrame.createEditWindow(newCell);
+			fieldVariableChanged("newCell");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (newCell != null)
+        	{
+    			System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
+				WindowFrame.createEditWindow(newCell);
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	private static Cell convertSchematicCell(Cell oldCell)
@@ -825,7 +853,7 @@ public class ViewChanges
 		// set "fixed-angle" if reasonable
 		for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Point2D headPt = ai.getHeadLocation();
 			Point2D tailPt = ai.getTailLocation();
 			if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
@@ -859,7 +887,7 @@ public class ViewChanges
 		// for each node, create a new node in the newcell, of the correct logical type.
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst mosNI = (NodeInst)it.next();
+			NodeInst mosNI = it.next();
 			PrimitiveNode.Function type = getNodeType(mosNI);
 			NodeInst schemNI = null;
 			if (type == PrimitiveNode.Function.UNKNOWN) continue;
@@ -926,7 +954,7 @@ public class ViewChanges
 			{
 				for(Iterator<Export> eIt = mosNI.getExports(); eIt.hasNext(); )
 				{
-					Export mosPP = (Export)eIt.next();
+					Export mosPP = eIt.next();
 					PortInst schemPI = convertPort(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
 					if (schemPI == null) continue;
 
@@ -959,7 +987,7 @@ public class ViewChanges
 	{
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst mosAI = (ArcInst)it.next();
+			ArcInst mosAI = it.next();
 			NodeInst mosHeadNI = mosAI.getHeadPortInst().getNodeInst();
 			NodeInst mosTailNI = mosAI.getTailPortInst().getNodeInst();
 			NodeInst schemHeadNI = (NodeInst)newNodes.get(mosHeadNI);
@@ -999,7 +1027,7 @@ public class ViewChanges
 		int portNum = 1;
 		for(Iterator<PortProto> it = mosNI.getProto().getPorts(); it.hasNext(); )
 		{
-			PortProto pp = (PortProto)it.next();
+			PortProto pp = it.next();
 			if (pp == mosPP) break;
 			portNum++;
 		}
@@ -1007,7 +1035,7 @@ public class ViewChanges
 			if (portNum == 3) portNum = 1;
 		for(Iterator<PortProto> it = schemNI.getProto().getPorts(); it.hasNext(); )
 		{
-			PortProto schemPP = (PortProto)it.next();
+			PortProto schemPP = it.next();
 			portNum--;
 			if (portNum > 0) continue;
 			return schemNI.findPortInstFromProto(schemPP);
@@ -1027,9 +1055,8 @@ public class ViewChanges
 		// examine all nodes and adjust them
 		double [] x = new double[MAXADJUST];
 		double [] y = new double[MAXADJUST];
-		for(Iterator<NodeInst> it = nodesInCell.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesInCell)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun != PrimitiveNode.Function.PIN) continue;
@@ -1038,7 +1065,7 @@ public class ViewChanges
 			int count = 0;
 			for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 			{
-				Connection con = (Connection)aIt.next();
+				Connection con = aIt.next();
 				ArcInst ai = con.getArc();
                 int otherEnd = 1 - con.getEndIndex();
 //				Connection other = ai.getHead();
@@ -1104,6 +1131,8 @@ public class ViewChanges
 	{
 		private static boolean reverseIconExportOrder;
 		private Cell oldCell;
+		private Cell newCell;
+		private Technology newTech;
 		private HashMap<NodeInst,NodeInst> convertedNodes;
 
 		protected MakeLayoutView(Cell oldCell)
@@ -1120,21 +1149,21 @@ public class ViewChanges
 			int numTechs = 0;
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
-				Technology tech = (Technology)it.next();
+				Technology tech = it.next();
 				if (tech.isScaleRelevant()) numTechs++;
 			}
 			String [] techNames = new String[numTechs];
 			int i=0;
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
-				Technology tech = (Technology)it.next();
+				Technology tech = it.next();
 				if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
 			}
 			String selectedValue = (String)JOptionPane.showInputDialog(null,
 				"New technology to create", "Technology conversion",
 				JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology());
 			if (selectedValue == null) return false;
-			Technology newTech = Technology.findTechnology(selectedValue);
+			newTech = Technology.findTechnology(selectedValue);
 			if (newTech == null) return false;
 			if (newTech == oldTech)
 			{
@@ -1144,12 +1173,21 @@ public class ViewChanges
 
 			// convert the cell and all subcells
 			HashMap<Cell,Cell> convertedCells = new HashMap<Cell,Cell>();
-			Cell newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
-			System.out.println("Cell " + newCell.describe(true) + " created with a " + newTech.getTechName() + " layout equivalent of " +
-				oldCell);
-			WindowFrame.createEditWindow(newCell);
+			newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
+			fieldVariableChanged("newCell");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (newCell != null)
+        	{
+    			System.out.println("Cell " + newCell.describe(true) + " created with a " + newTech.getTechName() +
+    				" layout equivalent of " + oldCell);
+				WindowFrame.createEditWindow(newCell);
+        	}
+            super.terminateIt(jobException);
+        }
 
 		/**
 		 * Method to recursively descend from cell "oldCell" and find subcells that
@@ -1164,7 +1202,7 @@ public class ViewChanges
 			// first convert the sub-cells
 			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 
 				// ignore primitives
 				if (!(ni.getProto() instanceof Cell)) continue;
@@ -1210,7 +1248,7 @@ public class ViewChanges
 			convertedNodes = new HashMap<NodeInst,NodeInst>();
 			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				// handle sub-cells
 				if (ni.getProto() instanceof Cell)
 				{
@@ -1238,7 +1276,7 @@ public class ViewChanges
 			int badArcs = 0;
 			for(Iterator<ArcInst> it = oldCell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				// get the nodes and ports on the two ends of the arc
 				NodeInst oldHeadNi = ai.getHeadPortInst().getNodeInst();
 				NodeInst oldTailNi = ai.getTailPortInst().getNodeInst();
@@ -1278,7 +1316,7 @@ public class ViewChanges
 				if (!newHeadPoly.contains(pHead) || !newTailPoly.contains(pTail))
 				{
 					// arc cannot be run exactly ... presume port centers
-					if (!newHeadPoly.contains(pHead)) pHead.setLocation(newHeadPoly.getCenterX(), newHeadPoly.getCenterY());
+					if (!newHeadPoly.contains(pHead)) pHead = new EPoint(newHeadPoly.getCenterX(), newHeadPoly.getCenterY());
 					if (fixAng)
 					{
 						// old arc was fixed-angle so look for a similar-angle path
@@ -1287,8 +1325,8 @@ public class ViewChanges
 						Point2D [] newPoints = GenMath.arcconnects(ai.getAngle(), headBounds, tailBounds);
 						if (newPoints != null)
 						{
-							pHead.setLocation(newPoints[0].getX(), newPoints[0].getY());
-							pTail.setLocation(newPoints[1].getX(), newPoints[1].getY());
+							pHead = new EPoint(newPoints[0].getX(), newPoints[0].getY());
+							pTail = new EPoint(newPoints[1].getX(), newPoints[1].getY());
 						}
 					}
 				}
@@ -1334,7 +1372,7 @@ public class ViewChanges
 				// now search for that function in the other technology
 				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 				{
-					PrimitiveNode oNp = (PrimitiveNode)it.next();
+					PrimitiveNode oNp = it.next();
 					if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
 					Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
 					Layer oLayer = oNodeLayers[0].getLayer();
@@ -1348,7 +1386,7 @@ public class ViewChanges
 			PrimitiveNode rNp = null;
 			for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimitiveNode np = it.next();
 				if (np.getFunction() == type)
 				{
 					rNp = np;   i++;
@@ -1366,7 +1404,7 @@ public class ViewChanges
 
 				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
 				{
-					PrimitiveNode pNewNp = (PrimitiveNode)it.next();
+					PrimitiveNode pNewNp = it.next();
 					if (pNewNp.getFunction() != type) continue;
 					PrimitivePort pNewPp = (PrimitivePort)pNewNp.getPort(0);
 					ArcProto [] newConnections = pNewPp.getConnections();
@@ -1430,7 +1468,7 @@ public class ViewChanges
 			// re-export any ports on the node
 			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
-				Export e = (Export)it.next();
+				Export e = it.next();
 				PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
 				PortInst pi = newNi.findPortInstFromProto(pp);
 				Export pp2 = Export.newInstance(newCell, pi, e.getName());
@@ -1454,7 +1492,7 @@ public class ViewChanges
 				ArcProto.Function type = oldAp.getFunction();
 				for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
 				{
-					ArcProto newAp = (ArcProto)it.next();
+					ArcProto newAp = it.next();
 					if (newAp.getFunction() == type) return newAp;
 				}
 			}
@@ -1476,7 +1514,7 @@ public class ViewChanges
 			}
 			for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)it.next();
+				ArcProto ap = it.next();
 				if (possibleArcs.contains(ap)) return ap;
 			}
 			System.out.println("No equivalent arc for " + oldAp);
@@ -1511,8 +1549,8 @@ public class ViewChanges
 			Iterator<PortProto> newPortIt = newNi.getProto().getPorts();
 			while (oldPortIt.hasNext() && newPortIt.hasNext())
 			{
-				PortProto pp = (PortProto)oldPortIt.next();
-				PortProto newPp = (PortProto)newPortIt.next();
+				PortProto pp = oldPortIt.next();
+				PortProto newPp = newPortIt.next();
 				if (pp == oldPp) return newPp;
 			}
 

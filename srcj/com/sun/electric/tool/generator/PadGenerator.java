@@ -666,7 +666,7 @@ public class PadGenerator
 				}
 				if (cell == null)
 				{
-					cell = CellChangeJobs.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true);
+					cell = CellChangeJobs.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true, null);
 	                if (cell == null)
 					{
 	                    err("Could not copy in pad Cell " + cellname);

@@ -31,18 +31,18 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -66,16 +66,7 @@ import javax.swing.JOptionPane;
  */
 public final class ExportChanges
 {
-	// ---------------------- THE EXPORT MENU -----------------
-
-    /**
-	 * This method implements the command to create a new Export.
-	 */
-	public static void newExportCommand()
-	{
-		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
-		dialog.setVisible(true);
-	}
+	/****************************** EXPORT LISTING ******************************/
 
 	private static class ExportList
 	{
@@ -401,7 +392,7 @@ public final class ExportChanges
         }
     }
 
-	/****************************** EXPORT CHANGES ******************************/
+	/****************************** EXPORT CREATION ******************************/
 
 	/**
 	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
@@ -417,7 +408,7 @@ public final class ExportChanges
             allNodes.add(it.next());
         }
 
-        ReExportNodes job = new ReExportNodes(cell, allNodes, false, false, true);
+        new ReExportNodes(cell, allNodes, false, false, true);
 	}
 
 	/**
@@ -474,7 +465,7 @@ public final class ExportChanges
         }
 
         // create job
-        ReExportPorts job = new ReExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
+        new ReExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
 	}
 
     public static void reExportSelected(boolean includeWiredPorts)
@@ -491,7 +482,7 @@ public final class ExportChanges
             return;
         }
 
-        ReExportNodes job = new ReExportNodes(cell, nodeInsts, includeWiredPorts, false, true);
+        new ReExportNodes(cell, nodeInsts, includeWiredPorts, false, true);
     }
 
 	/**
@@ -539,7 +530,7 @@ public final class ExportChanges
 		}
 
 		// create job
-        ReExportPorts job = new ReExportPorts(cell, queuedExports, true, false, false, null);
+        new ReExportPorts(cell, queuedExports, true, false, false, null);
 	}
 
 	/**
@@ -557,10 +548,11 @@ public final class ExportChanges
             allNodes.add(it.next());
         }
 
-        ReExportNodes job = new ReExportNodes(cell, allNodes, false, true, true);
+        new ReExportNodes(cell, allNodes, false, true, true);
 	}
 
-    private static class ReExportNodes extends Job {
+    private static class ReExportNodes extends Job
+    {
         private Cell cell;
         private List<Geometric> nodeInsts;
         private boolean includeWiredPorts;
@@ -571,7 +563,8 @@ public final class ExportChanges
          * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
          */
         public ReExportNodes(Cell cell, List<Geometric> nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
-                             boolean ignorePrimitives) {
+                             boolean ignorePrimitives)
+        {
             super("Re-export nodes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.nodeInsts = nodeInsts;
@@ -581,19 +574,19 @@ public final class ExportChanges
             startJob();
         }
 
-        public boolean doIt() throws JobException {
+        public boolean doIt() throws JobException
+        {
             // disallow port action if lock is on
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
-//long start = System.currentTimeMillis();
             int num = reExportNodes(cell, nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
             System.out.println(num+" ports exported.");
-//long end = System.currentTimeMillis(); System.out.println("Took "+(end-start)+" milliseconds");
             return true;
         }
     }
 
-    public static class ReExportPorts extends Job {
+    public static class ReExportPorts extends Job
+    {
         private Cell cell;
         private List<PortInst> portInsts;
         private boolean sort;
@@ -605,7 +598,8 @@ public final class ExportChanges
          * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
          */
         public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
-                             boolean onlyPowerGround, HashMap<PortInst,Export> originalExports) {
+                             boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+        {
             super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.portInsts = portInsts;
@@ -616,7 +610,8 @@ public final class ExportChanges
             startJob();
         }
 
-        public boolean doIt() throws JobException {
+        public boolean doIt() throws JobException
+        {
     		// disallow port action if lock is on
     		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
@@ -641,8 +636,9 @@ public final class ExportChanges
                                      boolean ignorePrimitives) {
         int total = 0;
 
-        for (Iterator<Geometric> it = nodeInsts.iterator(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+        for (Geometric geom : nodeInsts)
+        {
+            NodeInst ni = (NodeInst)geom;
 
             // only look for cells, not primitives
             if (ignorePrimitives)
@@ -788,6 +784,8 @@ public final class ExportChanges
         return newPi;
     }
 
+	/****************************** EXPORT DELETION ******************************/
+    
 	/**
 	 * Method to delete the currently selected exports.
 	 */
@@ -799,14 +797,12 @@ public final class ExportChanges
 
 		List<Export> exportsToDelete = new ArrayList<Export>();
         EditWindow wnd = EditWindow.getCurrent();
-		List<Highlight2> highs = wnd.getHighlighter().getHighlightedText(true);
-		for(Highlight2 h : highs)
+		List<DisplayedText> dts = wnd.getHighlighter().getHighlightedText(true);
+		for(DisplayedText dt : dts)
 		{
-			if (h.getVar() != null) continue;
-			if (h.getName() != null) continue;
-			if (h.getElectricObject() instanceof Export)
+			if (dt.getElectricObject() instanceof Export)
 			{
-				Export pp = (Export)h.getElectricObject();
+				Export pp = (Export)dt.getElectricObject();
 				exportsToDelete.add(pp);
 			}
 		}
@@ -815,7 +811,7 @@ public final class ExportChanges
 			System.out.println("There are no selected exports to delete");
 			return;
 		}
-		DeleteExports job = new DeleteExports(cell, exportsToDelete);
+		new DeleteExports(cell, exportsToDelete);
 	}
 
 	/**
@@ -830,9 +826,9 @@ public final class ExportChanges
 		List<Export> exportsToDelete = new ArrayList<Export>();
         EditWindow wnd = EditWindow.getCurrent();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, false);
-		for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+		for(Geometric geom : highs)
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = (NodeInst)geom;
 			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 			{
 				exportsToDelete.add(eIt.next());
@@ -845,7 +841,7 @@ public final class ExportChanges
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		DeleteExports job = new DeleteExports(cell, exportsToDelete);
+		new DeleteExports(cell, exportsToDelete);
 	}
 
 	/**
@@ -886,8 +882,44 @@ public final class ExportChanges
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		DeleteExports job = new DeleteExports(cell, exportsToDelete);
+		new DeleteExports(cell, exportsToDelete);
 	}
+
+	public static class DeleteExports extends Job
+	{
+        Cell cell;
+		List<Export> exportsToDelete;
+
+		public DeleteExports(Cell cell, List<Export> exportsToDelete)
+		{
+			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+			this.exportsToDelete = exportsToDelete;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// disallow port action if lock is on
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+
+			int total = 0;
+			for(Export e : exportsToDelete)
+			{
+				int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true);
+				if (errorCode < 0) break;
+				if (errorCode > 0) continue;
+				e.kill();
+				total++;
+			}
+			if (total == 0) System.out.println("No exports deleted"); else
+				System.out.println(total + " exports deleted");
+
+			return true;
+		}
+	}
+
+	/****************************** EXPORT MOVING ******************************/
 
 	/**
 	 * Method to move the currently selected export from one node to another.
@@ -932,59 +964,7 @@ public final class ExportChanges
 			System.out.println("First select one export to move, and one node-port as its destination");
 			return;
 		}
-		MoveExport job = new MoveExport(source, dest);
-	}
-
-	/**
-	 * Method to rename the currently selected export.
-	 */
-	public static void renameExport()
-	{
-        EditWindow wnd = EditWindow.getCurrent();
-		Highlight2 h = wnd.getHighlighter().getOneHighlight();
-		if (h == null || h.getVar() != null || h.getName() != null || h.getElectricObject() != null && !(h.getElectricObject() instanceof Export))
-		{
-			System.out.println("Must select an export name before renaming it");
-			return;
-		}
-		Export pp = (Export)h.getElectricObject();
-		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getName());
-		if (response == null) return;
-		RenameExport job = new RenameExport(pp, response);
-	}
-
-	public static class DeleteExports extends Job
-	{
-        Cell cell;
-		List<Export> exportsToDelete;
-
-		public DeleteExports(Cell cell, List<Export> exportsToDelete)
-		{
-			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-			this.exportsToDelete = exportsToDelete;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// disallow port action if lock is on
-			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
-
-			int total = 0;
-			for(Export e : exportsToDelete)
-			{
-				int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true);
-				if (errorCode < 0) break;
-				if (errorCode > 0) continue;
-				e.kill();
-				total++;
-			}
-			if (total == 0) System.out.println("No exports deleted"); else
-				System.out.println(total + " exports deleted");
-
-			return true;
-		}
+		new MoveExport(source, dest);
 	}
 
 	private static class MoveExport extends Job
@@ -1005,6 +985,26 @@ public final class ExportChanges
 			source.move(dest);
 			return true;
 		}
+	}
+
+	/****************************** EXPORT RENAMING ******************************/
+
+	/**
+	 * Method to rename the currently selected export.
+	 */
+	public static void renameExport()
+	{
+        EditWindow wnd = EditWindow.getCurrent();
+		Highlight2 h = wnd.getHighlighter().getOneHighlight();
+		if (h == null || h.getVar() != null || h.getName() != null || h.getElectricObject() != null && !(h.getElectricObject() instanceof Export))
+		{
+			System.out.println("Must select an export name before renaming it");
+			return;
+		}
+		Export pp = (Export)h.getElectricObject();
+		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getName());
+		if (response == null) return;
+		new RenameExport(pp, response);
 	}
 
 	/**
@@ -1029,6 +1029,8 @@ public final class ExportChanges
 			return true;
 		}
 	}
+
+	/****************************** EXPORT HIGHLIGHTING ******************************/
 
 	private static class ShownPorts
 	{
@@ -1076,9 +1078,9 @@ public final class ExportChanges
 		if (nodes != null)
 		{
 			total = 0;
-			for(Iterator<Geometric> it = nodes.iterator(); it.hasNext(); )
+			for(Geometric geom : nodes)
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = (NodeInst)geom;
 				total += ni.getNumPortInsts();
 			}
 		}
@@ -1114,9 +1116,9 @@ public final class ExportChanges
 		} else
 		{
 			// handle ports on the selected nodes
-			for(Iterator<Geometric> it = nodes.iterator(); it.hasNext(); )
+			for(Geometric geom : nodes)
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = (NodeInst)geom;
 				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
 					PortInst pi = pIt.next();
@@ -1251,6 +1253,8 @@ public final class ExportChanges
 		}
 	}
 
+	/****************************** EXPORT MATCHING BETWEEN LIBRARIES ******************************/
+
 	/**
 	 * Method to synchronize the exports in two libraries.
 	 * The user is prompted for another library (other than the current one)
@@ -1281,7 +1285,7 @@ public final class ExportChanges
         if (oLib == null) return;
 
         // now run the synchronization
-        SynchronizeExports job = new SynchronizeExports(oLib);
+        new SynchronizeExports(oLib);
 	}
 
 	/**
