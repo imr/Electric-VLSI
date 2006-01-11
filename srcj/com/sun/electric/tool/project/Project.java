@@ -48,6 +48,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
@@ -1284,7 +1285,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (!undoChange)
 			{
@@ -1398,7 +1399,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make a list of just this cell
 			List<Cell> oneCell = new ArrayList<Cell>();
@@ -1772,7 +1773,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure there is a valid user name
 			if (needUserName()) return false;
@@ -1902,7 +1903,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure there is a valid user name
 			if (needUserName()) return false;
@@ -2283,7 +2284,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Library lib = cell.getLibrary();
 			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
@@ -2340,7 +2341,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Library lib = Library.findLibrary(libName);
 			if (lib != null)
@@ -2419,7 +2420,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure there is a valid user name
 			if (needUserName()) return false;
@@ -2497,7 +2498,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
 			{
@@ -2625,7 +2626,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (cell.getNewestVersion() != cell)
 			{
@@ -2706,7 +2707,7 @@ public class Project extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// find out which cell is being deleted
 			Library lib = cell.getLibrary();

@@ -33,6 +33,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -208,7 +209,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<Geometric> it = dialog.artworkObjects.iterator(); it.hasNext(); )
 			{

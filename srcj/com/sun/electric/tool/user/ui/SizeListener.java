@@ -36,6 +36,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
@@ -288,7 +289,7 @@ public class SizeListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure moving the node is allowed
 			Cell cell = WindowFrame.needCurCell();
@@ -650,7 +651,7 @@ public class SizeListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure scaling the node is allowed
 			if (CircuitChangeJobs.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
@@ -676,7 +677,7 @@ public class SizeListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure scaling the arc is allowed
 			if (CircuitChangeJobs.cantEdit(stretchArc.getParent(), null, true) != 0) return false;

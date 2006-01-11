@@ -39,6 +39,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.SwingExamineTask;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -619,7 +620,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
             Undo.noUndoAllowed();

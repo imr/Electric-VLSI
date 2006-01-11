@@ -30,6 +30,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
@@ -270,7 +271,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
 			TextDescriptor td = owner.getTextDescriptor(varKey);
 			if (td == null) return false;
 			Variable var = owner.getVar(varKey);

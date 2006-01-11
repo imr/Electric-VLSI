@@ -43,6 +43,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -98,7 +99,14 @@ public class LayerCoverageJob extends Job
         if (startJob)
             job.startJob();
         else
-            job.doIt();  // Former listGeometryOnNetworksNoJob
+        {
+        	try
+        	{
+        		job.doIt();  // Former listGeometryOnNetworksNoJob
+        	} catch (JobException e)
+        	{
+        	}
+        }
 	    return geoms;
 	}
 
@@ -413,7 +421,7 @@ public class LayerCoverageJob extends Job
 		setReportExecutionFlag(true);
 	}
 
-	public boolean doIt()
+	public boolean doIt() throws JobException
 	{
 		// enumerate the hierarchy below here
 		LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,

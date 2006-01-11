@@ -28,6 +28,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.FastHenry;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
@@ -274,7 +275,7 @@ public class FastHenryArc extends EDialog
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
     		if (fha.fhaIncludeArc.isSelected())
     		{

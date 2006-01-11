@@ -41,6 +41,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -223,7 +224,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// get highlights to copy
 			if (highlights.size() == 0)
@@ -269,7 +270,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// get objects to cut
 			if (highlights.size() == 0)
@@ -366,7 +367,7 @@ public class Clipboard
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             // get objects to copy
             if (highlights.size() == 0)
@@ -502,7 +503,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure pasting is allowed
 			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
@@ -532,7 +533,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure pasting is allowed
 			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
@@ -562,7 +563,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// find out where the paste is going
 			EditWindow wnd = EditWindow.needCurrent();

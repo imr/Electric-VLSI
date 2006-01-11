@@ -46,6 +46,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
@@ -322,7 +323,7 @@ public class IvanFlat extends Job {
 		flattener.close();
 	}
 
-	public boolean doIt() {
+	public boolean doIt() throws JobException {
 		System.out.println("Begin IvanFlat");
 		String homeDir = getKaoHomeDir();
 		

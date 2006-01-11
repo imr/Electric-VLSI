@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -243,7 +244,7 @@ public class CellMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 	    	Dimension d = new Dimension(0,0);
 	    	if (Cell.FrameDescription.getCellFrameInfo(cell, d) != 0)
@@ -275,7 +276,7 @@ public class CellMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// first delete all circuitry on the page
 			double lY = page * Cell.FrameDescription.MULTIPAGESEPARATION - Cell.FrameDescription.MULTIPAGESEPARATION/2;

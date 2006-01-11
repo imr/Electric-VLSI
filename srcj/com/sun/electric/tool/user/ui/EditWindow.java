@@ -52,6 +52,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.*;
@@ -1376,7 +1377,7 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (bounds == null)
 			{
@@ -2137,7 +2138,7 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
 			return true;
@@ -2160,7 +2161,7 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			int total = 0;
 			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)

@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -335,7 +336,7 @@ public class CrossLibCopy extends EDialog
 			this.reportResults = report;
 			startJob();
 		}
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (reportResults)
 				buffer = new StringBuffer("Cells '" + leftC.libDescribe() + "' and '" + rightC.libDescribe() + ":");
@@ -368,7 +369,7 @@ public class CrossLibCopy extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// remember the selection line
 			int index = dialog.listLeft.getSelectedIndex();

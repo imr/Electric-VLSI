@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.*;
@@ -98,7 +99,7 @@ public class OutlineListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			EPoint [] points = new EPoint[4];
 			double halfWid = ni.getXSize() / 2;
@@ -381,7 +382,7 @@ public class OutlineListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure outline adjustment is allowed
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;

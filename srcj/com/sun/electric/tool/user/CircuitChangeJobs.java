@@ -59,6 +59,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
@@ -115,7 +116,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// disallow rotating if lock is on
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -431,7 +432,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (list.size() == 0)
 			{
@@ -630,7 +631,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			int numRemoved = 0;
 			for(int i=0; i<nis.length; i++)
@@ -698,7 +699,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure changing arcs is allowed
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
@@ -817,7 +818,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure negation is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -888,7 +889,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure ripping arcs is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -1051,7 +1052,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure deletion is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -1181,7 +1182,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (cell == null)
 			{
@@ -1325,7 +1326,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(ArcInst ai : arcsToDelete)
 			{
@@ -1582,7 +1583,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// check cell usage once more
 			if (cell.isInUse("delete", false)) return false;
@@ -1665,7 +1666,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			cell.rename(newName);
 			if (newGroup != null)
@@ -1692,7 +1693,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			ArrayList<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
@@ -1718,7 +1719,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			boolean found = true;
 			int totalDeleted = 0;
@@ -1773,7 +1774,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// create the graph cell
 			Cell graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
@@ -2161,7 +2162,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// create the new cell
 			Cell cell = Cell.makeInstance(Library.getCurrent(), newCellName);
@@ -2242,7 +2243,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			boolean foundInstance = false;
 			for(NodeInst ni : nodes)
@@ -2477,7 +2478,7 @@ public class CircuitChangeJobs
 	        startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure moving the node is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -2604,7 +2605,7 @@ public class CircuitChangeJobs
             startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make sure shortening is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
@@ -2664,7 +2665,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Cell newVersion = cell.makeNewVersion();
 			if (newVersion == null) return false;
@@ -2702,7 +2703,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
 			if (cell.getLibrary().findNodeProto(newCellName) != null)
@@ -2795,7 +2796,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// get information about what is highlighted
 			int total = highlighted.size();
@@ -4504,7 +4505,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			String oldName = tech.getTechName();
 			tech.setTechName(newName);
@@ -4537,7 +4538,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			String oldName = lib.getName();
 			if (lib.setName(newName)) return false;
@@ -4611,7 +4612,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (Library.checkInvariants())
 			{
@@ -4643,7 +4644,7 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             // Only one library, the given one
             if (library != null)

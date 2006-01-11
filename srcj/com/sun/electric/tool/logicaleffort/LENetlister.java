@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
@@ -252,7 +253,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             Rectangle2D bounds = cell.getBounds();
             int x = (int)bounds.getMaxX();
             int y = (int)bounds.getMinY();

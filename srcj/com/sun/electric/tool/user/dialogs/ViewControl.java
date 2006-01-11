@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
@@ -110,7 +111,7 @@ public class ViewControl extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			view.kill();
 			dialog.loadViews();
@@ -138,7 +139,7 @@ public class ViewControl extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			View newView = null;
 			if (isText)

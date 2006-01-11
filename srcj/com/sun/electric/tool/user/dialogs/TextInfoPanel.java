@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -592,7 +593,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             // if td is null, use future var name to look up var and get td
 //             if (td == null) {

@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
@@ -290,7 +291,7 @@ public class FileMenu {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             Library lib = Library.newInstance(newLibName, null);
             if (lib == null) return false;
@@ -359,7 +360,7 @@ public class FileMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// see if the former library can be deleted
 			if (deleteLib != null)
@@ -395,7 +396,7 @@ public class FileMenu {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             // open no name library first
             Library mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
@@ -596,7 +597,7 @@ public class FileMenu {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
 			if (clearClipboard)
 			{
 				Clipboard.clear();
@@ -697,7 +698,7 @@ public class FileMenu {
                 startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             boolean retVal = false;
             try {
@@ -930,7 +931,7 @@ public class FileMenu {
 			this.filePath = filePath;
 			startJob();
 		}
-		public boolean doIt()
+		public boolean doIt() throws JobException
         {
 			PrinterJob pj = PrinterJob.getPrinterJob();
 	        ElectricPrinter ep = getOutputPreferences(wnd, pj);
@@ -1100,7 +1101,7 @@ public class FileMenu {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             try {
                 Library.saveExpandStatus();

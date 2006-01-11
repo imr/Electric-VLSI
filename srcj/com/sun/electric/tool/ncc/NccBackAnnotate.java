@@ -6,6 +6,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
@@ -37,7 +38,7 @@ public class NccBackAnnotate {
             this.result = result;
             this.type = type;
         }
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             switch(type) {
                 case 0: {
                     backAnnotateNetNames(result);

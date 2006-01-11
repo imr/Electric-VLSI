@@ -43,6 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.ArtworkLook;
@@ -507,7 +508,7 @@ public class EditMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (Undo.undoABatch() == null)
 				System.out.println("Undo failed!");
@@ -541,7 +542,7 @@ public class EditMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (!Undo.redoABatch())
 				System.out.println("Redo failed!");
@@ -734,7 +735,7 @@ public class EditMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// change visibility of parameters on the current node(s)
 			int changeCount = 0;
@@ -839,7 +840,7 @@ public class EditMenu {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             int count = 0;
             if (allLibraries) {
                 for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
@@ -1172,7 +1173,7 @@ public class EditMenu {
 	        startJob();
 	    }
 	
-	    public boolean doIt()
+	    public boolean doIt() throws JobException
 		{
 			for(Geometric geom : highlighted)
 			{
@@ -1401,7 +1402,7 @@ public class EditMenu {
                 startJob();
             }
 
-            public boolean doIt()
+            public boolean doIt() throws JobException
             {
                 if (CircuitChangeJobs.cantEdit(ai.getParent(), null, true) != 0) return false;
 

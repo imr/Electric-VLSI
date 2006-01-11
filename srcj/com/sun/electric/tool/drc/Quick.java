@@ -49,6 +49,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Shape;
@@ -484,7 +485,7 @@ public class Quick
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             int bits = DRC.getActiveBits(tech);
 

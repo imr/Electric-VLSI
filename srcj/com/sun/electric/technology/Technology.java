@@ -65,6 +65,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Job.Priority;
 
 import java.awt.Color;
@@ -4089,7 +4090,7 @@ public class Technology implements Comparable<Technology>
 //            }
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             Undo.changesQuiet(true);
             if (library != null)

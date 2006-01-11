@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -554,7 +555,7 @@ public final class Main
 			//startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			try {
 				Undo.changesQuiet(true);

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.extract;
 
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
@@ -163,7 +164,7 @@ public class LayerCoverage extends Listener
 
         public boolean isOK() { return !foundError; }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             ErrorLogger errorLogger = ErrorLogger.newInstance("Area Coverage");
             Rectangle2D bBoxOrig = curCell.getBounds();

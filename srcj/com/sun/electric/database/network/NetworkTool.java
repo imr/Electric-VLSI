@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -95,7 +96,7 @@ public class NetworkTool extends Listener
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
 			redoNetworkNumbering(true);
             return true;

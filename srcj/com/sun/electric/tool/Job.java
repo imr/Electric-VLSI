@@ -477,8 +477,9 @@ public abstract class Job implements Runnable {
     
     /** This is the main work method.  This method should
      * perform all needed tasks.
+     * @throws JobException TODO
      */
-    public abstract boolean doIt();
+    public abstract boolean doIt() throws JobException;
     
     //--------------------------PRIVATE JOB METHODS--------------------------
 
@@ -668,7 +669,7 @@ public abstract class Job implements Runnable {
             waiting = false;
             lockCount = 0;
         }
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             // this should never be called
             assert(false);
             return true;
@@ -825,7 +826,7 @@ public abstract class Job implements Runnable {
             }
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             synchronized(waitingJobs) {
                 if (singularKey != null)
                     waitingJobs.remove(singularKey);

@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -580,7 +581,7 @@ public final class ExportChanges
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             // disallow port action if lock is on
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
@@ -615,7 +616,7 @@ public final class ExportChanges
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
     		// disallow port action if lock is on
     		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
@@ -965,7 +966,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
@@ -999,7 +1000,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			source.move(dest);
 			return true;
@@ -1022,7 +1023,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			pp.rename(newName);
 			return true;
@@ -1297,7 +1298,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 	        // merge the two libraries
 	    	int newPorts = 0;

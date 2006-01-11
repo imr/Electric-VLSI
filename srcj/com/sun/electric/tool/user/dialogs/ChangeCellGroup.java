@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public class ChangeCellGroup extends EDialog {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             cell.setCellGroup(newGroup);
             return true;
         }

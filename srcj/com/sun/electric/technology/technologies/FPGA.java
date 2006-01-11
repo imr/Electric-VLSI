@@ -61,6 +61,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -1002,7 +1003,7 @@ public class FPGA extends Technology
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			ni.newVar(ACTIVEPIPS_KEY, newPips);
 			UserInterface ui = Main.getUserInterface();
@@ -1027,7 +1028,7 @@ public class FPGA extends Technology
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			int total = makePrimitives(lt);
 			System.out.println("Created " + total + " primitives");

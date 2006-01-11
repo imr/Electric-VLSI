@@ -41,6 +41,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -365,7 +366,7 @@ public class MimicStitch
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// get options
 			boolean mimicInteractive = Routing.isMimicStitchInteractive();
@@ -831,7 +832,7 @@ public class MimicStitch
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (allRoutes.size() > 0)
 			{

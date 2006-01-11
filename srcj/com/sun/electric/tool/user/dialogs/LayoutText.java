@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -425,7 +426,7 @@ public class LayoutText extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// should ensure that the name is valid
 			dialog.grabDialogValues();

@@ -25,6 +25,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.lang.reflect.InvocationTargetException;
@@ -266,7 +267,7 @@ public class EvalJavaBsh
             this.startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             evaluator.doSource(script);
 			return true;
        }

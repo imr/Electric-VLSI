@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -630,7 +631,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             if (cti.var != null)
             {

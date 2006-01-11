@@ -44,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -307,7 +308,7 @@ public class DRC extends Listener
 
 		}
 		// never used
-		public boolean doIt() { return (false);}
+		public boolean doIt() throws JobException { return (false);}
 	}
 
 	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob
@@ -328,7 +329,7 @@ public class DRC extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			long startTime = System.currentTimeMillis();
             int errorCount = 0, warnCount = 0;
@@ -355,7 +356,7 @@ public class DRC extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			incrementalRunning = true;
 			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
@@ -386,7 +387,7 @@ public class DRC extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			long startTime = System.currentTimeMillis();
 			ErrorLogger errorLog = Schematic.doCheck(cell);

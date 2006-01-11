@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
@@ -249,7 +250,7 @@ public class OptionReconcile extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
 

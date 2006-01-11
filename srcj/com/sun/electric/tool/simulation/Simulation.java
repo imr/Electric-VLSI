@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
@@ -199,7 +200,7 @@ public class Simulation extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
@@ -502,7 +503,7 @@ public class Simulation extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Variable var = ni.newDisplayVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
 			return true;
@@ -544,7 +545,7 @@ public class Simulation extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
 			{
@@ -599,7 +600,7 @@ public class Simulation extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (weak)
 			{

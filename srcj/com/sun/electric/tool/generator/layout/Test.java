@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 /**
@@ -38,7 +39,7 @@ import com.sun.electric.tool.user.User;
 public class Test extends Job {
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
 
-	public boolean doIt() {
+	public boolean doIt() throws JobException {
 		System.out.println("Begin Test");
 		String libDir = "forDima/";
 		String libName = "power2_gates"; 

@@ -48,6 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.ui.*;
@@ -171,7 +172,7 @@ public class View3DWindow extends JPanel
             this.transPerNode = transPerNode;
 			startJob();
         }
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
             if (!window.job.checkAbort())

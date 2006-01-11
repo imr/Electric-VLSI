@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -792,7 +793,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			boolean changed = false;
 			NodeProto np = ni.getProto();

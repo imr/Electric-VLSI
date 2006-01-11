@@ -45,6 +45,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -1587,7 +1588,7 @@ public class FillGenerator {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
             fillGen.makeGallery();

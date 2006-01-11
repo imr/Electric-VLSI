@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -233,7 +234,7 @@ public class Spread extends EDialog
 		/**
 		 * Method to implement the "spread" command.
 		 */
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// should ensure that the name is valid
 			char direction = 0;

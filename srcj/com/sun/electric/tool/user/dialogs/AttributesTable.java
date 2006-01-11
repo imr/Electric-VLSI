@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Font;
@@ -461,7 +462,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 startJob();
             }
 
-            public boolean doIt() {
+            public boolean doIt() throws JobException {
                 // delete vars first
                 for (Iterator<VarEntry> it = varEntriesToDelete.iterator(); it.hasNext(); ) {
                     VarEntry ve = (VarEntry)it.next();

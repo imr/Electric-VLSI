@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -245,7 +246,7 @@ public class BusParameters extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			lib.newVar(BUS_VARIABLES, parameterList);
 			lib.setChangedMajor();
@@ -267,7 +268,7 @@ public class BusParameters extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
@@ -371,7 +372,7 @@ public class BusParameters extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (owner instanceof ArcInst)
 			{

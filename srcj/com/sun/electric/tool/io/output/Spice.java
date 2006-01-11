@@ -55,6 +55,7 @@ import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
@@ -1956,7 +1957,7 @@ public class Spice extends Topology
             super("Spice Layout Back Annotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.parasiticInfo = parasiticInfo;
         }
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             TextDescriptor ctd = TextDescriptor.getPortInstTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             TextDescriptor rtd = TextDescriptor.getArcTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             for (Iterator<SegmentedNets> itx = parasiticInfo.iterator(); itx.hasNext(); ) {

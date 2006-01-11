@@ -53,6 +53,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.*;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.LayerCoverage;
@@ -98,7 +99,7 @@ public class DebugMenus {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// read library with test setup
 			Cell lay = WindowFrame.getCurrentCell();
@@ -337,7 +338,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
     		Library lib = Library.getCurrent();
     		lib.setCurCell(lib.findNodeProto(cellName));
@@ -356,7 +357,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
     		Library lib = Library.getCurrent();
     		Cell cell = lib.getCurCell();
@@ -396,7 +397,7 @@ public class DebugMenus {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             return (doItInternal(theTechnology));
         }
@@ -581,7 +582,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             return (doItInternal(theTechnology));
         }
@@ -877,7 +878,7 @@ public class DebugMenus {
             this.startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             File workDir = new File(fileName);
             String topPath = "";
@@ -1166,7 +1167,7 @@ public class DebugMenus {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			PolyMerge merge = new PolyMerge();
 			List<NodeInst> deleteList = new ArrayList<NodeInst>(); // New coverage implants are pure primitive nodes
@@ -1413,7 +1414,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             eobj.newVar("ATTR_XXX", "1");
             System.out.println("Added var ATTR_XXX as String \"1\"");
             return true;
@@ -1435,7 +1436,7 @@ public class DebugMenus {
             super("overflow", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             startJob();
         }
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             dosomething(true, "asfjka;dj");
             return true;
         }
@@ -1474,7 +1475,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             long startTime = System.currentTimeMillis();
 
             EditWindow wnd = EditWindow.getCurrent();
@@ -1518,7 +1519,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             Random rand = new Random(143137493);
 
             for (int i=0; i<200; i++) {
@@ -1569,7 +1570,7 @@ public class DebugMenus {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             while (true) {
                 changeSharedList();
             }
@@ -1616,7 +1617,7 @@ public class DebugMenus {
                 this.mutex = mutex;
             }
 
-            public boolean doIt() {
+            public boolean doIt() throws JobException {
                 synchronized(mutex) { mutex.notify(); }
                 return true;
             }

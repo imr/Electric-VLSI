@@ -48,6 +48,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -221,7 +222,7 @@ public class Maze
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Maze router = new Maze();
 			router.routeSelected(cell);

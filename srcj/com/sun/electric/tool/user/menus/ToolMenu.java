@@ -54,6 +54,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
@@ -615,7 +616,14 @@ public class ToolMenu {
         if (startJob)
             job.startJob();
         else
-            job.doIt();
+        {
+        	try
+        	{
+        		job.doIt();
+        	} catch (JobException e)
+        	{
+        	}
+        }
         return (job.isOK());
     }
 
@@ -643,7 +651,7 @@ public class ToolMenu {
             this.cell = cell;
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             Cell[] schLayCells = NccUtils.findSchematicAndLayout(cell);
             if (schLayCells == null) {
                 System.out.println("Could not find schematic and layout cells for "+cell.describe(true));
@@ -1131,7 +1139,7 @@ public class ToolMenu {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             Netlist netlist = cell.getNetlist(true);
             List<Network> networks = new ArrayList<Network>();
             for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
@@ -1219,7 +1227,7 @@ public class ToolMenu {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
 			validatePowerAndGround(true);
             return true;
@@ -1290,7 +1298,7 @@ public class ToolMenu {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(-1.5, -1);
             Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0), td);
@@ -1319,7 +1327,7 @@ public class ToolMenu {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             Cell cell = WindowFrame.needCurCell();
             if (cell == null) return false;
@@ -1489,7 +1497,7 @@ public class ToolMenu {
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if ((activities&READ_LIBRARY) != 0)
 			{

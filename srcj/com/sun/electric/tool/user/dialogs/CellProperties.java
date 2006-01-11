@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 import java.awt.GraphicsEnvironment;
@@ -1157,7 +1158,7 @@ public class CellProperties extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             for (Iterator<Cell> it = dialog.origValues.keySet().iterator(); it.hasNext(); )
 			{

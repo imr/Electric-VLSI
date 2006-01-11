@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.io.output.CIF;
 import com.sun.electric.tool.io.IOTool;
@@ -90,7 +91,7 @@ public class GateRegression extends Job {
         }
     }
 
-    public boolean doIt() {
+    public boolean doIt() throws JobException {
         if (LOCALDEBUGFLAG) // Gilda for now
             runGildaTest(technology, foundry);
         else

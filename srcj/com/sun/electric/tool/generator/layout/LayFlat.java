@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
 class Flattener extends HierarchyEnumerator.Visitor {
@@ -251,7 +252,7 @@ public class LayFlat extends Job {
 		return cell;
 	}
 
-	public boolean doIt() {
+	public boolean doIt() throws JobException {
 		System.out.println("Begin flat");
 		Cell cell = getTestCell();
 		Library scratch = LayoutLib.openLibForWrite(

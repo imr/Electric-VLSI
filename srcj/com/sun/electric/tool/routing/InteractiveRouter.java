@@ -38,6 +38,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
@@ -192,7 +193,7 @@ public abstract class InteractiveRouter extends Router {
         }
 
         /** Implemented doIt() method to perform Job */
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             if (!super.doIt()) return false;
 
             RouteElementPort startRE = route.getStart();

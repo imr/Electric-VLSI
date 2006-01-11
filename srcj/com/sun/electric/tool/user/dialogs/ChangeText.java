@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -521,7 +522,7 @@ public class ChangeText extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			dialog.numNodesChanged = dialog.numArcsChanged = dialog.numExportsChanged = 0;
 			dialog.numAnnotationsChanged = dialog.numInstancesChanged = dialog.numCellsChanged = 0;

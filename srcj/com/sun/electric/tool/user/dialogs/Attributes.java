@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -600,7 +601,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             if (var == null) return false;
             owner.delVar(var.getKey());
@@ -622,7 +623,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             Variable.Key newKey = Variable.newKey(newName);
             // check if var of this name already exists on object
             if (owner.getVar(newKey) != null) {
@@ -661,7 +662,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             Variable var = owner.renameVar(varName, newVarName);
             if (var == null) {
@@ -691,7 +692,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             // get Variable by name
             Variable var = owner.getVar(varKey);

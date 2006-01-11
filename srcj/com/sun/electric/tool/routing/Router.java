@@ -40,6 +40,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -238,7 +239,7 @@ public abstract class Router {
         }
 
         /** Implemented doIt() method to perform Job */
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
             UserInterface ui = Main.getUserInterface();

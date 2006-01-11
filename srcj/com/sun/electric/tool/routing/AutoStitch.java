@@ -51,6 +51,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -105,7 +106,7 @@ public class AutoStitch
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			UserInterface ui = Main.getUserInterface();
 			Cell cell = ui.needCurrentCell();
@@ -406,7 +407,12 @@ public class AutoStitch
         {
         	CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
                 pinsToPassThrough, new HashMap<NodeInst,Point2D.Double>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
-            job.doIt();
+        	try
+        	{
+        		job.doIt();
+        	} catch (JobException e)
+        	{
+        	}
         }
 	}
 

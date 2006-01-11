@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -476,7 +477,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 		/**
 		 * Method to change the coordinates.
 		 */
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			int newPointCount = dialog.model.size();
 			Point2D [] points = new Point2D[newPointCount];

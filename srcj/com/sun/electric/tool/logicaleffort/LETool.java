@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.simulation.Simulation;
 
@@ -414,7 +415,7 @@ public class LETool extends Listener {
             this.newAlg = newAlg;
         }
         
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             // delete last job, if any
             for (Iterator<Job> it = Job.getAllJobs(); it.hasNext(); ) {
                 Job job = (Job)it.next();
@@ -519,7 +520,7 @@ public class LETool extends Listener {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             netlister.updateSizes();
             if (wnd != null) wnd.repaintContents(null, false);
             System.out.println("Sizes updated. Sizing Finished.");
@@ -569,7 +570,7 @@ public class LETool extends Listener {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             clearStoredSizes(no);
             return true;
         }
@@ -583,7 +584,7 @@ public class LETool extends Listener {
             startJob();
         }
 
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             clearStoredSizes(lib);
             return true;
         }

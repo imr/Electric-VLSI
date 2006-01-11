@@ -26,6 +26,7 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.plugins.j3d.ui.J3DViewDialog;
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -62,7 +63,7 @@ public class J3DClientApp extends Job
      *
      * @return
      */
-    public boolean doIt()
+    public boolean doIt() throws JobException
     {
         try
         {

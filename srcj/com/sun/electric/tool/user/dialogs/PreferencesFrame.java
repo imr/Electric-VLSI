@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
@@ -550,7 +551,7 @@ public class PreferencesFrame extends EDialog
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<PreferencePanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
 			{

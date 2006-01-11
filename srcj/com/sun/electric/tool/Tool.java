@@ -328,7 +328,7 @@ public class Tool implements Comparable
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			obj.newVar(key, newVal);
 			return true;

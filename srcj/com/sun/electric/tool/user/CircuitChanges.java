@@ -43,6 +43,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
@@ -1225,7 +1226,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			expandFlagBit = new HashSet<NodeInst>();
 			if (unExpand)

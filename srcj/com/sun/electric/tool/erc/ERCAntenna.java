@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
@@ -144,7 +145,7 @@ public class ERCAntenna
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			handler.doCheck(this);
 			return true;

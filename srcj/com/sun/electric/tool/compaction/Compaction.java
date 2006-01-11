@@ -47,6 +47,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
 
@@ -130,7 +131,7 @@ public class Compaction extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// make the compaction object for the cell
 			CompactCell cc = new CompactCell(cell);

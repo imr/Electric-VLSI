@@ -36,6 +36,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 
@@ -471,7 +472,7 @@ public class PaletteFrame implements MouseListener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
             EditWindow wnd = EditWindow.getCurrent();
             Highlighter highlighter = wnd.getHighlighter();

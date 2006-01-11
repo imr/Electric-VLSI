@@ -48,6 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -497,7 +498,7 @@ public class ParasiticTool extends Listener{
         /**
          * Implementation of Job.doIt() abstract function
          */
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
             long startTime = System.currentTimeMillis();
             System.out.println("Extracting Parasitic for " + cell + " " + net);

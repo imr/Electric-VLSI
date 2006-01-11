@@ -31,6 +31,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 import java.util.ArrayList;
@@ -304,7 +305,7 @@ public class NccCellAnnotations {
             startJob();
         }
 
-        public boolean doIt()
+        public boolean doIt() throws JobException
         {
 			Variable nccVar = cell.getVar(NCC_ANNOTATION_KEY);
 			if (nccVar == null)

@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.Highlighter;
@@ -364,7 +365,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Cell cell = Cell.makeInstance(lib, name);
 			if (cell == null) return false;
@@ -496,7 +497,7 @@ public class Manipulate
 				startJob();
 			}
 
-			public boolean doIt()
+			public boolean doIt() throws JobException
 			{
 				Library lib = Library.getCurrent();
 				int numDeps = depLibsModel.size();
@@ -1463,7 +1464,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (ni.getProto() == Artwork.tech.boxNode)
 			{
@@ -1591,7 +1592,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			if (choice.equals("SET-MINIMUM-SIZE"))
 			{
@@ -1698,7 +1699,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			int numConnects = 0;
 			for(int i=0; i<allArcs.size(); i++)
@@ -1879,7 +1880,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, chr);
 //			if (var != null)
@@ -1904,7 +1905,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			ni.newVar(Info.TRANSLAYER_KEY, chr);
 			return true;
@@ -1925,7 +1926,7 @@ public class Manipulate
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			NodeInst patchNi = null;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -2131,7 +2132,7 @@ public class Manipulate
 				startJob();
 			}
 
-			public boolean doIt()
+			public boolean doIt() throws JobException
 			{
 				switch (type)
 				{

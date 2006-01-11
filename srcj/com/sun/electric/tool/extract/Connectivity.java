@@ -57,6 +57,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 
 import java.awt.geom.AffineTransform;
@@ -119,7 +120,7 @@ public class Connectivity
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Connectivity c = new Connectivity(cell.getTechnology());
 			c.doExtract(cell, recursive, true);

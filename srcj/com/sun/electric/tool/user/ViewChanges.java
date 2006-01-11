@@ -52,6 +52,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -115,7 +116,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			for(Iterator<Cell> it = multiPageCells.iterator(); it.hasNext(); )
 			{
@@ -211,7 +212,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			cell.setView(newView);
 			cell.setTechnology(null);
@@ -263,7 +264,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// create the new icon cell
 			String skeletonCellName = curCell.getName() + "{lay.sk}";
@@ -429,7 +430,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Library lib = curCell.getLibrary();
 
@@ -797,7 +798,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			Cell newCell = convertSchematicCell(oldCell);
 			if (newCell == null) return false;
@@ -1112,7 +1113,7 @@ public class ViewChanges
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// find out which technology they want to convert to
 			Technology oldTech = oldCell.getTechnology();

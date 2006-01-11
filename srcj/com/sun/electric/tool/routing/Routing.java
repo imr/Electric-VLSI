@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 
@@ -236,7 +237,7 @@ public class Routing extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			// see what is highlighted
 			UserInterface ui = Main.getUserInterface();
@@ -509,7 +510,7 @@ public class Routing extends Listener
 			startJob();
 		}
 
-		public boolean doIt()
+		public boolean doIt() throws JobException
 		{
 			return copyTopology(fromCell, toCell);
 		}

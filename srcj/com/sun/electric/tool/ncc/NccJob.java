@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -130,7 +131,7 @@ public class NccJob extends Job {
 		return options;
 	}
 
-    public boolean doIt() {
+    public boolean doIt() throws JobException {
     	lastResult = null;
     	
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 

@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.user.User;
@@ -127,7 +128,7 @@ public class GateLayoutGenerator extends Job {
 		return stdCell;
 	}
 
-	public boolean doIt() {
+	public boolean doIt() throws JobException {
 		String outLibNm = "autoGenLib"+foundry;
 		String outLibDir = "";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
