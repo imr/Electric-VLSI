@@ -25,11 +25,9 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
@@ -379,7 +377,7 @@ public class CrossLibCopy extends EDialog
 			boolean copyRelated = dialog.copyRelatedViews.isSelected();
 			boolean copySubs = dialog.copySubcells.isSelected();
 			boolean useExisting = dialog.useExistingSubcells.isSelected();
-			CircuitChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
+			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
 
 			// schedule the dialog to refresh
 			SwingUtilities.invokeLater(new DoneCopying(dialog, index));

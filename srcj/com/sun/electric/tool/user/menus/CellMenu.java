@@ -31,8 +31,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
@@ -48,6 +50,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -161,24 +164,24 @@ public class CellMenu {
         MenuBar.Menu expandListSubMenu = MenuBar.makeMenu("E_xpand Cell Instances");
         cellMenu.add(expandListSubMenu);
         expandListSubMenu.addMenuItem("_One Level Down", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, 1); }});
         expandListSubMenu.addMenuItem("_All the Way", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandFullCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, Integer.MAX_VALUE); }});
         expandListSubMenu.addMenuItem("_Specified Amount...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, -1); }});
 
         // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
         MenuBar.Menu unExpandListSubMenu = MenuBar.makeMenu("Unexpand Cell Ins_tances");
         cellMenu.add(unExpandListSubMenu);
         unExpandListSubMenu.addMenuItem("_One Level Up", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, 1); }});
         unExpandListSubMenu.addMenuItem("_All the Way", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandFullCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, Integer.MAX_VALUE); }});
         unExpandListSubMenu.addMenuItem("_Specified Amount...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandSpecificCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, -1); }});
 
         cellMenu.addMenuItem("Loo_k Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.peekCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { peekCommand(); }});
 
         cellMenu.addSeparator();
         cellMenu.addMenuItem("Packa_ge Into Cell...", null,
@@ -438,14 +441,33 @@ public class CellMenu {
         String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Name of duplicated cell",
             curCell.getName() + "NEW");
         if (newName == null) return;
-        CircuitChanges.duplicateCell(curCell, newName);
+        new CellChangeJobs.DuplicateCell(curCell, newName);
     }
 
     /**
-     * This method implements the command to delete old, unused versions of cells.
+     * Method to delete old, unused versions of cells.
      */
     private static void deleteOldCellVersionsCommand()
     {
-        CircuitChanges.deleteUnusedOldVersions();
+    	new CellChangeJobs.DeleteUnusedOldCells();
     }
+    
+    /**
+     * Method to temporarily expand the current selected area to the bottom.
+     */
+    private static void peekCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+        if (highlighter == null) return;
+
+		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+		if (bounds == null)
+		{
+			System.out.println("Must define an area in which to display");
+			return;
+		}
+		wnd.repaintContents(bounds, true);
+	}
 }

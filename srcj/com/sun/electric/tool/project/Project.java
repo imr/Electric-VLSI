@@ -3541,7 +3541,7 @@ public class Project extends Listener
 			return true;
 		}
 
-		Cell cellCopy = copyrecursively(cell, fLib);
+		Cell cellCopy = copyRecursively(cell, fLib);
 		if (cellCopy == null)
 		{
 			System.out.println("Could not place " + cell + " in a library");
@@ -3577,7 +3577,7 @@ public class Project extends Listener
 	 * @param toLib the destination Library.
 	 * @return the Cell in that Library which was created.
 	 */
-	private static Cell copyrecursively(Cell fromCell, Library toLib)
+	private static Cell copyRecursively(Cell fromCell, Library toLib)
 	{
 		Cell newFromCell = toLib.findNodeProto(fromCell.noLibDescribe());
 		if (newFromCell != null) return newFromCell;

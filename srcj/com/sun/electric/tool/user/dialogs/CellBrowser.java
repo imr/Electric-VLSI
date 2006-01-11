@@ -30,6 +30,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -629,7 +630,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
                 cell.getName() + "NEW");
             if (newName == null) return;
-            CircuitChanges.duplicateCell(cell, newName);
+            new CellChangeJobs.DuplicateCell(cell, newName);
             closeDialog(null);                     // we have performed the action
             updateCellList();
         } else if (action == DoAction.selectCell)

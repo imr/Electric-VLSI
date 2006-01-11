@@ -74,7 +74,7 @@ import javax.swing.JOptionPane;
 public class CircuitChanges
 {
 	// constructor, never used
-	CircuitChanges() {}
+	private CircuitChanges() {}
 
 	/****************************** NODE TRANSFORMATION ******************************/
 
@@ -487,7 +487,7 @@ public class CircuitChanges
 		}
 
 		// delete the cell
-		new CircuitChangeJobs.DeleteCell(cell);
+		new CellChangeJobs.DeleteCell(cell);
 		return true;
 	}
 
@@ -562,19 +562,12 @@ public class CircuitChanges
 				break;
 			}
 		}
-		new CircuitChangeJobs.RenameCell(cell, newName, newGroup);
+		new CellChangeJobs.RenameCell(cell, newName, newGroup);
 	}
 
 	public static void renameCellGroupInJob(Cell.CellGroup cellGroup, String newName)
 	{
-		new CircuitChangeJobs.RenameCellGroup(cellGroup, newName);
-	}
-
-	/****************************** DELETE UNUSED OLD VERSIONS OF CELLS ******************************/
-
-	public static void deleteUnusedOldVersions()
-	{
-		new CircuitChangeJobs.DeleteUnusedOldCells();
+		new CellChangeJobs.RenameCellGroup(cellGroup, newName);
 	}
 
 	/****************************** SHOW CELLS GRAPHICALLY ******************************/
@@ -586,7 +579,7 @@ public class CircuitChanges
 	{
 		Cell top = WindowFrame.needCurCell();
 		if (top == null) return;
-		new CircuitChangeJobs.GraphCells(top);
+		new CellChangeJobs.GraphCells(top);
 	}
 
 	/**
@@ -594,7 +587,7 @@ public class CircuitChanges
 	 */
 	public static void graphCellsInLibrary()
 	{
-		new CircuitChangeJobs.GraphCells(null);
+		new CellChangeJobs.GraphCells(null);
 	}
 
 	/****************************** EXTRACT CELL INSTANCES ******************************/
@@ -629,7 +622,7 @@ public class CircuitChanges
 		if (newCellName == null) return;
 		newCellName += "{" + curCell.getView().getAbbreviation() + "}";
 
-		new CircuitChangeJobs.PackageCell(curCell, bounds, newCellName);
+		new CellChangeJobs.PackageCell(curCell, bounds, newCellName);
 	}
 	
 	/**
@@ -641,7 +634,7 @@ public class CircuitChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		new CircuitChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes());
+		new CellChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes());
 	}
 
 	/****************************** CLEAN-UP ******************************/
@@ -1079,14 +1072,7 @@ public class CircuitChanges
 				JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		new CircuitChangeJobs.NewCellVersion(cell);
-	}
-
-	/****************************** MAKE A COPY OF A CELL ******************************/
-
-	public static void duplicateCell(Cell cell, String newName)
-	{
-		new CircuitChangeJobs.DuplicateCell(cell, newName);
+		new CellChangeJobs.NewCellVersion(cell);
 	}
 
 	/****************************** MOVE SELECTED OBJECTS ******************************/
@@ -1128,131 +1114,48 @@ public class CircuitChanges
 
 	/****************************** CHANGE CELL EXPANSION ******************************/
 
-	/**
-	 * This method implements the command to expand the selected cells by 1 level down.
-	 */
-	public static void expandOneLevelDownCommand()
-	{
-		DoExpandCommands(false, 1);
-	}
-
-	/**
-	 * This method implements the command to expand the selected cells all the way to the bottom of the hierarchy.
-	 */
-	public static void expandFullCommand()
-	{
-		DoExpandCommands(false, Integer.MAX_VALUE);
-	}
-
-	/**
-	 * This method implements the command to expand the selected cells by a given number of levels from the top.
-	 */
-	public static void expandSpecificCommand()
-	{
-		Object obj = JOptionPane.showInputDialog("Number of levels to expand", "1");
-		int levels = TextUtils.atoi((String)obj);
-
-		DoExpandCommands(false, levels);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells by 1 level up.
-	 */
-	public static void unexpandOneLevelUpCommand()
-	{
-		DoExpandCommands(true, 1);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
-	 */
-	public static void unexpandFullCommand()
-	{
-		DoExpandCommands(true, Integer.MAX_VALUE);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells by a given number of levels from the bottom.
-	 */
-	public static void unexpandSpecificCommand()
-	{
-		Object obj = JOptionPane.showInputDialog("Number of levels to unexpand", "1");
-		int levels = TextUtils.atoi((String)obj);
-
-		DoExpandCommands(true, levels);
-	}
-
-	public static void peekCommand()
-	{
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
-        if (highlighter == null) return;
-
-		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
-		if (bounds == null)
-		{
-			System.out.println("Must define an area in which to display");
-			return;
-		}
-		wnd.repaintContents(bounds, true);
-	}
-
-	private static void DoExpandCommands(boolean unExpand, int amount)
-	{
-		List<NodeInst> list = MenuCommands.getSelectedNodes();
-		new ExpandUnExpand(list, unExpand, amount);
-	}
-
-	/****************************** CHANGE CELL EXPANSION ******************************/
-
 	private static HashSet<NodeInst> expandFlagBit;
 
 	/**
-	 * Class to read a library in a new thread.
+	 * Method to change the expansion of the selected instances.
+	 * @param unExpand true to unexpand the instances (draw them as black boxes),
+	 * false to expand them (draw their contents).
+	 * @param amount the number of levels of hierarchy to expand/unexpand.
+	 * If negative, prompt for an amount.
 	 */
-	public static class ExpandUnExpand extends Job
+	public static void DoExpandCommands(boolean unExpand, int amount)
 	{
-		List<NodeInst> list;
-		boolean unExpand;
-		int amount;
-		
-		public ExpandUnExpand(List<NodeInst> list, boolean unExpand, int amount)
+		if (amount < 0)
 		{
-			super("Change Cell Expansion", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.list = list;
-			this.unExpand = unExpand;
-			this.amount = amount;
-			startJob();
+			Object obj = JOptionPane.showInputDialog("Number of levels to " + (unExpand ? "unexpand" : "expand"), "1");
+			amount = TextUtils.atoi((String)obj);
+			if (amount <= 0) return;
 		}
 
-		public boolean doIt() throws JobException
+		List<NodeInst> list = MenuCommands.getSelectedNodes();
+		expandFlagBit = new HashSet<NodeInst>();
+		if (unExpand)
 		{
-			expandFlagBit = new HashSet<NodeInst>();
-			if (unExpand)
-			{
-				for(NodeInst ni : list)
-				{
-					NodeProto np = ni.getProto();
-					if (!(np instanceof Cell)) continue;
-					{
-						if (ni.isExpanded())
-							setUnExpand(ni, amount);
-					}
-				}
-			}
 			for(NodeInst ni : list)
 			{
-				if (unExpand) doUnExpand(ni); else
-					doExpand(ni, amount, 0);
-				if (User.isUseOlderDisplayAlgorithm())
-					Undo.redrawObject(ni);
+				NodeProto np = ni.getProto();
+				if (!(np instanceof Cell)) continue;
+				{
+					if (ni.isExpanded())
+						setUnExpand(ni, amount);
+				}
 			}
-			expandFlagBit = null;
-			PixelDrawing.clearSubCellCache();
-			EditWindow.repaintAllContents();
-			return true;
 		}
+		for(NodeInst ni : list)
+		{
+			if (unExpand) doUnExpand(ni); else
+				doExpand(ni, amount, 0);
+			if (User.isUseOlderDisplayAlgorithm())
+				Undo.redrawObject(ni);
+		}
+		expandFlagBit = null;
+		PixelDrawing.clearSubCellCache();
+		EditWindow.repaintAllContents();
 	}
 
 	/**
@@ -1338,15 +1241,6 @@ public class CircuitChanges
 	}
 
 	/****************************** LIBRARY CHANGES ******************************/
-
-	/**
-	 * Method to implement the "Change Current Library" command.
-	 * Prompts the user for a new "current library".
-	 */
-	public static void changeCurrentLibraryCommand()
-	{
-		ChangeCurrentLib.showDialog();
-	}
 
 	/**
 	 * Method to implement the "List Libraries" command.
@@ -1450,13 +1344,6 @@ public class CircuitChanges
 		if (val.equals(techName)) return;
 		new CircuitChangeJobs.RenameTechnology(tech, val);
 	}
-
-//	/**
-//	 * Method to implement the "Delete Current Technology" command.
-//	 */
-//	public static void deleteCurrentTechnology()
-//	{
-//	}
 
 	/**
 	 * Method to implement the "Rename Library" command.

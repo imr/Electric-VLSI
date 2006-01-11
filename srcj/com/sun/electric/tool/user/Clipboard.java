@@ -169,10 +169,21 @@ public class Clipboard
 
 	public static void copy()
 	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
 		// special case: if one text object is selected, copy its text to the system clipboard
 		copySelectedText();
 
-		CopyObjects job = new CopyObjects(MenuCommands.getHighlighted());
+		// get highlights to copy
+		List<Highlight2> highlights = MenuCommands.getHighlighted();
+		if (highlights.size() == 0)
+		{
+			System.out.println("First select objects to copy");
+			return;
+		}
+
+		CopyObjects job = new CopyObjects(cell, highlights);
 	}
 
 	/**
@@ -215,29 +226,19 @@ public class Clipboard
 
 	private static class CopyObjects extends Job
 	{
+		private Cell cell;
         private List<Highlight2> highlights;
 
-		protected CopyObjects(List<Highlight2> highlights)
+		protected CopyObjects(Cell cell, List<Highlight2> highlights)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.highlights = highlights;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// get highlights to copy
-			if (highlights.size() == 0)
-			{
-				System.out.println("First select objects to copy");
-				return false;
-			}
-
-			// determine the cell with these geometrics
-			EditWindow wnd = EditWindow.needCurrent();
-			if (wnd == null) return false;
-			Cell parent = wnd.getCell();
-
 			// remove contents of clipboard
 			clear();
 
@@ -245,7 +246,7 @@ public class Clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
 			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
-			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0,0),
+			copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0,0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 			return true;
 		}
@@ -253,42 +254,43 @@ public class Clipboard
 
 	public static void cut()
 	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
 		// special case: if one text object is selected, copy its text to the system clipboard
 		copySelectedText();
 
-		CutObjects job = new CutObjects(MenuCommands.getHighlighted());
+		// get objects to cut
+		List<Highlight2> highlights = MenuCommands.getHighlighted();
+		if (highlights.size() == 0)
+		{
+			System.out.println("First select objects to cut");
+			return;
+		}
+
+		CutObjects job = new CutObjects(cell, highlights);
 	}
 
 	private static class CutObjects extends Job
 	{
+		private Cell cell;
         private List<Highlight2> highlights;
 
-		protected CutObjects(List<Highlight2> highlights)
+		protected CutObjects(Cell cell, List<Highlight2> highlights)
 		{
 			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.highlights = highlights;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// get objects to cut
-			if (highlights.size() == 0)
-			{
-				System.out.println("First select objects to cut");
-				return false;
-			}
-
-			// determine the cell with these geometrics
-			EditWindow wnd = EditWindow.needCurrent();
-			if (wnd == null) return false;
-			Cell parent = wnd.getCell();
-
 			// remove contents of clipboard
 			clear();
 
 			// make sure deletion is allowed
-			if (CircuitChangeJobs.cantEdit(parent, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
             List<Geometric> deleteGeoms = new ArrayList<Geometric>();
 			List<Highlight2> deleteList = new ArrayList<Highlight2>();
 			for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); )
@@ -300,7 +302,7 @@ public class Clipboard
 					if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
 					if (eObj instanceof NodeInst)
 					{
-						int errorCode = CircuitChangeJobs.cantEdit(parent, (NodeInst)eObj, true);
+						int errorCode = CircuitChangeJobs.cantEdit(cell, (NodeInst)eObj, true);
 						if (errorCode < 0) return false;
 						if (errorCode > 0) continue;
 					}
@@ -316,11 +318,11 @@ public class Clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
 			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
-			copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
+			copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0, 0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
-			CircuitChangeJobs.eraseObjectsInList(parent, deleteGeoms);
+			CircuitChangeJobs.eraseObjectsInList(cell, deleteGeoms);
             // kill variables on cells
             for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
                 Highlight2 h = it.next();
@@ -339,7 +341,18 @@ public class Clipboard
 
     public static void duplicate()
     {
-        DuplicateObjects job = new DuplicateObjects(MenuCommands.getHighlighted());
+    	Cell cell = WindowFrame.needCurCell();
+    	if (cell == null) return;
+
+    	// get objects to copy
+		List<Highlight2> highlights = MenuCommands.getHighlighted();
+        if (highlights.size() == 0)
+        {
+            System.out.println("First select objects to duplicate");
+            return;
+        }
+
+        DuplicateObjects job = new DuplicateObjects(cell, highlights);
     }
 
 	/**
@@ -358,29 +371,19 @@ public class Clipboard
 
 	private static class DuplicateObjects extends Job
     {
+		private Cell cell;
         private List<Highlight2> highlights;
 
-        protected DuplicateObjects(List<Highlight2> highlights)
+        protected DuplicateObjects(Cell cell, List<Highlight2> highlights)
         {
             super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.highlights = highlights;
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-            // get objects to copy
-            if (highlights.size() == 0)
-            {
-                System.out.println("First select objects to copy");
-                return false;
-            }
-
-            // determine the cell with these geometrics
-            EditWindow wnd = EditWindow.needCurrent();
-            if (wnd == null) return false;
-            Cell parent = wnd.getCell();
-
             // remove contents of clipboard
             clear();
 
@@ -388,11 +391,15 @@ public class Clipboard
 			List<Object> listToCopy = new ArrayList<Object>();
 			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
 				listToCopy.add(it.next());
-            copyListToCell(null, listToCopy, parent, clipCell, new Point2D.Double(0, 0),
+            copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0, 0),
             	User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
-            Highlighter highlighter = wnd.getHighlighter();
-            if (highlighter != null) highlighter.clear();
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null)
+            {
+            	Highlighter highlighter = wnd.getHighlighter();
+            	if (highlighter != null) highlighter.clear();
+            }
 
             paste(true);
 			return true;
@@ -418,6 +425,7 @@ public class Clipboard
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
+		Cell parent = wnd.getCell();
 
 		// special case of pasting on top of selected objects
 		List<Geometric> geoms = highlighter.getHighlightedEObjs(true, true);
@@ -485,7 +493,7 @@ public class Clipboard
 		} else
 		{
 			Point2D refPastePoint = new Point2D.Double(lastDupX, lastDupY);
-		    PasteObjects job = new PasteObjects(pasteList, refPastePoint.getX(), refPastePoint.getY());
+		    PasteObjects job = new PasteObjects(parent, pasteList, refPastePoint.getX(), refPastePoint.getY());
 		}
 	}
 
@@ -551,12 +559,14 @@ public class Clipboard
 
 	private static class PasteObjects extends Job
 	{
-		List<Object> pasteList;
-		double dX, dY;
+		private Cell cell;
+		private List<Object> pasteList;
+		private double dX, dY;
 
-		protected PasteObjects(List<Object> pasteList, double dX, double dY)
+		protected PasteObjects(Cell cell, List<Object> pasteList, double dX, double dY)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
 			this.pasteList = pasteList;
 			this.dX = dX;
 			this.dY = dY;
@@ -568,13 +578,12 @@ public class Clipboard
 			// find out where the paste is going
 			EditWindow wnd = EditWindow.needCurrent();
 			if (wnd == null) return false;
-			Cell parent = wnd.getCell();
 
 			// make sure pasting is allowed
-			if (CircuitChangeJobs.cantEdit(parent, null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
 			// paste them into the current cell
-			copyListToCell(wnd, pasteList, clipCell, parent, new Point2D.Double(dX, dY),
+			copyListToCell(wnd, pasteList, clipCell, cell, new Point2D.Double(dX, dY),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// also copy any variables on the clipboard cell
@@ -582,7 +591,7 @@ public class Clipboard
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
-                parent.addVar(var.withOff(var.getXOff() + dX, var.getYOff() + dY));
+				cell.addVar(var.withOff(var.getXOff() + dX, var.getYOff() + dY));
 //				Variable cellVar = parent.newVar(var.getKey(), var.getObject());
 //				if (cellVar != null)
 //				{
@@ -1247,7 +1256,9 @@ public class Clipboard
 
             WindowFrame.setListener(currentListener);
             wnd.getHighlighter().popHighlight();
-            PasteObjects job = new PasteObjects(pasteList, delta.getX(), delta.getY());
+            Cell cell = WindowFrame.needCurCell();
+            if (cell != null)
+            	new PasteObjects(cell, pasteList, delta.getX(), delta.getY());
 		}
 
 		public void mouseMoved(MouseEvent evt)

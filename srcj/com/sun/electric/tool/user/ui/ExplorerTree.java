@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -34,7 +35,11 @@ import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CellChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
@@ -45,7 +50,6 @@ import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.NodeInfo;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -1720,7 +1724,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			String newName = JOptionPane.showInputDialog(tree, "Name of duplicated cell",
 				cell.getName() + "NEW");
 			if (newName == null) return;
-			CircuitChanges.duplicateCell(cell, newName);
+			new CellChangeJobs.DuplicateCell(cell, newName);
 		}
 
 		private void deleteCellAction()

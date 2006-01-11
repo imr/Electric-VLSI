@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -208,7 +209,7 @@ public class FileMenu {
 		fileMenu.addSeparator();
 
 		fileMenu.addMenuItem("Change Current _Library...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.changeCurrentLibraryCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ChangeCurrentLib.showDialog(); } });
 		fileMenu.addMenuItem("List Li_braries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.listLibrariesCommand(); } });
 		fileMenu.addMenuItem("Rena_me Library...", null,

@@ -429,7 +429,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton expandButton = ToolBarButton.newInstance("Expand Cell Instances",
             Resources.getResource(toolbar.getClass(), "ButtonExpand.gif"));
 		expandButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, 1); } });
 		expandButton.setToolTipText("Expand Cell Instances");
         expandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(expandButton);
@@ -438,7 +438,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton unExpandButton = ToolBarButton.newInstance("Unexpand Cell Instances",
             Resources.getResource(toolbar.getClass(), "ButtonUnexpand.gif"));
 		unExpandButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, 1); } });
 		unExpandButton.setToolTipText("Unexpand Cell Instances");
         unExpandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(unExpandButton);

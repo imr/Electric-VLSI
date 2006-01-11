@@ -28,7 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.BorderLayout;
@@ -228,7 +228,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
             cell.getName() + "NEW");
         if (newName == null) return;
-        CircuitChanges.duplicateCell(cell, newName);
+        new CellChangeJobs.DuplicateCell(cell, newName);
         cellJList.clearSelection();
     }
     private void selectedCellRename() {

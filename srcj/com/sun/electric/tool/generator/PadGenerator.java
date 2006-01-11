@@ -52,6 +52,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -665,7 +666,7 @@ public class PadGenerator
 				}
 				if (cell == null)
 				{
-					cell = CircuitChangeJobs.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true);
+					cell = CellChangeJobs.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true);
 	                if (cell == null)
 					{
 	                    err("Could not copy in pad Cell " + cellname);
