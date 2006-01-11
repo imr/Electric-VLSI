@@ -31,17 +31,19 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
 import java.awt.geom.Point2D;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.SwingUtilities;
 
 /**
@@ -410,6 +412,9 @@ public abstract class Job implements Runnable {
         savedHighlights = new ArrayList<Object>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
+        if (SERVER) {
+            System.out.println((new Date()) + ": new Job " + jobName);
+        }
 	}
 	
     /**
@@ -435,6 +440,15 @@ public abstract class Job implements Runnable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
+        if (SERVER || CLIENT) {
+            System.out.println((new Date()) + ": startJob " + jobName);
+            try {
+                printFields();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+                
+        }
         if (CLIENT && jobType != Type.EXAMINE) {
             System.out.println("Job " + this + " was not launched in CLIENT mode");
             return;
@@ -452,6 +466,51 @@ public abstract class Job implements Runnable {
         }
     }
 
+    void printFields() throws IllegalAccessException {
+        Class cls = getClass();
+        while (cls != Job.class) {
+            System.out.println(cls.getName());
+            Field[] flds = cls.getDeclaredFields();
+            for (int i = 0; i < flds.length; i++) {
+                Field f = flds[i];
+                int fm = f.getModifiers();
+                if (Modifier.isStatic(fm)) {
+                    System.out.println("\tSTATIC field " + f.getName());
+                    continue;
+                }
+                f.setAccessible(true);
+                Object value = f.get(this);
+                Class tf = f.getType();
+                System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
+            }
+            cls = cls.getSuperclass();
+        }
+    }
+//        private ClassDescriptor(Class cls) {
+//            this.cls = cls;
+//            ArrayList<Field> fieldList = new ArrayList<Field>();
+//            ArrayList<Field> staticFieldList = new ArrayList<Field>();
+//            Class superCls = cls.getSuperclass();
+//            if (superCls != null)
+//                fieldList.addAll(Arrays.asList(classDescriptorOf(superCls).fields));
+//            Field[] flds = cls.getDeclaredFields();
+//            for (int i = 0; i < flds.length; i++) {
+//                Field f = flds[i];
+//                Class tf = f.getType();
+//                if (tf.isPrimitive()) continue;
+//                if (Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
+//                    continue;
+//                f.setAccessible(true);
+//                int fm = f.getModifiers();
+//                if (Modifier.isStatic(fm))
+//                    staticFieldList.add(f);
+//                else
+//                    fieldList.add(f);
+//            }
+//            Field[] NULL_FIELD_ARRAY = {};
+//            this.fields = (Field[])fieldList.toArray(NULL_FIELD_ARRAY);
+//            this.staticFields = (Field[])staticFieldList.toArray(NULL_FIELD_ARRAY);
+//        }
     /**
      * Method to access scheduled abort flag in Job and
      * set the flag to abort if scheduled flag is true.
@@ -481,6 +540,17 @@ public abstract class Job implements Runnable {
      */
     public abstract boolean doIt() throws JobException;
     
+    /**
+     * This method executes in the Client side after termination of doIt method.
+     * This method should perform all needed termination actions.
+     * @param jobException null if doIt terminated normally, otherwise exception thrown by it.
+     */
+    public void terminateIt(Throwable jobException) {
+        if (jobException instanceof CantEditException) {
+            ((CantEditException)jobException).presentProblem();
+        }
+    }
+    
     //--------------------------PRIVATE JOB METHODS--------------------------
 
 //    /** Locks the database to prevent changes to it */
@@ -509,12 +579,18 @@ public abstract class Job implements Runnable {
 
         Cell cell = Main.getUserInterface().getCurrentCell();
         ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
+        Throwable jobException = null;
 		try {
             if (jobType != Type.EXAMINE) changingJob = this;
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
-			doIt();
+            try {
+                doIt();
+            } catch (JobException e) {
+                jobException = e;
+            }
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
+            jobException = e;
             endTime = System.currentTimeMillis();
             e.printStackTrace(System.err);
             ActivityLogger.logException(e);
@@ -526,6 +602,7 @@ public abstract class Job implements Runnable {
 			} else {
 				changingJob = null;
 			}
+            terminateIt(jobException);
             endTime = System.currentTimeMillis();
 		}
         if (DEBUG) System.out.println(jobType+" Job: "+jobName +" finished");

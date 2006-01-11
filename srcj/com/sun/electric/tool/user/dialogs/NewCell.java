@@ -383,21 +383,26 @@ public class NewCell extends EDialog
 			Cell cell = Cell.makeInstance(lib, cellName);
 			if (cell == null)
 			{
-				System.out.println("Unable to create cell " + cellName);
-				return false;
+				throw new JobException("Unable to create cell " + cellName);
 			}
             cell.setTechnology(tech); // no need for checking if tech is null
 
-			if (!newWindow)
-			{
-				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-				wf.setCellWindow(cell);
-				return true;
-			}
-			WindowFrame.createEditWindow(cell);
 			return true;
 		}
-	}
+
+        public void terminateIt(Throwable jobException) {
+            if (jobException == null) {
+                Cell cell = lib.findNodeProto(cellName);
+                if (newWindow) {
+                    WindowFrame.createEditWindow(cell);
+                } else {
+                    WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                    wf.setCellWindow(cell);
+                }
+            }
+            super.terminateIt(jobException);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
