@@ -45,7 +45,6 @@ import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
 
@@ -120,8 +119,8 @@ public class StdCellParams {
 	private boolean separateWellTies;
 	// maximum distance from well tie to any point in well
 	private double maxWellTieRadius;
-	private String pmosWellTieName = "vnw";
-	private String nmosWellTieName = "vsb";
+//	private String pmosWellTieName = "vnw";
+//	private String nmosWellTieName = "vsb";
 	private double nmosWellTieY, pmosWellTieY;
 
 	private double minGateWid;
@@ -175,7 +174,7 @@ public class StdCellParams {
 		init();
 	}
 
-    private void initMoCMOS(Technology tech) {
+    private void initMoCMOS() {
         nmosWellHeight = 70;
         pmosWellHeight = 70;
         gndY = -21.0;
@@ -198,8 +197,8 @@ public class StdCellParams {
         separateWellTies = false;
         // maximum distance from well tie to any point in well
         maxWellTieRadius = 300;
-        pmosWellTieName = "vnw";
-        nmosWellTieName = "vsb";
+//        pmosWellTieName = "vnw";
+//        nmosWellTieName = "vsb";
         nmosWellTieY = 0;
         pmosWellTieY = 0;
 
@@ -240,8 +239,8 @@ public class StdCellParams {
         separateWellTies = false;
         // maximum distance from well tie to any point in well
         maxWellTieRadius = 300;
-        pmosWellTieName = "vnw";
-        nmosWellTieName = "vsb";
+//        pmosWellTieName = "vnw";
+//        nmosWellTieName = "vsb";
         nmosWellTieY = 0;
         pmosWellTieY = 0;
 
@@ -652,9 +651,9 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Library lib, String tech) {
-        if      (tech == Tech.TSMC90) initTSMC90();
-        else if (tech == Tech.MOCMOS) initMoCMOS(MoCMOS.tech);
+	public StdCellParams(Library lib, Tech.TechType tech) {
+        if      (tech == Tech.TechType.TSMC90) initTSMC90();
+        else if (tech == Tech.TechType.MOCMOS) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }
@@ -831,8 +830,8 @@ public class StdCellParams {
 		if (s == 0)
 			return s;
 		double q = quantizeSize(s);
-		double e = (s - q) / s;
-		double qe = Math.rint(e * 100000) / 100000;
+//		double e = (s - q) / s;
+//		double qe = Math.rint(e * 100000) / 100000;
 		//System.out.println("desired: "+s+" quantized: "+q+" error: "+qe);
 		return q;
 		//return ((int) (s*10+.5)) / 10.0;

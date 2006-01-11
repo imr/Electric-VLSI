@@ -185,13 +185,13 @@ public class DebugMenus {
 		russMenu.addMenuItem("Gate Generator Regression (MoCMOS)", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech, Tech.MOCMOS);
+				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech, Tech.TechType.MOCMOS);
 			}
 		});
 		if (Technology.getTSMC90Technology() != null)
 			russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology(), Tech.TSMC90); } });
+                    new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology(), Tech.TechType.TSMC90); } });
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -255,11 +255,11 @@ public class DebugMenus {
         gildaMenu.addMenuItem("Dialog fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC180);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.MOCMOS);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.MOCMOS);}});
         gildaMenu.addMenuItem("Gate Generator TSMC90", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC90);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.TSMC90);}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
@@ -809,7 +809,7 @@ public class DebugMenus {
         }
 
         // Creating fill template
-        FillGenerator fg = new FillGenerator("tsmc180");
+        FillGenerator fg = new FillGenerator(cell.getTechnology());
         fg.setFillLibrary("fillLibGIlda2");
         Rectangle2D bnd = cell.getBounds();
 
@@ -824,7 +824,7 @@ public class DebugMenus {
         new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, list);
     }
 
-    private static void tsmcGateGenerator(String techNm)
+    private static void tsmcGateGenerator(Tech.TechType techNm)
     {
         GateRegression reg = new GateRegression(MoCMOS.tech, techNm);
     }

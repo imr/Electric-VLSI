@@ -35,15 +35,13 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.*;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.*;
@@ -1411,8 +1409,8 @@ public class FillGenerator {
 		if (!metalFlex) printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
-		stdCell = new StdCellParams(null, Tech.MOCMOS);
-		stdCellP = new StdCellParams(null, Tech.MOCMOS);
+		stdCell = new StdCellParams(null, Tech.TechType.MOCMOS);
+		stdCellP = new StdCellParams(null, Tech.TechType.MOCMOS);
 		stdCellP.setVddExportName("power");
 		stdCellP.setVddExportRole(PortCharacteristic.IN);
 		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
@@ -1455,14 +1453,22 @@ public class FillGenerator {
 	
 	// Deprecated: Keep this for backwards compatibility
 	public FillGenerator() {
-		Tech.setTechnology("mocmos");
+		Tech.setTechnology(Tech.TechType.MOCMOS);
 	}
 	
-	public FillGenerator(String techNm) {
-		LayoutLib.error(!techNm.equals(Tech.MOCMOS) &&
-						!techNm.equals(Tech.TSMC180),
+	public FillGenerator(Technology tech) {
+        Tech.TechType techNm = Tech.TechType.INVALID;
+
+        if (tech == MoCMOS.tech)
+        {
+            techNm = (tech.getFoundry() == DRCTemplate.DRCMode.TSMC) ?
+                    Tech.TechType.TSMC180 :
+                    Tech.TechType.MOCMOS;
+        }
+
+		LayoutLib.error((techNm != Tech.TechType.MOCMOS && techNm != Tech.TechType.TSMC180),
 						"FillGenerator only recognizes the technologies: "+
-						Tech.MOCMOS+" and "+Tech.TSMC180+".\n"+
+						Tech.TechType.MOCMOS+" and "+Tech.TechType.TSMC180+".\n"+
 						"For 90nm use FillGenerator90");
 		Tech.setTechnology(techNm);
 	}
@@ -1632,14 +1638,14 @@ public class FillGenerator {
             {
                 Export export = it.next();
                 PortInst p = container.fillNi.findPortInstFromProto(export);
-                ArcInst ai = null;
-
-                for (Iterator<Connection> itC = export.getOriginalPort().getConnections(); itC.hasNext(); )
-                {
-                    Connection c = itC.next();
-                    ai = c.getArc();
-                    break;
-                }
+//                ArcInst ai = null;
+//
+//                for (Iterator<Connection> itC = export.getOriginalPort().getConnections(); itC.hasNext(); )
+//                {
+//                    Connection c = itC.next();
+//                    ai = c.getArc();
+//                    break;
+//                }
                 Export e = Export.newInstance(container.connectionCell, p, p.getPortProto().getName());
 		        e.setCharacteristic(p.getPortProto().getCharacteristic());
             }
@@ -1666,6 +1672,9 @@ public class FillGenerator {
                     nodeBounds.setRect(ex.getOriginalPort().getNodeInst().getBounds());
                     DBMath.transformRect(nodeBounds, trans);
                 }
+                else
+                    System.out.println("When the PortProto is not an Export?");
+
                 DBMath.transformRect(nodeBounds, fillTransIn);
 
                 // Try to find closest arc. If not possible, then add to to-do list
@@ -1938,24 +1947,14 @@ public class FillGenerator {
                         new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
                 Router.createRouteNoJob(conTopExportRoute, topCell, true, false, null);
 
-//                // Adding pin in fill cell
-//                NodeInst pin = LayoutLib.newNodeInst(Tech.m3pin, geomBnd.getCenterX(), nodeBounds.getCenterY(),
-//                        width, 10, 0, container.fillCell);
-//                // Routing the pin to the arc in fill cell
-//                Route pinRoute = container.router.planRoute(container.fillCell, pin.getOnlyPortInst(), ai.getTailPortInst(),
-//                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
-//                Router.createRouteNoJob(pinRoute, container.fillCell, true, false, null);
-
                 // Creating the export above the pin in the fill cell
                 Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
-//                        Tech.m3,
                         10, geomBnd.getCenterX(), nodeBounds.getCenterY());
                 Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
                         new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
                 Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
                 // Connecting the export in the top cell
                 PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
-//                container.fillPortInstList.add(fillNiPort);
                 Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
                 Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);

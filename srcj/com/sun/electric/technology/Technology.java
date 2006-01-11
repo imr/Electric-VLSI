@@ -2103,7 +2103,7 @@ public class Technology implements Comparable<Technology>
 
 		/**
 		 * Constructor to initialize for multiple cuts.
-		 * @param ni the NodeInst with multiple cuts.
+		 * @param niD the NodeInst with multiple cuts.
 		 * @param specialValues the array of special values for the NodeInst.
 		 * The values in "specialValues" are:
 		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
@@ -2232,7 +2232,7 @@ public class Technology implements Comparable<Technology>
 
 		/**
 		 * Constructor throws initialize for a serpentine transistor.
-		 * @param ni the NodeInst with a serpentine transistor.
+		 * @param niD the NodeInst with a serpentine transistor.
 		 */
 		public SerpentineTrans(ImmutableNodeInst niD)
 		{

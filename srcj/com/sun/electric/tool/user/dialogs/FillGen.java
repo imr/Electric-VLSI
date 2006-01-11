@@ -25,7 +25,9 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.FillGenerator;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.Main;
 
 import javax.swing.*;
@@ -387,7 +389,15 @@ public class FillGen extends EDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
-        FillGenerator fg = new FillGenerator("tsmc180");
+        Cell cell = Main.getUserInterface().getCurrentCell();
+        Technology tech = cell.getTechnology();
+
+        for (Tech.TechType t : Tech.TechType.values())
+        {
+
+        }
+
+        FillGenerator fg = new FillGenerator(cell.getTechnology());
         fg.setFillLibrary("fillLibGIlda");
         fg.setFillCellWidth(TextUtils.atof(jTextField1.getText()));
         fg.setFillCellHeight(TextUtils.atof(jTextField1.getText()));
