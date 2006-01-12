@@ -50,6 +50,7 @@ public class GeometryConnection
     // Private construction for now
     private GeometryConnection() {;}
 
+    // Version to cover old Steve's request for NodeExtraction
     public static boolean checkCellConnectivity(NodeInst cellA, NodeInst cellB)
     {
         Rectangle2D cellBounds = (Rectangle2D)cellA.getBounds().clone();
