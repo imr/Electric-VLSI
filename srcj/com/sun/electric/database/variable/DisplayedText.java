@@ -28,12 +28,12 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight.Type;
+import java.io.Serializable;
 
 /**
  * DisplayedText is the combination of an ElectricObject and a Variable Key.
  */
-public class DisplayedText
+public class DisplayedText implements Serializable
 {
 	private ElectricObject eObj;
 	private Variable.Key key;

@@ -25,9 +25,12 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -36,7 +39,16 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
 import java.awt.geom.Point2D;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,16 +79,17 @@ import javax.swing.SwingUtilities;
  *
  * @author  gainsley
  */
-public abstract class Job implements Runnable {
+public abstract class Job implements Runnable, Serializable {
 
     private static boolean DEBUG = false;
+    private static boolean TEST_SERIALIZATION = true;
     private static boolean GLOBALDEBUG = false;
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     public static boolean SERVER; // to dump trace of snapshots.
     public static boolean CLIENT; // to replay trace of snapshots.
-
+    
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
 	 * If the program is started with the "-debug" switch, debug mode is enabled.
@@ -89,7 +102,7 @@ public abstract class Job implements Runnable {
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
-	public static class Type
+	public static class Type implements Serializable
 	{
 		private final String name;
 
@@ -104,6 +117,14 @@ public abstract class Job implements Runnable {
 		/** Describes a database change. */			public static final Type CHANGE  = new Type("change");
 		/** Describes a database undo/redo. */		public static final Type UNDO    = new Type("undo");
 		/** Describes a database examination. */	public static final Type EXAMINE = new Type("examine");
+        
+        private Object readResolve() throws ObjectStreamException {
+            if (name.equals(CHANGE.name)) return CHANGE;
+            if (name.equals(UNDO.name)) return UNDO;
+            if (name.equals(EXAMINE.name)) return EXAMINE;
+            return this;
+        }
+        
 	}
 
 	/**
@@ -379,13 +400,13 @@ public abstract class Job implements Runnable {
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
     /** progress */                             private String progress = null;
-    /** list of saved Highlights */             private List<Object> savedHighlights;
-    /** saved Highlight offset */               private Point2D savedHighlightsOffset;
+    /** list of saved Highlights */             private transient List<Object> savedHighlights;
+    /** saved Highlight offset */               private transient Point2D savedHighlightsOffset;
     /** Thread job will run in (null for new thread) */
-                                                private Thread thread;
+                                                private transient Thread thread;
 
     public Job() {}
-
+                                                
     /**
 	 * Constructor creates a new instance of Job.
 	 * @param jobName a string that describes this Job.
@@ -442,18 +463,30 @@ public abstract class Job implements Runnable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
-        if (SERVER || CLIENT) {
-            System.out.println((new Date()) + ": startJob " + jobName);
+        Job job = this;
+        String className = getClass().getName();
+        if (TEST_SERIALIZATION && !className.endsWith("RenderJob") && !className.endsWith("InitDatabase")) {
+            job = testSerialization();
+            if (job != null) {
+                // transient fields ???
+                job.savedHighlights = this.savedHighlights;
+                job.savedHighlightsOffset = this.savedHighlightsOffset;
+                job.thread = this.thread;
+            } else {
+                job = this;
+            }
+        }
+        if (CLIENT) {
+            System.out.println((new Date()) + ": startJob " + job.jobName);
             try {
-                printFields();
+                job.printFields();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-                
-        }
-        if (CLIENT && jobType != Type.EXAMINE) {
-            System.out.println("Job " + this + " was not launched in CLIENT mode");
-            return;
+            if (jobType != Type.EXAMINE) {
+                System.out.println("Job " + job + " was not launched in CLIENT mode");
+                return;
+            }
         }
 //        if (display)
 //            myNode = new DefaultMutableTreeNode(this);
@@ -461,10 +494,10 @@ public abstract class Job implements Runnable {
         if (NOTHREADING) {
             // turn off threading if needed for debugging
             Main.getUserInterface().setBusyCursor(true);
-            run();
+            job.run();
             Main.getUserInterface().setBusyCursor(false);
         } else {
-            databaseChangesThread.addJob(this);
+            databaseChangesThread.addJob(job);
         }
     }
 
@@ -474,51 +507,179 @@ public abstract class Job implements Runnable {
      */
     protected void fieldVariableChanged(String variableName) {}
 
-    void printFields() throws IllegalAccessException {
-        Class cls = getClass();
-        while (cls != Job.class) {
-            System.out.println(cls.getName());
-            Field[] flds = cls.getDeclaredFields();
-            for (int i = 0; i < flds.length; i++) {
-                Field f = flds[i];
-                int fm = f.getModifiers();
-                if (Modifier.isStatic(fm)) {
-                    System.out.println("\tSTATIC field " + f.getName());
-                    continue;
-                }
-                f.setAccessible(true);
-                Object value = f.get(this);
-                Class tf = f.getType();
-                System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
-            }
-            cls = cls.getSuperclass();
+    Job testSerialization() {
+        byte[] bytes = serialize();
+        if (bytes == null) return null;
+        Job newJob;
+        try {
+            ByteArrayInputStream byteInputStream = new ByteArrayInputStream(bytes);
+            ObjectInputStream in = new ObjectInputStream(byteInputStream);
+            return (Job)in.readObject();
+        } catch (Throwable e) {
+            System.out.println("Can't deserialize Job " + this);
+            e.printStackTrace(System.out);
+            return null;
         }
     }
-//        private ClassDescriptor(Class cls) {
-//            this.cls = cls;
-//            ArrayList<Field> fieldList = new ArrayList<Field>();
-//            ArrayList<Field> staticFieldList = new ArrayList<Field>();
-//            Class superCls = cls.getSuperclass();
-//            if (superCls != null)
-//                fieldList.addAll(Arrays.asList(classDescriptorOf(superCls).fields));
-//            Field[] flds = cls.getDeclaredFields();
-//            for (int i = 0; i < flds.length; i++) {
-//                Field f = flds[i];
-//                Class tf = f.getType();
-//                if (tf.isPrimitive()) continue;
-//                if (Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
-//                    continue;
-//                f.setAccessible(true);
-//                int fm = f.getModifiers();
-//                if (Modifier.isStatic(fm))
-//                    staticFieldList.add(f);
-//                else
-//                    fieldList.add(f);
-//            }
-//            Field[] NULL_FIELD_ARRAY = {};
-//            this.fields = (Field[])fieldList.toArray(NULL_FIELD_ARRAY);
-//            this.staticFields = (Field[])staticFieldList.toArray(NULL_FIELD_ARRAY);
-//        }
+    
+    byte[] serialize() {
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            out.writeObject(this);
+            out.flush();
+            return byteStream.toByteArray();
+        } catch (Throwable e) {
+            System.out.println("Can't serialize Job " + this);
+            e.printStackTrace(System.out);
+            return null;
+        }
+    }
+    
+    /**
+     * Serializes this Job.
+     * @return byte array with serialization or null on failure.
+     */
+    byte[] serialize1() {
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            Class[] empty = {};
+            Class cls = getClass();
+            out.writeUTF(cls.getName());
+            while (cls != Job.class) {
+                System.out.println(cls.getName());
+                Field[] flds = cls.getDeclaredFields();
+                for (int i = 0; i < flds.length; i++) {
+                    Field f = flds[i];
+                    int fm = f.getModifiers();
+                    if (Modifier.isStatic(fm)) {
+                        System.out.println("\tSTATIC field " + f.getName());
+                        continue;
+                    }
+                    out.writeUTF(f.getName());
+                    f.setAccessible(true);
+                    Object value = f.get(this);
+                    Class tf = f.getType();
+                    if (!tf.isPrimitive())
+                        out.writeObject(value);
+                    else if (tf == Boolean.TYPE)
+                        out.writeBoolean(((Boolean)value).booleanValue());
+                    else if (tf == Byte.TYPE)
+                        out.writeByte(((Byte)value).byteValue());
+                    else if (tf == Character.TYPE)
+                        out.writeChar(((Character)value).charValue());
+                    else if (tf == Short.TYPE)
+                        out.writeShort(((Short)value).shortValue());
+                    else if (tf == Integer.TYPE)
+                        out.writeInt(((Integer)value).intValue());
+                    else if (tf == Long.TYPE)
+                        out.writeLong(((Long)value).longValue());
+                    else if (tf == Float.TYPE)
+                        out.writeFloat(((Float)value).floatValue());
+                    else if (tf == Double.TYPE)
+                        out.writeDouble(((Double)value).doubleValue());
+                    else
+                        assert false;
+                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
+                }
+                cls = cls.getSuperclass();
+            }
+            out.flush();
+            
+            ByteArrayInputStream byteInputStream = new ByteArrayInputStream(byteStream.toByteArray());
+            ObjectInputStream in = new ObjectInputStream(byteInputStream);
+            
+            cls = getClass();
+            assert in.readUTF().equals(cls.getName());
+            while (cls != Job.class) {
+                System.out.println(cls.getName());
+                Field[] flds = cls.getDeclaredFields();
+                for (int i = 0; i < flds.length; i++) {
+                    Field f = flds[i];
+                    int fm = f.getModifiers();
+                    if (Modifier.isStatic(fm)) {
+                        System.out.println("\tSTATIC field " + f.getName());
+                        continue;
+                    }
+                    assert in.readUTF().equals(f.getName());
+                    f.setAccessible(true);
+                    Object value = f.get(this);
+                    Class tf = f.getType();
+                    Object obj;
+                    boolean bool;
+                    if (!tf.isPrimitive())
+                        obj = in.readObject();
+                    else if (tf == Boolean.TYPE)
+                        bool = in.readBoolean();
+                    else if (tf == Byte.TYPE)
+                        in.readByte();
+                    else if (tf == Character.TYPE)
+                        in.readChar();
+                    else if (tf == Short.TYPE)
+                        in.readShort();
+                    else if (tf == Integer.TYPE)
+                        in.readInt();
+                    else if (tf == Long.TYPE)
+                        in.readLong();
+                    else if (tf == Float.TYPE)
+                        in.readFloat();
+                    else if (tf == Double.TYPE)
+                        in.readDouble();
+                    else
+                        assert false;
+                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
+                }
+                cls = cls.getSuperclass();
+            }
+            out.flush();
+            
+            return byteStream.toByteArray();
+        } catch (Exception e) {
+            System.out.println("Exception while serializing Job " + this);
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    void printFields() throws IllegalAccessException {
+        Class cls = getClass();
+        if (cls.getName().endsWith("RenderJob"))
+            return;
+        serialize();
+        serialize1();
+        try {
+            Class[] empty = {};
+            Constructor c = cls.getConstructor(empty);
+            c.setAccessible(true);
+            Job newJob = (Job)c.newInstance((Object[])null);
+            while (cls != null) {
+                System.out.println(cls.getName());
+                Field[] flds = cls.getDeclaredFields();
+                for (int i = 0; i < flds.length; i++) {
+                    Field f = flds[i];
+                    int fm = f.getModifiers();
+                    if (Modifier.isStatic(fm)) {
+                        System.out.println("\tSTATIC field " + f.getName());
+                        continue;
+                    }
+                    f.setAccessible(true);
+                    Object value = f.get(this);
+                    f.set(newJob, value);
+                    Class tf = f.getType();
+                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
+                }
+                cls = cls.getSuperclass();
+            }
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Method to access scheduled abort flag in Job and
      * set the flag to abort if scheduled flag is true.
@@ -556,6 +717,8 @@ public abstract class Job implements Runnable {
     public void terminateIt(Throwable jobException) {
         if (jobException instanceof CantEditException) {
             ((CantEditException)jobException).presentProblem();
+        } else if (jobException instanceof JobException) {
+            System.out.println(jobException.getMessage());
         }
     }
     

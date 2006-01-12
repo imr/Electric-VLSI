@@ -1970,11 +1970,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/**
 	 * Method to return the NodeInst at specified position.
 	 * @param nodeIndex specified position of NodeInst.
-	 * @return the NodeInst at specified position..
+	 * @return the NodeInst at specified position.
 	 */
 	public final NodeInst getNode(int nodeIndex)
 	{
 		return (NodeInst)nodes.get(nodeIndex);
+	}
+
+	/**
+	 * Method to return the NodeInst by its chronological index.
+	 * @param nodeId chronological index of NodeInst.
+	 * @return the NodeInst with specified chronological index.
+	 */
+	public NodeInst getNodeById(int nodeId)
+	{
+		return chronNodes.get(nodeId);
 	}
 
 	/**
@@ -2333,6 +2343,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public final ArcInst getArc(int arcIndex)
 	{
 		return (ArcInst)arcs.get(arcIndex);
+	}
+
+	/**
+	 * Method to return the ArcInst by its chronological index.
+	 * @param arcId chronological index of ArcInst.
+	 * @return the ArcInst with specified chronological index.
+	 */
+	public ArcInst getArcById(int arcId)
+	{
+		return chronArcs.get(arcId);
 	}
 
 	/**
