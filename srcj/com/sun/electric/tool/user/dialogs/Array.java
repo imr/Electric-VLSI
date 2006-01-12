@@ -38,7 +38,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -137,9 +136,8 @@ public class Array extends EDialog
 		// see if a cell was selected which has a characteristic distance
 		spacingCharacteristicX = spacingCharacteristicY = 0;
 		boolean haveChar = false;
-		for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+		for(Geometric eObj : highs)
 		{
-			Geometric eObj = (Geometric)it.next();
 			if (!(eObj instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)eObj;
 			if (!(ni.getProto() instanceof Cell)) continue;
@@ -225,9 +223,8 @@ public class Array extends EDialog
 
 		// mark the list of nodes and arcs in the cell that will be arrayed
 		selected = new HashMap<Geometric,Geometric>();
-		for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+		for(Geometric eObj : highs)
 		{
-			Geometric eObj = (Geometric)it.next();
 			if (eObj instanceof NodeInst)
 			{
 				selected.put(eObj, eObj);
@@ -245,9 +242,8 @@ public class Array extends EDialog
 		// determine spacing between arrayed objects
 		boolean first = true;
 		bounds = new Rectangle2D.Double();
-		for(Iterator<Geometric> it = selected.keySet().iterator(); it.hasNext(); )
+		for(Geometric geom : selected.keySet())
 		{
-			Geometric geom = (Geometric)it.next();
 			if (first)
 			{
 				bounds.setRect(geom.getBounds());
@@ -336,8 +332,82 @@ public class Array extends EDialog
 
 	private void makeArray()
 	{
+		Cell cell = null;
+
+		// disallow arraying if lock is on
+//		for(Iterator<Geometric> it = selected.keySet().iterator(); it.hasNext(); )
+//		{
+//			Geometric geom = it.next();
+//			cell = geom.getParent();
+//			if (geom instanceof NodeInst)
+//			{
+//				if (CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true) != 0) return;
+//			} else
+//			{
+//				if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return;
+//			}
+//		}
+
+		// check for nonsense
+		int xRepeat = Math.abs(lastXRepeat);
+		int yRepeat = Math.abs(lastYRepeat);
+		if (xRepeat <= 1 && yRepeat <= 1)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"One dimension of the array must be greater than 1");
+			return;
+		}
+		if (lastLinearDiagonal && xRepeat != 1 && yRepeat != 1)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Diagonal arrays need one dimension to be 1");
+			return;
+		}
+
+		// make lists of nodes and arcs that will be arrayed
+		List<NodeInst> nodeList = new ArrayList<NodeInst>();
+		List<ArcInst> arcList = new ArrayList<ArcInst>();
+		List<Export> exportList = new ArrayList<Export>();
+		for(Geometric geom : selected.keySet())
+		{
+			cell = geom.getParent();
+			if (geom instanceof NodeInst)
+			{
+				nodeList.add((NodeInst)geom);
+				if (User.isDupCopiesExports())
+				{
+					NodeInst ni = (NodeInst)geom;
+					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
+						exportList.add(eIt.next());
+				}
+			} else
+			{
+				arcList.add((ArcInst)geom);
+			}
+		}
+		Collections.sort(nodeList);
+		Collections.sort(arcList);
+		Collections.sort(exportList);
+
+		// determine the distance between arrayed entries
+		double xOverlap = lastXDistance;
+		double yOverlap = lastYDistance;
+		if (lastSpacingType == SPACING_EDGE)
+		{
+			xOverlap = bounds.getWidth() - lastXDistance;
+			yOverlap = bounds.getHeight() - lastYDistance;
+		}
+		double cX = bounds.getCenterX();
+		double cY = bounds.getCenterY();
+
+		// TODO: should be here
+//		for(NodeInst ni : nodeList)
+//		{
+//			if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return;
+//		}
+
 		// create the array
-		ArrayStuff job = new ArrayStuff(this);
+		ArrayStuff job = new ArrayStuff(nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY);
 	}
 
 	/**
@@ -345,12 +415,27 @@ public class Array extends EDialog
 	 */
 	private static class ArrayStuff extends Job
 	{
-		Array dialog;
+		private List<NodeInst> nodeList;
+		private List<ArcInst> arcList;
+		private List<Export> exportList;
+		private int xRepeat, yRepeat;
+		private double xOverlap, yOverlap, cX, cY;
 
-		protected ArrayStuff(Array dialog)
+		public ArrayStuff() {}
+
+		protected ArrayStuff(List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
+			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY)
 		{
 			super("Make Array", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.nodeList = nodeList;
+			this.arcList = arcList;
+			this.exportList = exportList;
+			this.xRepeat = xRepeat;
+			this.yRepeat = yRepeat;
+			this.xOverlap = xOverlap;
+			this.yOverlap = yOverlap;
+			this.cX = cX;
+			this.cY = cY;
 			startJob();
 		}
 
@@ -359,71 +444,12 @@ public class Array extends EDialog
 			Cell cell = null;
 
 			// disallow arraying if lock is on
-			for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
+			// TODO: should NOT be here
+			for(NodeInst ni : nodeList)
 			{
-				Geometric geom = (Geometric)it.next();
-				cell = geom.getParent();
-				if (geom instanceof NodeInst)
-				{
-					if (CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true) != 0) return false;
-				} else
-				{
-					if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
-				}
+				cell = ni.getParent();
+				if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return false;
 			}
-
-			// check for nonsense
-			int xRepeat = Math.abs(lastXRepeat);
-			int yRepeat = Math.abs(lastYRepeat);
-			if (xRepeat <= 1 && yRepeat <= 1)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"One dimension of the array must be greater than 1");
-				return false;
-			}
-			if (lastLinearDiagonal && xRepeat != 1 && yRepeat != 1)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Diagonal arrays need one dimension to be 1");
-				return false;
-			}
-
-			// make lists of nodes and arcs that will be arrayed
-			List<NodeInst> nodeList = new ArrayList<NodeInst>();
-			List<ArcInst> arcList = new ArrayList<ArcInst>();
-			List<Export> exportList = new ArrayList<Export>();
-			for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
-			{
-				Geometric geom = (Geometric)it.next();
-				cell = geom.getParent();
-				if (geom instanceof NodeInst)
-				{
-					nodeList.add((NodeInst)geom);
-					if (User.isDupCopiesExports())
-					{
-						NodeInst ni = (NodeInst)geom;
-						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
-							exportList.add(eIt.next());
-					}
-				} else
-				{
-					arcList.add((ArcInst)geom);
-				}
-			}
-			Collections.sort(nodeList);
-			Collections.sort(arcList);
-			Collections.sort(exportList);
-
-			// determine the distance between arrayed entries
-			double xOverlap = lastXDistance;
-			double yOverlap = lastYDistance;
-			if (lastSpacingType == SPACING_EDGE)
-			{
-				xOverlap = dialog.bounds.getWidth() - lastXDistance;
-				yOverlap = dialog.bounds.getHeight() - lastYDistance;
-			}
-			double cX = dialog.bounds.getCenterX();
-			double cY = dialog.bounds.getCenterY();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
 			Geometric [] geomsToCheck = null;
@@ -465,9 +491,8 @@ public class Array extends EDialog
 				// first replicate the nodes
 				boolean firstNode = true;
 				HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
-				for(Iterator<NodeInst> it = nodeList.iterator(); it.hasNext(); )
+				for(NodeInst ni : nodeList)
 				{
-					NodeInst ni = (NodeInst)it.next();
 					double xPos = cX + xOverlap * xIndex;
 					if (lastLinearDiagonal && xRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
@@ -488,24 +513,9 @@ public class Array extends EDialog
 						yOff = -yOff;
 					}
                     Orientation orient = Orientation.fromJava(0, flipX, flipY).concatenate(ni.getOrient());
-//					int ro = ni.getAngle();
-//					double sx = ni.getXSizeWithMirror();
-//					double sy = ni.getYSizeWithMirror();
-//					if ((xIndex&1) != 0 && lastXFlip)
-//					{
-//						sx = -sx;
-//						xOff = -xOff;
-//					}
-//					if ((yIndex&1) != 0 && lastYFlip)
-//					{
-//						sy = -sy;
-//						yOff = -yOff;
-//					}
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 						new Point2D.Double(xPos, yPos), ni.getXSize(), ni.getYSize(), cell, orient, null, 0);
-//					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-//						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
 					if (newNi == null) continue;
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
@@ -535,9 +545,8 @@ public class Array extends EDialog
 				}
 
 				// next replicate the arcs
-				for(Iterator<ArcInst> it = arcList.iterator(); it.hasNext(); )
+				for(ArcInst ai : arcList)
 				{
-					ArcInst ai = (ArcInst)it.next();
 					double cX0 = ai.getHeadPortInst().getNodeInst().getAnchorCenterX();
 					double cY0 = ai.getHeadPortInst().getNodeInst().getAnchorCenterY();
 					double xOff0 = ai.getHeadLocation().getX() - cX0;
@@ -594,9 +603,8 @@ public class Array extends EDialog
 				// copy the exports, too
 				List<PortInst> portInstsToExport = new ArrayList<PortInst>();
 				HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
-				for(Iterator<Export> eit = exportList.iterator(); eit.hasNext(); )
+				for(Export pp : exportList)
 				{
-					Export pp = (Export)eit.next();
 					PortInst oldPI = pp.getOriginalPort();
 					NodeInst newNI = (NodeInst)nodeMap.get(oldPI.getNodeInst());
 					if (newNI == null) continue;
@@ -610,10 +618,13 @@ public class Array extends EDialog
 			// rename the replicated objects
 			if (lastAddNames)
 			{
-				for(Iterator<Geometric> it = dialog.selected.keySet().iterator(); it.hasNext(); )
+				for(NodeInst ni : nodeList)
 				{
-					Geometric geom = (Geometric)it.next();
-					setNewName(geom, originalX, originalY);
+					setNewName(ni, originalX, originalY);
+				}
+				for(ArcInst ai : arcList)
+				{
+					setNewName(ai, originalX, originalY);
 				}
 			}
 

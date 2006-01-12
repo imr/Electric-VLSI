@@ -158,6 +158,9 @@ public class GateLayoutGenerator extends Job {
 		System.out.println("done.");
 		return true;
 	}
+
+	public GateLayoutGenerator() {}
+
 	public GateLayoutGenerator(Technology technology, Tech.TechType techNm) {
 		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);

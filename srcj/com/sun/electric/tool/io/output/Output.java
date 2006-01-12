@@ -872,6 +872,8 @@ public class Output
         FileType type;
         List<PolyBase> override;
 
+    	public OutputCellInfo() {}
+
         /**
          * @param cell the Cell to be written.
          * @param context the VarContext of the Cell (its position in the hierarchy above it).

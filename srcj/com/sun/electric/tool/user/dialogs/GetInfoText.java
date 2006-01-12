@@ -624,6 +624,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		CachedTextInfo cti;
         String[] newText;
 
+		public ChangeText() {}
+
         protected ChangeText(CachedTextInfo cti, String[] newText) {
             super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cti = cti;

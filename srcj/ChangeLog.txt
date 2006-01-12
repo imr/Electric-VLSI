@@ -4,8 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
-IMP: (1/12/06, GVG) Reorganizing DRC rules stored so they belong to the foundries and easily replaced
-by imported data. New class Foundry.
+IMP: (1/12/06, SMR) Further reorganization for client/server split:
+     Added null constructor to every Job class.
+     Finished reorganazation of package tool.user.
+
+IMP: (1/12/06, GVG) Reorganizing DRC rules stored so they belong to the foundries and
+     easily replaced by imported data. New class Foundry.
 
 IMP: (1/11/06, DN) Added method Job.terminateIt. This method will be called on client side
      after termination of Job.doIt on server side.

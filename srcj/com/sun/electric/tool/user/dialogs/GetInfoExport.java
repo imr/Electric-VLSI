@@ -276,6 +276,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         PortCharacteristic newChar;
         String newRefName;
 
+		public ChangeExport() {}
+
 		protected ChangeExport(Export pp,
                 String oldName,
                 String newName,

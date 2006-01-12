@@ -128,7 +128,7 @@ public class EditMenu {
 		editMenu.addMenuItem("Cop_y", KeyStroke.getKeyStroke('C', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.copy(); } });
 		editMenu.addMenuItem("_Paste", KeyStroke.getKeyStroke('V', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(); } });
         editMenu.addMenuItem("Dup_licate", KeyStroke.getKeyStroke('M', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.duplicate(); } });
 
@@ -727,6 +727,8 @@ public class EditMenu {
 		private int how;
         private List<Geometric> selected;
 
+        public ParameterVisibility() {}
+
 		protected ParameterVisibility(int how, List<Geometric> selected)
 		{
 			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -824,6 +826,8 @@ public class EditMenu {
         private List<Geometric> highlighted;
         private boolean allLibraries;
         private int whatToUpdate;
+
+        public UpdateAttributes() {}
 
         /**
          * Update Attributes.
@@ -1164,6 +1168,8 @@ public class EditMenu {
 	{
 	    private boolean easy;
 		private List<Geometric> highlighted;
+
+        public SetEasyHardSelect() {}
 	
 		private SetEasyHardSelect(boolean easy, List<Geometric> highlighted)
 		{
@@ -1392,6 +1398,8 @@ public class EditMenu {
             private ArcInst ai;
             private Point2D insert;
             private Highlighter highlighter;
+
+            public InsertJogPoint() {}
 
             protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
             {

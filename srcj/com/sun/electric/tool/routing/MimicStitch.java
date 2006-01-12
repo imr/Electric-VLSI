@@ -350,6 +350,8 @@ public class MimicStitch
 		private boolean forced;
 		private EditWindow_ wnd;
 
+		public MimicStitchJob() {}
+
 		private MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
 								double prefX, double prefY, boolean forced, EditWindow_ wnd)
 		{
@@ -821,6 +823,8 @@ public class MimicStitch
 		private List<ArcInst> allKills;
 		private EditWindow_ wnd;
 		private boolean redisplay;
+
+		public MimicWireJob() {}
 
 		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, EditWindow_ wnd, boolean redisplay)
 		{

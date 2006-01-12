@@ -356,6 +356,8 @@ public class Manipulate
 		private String name;
 		private int type;
 
+		public MakeOneCellJob() {}
+
 		private MakeOneCellJob(Library lib, String name, int type)
 		{
 			super("Make Cell in Technology-Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -489,6 +491,8 @@ public class Manipulate
 		private static class ModifyDependenciesJob extends Job
 		{
 			private DefaultListModel depLibsModel;
+
+			public ModifyDependenciesJob() {}
 
 			private ModifyDependenciesJob(DefaultListModel depLibsModel)
 			{
@@ -1456,6 +1460,8 @@ public class Manipulate
 		private NodeInst ni;
 		private int color;
 
+		public SetLayerPatternJob() {}
+
 		private SetLayerPatternJob(NodeInst ni, int color)
 		{
 			super("Change Pattern In Layer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1583,6 +1589,8 @@ public class Manipulate
 		private String choice;
 		private Cell [] layerCells;
 
+		public ModifyLayerJob() {}
+
 		private ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
 		{
 			super("Change Layer Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1689,6 +1697,8 @@ public class Manipulate
 		private NodeInst ni;
 		private List<Cell> allArcs;
 		private PromptAt.Field [] fields;
+
+		public ModifyPortJob() {}
 
 		private ModifyPortJob(NodeInst ni, List<Cell> allArcs, PromptAt.Field [] fields)
 		{
@@ -1872,6 +1882,8 @@ public class Manipulate
 		private NodeInst ni;
 		private String chr;
 
+		public SetTextJob() {}
+
 		private SetTextJob(NodeInst ni, String chr)
 		{
 			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1897,6 +1909,8 @@ public class Manipulate
 		private NodeInst ni;
 		private String chr;
 
+		public SetTransparentColorJob() {}
+
 		private SetTransparentColorJob(NodeInst ni, String chr)
 		{
 			super("Set Transparent Colors", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1918,6 +1932,8 @@ public class Manipulate
 	private static class RedoLayerGraphicsJob extends Job
 	{
 		private Cell cell;
+
+		public RedoLayerGraphicsJob() {}
 
 		private RedoLayerGraphicsJob(Cell cell)
 		{
@@ -2122,6 +2138,8 @@ public class Manipulate
 			private Library lib;
 			private String [] newList;
 			private int type;
+
+			public UpdateOrderingJob() {}
 
 			private UpdateOrderingJob(Library lib, String [] newList, int type)
 			{

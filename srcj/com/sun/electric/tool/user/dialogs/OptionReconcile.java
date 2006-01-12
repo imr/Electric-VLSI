@@ -243,6 +243,8 @@ public class OptionReconcile extends EDialog
 	{
 		HashMap<JRadioButton,Pref.Meaning> changedOptions;
 
+    	public DoReconciliation() {}
+
 		protected DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
 		{
 			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

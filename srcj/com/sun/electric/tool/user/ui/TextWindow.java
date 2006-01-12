@@ -295,6 +295,8 @@ public class TextWindow
 	{
 		private TextWindow tw;
 
+    	public SaveCellText() {}
+
 		private SaveCellText(TextWindow tw)
 		{
 			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

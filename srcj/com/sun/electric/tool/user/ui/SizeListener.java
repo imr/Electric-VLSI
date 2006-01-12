@@ -282,6 +282,8 @@ public class SizeListener
 	{
 		SizeObjects dialog;
 
+    	public ResizeStuff() {}
+
 		protected ResizeStuff(SizeObjects dialog)
 		{
 			super("Resize Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -641,6 +643,8 @@ public class SizeListener
 		private Point2D newCenter;
 		private double newWidth, newHeight;
 
+    	public ScaleNode() {}
+
 		protected ScaleNode(NodeInst stretchNode, Point2D newCenter, double newWidth, double newHeight)
 		{
 			super("Scale node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -668,6 +672,8 @@ public class SizeListener
 	{
 		private ArcInst stretchArc;
 		private double newWidth;
+
+    	public ScaleArc() {}
 
 		protected ScaleArc(ArcInst stretchArc, double newWidth)
 		{

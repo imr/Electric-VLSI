@@ -559,6 +559,8 @@ public final class ExportChanges
         private boolean onlyPowerGround;
         private boolean ignorePrimitives;
 
+        public ReExportNodes() {}
+
         /**
          * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
          */
@@ -593,6 +595,8 @@ public final class ExportChanges
         private boolean includeWiredPorts;
         private boolean onlyPowerGround;
         private HashMap<PortInst,Export> originalExports;
+
+        public ReExportPorts() {}
 
         /**
          * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
@@ -890,6 +894,8 @@ public final class ExportChanges
         Cell cell;
 		List<Export> exportsToDelete;
 
+        public DeleteExports() {}
+
 		public DeleteExports(Cell cell, List<Export> exportsToDelete)
 		{
 			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -972,6 +978,8 @@ public final class ExportChanges
 		Export source;
 		PortInst dest;
 
+        public MoveExport() {}
+
 		protected MoveExport(Export source, PortInst dest)
 		{
 			super("Move export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1014,6 +1022,8 @@ public final class ExportChanges
 	{
 		private Export pp;
 		private String newName;
+
+        public RenameExport() {}
 
 		protected RenameExport(Export pp, String newName)
 		{
@@ -1294,6 +1304,8 @@ public final class ExportChanges
 	private static class SynchronizeExports extends Job
 	{
 		private Library oLib;
+
+        public SynchronizeExports() {}
 
 		private SynchronizeExports(Library oLib)
 		{

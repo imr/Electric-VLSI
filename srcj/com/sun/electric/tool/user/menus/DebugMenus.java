@@ -331,6 +331,8 @@ public class DebugMenus {
     {
     	private String cellName;
 
+        public SetCellJob() {}
+
         public SetCellJob(String cellName)
         {
             super("Set current cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -349,6 +351,8 @@ public class DebugMenus {
 	private static class SaveLibraryJob extends Job
     {
     	private String fileName;
+
+        public SaveLibraryJob() {}
 
     	public SaveLibraryJob(String fileName)
         {
@@ -389,6 +393,8 @@ public class DebugMenus {
 	private static class MakeFakeCircuitry extends Job
 	{
 		private String theTechnology;
+
+        public MakeFakeCircuitry() {}
 
 		protected MakeFakeCircuitry(String tech)
 		{
@@ -574,6 +580,8 @@ public class DebugMenus {
     private static class FakeCoverageCircuitry extends Job
     {
         private String theTechnology;
+
+        public FakeCoverageCircuitry() {}
 
         protected FakeCoverageCircuitry(String tech)
         {
@@ -871,6 +879,8 @@ public class DebugMenus {
     {
         private String fileName;
 
+        public convertTo7LayersTechJob() {}
+
         convertTo7LayersTechJob(String name)
         {
             super("Converting into 7 layers Tech", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -1158,6 +1168,8 @@ public class DebugMenus {
 		private Cell curCell;
         private Highlighter highlighter;
 
+        public CoverImplantOld() {}
+
 		protected CoverImplantOld(Cell cell, Highlighter highlighter)
 		{
 			super("Coverage Implant Old", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1408,6 +1420,8 @@ public class DebugMenus {
     private static class AddStringVar extends Job {
         private ElectricObject eobj;
 
+        public AddStringVar() {}
+
         private AddStringVar(ElectricObject eobj) {
             super("AddStringVar", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.eobj = eobj;
@@ -1469,7 +1483,6 @@ public class DebugMenus {
     }
 
     private static class RedrawTest extends Job {
-
         private RedrawTest() {
             super("RedrawTest", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             startJob();
@@ -1512,6 +1525,8 @@ public class DebugMenus {
     private static class RedisplayTest extends Job {
 
         private long delayTimeMS;
+
+        public RedisplayTest() {}
 
         private RedisplayTest(long delayTimeMS) {
             super("RedisplayTest", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -1612,6 +1627,9 @@ public class DebugMenus {
 
         private static class CountJob extends Job {
             private final Object mutex;
+
+            public CountJob() { mutex = null; }
+
             private CountJob(Object mutex) {
                 super("CountJob", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
                 this.mutex = mutex;

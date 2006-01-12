@@ -1953,7 +1953,10 @@ public class Spice extends Topology
 
     public static class BackAnnotateJob extends Job {
         private List<SegmentedNets> parasiticInfo;             // list of segmentedNets
-        public BackAnnotateJob(List<SegmentedNets> parasiticInfo) {
+
+    	public BackAnnotateJob() {}
+
+    	public BackAnnotateJob(List<SegmentedNets> parasiticInfo) {
             super("Spice Layout Back Annotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.parasiticInfo = parasiticInfo;
         }

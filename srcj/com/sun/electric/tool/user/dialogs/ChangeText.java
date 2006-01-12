@@ -487,6 +487,8 @@ public class ChangeText extends EDialog
 	{
 		ChangeText dialog;
 
+		public ChangeTextSizes() {}
+
 		protected ChangeTextSizes(ChangeText dialog)
 		{
 			super("Change Text Size", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

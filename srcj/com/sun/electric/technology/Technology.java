@@ -4071,6 +4071,8 @@ public class Technology implements Comparable<Technology>
     {
         private Library library; // just to correct this one
 
+    	public ResetDefaultWidthJob() {}
+
         public ResetDefaultWidthJob(Library lib)
         {
             super("Reset Default Arc Widths", User.getUserTool(), Type.CHANGE, null, null, Priority.USER);

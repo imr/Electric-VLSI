@@ -368,6 +368,8 @@ public class NewCell extends EDialog
         Technology tech;
         private Cell newCell;
 
+    	public CreateCell() {}
+
 		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
 		{
 			super("Create Cell " + cellName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

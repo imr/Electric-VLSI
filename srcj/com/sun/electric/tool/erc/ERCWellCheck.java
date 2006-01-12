@@ -508,6 +508,8 @@ public class ERCWellCheck
 		GeometryHandler.GHMode newAlgorithm;
 		EditWindow_ wnd;
 
+        public WellCheckJob() {}
+
 		protected WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, EditWindow_ wnd)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);

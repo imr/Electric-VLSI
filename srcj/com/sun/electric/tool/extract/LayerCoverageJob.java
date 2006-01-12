@@ -73,7 +73,7 @@ public class LayerCoverageJob extends Job
     private Job parentJob; // to stop if parent job is killed
     private GeometryHandler.GHMode mode;
 	private GeometryHandler tree;
-	private final LayerCoverage.LCMode function;
+	private LayerCoverage.LCMode function;
 	private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 	private HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
 	private Highlighter highlighter; // To highlight new implants
@@ -399,6 +399,8 @@ public class LayerCoverageJob extends Job
             return pnode;
         }
 	}
+
+	public LayerCoverageJob() {}
 
 	public LayerCoverageJob(Job parentJob, Type jobType, Cell cell, LayerCoverage.LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)

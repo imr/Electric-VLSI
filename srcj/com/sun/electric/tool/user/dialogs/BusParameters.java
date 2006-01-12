@@ -238,6 +238,8 @@ public class BusParameters extends EDialog
 		private Library lib;
 		private String [] parameterList;
 
+		public UpdateLibrary() {}
+
 		private UpdateLibrary(Library lib, String [] parameterList)
 		{
 			super("Update Bus Parameters", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -260,6 +262,8 @@ public class BusParameters extends EDialog
 	private static class UpdateAllParameters extends Job
 	{
 		HashMap<Library,String[]> libParameters;
+
+		public UpdateAllParameters() {}
 
 		private UpdateAllParameters(HashMap<Library,String[]> libParameters)
 		{
@@ -364,6 +368,8 @@ public class BusParameters extends EDialog
 	private static class AddTemplate extends Job
 	{
 		private ElectricObject owner;
+
+		public AddTemplate() {}
 
 		private AddTemplate(ElectricObject owner)
 		{

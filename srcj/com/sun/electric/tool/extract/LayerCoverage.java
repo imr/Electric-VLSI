@@ -149,6 +149,8 @@ public class LayerCoverage extends Listener
         GeometryHandler.GHMode mode;
         boolean foundError = false;
 
+    	public AreaCoverageJob() {}
+
         public AreaCoverageJob(Cell cell, Highlighter highlighter, GeometryHandler.GHMode mode, double width, double height, double deltaX, double deltaY)
         {
             super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);

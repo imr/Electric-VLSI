@@ -103,6 +103,8 @@ public class ViewControl extends EDialog
 		View view;
 		ViewControl dialog;
 
+    	public DeleteView() {}
+
 		protected DeleteView(View view, ViewControl dialog)
 		{
 			super("Delete View " + view.getFullName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -128,6 +130,8 @@ public class ViewControl extends EDialog
 		String viewAbbr;
 		boolean isText;
 		ViewControl dialog;
+
+    	public CreateView() {}
 
 		protected CreateView(String viewName, String viewAbbr, boolean isText, ViewControl dialog)
 		{

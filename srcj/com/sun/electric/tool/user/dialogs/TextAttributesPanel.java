@@ -254,6 +254,8 @@ public class TextAttributesPanel extends javax.swing.JPanel
         private TextDescriptor.Unit unit;
         private Object dispPos;
 
+    	public ChangeText() {}
+
         private ChangeText(
                 ElectricObject owner,
                 Variable.Key varKey,

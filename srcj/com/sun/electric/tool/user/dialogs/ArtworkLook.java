@@ -202,6 +202,8 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	{
 		private ArtworkLook dialog;
 
+		public ApplyChanges() {}
+
 		protected ApplyChanges(ArtworkLook dialog)
 		{
 			super("Update Edit Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

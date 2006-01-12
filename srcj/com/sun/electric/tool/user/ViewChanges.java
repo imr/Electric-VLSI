@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,6 +43,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -112,6 +114,8 @@ public class ViewChanges
 	{
 		private List<Cell> multiPageCells;
 
+    	public FixOldMultiPageSchematics() {}
+
 		protected FixOldMultiPageSchematics(List<Cell> multiPageCells)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -137,21 +141,16 @@ public class ViewChanges
 					destCell.setMultiPage(true);
 					destCell.newVar(User.FRAME_SIZE, "d");
 				}
-	
+
 				// copy this page into the multipage cell
 				double dY = (pageNo - 1) * 1000;
-				List<Object> pasteList = new ArrayList<Object>();
+				List<Geometric> geomList = new ArrayList<Geometric>();
+				List<DisplayedText> textList = new ArrayList<DisplayedText>();
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
-				{
-					NodeInst ni = nIt.next();
-					pasteList.add(ni);
-				}
+					geomList.add(nIt.next());
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
-				{
-					ArcInst ai = aIt.next();
-					pasteList.add(ai);
-				}
-				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true, true);
+					geomList.add(aIt.next());
+				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY), true, true);
 	
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
@@ -204,6 +203,8 @@ public class ViewChanges
 	{
 		private Cell cell;
 		private View newView;
+
+    	public ChangeCellView() {}
 
 		protected ChangeCellView(Cell cell, View newView)
 		{
@@ -264,6 +265,8 @@ public class ViewChanges
 	{
 		private Cell curCell;
 		private Cell skeletonCell;
+
+    	public MakeSkeletonView() {}
 
 		protected MakeSkeletonView(Cell curCell)
 		{
@@ -453,6 +456,8 @@ public class ViewChanges
 	{
 		private Cell curCell;
 		private NodeInst iconNode;
+
+    	public MakeIconView() {}
 
 		private MakeIconView(Cell cell)
 		{
@@ -810,6 +815,8 @@ public class ViewChanges
 		private Cell oldCell;
 		private Cell newCell;
 
+    	public MakeSchematicView() {}
+
 		protected MakeSchematicView(Cell cell)
 		{
 			super("Make Schematic View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1134,6 +1141,8 @@ public class ViewChanges
 		private Cell newCell;
 		private Technology newTech;
 		private HashMap<NodeInst,NodeInst> convertedNodes;
+
+    	public MakeLayoutView() {}
 
 		protected MakeLayoutView(Cell oldCell)
 		{

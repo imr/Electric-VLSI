@@ -995,6 +995,8 @@ public class FPGA extends Technology
 		private NodeInst ni;
 		private String newPips;
 
+        public SetPips() {}
+
 		protected SetPips(NodeInst ni, String newPips)
 		{
 			super("Program Pips", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1019,6 +1021,8 @@ public class FPGA extends Technology
 	{
 		private LispTree lt;
 		private boolean placeAndWire;
+
+        public BuildTechnology() {}
 
 		protected BuildTechnology(LispTree lt, boolean placeAndWire)
 		{

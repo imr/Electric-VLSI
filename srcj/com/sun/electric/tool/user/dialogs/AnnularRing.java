@@ -129,6 +129,8 @@ public class AnnularRing extends EDialog
 	{
 		AnnularRing dialog;
 
+		public MakeAnnulus() {}
+
 		protected MakeAnnulus(AnnularRing dialog)
 		{
 			super("Make Annular Ring", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

@@ -1367,6 +1367,8 @@ public class EditWindow extends JPanel
 		private Rectangle2D bounds;
 		private boolean fullInstantiate;
 
+        public RenderJob() {}
+
 		protected RenderJob(EditWindow wnd, PixelDrawing offscreen, Rectangle2D bounds, boolean fullInstantiate)
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -2130,6 +2132,8 @@ public class EditWindow extends JPanel
 		private EditWindow wnd;
 		private String replace;
 
+        public ReplaceTextJob() {}
+
 		private ReplaceTextJob(EditWindow wnd, String replace)
 		{
 			super("Replace Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2152,6 +2156,8 @@ public class EditWindow extends JPanel
 	{
 		EditWindow wnd;
 		String replace;
+
+        public ReplaceAllTextJob() {}
 
 		public ReplaceAllTextJob(EditWindow wnd, String replace)
 		{

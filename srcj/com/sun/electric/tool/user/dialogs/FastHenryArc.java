@@ -268,6 +268,8 @@ public class FastHenryArc extends EDialog
 	{
     	FastHenryArc fha;
 
+        public UpdateFastHenryArc() {}
+
         private UpdateFastHenryArc(FastHenryArc fha)
         {
             super("Update FastHenry Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

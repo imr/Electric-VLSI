@@ -609,7 +609,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         JPopupMenu cellMenu;
         TechPalette panel;
         int x, y;
-        protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, TechPalette panel, int x, int y)
+
+    	public ReadSpiceLibrary() {}
+
+    	protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, TechPalette panel, int x, int y)
         {
             super("Read Spice Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileURL = fileURL;

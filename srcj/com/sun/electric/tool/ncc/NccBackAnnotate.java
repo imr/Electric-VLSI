@@ -33,7 +33,10 @@ public class NccBackAnnotate {
     private static class BackAnnotateJob extends Job {
         private NccResult result;
         private int type;
-        private BackAnnotateJob(NccResult result, int type) {
+
+		public BackAnnotateJob() {}
+
+		private BackAnnotateJob(NccResult result, int type) {
             super("BackAnnotateJob", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.result = result;
             this.type = type;

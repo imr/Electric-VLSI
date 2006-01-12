@@ -464,6 +464,8 @@ public class PaletteFrame implements MouseListener
 		String varName;
 		boolean export;
 
+    	public PlaceNewNode() {}
+
 		public PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

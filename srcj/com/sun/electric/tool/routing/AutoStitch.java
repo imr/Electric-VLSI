@@ -96,6 +96,8 @@ public class AutoStitch
 	{
 		private boolean highlighted;
 		private boolean forced;
+
+		public AutoStitchJob() {}
  
 		protected AutoStitchJob(boolean highlighted, boolean forced)
 		{

@@ -109,6 +109,8 @@ public class TechToLib
 	{
 		private Technology tech;
 
+    	public LibFromTechJob() {}
+
 		private LibFromTechJob(Technology tech)
 		{
 			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

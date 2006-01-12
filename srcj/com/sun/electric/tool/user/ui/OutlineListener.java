@@ -91,6 +91,8 @@ public class OutlineListener
 		OutlineListener listener;
 		NodeInst ni;
 
+    	public InitializePoints() {}
+
 		protected InitializePoints(OutlineListener listener, NodeInst ni)
 		{
 			super("Initialize Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -371,6 +373,8 @@ public class OutlineListener
 		private Point2D [] newPoints;
 		private int newPoint;
 		private Cell cell;
+
+    	public SetPoints() {}
 
 		protected SetPoints(OutlineListener listener, Point2D [] newPoints, int newPoint, Cell cell)
 		{

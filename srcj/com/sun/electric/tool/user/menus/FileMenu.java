@@ -286,6 +286,8 @@ public class FileMenu {
 	private static class NewLibrary extends Job {
         private String newLibName;
 
+        public NewLibrary() {}
+
         public NewLibrary(String newLibName) {
             super("New Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.newLibName = newLibName;
@@ -352,6 +354,8 @@ public class FileMenu {
 		private FileType type;
 		private Library deleteLib;
 
+        public ReadLibrary() {}
+
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
 			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -390,6 +394,8 @@ public class FileMenu {
 	public static class ReadInitialELIBs extends Job
     {
         List<URL> fileURLs;
+
+        public ReadInitialELIBs() {}
 
         public ReadInitialELIBs(List<URL> fileURLs) {
             super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -591,6 +597,8 @@ public class FileMenu {
         private Library lib;
 		private boolean clearClipboard;
 
+        public CloseLibrary() {}
+
         public CloseLibrary(Library lib, boolean clearClipboard) {
             super("Close "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
@@ -687,6 +695,8 @@ public class FileMenu {
         String newName;
         FileType type;
         boolean compatibleWith6;
+
+        public SaveLibrary() {}
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
@@ -924,6 +934,8 @@ public class FileMenu {
 	{
 		String filePath;
 		WindowContent wnd;
+
+        public ExportImage() {}
 
 		public ExportImage(String description, WindowContent wnd, String filePath)
 		{

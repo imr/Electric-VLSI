@@ -189,6 +189,8 @@ public class Simulation extends Listener
 		private int activities;
 		private Engine prevEngine;
 
+    	public DoNextActivity() {}
+
 		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext, Engine prevEngine)
 		{
 			super("Simulation activity", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -496,7 +498,10 @@ public class Simulation extends Listener
 	private static class SetSpiceModel extends Job
 	{
 		NodeInst ni;
-		protected SetSpiceModel(NodeInst ni)
+
+    	public SetSpiceModel() {}
+
+    	protected SetSpiceModel(NodeInst ni)
 		{
 			super("Set Spice Model", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -537,7 +542,10 @@ public class Simulation extends Listener
 	{
 		List<Geometric> list;
 		int type;
-		protected SetWireType(List<Geometric> list, int type)
+
+    	public SetWireType() {}
+
+    	protected SetWireType(List<Geometric> list, int type)
 		{
 			super("Change Verilog Wire Types", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = list;
@@ -592,7 +600,10 @@ public class Simulation extends Listener
 	{
 		NodeInst ni;
 		boolean weak;
-		protected SetTransistorStrength(NodeInst ni, boolean weak)
+
+    	public SetTransistorStrength() {}
+
+    	protected SetTransistorStrength(NodeInst ni, boolean weak)
 		{
 			super("Change Transistor Strength", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;

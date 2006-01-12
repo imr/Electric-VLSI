@@ -565,6 +565,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         private boolean italic, bold, underline, invis;
         private int newColorIndex;
 
+    	public ChangeText() {}
+
         private ChangeText(
                 ElectricObject owner,
 				NodeInst unTransformNi,

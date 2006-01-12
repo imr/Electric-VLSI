@@ -229,6 +229,8 @@ public abstract class Router {
         /** print message on what was done */       protected boolean verbose;
         /** cell in which to build route */         protected Cell cell;
 
+    	public CreateRouteJob() {}
+
         /** Constructor */
         protected CreateRouteJob(Router router, Route route, Cell cell, boolean verbose) {
             super(router.toString(), Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

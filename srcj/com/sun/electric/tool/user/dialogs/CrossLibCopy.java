@@ -328,6 +328,8 @@ public class CrossLibCopy extends EDialog
 		boolean result;
 		StringBuffer buffer;
 
+        public CrossLibraryExamineJob() {}
+
 		protected CrossLibraryExamineJob(Cell left, Cell right, boolean report)
 		{
 			super("Cross-Library examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -360,6 +362,8 @@ public class CrossLibCopy extends EDialog
 		private Library toLibrary;
 		private CrossLibCopy dialog;
 		private List<Cell> deletedCells;
+
+        public CrossLibraryCopyJob() {}
 
 		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
 		{

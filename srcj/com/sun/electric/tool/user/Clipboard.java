@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -84,337 +85,87 @@ public class Clipboard
 	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
 
 	/**
-	 * The constructor gets called only once.
-	 * It creates the clipboard Library and Cell.
+	 * There is only one instance of this object (just one clipboard).
 	 */
-	private Clipboard()
-	{
-	}
+	private Clipboard() {}
 
-	private static void init()
-	{
-		if (clipLib == null)
-		{
-			clipLib = Library.newInstance("Clipboard!!", null);
-			clipLib.setHidden();
-		}
-		if (clipCell == null)
-		{
-			clipCell = Cell.newInstance(clipLib, "Clipboard!!");
-		}
-	}
+	/**
+	 * Returns a printable version of this Clipboard.
+	 * @return a printable version of this Clipboard.
+	 */
+	public String toString() { return "Clipboard"; }
 
 	// this is really only for debugging
-    public static void editClipboard() {
+    public static void editClipboard()
+    {
         EditWindow wnd = EditWindow.getCurrent();
         wnd.setCell(clipCell, VarContext.globalContext);
     }
 
-	/**
-	 * Method to clear the contents of the clipboard.
-	 */
-	public static void clear()
-	{
-		init();
-
-		// delete all arcs in the clipboard
-		List<ArcInst> arcsToDelete = new ArrayList<ArcInst>();
-		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			arcsToDelete.add(ai);
-		}
-		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			ai.kill();
-		}
-
-		// delete all exports in the clipboard
-		List<Export> exportsToDelete = new ArrayList<Export>();
-		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
-		{
-			Export pp = (Export)it.next();
-			exportsToDelete.add(pp);
-		}
-		for(Iterator<Export> it = exportsToDelete.iterator(); it.hasNext(); )
-		{
-			Export pp = (Export)it.next();
-			pp.kill();
-		}
-
-		// delete all nodes in the clipboard
-		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
-		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			nodesToDelete.add(ni);
-		}
-		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.kill();
-		}
-
-        // Delete all variables
-        List<Variable> varsToDelete = new ArrayList<Variable>();
-        for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-            clipCell.delVar(var.getKey());
-			//varsToDelete.add(var);
-		}
-	}
-
+    /**
+     * Method to copy the selected objects to the clipboard.
+     */
 	public static void copy()
 	{
 		// see what is highlighted
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		List<Highlight2> highlights = highlighter.getHighlights();
-		if (highlights.size() == 0)
+        List<Geometric> highlightedGeoms = highlighter.getHighlightedEObjs(true, true);
+        List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
+        if (highlightedGeoms.size() == 0 && highlightedText.size() == 0)
 		{
 			System.out.println("First select objects to copy");
 			return;
 		}
 
 		// special case: if one text object is selected, copy its text to the system clipboard
-		copySelectedText(highlights);
+		copySelectedText(highlightedText);
 
 		// copy to Electric clipboard cell
-		new CopyObjects(wnd.getCell(), highlights);
+		new CopyObjects(wnd.getCell(), highlightedGeoms, highlightedText);
 	}
 
-	/**
-	 * Method to copy any selected text to the system-wide clipboard.
-	 */
-	private static void copySelectedText(List<Highlight2> highlights)
-	{
-		if (highlights.size() == 1)
-		{
-			Highlight2 h = highlights.get(0);
-			if (h.isHighlightText())
-			{
-				String selected = null;
-				Variable var = h.getVar();
-				ElectricObject eObj = h.getElectricObject();
-				if (var != null)
-				{
-					selected = var.describe(-1);
-				} else if (h.getName() != null)
-				{
-					selected = h.getName().toString();
-				} else if (eObj instanceof Export)
-				{
-					selected = ((Export)eObj).getName();
-				} else if (eObj instanceof NodeInst)
-				{
-					selected = ((NodeInst)eObj).getProto().describe(false);
-				}
-				if (selected != null)
-				{
-					// put the text in the clipboard
-					java.awt.datatransfer.Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-					Transferable transferable = new StringSelection(selected);
-					cb.setContents(transferable, null);
-				}
-			}
-		}
-	}
-
-	private static class CopyObjects extends Job
-	{
-		private Cell cell;
-        private List<Highlight2> highlights;
-
-		protected CopyObjects(Cell cell, List<Highlight2> highlights)
-		{
-			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.highlights = highlights;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// remove contents of clipboard
-			clear();
-
-			// copy objects to clipboard
-			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
-				listToCopy.add(it.next());
-			copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0,0),
-				User.isDupCopiesExports(), User.isArcsAutoIncremented());
-			return true;
-		}
-	}
-
+    /**
+     * Method to copy the selected objects to the clipboard and then delete them.
+     */
 	public static void cut()
 	{
 		// see what is highlighted
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		List<Highlight2> highlights = highlighter.getHighlights();
-		if (highlights.size() == 0)
+        List<Geometric> highlightedGeoms = highlighter.getHighlightedEObjs(true, true);
+        List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
+        if (highlightedGeoms.size() == 0 && highlightedText.size() == 0)
 		{
 			System.out.println("First select objects to cut");
 			return;
 		}
+        highlighter.clear();
+        highlighter.finished();
 
 		// special case: if one text object is selected, copy its text to the system clipboard
-		copySelectedText(highlights);
+		copySelectedText(highlightedText);
 
 		// cut from Electric, copy to clipboard cell
-		CutObjects job = new CutObjects(wnd.getCell(), highlights);
+		new CutObjects(wnd.getCell(), highlightedGeoms, highlightedText);
 	}
-
-	private static class CutObjects extends Job
-	{
-		private Cell cell;
-        private List<Highlight2> highlights;
-
-		protected CutObjects(Cell cell, List<Highlight2> highlights)
-		{
-			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.highlights = highlights;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// remove contents of clipboard
-			clear();
-
-			// make sure deletion is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
-            List<Geometric> deleteGeoms = new ArrayList<Geometric>();
-			List<Highlight2> deleteList = new ArrayList<Highlight2>();
-			for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); )
-			{
-				Highlight2 h = it.next();
-				if (h.isHighlightEOBJ())
-				{
-					ElectricObject eObj = h.getElectricObject();
-					if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
-					if (eObj instanceof NodeInst)
-					{
-						int errorCode = CircuitChangeJobs.cantEdit(cell, (NodeInst)eObj, true);
-						if (errorCode < 0) return false;
-						if (errorCode > 0) continue;
-					}
-				}
-                Geometric geom = h.getGeometric();
-                if (geom != null)
-                    deleteGeoms.add(geom);
-				deleteList.add(h);
-			}
-			highlights = deleteList;
-
-			// copy objects to clipboard
-			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
-				listToCopy.add(it.next());
-			copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0, 0),
-				User.isDupCopiesExports(), User.isArcsAutoIncremented());
-
-			// and delete the original objects
-			CircuitChangeJobs.eraseObjectsInList(cell, deleteGeoms);
-            // kill variables on cells
-            for(Iterator<Highlight2> it = highlights.iterator(); it.hasNext(); ) {
-                Highlight2 h = it.next();
-                if (!h.isHighlightText()) continue;
-                Variable var = h.getVar();
-                if (var == null) continue;
-                ElectricObject owner = h.getElectricObject();
-                if (!(owner instanceof Cell)) continue;
-                
-                owner.delVar(var.getKey());
-            }
-//			CircuitChanges.eraseObjectsInList(parent, highlights);
-			return true;
-		}
-	}
-
-    public static void duplicate()
-    {
-		// see what is highlighted
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
-		List<Highlight2> highlights = highlighter.getHighlights();
-		if (highlights.size() == 0)
-		{
-			System.out.println("First select objects to duplicate");
-			return;
-		}
-
-		// do duplication
-        new DuplicateObjects(wnd.getCell(), highlights);
-    }
 
 	/**
-	 * Method to track movement of the object that was just duplicated.
-	 * By following subsequent changes to that node, future duplications know where to place their copies.
-	 * @param ni the NodeInst that has just moved.
-	 * @param lastX the previous center X of the NodeInst.
-	 * @param lastY the previous center Y of the NodeInst.
+	 * Method to paste the clipboard back into the current cell.
 	 */
-	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
-	{
-		if (ni != lastDup) return;
-		lastDupX += ni.getAnchorCenterX() - lastX;
-		lastDupY += ni.getAnchorCenterY() - lastY;
-	}
-
-	private static class DuplicateObjects extends Job
-    {
-		private Cell cell;
-        private List<Highlight2> highlights;
-
-        protected DuplicateObjects(Cell cell, List<Highlight2> highlights)
-        {
-            super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.highlights = highlights;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            // remove contents of clipboard
-            clear();
-
-            // copy objects to clipboard
-			List<Object> listToCopy = new ArrayList<Object>();
-			for(Iterator<Highlight2> it=highlights.iterator(); it.hasNext(); )
-				listToCopy.add(it.next());
-            copyListToCell(null, listToCopy, cell, clipCell, new Point2D.Double(0, 0),
-            	User.isDupCopiesExports(), User.isArcsAutoIncremented());
-
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd != null)
-            {
-            	Highlighter highlighter = wnd.getHighlighter();
-            	if (highlighter != null) highlighter.clear();
-            }
-
-            paste(true);
-			return true;
-        }
-    }
-
-	public static void paste(boolean duplicate)
+	public static void paste()
 	{
 		// get objects to paste
-		Clipboard.init();
-		int nTotal = clipCell.getNumNodes();
-		int aTotal = clipCell.getNumArcs();
-        int vTotal = clipCell.getNumVariables();
-        if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
+		int nTotal = 0, aTotal = 0, vTotal = 0;
+        if (clipCell != null)
+        {
+			nTotal = clipCell.getNumNodes();
+			aTotal = clipCell.getNumArcs();
+	        vTotal = clipCell.getNumVariables();
+	        if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
+        }
         int total = nTotal + aTotal + vTotal;
 		if (total == 0)
 		{
@@ -435,12 +186,12 @@ public class Clipboard
 			// can only paste a single object onto selection
 			if (nTotal == 2 && aTotal == 1)
 			{
-				ArcInst ai = (ArcInst)clipCell.getArcs().next();
+				ArcInst ai = clipCell.getArcs().next();
 				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
 				NodeInst niTail = ai.getTailPortInst().getNodeInst();
 				Iterator<NodeInst> nIt = clipCell.getNodes();
-				NodeInst ni1 = (NodeInst)nIt.next();
-				NodeInst ni2 = (NodeInst)nIt.next();
+				NodeInst ni1 = nIt.next();
+				NodeInst ni2 = nIt.next();
 				if ((ni1 == niHead && ni2 == niTail) ||
 					(ni1 == niTail && ni2 == niHead)) nTotal = 0;
 				total = nTotal + aTotal;
@@ -450,65 +201,255 @@ public class Clipboard
 				System.out.println("Can only paste a single object on top of selected objects");
 				return;
 			}
-			for(Iterator<Geometric> it = geoms.iterator(); it.hasNext(); )
+			for(Geometric geom : geoms)
 			{
-				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && nTotal == 1)
 				{
 					NodeInst ni = (NodeInst)geom;
-					PasteNodeToNode job = new PasteNodeToNode(ni, (NodeInst)clipCell.getNodes().next(), highlighter);
+					new PasteNodeToNode(ni, clipCell.getNodes().next());
 				} else if (geom instanceof ArcInst && aTotal == 1)
 				{
 					ArcInst ai = (ArcInst)geom;
-					PasteArcToArc job = new PasteArcToArc(ai, (ArcInst)clipCell.getArcs().next(), highlighter);
+					new PasteArcToArc(ai, clipCell.getArcs().next());
 				}
 			}
 			return;
 		}
 
 		// make list of things to paste
-		List<Object> pasteList = new ArrayList<Object>();
+		List<Geometric> geomList = new ArrayList<Geometric>();
 		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			pasteList.add(ni);
-		}
+			geomList.add(it.next());
 		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			pasteList.add(ai);
-		}
+			geomList.add(it.next());
+		List<DisplayedText> textList = new ArrayList<DisplayedText>();
         for (Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
         {
-            Variable var = (Variable)it.next();
+            Variable var = it.next();
             if (!var.isDisplay()) continue;
-            pasteList.add(var);
+            textList.add(new DisplayedText(clipCell, var.getKey()));
         }
 
-        if (pasteList.size() == 0) return;
+        if (geomList.size() == 0 && textList.size() == 0) return;
 
-        if (!duplicate || User.isMoveAfterDuplicate())
+        if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener));
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener));
 		} else
 		{
-			Point2D refPastePoint = new Point2D.Double(lastDupX, lastDupY);
-		    PasteObjects job = new PasteObjects(parent, pasteList, refPastePoint.getX(), refPastePoint.getY());
+		    new PasteObjects(parent, geomList, textList, lastDupX, lastDupY);
 		}
 	}
 
+    /**
+     * Method to duplicate the selected objects.
+     */
+    public static void duplicate()
+    {
+		// see what is highlighted
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+        List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
+		List<DisplayedText> textList = new ArrayList<DisplayedText>();
+        for (Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
+        {
+            Variable var = it.next();
+            if (!var.isDisplay()) continue;
+            textList.add(new DisplayedText(clipCell, var.getKey()));
+        }
+        if (geomList.size() == 0 && textList.size() == 0)
+		{
+			System.out.println("First select objects to duplicate");
+			return;
+		}
+
+		// do duplication
+        if (User.isMoveAfterDuplicate())
+		{
+			EventListener currentListener = WindowFrame.getListener();
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener));
+		} else
+		{
+			new DuplicateObjects(wnd.getCell(), geomList, textList);
+		}
+    }
+
+	/**
+	 * Method to track movement of the object that was just duplicated.
+	 * By following subsequent changes to that node, future duplications know where to place their copies.
+	 * @param ni the NodeInst that has just moved.
+	 * @param lastX the previous center X of the NodeInst.
+	 * @param lastY the previous center Y of the NodeInst.
+	 */
+	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
+	{
+		if (ni != lastDup) return;
+		lastDupX += ni.getAnchorCenterX() - lastX;
+		lastDupY += ni.getAnchorCenterY() - lastY;
+	}
+
+	/**
+	 * Helper method to copy any selected text to the system-wide clipboard.
+	 */
+	private static void copySelectedText(List<DisplayedText> highlightedText)
+	{
+		// must be one text selected
+		if (highlightedText.size() != 1) return;
+
+		// get the text
+		DisplayedText dt = highlightedText.get(0);
+		ElectricObject eObj = dt.getElectricObject();
+		Variable.Key varKey = dt.getVariableKey();
+		Variable var = eObj.getVar(varKey);
+		if (var == null) return;
+		String selected = var.describe(-1);
+		if (selected == null) return;
+
+		// put the text in the clipboard
+		java.awt.datatransfer.Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable transferable = new StringSelection(selected);
+		cb.setContents(transferable, null);
+	}
+
+	/****************************** CHANGE JOBS ******************************/
+
+	private static class CopyObjects extends Job
+	{
+		private Cell cell;
+        private List<Geometric> highlightedGeoms;
+        private List<DisplayedText> highlightedText;
+
+        public CopyObjects() {}
+
+		protected CopyObjects(Cell cell, List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText)
+		{
+			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.highlightedGeoms = highlightedGeoms;
+            this.highlightedText = highlightedText;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// remove contents of clipboard
+			clear();
+
+			// copy objects to clipboard
+			copyListToCell(clipCell, highlightedGeoms, highlightedText, null, null,
+				new Point2D.Double(0,0), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+			return true;
+		}
+	}
+
+	private static class CutObjects extends Job
+	{
+		private Cell cell;
+        private List<Geometric> geomList;
+        private List<DisplayedText> textList;
+
+        public CutObjects() {}
+
+		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList)
+		{
+			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.geomList = geomList;
+            this.textList = textList;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// remove contents of clipboard
+			clear();
+
+			// make sure deletion is allowed
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+			List<Highlight2> deleteList = new ArrayList<Highlight2>();
+			for(Geometric geom : geomList)
+			{
+				if (geom instanceof NodeInst)
+				{
+					int errorCode = CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true);
+					if (errorCode < 0) return false;
+					if (errorCode > 0) continue;
+				}
+			}
+
+			// copy objects to clipboard
+			copyListToCell(clipCell, geomList, textList, null, null,
+				new Point2D.Double(0, 0), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+
+			// and delete the original objects
+			CircuitChangeJobs.eraseObjectsInList(cell, geomList);
+
+			// kill variables on cells
+            for(DisplayedText dt : textList)
+            {
+                ElectricObject owner = dt.getElectricObject();
+                if (!(owner instanceof Cell)) continue;                
+                owner.delVar(dt.getVariableKey());
+            }
+			return true;
+		}
+	}
+
+	private static class DuplicateObjects extends Job
+    {
+		private Cell cell;
+		private List<Geometric> geomList, newGeomList;
+		private List<DisplayedText> textList, newTextList;
+		private NodeInst lastCreatedNode;
+
+        public DuplicateObjects() {}
+
+        protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList)
+        {
+            super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.geomList = geomList;
+            this.textList = textList;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            // copy objects to clipboard
+			newGeomList = new ArrayList<Geometric>();
+			newTextList = new ArrayList<DisplayedText>();
+			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
+            	new Point2D.Double(lastDupX, lastDupY), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+			fieldVariableChanged("newGeomList");
+			fieldVariableChanged("newTextList");
+			fieldVariableChanged("lastCreatedNode");
+			return true;
+        }
+
+		public void terminateIt(Throwable jobException)
+		{
+			// remember the last node created
+			lastDup = lastCreatedNode;
+
+			// highlight the copy
+			showCopiedObjects(newGeomList, newTextList);
+            super.terminateIt(jobException);
+		}
+    }
+
 	private static class PasteArcToArc extends Job
 	{
-		ArcInst src, dst;
-        Highlighter highlighter;
+		private ArcInst src, dst, newArc;
 
-		protected PasteArcToArc(ArcInst dst, ArcInst src, Highlighter highlighter)
+        public PasteArcToArc() {}
+
+		protected PasteArcToArc(ArcInst dst, ArcInst src)
 		{
 			super("Paste Arc to Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
-            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -517,28 +458,43 @@ public class Clipboard
 			// make sure pasting is allowed
 			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
 
-			ArcInst ai = pasteArcToArc(dst, src);
-			if (ai == null) System.out.println("Nothing was pasted");
-            if (ai != null) {
-                highlighter.clear();
-                highlighter.addElectricObject(ai, ai.getParent());
-                highlighter.finished();
-            }
+			newArc = pasteArcToArc(dst, src);
+			if (newArc == null) System.out.println("Nothing was pasted"); else
+				fieldVariableChanged("newArc");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+            if (newArc != null)
+            {
+            	EditWindow wnd = EditWindow.getCurrent();
+            	if (wnd != null)
+            	{
+            		Highlighter highlighter = wnd.getHighlighter();
+            		if (highlighter != null)
+            		{
+		                highlighter.clear();
+		                highlighter.addElectricObject(newArc, newArc.getParent());
+		                highlighter.finished();
+            		}
+            	}
+            }
+            super.terminateIt(jobException);
+        }
 	}
 
 	private static class PasteNodeToNode extends Job
 	{
-		NodeInst src, dst;
-        Highlighter highlighter;
+		private NodeInst src, dst, newNode;
 
-		protected PasteNodeToNode(NodeInst dst, NodeInst src, Highlighter highlighter)
+        public PasteNodeToNode() {}
+
+		protected PasteNodeToNode(NodeInst dst, NodeInst src)
 		{
 			super("Paste Node to Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
-            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -547,28 +503,48 @@ public class Clipboard
 			// make sure pasting is allowed
 			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true) != 0) return false;
 
-			NodeInst ni = pasteNodeToNode(dst, src);
-			if (ni == null) System.out.println("Nothing was pasted");
-            if (ni != null) {
-                highlighter.clear();
-                highlighter.addElectricObject(ni, ni.getParent());
-                highlighter.finished();
-            }
+			newNode = pasteNodeToNode(dst, src);
+			if (newNode == null) System.out.println("Nothing was pasted"); else
+				fieldVariableChanged("newNode");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+            if (newNode != null)
+            {
+            	EditWindow wnd = EditWindow.getCurrent();
+            	if (wnd != null)
+            	{
+            		Highlighter highlighter = wnd.getHighlighter();
+            		if (highlighter != null)
+            		{
+		                highlighter.clear();
+		                highlighter.addElectricObject(newNode, newNode.getParent());
+		                highlighter.finished();
+            		}
+            	}
+            }
+            super.terminateIt(jobException);
+        }
 	}
 
 	private static class PasteObjects extends Job
 	{
 		private Cell cell;
-		private List<Object> pasteList;
+		private List<Geometric> geomList, newGeomList;
+		private List<DisplayedText> textList, newTextList;
 		private double dX, dY;
+		private NodeInst lastCreatedNode;
 
-		protected PasteObjects(Cell cell, List<Object> pasteList, double dX, double dY)
+        public PasteObjects() {}
+
+		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double dX, double dY)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.pasteList = pasteList;
+			this.geomList = geomList;
+			this.textList = textList;
 			this.dX = dX;
 			this.dY = dY;
 			startJob();
@@ -576,39 +552,92 @@ public class Clipboard
 
 		public boolean doIt() throws JobException
 		{
-			// find out where the paste is going
-			EditWindow wnd = EditWindow.needCurrent();
-			if (wnd == null) return false;
-
 			// make sure pasting is allowed
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
 			// paste them into the current cell
-			copyListToCell(wnd, pasteList, clipCell, cell, new Point2D.Double(dX, dY),
-				User.isDupCopiesExports(), User.isArcsAutoIncremented());
-
-			// also copy any variables on the clipboard cell
-			for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
-			{
-				Variable var = (Variable)it.next();
-				if (!var.isDisplay()) continue;
-				cell.addVar(var.withOff(var.getXOff() + dX, var.getYOff() + dY));
-//				Variable cellVar = parent.newVar(var.getKey(), var.getObject());
-//				if (cellVar != null)
-//				{
-//					cellVar.setTextDescriptor(var.getTextDescriptor());
-//					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
-//				}
-			}
+			newGeomList = new ArrayList<Geometric>();
+			newTextList = new ArrayList<DisplayedText>();
+			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
+				new Point2D.Double(dX, dY), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+			fieldVariableChanged("newGeomList");
+			fieldVariableChanged("newTextList");
+			fieldVariableChanged("lastCreatedNode");
 			return true;
+		}
+
+		public void terminateIt(Throwable jobException)
+		{
+			// remember the last node created
+			lastDup = lastCreatedNode;
+
+			// highlight the copy
+			showCopiedObjects(newGeomList, newTextList);
+            super.terminateIt(jobException);
+		}
+	}
+
+	/****************************** CHANGE JOB SUPPORT ******************************/
+
+	/**
+	 * Method to clear the clipboard.
+	 */
+	private static void init()
+	{
+		if (clipLib == null)
+		{
+			clipLib = Library.newInstance("Clipboard!!", null);
+			clipLib.setHidden();
+		}
+		if (clipCell == null)
+		{
+			clipCell = Cell.newInstance(clipLib, "Clipboard!!");
 		}
 	}
 
 	/**
-	 * Returns a printable version of this Clipboard.
-	 * @return a printable version of this Clipboard.
+	 * Method to clear the contents of the clipboard.
 	 */
-	public String toString() { return "Clipboard"; }
+	public static void clear()
+	{
+		init();
+
+		// delete all arcs in the clipboard
+		List<ArcInst> arcsToDelete = new ArrayList<ArcInst>();
+		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
+			arcsToDelete.add(it.next());
+		for(ArcInst ai : arcsToDelete)
+		{
+			ai.kill();
+		}
+
+		// delete all exports in the clipboard
+		List<Export> exportsToDelete = new ArrayList<Export>();
+		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
+			exportsToDelete.add(it.next());
+		for(Export pp : exportsToDelete)
+		{
+			pp.kill();
+		}
+
+		// delete all nodes in the clipboard
+		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
+		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
+			nodesToDelete.add(it.next());
+		for(NodeInst ni : nodesToDelete)
+		{
+			ni.kill();
+		}
+
+        // Delete all variables
+        List<Variable> varsToDelete = new ArrayList<Variable>();
+        for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
+		{
+			Variable var = it.next();
+            clipCell.delVar(var.getKey());
+			//varsToDelete.add(var);
+		}
+	}
 
 	/**
 	 * Method to copy the list of Geometrics to a new Cell.
@@ -619,78 +648,42 @@ public class Clipboard
 	 * @param delta an offset for all of the copied Geometrics.
 	 * @param copyExports true to copy exports.
 	 * @param uniqueArcs true to generate unique arc names.
+	 * @return the last NodeInst that was created.
 	 */
-	public static void copyListToCell(EditWindow wnd, List<Object> list, Cell fromCell, Cell toCell,
-		Point2D delta, boolean copyExports, boolean uniqueArcs)
+	public static NodeInst copyListToCell(Cell toCell, List<Geometric> geomList, List<DisplayedText> textList,
+		List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta, boolean copyExports, boolean uniqueArcs)
 	{
-		// make sure they are all in the same cell
-		for(Iterator<Object> it = list.iterator(); it.hasNext(); )
-		{
-			Object obj = it.next();
-			if (obj instanceof Highlight2) obj = ((Highlight2)obj).getGeometric();
-			if (!(obj instanceof Geometric)) continue;
-			Geometric geom = (Geometric)obj;
-
-			if (fromCell != geom.getParent())
-			{
-				System.out.println("All duplicated objects must be in the same cell");
-				return;
-			}
-		}
-
         // make a list of all objects to be copied (includes end points of arcs)
         List<NodeInst> theNodes = new ArrayList<NodeInst>();
         List<ArcInst> theArcs = new ArrayList<ArcInst>();
-        List<Variable> theTextVariables = new ArrayList<Variable>();
-        for (Iterator<Object> it = list.iterator(); it.hasNext(); )
+        for (Geometric geom : geomList)
         {
-	        Object obj = it.next();
-            Highlight2 h = null;
-			if (obj instanceof Highlight2)
+            if (geom instanceof NodeInst)
             {
-                h = (Highlight2)obj;
-                obj = h.getGeometric();
+                if (!theNodes.contains(geom)) theNodes.add((NodeInst)geom);
             }
-            if (obj instanceof Geometric)
+            if (geom instanceof ArcInst)
             {
-                Geometric geom = (Geometric)obj;
-
-                if (geom instanceof NodeInst)
-                {
-                    if (!theNodes.contains(geom)) theNodes.add((NodeInst)geom);
-                }
-                if (geom instanceof ArcInst)
-                {
-                    ArcInst ai = (ArcInst)geom;
-                    theArcs.add(ai);
-                    NodeInst head = ai.getHeadPortInst().getNodeInst();
-                    NodeInst tail = ai.getTailPortInst().getNodeInst();
-                    if (!theNodes.contains(head)) theNodes.add(head);
-                    if (!theNodes.contains(tail)) theNodes.add(tail);
-                }
-            }
-            // For text variables
-            if (h != null && h.isHighlightText())
-            {
-                Variable var = h.getVar();
-                if (var != null && h.getElectricObject() instanceof Cell)
-                    theTextVariables.add(var);
+                ArcInst ai = (ArcInst)geom;
+                theArcs.add(ai);
+                NodeInst head = ai.getHeadPortInst().getNodeInst();
+                NodeInst tail = ai.getTailPortInst().getNodeInst();
+                if (!theNodes.contains(head)) theNodes.add(head);
+                if (!theNodes.contains(tail)) theNodes.add(tail);
             }
         }
-
-		if (theNodes.size() == 0 && theTextVariables.size() == 0) return;
+		if (theNodes.size() == 0 && textList.size() == 0) return null;
 
 		// check for recursion
-		for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : theNodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode) continue;
 			Cell niCell = (Cell)ni.getProto();
             if (Cell.isInstantiationRecursive(niCell, toCell))
 			{
 				System.out.println("Cannot: that would be recursive (" +
 					toCell + " is beneath " + ni.getProto() + ")");
-				return;
+				return null;
 			}
 		}
 
@@ -702,46 +695,40 @@ public class Clipboard
 		Collections.sort(theNodes);
 
 		// create the new nodes
+		NodeInst lastCreatedNode = null;
 		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
         List<PortInst> portInstsToExport = new ArrayList<PortInst>();
         HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
-		for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
+		for(NodeInst ni : theNodes)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode && toCell.alreadyCellCenter()) continue;
 			double width = ni.getXSize();
-//			if (ni.isXMirrored()) width = -width;
 			double height = ni.getYSize();
-//			if (ni.isYMirrored()) height = -height;
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
 					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
-// 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-// 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-// 					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
-				return;
+				return lastCreatedNode;
 			}
 			newNi.copyStateBits(ni);
-//			newNi.clearWiped();
-//			newNi.clearShortened();
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyVarsFrom(ni);
 			newNodes.put(ni, newNi);
-			lastDup = newNi;
+			if (newGeomList != null) newGeomList.add(newNi);
+			lastCreatedNode = newNi;
 
 			// copy the ports, too
 			if (copyExports)
 			{
 				for(Iterator<Export> eit = ni.getExports(); eit.hasNext(); )
 				{
-					Export pp = (Export)eit.next();
+					Export pp = eit.next();
                     PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
                     portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
@@ -761,9 +748,8 @@ public class Clipboard
 			HashMap<String,String> newArcNames = new HashMap<String,String>();
 
 			// create the new arcs
-			for(Iterator<ArcInst> it = theArcs.iterator(); it.hasNext(); )
+			for(ArcInst ai : theArcs)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				PortInst oldHeadPi = ai.getHeadPortInst();
 				NodeInst headNi = (NodeInst)newNodes.get(oldHeadPi.getNodeInst());
 				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
@@ -793,141 +779,68 @@ public class Clipboard
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");
-					return;
+					return lastCreatedNode;
 				}
 				newAr.copyPropertiesFrom(ai);
 				newArcs.put(ai, newAr);
+				if (newGeomList != null) newGeomList.add(newAr);
 			}
 		}
 
 		// copy variables on cells
-        for(Iterator<Variable> it = theTextVariables.iterator(); it.hasNext(); )
+        for(DisplayedText dt : textList)
 		{
-			Variable var = (Variable)it.next();
-			Variable cellVar = toCell.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
-//			if (cellVar != null)
-//			{
-//				cellVar.setDisplay(var.isDisplay());
-//				cellVar.setCode(var.getCode());
-//				cellVar.setTextDescriptor(var.getTextDescriptor());
-//			}
+        	ElectricObject eObj = dt.getElectricObject();
+        	if (!(eObj instanceof Cell)) continue;
+			Variable.Key varKey = dt.getVariableKey();
+			Variable var = eObj.getVar(varKey);
+			double xP = var.getTextDescriptor().getXOff();
+			double yP = var.getTextDescriptor().getYOff();
+			Variable newv = toCell.newVar(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));
+			if (newTextList != null) newTextList.add(new DisplayedText(toCell, varKey));
 		}
+        return lastCreatedNode;
+	}
 
-		// highlight the copy
+	private static void showCopiedObjects(List<Geometric> newGeomList, List<DisplayedText> newTextList)
+	{
+		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd != null)
 		{
-            Highlighter highlighter = wnd.getHighlighter();
+			Cell cell = wnd.getCell();
+			Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
-			for(Iterator<NodeInst> it = theNodes.iterator(); it.hasNext(); )
+			for(Geometric geom : newGeomList)
 			{
-				NodeInst ni = (NodeInst)it.next();
-				ni = (NodeInst)newNodes.get(ni);
-				if (ni == null) continue;
-
-				// special case for displayable text on invisible pins
-				if (ni.isInvisiblePinWithText())
+				if (geom instanceof NodeInst)
 				{
-					Poly [] polys = ni.getAllText(false, wnd);
-					if (polys == null) continue;
-					for(int i=0; i<polys.length; i++)
+					NodeInst ni = (NodeInst)geom;
+	
+					// special case for displayable text on invisible pins
+					if (ni.isInvisiblePinWithText())
 					{
-						Poly poly = polys[i];
-                        if (poly == null) continue;
-						Highlight2 h = highlighter.addText(ni, toCell, poly.getVariable(), poly.getName());
+						Poly [] polys = ni.getAllText(false, wnd);
+						if (polys == null) continue;
+						for(int i=0; i<polys.length; i++)
+						{
+							Poly poly = polys[i];
+							if (poly == null) continue;
+							Highlight2 h = highlighter.addText(ni, cell, poly.getVariable(), poly.getName());
+						}
+						continue;
 					}
-					continue;
 				}
-				Highlight2 h = highlighter.addElectricObject(ni, toCell);
+				highlighter.addElectricObject(geom, cell);
 			}
-			for(Iterator<Object> it = list.iterator(); it.hasNext(); )
+			for(DisplayedText dt : newTextList)
 			{
-				Object obj = it.next();
-				if (!(obj instanceof Geometric)) continue; // Temporary fix?
-                Geometric geom = (Geometric)obj;
-				if (geom instanceof NodeInst) continue;
-				ArcInst ai = (ArcInst)geom;
-				ai = (ArcInst)newArcs.get(ai);
-				Highlight2 h = highlighter.addElectricObject(ai, toCell);
+				ElectricObject eObj = dt.getElectricObject();
+				Variable var = eObj.getVar(dt.getVariableKey());
+				highlighter.addText(dt.getElectricObject(), cell, var, null);
 			}
 			highlighter.finished();
 		}
 	}
-
-    /**
-     * Gets a boundary representing the paste bounds of the list of objects.
-     * The corners and center point of the bounds can be used as anchors
-     * when pasting the objects interactively. This is all done in database units.
-     * Note: you will likely want to grid align any points before using them.
-     * @param pasteList a list of Geometrics to paste
-     * @return a Rectangle2D that is the paste bounds.
-     */
-    private static Rectangle2D getPasteBounds(List<Object> pasteList, EditWindow wnd) {
-
-        Point2D llcorner = null;
-        Point2D urcorner = null;
-
-        // figure out lower-left corner and upper-rigth corner of this collection of objects
-        for(Iterator<Object> it = pasteList.iterator(); it.hasNext(); )
-        {
-            Object obj = it.next();
-            if ((obj instanceof Variable))
-            {
-                Variable var = (Variable)obj;
-                Poly poly = clipCell.computeTextPoly(wnd, var, null);
-                Rectangle2D bounds = poly.getBounds2D();
-
-                if (llcorner == null) {
-                    llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-                    urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-                    continue;
-                }
-                if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
-                if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
-                if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
-                if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
-            }
-            else
-            {
-                Geometric geom = (Geometric)obj;
-                if (geom instanceof NodeInst) {
-                    NodeInst ni = (NodeInst)geom;
-                    Point2D pt = ni.getAnchorCenter();
-
-                    if (llcorner == null) {
-                        llcorner = new Point2D.Double(pt.getX(), pt.getY());
-                        urcorner = new Point2D.Double(pt.getX(), pt.getY());
-                        continue;
-                    }
-                    if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
-                    if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
-                    if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
-                    if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
-                }
-                if (geom instanceof ArcInst) {
-                    ArcInst ai = (ArcInst)geom;
-                    double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-                    Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
-                    Rectangle2D bounds = poly.getBounds2D();
-
-                    if (llcorner == null) {
-                        llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-                        urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-                        continue;
-                    }
-                    if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
-                    if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
-                    if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
-                    if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
-                }
-            }
-        }
-
-        // figure bounds
-        double width = urcorner.getX() - llcorner.getX();
-        double height = urcorner.getY() - llcorner.getY();
-        Rectangle2D bounds = new Rectangle2D.Double(llcorner.getX(), llcorner.getY(), width, height);
-        return bounds;
-    }
 
 	/**
 	 * Method to "paste" node "srcnode" onto node "destnode", making them the same.
@@ -936,17 +849,17 @@ public class Clipboard
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
 		destNode = CircuitChangeJobs.replaceNodeInst(destNode, srcNode.getProto(), true, false);
-        if (destNode == null) return null;
+		if (destNode == null) return null;
 
-        destNode.clearExpanded();
-        if (srcNode.isExpanded()) destNode.setExpanded();
+		destNode.clearExpanded();
+		if (srcNode.isExpanded()) destNode.setExpanded();
 
-        if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
-            if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
-                Technology tech = srcNode.getProto().getTechnology();
-                tech.setPrimitiveFunction(destNode, srcNode.getFunction());
-            }
-        }
+		if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
+			if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
+				Technology tech = srcNode.getProto().getTechnology();
+				tech.setPrimitiveFunction(destNode, srcNode.getFunction());
+			}
+		}
 
 		// make the sizes the same if they are primitives
 		if (destNode.getProto() instanceof PrimitiveNode)
@@ -956,7 +869,6 @@ public class Clipboard
 			if (dX != 0 || dY != 0)
 			{
 				destNode.resize(dX, dY);
-//				destNode.modifyInstance(0, 0, dX, dY, 0);
 			}
 		}
 
@@ -967,7 +879,7 @@ public class Clipboard
 			checkAgain = false;
 			for(Iterator<Variable> it = destNode.getVariables(); it.hasNext(); )
 			{
-				Variable destVar = (Variable)it.next();
+				Variable destVar = it.next();
 				Variable.Key key = destVar.getKey();
 				Variable srcVar = srcNode.getVar(key);
 				if (srcVar != null) continue;
@@ -984,9 +896,7 @@ public class Clipboard
 		// copy any special user bits
 		destNode.copyStateBits(srcNode);
 		destNode.clearExpanded();
-        if (srcNode.isExpanded()) destNode.setExpanded();
-//		destNode.clearShortened();
-//		destNode.clearWiped();
+		if (srcNode.isExpanded()) destNode.setExpanded();
 		destNode.clearLocked();
 
 		return(destNode);
@@ -1019,7 +929,7 @@ public class Clipboard
 			checkAgain = false;
 			for(Iterator<Variable> it = destArc.getVariables(); it.hasNext(); )
 			{
-				Variable destVar = (Variable)it.next();
+				Variable destVar = it.next();
 				Variable.Key key = destVar.getKey();
 				Variable srcVar = srcArc.getVar(key);
 				if (srcVar != null) continue;
@@ -1032,15 +942,17 @@ public class Clipboard
 		// make sure all variables are on the arc
 		for(Iterator<Variable> it = srcArc.getVariables(); it.hasNext(); )
 		{
-			Variable srcVar = (Variable)it.next();
+			Variable srcVar = it.next();
 			Variable.Key key = srcVar.getKey();
 			Variable destVar = destArc.newVar(key, srcVar.getObject(), srcVar.getTextDescriptor());
 		}
 
 		// make sure the constraints and other userbits are the same
-        destArc.copyPropertiesFrom(srcArc);
+		destArc.copyPropertiesFrom(srcArc);
 		return destArc;
 	}
+
+	/****************************** PASTE LISTENER ******************************/
 
 	/**
 	 * Class to handle the interactive drag after a paste.
@@ -1049,270 +961,262 @@ public class Clipboard
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private EditWindow wnd;
-		private List<Object> pasteList;
+		private List<Geometric> geomList;
+		private List<DisplayedText> textList;
 		private EventListener currentListener;
-        private Rectangle2D pasteBounds;
-        private double translateX;
-        private double translateY;
-        private Point2D lastMouseDB;                // last point where mouse was (in db units)
-        private JPopupMenu popup;
+		private Rectangle2D pasteBounds;
+		private double translateX;
+		private double translateY;
+		private Point2D lastMouseDB;				// last point where mouse was (in db units)
+		private JPopupMenu popup;
 
-        /** paste anchor types */
+		/** paste anchor types */
 
-        /**
-         * Create a new paste listener
-         * @param wnd Controlling window
-         * @param pasteList list of objects to paste
-         * @param currentListener listener to restore when done
-         */
-		private PasteListener(EditWindow wnd, List<Object> pasteList, EventListener currentListener)
+		/**
+		 * Create a new paste listener
+		 * @param wnd Controlling window
+		 * @param pasteList list of objects to paste
+		 * @param currentListener listener to restore when done
+		 */
+		private PasteListener(EditWindow wnd, List<Geometric> geomList, List<DisplayedText> textList, EventListener currentListener)
 		{
 			this.wnd = wnd;
-			this.pasteList = pasteList;
+			this.geomList = geomList;
+			this.textList = textList;
 			this.currentListener = currentListener;
-            this.pasteBounds = getPasteBounds(pasteList, wnd);
-            translateX = translateY = 0;
+			this.pasteBounds = getPasteBounds(geomList, textList, wnd);
+			translateX = translateY = 0;
 
-            initPopup();
+			initPopup();
 
-            // get starting point from current mouse location
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            Point2D delta = getDelta(mouseDB, false);
+			// get starting point from current mouse location
+			Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+			Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+			Point2D delta = getDelta(mouseDB, false);
 
-            wnd.getHighlighter().pushHighlight();
-            showList(delta);
+			wnd.getHighlighter().pushHighlight();
+			showList(delta);
 		}
 
-        /**
-         * Gets grid-aligned delta translation for nodes based on mouse location
-         * @param mouseDB the location of the mouse
-         * @param orthogonal if the translation is orthogonal only
-         * @return a grid-aligned delta
-         */
-        private Point2D getDelta(Point2D mouseDB, boolean orthogonal) {
-            // mouseDB == null if you press arrow keys before placing the new copy
-            if (mouseDB == null) return null;
-            EditWindow.gridAlign(mouseDB);
-            // this is the point on the clipboard cell that will be pasted at the mouse location
-            Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
-                                                       pasteBounds.getCenterY() + translateY);
+		/**
+		 * Gets grid-aligned delta translation for nodes based on mouse location
+		 * @param mouseDB the location of the mouse
+		 * @param orthogonal if the translation is orthogonal only
+		 * @return a grid-aligned delta
+		 */
+		private Point2D getDelta(Point2D mouseDB, boolean orthogonal)
+		{
+			// mouseDB == null if you press arrow keys before placing the new copy
+			if (mouseDB == null) return null;
+			EditWindow.gridAlign(mouseDB);
+			// this is the point on the clipboard cell that will be pasted at the mouse location
+			Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
+													   pasteBounds.getCenterY() + translateY);
 
-            double deltaX = mouseDB.getX() - refPastePoint.getX();
-            double deltaY = mouseDB.getY() - refPastePoint.getY();
-            // if orthogonal is true, convert to orthogonal
-            if (orthogonal) {
-                // only use delta in direction that has larger delta
-                if (Math.abs(deltaX) > Math.abs(deltaY)) deltaY = 0;
-                else deltaX = 0;
-            }
-            // this is now a delta, not a point
-            refPastePoint.setLocation(deltaX, deltaY);
-            EditWindow.gridAlign(refPastePoint);
-            return refPastePoint;
-        }
+			double deltaX = mouseDB.getX() - refPastePoint.getX();
+			double deltaY = mouseDB.getY() - refPastePoint.getY();
+			// if orthogonal is true, convert to orthogonal
+			if (orthogonal) {
+				// only use delta in direction that has larger delta
+				if (Math.abs(deltaX) > Math.abs(deltaY)) deltaY = 0;
+				else deltaX = 0;
+			}
+			// this is now a delta, not a point
+			refPastePoint.setLocation(deltaX, deltaY);
+			EditWindow.gridAlign(refPastePoint);
+			return refPastePoint;
+		}
 
-        /**
-         * Show the objects to paste with the anchor point at 'mouseDB'
-         * @param delta the translation for the highlights
-         */
+		/**
+		 * Show the objects to paste with the anchor point at 'mouseDB'
+		 * @param delta the translation for the highlights
+		 */
 		private void showList(Point2D delta)
 		{
-            // if delta==null, problems to get mouseDB pointer
-            if (delta == null) return;
+			// if delta==null, problems to get mouseDB pointer
+			if (delta == null) return;
 
-            // find offset of highlights
-            double oX = delta.getX();
-            double oY = delta.getY();
+			// find offset of highlights
+			double oX = delta.getX();
+			double oY = delta.getY();
 
 			Cell cell = wnd.getCell();
-            Highlighter highlighter = wnd.getHighlighter();
+			Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
-			for(Iterator<Object> it = pasteList.iterator(); it.hasNext(); )
+//			for(DisplayedText dt : textList)
+//			{
+//				ElectricObject eObj = dt.getElectricObject();
+//				Variable var = eObj.getVar(dt.getVariableKey());
+//				Poly poly = clipCell.computeTextPoly(wnd, var, null);
+//				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
+//			}
+			for(Geometric geom : geomList)
 			{
-                Object obj = it.next();
-                Point2D [] points = null;
+				if (geom instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)geom;
+					Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+					Point2D [] points = poly.getPoints();
+					showPoints(points, oX, oY, cell, highlighter);
+					continue;
+				}
 
-                if (obj instanceof Variable)
-                {
-                    Variable var = (Variable)obj;
-                    Poly poly = clipCell.computeTextPoly(EditWindow.needCurrent(), var, null);
-                    points = poly.getPoints();
-                }
-                else
-                {
-                    if (!(obj instanceof Geometric)) continue;
-                    Geometric geom = (Geometric)obj;
-                    if (geom instanceof ArcInst)
-                    {
-                        ArcInst ai = (ArcInst)geom;
-                        Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
-                        points = poly.getPoints();
-                    } else
-                    {
-                        NodeInst ni = (NodeInst)geom;
-                        if (ni.isInvisiblePinWithText())
-                        {
-                            // find text on the invisible pin
-                            for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-                            {
-                                Variable var = (Variable)vIt.next();
-                                if (var.isDisplay())
-                                {
-                                    points = Highlighter.describeHighlightText(wnd, geom, var, null);
-                                    break;
-                                }
-                            }
-                        }
-                        if (points != null)
-                        {
-                            for(int i=0; i<points.length; i += 2)
-                            {
-                                double fX = points[i].getX();
-                                double fY = points[i].getY();
-                                double tX = points[i+1].getX();
-                                double tY = points[i+1].getY();
-                                highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
-                            }
-                            continue;
-                        }
-                        SizeOffset so = ni.getSizeOffset();
-                        AffineTransform trans = ni.rotateOutAboutTrueCenter();
-                        double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-                        double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-                        double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-                        double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-                        double nodeX = (nodeLowX + nodeHighX) / 2;
-                        double nodeY = (nodeLowY + nodeHighY) / 2;
-                        Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-                        poly.transform(trans);
-                        points = poly.getPoints();
-                    }
-                }
-                if (points != null)
-                {
-                    for(int i=0; i<points.length; i++)
-                    {
-                        int lastI = i - 1;
-                        if (lastI < 0) lastI = points.length - 1;
-                        double fX = points[lastI].getX();
-                        double fY = points[lastI].getY();
-                        double tX = points[i].getX();
-                        double tY = points[i].getY();
-                        highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
-                    }
-                }
+				NodeInst ni = (NodeInst)geom;
+				if (ni.isInvisiblePinWithText())
+				{
+					// find text on the invisible pin
+					boolean found = false;
+					for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+					{
+						Variable var = vIt.next();
+						if (var.isDisplay())
+						{
+							Point2D [] points = Highlighter.describeHighlightText(wnd, geom, var, null);
+							showPoints(points, oX, oY, cell, highlighter);
+							found = true;
+							break;
+						}
+					}
+					if (found) continue;
+				}
+
+				SizeOffset so = ni.getSizeOffset();
+				AffineTransform trans = ni.rotateOutAboutTrueCenter();
+				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+				double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+				double nodeX = (nodeLowX + nodeHighX) / 2;
+				double nodeY = (nodeLowY + nodeHighY) / 2;
+				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+				poly.transform(trans);
+				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
 			}
-            // show delta from original
-            Rectangle2D bounds = wnd.getDisplayedBounds();
-            highlighter.addMessage(cell, "("+(int)oX+","+(int)oY+")",
-                    new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
-            // also draw arrow if user has moved highlights off the screen
-            double halfWidth = 0.5*pasteBounds.getWidth();
-            double halfHeight = 0.5*pasteBounds.getHeight();
-            if (Math.abs(translateX) > halfWidth ||
-                Math.abs(translateY) > halfHeight) {
-                Rectangle2D transBounds = new Rectangle2D.Double(pasteBounds.getX()+oX, pasteBounds.getY()+oY,
-                        pasteBounds.getWidth(), pasteBounds.getHeight());
-                Poly p = new Poly(transBounds);
-                Point2D endPoint = p.closestPoint(lastMouseDB);
-                // draw arrow
-                highlighter.addLine(lastMouseDB, endPoint, cell);
-                int angle = GenMath.figureAngle(lastMouseDB, endPoint);
-                angle += 1800;
-                int angleOfArrow = 300;		// 30 degrees
-                int backAngle1 = angle - angleOfArrow;
-                int backAngle2 = angle + angleOfArrow;
-                Point2D p1 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle1), endPoint.getY() + DBMath.sin(backAngle1));
-                Point2D p2 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle2), endPoint.getY() + DBMath.sin(backAngle2));
-                highlighter.addLine(endPoint, p1, cell);
-                highlighter.addLine(endPoint, p2, cell);
-            }
+
+			// show delta from original
+			Rectangle2D bounds = wnd.getDisplayedBounds();
+			highlighter.addMessage(cell, "("+(int)oX+","+(int)oY+")",
+					new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
+			// also draw arrow if user has moved highlights off the screen
+			double halfWidth = 0.5*pasteBounds.getWidth();
+			double halfHeight = 0.5*pasteBounds.getHeight();
+			if (Math.abs(translateX) > halfWidth || Math.abs(translateY) > halfHeight)
+			{
+				Rectangle2D transBounds = new Rectangle2D.Double(pasteBounds.getX()+oX, pasteBounds.getY()+oY,
+					pasteBounds.getWidth(), pasteBounds.getHeight());
+				Poly p = new Poly(transBounds);
+				Point2D endPoint = p.closestPoint(lastMouseDB);
+				// draw arrow
+				highlighter.addLine(lastMouseDB, endPoint, cell);
+				int angle = GenMath.figureAngle(lastMouseDB, endPoint);
+				angle += 1800;
+				int angleOfArrow = 300;		// 30 degrees
+				int backAngle1 = angle - angleOfArrow;
+				int backAngle2 = angle + angleOfArrow;
+				Point2D p1 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle1), endPoint.getY() + DBMath.sin(backAngle1));
+				Point2D p2 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle2), endPoint.getY() + DBMath.sin(backAngle2));
+				highlighter.addLine(endPoint, p1, cell);
+				highlighter.addLine(endPoint, p2, cell);
+			}
 			highlighter.finished();
+		}
+
+		private void showPoints(Point2D [] points, double oX, double oY, Cell cell, Highlighter highlighter)
+		{
+			for(int i=0; i<points.length; i++)
+			{
+				int lastI = i - 1;
+				if (lastI < 0) lastI = points.length - 1;
+				double fX = points[lastI].getX();
+				double fY = points[lastI].getY();
+				double tX = points[i].getX();
+				double tY = points[i].getY();
+				highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
+			}
 		}
 
 		public void mousePressed(MouseEvent e)
 		{
-            if (e.isMetaDown()) {
-                // right click
-                popup.show(e.getComponent(), e.getX(), e.getY());
-            }
+			if (e.isMetaDown()) {
+				// right click
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
 		}
 
 		public void mouseDragged(MouseEvent evt)
 		{
-            mouseMoved(evt);
+			mouseMoved(evt);
 		}
 
 		public void mouseReleased(MouseEvent evt)
 		{
-            if (evt.isMetaDown()) {
-                // right click
-                return;
-            }
-            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-            Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
-            Point2D delta = getDelta(mouseDB, ctrl);
-            showList(delta);
+			if (evt.isMetaDown()) {
+				// right click
+				return;
+			}
+			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+			Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			Point2D delta = getDelta(mouseDB, ctrl);
+			showList(delta);
 
-            WindowFrame.setListener(currentListener);
-            wnd.getHighlighter().popHighlight();
-            Cell cell = WindowFrame.needCurCell();
-            if (cell != null)
-            	new PasteObjects(cell, pasteList, delta.getX(), delta.getY());
+			WindowFrame.setListener(currentListener);
+			wnd.getHighlighter().popHighlight();
+			Cell cell = WindowFrame.needCurCell();
+			if (cell != null)
+				new PasteObjects(cell, geomList, textList, delta.getX(), delta.getY());
 		}
 
 		public void mouseMoved(MouseEvent evt)
-        {
-            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-            Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
-            Point2D delta = getDelta(mouseDB, ctrl);
-            lastMouseDB = mouseDB;
-            showList(delta);
+		{
+			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+			Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			Point2D delta = getDelta(mouseDB, ctrl);
+			lastMouseDB = mouseDB;
+			showList(delta);
 
-            wnd.repaint();
-        }
+			wnd.repaint();
+		}
 
 		public void mouseClicked(MouseEvent evt) {}
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseWheelMoved(MouseWheelEvent e) {}
 		public void keyPressed(KeyEvent evt) {
-            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-            int chr = evt.getKeyCode();
-            if (chr == KeyEvent.VK_ESCAPE) {
-                // abort on ESC
-                abort();
-            }
-            else if (chr == KeyEvent.VK_UP) {
-                moveObjectsUp();
-            }
-            else if (chr == KeyEvent.VK_DOWN) {
-                moveObjectsDown();
-            }
-            else if (chr == KeyEvent.VK_LEFT) {
-                moveObjectsLeft();
-            }
-            else if (chr == KeyEvent.VK_RIGHT) {
-                moveObjectsRight();
-            }
-        }
+			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+			int chr = evt.getKeyCode();
+			if (chr == KeyEvent.VK_ESCAPE) {
+				// abort on ESC
+				abort();
+			}
+			else if (chr == KeyEvent.VK_UP) {
+				moveObjectsUp();
+			}
+			else if (chr == KeyEvent.VK_DOWN) {
+				moveObjectsDown();
+			}
+			else if (chr == KeyEvent.VK_LEFT) {
+				moveObjectsLeft();
+			}
+			else if (chr == KeyEvent.VK_RIGHT) {
+				moveObjectsRight();
+			}
+		}
 		public void keyReleased(KeyEvent e) {}
 		public void keyTyped(KeyEvent e) {}
 
-        private void abort() {
-            wnd.getHighlighter().clear();
-            wnd.getHighlighter().finished();
-            WindowFrame.setListener(currentListener);
-            wnd.repaint();
-        }
+		private void abort() {
+			wnd.getHighlighter().clear();
+			wnd.getHighlighter().finished();
+			WindowFrame.setListener(currentListener);
+			wnd.repaint();
+		}
 
-        private void initPopup() {
-            popup = new JPopupMenu();
-            JMenuItem m;
-            m = new JMenuItem("Move objects left");
-            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
-            m.addActionListener(new ActionListener() {
+		private void initPopup() {
+			popup = new JPopupMenu();
+			JMenuItem m;
+			m = new JMenuItem("Move objects left");
+			m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
+	        m.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) { moveObjectsLeft(); }
             });
             popup.add(m);
@@ -1366,6 +1270,79 @@ public class Clipboard
             Point2D delta = getDelta(lastMouseDB, false);
             showList(delta);
         }
-	}
+
+        /**
+         * Gets a boundary representing the paste bounds of the list of objects.
+         * The corners and center point of the bounds can be used as anchors
+         * when pasting the objects interactively. This is all done in database units.
+         * Note: you will likely want to grid align any points before using them.
+         * @param pasteList a list of Geometrics to paste
+         * @return a Rectangle2D that is the paste bounds.
+         */
+        private static Rectangle2D getPasteBounds(List<Geometric> geomList, List<DisplayedText> textList, EditWindow wnd) {
+
+            Point2D llcorner = null;
+            Point2D urcorner = null;
+
+            // figure out lower-left corner and upper-rigth corner of this collection of objects
+            for(DisplayedText dt : textList)
+            {
+            	ElectricObject eObj = dt.getElectricObject();
+                Variable var = eObj.getVar(dt.getVariableKey());
+                Poly poly = clipCell.computeTextPoly(wnd, var, null);
+                Rectangle2D bounds = poly.getBounds2D();
+
+                if (llcorner == null) {
+                    llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+                    urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+                    continue;
+                }
+                if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
+                if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
+                if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
+                if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+            }
+            for(Geometric geom : geomList)
+            {
+                if (geom instanceof NodeInst)
+                {
+                    NodeInst ni = (NodeInst)geom;
+                    Point2D pt = ni.getAnchorCenter();
+
+                    if (llcorner == null) {
+                        llcorner = new Point2D.Double(pt.getX(), pt.getY());
+                        urcorner = new Point2D.Double(pt.getX(), pt.getY());
+                        continue;
+                    }
+                    if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
+                    if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
+                    if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
+                    if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
+                } else
+                {
+                    ArcInst ai = (ArcInst)geom;
+                    double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+                    Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
+                    Rectangle2D bounds = poly.getBounds2D();
+
+                    if (llcorner == null) {
+                        llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+                        urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+                        continue;
+                    }
+                    if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
+                    if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
+                    if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
+                    if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+                }
+            }
+
+            // figure bounds
+            double width = urcorner.getX() - llcorner.getX();
+            double height = urcorner.getY() - llcorner.getY();
+            Rectangle2D bounds = new Rectangle2D.Double(llcorner.getX(), llcorner.getY(), width, height);
+            return bounds;
+        }
+    }
 
 }

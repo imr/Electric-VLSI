@@ -1087,12 +1087,9 @@ public class CircuitChanges
         List<ElectricObject> highlightedEObjs = new ArrayList<ElectricObject>();
         for(Highlight2 h : highlighted)
         {
+        	if (!h.isHighlightEOBJ()) continue;
         	ElectricObject eObj = h.getElectricObject();
-        	if (h.isHighlightEOBJ())
-        	{
-        		highlightedEObjs.add(eObj);
-        		continue;
-        	}
+    		highlightedEObjs.add(eObj);
         	if (eObj instanceof NodeInst)
         	{
         		NodeInst ni = (NodeInst)eObj;

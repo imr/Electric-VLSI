@@ -278,6 +278,8 @@ public class SavedViews extends EDialog implements HighlightListener
 		private double scale;
 		private Point2D off;
 
+    	public SaveViewJob() {}
+
 		protected SaveViewJob(SavedViews dialog, Cell cell, String name, double scale, Point2D off)
 		{
 			super("Save Window View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

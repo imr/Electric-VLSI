@@ -502,6 +502,8 @@ public class Routing extends Listener
 	{
 		Cell fromCell, toCell;
 
+    	public CopyRoutingTopology() {}
+
 		protected CopyRoutingTopology(Cell fromCell, Cell toCell)
 		{
 			super("Copy Routing Topology", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);

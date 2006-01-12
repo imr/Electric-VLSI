@@ -240,6 +240,8 @@ public class CellMenu {
 		private Cell cell;
 		private int numPages;
 
+		public SetMultiPageJob() {}
+
 		public SetMultiPageJob(Cell cell, int numPages)
 		{
 			super("Make Cell be Multi-Page", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -271,6 +273,8 @@ public class CellMenu {
 	{
 		private Cell cell;
 		private int page;
+
+		public DeleteMultiPageJob() {}
 
 		public DeleteMultiPageJob(Cell cell, int page)
 		{

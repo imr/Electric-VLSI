@@ -215,6 +215,8 @@ public class Maze
 	{
 		private Cell cell;
 
+		public MazeRouteJob() {}
+
 		protected MazeRouteJob(Cell cell)
 		{
 			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

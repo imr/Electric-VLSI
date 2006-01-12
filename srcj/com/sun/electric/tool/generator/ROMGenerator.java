@@ -116,6 +116,8 @@ public class ROMGenerator
 	{
 		private String romfile;
 
+    	public DoROM() {}
+
 		private DoROM(String romfile)
 		{
 			super("ROM Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

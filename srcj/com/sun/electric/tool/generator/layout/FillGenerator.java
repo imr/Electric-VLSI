@@ -1580,6 +1580,8 @@ public class FillGenerator {
         private Cell topCell;
         private List<PortInst> portList;
 
+        public FillGenJob() {}
+
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
                           List<PortInst> list)
 		{

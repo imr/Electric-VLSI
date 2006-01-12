@@ -275,6 +275,8 @@ public class River
 	{
 		private Cell cell;
 
+    	public RiverRouteJob() {}
+
 		protected RiverRouteJob(Cell cell)
 		{
 			super("River Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

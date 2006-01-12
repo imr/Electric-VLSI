@@ -77,6 +77,8 @@ public class CellChangeJobs
 	{
 		Cell cell;
 
+		public DeleteCell() {}
+
 		public DeleteCell(Cell cell)
 		{
 			super("Delete " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -103,6 +105,8 @@ public class CellChangeJobs
 		private Cell cell;
 		private String newName;
 		private Cell.CellGroup newGroup;
+
+		public RenameCell() {}
 
 		public RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
 		{
@@ -131,6 +135,8 @@ public class CellChangeJobs
 	{
 		Cell.CellGroup cellGroup;
 		String newName;
+
+		public RenameCellGroup() {}
 
 		public RenameCellGroup(Cell.CellGroup cellGroup, String newName)
 		{
@@ -221,6 +227,8 @@ public class CellChangeJobs
 			NodeInst       pin;
 			CellGraphNode  main;
 		}
+
+		public GraphCells() {}
 
 		public GraphCells(Cell top)
 		{
@@ -596,6 +604,8 @@ public class CellChangeJobs
 		Rectangle2D bounds;
 		String newCellName;
 
+		public PackageCell() {}
+
 		public PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -676,6 +686,8 @@ public class CellChangeJobs
 	public static class ExtractCellInstances extends Job
 	{
         private List<NodeInst> nodes;
+
+		public ExtractCellInstances() {}
 
         public ExtractCellInstances(List<NodeInst> highlighted)
 		{
@@ -895,6 +907,8 @@ public class CellChangeJobs
 		private Cell cell;
 		private Cell newVersion;
 
+		public NewCellVersion() {}
+
 		public NewCellVersion(Cell cell)
 		{
 			super("Create new Version of " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -940,6 +954,8 @@ public class CellChangeJobs
 		private Cell cell;
 		private String newName;
 		private Cell dupCell;
+
+		public DuplicateCell() {}
 
 		public DuplicateCell(Cell cell, String newName)
 		{

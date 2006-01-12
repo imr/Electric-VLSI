@@ -40,7 +40,7 @@ import com.sun.electric.tool.user.ncc.NccMsgsFrame;
 /* Implements NCC's user interface */
 public class NccJob extends Job {
 	public static NccResult lastResult;
-	private final int numWindows;
+	private int numWindows;
     static NccMsgsFrame nccgui = new NccMsgsFrame();
 
 	private void prln(String s) {System.out.println(s);}
@@ -159,6 +159,9 @@ public class NccJob extends Job {
     }
 
 	// ------------------------- public method --------------------------------
+
+	public NccJob() {}
+
 	/**
 	 * @param numWindows may be 1 or 2. 1 means compare the schematic and layout 
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.

@@ -547,6 +547,8 @@ public final class Main
 		List<String> argsList;
 		SplashWindow sw;
 
+		public InitDatabase() {}
+
 		protected InitDatabase(List<String> argsList, SplashWindow sw)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

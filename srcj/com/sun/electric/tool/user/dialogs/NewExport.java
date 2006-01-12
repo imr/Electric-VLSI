@@ -311,6 +311,8 @@ public class NewExport extends EDialog
 		boolean drawn;
 		PortCharacteristic ch;
 
+    	public MakeExport() {}
+
 		protected MakeExport(Cell cell, PortInst pi, String name,
 			boolean body, boolean drawn, PortCharacteristic ch, String referenceName)
 		{

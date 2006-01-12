@@ -104,6 +104,8 @@ public class PadGenerator
 	{
         private String fileName;
 
+    	public MakePadFrame() {}
+
 		private MakePadFrame(String fileName)
 		{
             super("Pad Frame Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

@@ -1150,6 +1150,8 @@ public class CellProperties extends EDialog
 	private static class SetCellOptions extends Job
 	{
 		CellProperties dialog;
+
+		public SetCellOptions() {}
 	
 		protected SetCellOptions(CellProperties dialog)
 		{

@@ -384,6 +384,8 @@ public abstract class Job implements Runnable {
     /** Thread job will run in (null for new thread) */
                                                 private Thread thread;
 
+    public Job() {}
+
     /**
 	 * Constructor creates a new instance of Job.
 	 * @param jobName a string that describes this Job.

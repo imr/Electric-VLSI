@@ -90,6 +90,8 @@ public class CircuitChangeJobs
         private boolean mirrorH;
         private List<Geometric> highs;
 
+		public RotateSelected() {}
+
         /**
          * @param cell
          * @param highs the highlighted objects (list of highlights)
@@ -418,6 +420,8 @@ public class CircuitChangeJobs
 	{
         private List<Geometric> list;          // list of highlighted objects to align
 
+		public AlignObjects() {}
+
         public AlignObjects(List<Geometric> highs)
 		{
 			super("Align Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -611,6 +615,8 @@ public class CircuitChangeJobs
 //		double [] dSY;
 //		int [] dRot;
 
+		public AlignNodes() {}
+
 		public AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY)
 //		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 		{
@@ -683,6 +689,8 @@ public class CircuitChangeJobs
 		private int how;
         private List<Highlight2> highlighted;
         private boolean repaintContents, repaintAny;
+
+		public ChangeArcProperties() {}
 
         public ChangeArcProperties(Cell cell, int how, List<Highlight2> highlighted)
 		{
@@ -817,6 +825,8 @@ public class CircuitChangeJobs
         private List<Highlight2> highlighted;
         private int numSet;
 
+		public ToggleNegationJob() {}
+
         public ToggleNegationJob(Cell cell, List<Highlight2> highlighted)
 		{
 			super("Toggle negation", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -896,6 +906,8 @@ public class CircuitChangeJobs
 	{
 		private Cell cell;
 		private List<ArcInst> list;
+
+		public RipTheBus() {}
 
 		public RipTheBus(Cell cell, List<ArcInst> list)
 		{
@@ -1059,6 +1071,8 @@ public class CircuitChangeJobs
         private List<DisplayedText> highlightedText;
         private List<Highlight2> highlighted;
 
+		public DeleteSelected() {}
+
         public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Highlight2> highlighted)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1169,6 +1183,8 @@ public class CircuitChangeJobs
 	{
         private Cell cell;
         private Rectangle2D bounds;
+
+		public DeleteSelectedGeometry() {}
 
         public DeleteSelectedGeometry(Cell cell, Rectangle2D bounds)
 		{
@@ -1314,6 +1330,8 @@ public class CircuitChangeJobs
 	public static class DeleteArcs extends Job
 	{
         private Set<ArcInst> arcsToDelete;
+
+		public DeleteArcs() {}
 
         public DeleteArcs(Set<ArcInst> arcsToDelete)
 		{
@@ -1563,6 +1581,8 @@ public class CircuitChangeJobs
 		private HashSet<ArcInst> arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
+		public CleanupChanges() {}
+
 		public CleanupChanges(Cell cell, boolean justThis, List<NodeInst> pinsToRemove, List<Reconnect> pinsToPassThrough,
             HashMap<NodeInst,Point2D.Double> pinsToScale, List<NodeInst> textToMove, HashSet<ArcInst> arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
@@ -1701,6 +1721,8 @@ public class CircuitChangeJobs
 		private Cell cell;
         private List<ArcInst> selected;
 
+		public ShortenArcs() {}
+
         public ShortenArcs(Cell cell, List<ArcInst> selected)
 		{
 			super("Shorten selected arcs", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1748,6 +1770,8 @@ public class CircuitChangeJobs
         private List<DisplayedText> highlightedText;
 		private double dX, dY;
 		private boolean updateStatusBar;
+
+		public ManyMove() {}
 
         public ManyMove(Cell cell, List<ElectricObject> highlightedObjs, List<DisplayedText> highlightedText, double dX, double dY)
 		{
@@ -3104,6 +3128,8 @@ public class CircuitChangeJobs
 		Technology tech;
 		String newName;
 
+		public RenameTechnology() {}
+
 		public RenameTechnology(Technology tech, String newName)
 		{
 			super("Renaming " + tech, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -3136,6 +3162,8 @@ public class CircuitChangeJobs
 	{
 		Library lib;
 		String newName;
+
+		public RenameLibrary() {}
 
 		public RenameLibrary(Library lib, String newName)
 		{
@@ -3211,6 +3239,8 @@ public class CircuitChangeJobs
 	public static class CheckAndRepairJob extends Job
 	{
 		boolean repair;
+
+		public CheckAndRepairJob() {}
 
 		public CheckAndRepairJob(boolean repair)
 		{

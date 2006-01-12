@@ -138,6 +138,8 @@ public class ERCAntenna
 	{
 		private ERCAntenna handler;
 
+        public AntennaCheckJob() {}
+
 		protected AntennaCheckJob(ERCAntenna handler)
 		{
 			super("ERC Antenna Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
