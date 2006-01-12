@@ -221,10 +221,9 @@ public class MOSRules implements DRCRules {
      * Method to determine if given node is not allowed by foundry.
      * @param nodeIndex index of node in DRC rules map to examine.
      * @param type rule type.
-     * @param techMode foundry.
      * @return true if given node is not allowed by foundry.
      */
-    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type, int techMode)
+    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type)
     {
         return false;
     }
@@ -309,13 +308,11 @@ public class MOSRules implements DRCRules {
 	 * Method to find the extension rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.
-     * @param techMode either ST, TSMC or both
      * @param isGateExtension to decide between the rule EXTENSIONGATE or EXTENSION
 	 * @return the extension rule between the layers.
 	 * Returns null if there is no extension rule.
 	 */
-	public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2, int techMode,
-                                             boolean isGateExtension)
+	public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2, boolean isGateExtension)
 	{
 		return null; //  not available for CMOS
 	}
@@ -327,12 +324,13 @@ public class MOSRules implements DRCRules {
 	 * @return the edge rule distance between the layers.
 	 * Returns null if there is no edge spacing rule.
 	 */
-	public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2, int techMode)
+	public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2)
 	{
 		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 		double dist = edgeList[pIndex].doubleValue();
 		if (dist < 0) return null;
-		return new DRCTemplate(edgeListRules[pIndex], techMode, DRCTemplate.DRCRuleType.SPACINGE, 0, 0, null, null, dist, -1);
+		return new DRCTemplate(edgeListRules[pIndex], DRCTemplate.DRCMode.ALL.mode(),
+                DRCTemplate.DRCRuleType.SPACINGE, 0, 0, null, null, dist, -1);
 	}
 
      /**
@@ -348,7 +346,7 @@ public class MOSRules implements DRCRules {
 	 */
 	public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
-                                      int multiCut, double wideS, double length, int techMode)
+                                      int multiCut, double wideS, double length)
 	{
 		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
         String n1 = DRCTemplate.getSpacingCombinedName(layer1, geo1);
@@ -401,7 +399,8 @@ public class MOSRules implements DRCRules {
 		}
 		if (bestDist < 0) return null;
 
-		return new DRCTemplate(rule, techMode, DRCTemplate.DRCRuleType.SPACING, 0, 0, bestDist, multiCut);
+		return new DRCTemplate(rule, DRCTemplate.DRCMode.ALL.mode(),
+                DRCTemplate.DRCRuleType.SPACING, 0, 0, bestDist, multiCut);
 	}
 
     /**
@@ -550,10 +549,9 @@ public class MOSRules implements DRCRules {
      * @param index the index of the layer being queried.
      * @param type SPACING (normal values), SPACINGW (wide values),
      * SPACINGE (edge values) and CUTSPA (multi cuts).
-     * @param techMode to choose a foundry (ignore here).
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
-    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type, int techMode)
+    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type)
     {
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(2);
 
@@ -564,11 +562,13 @@ public class MOSRules implements DRCRules {
             {
                 double dist = conList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
+                    list.add(new DRCTemplate(conListRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, -1));
                 dist = unConList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
+                    list.add(new DRCTemplate(unConListRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.UCONSPA,
                             0, 0, null, null, dist, -1));
            }
            break;
@@ -576,11 +576,13 @@ public class MOSRules implements DRCRules {
            {
                 double dist = conListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListWideRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
+                    list.add(new DRCTemplate(conListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.CONSPA,
                             wideLimit.doubleValue(), 0, null, null, dist, -1));
                 dist = unConListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListWideRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
+                    list.add(new DRCTemplate(unConListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.UCONSPA,
                             wideLimit.doubleValue(), 0, null, null, dist, -1));
            }
            break;
@@ -588,11 +590,13 @@ public class MOSRules implements DRCRules {
            {
                 double dist = conListMulti[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(conListMultiRules[index], techMode, DRCTemplate.DRCRuleType.CONSPA,
+                    list.add(new DRCTemplate(conListMultiRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, 1));
                 dist = unConListMulti[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(unConListMultiRules[index], techMode, DRCTemplate.DRCRuleType.UCONSPA,
+                    list.add(new DRCTemplate(unConListMultiRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.UCONSPA,
                             0, 0, null, null, dist, 1));
            }
            break;
@@ -600,7 +604,8 @@ public class MOSRules implements DRCRules {
            {
                 double dist = edgeList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCTemplate(edgeListRules[index], techMode, DRCTemplate.DRCRuleType.SPACINGE,
+                    list.add(new DRCTemplate(edgeListRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                            DRCTemplate.DRCRuleType.SPACINGE,
                             0, 0, null, null, dist, -1));
            }
            break;
@@ -645,11 +650,10 @@ public class MOSRules implements DRCRules {
 	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
 	 * @param type rule type
-     * @param techMode to choose betweeb ST or TSMC
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-    public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type, int techMode)
+    public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type)
 	{
 	    if (type == DRCTemplate.DRCRuleType.MINWID)
         {
@@ -657,7 +661,8 @@ public class MOSRules implements DRCRules {
             double dist = minWidth[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                    DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
         }
         if (type == DRCTemplate.DRCRuleType.MINAREA)
         {
@@ -665,7 +670,8 @@ public class MOSRules implements DRCRules {
             double dist = minArea[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.DRCRuleType.MINAREA, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(minAreaRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                    DRCTemplate.DRCRuleType.MINAREA, 0, 0, null, null, dist, -1));
         }
         if (type == DRCTemplate.DRCRuleType.SLOTSIZE)
         {
@@ -673,7 +679,8 @@ public class MOSRules implements DRCRules {
             double dist = slotSize[index].doubleValue();
 
             if (dist < 0) return null;
-            return (new DRCTemplate(slotSizeRules[index], techMode, DRCTemplate.DRCRuleType.SLOTSIZE, 0, 0, null, null, dist, -1));
+            return (new DRCTemplate(slotSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                    DRCTemplate.DRCRuleType.SLOTSIZE, 0, 0, null, null, dist, -1));
         }
         return null;
 	}
@@ -682,15 +689,15 @@ public class MOSRules implements DRCRules {
      * Method to get cut values associates to a contact node
      * @param index the index of the node.
      * @param type the rule type.
-     * @param techMode to choose betweeb ST or TSMC
      * @return the requested cut rule.
      */
-    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type, int techMode)
+    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type)
     {
         if (type != DRCTemplate.DRCRuleType.CUTSIZE) return null;
         double cutSize = minWidth[index].doubleValue();
         if (cutSize < 0) return null;
-        return (new DRCTemplate(cutNodeSizeRules[index], techMode, DRCTemplate.DRCRuleType.CUTSIZE, 0, 0, null, null, cutSize, -1));
+        return (new DRCTemplate(cutNodeSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                DRCTemplate.DRCRuleType.CUTSIZE, 0, 0, null, null, cutSize, -1));
     }
 
     /**
@@ -700,9 +707,8 @@ public class MOSRules implements DRCRules {
      * @param name the rule name
      * @param value the new rule value
      * @param type rule type
-     * @param techMode to choose betweeb ST or TSMC
      */
-    public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type, int techMode)
+    public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type)
     {
         if (type != DRCTemplate.DRCRuleType.MINWID) return;
 

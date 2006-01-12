@@ -71,10 +71,10 @@ public class DRCTemplate
         /** only applies if stacked vias are not allowed */					NSV (0400),
         /** only applies if deep rules are in effect */						DE (01000),
         /** only applies if submicron rules are in effect */				SU (02000),
-        /** only applies if scmos rules are in effect */					SC (04000),
-        /** only for TSMC technology */                                     TSMC (010000),
-        /** only for ST technology */                                       ST (020000),
-        /** only for MOSIS technology */                                    MOSIS (040000);
+        /** only applies if scmos rules are in effect */					SC (04000);
+//        /** only for TSMC technology */                                     TSMC (010000),
+//        /** only for ST technology */                                       ST (020000),
+//        /** only for MOSIS technology */                                    MOSIS (040000);
 
         private final int mode;   // mode
         DRCMode(int mode) {
@@ -328,25 +328,23 @@ public class DRCTemplate
      * @param rule
      * @return true if the rule is valid under this foundry
      */
-    private static boolean isRuleValidInFoundry(Technology tech, DRCMode foundry, DRCTemplate rule)
+    /** TODO This function should be removed */
+    private static boolean isRuleValidInFoundry(Technology tech, Foundry foundry, DRCTemplate rule)
     {
         // Direct reference in rule, then rule is valid
-        if ((rule.when & foundry.mode()) != 0) return true;
+        if ((rule.when & foundry.getType().mode()) != 0) return true;
         // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
-        List<DRCMode> list = tech.getFactories();
-        for (int i = 0; i < list.size(); i++)
+        List<Foundry> list = tech.getFoundries();
+        for (Foundry f : tech.getFoundries())
         {
-            DRCMode m = list.get(i);
-            if (m == foundry) continue;
-            if ((rule.when & m.mode()) != 0) return false; // belong to another foundry
+            if (f == foundry) continue;
+            if ((rule.when & f.getType().mode()) != 0) return false; // belong to another foundry
         }
         return true;
     }
 
-    public static void exportDRCDeck(String fileName, Technology tech)
+    public static void exportDRCDecks(String fileName, Technology tech)
     {
-        List<DRCTemplate> rules = tech.getDRCDeck();
-        DRCMode foundry = tech.getFoundry();
 
         try
         {
@@ -358,111 +356,119 @@ public class DRCTemplate
             out.println("-->");
             out.println("<!DOCTYPE DRCRules SYSTEM \"DRC.dtd\">");
             out.println("<DRCRules>");
-            out.println("    <Foundry name=\"" + foundry.name() + "\">");
-
-            for (int i = 0; i < rules.size(); i++)
+            for (Foundry foundry : tech.getFoundries())
             {
-                DRCTemplate rule = rules.get(i);
-//                if ((rules[i].when & foundry.mode()) == 0) continue;
-                if (!isRuleValidInFoundry(tech, foundry, rule)) continue;
+    //        Foundry foundry = tech.getSelectedFoundry();
+            List<DRCTemplate> rules = foundry.getRules();
+                out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
 
-                String whenName = null;
-                for (DRCMode p : DRCMode.values())
+                for (DRCTemplate rule : rules)
                 {
-                    if (p == DRCMode.NONE || p == DRCMode.MOSIS || p == DRCMode.TSMC || p == DRCMode.ST) continue;
-                    if ((p.mode() & rule.when) != 0)
+    //                if ((rules[i].when & foundry.mode()) == 0) continue;
+                    if (!isRuleValidInFoundry(tech, foundry, rule)) continue;
+
+                    String whenName = null;
+                    for (DRCMode p : DRCMode.values())
                     {
-                        if (whenName == null) // first element
-                            whenName = "";
-                        else
-                            whenName += "|";
-                        whenName += p;
+                        if (p == DRCMode.NONE ||
+                                p.mode() == Foundry.Type.MOSIS.mode() ||
+                                p.mode() == Foundry.Type.TSMC.mode() ||
+                                p.mode() == Foundry.Type.ST.mode())
+                            continue;
+                        if ((p.mode() & rule.when) != 0)
+                        {
+                            if (whenName == null) // first element
+                                whenName = "";
+                            else
+                                whenName += "|";
+                            whenName += p;
+                        }
+                    }
+                    if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
+                    switch(rule.ruleType)
+                    {
+                        case MINWID:
+                        case MINAREA:
+                        case MINENCLOSEDAREA:
+                            out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
+                                    + " layerName=\"" + rule.name1 + "\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + "/>");
+                            break;
+                        case VIASUR:
+                            out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
+                                    + " layerName=\"" + rule.name1 + "\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + " nodeName=\"" + rule.nodeName + "\""
+                                    + "/>");
+                            break;
+                        case UCONSPA:
+                        case CONSPA:
+                        case SPACING:
+                        case SPACINGM:
+                        case SPACINGE:
+                        case COMBINATION:
+                            String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
+                            out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + noName
+                                    + "/>");
+                            break;
+                        case SPACINGW:
+                            out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + " maxW=\"" + rule.maxWidth + "\""
+                                    + " minLen=\"" + rule.minLength + "\""
+                                    + "/>");
+                            break;
+                        case SURROUND:
+                        case ASURROUND:
+                            out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
+                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + " nodeName=\"" + rule.nodeName + "\""
+                                    + "/>");
+                            break;
+                        case TRAWELL:
+                        case TRAPOLY:
+                        case TRAACTIVE:
+                            out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + "/>");
+                            break;
+                        case NODSIZ:
+                        case CUTSUR:
+                        case CUTSPA:
+                        case CUTSPA2D:
+                        case CUTSIZE:
+                            out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                                    + " type=\""+rule.ruleType+"\""
+                                    + " when=\"" + whenName + "\""
+                                    + " value=\"" + rule.value1 + "\""
+                                    + " nodeName=\"" + rule.nodeName + "\""
+                                    + "/>");
+                            break;
+                        default:
+                            System.out.println("Case not implemented " + rule.ruleType);
+                            ;
                     }
                 }
-                if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
-                switch(rule.ruleType)
-                {
-                    case MINWID:
-                    case MINAREA:
-                    case MINENCLOSEDAREA:
-                        out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
-                                + " layerName=\"" + rule.name1 + "\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + "/>");
-                        break;
-                    case VIASUR:
-                        out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
-                                + " layerName=\"" + rule.name1 + "\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + " nodeName=\"" + rule.nodeName + "\""
-                                + "/>");
-                        break;
-                    case UCONSPA:
-                    case CONSPA:
-                    case SPACING:
-                    case SPACINGM:
-                    case SPACINGE:
-                    case COMBINATION:
-                        String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
-                        out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + noName
-                                + "/>");
-                        break;
-                    case SPACINGW:
-                        out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + " maxW=\"" + rule.maxWidth + "\""
-                                + " minLen=\"" + rule.minLength + "\""
-                                + "/>");
-                        break;
-                    case SURROUND:
-                    case ASURROUND:
-                        out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
-                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + " nodeName=\"" + rule.nodeName + "\""
-                                + "/>");
-                        break;
-                    case TRAWELL:
-                    case TRAPOLY:
-                    case TRAACTIVE:
-                        out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + "/>");
-                        break;
-                    case NODSIZ:
-                    case CUTSUR:
-                    case CUTSPA:
-                    case CUTSPA2D:
-                    case CUTSIZE:
-                        out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
-                                + " type=\""+rule.ruleType+"\""
-                                + " when=\"" + whenName + "\""
-                                + " value=\"" + rule.value1 + "\""
-                                + " nodeName=\"" + rule.nodeName + "\""
-                                + "/>");
-                        break;
-                    default:
-                        System.out.println("Case not implemented " + rule.ruleType);
-                        ;
-                }
+                out.println("    </Foundry>");
             }
-            out.println("    </Foundry>");
             out.println("</DRCRules>");
             out.close();
         } catch (Exception e)
@@ -490,11 +496,20 @@ public class DRCTemplate
         return n1;
     }
 
+
+
+    /** Class used to store read rules and foundry associated to them */
+    public static class DRCXMLBucket
+    {
+        public List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
+        public String foundry = Foundry.Type.NONE.name();
+    }
+
     /** Public XML Parser for DRC decks **/
     public static class DRCXMLParser
     {
-        public List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
-        DRCTemplate.DRCMode foundry = DRCTemplate.DRCMode.NONE;
+        public List<DRCXMLBucket> rulesList = new ArrayList<DRCXMLBucket>();
+        private DRCXMLBucket current = null;
 
         public void process(URL fileURL)
         {
@@ -521,11 +536,8 @@ public class DRCTemplate
 
         private class DRCXMLHandler extends DefaultHandler
         {
-//            private DRCXMLParser parser;
-
             DRCXMLHandler()
             {
-//                this.parser = parser;
             }
 
             public InputSource resolveEntity (String publicId, String systemId) throws IOException, SAXException
@@ -540,7 +552,9 @@ public class DRCTemplate
             {
                 if (qName.equals("Foundry"))
                 {
-                    foundry = DRCTemplate.DRCMode.valueOf(attributes.getValue(0));
+                    current = new DRCXMLBucket();
+                    rulesList.add(current);
+                    current.foundry = attributes.getValue(0);
                     return;
                 }
                 boolean layerRule = qName.equals("LayerRule");
@@ -574,8 +588,8 @@ public class DRCTemplate
                             DRCTemplate.DRCMode m = DRCTemplate.DRCMode.valueOf(modes[j]);
                             when |= m.mode();
                         }
-                        if (foundry != DRCTemplate.DRCMode.NONE)
-                            when |= foundry.mode();
+//                        if (foundry != Foundry.Type.NONE)
+//                            when |= foundry.mode();
                     }
                     else if (attributes.getQName(i).equals("value"))
                         value = Double.parseDouble(attributes.getValue(i));
@@ -596,7 +610,7 @@ public class DRCTemplate
                         if (nodeNames == null)
                         {
                             DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, null);
-                            drcRules.add(tmp);
+                            current.drcRules.add(tmp);
                         }
                         else
                         {
@@ -604,7 +618,7 @@ public class DRCTemplate
                             for (int j = 0; j < names.length; j++)
                             {
                                 DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, names[j]);
-                                drcRules.add(tmp);
+                                current.drcRules.add(tmp);
                             }
                         }
                     }
@@ -614,7 +628,7 @@ public class DRCTemplate
                     if (nodeNames == null)
                     {
                         DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, null);
-                        drcRules.add(tmp);
+                        current.drcRules.add(tmp);
                     }
                     else
                     {
@@ -622,7 +636,7 @@ public class DRCTemplate
                         for (int i = 0; i < names.length; i++)
                         {
                             DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, names[i]);
-                            drcRules.add(tmp);
+                            current.drcRules.add(tmp);
                         }
                     }
                 }
@@ -640,7 +654,7 @@ public class DRCTemplate
                                 tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, null);
                             else
                                 tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], value, -1);
-                            drcRules.add(tmp);
+                            current.drcRules.add(tmp);
                         }
                         else
                         {
@@ -652,7 +666,7 @@ public class DRCTemplate
                                     tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, names[j]);
                                 else
                                     System.out.println("When do I have this case?");
-                                drcRules.add(tmp);
+                                current.drcRules.add(tmp);
                             }
                         }
                     }

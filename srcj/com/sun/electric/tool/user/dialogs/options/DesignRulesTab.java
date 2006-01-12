@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -53,7 +53,7 @@ public class DesignRulesTab extends PreferencePanel
 	DesignRulesPanel rulesPanel;
 	private DRCRules drRules;
 	private boolean designRulesFactoryReset = false;
-	private DRCTemplate.DRCMode foundry;
+	private Foundry.Type foundry;
 
 	/** Creates new form DesignRulesTab */
 	public DesignRulesTab(Frame parent, boolean modal)
@@ -101,7 +101,7 @@ public class DesignRulesTab extends PreferencePanel
 		}
 
         drRules = rules;
-		foundry = curTech.getFoundry();
+		foundry = curTech.getSelectedFoundry().getType();
         rulesPanel.init(curTech, foundry, drRules);
 
 		// load the dialog
@@ -109,23 +109,28 @@ public class DesignRulesTab extends PreferencePanel
 		drTechName.setText(text);
 
         // Foundry
-        String selectedFoundry = curTech.getSelectedFoundry();
-        for (Iterator<DRCTemplate.DRCMode> it = curTech.getFactories().iterator(); it.hasNext(); )
+        String selectedFoundry = curTech.getPrefFoundry();
+        for (Foundry factory : curTech.getFoundries())
         {
-            DRCTemplate.DRCMode factory = it.next();
-            defaultFoundryPulldown.addItem(factory);
-            if (selectedFoundry.equalsIgnoreCase(factory.name())) foundry = factory;
+            Foundry.Type type = factory.getType();
+            defaultFoundryPulldown.addItem(type);
+            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
         }
-        defaultFoundryPulldown.setEnabled(foundry != DRCTemplate.DRCMode.NONE);
+        defaultFoundryPulldown.setEnabled(foundry != Foundry.Type.NONE);
         defaultFoundryPulldown.setSelectedItem(foundry);
         defaultFoundryPulldown.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt)
             {
-                DRCTemplate.DRCMode mode = (DRCTemplate.DRCMode)defaultFoundryPulldown.getSelectedItem();
-
-                drRules = curTech.getFactoryDesignRules(null, mode);
-                rulesPanel.init(curTech, mode, drRules);;
+                Foundry.Type mode = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
+                for (Foundry f : curTech.getFoundries())
+                {
+                    if (f.getType() != mode) continue;
+                    // Foundry found
+                    drRules = curTech.getFactoryDesignRules(f);
+                    rulesPanel.init(curTech, mode, drRules);
+                    break;
+                }
             }
 		});
 
@@ -150,12 +155,12 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        DRCTemplate.DRCMode foundry = (DRCTemplate.DRCMode)defaultFoundryPulldown.getSelectedItem();
+        Foundry.Type foundry = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
         if (foundry == null) return; // technology without design rules.
         
         int val = -1;
 
-        if (!foundry.name().equalsIgnoreCase(curTech.getSelectedFoundry()))
+        if (!foundry.name().equalsIgnoreCase(curTech.getPrefFoundry()))
         {
             // only valid for 180nm so far
             if (curTech == MoCMOS.tech)
@@ -172,7 +177,7 @@ public class DesignRulesTab extends PreferencePanel
                 }
             if (val != 2)
             {
-                curTech.setSelectedFoundry(foundry.name());
+                curTech.setPrefFoundry(foundry.name());
                 // primitive arcs have to be modified.
                 if (val == 0)
                     new Technology.ResetDefaultWidthJob(null);
@@ -198,7 +203,7 @@ public class DesignRulesTab extends PreferencePanel
 		if (designRulesFactoryReset)
 		{
 			DRC.resetDRCDates();
-            drRules = curTech.getFactoryDesignRules(null, null);
+            drRules = curTech.getFactoryDesignRules(curTech.getSelectedFoundry());
 		}
 		DRC.setRules(curTech, drRules);
 

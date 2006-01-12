@@ -93,11 +93,11 @@ public class DRCTab extends PreferencePanel
 			DRC.setIncrementalDRCOn(currentValue);
 
         if (drcErrorDefault.isSelected())
-            DRC.setErrorType(DRC.DRCMode.ERROR_CHECK_DEFAULT);
+            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_DEFAULT);
         else if (drcErrorCell.isSelected())
-            DRC.setErrorType(DRC.DRCMode.ERROR_CHECK_CELL);
+            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_CELL);
         else if (drcErrorExaustive.isSelected())
-            DRC.setErrorType(DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE);
+            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE);
 
 		currentValue = drcIgnoreCenterCuts.isSelected();
 		if (currentValue != DRC.isIgnoreCenterCuts())

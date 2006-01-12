@@ -557,7 +557,7 @@ public class Technology implements Comparable<Technology>
 	/** scale for this Technology. */						private Pref prefScale;
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private Pref prefFoundry;
-    /** static list of all Manufacturers in Electric */     protected List<DRCTemplate.DRCMode> foundries;
+    /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
@@ -606,7 +606,7 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 
         // Initialize foundries
-        foundries = new ArrayList<DRCTemplate.DRCMode>();
+        foundries = new ArrayList<Foundry>();
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -719,7 +719,7 @@ public class Technology implements Comparable<Technology>
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
 	 */
-	public void setState(List<DRCTemplate> rules) {}
+	public void setState() {}
 
 	/**
 	 * Method to initialize a technology. This will check and restore
@@ -747,7 +747,7 @@ public class Technology implements Comparable<Technology>
 		}
 
 		// initialize all design rules in the technology (overwrites arc widths)
-		setState(null);
+		setState();
 
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
@@ -3257,7 +3257,7 @@ public class Technology implements Comparable<Technology>
 	 * The default is "Generic".
 	 * @return the foundry to use in Tech Palette
 	 */
-	public String getSelectedFoundry()
+	public String getPrefFoundry()
     {
         if (prefFoundry == null) return ""; // Nothing
         return prefFoundry.getString().toUpperCase();
@@ -3267,7 +3267,7 @@ public class Technology implements Comparable<Technology>
 	 * Method to set foundry for DRC rules.
 	 * @param t the foundry for DRC rules.
 	 */
-	public void setSelectedFoundry(String t)
+	public void setPrefFoundry(String t)
     {
         prefFoundry.setString(t);
     }
@@ -3286,7 +3286,7 @@ public class Technology implements Comparable<Technology>
 	 * Get an iterator over all of the Manufacturers.
 	 * @return an iterator over all of the Manufacturers.
 	 */
-	public List<DRCTemplate.DRCMode> getFactories()
+	public List<Foundry> getFoundries()
 	{
 		return foundries;
 	}
@@ -3295,16 +3295,16 @@ public class Technology implements Comparable<Technology>
 	 * Method to get the foundry index associated with this technology.
 	 * @return the foundry index associated with this technology.
 	 */
-    public DRCTemplate.DRCMode getFoundry()
+    public Foundry getSelectedFoundry()
     {
-        String foundryName = getSelectedFoundry();
-        for (int i = 0; i < foundries.size(); i++)
+        String foundryName = getPrefFoundry();
+        for (Foundry f : foundries)
         {
-            DRCTemplate.DRCMode man = foundries.get(i);
-            if (man.name().equalsIgnoreCase(foundryName))
-                return man;
+            Foundry.Type t = f.getType();
+            if (t.name().equalsIgnoreCase(foundryName))
+                return f;
         }
-        return DRCTemplate.DRCMode.NONE;
+        return null;
     }
 
 	/**
@@ -3448,7 +3448,7 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRCRules getFactoryDesignRules(List<DRCTemplate> deckRules, DRCTemplate.DRCMode mode)
+	public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
 		return null;
 	}
@@ -3474,7 +3474,7 @@ public class Technology implements Comparable<Technology>
      * Method to get the DRC deck containing rules
      * @return the DRC deck containing rules.
      */
-    public List<DRCTemplate> getDRCDeck() { return null; }
+//    public List<DRCTemplate> getDRCDeck() { return null; }
 
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.
@@ -4034,7 +4034,7 @@ public class Technology implements Comparable<Technology>
 
 		public void setSideEffect()
 		{
-			tech.setState(null);
+			tech.setState();
 			VectorDrawing.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();

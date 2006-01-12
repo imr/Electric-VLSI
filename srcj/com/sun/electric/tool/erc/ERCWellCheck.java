@@ -44,7 +44,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.Shape;
 
@@ -329,7 +328,7 @@ public class ERCWellCheck
 		{
 			HashMap<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
 			HashMap<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
-            DRCTemplate.DRCMode techMode = cell.getTechnology().getFoundry();
+
 			for(Iterator<WellArea> it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -351,7 +350,7 @@ public class ERCWellCheck
 					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
-						rule = DRC.getSpacingRule(waLayer, null, waLayer, null, con, -1, 0, 0, techMode);
+						rule = DRC.getSpacingRule(waLayer, null, waLayer, null, con, -1, 0, 0);
 						if (rule == null)
 							System.out.println("Replace this");
 						if (con)

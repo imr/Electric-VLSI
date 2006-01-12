@@ -41,10 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -476,7 +473,7 @@ public class Compaction extends Listener
 
 					// see how close they can get
 					double dist = -1;
-					DRCTemplate rule = DRC.getSpacingRule(nLayer, null, layer, null, con, -1, 0, 0, DRCTemplate.DRCMode.ALL);
+					DRCTemplate rule = DRC.getSpacingRule(nLayer, null, layer, null, con, -1, 0, 0);
 					if (rule != null) dist = rule.value1;
 					if (dist < 0) continue;
 

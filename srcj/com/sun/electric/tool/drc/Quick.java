@@ -157,7 +157,7 @@ public class Quick
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to caching current extra bits
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
-    private DRCTemplate.DRCMode techMode = DRCTemplate.DRCMode.NONE;       /** To control different rules for ST and TSMC technologies */
+//    private Foundry.Type techMode = Foundry.Type.NONE;       /** To control different rules for ST and TSMC technologies */
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
 	public Quick(DRC.CheckDRCLayoutJob job, GeometryHandler.GHMode mode)
@@ -198,7 +198,7 @@ public class Quick
 
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
-	/** error type search */				                    private DRC.DRCMode errorTypeSearch;
+	/** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
     /** minimum output grid resolution */				        private double minAllowedResolution;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
@@ -258,7 +258,7 @@ public class Quick
         activeBits = DRC.getActiveBits(tech);
 
         // caching technology mode
-        techMode = tech.getFoundry();
+//        techMode = tech.getSelectedFoundry().getType();
 
         // minimim resolution different from zero if flag is on otherwise stays at zero (default)
         minAllowedResolution = tech.getResolution();
@@ -276,7 +276,7 @@ public class Quick
         int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
 		if (count > 0)
 		{
-			errorTypeSearch = DRC.DRCMode.ERROR_CHECK_CELL;
+			errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
 			numberOfThreads = 1;
 		}
 
@@ -298,24 +298,24 @@ public class Quick
 	    nodesMap.clear();
 
 	    // No incremental neither per Cell
-	    if (!DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCMode.ERROR_CHECK_CELL)
+	    if (!DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
 	    {
 		    for(Iterator it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 
 				// Storing min areas
-				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA,techMode);
+				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
 				if (minAreaRule != null)
 					minAreaLayerMap.put(layer, minAreaRule);
 
 				// Storing enclosed areas
-				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, techMode);
+				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
 
                 // Storing slot sizes
-				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.SLOTSIZE, techMode);
+				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.SLOTSIZE);
 				if (slotRule != null)
 					slotSizeLayerMap.put(layer, slotRule);
 			}
@@ -416,7 +416,6 @@ public class Quick
 		accumulateExclusion(cell);
 
 		// now do the DRC
-
 		boolean validVersion = true;
 	    Version version = cell.getLibrary().getVersion();
 		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
@@ -461,51 +460,13 @@ public class Quick
         // This is only going to happen if job was not aborted.
 	    if ((job == null || !job.checkAbort()) && (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0))
 	    {
-		    new UpdateDRCDates(tech, goodDRCDate, cleanDRCDate);
+		    new DRC.UpdateDRCDates(activeBits, goodDRCDate, cleanDRCDate);
 	    }
 
         return logsFound;
 	}
 
-	/**
-	 * Class to save good DRC dates in a new thread.
-	 */
-	private static class UpdateDRCDates extends Job
-	{
-		HashMap<Cell,Date> goodDRCDate;
-		HashMap<Cell,Cell> cleanDRCDate;
-        Technology tech;
-
-		protected UpdateDRCDates(Technology tech, HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate)
-		{
-			super("Remember DRC Successes and/or Delete Obsolete Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.tech = tech;
-            this.goodDRCDate = goodDRCDate;
-			this.cleanDRCDate = cleanDRCDate;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            int bits = DRC.getActiveBits(tech);
-
-			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
-			{
-				Cell cell = (Cell)it.next();
-				Date now = (Date)goodDRCDate.get(cell);
-				DRC.setLastDRCDateAndBits(cell, now, bits);
-			}
-
-			for(Iterator it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
-			{
-				Cell cell = (Cell)it.next();
-				DRC.cleanDRCDateAndBits(cell);
-			}
-			return true;
-		}
-	}
-
-	/*************************** QUICK DRC CELL EXAMINATION ***************************/
+    /*************************** QUICK DRC CELL EXAMINATION ***************************/
 
 	/**
 	 * Method to check the contents of cell "cell" with global network index "globalIndex".
@@ -598,7 +559,7 @@ public class Quick
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCMode.ERROR_CHECK_CELL)
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
 			totalMsgFound = checkMinArea(cell);
         //instanceInteractionList.clear();   test 1
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -614,7 +575,7 @@ public class Quick
 			if (ret)
 			{
 				totalMsgFound++;
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) break;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
 			}
 		}
 		Technology cellTech = cell.getTechnology();
@@ -634,7 +595,7 @@ public class Quick
 			if (checkArcInst(cp, ai, globalIndex))
 			{
 				totalMsgFound++;
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) break;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
 			}
 		}
 
@@ -737,10 +698,11 @@ public class Quick
 			return (false);
 		nodesMap.put(ni, ni);
 
-        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.FORBIDDEN, tech, techMode))
+        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(),
+                DRCTemplate.DRCRuleType.FORBIDDEN, tech))
         {
             reportError(DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
-            if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+            if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
             errorsFound = true;
         }
 
@@ -770,7 +732,7 @@ public class Quick
             ret = checkResolution(poly, cell, ni);
             if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 
@@ -781,13 +743,13 @@ public class Quick
 			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ni, layer, poly, tot==1);
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check select over transistor poly
@@ -795,20 +757,20 @@ public class Quick
 			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
             ret = checkExtensionRule(ni, layer, poly, cell);
             if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
 				reportError(DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
 					poly, ni, layer, null, null, null);
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -864,7 +826,7 @@ public class Quick
                     Layer lay1 = (Layer)keys[i];
                     if (lay1 == layer) continue;
                     int index = tech.getRuleIndex(lay1.getIndex(), layer.getIndex());
-                    if (DRC.isForbiddenNode(index, DRCTemplate.DRCRuleType.COMBINATION, tech, techMode))
+                    if (DRC.isForbiddenNode(index, DRCTemplate.DRCRuleType.COMBINATION, tech))
                     {
                         NodeInst node = (NodeInst)od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
@@ -913,7 +875,7 @@ public class Quick
             boolean ret = checkResolution(poly, ai.getParent(), ai);
             if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
         }
@@ -933,27 +895,27 @@ public class Quick
 			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ai, layer, poly, tot==1);
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check select over transistor poly
 			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
 			if (ret)
 			{
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
 				reportError(DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
 					(tot==1)?null:poly, ai, layer, null, null, null);
-				if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -1068,7 +1030,7 @@ public class Quick
                             (triggerNi==null)?ni:triggerNi);
 					if (ret)
 					{
-						if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+						if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				} else
@@ -1097,7 +1059,7 @@ public class Quick
 							globalIndex, oNi, topGlobalIndex);
 						if (ret)
 						{
-							if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+							if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 							logsFound = true;
 						}
 					}
@@ -1135,7 +1097,7 @@ public class Quick
 						globalIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
-						if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_CELL) return true;
+						if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				}
@@ -1281,7 +1243,7 @@ public class Quick
 						             topCell, topGlobalIndex, subTrans, baseMulti, sameInstance))
                     {
                         foundError = true;
-                        if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				} else
 				{
@@ -1339,7 +1301,7 @@ public class Quick
                         if (ret)
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
 
                         // check if both polys are cut and if the combine area doesn't excess cut sizes
@@ -1348,7 +1310,7 @@ public class Quick
                         if (ret)
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
 
 						// if they connect electrically and adjoin, don't check
@@ -1365,7 +1327,7 @@ public class Quick
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
                             continue;
                         }
@@ -1374,7 +1336,7 @@ public class Quick
 						DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, npoly, ni, con, multiInt);
                         if (theRule == null)
                         {
-						    theRule = DRC.getEdgeRule(layer, nLayer, techMode);
+						    theRule = DRC.getEdgeRule(layer, nLayer);
                             edge = true;
                         }
 
@@ -1388,7 +1350,7 @@ public class Quick
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
                         }
 					}
@@ -1455,7 +1417,7 @@ public class Quick
                         if (ret)
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
                         continue;
                     }
@@ -1465,7 +1427,7 @@ public class Quick
                     DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, nPoly, ai, con, multiInt);
                     if (theRule == null)
                     {
-                        theRule = DRC.getEdgeRule(layer, nLayer, techMode);
+                        theRule = DRC.getEdgeRule(layer, nLayer);
                         edge = true;
                     }
                     if (theRule == null) continue;
@@ -1476,7 +1438,7 @@ public class Quick
 					if (ret)
                     {
                         foundError = true;
-                        if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 
                     // Checking extension, it could be slow
@@ -1484,7 +1446,7 @@ public class Quick
                     if (ret)
                     {
                         foundError = true;
-                        if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				}
 			}
@@ -1514,7 +1476,7 @@ public class Quick
 
         // they are electrically connected and they overlap: look for minimum size errors
         // of the overlapping region.
-        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.DRCRuleType.MINWID, techMode);
+        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.DRCRuleType.MINWID);
         if (wRule == null) return false; // no rule
 
         double minWidth = wRule.value1;
@@ -1726,7 +1688,7 @@ public class Quick
 				// they are electrically connected: see if they touch
                 if (checkMinDefects(cell, maytouch, geom1, poly1, trueBox1, layer2, geom2, poly2, trueBox2, layer2, cell))
                 {
-                    if (errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                    if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                     errorFound = true;
                 }
 			}
@@ -2091,7 +2053,7 @@ public class Quick
 	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, AffineTransform n1UpTrans,
                                      NodeInst ni2, NodeInst n2Parent, NodeInst triggerNi)
 	{
-        if (errorTypeSearch == DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE) return false;
+        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
 
 		// must recheck parameterized instances always
 		CheckProto cp = getCheckProto((Cell)ni1.getProto());
@@ -2430,7 +2392,7 @@ public class Quick
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
 		Cell cell = geom.getParent();
-		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID, techMode);
+		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
 		if (minWidthRule == null) return false;
 
 		// simpler analysis if manhattan
@@ -3135,7 +3097,7 @@ public class Quick
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.CUTSIZE, techMode.mode());
+        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.CUTSIZE);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
         if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
@@ -3435,7 +3397,7 @@ public class Quick
 		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
 
-		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.EXTENSION, techMode);
+		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.EXTENSION);
 		if (minOverlapRule == null) return false;
 
 		Rectangle2D polyBnd = poly.getBounds2D();
@@ -4032,7 +3994,7 @@ public class Quick
 
         double[] values = layer1.getTechnology().getSpacingDistances(poly1, poly2);
 
-		return (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1], techMode));
+		return (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1]));
 	}
 
     /**
@@ -4272,7 +4234,7 @@ public class Quick
 		// Message already logged
         boolean onlyWarning = (errorType == DRCErrorType.ZEROLENGTHARCWARN || errorType == DRCErrorType.TECHMIXWARN);
         // Until a decent algorithm is in place for detecting repeated errors, ERROR_CHECK_EXHAUSTIVE might report duplicate errros
-		if ( geom2 != null && errorTypeSearch != DRC.DRCMode.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
+		if ( geom2 != null && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
             return;
 
 		StringBuffer errorMessage = new StringBuffer();

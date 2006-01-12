@@ -877,7 +877,7 @@ public class Layer
 	 */
 	public void setGDSLayer(String gdsLayer)
     {
-        getLayerPref(getGDSPrefName(tech.getSelectedFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
+        getLayerPref(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
 
 	/**
 	 * Method to return the GDS name of this layer.
@@ -885,7 +885,7 @@ public class Layer
 	 */
 	public String getGDSLayer()
     {
-        return getLayerPref(getGDSPrefName(tech.getSelectedFoundry()), gdsLayerPrefs, gdsLayer).getString();
+        return getLayerPref(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, gdsLayer).getString();
     }
 
 	/**

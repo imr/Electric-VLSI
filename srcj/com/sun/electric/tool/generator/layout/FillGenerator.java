@@ -1461,7 +1461,7 @@ public class FillGenerator {
 
         if (tech == MoCMOS.tech)
         {
-            techNm = (tech.getFoundry() == DRCTemplate.DRCMode.TSMC) ?
+            techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
                     Tech.TechType.TSMC180 :
                     Tech.TechType.MOCMOS;
         }

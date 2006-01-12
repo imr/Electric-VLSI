@@ -249,29 +249,29 @@ public class PCB extends Technology
 		D1_lay.setFactoryDXFLayer("");		// Drawing
 
 		// The GDS names
-		S_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal1
-		S0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal2
-		S1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal3
-		S2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal4
-		S3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal5
-		S4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal6
-		S5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal7
-		S6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Signal8
-		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power1
-		P0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power2
-		P1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power3
-		P2_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power4
-		P3_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power5
-		P4_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power6
-		P5_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power7
-		P6_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Power8
-		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// TopSilk
-		B_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// BottomSilk
-		T0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// TopSolder
-		B0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// BottomSolder
-		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Drill
-		D0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// DrillNonPlated
-		D1_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Drawing
+		S_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal1
+		S0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal2
+		S1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal3
+		S2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal4
+		S3_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal5
+		S4_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal6
+		S5_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal7
+		S6_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Signal8
+		P_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power1
+		P0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power2
+		P1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power3
+		P2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power4
+		P3_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power5
+		P4_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power6
+		P5_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power7
+		P6_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Power8
+		T_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// TopSilk
+		B_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// BottomSilk
+		T0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// TopSolder
+		B0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// BottomSolder
+		D_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Drill
+		D0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// DrillNonPlated
+		D1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Drawing
 
 		//******************** ARCS ********************
         ArcProto[] SignalArcs = new ArcProto[8];

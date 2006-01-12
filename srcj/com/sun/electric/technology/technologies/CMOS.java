@@ -346,20 +346,20 @@ public class CMOS extends Technology
 		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Metal
-		P_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Polysilicon
-		D_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Diffusion
-		P0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// P+
-		CC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Contact-Cut
-		OC_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Ohmic-Cut
-		PW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// P-Well
-		O_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Overglass
-		T_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Transistor
-		PM_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-Diffusion
-		PP0_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-P+
-		PPW_lay.setFactoryGDSLayer("", DRCTemplate.DRCMode.MOSIS.name());		// Pseudo-P-Well
+		M_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Metal
+		P_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Polysilicon
+		D_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Diffusion
+		P0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// P+
+		CC_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Contact-Cut
+		OC_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Ohmic-Cut
+		PW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// P-Well
+		O_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Overglass
+		T_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Transistor
+		PM_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Diffusion
+		PP0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P+
+		PPW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 

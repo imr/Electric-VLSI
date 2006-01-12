@@ -46,10 +46,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
@@ -100,6 +97,7 @@ import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.Main;
 
@@ -109,15 +107,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 
 /**
@@ -1678,9 +1670,9 @@ public class ToolMenu {
 
     public static void exportDRCDeck() {
         String fileName = OpenFile.chooseOutputFile(FileType.XML,
-                "Save XML DRC deck for foundry '" + Technology.getCurrent().getFoundry() + "'", null);
+                "Save XML DRC deck for foundry '" + Technology.getCurrent().getSelectedFoundry() + "'", null);
         if (fileName == null) return;
-        DRCTemplate.exportDRCDeck(fileName, Technology.getCurrent());
+        DRCTemplate.exportDRCDecks(fileName, Technology.getCurrent());
     }
 
     public static void importDRCDeck() {
@@ -1688,6 +1680,32 @@ public class ToolMenu {
         if (fileName == null) return;
         Technology tech = Technology.getCurrent();
         DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileName);
-        tech.setState(parser.drcRules);
+        for (DRCTemplate.DRCXMLBucket bucket : parser.rulesList)
+        {
+            boolean done = false;
+
+            // set the new rules under the foundry imported
+            for (Foundry f : tech.getFoundries())
+            {
+                if (f.getType().name().equalsIgnoreCase(bucket.foundry))
+                {
+                    f.setRules(bucket.drcRules);
+                    System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
+                            tech.getTechName() + "'");
+                    // Need to clean cells using this foundry because the rules might have changed.
+                    DRC.cleanCellsDueToFoundryChanges(tech, f);
+                    // Only when the rules belong to the selected foundry, then reload the rules
+                    if (f == tech.getSelectedFoundry())
+                        tech.setState();
+                    done = true;
+                    break;
+                }
+            }
+            if (!done)
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                        "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
+                        "Importing DRC Deck",
+                        JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

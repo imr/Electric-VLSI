@@ -265,7 +265,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		if (tech != null)
 		{
 			String message = "TECH: " + tech.getTechName();
-            String foundry = tech.getSelectedFoundry();
+            String foundry = tech.getPrefFoundry();
 
             boolean validFoundry = !foundry.equals("");
 			if (tech.isScaleRelevant())
