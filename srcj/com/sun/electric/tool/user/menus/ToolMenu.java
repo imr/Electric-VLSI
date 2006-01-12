@@ -1702,10 +1702,12 @@ public class ToolMenu {
                 }
             }
             if (!done)
+            {
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
                         "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
                         "Importing DRC Deck",
                         JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }
