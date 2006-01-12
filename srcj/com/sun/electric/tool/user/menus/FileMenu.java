@@ -59,8 +59,6 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.waveform.HorizRuler;
-import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
@@ -71,13 +69,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.geom.Point2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -299,10 +295,15 @@ public class FileMenu {
             Library lib = Library.newInstance(newLibName, null);
             if (lib == null) return false;
             lib.setCurrent();
-            EditWindow.repaintAll();
-            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
             System.out.println("New "+lib+" created");
             return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+            EditWindow.repaintAll();
+            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            super.terminateIt(jobException);
         }
     }
 
@@ -353,6 +354,7 @@ public class FileMenu {
 		private URL fileURL;
 		private FileType type;
 		private Library deleteLib;
+        private Cell showThisCell;
 
         public ReadLibrary() {}
 
@@ -381,11 +383,18 @@ public class FileMenu {
 					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
 				}
 			}
-			openALibrary(fileURL, type);
+			showThisCell = openALibrary(fileURL, type);
+			fieldVariableChanged("showThisCell");
 			if (deleteLib != null)
 				deleteLib.kill("replace");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	doneOpeningLibrary(showThisCell);
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -393,7 +402,8 @@ public class FileMenu {
 	 */
 	public static class ReadInitialELIBs extends Job
     {
-        List<URL> fileURLs;
+        private List<URL> fileURLs;
+        private Cell showThisCell;
 
         public ReadInitialELIBs() {}
 
@@ -441,23 +451,24 @@ public class FileMenu {
                 }
                 if (defType == null) defType = FileType.DEFAULTLIB;
                 User.setWorkingDirectory(TextUtils.getFilePath(file));
-                if (openALibrary(file, defType))
-                    success = true;
+                showThisCell = openALibrary(file, defType);
             }
-            if (success) {
-                // close no name library
-                //mainLib.kill();
-                // the calls to repaint actually cause the
-                // EditWindow to come up BLANK in Linux SDI mode
-                //EditWindow.repaintAll();
-                //EditWindow.repaintAllContents();
-            }
+			fieldVariableChanged("showThisCell");
             return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+        	doneOpeningLibrary(showThisCell);
+            super.terminateIt(jobException);
         }
     }
 
-    /** Opens a library */
-    private static boolean openALibrary(URL fileURL, FileType type)
+    /**
+     * Method to handle reading a library.
+     * Called from the "doIt()" method of a Job.
+     */
+    private static Cell openALibrary(URL fileURL, FileType type)
     {
     	Library lib = null;
     	if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.READABLEDUMP)
@@ -482,9 +493,17 @@ public class FileMenu {
         // Repair libraries in case default width changes due to foundry changes
         new Technology.ResetDefaultWidthJob(lib);
         Undo.noUndoAllowed();
-        if (lib == null) return false;
+        if (lib == null) return null;
         lib.setCurrent();
-        Cell cell = lib.getCurCell();
+        return lib.getCurCell();
+    }
+
+    /**
+     * Method to clean up from opening a library.
+     * Called from the "terminateIt()" method of a job.
+     */
+    private static void doneOpeningLibrary(Cell cell)
+    {
         if (cell == null) System.out.println("No current cell in this library");
         else if (!Job.BATCHMODE)
         {
@@ -502,7 +521,6 @@ public class FileMenu {
                 WindowFrame.wantToRedoLibraryTree();
                 WindowFrame.wantToOpenCurrentLibrary(true);
             }});
-        return true;
     }
 
 	/**
@@ -614,13 +632,18 @@ public class FileMenu {
             if (lib.kill("delete"))
             {
                 System.out.println("Library '" + lib.getName() + "' closed");
-	            WindowFrame.wantToRedoTitleNames();
-	            EditWindow.repaintAll();
-
-	            // Disable save icon if no more libraries are open
-	            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
             }
             return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+            WindowFrame.wantToRedoTitleNames();
+            EditWindow.repaintAll();
+
+            // Disable save icon if no more libraries are open
+            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            super.terminateIt(jobException);
         }
     }
 
@@ -691,10 +714,10 @@ public class FileMenu {
      */
     public static class SaveLibrary extends Job
     {
-        Library lib;
-        String newName;
-        FileType type;
-        boolean compatibleWith6;
+        private Library lib;
+        private String newName;
+        private FileType type;
+        private boolean compatibleWith6;
 
         public SaveLibrary() {}
 
@@ -711,20 +734,18 @@ public class FileMenu {
 
         public boolean doIt() throws JobException
         {
-            boolean retVal = false;
-            try {
-                retVal = performTask();
-                if (!retVal) {
-                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Error saving files",
-                         "Please check your disk libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Exception caught when saving files",
-                     e.getMessage(),
-                     "Please check your disk libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
-                ActivityLogger.logException(e);
+            boolean success = false;
+            try
+            {
+            	success = performTask();
+            } catch (Exception e)
+            {
+            	throw new JobException("Exception caught when saving files: " +
+                    e.getMessage() + "Please check your disk libraries");
             }
-            return retVal;
+            if (!success)
+            	throw new JobException("Error saving files.  Please check your disk libraries");
+            return success;
         }
 
         public boolean performTask() {
@@ -1104,7 +1125,8 @@ public class FileMenu {
     }
 
     /**
-     * Class to quit Electric in a new thread.
+     * Class to quit Electric in a Job.
+     * The quit function is done in a Job so that it can force all other jobs to finish.
      */
 	private static class QuitJob extends Job
     {
@@ -1116,13 +1138,23 @@ public class FileMenu {
 
         public boolean doIt() throws JobException
         {
+            return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
             try {
                 Library.saveExpandStatus();
-            } catch (BackingStoreException e) {
+            } catch (BackingStoreException e)
+            {
                 int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-			            "Cannot save cell expand status. Do you still want to quit?", "Cell Status Error",
-                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                if (response != JOptionPane.YES_OPTION) return false;
+		            "Cannot save cell expand status. Do you still want to quit?", "Cell Status Error",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (response != JOptionPane.YES_OPTION)
+                {
+                    super.terminateIt(jobException);
+                	return;
+                }
             }
 
 			// save changes to layer visibility
@@ -1133,7 +1165,6 @@ public class FileMenu {
 
 			ActivityLogger.finished();
             System.exit(0);
-            return true;
         }
     }
 

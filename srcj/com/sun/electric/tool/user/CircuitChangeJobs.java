@@ -1379,7 +1379,6 @@ public class CircuitChangeJobs
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
 		for(Geometric geom : list)
 		{
-//			if (geom instanceof Highlight) geom = ((Highlight)geom).getGeometric();
 			if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;

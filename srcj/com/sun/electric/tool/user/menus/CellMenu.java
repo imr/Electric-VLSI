@@ -272,7 +272,7 @@ public class CellMenu {
     public static class DeleteMultiPageJob extends Job
 	{
 		private Cell cell;
-		private int page;
+		private int page, numPages;
 
 		public DeleteMultiPageJob() {}
 
@@ -292,40 +292,49 @@ public class CellMenu {
 			List<Geometric> deleteList = new ArrayList<Geometric>();
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getAnchorCenterY() > lY && ni.getAnchorCenterY() < hY) deleteList.add(ni);
 			}
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				double ctrY = ai.getBounds().getCenterY();
 				if (ctrY > lY && ctrY < hY) deleteList.add(ai);
 			}
 			CircuitChangeJobs.eraseObjectsInList(cell, deleteList);
 
 			// now slide circuitry down if this isn't the last page
-			int numPages = cell.getNumMultiPages();
+			numPages = cell.getNumMultiPages();
 			if (page+1 < numPages)
 			{
 				CircuitChangeJobs.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
 			}
 	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
-	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-	    	{
-	    		WindowFrame wf = (WindowFrame)it.next();
-	    		if (wf.getContent() instanceof EditWindow)
-	    		{
-	               	EditWindow wnd = (EditWindow)wf.getContent();
-	               	if (wnd.getCell() == cell)
-	               	{
-	               		int wndPage = wnd.getMultiPageNumber();
-	               		if (wndPage+1 >= numPages)
-	               			wnd.setMultiPageNumber(wndPage-1);
-	               	}
-	    		}
-	    	}
+			fieldVariableChanged("numPages");
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+            if (jobException == null)
+            {
+    	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+    	    	{
+    	    		WindowFrame wf = it.next();
+    	    		if (wf.getContent() instanceof EditWindow)
+    	    		{
+    	               	EditWindow wnd = (EditWindow)wf.getContent();
+    	               	if (wnd.getCell() == cell)
+    	               	{
+    	               		int wndPage = wnd.getMultiPageNumber();
+    	               		if (wndPage+1 >= numPages)
+    	               			wnd.setMultiPageNumber(wndPage-1);
+    	               	}
+    	    		}
+    	    	}
+            }
+            super.terminateIt(jobException);
+        }
 	}
 
     /**

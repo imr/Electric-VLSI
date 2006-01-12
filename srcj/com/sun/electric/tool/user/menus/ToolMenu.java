@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -44,9 +45,18 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
@@ -55,8 +65,8 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.drc.CalibreDrcErrors;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
@@ -65,8 +75,8 @@ import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
@@ -92,14 +102,17 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.GenerateVHDL;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -107,9 +120,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 
 /**
@@ -542,9 +562,8 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();) {
-			Highlight2 h = it.next();
-        if (h.isHighlightEOBJ()) continue;
+		for (Highlight2 h : highlighter.getHighlights()) {
+			if (h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
 			if (eobj instanceof PortInst) {
@@ -670,7 +689,7 @@ public class ToolMenu {
             ArrayList<Network> networks = new ArrayList<Network>();
             HashMap<Network,NodeInst> map = new HashMap<Network,NodeInst>();        // map of networks to associated wire model nodeinst
             for (Iterator<NodeInst> it = schLayCells[0].getNodes(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 Variable var = ni.getVar(LENetlister.ATTR_LEWIRE);
                 if (var == null) continue;
                 var = ni.getVar(LENetlister.ATTR_L);
@@ -690,8 +709,7 @@ public class ToolMenu {
             Collections.sort(networks, new TextUtils.NetworksByName());
 
             // update wire models
-            for (Iterator<Network> it = networks.iterator(); it.hasNext(); ) {
-                Network schNet = (Network)it.next();
+            for (Network schNet : networks) {
 //                Netlist netlist = schLayCells[0].getNetlist(true);
                 // find equivalent network in layouy
                 NetEquivalence equiv = result.getNetEquivalence();
@@ -730,8 +748,7 @@ public class ToolMenu {
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();) {
-			Highlight2 h = it.next();
+		for (Highlight2 h : highlighter.getHighlights()) {
 			if (!h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
@@ -749,10 +766,8 @@ public class ToolMenu {
 	}
 
 	public static void clearSizesCommand() {
-		/*for (Library lib: Library.getVisibleLibraries()) LETool.clearStoredSizesJob(lib);*/
-		for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for (Library lib : Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			LETool.clearStoredSizesJob(lib);
 		}
 		System.out.println("Sizes cleared");
@@ -807,7 +822,7 @@ public class ToolMenu {
 		int total = 0;
 		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 		{
-			Network net = (Network)it.next();
+			Network net = it.next();
 			String netName = net.describe(false);
 			if (netName.length() == 0) continue;
 			StringBuffer infstr = new StringBuffer();
@@ -819,7 +834,7 @@ public class ToolMenu {
 			boolean connected = false;
 			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)aIt.next();
+				ArcInst ai = aIt.next();
 				if (!connected)
 				{
 					connected = true;
@@ -831,7 +846,7 @@ public class ToolMenu {
 			boolean exported = false;
 			for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
 			{
-				Export pp = (Export)eIt.next();
+				Export pp = eIt.next();
 				if (!exported)
 				{
 					exported = true;
@@ -857,34 +872,32 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-//        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+        for(Network net : nets)
         {
-            Network net = (Network)it.next();
             System.out.println("Network " + net.describe(true) + ":");
 
             int total = 0;
             for(Iterator<Nodable> nIt = netlist.getNodables(); nIt.hasNext(); )
             {
-                Nodable no = (Nodable)nIt.next();
+                Nodable no = nIt.next();
                 NodeProto np = no.getProto();
 
                 HashMap<Network,HashSet<Object>> portNets = new HashMap<Network,HashSet<Object>>();
                 for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
                 {
-                    PortProto pp = (PortProto)pIt.next();
+                    PortProto pp = pIt.next();
                     if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isIsolated())
                     {
                         NodeInst ni = (NodeInst)no;
                         for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
                         {
-                            Connection con = (Connection)cIt.next();
+                            Connection con = cIt.next();
                             ArcInst ai = con.getArc();
                             Network oNet = netlist.getNetwork(ai, 0);
                             HashSet<Object> ports = (HashSet<Object>)portNets.get(oNet);
@@ -912,7 +925,6 @@ public class ToolMenu {
                                 portNets.put(oNet, ports);
                             }
                             ports.add(pp);
-//                            portNets.put(oNet, pp);
                         }
                     }
                 }
@@ -921,8 +933,6 @@ public class ToolMenu {
                 if (portNets.size() <= 1) continue;
                 HashSet<Object> ports = (HashSet<Object>)portNets.get(net);
                 if (ports == null) continue;
-//                PortProto pp = (PortProto)portNets.get(net);
-//                if (pp == null) continue;
 
                 if (total == 0) System.out.println("  Connects to:");
                 String name = null;
@@ -930,8 +940,8 @@ public class ToolMenu {
                 {
                     name = no.getName();
                 }
-                for (Iterator<Object> pIt = ports.iterator(); pIt.hasNext(); ) {
-                    PortProto pp = (PortProto)pIt.next();
+                for (Object obj : ports) {
+                    PortProto pp = (PortProto)obj;
                     System.out.println("    Node " + name + ", port " + pp.getName());
                     total++;
                 }
@@ -952,16 +962,14 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-//        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+        for(Network net : nets)
         {
-            Network net = (Network)it.next();
             System.out.println("Network '" + net.describe(true) + "':");
 
             // find all exports on network "net"
@@ -985,16 +993,14 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-//        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
-        for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+        for(Network net : nets)
         {
-            Network net = (Network)it.next();
             System.out.println("Network " + net.describe(true) + ":");
 
             // find all exports on network "net"
@@ -1020,7 +1026,6 @@ public class ToolMenu {
                 if (ppNet != net) continue;
                 if (listedExports.contains(pp)) continue;
                 listedExports.add(pp);
-//                listedExports.add(listedExports);
                 System.out.println("    Export " + pp.getName() + " in " + cell);
 
                 // code to find the proper instance
@@ -1030,9 +1035,8 @@ public class ToolMenu {
                 // ascend to higher cell and continue
                 for(Iterator<CellUsage> uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
                 {
-                    CellUsage u = (CellUsage)uIt.next();
+                    CellUsage u = uIt.next();
                     Cell superCell = u.getParent();
-//                    Netlist superNetlist = superCell.getUserNetlist();
             		Netlist superNetlist = cell.acquireUserNetlist();
             		if (superNetlist == null)
             		{
@@ -1041,7 +1045,7 @@ public class ToolMenu {
             		}
                     for(Iterator<Nodable> nIt = superNetlist.getNodables(); nIt.hasNext(); )
                     {
-                        Nodable no = (Nodable)nIt.next();
+                        Nodable no = nIt.next();
                         if (no.getProto() != cell) continue;
                         Network superNet = superNetlist.getNetwork(no, pp, i);
                         if (findPortsUp(superNetlist, superNet, superCell, listedExports)) return true;
@@ -1062,7 +1066,7 @@ public class ToolMenu {
         // look at every node in the cell
         for(Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); )
         {
-            Nodable no = (Nodable)it.next();
+            Nodable no = it.next();
 
             // only want complex nodes
             NodeProto subnp = no.getProto();
@@ -1145,8 +1149,7 @@ public class ToolMenu {
             }
             // sort list of networks by name
             Collections.sort(networks, new TextUtils.NetworksByName());
-            for (Iterator<Network> it = networks.iterator(); it.hasNext(); ) {
-                Network net = (Network)it.next();
+            for (Network net : networks) {
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(net);
                 LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets,
@@ -1189,13 +1192,13 @@ public class ToolMenu {
         }
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             PrimitiveNode.Function fun = ni.getFunction();
             if (fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND)
                 continue;
             for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
             {
-                Connection con = (Connection)cIt.next();
+                Connection con = cIt.next();
                 ArcInst ai = con.getArc();
                 int width = netlist.getBusWidth(ai);
                 for(int i=0; i<width; i++)
@@ -1207,9 +1210,8 @@ public class ToolMenu {
         }
 
         highlighter.clear();
-        for(Iterator<Network> it = pAndG.iterator(); it.hasNext(); )
+        for(Network net : pAndG)
         {
-            Network net = (Network)it.next();
             highlighter.addNetwork(net, cell);
         }
         highlighter.finished();
@@ -1239,10 +1241,10 @@ public class ToolMenu {
         int total = 0;
         for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
         {
-            Library lib = (Library)lIt.next();
+            Library lib = lIt.next();
             for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
             {
-                Cell cell = (Cell)cIt.next();
+                Cell cell = cIt.next();
                 for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); )
                 {
                     Export pp = (Export)pIt.next();
@@ -1341,14 +1343,6 @@ public class ToolMenu {
             }
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             cell.newVar(templateKey, "*Undefined", td);
-//            templateVar = cell.newDisplayVar(templateKey, "*Undefined");
-//            if (templateVar != null)
-//            {
-////                templateVar.setDisplay(true);
-//                templateVar.setInterior(true);
-//                templateVar.setDispPart();
-//                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for "+cell);
-//            }
             return true;
         }
     }
@@ -1372,7 +1366,7 @@ public class ToolMenu {
         System.out.println("Tools in Electric:");
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
         {
-            Tool tool = (Tool)it.next();
+            Tool tool = it.next();
             StringBuffer infstr = new StringBuffer();
             if (tool.isOn()) infstr.append("On"); else
                 infstr.append("Off");
@@ -1651,9 +1645,8 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-        for (Iterator<Network> it = nets.iterator(); it.hasNext();)
+        for (Network net : nets)
         {
-            Network net = (Network)it.next();
             ParasiticTool.getParasiticTool().netwokParasitic(net, cell);
         }
     }

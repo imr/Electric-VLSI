@@ -720,7 +720,7 @@ public class EditMenu {
 	}
 
 	/**
-	 * Class to do antenna checking in a new thread.
+	 * Class to do change parameter visibility in a new thread.
 	 */
 	private static class ParameterVisibility extends Job
 	{
@@ -742,9 +742,9 @@ public class EditMenu {
 			// change visibility of parameters on the current node(s)
 			int changeCount = 0;
 			List<Geometric> list = selected;
-			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+			for(Geometric geom : list)
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = (NodeInst)geom;
 				if (!(ni.getProto() instanceof Cell)) continue;
 				boolean changed = false;
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
@@ -757,13 +757,11 @@ public class EditMenu {
 						case 0:			// make all parameters visible
 							if (var.isDisplay()) continue;
                             ni.addVar(var.withDisplay(true));
-//							var.setDisplay(true);
 							changed = true;
 							break;
 						case 1:			// make all parameters invisible
 							if (!var.isDisplay()) continue;
                             ni.addVar(var.withDisplay(false));
-//							var.setDisplay(false);
 							changed = true;
 							break;
 						case 2:			// make all parameters have default visiblity
@@ -772,14 +770,12 @@ public class EditMenu {
 								// prototype wants parameter to be invisible
 								if (!var.isDisplay()) continue;
                                 ni.addVar(var.withDisplay(false));
-//								var.setDisplay(false);
 								changed = true;
 							} else
 							{
 								// prototype wants parameter to be visible
 								if (var.isDisplay()) continue;
                                 ni.addVar(var.withDisplay(true));
-//								var.setDisplay(true);
 								changed = true;
 							}
 							break;
@@ -795,24 +791,24 @@ public class EditMenu {
 				System.out.println("Changed visibility on " + changeCount + " nodes");
 			return true;
 		}
-	}
 
-	/**
-	 * Method to find the formal parameter that corresponds to the actual parameter
-	 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
-	 */
-	private static Variable findParameterSource(Variable var, NodeInst ni)
-	{
-		// find this parameter in the cell
-		Cell np = (Cell)ni.getProto();
-		Cell cnp = np.contentsView();
-		if (cnp != null) np = cnp;
-		for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+		/**
+		 * Method to find the formal parameter that corresponds to the actual parameter
+		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
+		 */
+		private Variable findParameterSource(Variable var, NodeInst ni)
 		{
-			Variable nVar = it.next();
-			if (var.getKey() == nVar.getKey()) return nVar;
+			// find this parameter in the cell
+			Cell np = (Cell)ni.getProto();
+			Cell cnp = np.contentsView();
+			if (cnp != null) np = cnp;
+			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+			{
+				Variable nVar = it.next();
+				if (var.getKey() == nVar.getKey()) return nVar;
+			}
+			return null;
 		}
-		return null;
 	}
 
     public static void updateInheritance(boolean allLibraries)
@@ -1398,6 +1394,7 @@ public class EditMenu {
             private ArcInst ai;
             private Point2D insert;
             private Highlighter highlighter;
+            private NodeInst jogPoint;
 
             public InsertJogPoint() {}
 
@@ -1490,11 +1487,20 @@ public class EditMenu {
                 }
                 newAi2.setAngle(angle);
 
+                // remember the node to be highlighted
+                jogPoint = ni;
+    			fieldVariableChanged("jogPoint");
+                return true;
+            }
+
+            public void terminateIt(Throwable jobException)
+            {
                 // highlight one of the jog nodes
                 highlighter.clear();
-                highlighter.addElectricObject(ni, ai.getParent());
+                highlighter.addElectricObject(jogPoint, jogPoint.getParent());
                 highlighter.finished();
-                return true;
+
+                super.terminateIt(jobException);
             }
         }
     }
