@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.FilenameFilter;
 import java.io.File;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 /**
  * A typesafe enum class that describes the types of files that can be read or written.
  */
-public class FileType {
+public class FileType implements Serializable {
 	/** all types */                        private static final ArrayList<FileType> allTypes = new ArrayList<FileType>();
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
@@ -178,6 +180,13 @@ public class FileType {
 		return ffa;
 	}
 
+    private Object readResolve() throws ObjectStreamException {
+        for (FileType ft: allTypes) {
+            if (name.equals(ft.name)) return ft;
+        }
+        return this;
+    }
+    
 	/**
 	 * Returns a printable version of this Type.
 	 * @return a printable version of this Type.

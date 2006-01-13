@@ -26,6 +26,8 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -36,6 +38,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
+import java.awt.Component;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectOutputStream;
@@ -98,12 +101,19 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof PortInst) return new EPortInst((PortInst)obj);
         if (obj instanceof Export) return new EExport((Export)obj);
         if (obj instanceof Cell) return new ECell((Cell)obj);
+        if (obj instanceof Library) return new ELibrary((Library)obj);
+        if (obj instanceof View) return new EView((View)obj);
         if (obj instanceof Technology) return new ETechnology((Technology)obj);
         if (obj instanceof PrimitiveNode) return new EPrimitiveNode((PrimitiveNode)obj);
         if (obj instanceof PrimitivePort) return new EPrimitivePort((PrimitivePort)obj);
         if (obj instanceof ArcProto) return new EArcProto((ArcProto)obj);
         if (obj instanceof Tool) return new ETool((Tool)obj);
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
+
+        if (obj instanceof Component) {
+            throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
+        }
+        
         return obj;
     }
 
@@ -197,6 +207,35 @@ public class EObjectOutputStream extends ObjectOutputStream {
             Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
             if (cell == null) throw new InvalidObjectException("Cell");
             return cell;
+        }
+    }
+    
+    private static class ELibrary implements Serializable {
+        int libIndex;
+        
+        private ELibrary(Library lib) {
+            assert  lib.isLinked();
+            libIndex = lib.getId().libIndex;
+        }
+        
+        private Object readResolve() throws ObjectStreamException {
+            Library lib = LibId.getByIndex(libIndex).inCurrentThread();
+            if (lib == null) throw new InvalidObjectException("Library");
+            return lib;
+        }
+    }
+    
+    private static class EView implements Serializable {
+        String abbreviation;
+        
+        private EView(View view) {
+            abbreviation = view.getAbbreviation();
+        }
+        
+        private Object readResolve() throws ObjectStreamException {
+            View view = View.findView(abbreviation);
+            if (view == null) throw new InvalidObjectException("View");
+            return view;
         }
     }
     

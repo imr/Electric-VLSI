@@ -82,7 +82,6 @@ import javax.swing.SwingUtilities;
 public abstract class Job implements Runnable, Serializable {
 
     private static boolean DEBUG = false;
-    private static boolean TEST_SERIALIZATION = true;
     private static boolean GLOBALDEBUG = false;
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
@@ -465,7 +464,7 @@ public abstract class Job implements Runnable, Serializable {
 
         Job job = this;
         String className = getClass().getName();
-        if (TEST_SERIALIZATION && !className.endsWith("RenderJob") && !className.endsWith("InitDatabase")) {
+        if (getDebug() && !className.endsWith("RenderJob")) {
             job = testSerialization();
             if (job != null) {
                 // transient fields ???
