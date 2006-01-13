@@ -223,7 +223,7 @@ public abstract class Job implements Serializable {
 //                            }
 //                            continue;
 //                        }
-//                        numStarted++;
+                        numStarted++;
                         numExamine++;
                         //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
 						Thread t = new ExamineThread(job);
@@ -318,12 +318,12 @@ public abstract class Job implements Serializable {
             }
 		}
 
-		/**
-		 * A static object is used so that its open/closed tree state can be maintained.
-		 */
-		private static String jobNode = "JOBS";
-	
-		/** Build Job explorer tree */
+//		/**
+//		 * A static object is used so that its open/closed tree state can be maintained.
+//		 */
+//		private static String jobNode = "JOBS";
+//	
+//		/** Build Job explorer tree */
 //		public synchronized DefaultMutableTreeNode getExplorerTree() {
 //			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
 //			for (Iterator<Job> it = allJobs.iterator(); it.hasNext();) {
@@ -909,50 +909,51 @@ public abstract class Job implements Serializable {
      * @see #releaseExamineLock()
      */
     public static void invokeExamineLater(Runnable task, Object singularKey) {
-        if (singularKey != null) {
-            SwingExamineJob priorJob = SwingExamineJob.getWaitingJobFor(singularKey);
-            if (priorJob != null)
-                priorJob.abort();
-        }
-        SwingExamineJob job = new SwingExamineJob(task, singularKey);
-        job.startJob(false, true);
+        assert false;
+//        if (singularKey != null) {
+//            SwingExamineJob priorJob = SwingExamineJob.getWaitingJobFor(singularKey);
+//            if (priorJob != null)
+//                priorJob.abort();
+//        }
+//        SwingExamineJob job = new SwingExamineJob(task, singularKey);
+//        job.startJob(false, true);
     }
 
-    private static class SwingExamineJob extends Job {
-        /** Map of Runnables to waiting Jobs */         private static final Map<Object,Job> waitingJobs = new HashMap<Object,Job>();
-        /** The runnable to run in the Swing thread */  private Runnable task;
-        /** the singular key */                         private Object singularKey;
-
-        private SwingExamineJob(Runnable task, Object singularKey) {
-            super("ReserveExamineSlot", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.task = task;
-            this.singularKey = singularKey;
-            synchronized(waitingJobs) {
-                if (singularKey != null)
-                    waitingJobs.put(singularKey, this);
-            }
-        }
-
-        public boolean doIt() throws JobException {
-            synchronized(waitingJobs) {
-                if (singularKey != null)
-                    waitingJobs.remove(singularKey);
-            }
-            try {
-                SwingUtilities.invokeAndWait(task);
-            } catch (InterruptedException e) {
-            } catch (java.lang.reflect.InvocationTargetException ee) {
-            }
-            return true;
-        }
-
-        private static SwingExamineJob getWaitingJobFor(Object singularKey) {
-            if (singularKey == null) return null;
-            synchronized(waitingJobs) {
-                return (SwingExamineJob)waitingJobs.get(singularKey);
-            }
-        }
-    }
+//    private static class SwingExamineJob extends Job {
+//        /** Map of Runnables to waiting Jobs */         private static final Map<Object,Job> waitingJobs = new HashMap<Object,Job>();
+//        /** The runnable to run in the Swing thread */  private Runnable task;
+//        /** the singular key */                         private Object singularKey;
+//
+//        private SwingExamineJob(Runnable task, Object singularKey) {
+//            super("ReserveExamineSlot", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+//            this.task = task;
+//            this.singularKey = singularKey;
+//            synchronized(waitingJobs) {
+//                if (singularKey != null)
+//                    waitingJobs.put(singularKey, this);
+//            }
+//        }
+//
+//        public boolean doIt() throws JobException {
+//            synchronized(waitingJobs) {
+//                if (singularKey != null)
+//                    waitingJobs.remove(singularKey);
+//            }
+//            try {
+//                SwingUtilities.invokeAndWait(task);
+//            } catch (InterruptedException e) {
+//            } catch (java.lang.reflect.InvocationTargetException ee) {
+//            }
+//            return true;
+//        }
+//
+//        private static SwingExamineJob getWaitingJobFor(Object singularKey) {
+//            if (singularKey == null) return null;
+//            synchronized(waitingJobs) {
+//                return (SwingExamineJob)waitingJobs.get(singularKey);
+//            }
+//        }
+//    }
 
 	/**
 	 * Method to check whether examining of database is allowed.
