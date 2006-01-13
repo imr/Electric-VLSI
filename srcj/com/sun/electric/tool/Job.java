@@ -79,7 +79,7 @@ import javax.swing.SwingUtilities;
  *
  * @author  gainsley
  */
-public abstract class Job implements Runnable, Serializable {
+public abstract class Job implements Serializable {
 
     private static boolean DEBUG = false;
     private static boolean GLOBALDEBUG = false;
@@ -205,29 +205,28 @@ public abstract class Job implements Runnable, Serializable {
 					if (job.jobType == Type.EXAMINE)
 					{
 						job.started = true;
-                        if (job instanceof InthreadExamineJob) {
-                            // notify thread that it can run.
-                            final InthreadExamineJob ijob = (InthreadExamineJob)job;
-                            boolean started = false;
-                            synchronized(ijob.mutex) {
-                                if (ijob.waiting) {
-                                    ijob.waiting = false;
-                                    ijob.mutex.notify();
-                                    started = true;
-                                }
-                            }
-                            if (started) {
-                                assert(false);
-                                numStarted++;
-                                numExamine++;                                
-                            }
-                            continue;
-                        }
-                        numStarted++;
+//                        if (job instanceof InthreadExamineJob) {
+//                            // notify thread that it can run.
+//                            final InthreadExamineJob ijob = (InthreadExamineJob)job;
+//                            boolean started = false;
+//                            synchronized(ijob.mutex) {
+//                                if (ijob.waiting) {
+//                                    ijob.waiting = false;
+//                                    ijob.mutex.notify();
+//                                    started = true;
+//                                }
+//                            }
+//                            if (started) {
+//                                assert(false);
+//                                numStarted++;
+//                                numExamine++;                                
+//                            }
+//                            continue;
+//                        }
+//                        numStarted++;
                         numExamine++;
                         //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
-						Thread t = new Thread(job, job.jobName);
-                        job.thread = t;
+						Thread t = new ExamineThread(job);
 						t.start();
 						continue;
 					}
@@ -259,50 +258,50 @@ public abstract class Job implements Runnable, Serializable {
             }
 		}
 
-        /**
-         * This method is intentionally not synchronized. We must preserve the order of locking:
-         * databaseChangesThread monitor -> InthreadExamineJob.mutex monitor.
-         * However, the databaseChangesThread monitor needs to be released before the call to
-         * j.mutex.wait(), otherwise we will have deadlock because this thread did not give up
-         * the databaseChangeThread monitor.  This is because notify() on the j.mutex is only
-         * called after both the databaseChangeThread and mutex monitor have been acquired, but in a
-         * separate thread.
-         * @param j
-         * @param wait true to wait for lock if not available now, false to not wait
-         * @return true if lock acquired, false otherwise (if wait is true, this method always returns true)
-         */
-        private boolean addInthreadExamineJob(final InthreadExamineJob j, boolean wait) {
-            synchronized(this) {
-                // check if change job running or queued: if so, can't run immediately
-                if (isChangeJobQueuedOrRunning()) {
-                    if (!wait) return false;
-                    // need to queue because it may not be able to run immediately
-                    addJob(j);
-                    synchronized(j.mutex) {
-                        j.waiting = true;
-                    }
-                } else {
-                    // grant examine lock
-                    allJobs.add(j);
-                    numExamine++;
-                    numStarted++;
-                    //System.out.println("Granted Examine Lock for Job "+j+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
-                    j.incrementLockCount();
-                    return true;
-                }
-            }
-
-            // we are queued
-            synchronized(j.mutex) {
-                // note that j.waiting *could* have been set false already if Job queue was processed
-                // before this code was processed.
-                if (j.waiting) {
-                    try { j.mutex.wait(); } catch (InterruptedException e) { System.out.println("Interrupted in databaseChangesThread"); }
-                }
-            }
-            j.incrementLockCount();
-            return true;
-        }
+//        /**
+//         * This method is intentionally not synchronized. We must preserve the order of locking:
+//         * databaseChangesThread monitor -> InthreadExamineJob.mutex monitor.
+//         * However, the databaseChangesThread monitor needs to be released before the call to
+//         * j.mutex.wait(), otherwise we will have deadlock because this thread did not give up
+//         * the databaseChangeThread monitor.  This is because notify() on the j.mutex is only
+//         * called after both the databaseChangeThread and mutex monitor have been acquired, but in a
+//         * separate thread.
+//         * @param j
+//         * @param wait true to wait for lock if not available now, false to not wait
+//         * @return true if lock acquired, false otherwise (if wait is true, this method always returns true)
+//         */
+//        private boolean addInthreadExamineJob(final InthreadExamineJob j, boolean wait) {
+//            synchronized(this) {
+//                // check if change job running or queued: if so, can't run immediately
+//                if (isChangeJobQueuedOrRunning()) {
+//                    if (!wait) return false;
+//                    // need to queue because it may not be able to run immediately
+//                    addJob(j);
+//                    synchronized(j.mutex) {
+//                        j.waiting = true;
+//                    }
+//                } else {
+//                    // grant examine lock
+//                    allJobs.add(j);
+//                    numExamine++;
+//                    numStarted++;
+//                    //System.out.println("Granted Examine Lock for Job "+j+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
+//                    j.incrementLockCount();
+//                    return true;
+//                }
+//            }
+//
+//            // we are queued
+//            synchronized(j.mutex) {
+//                // note that j.waiting *could* have been set false already if Job queue was processed
+//                // before this code was processed.
+//                if (j.waiting) {
+//                    try { j.mutex.wait(); } catch (InterruptedException e) { System.out.println("Interrupted in databaseChangesThread"); }
+//                }
+//            }
+//            j.incrementLockCount();
+//            return true;
+//        }
 
 		/** Remove job from list of jobs */
 		private synchronized void removeJob(Job j) { 
@@ -346,14 +345,14 @@ public abstract class Job implements Runnable, Serializable {
 				notify();
 		}
 
-        /** Get job running in the specified thread */
-        private synchronized Job getJob(Thread t) {
-            for (Iterator<Job> it = allJobs.iterator(); it.hasNext(); ) {
-                Job j = (Job)it.next();
-                if (j.thread == t) return j;
-            }
-            return null;
-        }
+//        /** Get job running in the specified thread */
+//        private synchronized Job getJob(Thread t) {
+//            for (Iterator<Job> it = allJobs.iterator(); it.hasNext(); ) {
+//                Job j = (Job)it.next();
+//                if (j.thread == t) return j;
+//            }
+//            return null;
+//        }
 
         /** get all jobs iterator */
         public synchronized Iterator<Job> getAllJobs() {
@@ -375,8 +374,23 @@ public abstract class Job implements Runnable, Serializable {
         }
 	}
 
+    private static class ExamineThread extends Thread {
+        private Job job;
+        
+        ExamineThread(Job job) {
+            super(job.jobName);
+            assert job.jobType == Type.EXAMINE;
+            this.job = job;
+            job.thread = this;
+        }
+        
+        public void run() {
+            job.run();
+        }
+    }
+    
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
-	/** database changes thread */              public static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
+	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
 //    /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
@@ -395,7 +409,7 @@ public abstract class Job implements Runnable, Serializable {
     /** tool running the job */                 private Tool tool;
     /** type of job (change or examine) */      private Type jobType;
 //    /** priority of job */                      private Priority priority;
-    /** bottom of "up-tree" of cells affected */private Cell upCell;
+//    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
     /** progress */                             private String progress = null;
@@ -423,7 +437,7 @@ public abstract class Job implements Runnable, Serializable {
 		this.tool = tool;
 		this.jobType = jobType;
 //		this.priority = priority;
-		this.upCell = upCell;
+//		this.upCell = upCell;
 //		this.downCell = downCell;
         this.display = true;
         this.deleteWhenDone = true;
@@ -434,9 +448,6 @@ public abstract class Job implements Runnable, Serializable {
         savedHighlights = new ArrayList<Object>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
-        if (SERVER) {
-            System.out.println((new Date()) + ": new Job " + jobName);
-        }
 	}
 	
     /**
@@ -475,17 +486,9 @@ public abstract class Job implements Runnable, Serializable {
                 job = this;
             }
         }
-        if (CLIENT) {
-            System.out.println((new Date()) + ": startJob " + job.jobName);
-            try {
-                job.printFields();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            if (jobType != Type.EXAMINE) {
-                System.out.println("Job " + job + " was not launched in CLIENT mode");
-                return;
-            }
+        if (CLIENT && jobType != Type.EXAMINE) {
+            System.out.println("Job " + job + " was not launched in CLIENT mode");
+            return;
         }
 //        if (display)
 //            myNode = new DefaultMutableTreeNode(this);
@@ -535,150 +538,6 @@ public abstract class Job implements Runnable, Serializable {
         }
     }
     
-    /**
-     * Serializes this Job.
-     * @return byte array with serialization or null on failure.
-     */
-    byte[] serialize1() {
-        try {
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream out = new EObjectOutputStream(byteStream);
-            Class[] empty = {};
-            Class cls = getClass();
-            out.writeUTF(cls.getName());
-            while (cls != Job.class) {
-                System.out.println(cls.getName());
-                Field[] flds = cls.getDeclaredFields();
-                for (int i = 0; i < flds.length; i++) {
-                    Field f = flds[i];
-                    int fm = f.getModifiers();
-                    if (Modifier.isStatic(fm)) {
-                        System.out.println("\tSTATIC field " + f.getName());
-                        continue;
-                    }
-                    out.writeUTF(f.getName());
-                    f.setAccessible(true);
-                    Object value = f.get(this);
-                    Class tf = f.getType();
-                    if (!tf.isPrimitive())
-                        out.writeObject(value);
-                    else if (tf == Boolean.TYPE)
-                        out.writeBoolean(((Boolean)value).booleanValue());
-                    else if (tf == Byte.TYPE)
-                        out.writeByte(((Byte)value).byteValue());
-                    else if (tf == Character.TYPE)
-                        out.writeChar(((Character)value).charValue());
-                    else if (tf == Short.TYPE)
-                        out.writeShort(((Short)value).shortValue());
-                    else if (tf == Integer.TYPE)
-                        out.writeInt(((Integer)value).intValue());
-                    else if (tf == Long.TYPE)
-                        out.writeLong(((Long)value).longValue());
-                    else if (tf == Float.TYPE)
-                        out.writeFloat(((Float)value).floatValue());
-                    else if (tf == Double.TYPE)
-                        out.writeDouble(((Double)value).doubleValue());
-                    else
-                        assert false;
-                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
-                }
-                cls = cls.getSuperclass();
-            }
-            out.flush();
-            
-            ByteArrayInputStream byteInputStream = new ByteArrayInputStream(byteStream.toByteArray());
-            ObjectInputStream in = new ObjectInputStream(byteInputStream);
-            
-            cls = getClass();
-            assert in.readUTF().equals(cls.getName());
-            while (cls != Job.class) {
-                System.out.println(cls.getName());
-                Field[] flds = cls.getDeclaredFields();
-                for (int i = 0; i < flds.length; i++) {
-                    Field f = flds[i];
-                    int fm = f.getModifiers();
-                    if (Modifier.isStatic(fm)) {
-                        System.out.println("\tSTATIC field " + f.getName());
-                        continue;
-                    }
-                    assert in.readUTF().equals(f.getName());
-                    f.setAccessible(true);
-                    Object value = f.get(this);
-                    Class tf = f.getType();
-                    Object obj;
-                    boolean bool;
-                    if (!tf.isPrimitive())
-                        obj = in.readObject();
-                    else if (tf == Boolean.TYPE)
-                        bool = in.readBoolean();
-                    else if (tf == Byte.TYPE)
-                        in.readByte();
-                    else if (tf == Character.TYPE)
-                        in.readChar();
-                    else if (tf == Short.TYPE)
-                        in.readShort();
-                    else if (tf == Integer.TYPE)
-                        in.readInt();
-                    else if (tf == Long.TYPE)
-                        in.readLong();
-                    else if (tf == Float.TYPE)
-                        in.readFloat();
-                    else if (tf == Double.TYPE)
-                        in.readDouble();
-                    else
-                        assert false;
-                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
-                }
-                cls = cls.getSuperclass();
-            }
-            out.flush();
-            
-            return byteStream.toByteArray();
-        } catch (Exception e) {
-            System.out.println("Exception while serializing Job " + this);
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
-    void printFields() throws IllegalAccessException {
-        Class cls = getClass();
-        if (cls.getName().endsWith("RenderJob"))
-            return;
-        serialize();
-        serialize1();
-        try {
-            Class[] empty = {};
-            Constructor c = cls.getConstructor(empty);
-            c.setAccessible(true);
-            Job newJob = (Job)c.newInstance((Object[])null);
-            while (cls != null) {
-                System.out.println(cls.getName());
-                Field[] flds = cls.getDeclaredFields();
-                for (int i = 0; i < flds.length; i++) {
-                    Field f = flds[i];
-                    int fm = f.getModifiers();
-                    if (Modifier.isStatic(fm)) {
-                        System.out.println("\tSTATIC field " + f.getName());
-                        continue;
-                    }
-                    f.setAccessible(true);
-                    Object value = f.get(this);
-                    f.set(newJob, value);
-                    Class tf = f.getType();
-                    System.out.println("\t" + tf.getName() + " " + f.getName() + " = " + value);
-                }
-                cls = cls.getSuperclass();
-            }
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Method to access scheduled abort flag in Job and
      * set the flag to abort if scheduled flag is true.
@@ -752,7 +611,7 @@ public abstract class Job implements Runnable, Serializable {
         Throwable jobException = null;
 		try {
             if (jobType != Type.EXAMINE) changingJob = this;
-			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
+			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
             try {
                 doIt();
             } catch (JobException e) {
@@ -805,7 +664,7 @@ public abstract class Job implements Runnable, Serializable {
     {
 		if (jobType != Type.CHANGE)	return;
 		Undo.endChanges();
-		Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
+		Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
     }
 
     protected synchronized void setProgress(String progress) {
@@ -903,28 +762,28 @@ public abstract class Job implements Runnable, Serializable {
         return true;
     }
 
-    /**
-     * This Job serves as a locking mechanism for acquireExamineLock()
-     */
-    private static class InthreadExamineJob extends Job {
-        private boolean waiting;
-        private int lockCount;
-        protected final Object mutex = new Object();
-
-        private InthreadExamineJob() {
-            super("Inthread Examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            waiting = false;
-            lockCount = 0;
-        }
-        public boolean doIt() throws JobException {
-            // this should never be called
-            assert(false);
-            return true;
-        }
-        private void incrementLockCount() { lockCount++; }
-        private void decrementLockCount() { lockCount--; }
-        private int getLockCount() { return lockCount; }
-    }
+//    /**
+//     * This Job serves as a locking mechanism for acquireExamineLock()
+//     */
+//    private static class InthreadExamineJob extends Job {
+//        private boolean waiting;
+//        private int lockCount;
+//        protected final Object mutex = new Object();
+//
+//        private InthreadExamineJob() {
+//            super("Inthread Examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+//            waiting = false;
+//            lockCount = 0;
+//        }
+//        public boolean doIt() throws JobException {
+//            // this should never be called
+//            assert(false);
+//            return true;
+//        }
+//        private void incrementLockCount() { lockCount++; }
+//        private void decrementLockCount() { lockCount--; }
+//        private int getLockCount() { return lockCount; }
+//    }
 
     /**
      * Unless you need to code to execute quickly (such as in the GUI thread)
@@ -960,22 +819,23 @@ public abstract class Job implements Runnable, Serializable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized boolean acquireExamineLock(boolean block) {
-        if (true) return true;      // disabled
-        Thread thread = Thread.currentThread();
-
-        // first check to see if we already have the lock
-        Job job = databaseChangesThread.getJob(thread);
-        if (job != null) {
-            assert(job instanceof InthreadExamineJob);
-            ((InthreadExamineJob)job).incrementLockCount();
-            return true;
-        }
-        // create new Job to get examine lock
-        InthreadExamineJob dummy = new InthreadExamineJob();
-        ((Job)dummy).display = false;
-        ((Job)dummy).deleteWhenDone = true;
-        ((Job)dummy).thread = thread;
-        return databaseChangesThread.addInthreadExamineJob(dummy, block);
+        return true;
+//        if (true) return true;      // disabled
+//        Thread thread = Thread.currentThread();
+//
+//        // first check to see if we already have the lock
+//        Job job = databaseChangesThread.getJob(thread);
+//        if (job != null) {
+//            assert(job instanceof InthreadExamineJob);
+//            ((InthreadExamineJob)job).incrementLockCount();
+//            return true;
+//        }
+//        // create new Job to get examine lock
+//        InthreadExamineJob dummy = new InthreadExamineJob();
+//        ((Job)dummy).display = false;
+//        ((Job)dummy).deleteWhenDone = true;
+//        ((Job)dummy).thread = thread;
+//        return databaseChangesThread.addInthreadExamineJob(dummy, block);
     }
 
     /**
@@ -986,39 +846,39 @@ public abstract class Job implements Runnable, Serializable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized void releaseExamineLock() {
-        if (true) return;      // disabled
-        Job dummy = databaseChangesThread.getJob(Thread.currentThread());
-        assert(dummy != null);
-        assert(dummy instanceof InthreadExamineJob);
-        InthreadExamineJob job = (InthreadExamineJob)dummy;
-        job.decrementLockCount();
-        if (job.getLockCount() == 0) {
-            databaseChangesThread.endExamine(job);
-            databaseChangesThread.removeJob(job);
-        }
+//        if (true) return;      // disabled
+//        Job dummy = databaseChangesThread.getJob(Thread.currentThread());
+//        assert(dummy != null);
+//        assert(dummy instanceof InthreadExamineJob);
+//        InthreadExamineJob job = (InthreadExamineJob)dummy;
+//        job.decrementLockCount();
+//        if (job.getLockCount() == 0) {
+//            databaseChangesThread.endExamine(job);
+//            databaseChangesThread.removeJob(job);
+//        }
     }
 
-    /**
-     * See if the current thread already has an Examine Lock.
-     * This is useful when you want to assert that the running
-     * thread has successfully acquired an Examine lock.
-     * This methods returns true if the current thread is a Job
-     * thread, or if the current thread has successfully called
-     * acquireExamineLock.
-     * @return true if the current thread has an active examine
-     * lock on the database, false otherwise.
-     */
-    public static synchronized boolean hasExamineLock() {
-        Thread thread = Thread.currentThread();
-        // change job is a valid examine job
-        if (thread == databaseChangesThread) return true;
-        // check for any examine jobs
-        Job job = databaseChangesThread.getJob(thread);
-        if (job != null) {
-            return true;
-        }
-        return false;
-    }
+//    /**
+//     * See if the current thread already has an Examine Lock.
+//     * This is useful when you want to assert that the running
+//     * thread has successfully acquired an Examine lock.
+//     * This methods returns true if the current thread is a Job
+//     * thread, or if the current thread has successfully called
+//     * acquireExamineLock.
+//     * @return true if the current thread has an active examine
+//     * lock on the database, false otherwise.
+//     */
+//    public static synchronized boolean hasExamineLock() {
+//        Thread thread = Thread.currentThread();
+//        // change job is a valid examine job
+//        if (thread == databaseChangesThread) return true;
+//        // check for any examine jobs
+//        Job job = databaseChangesThread.getJob(thread);
+//        if (job != null) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     /**
      * A common pattern is that the GUI needs to examine the database, but does not
@@ -1159,6 +1019,14 @@ public abstract class Job implements Runnable, Serializable {
 		}*/
 	}
 
+    /**
+     * Checks if bounds or netlist can be computed in this thread.
+     * @return true if bounds or netlist can be computed.
+     */
+    public static boolean canCompute() {
+        return Thread.currentThread() == databaseChangesThread || Job.NOTHREADING || Job.CLIENT;
+    }
+    
     /**
      * Asserts that this is the Swing Event thread
      */

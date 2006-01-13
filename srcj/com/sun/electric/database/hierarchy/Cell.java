@@ -1388,8 +1388,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public ERectangle getBounds()
 	{
         // Don't recalculate in GUI thread.
-        if (boundsDirty == BOUNDS_CORRECT ||
-            Thread.currentThread() != Job.databaseChangesThread && !Job.NOTHREADING && !Job.CLIENT)
+        if (boundsDirty == BOUNDS_CORRECT || !Job.canCompute())
             return cellBounds;
         
         // Current bounds are correct if subcell bounds are the same

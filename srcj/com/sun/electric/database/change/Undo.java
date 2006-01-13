@@ -571,7 +571,7 @@ public class Undo
 //		private boolean done;
 		private Tool tool;
 		private String activity;
-		private Cell upCell;
+//		private Cell upCell;
 		private List<Object> startingHighlights = null;				// highlights before changes made
 		private Point2D startHighlightsOffset = null;		// highlights offset before changes made
 		private List<Object> preUndoHighlights = null;				// highlights before undo of changes done
@@ -677,7 +677,7 @@ public class Undo
 	 * @param activity a String describing the activity.
 	 * @param cell root of up-tree or null for whole database lock
 	 */
-	public static void startChanges(Tool tool, String activity, Cell cell,
+	public static void startChanges(Tool tool, String activity, /*Cell cell,*/
                                     List<Object> startingHighlights, Point2D startingHighlightsOffset)
 	{
 		// close any open batch of changes
@@ -696,7 +696,7 @@ public class Undo
 //		currentBatch.done = true;
 		currentBatch.tool = tool;
 		currentBatch.activity = activity;
-		currentBatch.upCell = cell;
+//		currentBatch.upCell = cell;
 		currentBatch.startingHighlights = startingHighlights;
 		currentBatch.startHighlightsOffset = startingHighlightsOffset;
 
@@ -1325,20 +1325,20 @@ public class Undo
 	 */
 	public static Cell upCell(boolean redo)
 	{
-		ChangeBatch batch = null;
-		if (redo)
-		{
-			int listSize = undoneList.size();
-			if (listSize > 0)
-				batch = (ChangeBatch)undoneList.get(listSize-1);
-		} else
-		{
-			int listSize = doneList.size();
-			if (listSize != 0)
-				batch = (ChangeBatch)doneList.get(listSize-1);
-		}
-		return batch != null ? batch.upCell : null;
-
+        return null;
+//		ChangeBatch batch = null;
+//		if (redo)
+//		{
+//			int listSize = undoneList.size();
+//			if (listSize > 0)
+//				batch = (ChangeBatch)undoneList.get(listSize-1);
+//		} else
+//		{
+//			int listSize = doneList.size();
+//			if (listSize != 0)
+//				batch = (ChangeBatch)doneList.get(listSize-1);
+//		}
+//		return batch != null ? batch.upCell : null;
 	}
 
 	/**
