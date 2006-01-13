@@ -545,7 +545,8 @@ public final class Main
 	private static class InitDatabase extends Job
 	{
 		List<String> argsList;
-		SplashWindow sw;
+        String beanShellScript;
+		transient SplashWindow sw;
 
 		public InitDatabase() {}
 
@@ -554,6 +555,10 @@ public final class Main
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
 			this.sw = sw;
+			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
+				// do nothing, just consume option: handled in Launcher
+			}
+			beanShellScript = getCommandLineOption(argsList, "-s");
 			//startJob();
 		}
 
@@ -575,12 +580,14 @@ public final class Main
 				Undo.changesQuiet(false);
 			}
 
-			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
-				// do nothing, just consume option: handled in Launcher
-			}
-			final String beanShellScript = getCommandLineOption(argsList, "-s");
 			openCommandLineLibs(argsList);
 
+            return true;
+		}
+        
+        public void terminateIt(Throwable jobException) {
+            if (jobException != null) return;
+            
             // finish initializing the GUI
             if (!BATCHMODE)
             {
@@ -600,8 +607,7 @@ public final class Main
                // run script
                if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
             }
-            return true;
-		}
+        }
 	}
     
     private static void clientLoop(int port) {

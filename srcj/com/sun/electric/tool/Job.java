@@ -25,12 +25,10 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -41,21 +39,15 @@ import java.awt.Toolkit;
 import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import javax.swing.SwingUtilities;
 
 /**
@@ -318,26 +310,6 @@ public abstract class Job implements Serializable {
             }
 		}
 
-//		/**
-//		 * A static object is used so that its open/closed tree state can be maintained.
-//		 */
-//		private static String jobNode = "JOBS";
-//	
-//		/** Build Job explorer tree */
-//		public synchronized DefaultMutableTreeNode getExplorerTree() {
-//			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-//			for (Iterator<Job> it = allJobs.iterator(); it.hasNext();) {
-//                Job j = (Job)it.next();
-//                if (j.getDisplay()) {
-//                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(j);
-//                    j.myNode.setUserObject(null);       // remove reference to job on old node
-//                    j.myNode = node;                    // get rid of old node, point to new node
-//                    explorerTree.add(node);
-//                }
-//			}
-//			return explorerTree;
-//		}
-    
 		private synchronized void endExamine(Job j) {
 			numExamine--;
             //System.out.println("EndExamine Job "+j+", numExamine now="+numExamine+", allJobs="+allJobs.size());
@@ -381,7 +353,7 @@ public abstract class Job implements Serializable {
             super(job.jobName);
             assert job.jobType == Type.EXAMINE;
             this.job = job;
-            job.thread = this;
+ //           job.thread = this;
         }
         
         public void run() {
@@ -392,7 +364,6 @@ public abstract class Job implements Serializable {
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
-//    /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
     
@@ -415,8 +386,9 @@ public abstract class Job implements Serializable {
     /** progress */                             private String progress = null;
     /** list of saved Highlights */             private transient List<Object> savedHighlights;
     /** saved Highlight offset */               private transient Point2D savedHighlightsOffset;
-    /** Thread job will run in (null for new thread) */
-                                                private transient Thread thread;
+    /** Fields changed on server side. */       private transient ArrayList<Field> changedFields;
+//    /** Thread job will run in (null for new thread) */
+//                                                private transient Thread thread;
 
     public Job() {}
                                                 
@@ -443,8 +415,7 @@ public abstract class Job implements Serializable {
         this.deleteWhenDone = true;
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
-//        myNode = null;
-        thread = null;
+//        thread = null;
         savedHighlights = new ArrayList<Object>();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
@@ -473,33 +444,18 @@ public abstract class Job implements Serializable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
-        Job job = this;
-        String className = getClass().getName();
-        if (getDebug() && !className.endsWith("RenderJob")) {
-            job = testSerialization();
-            if (job != null) {
-                // transient fields ???
-                job.savedHighlights = this.savedHighlights;
-                job.savedHighlightsOffset = this.savedHighlightsOffset;
-                job.thread = this.thread;
-            } else {
-                job = this;
-            }
-        }
         if (CLIENT && jobType != Type.EXAMINE) {
-            System.out.println("Job " + job + " was not launched in CLIENT mode");
+            System.out.println("Job " + this + " was not launched in CLIENT mode");
             return;
         }
-//        if (display)
-//            myNode = new DefaultMutableTreeNode(this);
 
         if (NOTHREADING) {
             // turn off threading if needed for debugging
             Main.getUserInterface().setBusyCursor(true);
-            job.run();
+            run();
             Main.getUserInterface().setBusyCursor(false);
         } else {
-            databaseChangesThread.addJob(job);
+            databaseChangesThread.addJob(this);
         }
     }
 
@@ -507,7 +463,15 @@ public abstract class Job implements Serializable {
      * Method to remember that a field variable of the Job has been changed by the doIt() method.
      * @param variableName the name of the variable that changed.
      */
-    protected void fieldVariableChanged(String variableName) {}
+    protected void fieldVariableChanged(String variableName) {
+        try {
+            Field fld = getClass().getDeclaredField(variableName);
+            fld.setAccessible(true);
+            changedFields.add(fld);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace(System.out);
+        }
+    }
 
     Job testSerialization() {
         byte[] bytes = serialize();
@@ -604,6 +568,20 @@ public abstract class Job implements Serializable {
     public void run() {
         startTime = System.currentTimeMillis();
 
+        Job serverJob = this;
+        String className = getClass().getName();
+        if (getDebug() && !className.endsWith("RenderJob")) {
+            serverJob = testSerialization();
+            if (serverJob != null) {
+                // transient fields ???
+//                serverJob.savedHighlights = this.savedHighlights;
+//                serverJob.savedHighlightsOffset = this.savedHighlightsOffset;
+            } else {
+                serverJob = this;
+            }
+        }
+        serverJob.changedFields = new ArrayList<Field>();
+        
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 
         Cell cell = Main.getUserInterface().getCurrentCell();
@@ -613,14 +591,13 @@ public abstract class Job implements Serializable {
             if (jobType != Type.EXAMINE) changingJob = this;
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
             try {
-                doIt();
+                serverJob.doIt();
             } catch (JobException e) {
                 jobException = e;
             }
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
             jobException = e;
-            endTime = System.currentTimeMillis();
             e.printStackTrace(System.err);
             ActivityLogger.logException(e);
             if (e instanceof Error) throw (Error)e;
@@ -631,9 +608,18 @@ public abstract class Job implements Serializable {
 			} else {
 				changingJob = null;
 			}
-            terminateIt(jobException);
-            endTime = System.currentTimeMillis();
 		}
+        try {
+            for (Field f: serverJob.changedFields) {
+                Object value = f.get(serverJob);
+                f.set(this, value);
+            }
+            terminateIt(jobException);
+        } catch (Throwable e) {
+            ActivityLogger.logException(e);
+        }
+        endTime = System.currentTimeMillis();
+               
         if (DEBUG) System.out.println(jobType+" Job: "+jobName +" finished");
 
 		finished = true;                        // is this redundant with Thread.isAlive()?
@@ -656,16 +642,16 @@ public abstract class Job implements Serializable {
         }
     }
 
-    /**
-     * Method to end the current batch of changes and start another.
-     * Besides starting a new batch, it cleans up the constraint system, and 
-     */
-    protected void flushBatch()
-    {
-		if (jobType != Type.CHANGE)	return;
-		Undo.endChanges();
-		Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
-    }
+//    /**
+//     * Method to end the current batch of changes and start another.
+//     * Besides starting a new batch, it cleans up the constraint system, and 
+//     */
+//    protected void flushBatch()
+//    {
+//		if (jobType != Type.CHANGE)	return;
+//		Undo.endChanges();
+//		Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
+//    }
 
     protected synchronized void setProgress(String progress) {
         this.progress = progress;

@@ -258,18 +258,19 @@ public class EvalJavaBsh
     private static class runScriptJob extends Job
 	{
         String script;
-        EvalJavaBsh evaluator;
+//        EvalJavaBsh evaluator;
 
         public runScriptJob() {}
 
         protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
-            evaluator = new EvalJavaBsh();
+//            evaluator = new EvalJavaBsh();
             this.startJob();
         }
 
         public boolean doIt() throws JobException {
+            EvalJavaBsh evaluator = new EvalJavaBsh();
             evaluator.doSource(script);
 			return true;
        }
