@@ -428,7 +428,7 @@ public class PolySweepMerge extends GeometryHandler
 
         if (container == null) return null;
 
-        List list = new ArrayList();
+        List<PolyBase> list = new ArrayList<PolyBase>();
         for (Iterator it = container.areas.iterator(); it.hasNext(); )
         {
             Area area = (Area)it.next();
