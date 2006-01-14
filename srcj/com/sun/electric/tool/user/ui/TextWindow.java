@@ -258,8 +258,10 @@ public class TextWindow
 	{
 		if (dirty)
 		{
+			dirty = false;
 			finishing = true;
-			SaveCellText job = new SaveCellText(this);
+			if (cell == null) return;
+			SaveCellText job = new SaveCellText(cell, convertToStrings());
 		}
 	}
 
@@ -272,7 +274,7 @@ public class TextWindow
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (content instanceof TextWindow)
 			{
@@ -293,23 +295,22 @@ public class TextWindow
 	 */
 	private static class SaveCellText extends Job
 	{
-		private TextWindow tw;
+		private Cell cell;
+		private String [] strings;
 
     	public SaveCellText() {}
 
-		private SaveCellText(TextWindow tw)
+		private SaveCellText(Cell cell, String [] strings)
 		{
 			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.tw = tw;
+			this.cell = cell;
+			this.strings = strings;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Cell cell = tw.getCell();
-			if (cell == null) return false;
-			cell.setTextViewContents(tw.convertToStrings());
-			tw.dirty = false;
+			cell.setTextViewContents(strings);
 			return true;
 		}
 	}
@@ -484,7 +485,7 @@ public class TextWindow
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (content instanceof TextWindow)
 			{
@@ -518,7 +519,7 @@ public class TextWindow
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (content instanceof TextWindow)
 			{

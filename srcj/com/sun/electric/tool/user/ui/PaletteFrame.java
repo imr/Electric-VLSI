@@ -105,7 +105,7 @@ public class PaletteFrame implements MouseListener
         techSelector.removeAllItems();
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
-            Technology tech = (Technology)it.next();
+            Technology tech = it.next();
             if (tech == Generic.tech) continue;
             techSelector.addItem(tech.getTechName());
         }
@@ -397,7 +397,7 @@ public class PaletteFrame implements MouseListener
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getName() + " Primitive";
             wnd.getHighlighter().clear();
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, cell, textNode, makePort);
+            new PlaceNewNode(descript, np, ni, where, cell, textNode, makePort);
 
 			// restore the former listener to the edit windows
             finished(wnd, false);
@@ -459,18 +459,22 @@ public class PaletteFrame implements MouseListener
 	 */
 	public static class PlaceNewNode extends Job
 	{
-		Object toDraw;
-		EPoint where;
-		Cell cell;
-		String varName;
-		boolean export;
+		private NodeProto np;
+		private NodeInst ni;
+		private EPoint where;
+		private Cell cell;
+		private String varName;
+		private boolean export;
+		private Variable varToHighlight;
+		private ElectricObject objToHighlight;
 
     	public PlaceNewNode() {}
 
-		public PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
+		public PlaceNewNode(String description, NodeProto np, NodeInst ni, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.toDraw = toDraw;
+			this.np = np;
+			this.ni = ni;
 			this.where = EPoint.snap(where);
 			this.cell = cell;
 			this.varName = varName;
@@ -480,20 +484,6 @@ public class PaletteFrame implements MouseListener
 
 		public boolean doIt() throws JobException
 		{
-            EditWindow wnd = EditWindow.getCurrent();
-            Highlighter highlighter = wnd.getHighlighter();
-
-			NodeProto np = null;
-			NodeInst ni = null;
-			if (toDraw instanceof NodeProto)
-			{
-				np = (NodeProto)toDraw;
-			} else if (toDraw instanceof NodeInst)
-			{
-				ni = (NodeInst)toDraw;
-				np = ni.getProto();
-			}
-			if (np == null) return false;
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
 			if (varName != null) width = height = 0;
@@ -514,16 +504,17 @@ public class PaletteFrame implements MouseListener
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode ||
-                    (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
-				newNi.setHardSelect();
+                (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
+					newNi.setHardSelect();
 			if (varName != null)
 			{
 				// text object: add initial text
-				Variable var = newNi.newVar(Variable.newKey(varName), "text", TextDescriptor.getAnnotationTextDescriptor());
-				Highlight2 h = highlighter.addText(newNi, cell, var, null);
+				varToHighlight = newNi.newVar(Variable.newKey(varName), "text", TextDescriptor.getAnnotationTextDescriptor());
+				objToHighlight = newNi;
+				fieldVariableChanged("objToHighlight");
+				fieldVariableChanged("varToHighlight");
 			} else
 			{
-				//if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 				if (np == Schematics.tech.resistorNode)
 				{
 					Variable var = newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
@@ -563,7 +554,6 @@ public class PaletteFrame implements MouseListener
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withOff(0.5, -1);
 						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
-
 						td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
 							td = td.withAbsSize((int)(td.getSize().getSize() - 2));
@@ -583,23 +573,35 @@ public class PaletteFrame implements MouseListener
 						newNi.setArcDegrees(angles[0], angles[1]);
 					}
 				}
-				ElectricObject eObj = newNi;
-				if (newNi.getNumPortInsts() > 0) eObj = (ElectricObject)newNi.getPortInsts().next();
-				highlighter.addElectricObject(eObj, cell);
+				objToHighlight = newNi;
+				fieldVariableChanged("objToHighlight");
 			}
+			return true;
+		}
+
+        public void terminateIt(Throwable jobException)
+        {
+            EditWindow wnd = EditWindow.getCurrent();
+            Highlighter highlighter = wnd.getHighlighter();
+            if (varToHighlight != null)
+        	{
+        		highlighter.addText(objToHighlight, cell, varToHighlight, null);
+        	} else
+        	{
+				highlighter.addElectricObject(objToHighlight, cell);
+        	}
+			highlighter.finished();
 
 			// for technology edit cells, mark the new geometry specially
 			if (cell.isInTechnologyLibrary())
 			{
-				Manipulate.completeNodeCreation(newNi, toDraw);
+				Manipulate.completeNodeCreation((NodeInst)objToHighlight, ni);
 			}
-			highlighter.finished();
 			if (export)
 			{
 				new NewExport(TopLevel.getCurrentJFrame(), true);
-//				System.out.println("SHOULD EXPORT IT NOW");
 			}
-			return true;
-		}
+            super.terminateIt(jobException);
+        }
 	}
 }

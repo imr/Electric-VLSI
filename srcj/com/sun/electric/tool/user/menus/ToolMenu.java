@@ -650,7 +650,6 @@ public class ToolMenu {
 	    Highlighter highlighter = null;
 	    if ((wnd != null) && (wnd.getCell() == curCell))
 		    highlighter = wnd.getHighlighter();
-                                     ;
         Job job = new LayerCoverageJob(null, jobType, curCell, func, mode, highlighter, null, null);
         job.startJob();
     }
@@ -710,7 +709,6 @@ public class ToolMenu {
 
             // update wire models
             for (Network schNet : networks) {
-//                Netlist netlist = schLayCells[0].getNetlist(true);
                 // find equivalent network in layouy
                 NetEquivalence equiv = result.getNetEquivalence();
                 HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet);
@@ -811,7 +809,6 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
-//		Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
@@ -905,7 +902,6 @@ public class ToolMenu {
                                 portNets.put(oNet, ports);
                             }
                             ports.add(pp);
-//                           portNets.put(oNet, pp);
                         }
                     } else
                     {
@@ -1086,7 +1082,6 @@ public class ToolMenu {
                     if (listedExports.contains(pp)) continue;
                     listedExports.add(pp);
                     System.out.println("    Export " + pp.getName() + " in " + subCell);
-//                    Netlist subNetlist = subCell.getUserNetlist();
             		Netlist subNetlist = subCell.acquireUserNetlist();
             		if (subNetlist == null)
             		{
@@ -1396,7 +1391,7 @@ public class ToolMenu {
 	private static final int SHOW_CELL            = 16;
 
 	/**
-	 * Method to handle the menu command to convert the current cell to layout.
+	 * Method to handle the menu command to convert a cell to layout.
 	 * Reads the cell library if necessary;
 	 * Converts a schematic to VHDL if necessary;
 	 * Compiles a VHDL cell to a netlist if necessary;
@@ -1404,6 +1399,7 @@ public class ToolMenu {
 	 * does placement and routing;
 	 * Generates Electric layout;
 	 * Displays the resulting layout.
+	 * @param cell the cell to compile.
 	 * @param completion runnable to invoke when the compilation has finished.
 	 */
 	public static void doSiliconCompilation(Cell cell, Job completion)
@@ -1412,7 +1408,6 @@ public class ToolMenu {
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
 
 		// see if the current cell needs to be compiled
-		Cell originalCell = cell;
 		if (cell.getView() != View.NETLISTQUISC)
 		{
 			if (cell.getView() == View.SCHEMATIC)
@@ -1436,7 +1431,7 @@ public class ToolMenu {
 			if (lib != null) SilComp.setCellLib(lib); else
 				activities |= READ_LIBRARY;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, activities, originalCell, null, completion);
+	    new DoSilCompActivity(cell, activities, completion);
 	}
 
 	/**
@@ -1452,7 +1447,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, cell, null, null);
+	    new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, null);
 	}
 
 	/**
@@ -1468,34 +1463,32 @@ public class ToolMenu {
 			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, cell, null, null);
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, null);
 	}
 
 	/**
-	 * Class to do the next silicon-compilation activity in a new thread.
+	 * Class to do the next silicon-compilation activity in a Job.
 	 */
-	private static class DoNextActivity extends Job
+	private static class DoSilCompActivity extends Job
 	{
-		private Cell cell, originalCell;
-		private VarContext originalContext;
+		private Cell cell;
 		private int activities;
 		private Job completion;
 
-    	public DoNextActivity() {}
+    	public DoSilCompActivity() {}
 
-		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext, Job completion)
+		private DoSilCompActivity(Cell cell, int activities, Job completion)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
-			this.originalCell = originalCell;
-			this.originalContext = originalContext;
 			this.completion = completion;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+			fieldVariableChanged("cell");
 			if ((activities&READ_LIBRARY) != 0)
 			{
 				// read standard cell library
@@ -1505,8 +1498,6 @@ public class ToolMenu {
 		        Undo.noUndoAllowed();
 				if (lib != null) SilComp.setCellLib(lib);
 				System.out.println(" Done");
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY, originalCell, originalContext, completion);
-			    return true;
 			}
 
 			if ((activities&CONVERT_TO_VHDL) != 0)
@@ -1516,8 +1507,7 @@ public class ToolMenu {
 				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
-					System.out.println("No VHDL produced");
-					return false;
+					throw new JobException("No VHDL produced");
 				}
 
 				String cellName = cell.getName() + "{vhdl}";
@@ -1531,8 +1521,7 @@ public class ToolMenu {
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				System.out.println(" Done, created " + vhdlCell);
-			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext, completion);
-			    return true;
+				cell = vhdlCell;
 			}
 
 			if ((activities&COMPILE_VHDL_FOR_SC) != 0)
@@ -1542,14 +1531,12 @@ public class ToolMenu {
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
 				{
-					System.out.println("ERRORS during compilation, no netlist produced");
-					return false;
+					throw new JobException("ERRORS during compilation, no netlist produced");
 				}
 				List<String> netlistStrings = c.getQUISCNetlist();
 				if (netlistStrings == null)
 				{
-					System.out.println("No netlist produced");
-					return false;
+					throw new JobException("No netlist produced");
 				}
 
 				// store the QUISC netlist
@@ -1564,8 +1551,7 @@ public class ToolMenu {
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				System.out.println(" Done, created " + netlistCell);
-			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SC, originalCell, originalContext, completion);
-			    return true;
+				cell = netlistCell;
 			}
 
 			if ((activities&PLACE_AND_ROUTE) != 0)
@@ -1573,7 +1559,11 @@ public class ToolMenu {
 				// first grab the information in the netlist
 				System.out.print("Reading netlist in " + cell + " ...");
 				GetNetlist gnl = new GetNetlist();
-				if (gnl.readNetCurCell(cell)) { System.out.println();   return false; }
+				if (gnl.readNetCurCell(cell))
+				{
+					System.out.println();
+					throw new JobException("Error compiling netlist");
+				}
 				System.out.println(" Done");
 
 				// do the placement
@@ -1582,8 +1572,8 @@ public class ToolMenu {
 				String err = place.placeCells(gnl);
 				if (err != null)
 				{
-					System.out.println("\n" + err);
-					return false;
+					System.out.println();
+					throw new JobException(err);
 				}
 				System.out.println(" Done");
 
@@ -1593,8 +1583,8 @@ public class ToolMenu {
 				err = route.routeCells(gnl);
 				if (err != null)
 				{
-					System.out.println("\n" + err);
-					return false;
+					System.out.println();
+					throw new JobException(err);
 				}
 				System.out.println(" Done");
 
@@ -1606,37 +1596,42 @@ public class ToolMenu {
 				{
 					System.out.println("\n" + (String)result);
 					if (Technology.getCurrent() == Schematics.tech)
-						System.out.println("Should switch to a layout technology first (currently in Schematics)");
-					return false;
+						throw new JobException("Should switch to a layout technology first (currently in Schematics)");
 				}
-				if (result instanceof Cell)
+				if (!(result instanceof Cell))
 				{
-					Cell newCell = (Cell)result;
-					System.out.println(" Done, created " + newCell);
-				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE, originalCell, originalContext, completion);
+					System.out.println();
+				    return true;
 				}
-				System.out.println();
+				cell = (Cell)result;
+				System.out.println(" Done, created " + cell);
 			    return true;
-			}
-
-			if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
-			{
-				// show the cell
-				WindowFrame.createEditWindow(cell);
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL, originalCell, originalContext, completion);
-				return true;
-			}
-
-			if (completion != null)
-			{
-				completion.startJob();
 			}
 			return false;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+        	if (jobException == null)
+        	{
+				if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
+				{
+					// show the cell
+					WindowFrame.createEditWindow(cell);
+				}
+	
+				if (completion != null)
+				{
+					completion.startJob();
+				}
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
     /****************** Parasitic Tool ********************/
-    public static void parasiticCommand()
+
+	public static void parasiticCommand()
     {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
@@ -1708,9 +1703,8 @@ public class ToolMenu {
             if (!done)
             {
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                        "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
-                        "Importing DRC Deck",
-                        JOptionPane.ERROR_MESSAGE);
+                    "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
+                    "Importing DRC Deck", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

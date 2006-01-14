@@ -74,7 +74,7 @@ public class Info
 	/** serpentine MOS trans (node cell) */						static final int NODESERPENTINE    = 16;
 	/** DRC minimum width (layer cell, OBSOLETE) */				static final int LAYERDRCMINWID    = 17;
 	/** port object (node cell) */								static final int PORTOBJ           = 18;
-	/** highlight object (node/arc cell) */						static final int HIGHLIGHTOBJ      = 19;
+	/** highlight object (node/arc cell) */						public static final int HIGHLIGHTOBJ      = 19;
 	/** Calma GDS-II layer (layer cell) */						static final int LAYERGDS          = 20;
 	/** square node (node cell) */								static final int NODESQUARE        = 21;
 	/** pin node can disappear (node cell) */					static final int NODEWIPES         = 22;
@@ -103,7 +103,7 @@ public class Info
 	/** the transparent colors (info cell) */					static final int TECHTRANSPCOLORS  = 45;
 
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
-	/** key of Variable holding option information. */	static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
+	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
 	/** key of Variable holding arc ordering. */		static final Variable.Key ARCSEQUENCE_KEY = Variable.newKey("EDTEC_arcsequence");
 	/** key of Variable holding node ordering. */		static final Variable.Key NODESEQUENCE_KEY = Variable.newKey("EDTEC_nodesequence");
 	/** key of Variable holding layer ordering. */		static final Variable.Key LAYERSEQUENCE_KEY = Variable.newKey("EDTEC_layersequence");
@@ -146,7 +146,7 @@ public class Info
 		for(int i=0; i < table.length; i++) table[i].ni = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
 			foundNodeForFunction(ni, ((Integer)var.getObject()).intValue(), table);
@@ -353,7 +353,7 @@ public class Info
 			Library olderlib = dependentlibs[i];
 			for(Iterator<Cell> it = olderlib.getCells(); it.hasNext(); )
 			{
-				Cell np = (Cell)it.next();
+				Cell np = it.next();
 				if (!np.getName().startsWith(match)) continue;
 
 				// see if this cell is used in a later library
@@ -363,7 +363,7 @@ public class Info
 					Library laterLib = dependentlibs[j];
 					for(Iterator<Cell> oIt = laterLib.getCells(); oIt.hasNext(); )
 					{
-						Cell lNp = (Cell)oIt.next();
+						Cell lNp = oIt.next();
 						if (!lNp.getName().equals(np.getName())) continue;
 						foundInLater = true;
 
@@ -402,8 +402,8 @@ public class Info
 				npList.remove(foundCell);
 			}
 		}
-		for(Iterator<Cell> it = npList.iterator(); it.hasNext(); )
-			sequence.add(it.next());
+		for(Cell c: npList)
+			sequence.add(c);
 		Cell [] theCells = new Cell[sequence.size()];
 		for(int i=0; i<sequence.size(); i++)
 			theCells[i] = (Cell)sequence.get(i);

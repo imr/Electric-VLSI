@@ -1069,11 +1069,11 @@ public class CircuitChangeJobs
 	{
 		private Cell cell;
         private List<DisplayedText> highlightedText;
-        private List<Highlight2> highlighted;
+        private List<Geometric> highlighted;
 
 		public DeleteSelected() {}
 
-        public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Highlight2> highlighted)
+        public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Geometric> highlighted)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -1087,30 +1087,30 @@ public class CircuitChangeJobs
 			// make sure deletion is allowed
 			if (cantEdit(cell, null, true) != 0) return false;
 
-			List<Geometric> deleteList = new ArrayList<Geometric>();
+//			List<Geometric> deleteList = new ArrayList<Geometric>();
 //			Geometric oneGeom = null;
-			for(Highlight2 h : highlighted)
-			{
-				Geometric geom = h.getGeometric();
-				if (h.isHighlightText())
-				{
-					ElectricObject eobj = h.getElectricObject();
-					if (eobj instanceof Export) continue;
-				}
-				if (geom == null) continue;
-
-				if (cell != h.getCell())
-				{
-					throw new JobException("All objects to be deleted must be in the same cell");
-				}
-				if (geom instanceof NodeInst)
-				{
-					int errCode = cantEdit(cell, (NodeInst)geom, true);
-					if (errCode < 0) return false;
-					if (errCode > 0) continue;
-				}
-				deleteList.add(geom);
-			}
+//			for(Geometric geom : highlighted)
+//			{
+//				Geometric geom = h.getGeometric();
+//				if (h.isHighlightText())
+//				{
+//					ElectricObject eobj = h.getElectricObject();
+//					if (eobj instanceof Export) continue;
+//				}
+//				if (geom == null) continue;
+//
+//				if (cell != h.getCell())
+//				{
+//					throw new JobException("All objects to be deleted must be in the same cell");
+//				}
+//				if (geom instanceof NodeInst)
+//				{
+//					int errCode = cantEdit(cell, (NodeInst)geom, true);
+//					if (errCode < 0) return false;
+//					if (errCode > 0) continue;
+//				}
+//				deleteList.add(geom);
+//			}
 
 			// clear the highlighting
 			//Highlighter.global.clear();
@@ -1165,7 +1165,7 @@ public class CircuitChangeJobs
 				}
 			}
 			if (cell != null)
-				eraseObjectsInList(cell, deleteList);
+				eraseObjectsInList(cell, highlighted);
 
 			// remove highlighting
 			UserInterface ui = Main.getUserInterface();

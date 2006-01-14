@@ -635,7 +635,7 @@ public class EditMenu {
 			{
 				// if double-clicked on a technology editing object, modify it
 				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-					nodeCount == 0 &&  textCount == 1 && theNode != null)
+					(nodeCount == 1 ^  textCount == 1) && theNode != null)
 				{
 					int opt = Manipulate.getOptionOnNode(theNode);
 					if (opt >= 0)

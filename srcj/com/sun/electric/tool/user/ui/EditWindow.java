@@ -771,7 +771,18 @@ public class EditWindow extends JPanel
 			Point2D where = wnd.screenToDatabase(dtde.getLocation().x, dtde.getLocation().y);
 			EditWindow.gridAlign(where);
             wnd.getHighlighter().clear();
-			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", obj, where, wnd.getCell(), null, false);
+
+			NodeInst ni = null;
+			NodeProto np = null;
+			if (obj instanceof NodeProto)
+			{
+				np = (NodeProto)obj;
+			} else if (obj instanceof NodeInst)
+			{
+				ni = (NodeInst)obj;
+				np = ni.getProto();
+			}
+			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", np, ni, where, wnd.getCell(), null, false);
 		}
 	}
 

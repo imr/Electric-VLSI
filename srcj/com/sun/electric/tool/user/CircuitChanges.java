@@ -424,8 +424,8 @@ public class CircuitChanges
 		} else
 		{
             List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
-            List<Highlight2> highlighted = highlighter.getHighlights();
-            if (highlighted.size() == 0) return;
+            List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
+            if (highlightedText.size() == 0 && highlighted.size() == 0) return;
 	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted);
 		}
 	}

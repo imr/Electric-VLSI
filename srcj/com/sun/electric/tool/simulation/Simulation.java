@@ -114,7 +114,6 @@ public class Simulation extends Listener
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
 
 	private static final int CONVERT_TO_VHDL      =  1;
-	private static final int SIMULATENETLIST      =  2;
 	private static final int COMPILE_VHDL_FOR_SIM =  4;
 
 	/**
@@ -148,10 +147,10 @@ public class Simulation extends Listener
 		switch (engine)
 		{
 			case ALS_ENGINE:
-				int activities = SIMULATENETLIST;
 
 				// see if the current cell needs to be compiled
 				Cell originalCell = cell;
+				int activities = 0;
 				if (cell.getView() != View.NETLISTALS)
 				{
 					if (cell.getView() == View.SCHEMATIC || cell.getView() == View.LAYOUT)
@@ -169,7 +168,7 @@ public class Simulation extends Listener
 							activities |= COMPILE_VHDL_FOR_SIM;
 					}
 				}
-			    DoNextActivity sJob = new DoNextActivity(cell, activities, originalCell, context, prevEngine);
+			    new DoALSActivity(cell, activities, originalCell, prevEngine);
 				break;
 
 			case IRSIM_ENGINE:
@@ -182,22 +181,20 @@ public class Simulation extends Listener
 	/**
 	 * Class to do the next silicon-compilation activity in a new thread.
 	 */
-	private static class DoNextActivity extends Job
+	private static class DoALSActivity extends Job
 	{
 		private Cell cell, originalCell;
-		private VarContext originalContext;
 		private int activities;
-		private Engine prevEngine;
+		private /*transient*/ Engine prevEngine;
 
-    	public DoNextActivity() {}
+    	public DoALSActivity() {}
 
-		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext, Engine prevEngine)
+		private DoALSActivity(Cell cell, int activities, Cell originalCell, Engine prevEngine)
 		{
-			super("Simulation activity", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
 			this.originalCell = originalCell;
-			this.originalContext = originalContext;
 			this.prevEngine = prevEngine;
 			startJob();
 		}
@@ -211,8 +208,7 @@ public class Simulation extends Listener
 				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
-					System.out.println("No VHDL produced");
-					return false;
+					throw new JobException("No VHDL produced");
 				}
 
 				String cellName = cell.getName() + "{vhdl}";
@@ -226,8 +222,8 @@ public class Simulation extends Listener
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				System.out.println(" Done, created " + vhdlCell);
-			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext, prevEngine);
-			    return true;
+				cell = vhdlCell;
+				fieldVariableChanged("cell");
 			}
 
 			if ((activities&COMPILE_VHDL_FOR_SIM) != 0)
@@ -237,14 +233,12 @@ public class Simulation extends Listener
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
 				{
-					System.out.println("ERRORS during compilation, no netlist produced");
-					return false;
+					throw new JobException("ERRORS during compilation, no netlist produced");
 				}
 				List<String> netlistStrings = c.getALSNetlist();
 				if (netlistStrings == null)
 				{
-					System.out.println("No netlist produced");
-					return false;
+					throw new JobException("No netlist produced");
 				}
 
 				// store the ALS netlist
@@ -259,25 +253,26 @@ public class Simulation extends Listener
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				System.out.println(" Done, created " + netlistCell);
-			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SIM, originalCell, originalContext, prevEngine);
-			    return true;
+				cell = netlistCell;
+				fieldVariableChanged("cell");
 			}
+			return true;
+		}
 
-			if ((activities&SIMULATENETLIST) != 0)
-			{
+        public void terminateIt(Throwable jobException)
+        {
+        	if (jobException == null)
+        	{
 				if (prevEngine != null)
 				{
-					ALS.restartSimulation(cell, originalCell, originalContext, (ALS)prevEngine);
+					ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
 				} else
 				{
-					ALS.simulateNetlist(cell, originalCell, originalContext);
+					ALS.simulateNetlist(cell, originalCell);
 				}
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SIMULATENETLIST, originalCell, originalContext, prevEngine);
-			    return true;
-			}
-
-			return false;
-		}
+        	}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -461,7 +456,7 @@ public class Simulation extends Listener
 		Engine engine = null;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -497,7 +492,7 @@ public class Simulation extends Listener
 	 */
 	private static class SetSpiceModel extends Job
 	{
-		NodeInst ni;
+		private NodeInst ni;
 
     	public SetSpiceModel() {}
 
@@ -510,7 +505,7 @@ public class Simulation extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			Variable var = ni.newDisplayVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
+			ni.newDisplayVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
 			return true;
 		}
 	}
@@ -540,8 +535,8 @@ public class Simulation extends Listener
 	 */
 	private static class SetWireType extends Job
 	{
-		List<Geometric> list;
-		int type;
+		private List<Geometric> list;
+		private int type;
 
     	public SetWireType() {}
 
@@ -555,16 +550,16 @@ public class Simulation extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator<Geometric> it = list.iterator(); it.hasNext(); )
+			for(Geometric geom : list)
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = (ArcInst)geom;
 				switch (type)
 				{
 					case 0:		// set to "wire"
-						Variable var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "wire");
+						ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "wire");
 						break;
 					case 1:		// set to "trireg"
-						var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "trireg");
+						ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "trireg");
 						break;
 					case 2:		// set to default
 						if (ai.getVar(Verilog.WIRE_TYPE_KEY) != null)
@@ -598,8 +593,8 @@ public class Simulation extends Listener
 	 */
 	private static class SetTransistorStrength extends Job
 	{
-		NodeInst ni;
-		boolean weak;
+		private NodeInst ni;
+		private boolean weak;
 
     	public SetTransistorStrength() {}
 
@@ -615,7 +610,7 @@ public class Simulation extends Listener
 		{
 			if (weak)
 			{
-				Variable var = ni.newDisplayVar(WEAK_NODE_KEY, "Weak");
+				ni.newDisplayVar(WEAK_NODE_KEY, "Weak");
 			} else
 			{
 				if (ni.getVar(WEAK_NODE_KEY) != null)

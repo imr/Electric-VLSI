@@ -229,13 +229,13 @@ public class Manipulate
 			StringBuffer warning = null;
 			for(Iterator<Cell> it = np.getLibrary().getCells(); it.hasNext(); )
 			{
-				Cell oNp = (Cell)it.next();
+				Cell oNp = it.next();
 				boolean isNode = false;
 				if (oNp.getName().startsWith("node-")) isNode = true; else
 					if (!oNp.getName().startsWith("arc-")) continue;
 				for(Iterator<NodeInst> nIt = oNp.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					Variable var = ni.getVar(Info.LAYER_KEY);
 					if (var == null) continue;
 					CellId cID = (CellId)var.getObject();
@@ -402,48 +402,83 @@ public class Manipulate
 	 * Method to complete the creation of a new node in a technology edit cell.
 	 * @param newNi the node that was just created.
 	 */
-	public static void completeNodeCreation(NodeInst newNi, Object toDraw)
+	public static void completeNodeCreation(NodeInst newNi, NodeInst niTemplate)
 	{
-		newNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
-
 		// postprocessing on the nodes
+		String portName = null;
 		if (newNi.getProto() == Generic.tech.portNode)
 		{
 			// a port layer
-			String portName = JOptionPane.showInputDialog("Port name:", "");
+			portName = JOptionPane.showInputDialog("Port name:", "");
 			if (portName == null) return;
-			Variable var = newNi.newDisplayVar(Info.PORTNAME_KEY, portName);
-//			if (var != null) var.setDisplay(true);
-			return;
 		}
-		if (newNi.getProto() == Artwork.tech.boxNode)
+		new AddTechEditMarks(newNi, niTemplate, portName);
+	}
+
+	/**
+	 * Class to prepare a NodeInst for technology editing.
+	 * Adds variables to the NodeInst which identify it to the technology editor.
+	 */
+	private static class AddTechEditMarks extends Job
+	{
+		private NodeInst newNi;
+		private NodeInst niTemplate;
+		private String portName;
+
+    	public AddTechEditMarks() {}
+
+		protected AddTechEditMarks(NodeInst newNi, NodeInst niTemplate, String portName)
 		{
-			// could be a highlight layer
-			if (toDraw instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)toDraw;
-				if (ni.getVar(Info.LAYER_KEY) != null)
-				{
-					newNi.newVar(Info.LAYER_KEY, null);
-					return;
-				}
-			}
+			super("Prepare node for technology editing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.newNi = newNi;
+			this.niTemplate = niTemplate;
+			this.portName = portName;
+			startJob();
 		}
 
-		// a real layer: default to the first one
-		String [] layerNames = getLayerNameList();
-		if (layerNames != null && layerNames.length > 0)
+		public boolean doIt() throws JobException
 		{
-			Cell cell = Library.getCurrent().findNodeProto(layerNames[0]);
-			if (cell != null)
+			if (niTemplate != null)
 			{
-				newNi.newVar(Info.LAYER_KEY, cell.getId());
-				LayerInfo li = LayerInfo.parseCell(cell);
-				if (li != null)
-					setPatch(newNi, li.desc);
+				Variable v = niTemplate.getVar(Info.OPTION_KEY);
+				if (v != null)
+				{
+					if (v.getObject() instanceof Integer &&
+						((Integer)v.getObject()).intValue() == Info.HIGHLIGHTOBJ)
+					{
+						newNi.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
+						return true;
+					}
+				}
 			}
+
+			// set layer information
+			newNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+
+			// postprocessing on the nodes
+			if (newNi.getProto() == Generic.tech.portNode)
+			{
+				// a port layer
+				newNi.newDisplayVar(Info.PORTNAME_KEY, portName);
+				return true;
+			}
+
+			// a real layer: default to the first one
+			String [] layerNames = getLayerNameList();
+			if (layerNames != null && layerNames.length > 0)
+			{
+				Cell cell = Library.getCurrent().findNodeProto(layerNames[0]);
+				if (cell != null)
+				{
+					newNi.newVar(Info.LAYER_KEY, cell.getId());
+					LayerInfo li = LayerInfo.parseCell(cell);
+					if (li != null)
+						setPatch(newNi, li.desc);
+				}
+			}
+			return true;
 		}
-	}
+    }
 
 	/**
 	 * Method to reorganize the dependent libraries
@@ -647,7 +682,7 @@ public class Manipulate
 			allLibsModel.clear();
 			for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				allLibsModel.addElement(lib.getName());
 			}
 
@@ -731,7 +766,7 @@ public class Manipulate
 		int total = 0;
 		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
-			Sample ns = (Sample)it.next();
+			Sample ns = it.next();
 			if (!doPorts)
 			{
 				if (ns.layer != Generic.tech.portNode) total++;
@@ -791,7 +826,7 @@ public class Manipulate
 		int k = 0;
 		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
 		{
-			Sample ns = (Sample)it.next();
+			Sample ns = it.next();
 			if (!doPorts)
 			{
 				if (ns.layer != Generic.tech.portNode) whichSam[k++] = ns;
@@ -997,7 +1032,7 @@ public class Manipulate
 
 	/**
 	 * Method to obtain the layer associated with node "ni".  Returns 0 if the layer is not
-	 * there or invalid.  Returns NONODEPROTO if this is the highlight layer.
+	 * there or invalid.  Returns null if this is the highlight layer.
 	 */
 	static Cell getLayerCell(NodeInst ni)
 	{
@@ -1010,7 +1045,7 @@ public class Manipulate
 			// validate the reference
 			for(Iterator<Cell> it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 			{
-				Cell oCell = (Cell)it.next();
+				Cell oCell = it.next();
 				if (oCell == cell) return cell;
 			}
 		}
@@ -1068,6 +1103,9 @@ public class Manipulate
 			case Info.NODEWIPES:         modNodeWipes(wnd, ni);              break;
 
 			case Info.PORTOBJ:           modPort(wnd, ni);                   break;
+			case Info.HIGHLIGHTOBJ:
+				System.out.println("Cannot modify highlight boxes");
+				break;
 			default:
 				System.out.println("Cannot modify this object");
 				break;
@@ -1273,9 +1311,8 @@ public class Manipulate
 		String [] styleNames = new String[outlines.size()+1];
 		styleNames[0] = "Solid";
 		int i = 1;
-		for(Iterator<EGraphics.Outline> it = outlines.iterator(); it.hasNext(); )
+		for(EGraphics.Outline o : outlines)
 		{
-			EGraphics.Outline o = (EGraphics.Outline)it.next();
 			styleNames[i++] = "Patterned/Outline=" + o.getName();
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer Drawing Style",
@@ -1336,9 +1373,8 @@ public class Manipulate
 		int [] extraBits = Layer.Function.getFunctionExtras();
 		String [] functionNames = new String[funs.size() + extraBits.length];
 		int j = 0;
-		for(Iterator<Layer.Function> it = funs.iterator(); it.hasNext(); )
+		for(Layer.Function fun : funs)
 		{
-			Layer.Function fun = (Layer.Function)it.next();
 			functionNames[j++] = fun.toString();
 		}
 		for(int i=0; i<extraBits.length; i++)
@@ -1365,9 +1401,8 @@ public class Manipulate
 		} else
 		{
 			li.funExtra = 0;
-			for(Iterator<Layer.Function> it = funs.iterator(); it.hasNext(); )
+			for(Layer.Function fun : funs)
 			{
-				Layer.Function fun = (Layer.Function)it.next();
 				if (fun.toString().equalsIgnoreCase(choice))
 				{
 					li.fun = fun;
@@ -1401,7 +1436,7 @@ public class Manipulate
 			case 1:		// clear pattern
 				for(Iterator<NodeInst> it = ni.getParent().getNodes(); it.hasNext(); )
 				{
-					NodeInst pni = (NodeInst)it.next();
+					NodeInst pni = it.next();
 					int opt = getOptionOnNode(pni);
 					if (opt != Info.LAYERPATTERN) continue;
 					int color = getLayerColor(pni);
@@ -1415,7 +1450,7 @@ public class Manipulate
 			case 2:		// invert pattern
 				for(Iterator<NodeInst> it = ni.getParent().getNodes(); it.hasNext(); )
 				{
-					NodeInst pni = (NodeInst)it.next();
+					NodeInst pni = it.next();
 					int opt = getOptionOnNode(pni);
 					if (opt != Info.LAYERPATTERN) continue;
 					int color = getLayerColor(pni);
@@ -1572,6 +1607,9 @@ public class Manipulate
 			CellId cID = (CellId)curLay.getObject();
 			Cell cell = (Cell)cID.inCurrentThread();
 			initial = cell.getName().substring(6);
+		} else
+		{
+			
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
 		if (choice == null) return;
@@ -1651,7 +1689,7 @@ public class Manipulate
 		List<Cell> allArcs = new ArrayList<Cell>();
 		for(Iterator<Cell> it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			if (cell.getName().startsWith("arc-")) allArcs.add(cell);
 		}
 
@@ -1947,7 +1985,7 @@ public class Manipulate
 			NodeInst patchNi = null;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
 				int opt = getOptionOnNode(ni);
 				if (opt == Info.LAYERPATTERN) continue;
@@ -1966,11 +2004,11 @@ public class Manipulate
 			// now do this to all layers in all cells!
 			for(Iterator<Cell> cIt = cell.getLibrary().getCells(); cIt.hasNext(); )
 			{
-				Cell onp = (Cell)cIt.next();
+				Cell onp = cIt.next();
 				if (!onp.getName().startsWith("arc-") && !onp.getName().startsWith("node-")) continue;
 				for(Iterator<NodeInst> nIt = onp.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst cNi = (NodeInst)nIt.next();
+					NodeInst cNi = nIt.next();
 					if (getOptionOnNode(cNi) != Info.LAYERPATCH) continue;
 					Variable varLay = cNi.getVar(Info.LAYER_KEY);
 					if (varLay == null) continue;
@@ -2017,7 +2055,7 @@ public class Manipulate
 		Rectangle2D patternBounds = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Artwork.tech.boxNode || ni.getProto() == Artwork.tech.filledBoxNode)
 			{
 				Variable var = ni.getVar(Info.OPTION_KEY);
@@ -2045,7 +2083,7 @@ public class Manipulate
 		// set the pattern
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() != Artwork.tech.boxNode && ni.getProto() != Artwork.tech.filledBoxNode) continue;
 			Variable var = ni.getVar(Info.OPTION_KEY);
 			if (var == null) continue;
@@ -2376,7 +2414,7 @@ public class Manipulate
 		int tot = 1;
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
 			Poly [] polys = tech.getShapeOfArc(ai);
 			tot += polys.length;
@@ -2403,7 +2441,7 @@ public class Manipulate
 		tot = 1;
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			arcNames[tot] = ap.getName();
 			arcExtensions[tot] = (ap.isExtended() ? "yes" : "no");
 			arcAngles[tot] = "" + ap.getAngleIncrement();
@@ -2446,7 +2484,7 @@ public class Manipulate
 		int total = 1;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			NodeInst ni = NodeInst.makeDummyInstance(np);
 			Poly [] polys = tech.getShapeOfNode(ni);
 			int l = 0;
@@ -2484,7 +2522,7 @@ public class Manipulate
 		tot = 1;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			int base = tot;
 			nodeNames[tot] = np.getName();
 			nodeFuncs[tot] = np.getFunction().getName();

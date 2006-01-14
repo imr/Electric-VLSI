@@ -321,7 +321,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         int ysize = (int)(size.getHeight()*0.9) / menuY;
         if (ysize < entrySize) entrySize = ysize;
         size.setSize(entrySize*menuX+1, entrySize*menuY+1);
-		User.getUserTool().setCurrentArcProto((ArcProto)tech.getArcs().next());
+		User.getUserTool().setCurrentArcProto(tech.getArcs().next());
         //repaint();
         synchronized(this) { paletteImageStale = true; }
 
@@ -384,17 +384,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // Careful with this name
 					JPopupMenu menu = new JPopupMenu(getItemName(obj, true));
 
-					for (Iterator<Object> it = list.iterator(); it.hasNext();)
+					for (Object item : list)
 					{
-                        Object item = it.next();
 						if (item instanceof JSeparator)
 							menu.add((JSeparator)item);
 						else if (item instanceof List)
 						{
 							List<Object> subList = (List<Object>)item;
-							for (Iterator<Object> listIter = subList.iterator(); listIter.hasNext();)
+							for (Object subItem : subList)
 							{
-								Object subItem = listIter.next();
 								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
                                 menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, subItem, list, subList));
 							}
@@ -423,7 +421,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 JPopupMenu cellMenu = new JPopupMenu("Cells");
                 for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
                 {
-                    Cell cell = (Cell)it.next();
+                    Cell cell = it.next();
                     menuItem = new JMenuItem(cell.describe(false));
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                     cellMenu.add(menuItem);
@@ -495,9 +493,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } else if (msg.equals("Pure"))
             {
                 JPopupMenu pureMenu = new JPopupMenu("Pure");
-                for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodesSortedByName().iterator(); it.hasNext(); )
+                for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
                 {
-                    PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;
                     if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
                     Technology.NodeLayer layer = np.getLayers()[0];
@@ -544,7 +541,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
             	// place a technology-edit highlight box
             	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech.boxNode);
-            	ni.newVar(Info.LAYER_KEY, null);
+    			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
                 PaletteFrame.placeInstance(ni, panel, false);
             } if (msg.equals("Port"))
             {
@@ -605,10 +602,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      */
     private static class ReadSpiceLibrary extends Job
     {
-        URL fileURL;
-        JPopupMenu cellMenu;
-        TechPalette panel;
-        int x, y;
+    	private URL fileURL;
+        private /*transient*/ JPopupMenu cellMenu;
+        private /*transient*/ TechPalette panel;
+        private /*transient*/ int x, y;
+        private Library lib;
 
     	public ReadSpiceLibrary() {}
 
@@ -625,19 +623,26 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public boolean doIt() throws JobException
         {
-            Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
+            lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
             Undo.noUndoAllowed();
             if (lib == null) return false;
+			fieldVariableChanged("lib");
+            return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+            if (lib == null) return;
             loadSpiceCells(lib, panel, cellMenu);
             cellMenu.show(panel, x, y);
-            return true;
+            super.terminateIt(jobException);
         }
 
         public static void loadSpiceCells(Library lib, TechPalette panel, JPopupMenu cellMenu)
         {
             for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
             {
-                Cell cell = (Cell)it.next();
+                Cell cell = it.next();
                 // only access to icons of those cells
                 if (cell.getView() != View.ICON) continue;
                 JMenuItem menuItem = new JMenuItem(cell.getName());
@@ -986,7 +991,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             PrimitiveNode.Function groupFunction = np.getGroupFunction();
             for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
             {
-                PrimitiveNode otherNp = (PrimitiveNode)it.next();
+                PrimitiveNode otherNp = it.next();
                 if (otherNp.getGroupFunction() != groupFunction) continue;
                 if (otherNp.isSkipSizeInPalette()) continue;
                 if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
@@ -999,7 +1004,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 largest = 0;
                 for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )
                 {
-                    ArcProto otherAp = (ArcProto)it.next();
+                    ArcProto otherAp = it.next();
                     if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
                     double wid = otherAp.getDefaultWidth();
                     if (wid+8 > largest) largest = wid+8;
@@ -1040,7 +1045,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 double largest = 0;
                 for(Iterator<ArcProto> it = ap.getTechnology().getArcs(); it.hasNext(); )
                 {
-                    ArcProto otherAp = (ArcProto)it.next();
+                    ArcProto otherAp = it.next();
                     if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                     double wid = otherAp.getDefaultWidth();
                     if (wid+menuArcLength > largest) largest = wid+menuArcLength;

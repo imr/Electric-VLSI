@@ -24,9 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -34,7 +31,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractButton;
@@ -112,9 +108,8 @@ public class OptionReconcile extends EDialog
 		optionBox.add(new JSeparator(), gbc);
 
 		int rowNumber = 2;
-		for(Iterator<Pref.Meaning> it = optionsThatChanged.iterator(); it.hasNext(); )
+		for(Pref.Meaning meaning : optionsThatChanged)
 		{
-			Pref.Meaning meaning = (Pref.Meaning)it.next();
 			Pref pref = meaning.getPref();
 //			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
 			Object obj = meaning.getDesiredValue();
@@ -233,40 +228,48 @@ public class OptionReconcile extends EDialog
 
 	public void termDialog()
 	{
-		DoReconciliation job = new DoReconciliation(changedOptions);
+        List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
+		for(JRadioButton cb : changedOptions.keySet())
+		{
+			if (!cb.isSelected()) continue;
+			Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
+            meaningsToReconcile.add(meaning);
+		}
+        Pref.finishPrefReconcilation(meaningsToReconcile);
+//		DoReconciliation job = new DoReconciliation(changedOptions);
 	}
 
-	/**
-	 * Class to apply changes to tool options in a new thread.
-	 */
-	private static class DoReconciliation extends Job
-	{
-		HashMap<JRadioButton,Pref.Meaning> changedOptions;
-
-    	public DoReconciliation() {}
-
-		protected DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
-		{
-			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.changedOptions = changedOptions;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
-
-			for(Iterator<JRadioButton> it = changedOptions.keySet().iterator(); it.hasNext(); )
-			{
-				JRadioButton cb = (JRadioButton)it.next();
-				if (!cb.isSelected()) continue;
-				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
-                meaningsToReconcile.add(meaning);
-			}
-            Pref.finishPrefReconcilation(meaningsToReconcile);
-			return true;
-		}
-	}
+//	/**
+//	 * Class to apply changes to tool options in a new thread.
+//	 */
+//	private static class DoReconciliation extends Job
+//	{
+//		HashMap<JRadioButton,Pref.Meaning> changedOptions;
+//
+//    	public DoReconciliation() {}
+//
+//		protected DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
+//		{
+//			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.changedOptions = changedOptions;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
+//
+//			for(Iterator<JRadioButton> it = changedOptions.keySet().iterator(); it.hasNext(); )
+//			{
+//				JRadioButton cb = it.next();
+//				if (!cb.isSelected()) continue;
+//				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
+//                meaningsToReconcile.add(meaning);
+//			}
+//            Pref.finishPrefReconcilation(meaningsToReconcile);
+//			return true;
+//		}
+//	}
  
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -361,9 +364,8 @@ public class OptionReconcile extends EDialog
 
     private void useLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useLibraryOptionsActionPerformed
         // set all library options selected
-        for(Iterator<JRadioButton> it = changedOptions.keySet().iterator(); it.hasNext(); )
+        for(JRadioButton b : changedOptions.keySet())
         {
-			JRadioButton b = (JRadioButton)it.next();
             b.setSelected(true);
         }
         ok(null);
@@ -372,8 +374,7 @@ public class OptionReconcile extends EDialog
 	private void ignoreLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ignoreLibraryOptionsActionPerformed
 	{//GEN-HEADEREND:event_ignoreLibraryOptionsActionPerformed
 		// set all current options selected
-        for (Iterator<AbstractButton> it = currentSettings.iterator(); it.hasNext(); ) {
-            AbstractButton b = (AbstractButton)it.next();
+        for (AbstractButton b : currentSettings) {
             b.setSelected(true);
         }
         ok(null);
@@ -395,8 +396,7 @@ public class OptionReconcile extends EDialog
     private void updateButtonState() {
         boolean ignoreAllLibOptionsEnabled = false;
         boolean useAllLibOptionsEnabled = false;
-        for (Iterator<AbstractButton> it = currentSettings.iterator(); it.hasNext(); ) {
-            AbstractButton b = (AbstractButton)it.next();
+        for (AbstractButton b : currentSettings) {
             // if current setting selected, allow user to push "use all lib settings" button
             if (b.isSelected()) useAllLibOptionsEnabled = true;
             // if library setting selected, allow user to push "ignore all lib settings" button

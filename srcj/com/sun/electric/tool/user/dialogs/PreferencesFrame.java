@@ -474,7 +474,15 @@ public class PreferencesFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		OKUpdate job = new OKUpdate(this);
+		// doing it directly, not in a Job
+		for(Iterator<PreferencePanel> it = optionPanes.iterator(); it.hasNext(); )
+		{
+			PreferencePanel ti = (PreferencePanel)it.next();
+			if (ti.isInited())
+				ti.term();
+		}
+		closeDialog(null);
+//		OKUpdate job = new OKUpdate(this);
 	}
 
 	private void helpActionPerformed()
@@ -537,34 +545,34 @@ public class PreferencesFrame extends EDialog
 
 	protected void escapePressed() { cancelActionPerformed(); }
 
-	/**
-	 * Class to update primitive node information.
-	 */
-	private static class OKUpdate extends Job
-	{
-		PreferencesFrame dialog;
-
-    	public OKUpdate() {}
-
-		protected OKUpdate(PreferencesFrame dialog)
-		{
-			super("Update Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			for(Iterator<PreferencePanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
-			{
-				PreferencePanel ti = (PreferencePanel)it.next();
-				if (ti.isInited())
-					ti.term();
-			}
-			dialog.closeDialog(null);
-			return true;
-		}
-	}
+//	/**
+//	 * Class to update primitive node information.
+//	 */
+//	private static class OKUpdate extends Job
+//	{
+//		PreferencesFrame dialog;
+//
+//    	public OKUpdate() {}
+//
+//		protected OKUpdate(PreferencesFrame dialog)
+//		{
+//			super("Update Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.dialog = dialog;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			for(Iterator<PreferencePanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
+//			{
+//				PreferencePanel ti = (PreferencePanel)it.next();
+//				if (ti.isInited())
+//					ti.term();
+//			}
+//			dialog.closeDialog(null);
+//			return true;
+//		}
+//	}
 
 	private static class TreeHandler implements MouseListener, TreeExpansionListener
 	{

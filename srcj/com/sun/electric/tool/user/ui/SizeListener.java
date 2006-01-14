@@ -236,9 +236,8 @@ public class SizeListener
 
 			// determine default size
 			double xS = 0, yS = 0;
-			for(Iterator<Geometric> it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
+			for(Geometric geom : highlighter.getHighlightedEObjs(true, true))
 			{
-				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
@@ -263,8 +262,16 @@ public class SizeListener
 
 		private void ok(java.awt.event.ActionEvent evt)
 		{
-			// create the array
-			ResizeStuff job = new ResizeStuff(this);
+			// resize the objects
+            EditWindow wnd = EditWindow.needCurrent();
+            if (wnd == null) return;
+            Highlighter highlighter = wnd.getHighlighter();
+			List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
+			double xS = TextUtils.atof(xSize.getText());
+			double yS = 0;
+			if (nodes)
+				yS = TextUtils.atof(ySize.getText());
+			ResizeStuff job = new ResizeStuff(wnd.getCell(), highlighted, xS, yS, nodes);
 			SizeObjectsClosing(null);
 		}
 
@@ -280,37 +287,33 @@ public class SizeListener
 	 */
 	private static class ResizeStuff extends Job
 	{
-		SizeObjects dialog;
+		private Cell cell;
+		private List<Geometric> highlighted;
+		private double xS, yS;
+		private boolean nodes;
 
     	public ResizeStuff() {}
 
-		protected ResizeStuff(SizeObjects dialog)
+		protected ResizeStuff(Cell cell, List<Geometric> highlighted, double xS, double yS, boolean nodes)
 		{
 			super("Resize Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.cell = cell;
+			this.highlighted = highlighted;
+			this.xS = xS;
+			this.yS = yS;
+			this.nodes = nodes;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// make sure moving the node is allowed
-			Cell cell = WindowFrame.needCurCell();
-			if (cell == null) return false;
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
-            EditWindow wnd = EditWindow.needCurrent();
-            if (wnd == null) return false;
-            Highlighter highlighter = wnd.getHighlighter();
-
-			double xS = TextUtils.atof(dialog.xSize.getText());
-			double yS = 0;
-			if (dialog.nodes)
-				yS = TextUtils.atof(dialog.ySize.getText());
 			boolean didSomething = false;
-			for(Iterator<Geometric> it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
+			for(Geometric geom : highlighted)
 			{
-				Geometric geom = (Geometric)it.next();
-				if (geom instanceof NodeInst && dialog.nodes)
+				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
 					SizeOffset so = ni.getSizeOffset();				
@@ -322,7 +325,7 @@ public class SizeListener
 					}
 					ni.resize(x - ni.getXSize(), y - ni.getYSize());
 					didSomething = true;
-				} else if (geom instanceof ArcInst && !dialog.nodes)
+				} else if (geom instanceof ArcInst && !nodes)
 				{
 					ArcInst ai = (ArcInst)geom;
 					double w = xS + ai.getProto().getWidthOffset();
@@ -332,7 +335,7 @@ public class SizeListener
 			}
 			if (!didSomething)
 			{
-				System.out.println("Could not find any " + (dialog.nodes?"nodes":"arcs") + " to resize");
+				System.out.println("Could not find any " + (nodes?"nodes":"arcs") + " to resize");
 			}
 			return true;
 		}

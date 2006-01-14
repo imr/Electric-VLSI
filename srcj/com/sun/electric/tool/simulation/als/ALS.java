@@ -413,10 +413,10 @@ public class ALS extends Engine
 	 * @param cell the original Cell being simulated.
 	 * @param context the context to the Cell being simulated.
 	 */
-	public static void simulateNetlist(Cell netlistCell, Cell cell, VarContext context)
+	public static void simulateNetlist(Cell netlistCell, Cell cell)
 	{
 		ALS theALS = new ALS();
-		theALS.doSimulation(netlistCell, cell, context, null, null);
+		theALS.doSimulation(netlistCell, cell, null, null);
 	}
 
 	/**
@@ -426,12 +426,12 @@ public class ALS extends Engine
 	 * @param context the VarContext of the cell being simulated.
 	 * @param prevALS the simulation that is being reloaded.
 	 */
-	public static void restartSimulation(Cell netlistCell, Cell cell, VarContext context, ALS prevALS)
+	public static void restartSimulation(Cell netlistCell, Cell cell, ALS prevALS)
 	{
 		WaveformWindow ww = prevALS.ww;
 		List<String> stimuliList = prevALS.stimuliList;
 		ALS theALS = new ALS();
-		theALS.doSimulation(netlistCell, cell, context, ww, stimuliList);
+		theALS.doSimulation(netlistCell, cell, ww, stimuliList);
 	}
 
 	/**
@@ -811,7 +811,7 @@ public class ALS extends Engine
 			instPtr = new int[iPtrSize=100];
 	}
 
-	private void doSimulation(Cell netlistCell, Cell cell, VarContext context, WaveformWindow oldWW, List<String> stimuliList)
+	private void doSimulation(Cell netlistCell, Cell cell, WaveformWindow oldWW, List<String> stimuliList)
 	{
 		// initialize memory
 		init();
