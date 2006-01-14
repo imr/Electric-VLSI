@@ -79,6 +79,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
@@ -835,11 +836,11 @@ public class Technology implements Comparable<Technology>
 	 * May be overrideen in subclasses.
 	 * @param varName name of variable
 	 * @param value value of variable
-	 * @return true if variable was converted
+	 * @return map from option names to option values if variable was converted
 	 */
-	public boolean convertOldVariable(String varName, Object value)
+	public Map<String,Object> convertOldVariable(String varName, Object value)
 	{
-		return false;
+		return null;
 	}
 
     /**

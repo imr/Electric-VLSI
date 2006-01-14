@@ -39,12 +39,17 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.technology.*;
+import com.sun.electric.technology.Technology.MultiCutData;
+import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.technology.Technology.TechPref;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -4584,14 +4589,16 @@ public class MoCMOS extends Technology
 	 * @param value value of variable
 	 * @return true if variable was converted
 	 */
-	public boolean convertOldVariable(String varName, Object value)
+	public Map<String,Object> convertOldVariable(String varName, Object value)
 	{
-		if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return false;
-		if (!(value instanceof Integer)) return false;
+		if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return null;
+		if (!(value instanceof Integer)) return null;
 		int oldBits = ((Integer)value).intValue();
 
+        HashMap<String,Object> meanings = new HashMap<String,Object>();
+        
 		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
-		Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning(), new Integer(oldNoStackedVias?1:0));
+		meanings.put(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
 
 		int numMetals = 0;
 		switch (oldBits&MOCMOSMETALS)
@@ -4602,7 +4609,7 @@ public class MoCMOS extends Technology
 			case MOCMOS5METAL: numMetals = 5;   break;
 			case MOCMOS6METAL: numMetals = 6;   break;
 		}
-		Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning(), new Integer(numMetals));
+		meanings.put(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
 
 		int ruleSet = 0;
 		switch (oldBits&MOCMOSRULESET)
@@ -4611,14 +4618,15 @@ public class MoCMOS extends Technology
 			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
 			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
 		}
-		Pref.changedMeaningVariable(cacheRuleSet.getMeaning(), new Integer(ruleSet));
+		meanings.put(cacheRuleSet.getPrefName(), new Integer(ruleSet));
 
 		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
-		Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning(), new Integer(alternateContactRules?1:0));
+		meanings.put(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
 
 		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
-		Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning(), new Integer(secondPoly?1:0));
-		return true;
+		meanings.put(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
+        
+		return meanings;
 	}
 /******************** OVERRIDES ********************/
     /**

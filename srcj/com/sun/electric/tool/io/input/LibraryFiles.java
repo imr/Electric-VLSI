@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -95,6 +96,7 @@ public abstract class LibraryFiles extends Input
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
+    /** Meaning variables from library file. */                             private static HashMap<Object,Map<String,Object>> meaningVariables;
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
 
@@ -170,7 +172,7 @@ public abstract class LibraryFiles extends Input
 			if (!quick) startProgressDialog("library", fileURL.getFile());
 
 			Cell.setAllowCircularLibraryDependences(true);
-			Pref.initMeaningVariableGathering();
+            meaningVariables = new HashMap<Object,Map<String,Object>>();
 
 			StringBuffer errmsg = new StringBuffer();
 			boolean exists = TextUtils.URLExists(fileURL, errmsg);
@@ -211,7 +213,8 @@ public abstract class LibraryFiles extends Input
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
-            Pref.reconcileMeaningVariables(lib.getName());
+            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+            meaningVariables = null;
 		}
 
 		errorLogger.termLogging(true);
@@ -965,8 +968,12 @@ public abstract class LibraryFiles extends Input
 	 * @param obj the Object to augment with meaning preferences.
 	 * @param vars Variables with meaning preferences.
 	 */
-	void realizeMeaningPrefs(Object obj, Variable[] vars)
-	{
+    void realizeMeaningPrefs(Object obj, Variable[] vars) {
+        Map<String,Object> meanings = meaningVariables.get(obj);
+        if (meanings == null) {
+            meanings = new HashMap<String,Object>();
+            meaningVariables.put(obj, meanings);
+        }
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;
@@ -977,18 +984,15 @@ public abstract class LibraryFiles extends Input
                 if (!(value instanceof Number))
                     continue;
             }
-                
-			// change "meaning option"
-            String varName = var.getKey().getName();
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName); // What about case-sensitivite search ?
-			if (meaning != null)
-			{
-				Pref.changedMeaningVariable(meaning, value);
-			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(varName, value)))
-			{
-// 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 					", Meaning preference unknown: " + piece, null, -1);
-			}
+            String prefName = var.getKey().getName();
+            if (obj instanceof Technology) {
+                Map<String,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
+                if (convertedVars != null) {
+                    meanings.putAll(convertedVars);
+                    continue;
+                }
+            }
+            meanings.put(var.getKey().getName(), value);
         }
 	}
 

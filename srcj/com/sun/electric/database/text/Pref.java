@@ -203,7 +203,6 @@ public class Pref
 	private   Object      factoryObj;
 
 	private static List<Pref> allPrefs = new ArrayList<Pref>();
-	private static Map<Meaning,Object> meaningVariablesThatChanged;
 
 	/**
 	 * The constructor for the Pref.
@@ -537,35 +536,50 @@ public class Pref
 	 * The object must have been created as "boolean".
 	 * @return the boolean value on this Pref object.
 	 */
-	public boolean getBoolean() { return ((Integer)cachedObj).intValue() != 0; }
+	public boolean getBoolean() {
+        checkExamine();
+        return ((Integer)cachedObj).intValue() != 0;
+    }
 
 	/**
 	 * Method to get the integer value on this Pref object.
 	 * The object must have been created as "integer".
 	 * @return the integer value on this Pref object.
 	 */
-	public int getInt() { return ((Integer)cachedObj).intValue(); }
+	public int getInt() {
+        checkExamine();
+        return ((Integer)cachedObj).intValue();
+    }
 
 	/**
 	 * Method to get the long value on this Pref object.
 	 * The object must have been created as "long".
 	 * @return the long value on this Pref object.
 	 */
-	public long getLong() { return ((Long)cachedObj).longValue(); }
+	public long getLong() {
+        checkExamine();
+        return ((Long)cachedObj).longValue();
+    }
 
 	/**
 	 * Method to get the double value on this Pref object.
 	 * The object must have been created as "double".
 	 * @return the double value on this Pref object.
 	 */
-	public double getDouble() { return ((Double)cachedObj).doubleValue(); }
+	public double getDouble() {
+        checkExamine();
+        return ((Double)cachedObj).doubleValue();
+    }
 
 	/**
 	 * Method to get the string value on this Pref object.
 	 * The object must have been created as "string".
 	 * @return the string value on this Pref object.
 	 */
-	public String getString() { return (String)cachedObj; }
+	public String getString() {
+        checkExamine();
+        return (String)cachedObj;
+    }
 
 	/**
 	 * Method to get the factory-default value of this Pref object.
@@ -839,53 +853,32 @@ public class Pref
 // 	}
 
 	/**
-	 * Method to start the collection of meaning options that have changed.
-	 * After this, calls to changedMeaningVariable() will be collected for
-	 * reconciliation.
-	 * This is typically done during library input, to help reconcile option
-	 * changes caused by the library input with prior option values.
-	 */
-	public static void initMeaningVariableGathering()
-	{
-		meaningVariablesThatChanged = new HashMap<Meaning,Object>();
-	}
-
-	/**
-	 * Method to record a Meaning option was altered.
-	 * This happens during library input, where changed meaning options
-	 * must be reconciled with existing values.
-	 * @param meaning the Meaning option that was altered.
-	 */
-	public static void changedMeaningVariable(Meaning meaning, Object value)
-	{
-		meaningVariablesThatChanged.put(meaning, value);
-	}
-
-	/**
 	 * Method to adjust "meaning" options that were saved with a library.
 	 * Presents the user with a dialog to help reconcile the difference
 	 * between meaning options stored in a library and the original values.
 	 */
-	public static void reconcileMeaningVariables(String libName)
+	public static void reconcileMeaningVariables(String libName, Map<Object,Map<String,Object>> meaningVariables)
 	{
-		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+        for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
 			pref.meaning.marked = false;
 		}
 		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
-		for(Iterator<Map.Entry<Meaning,Object>> it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
-		{
-			Map.Entry<Meaning,Object> entry = (Map.Entry<Meaning,Object>)it.next();
-			Meaning meaning = (Meaning)entry.getKey();
-			Object value = entry.getValue();
-			meaning.marked = true;
-			if (DBMath.objectsReallyEqual(value, meaning.pref.cachedObj)) continue;
-			meaning.setDesiredValue(value);
-			if (!meaning.isValidOption()) continue;
+        for (Object obj: meaningVariables.keySet()) {
+            Map<String,Object> meanings = meaningVariables.get(obj);
+            for (String prefName: meanings.keySet()) {
+                Pref.Meaning meaning = Pref.getMeaningVariable(obj, prefName);
+                if (meaning == null) continue;
+                Object value = meanings.get(prefName);
+                meaning.marked = true;
+                if (DBMath.objectsReallyEqual(value, meaning.pref.cachedObj)) continue;
+                meaning.setDesiredValue(value);
+                if (!meaning.isValidOption()) continue;
 //System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.ownerObj+" is "+value+" but is cached as "+meaning.pref.cachedObj);
-			meaningsToReconcile.add(meaning);
+                meaningsToReconcile.add(meaning);
+            }
 		}
 		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 		{
@@ -964,4 +957,14 @@ public class Pref
             }
 		}
 	}
+    
+	/**
+	 * Method to check whether examining of Prefs is allowed.
+	 */
+    private void checkExamine() {
+        if (!Job.preferencesAccessible() && meaning == null)
+            (new IllegalStateException("Access to preference <" + name + "> in change job")).printStackTrace(System.out);
+    }
+    
+
 }

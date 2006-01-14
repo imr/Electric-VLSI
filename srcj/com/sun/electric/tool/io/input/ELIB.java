@@ -68,6 +68,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -685,13 +686,8 @@ public class ELIB extends LibraryFiles
 			if (topLevelLibrary)
 			{
 				String varName = tech.getScaleVariableName();
-				Pref.Meaning meaning = Pref.getMeaningVariable(tech, varName);
-				if (meaning != null)
-				{
-					Pref.changedMeaningVariable(meaning, new Double(lambda/2));
-// 					Variable var = tech.newVar(varName, new Double(lambda/2));
-// 					Pref.changedMeaningVariable(meaning);
-				}
+                Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
+                realizeMeaningPrefs(tech, new Variable[] { var });
 			}
 		}
 		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )

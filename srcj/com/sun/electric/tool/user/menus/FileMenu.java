@@ -723,7 +723,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
-            super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Write "+lib, User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;

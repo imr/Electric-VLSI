@@ -129,8 +129,8 @@ public class FileType implements Serializable {
 	private String [] extensions;
 	private String desc;
 	private boolean allowNumbers;
-	private FileFilterSwing ffs;
-	private FileFilterAWT ffa;
+	private transient FileFilterSwing ffs;
+	private transient FileFilterAWT ffa;
 
 	private FileType() {}
 

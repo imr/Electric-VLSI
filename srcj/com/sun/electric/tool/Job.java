@@ -374,6 +374,8 @@ public abstract class Job implements Serializable {
 	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
     /** stream for cleint to send Jobs. */      private static EObjectOutputStream clientOutputStream;
+    /** True if preferences are accessible. */  private static boolean preferencesAccessible = true;
+
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
     
@@ -631,13 +633,20 @@ public abstract class Job implements Serializable {
         Throwable jobException = null;
 		try {
             if (jobType != Type.EXAMINE) changingJob = this;
-			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
+			if (jobType == Type.CHANGE)	{
+                Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
+                if (!className.endsWith("InitDatabase"))
+                    preferencesAccessible = false;
+            }
             try {
                 serverJob.doIt();
             } catch (JobException e) {
                 jobException = e;
             }
-			if (jobType == Type.CHANGE)	Undo.endChanges();
+			if (jobType == Type.CHANGE)	{
+                preferencesAccessible = true;
+                Undo.endChanges();
+            }
 		} catch (Throwable e) {
             jobException = e;
             e.printStackTrace(System.err);
@@ -655,11 +664,26 @@ public abstract class Job implements Serializable {
         if (fromNetwork) {
         } else {
             try {
-                for (Field f: serverJob.changedFields) {
-                    Object value = f.get(serverJob);
-                    f.set(this, value);
+                if (!serverJob.changedFields.isEmpty()) {
+                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                    ObjectOutputStream out = new EObjectOutputStream(byteStream);
+                    for (Field f: serverJob.changedFields) {
+                        Object value = f.get(serverJob);
+                        out.writeObject(value);
+                    }
+                    out.close();
+                    
+                    ByteArrayInputStream byteInputStream = new ByteArrayInputStream(byteStream.toByteArray());
+                    ObjectInputStream in = new ObjectInputStream(byteInputStream);
+                    for (Field f: serverJob.changedFields) {
+                        Object value = in.readObject();
+                        f.set(this, value);
+                    }
+                    in.close();
                 }
+                
                 terminateIt(jobException);
+
             } catch (Throwable e) {
                 ActivityLogger.logException(e);
             }
@@ -1071,6 +1095,11 @@ public abstract class Job implements Serializable {
         }
     }
 
+    public static boolean preferencesAccessible()
+    {
+        return preferencesAccessible || Thread.currentThread() != databaseChangesThread;
+    }
+    
 	//-------------------------------JOB UI--------------------------------
     
     public String toString() { return jobName+" ("+getStatus()+")"; }
