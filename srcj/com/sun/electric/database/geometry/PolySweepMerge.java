@@ -15,8 +15,8 @@ import java.util.*;
  */
 public class PolySweepMerge extends GeometryHandler
 {
-    public static final int ONE_FRONTIER_MODE = 1;
-    public static final int TWO_FRONTIER_MODE = 2;
+//    public static final int ONE_FRONTIER_MODE = 1;
+//    public static final int TWO_FRONTIER_MODE = 2;
 
     //private int mode = ONE_FRONTIER_MODE;
 
@@ -193,7 +193,7 @@ public class PolySweepMerge extends GeometryHandler
 	/**
 	 * Access to keySet to create a collection.
 	 */
-	public Collection getKeySet()
+	public Collection<Layer> getKeySet()
 	{
 		return (layers.keySet());
 	}
@@ -202,7 +202,7 @@ public class PolySweepMerge extends GeometryHandler
 	 * Access to keySet with iterator
 	 * @return iterator for keys in hashmap
 	 */
-	public Iterator getKeyIterator()
+	public Iterator<Layer> getKeyIterator()
 	{
 		return (getKeySet().iterator());
 	}
@@ -218,9 +218,9 @@ public class PolySweepMerge extends GeometryHandler
      */
     private void disjointProcess()
     {
-        for (Iterator it = getKeyIterator(); it.hasNext();)
+        for (Iterator<Layer> it = getKeyIterator(); it.hasNext();)
         {
-            Layer layer = (Layer)it.next();
+            Layer layer = it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
             if (container == null) continue;
 
@@ -265,9 +265,9 @@ public class PolySweepMerge extends GeometryHandler
 
     private void mergeProcess()
     {
-        for (Iterator it = getKeyIterator(); it.hasNext();)
+        for (Iterator<Layer> it = getKeyIterator(); it.hasNext();)
         {
-            Layer layer = (Layer)it.next();
+            Layer layer = it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
             if (container == null) continue;
 

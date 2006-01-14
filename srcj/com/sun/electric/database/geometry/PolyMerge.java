@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.technology.Layer;
 
@@ -357,24 +356,6 @@ public class PolyMerge
 		Area area = (Area)layers.get(layer);
 		if (area == null) return false;
 		return area.contains(pt);
-	}
-
-	/**
-	 * Method to return an Iterator over all of the Layers used in this Merge.
-	 * @return an Iterator over all of the Layers used in this Merge.
-	 */
-	public Iterator<Layer> getKeyIterator()
-	{
-		return layers.keySet().iterator();
-	}
-
-    /**
-     * Access to keySet to create a collection for example.
-     * @return a Collection of Layers found in this Merge.
-     */
-	public Collection<Layer> getKeySet()
-	{
-		return layers.keySet();
 	}
 
 	public Collection getObjects(Object layer, boolean modified, boolean simple)

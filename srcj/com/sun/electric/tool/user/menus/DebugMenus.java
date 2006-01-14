@@ -27,7 +27,6 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.AnalyzeHeap;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.DumpHeap;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -248,8 +247,6 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
-        gildaMenu.addMenuItem("Bits", null,
-                                new ActionListener() { public void actionPerformed(ActionEvent e) {testBits();}});
         gildaMenu.addMenuItem("New fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();}});
         gildaMenu.addMenuItem("Dialog fill", null,
@@ -772,31 +769,6 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
-    private static void testBits()
-    {
-        Cell cell = WindowFrame.getCurrentCell();
-        if (cell == null) return;
-        Technology tech = cell.getTechnology();
-        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-        {
-            PrimitiveNode np = (PrimitiveNode)it.next();
-            System.out.print("Node " + np);
-            if (np.isNodeBitOn(PrimitiveNode.NATIVEBIT))
-                System.out.print(" Native");
-            else if (np.isNodeBitOn(PrimitiveNode.LOWVTBIT))
-                System.out.print(" Low");
-            else if (np.isNodeBitOn(PrimitiveNode.HIGHVTBIT))
-                System.out.print(" High");
-            if (np.isNodeBitOn(PrimitiveNode.OD18BIT))
-                System.out.print(" 18");
-            else if (np.isNodeBitOn(PrimitiveNode.OD25BIT))
-                System.out.print(" 25");
-            else if (np.isNodeBitOn(PrimitiveNode.OD33BIT))
-                System.out.print(" 33");
-            System.out.println();
-        }
-    }
-
     private static void newFill()
     {
         Cell cell = WindowFrame.getCurrentCell();

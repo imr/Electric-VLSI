@@ -2615,9 +2615,9 @@ public class Quick
 
 		// Special cases for select areas. You can't evaluate based on networks
         GeometryHandler selectMerge = (GeometryHandler)selectMergeMap.get(cell);
-		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
+		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
 		}
 
@@ -2656,9 +2656,9 @@ public class Quick
 			// Job aborted
 			if (job != null && job.checkAbort()) return 0;
 
-			for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
+			for(Iterator<Layer> it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				errorFound += checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 			}
 		}
@@ -2677,9 +2677,9 @@ public class Quick
         selectMerge.postProcess(true);
 
 		// Special cases for select areas. You can't evaluate based on networks
-		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
+		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
 		}
 

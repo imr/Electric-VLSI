@@ -81,6 +81,46 @@ public class LayerCoverageJob extends Job
     private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
 
     /**
+     * Method to extract bounding box for a particular Network/Layer
+     * @param exportCell
+     * @param ni
+     * @return
+     */
+    public static Rectangle2D getGeometryOnNetwork(Cell exportCell, NodeInst ni)
+    {
+        NodeProto np = ni.getProto();
+
+        // Only pins for now
+        assert(np.getFunction() == PrimitiveNode.Function.PIN);
+        PrimitiveNode pn = (PrimitiveNode)np;
+        assert(pn.getLayers().length == 1);
+        Layer layer = pn.getLayers()[0].getLayer().getNonPseudoLayer();
+
+        // NP should be only a PIN!
+        Netlist netlist = exportCell.getNetlist(false);
+        // Should I get other busIndex?
+        Network net = netlist.getNetwork(ni, np.getPort(0), 0);
+        HashSet<Network> nets = new HashSet<Network>();
+        nets.add(net);
+        GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false);
+
+		LayerCoverageJob job = new LayerCoverageJob(null, Job.Type.EXAMINE, exportCell, LayerCoverage.LCMode.NETWORK,
+                GeometryHandler.GHMode.ALGO_SWEEP, null, geoms, null);
+        // Must run it now
+        try
+        {
+            job.doIt();  // Former listGeometryOnNetworksNoJob
+        } catch (JobException e)
+        {
+        }
+        Collection<Object> list = job.tree.getObjects(layer, false, true);
+        // Don't know what to do if there is more than one
+        assert(list.size() == 1);
+        PolyBase poly = (PolyBase)list.toArray()[0];
+        return poly.getBounds2D();
+    }
+
+    /**
      * Method to calculate area, half-perimeter and ratio of each layer by merging geometries
      * @param cell cell to analyze
      * @param nets networks to analyze
@@ -593,7 +633,7 @@ public class LayerCoverageJob extends Job
 	    private double totalWire;
         private double totalArea;
 
-	    protected GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable) {
+	    public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable) {
 	        this.cell = cell;
 	        this.nets = nets;
 	        this.lambda = lambda;
