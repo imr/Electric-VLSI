@@ -31,7 +31,6 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
@@ -794,7 +793,6 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
-        Snapshot.advanceWriter();
         
 		if (Job.BATCHMODE) return;
 

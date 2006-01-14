@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Job;
 
@@ -55,7 +56,7 @@ public class Progress
 	 */
 	public Progress(String title)
 	{
-        if (Job.BATCHMODE) return;
+        if (Job.getRunMode() == Job.Mode.BATCH) return;
 		if (TopLevel.isMDIMode())
 		{
 			jif = new JInternalFrame(title);
@@ -99,7 +100,7 @@ public class Progress
 	 */
 	public void close()
 	{
-		if (Job.BATCHMODE) return;
+		if (progressBar == null) return;
 
 		if (TopLevel.isMDIMode())
 		{
@@ -122,7 +123,7 @@ public class Progress
 	 */
 	public void setProgress(int progress)
 	{
-		if (Job.BATCHMODE) return;
+		if (progressBar == null) return;
 		if (progress < 0) progress = 0;
 		if (progress > 100) progress = 100;
 		progressBar.setValue(progress);
@@ -134,7 +135,7 @@ public class Progress
 	 */
 	public int getProgress()
 	{
-		if (Job.BATCHMODE) return -1;
+		if (progressBar == null) return -1;
 		return progressBar.getValue();
 	}
 
@@ -144,7 +145,7 @@ public class Progress
 	 */
 	public void setNote(String note)
 	{
-        if (Job.BATCHMODE) return;
+        if (progressBar == null) return;
 		taskOutput.setText(note);
 	}
 
@@ -154,7 +155,7 @@ public class Progress
 	 */
 	public String getNote()
 	{
-        if (Job.BATCHMODE) return null;
+        if (progressBar == null) return null;
 		return taskOutput.getText();
 	}
 }

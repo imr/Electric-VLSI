@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
 /**
  * The <code>EPoint</code> immutable class defines a point representing
@@ -32,7 +33,7 @@ import java.awt.geom.Point2D;
  * class Point2D. This calss is used in Electric database.
  * Coordiates are snapped to grid according to <code>DBMath.round</code> method.
  */
-final public class EPoint extends Point2D {
+final public class EPoint extends Point2D implements Serializable {
 
 	public static final EPoint ORIGIN = new EPoint(0, 0);
 

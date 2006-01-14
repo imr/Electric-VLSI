@@ -23,24 +23,16 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
@@ -70,17 +62,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -145,17 +131,26 @@ public final class Main
 
 
 		// -debug for debugging
+        Job.Mode runMode = Job.Mode.FULL_SCREEN;
 		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
         if (hasCommandLineOption(argsList, "-gilda")) Job.LOCALDEBUGFLAG = true;
         if (hasCommandLineOption(argsList, "-NOTHREADING")) Job.NOTHREADING = true;
-		if (hasCommandLineOption(argsList, "-batch")) Job.BATCHMODE = true;
-        if (hasCommandLineOption(argsList, "-server")) Job.SERVER = true;
-        if (hasCommandLineOption(argsList, "-client") && !Job.SERVER) Job.CLIENT = true;
+		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
+        if (hasCommandLineOption(argsList, "-server")) {
+            if (runMode != Job.Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.SERVER);
+            runMode = Job.Mode.SERVER;
+        }
+        if (hasCommandLineOption(argsList, "-client")) {
+            if (runMode != Job.Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
+            runMode = Job.Mode.CLIENT;
+        }
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
-        if (!Job.BATCHMODE)
+        if (runMode != Job.Mode.BATCH)
         {
         	currentUI = new UserInterfaceMain();
             if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
@@ -223,7 +218,7 @@ public final class Main
 
 		SplashWindow sw = null;
 
-		if (!Job.BATCHMODE && !Job.SERVER && !Job.CLIENT) sw = new SplashWindow();
+		if (runMode == Job.Mode.FULL_SCREEN) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
@@ -235,13 +230,7 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
-        int port = 35742;
-        if (Job.SERVER) {
-            (new ConnectionWaiter(port)).start();
-        } else if (Job.CLIENT) {
-            clientLoop(port);
-            return;
-        }
+        Job.setThreadMode(runMode);
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{
@@ -610,102 +599,6 @@ public final class Main
         }
 	}
     
-    private static void clientLoop(int port) {
-        SnapshotReader reader = null;
-        Snapshot currentSnapshot = new Snapshot();
-        try {
-            System.out.println("Attempting to connect to port " + port + " ...");
-            Socket socket = new Socket((String)null, port);
-            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
-            System.out.println("Connected");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-            
-        Technology.initAllTechnologies();
-        User.getUserTool().init();
-        NetworkTool.getNetworkTool().init();
-        //Tool.initAllTools();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // remove the splash screen
-                //if (sw != null) sw.removeNotify();
-                TopLevel.InitializeWindows();
-                WindowFrame.wantToOpenCurrentLibrary(true);
-            }
-        });
-        
-        for (;;) {
-            try {
-                Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
-                currentSnapshot = newSnapshot;
-            } catch (IOException e) {
-                // reader.in.close();
-                reader = null;
-                System.out.println("END OF FILE");
-                return;
-            }
-        }
-    }
-    
-    private static class SnapshotDatabaseChangeRun implements Runnable 
-	{
-		private Snapshot oldSnapshot;
-        private Snapshot newSnapshot;
-		private SnapshotDatabaseChangeRun(Snapshot oldSnapshot, Snapshot newSnapshot) {
-            this.oldSnapshot = oldSnapshot;
-            this.newSnapshot = newSnapshot;
-        }
-        public void run() {
-            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
-            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
-            	CellBackup newBackup = newSnapshot.getCell(i);
-            	CellBackup oldBackup = oldSnapshot.getCell(i);
-                ERectangle newBounds = newSnapshot.getCellBounds(i);
-                ERectangle oldBounds = oldSnapshot.getCellBounds(i);
-            	if (newBackup != oldBackup || newBounds != oldBounds) {
-            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            		User.markCellForRedraw(cell, true);
-            	}
-            }
-            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
-            Undo.fireDatabaseChangeEvent(event);
-        }
-	}
-    
-    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
-        private boolean cellTreeChanged;
-        
-        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
-            super(null);
-            this.cellTreeChanged = cellTreeChanged;
-        }
-        
-        /**
-         * Returns true if ElectricObject eObj was created, killed or modified
-         * in the new database state.
-         * @param eObj ElectricObject to test.
-         * @return true if the ElectricObject was changed.
-         */
-        public boolean objectChanged(ElectricObject eObj) { return true; }
-        
-        /**
-         * Returns true if cell explorer tree was changed
-         * in the new database state.
-         * @return true if cell explorer tree was changed.
-         */
-        public boolean cellTreeChanged() {
-            return cellTreeChanged;
-//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
-//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
-//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
-//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
-//                }
-        }
-    }
-    
     /**
 	 * Method to return the amount of memory being used by Electric.
 	 * Calls garbage collection and delays to allow completion, so the method is SLOW.
@@ -787,23 +680,4 @@ public final class Main
         }
     }
 
-    private static class ConnectionWaiter extends Thread {
-        private int port;
-        
-        ConnectionWaiter(int port) {
-            this.port = port;
-        }
-        
-        public void run() {
-            try {
-                ServerSocket ss = new ServerSocket(port, 1);
-                Socket socket = ss.accept();
-                System.out.println("Accepted connection to port " + port +  " ...");
-                Snapshot.initWriter(socket.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
 }

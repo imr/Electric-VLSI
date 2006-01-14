@@ -43,6 +43,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
@@ -478,7 +479,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
     
     public void setDInClient(ImmutableArcInst newD) {
-        assert Job.CLIENT;
+        assert Job.getRunMode() == Job.Mode.CLIENT;
         d = newD;
     }
 
@@ -881,7 +882,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	}
 	
     public void updateGeometricInClient() {
-        assert Job.CLIENT;
+        assert Job.getRunMode() == Job.Mode.CLIENT;
 		// compute the bounds
 		Poly poly = makePoly(d.width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());

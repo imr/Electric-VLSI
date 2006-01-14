@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -459,7 +460,7 @@ public class PaletteFrame implements MouseListener
 	public static class PlaceNewNode extends Job
 	{
 		Object toDraw;
-		Point2D where;
+		EPoint where;
 		Cell cell;
 		String varName;
 		boolean export;
@@ -470,7 +471,7 @@ public class PaletteFrame implements MouseListener
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
-			this.where = where;
+			this.where = EPoint.snap(where);
 			this.cell = cell;
 			this.varName = varName;
 			this.export = export;

@@ -25,25 +25,42 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.SnapshotReader;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
 import java.awt.geom.Point2D;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -75,11 +92,11 @@ public abstract class Job implements Serializable {
 
     private static boolean DEBUG = false;
     private static boolean GLOBALDEBUG = false;
+    private static Mode threadMode;
+    private static int socketPort = 35742; // socket port for client/server
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
-    public static boolean SERVER; // to dump trace of snapshots.
-    public static boolean CLIENT; // to replay trace of snapshots.
     
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
@@ -91,32 +108,24 @@ public abstract class Job implements Serializable {
     public static void setDebug(boolean f) { GLOBALDEBUG = f; }
 
     /**
+     * Mode of Job manager
+     */
+    public static enum Mode {
+        /** Full screen run of Electric. */         FULL_SCREEN,
+        /** Batch mode. */                          BATCH,
+        /** Server side. */                         SERVER,
+        /** Client side. */                         CLIENT;
+    }
+    
+    /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
-	public static class Type implements Serializable
-	{
-		private final String name;
-
-		private Type(String name) { this.name = name; }
-
-		/**
-		 * Returns a printable version of this Type.
-		 * @return a printable version of this Type.
-		 */
-		public String toString() { return name; }
-
-		/** Describes a database change. */			public static final Type CHANGE  = new Type("change");
-		/** Describes a database undo/redo. */		public static final Type UNDO    = new Type("undo");
-		/** Describes a database examination. */	public static final Type EXAMINE = new Type("examine");
-        
-        private Object readResolve() throws ObjectStreamException {
-            if (name.equals(CHANGE.name)) return CHANGE;
-            if (name.equals(UNDO.name)) return UNDO;
-            if (name.equals(EXAMINE.name)) return EXAMINE;
-            return this;
-        }
-        
+	public static enum Type {
+		/** Describes a database change. */			CHANGE,
+		/** Describes a database undo/redo. */      UNDO,
+		/** Describes a database examination. */	EXAMINE;
 	}
+
 
 	/**
 	 * Priority is a typesafe enum class that describes the priority of a job.
@@ -364,6 +373,7 @@ public abstract class Job implements Serializable {
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
+    /** stream for cleint to send Jobs. */      private static EObjectOutputStream clientOutputStream;
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
     
@@ -389,7 +399,28 @@ public abstract class Job implements Serializable {
     /** Fields changed on server side. */       private transient ArrayList<Field> changedFields;
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
+    /** Is from network ? */                    private transient boolean fromNetwork;
 
+    public static void setThreadMode(Mode mode) {
+        threadMode = mode;
+        switch (mode) {
+            case FULL_SCREEN:
+                break;
+            case BATCH:
+                BATCHMODE = true;
+                break;
+            case SERVER:
+                (new ConnectionWaiter(socketPort)).start();
+                break;
+            case CLIENT:
+                clientLoop(socketPort);
+                // unreachable
+                break;
+        }
+    }
+   
+    public static Mode getRunMode() { return threadMode; }
+    
     public Job() {}
                                                 
     /**
@@ -444,7 +475,17 @@ public abstract class Job implements Serializable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
-        if (CLIENT && jobType != Type.EXAMINE) {
+        if (threadMode == Mode.CLIENT && jobType != Type.EXAMINE) {
+            Job tmp = testSerialization();
+            if (tmp != null) {
+                try {
+                    clientOutputStream.writeObject(this);
+                    clientOutputStream.reset();
+                    clientOutputStream.flush();
+                } catch (IOException e) {
+                    e.printStackTrace(System.out);
+                }
+            }
             System.out.println("Job " + this + " was not launched in CLIENT mode");
             return;
         }
@@ -570,7 +611,7 @@ public abstract class Job implements Serializable {
 
         Job serverJob = this;
         String className = getClass().getName();
-        if (getDebug() && !className.endsWith("RenderJob")) {
+        if (getDebug() && !fromNetwork && !className.endsWith("RenderJob")) {
             serverJob = testSerialization();
             if (serverJob != null) {
                 // transient fields ???
@@ -585,7 +626,8 @@ public abstract class Job implements Serializable {
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 
         Cell cell = Main.getUserInterface().getCurrentCell();
-        ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
+        if (!fromNetwork)
+            ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
 		try {
             if (jobType != Type.EXAMINE) changingJob = this;
@@ -607,16 +649,20 @@ public abstract class Job implements Serializable {
 				databaseChangesThread.endExamine(this);
 			} else {
 				changingJob = null;
+                Snapshot.advanceWriter();
 			}
 		}
-        try {
-            for (Field f: serverJob.changedFields) {
-                Object value = f.get(serverJob);
-                f.set(this, value);
+        if (fromNetwork) {
+        } else {
+            try {
+                for (Field f: serverJob.changedFields) {
+                    Object value = f.get(serverJob);
+                    f.set(this, value);
+                }
+                terminateIt(jobException);
+            } catch (Throwable e) {
+                ActivityLogger.logException(e);
             }
-            terminateIt(jobException);
-        } catch (Throwable e) {
-            ActivityLogger.logException(e);
         }
         endTime = System.currentTimeMillis();
                
@@ -1011,7 +1057,7 @@ public abstract class Job implements Serializable {
      * @return true if bounds or netlist can be computed.
      */
     public static boolean canCompute() {
-        return Thread.currentThread() == databaseChangesThread || Job.NOTHREADING || Job.CLIENT;
+        return Thread.currentThread() == databaseChangesThread || Job.NOTHREADING || threadMode == Mode.CLIENT;
     }
     
     /**
@@ -1068,4 +1114,129 @@ public abstract class Job implements Serializable {
         return buf.toString();
     }
         
+    private static class ConnectionWaiter extends Thread {
+        private int port;
+        
+        ConnectionWaiter(int port) {
+            this.port = port;
+        }
+        
+        public void run() {
+            try {
+                ServerSocket ss = new ServerSocket(port, 1);
+                Socket socket = ss.accept();
+                System.out.println("Accepted connection to port " + port +  " ...");
+                Snapshot.initWriter(socket.getOutputStream());
+                
+                ObjectInputStream jobStream = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+                for (;;) {
+                    Job job = (Job)jobStream.readObject();
+                    job.fromNetwork = true;
+                    databaseChangesThread.addJob(job);
+                }
+            } catch (IOException e) {
+                e.printStackTrace(System.out);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace(System.out);
+            }
+        }
+    }
+    
+    private static void clientLoop(int port) {
+        SnapshotReader reader = null;
+        Snapshot currentSnapshot = new Snapshot();
+        try {
+            System.out.println("Attempting to connect to port " + port + " ...");
+            Socket socket = new Socket((String)null, port);
+            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+            clientOutputStream = new EObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            System.out.println("Connected");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+            
+        Technology.initAllTechnologies();
+        User.getUserTool().init();
+        NetworkTool.getNetworkTool().init();
+        //Tool.initAllTools();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // remove the splash screen
+                //if (sw != null) sw.removeNotify();
+                TopLevel.InitializeWindows();
+                WindowFrame.wantToOpenCurrentLibrary(true);
+            }
+        });
+        
+        for (;;) {
+            try {
+                Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
+                SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
+                currentSnapshot = newSnapshot;
+            } catch (IOException e) {
+                // reader.in.close();
+                reader = null;
+                System.out.println("END OF FILE");
+                return;
+            }
+        }
+    }
+    
+    private static class SnapshotDatabaseChangeRun implements Runnable 
+	{
+		private Snapshot oldSnapshot;
+        private Snapshot newSnapshot;
+		private SnapshotDatabaseChangeRun(Snapshot oldSnapshot, Snapshot newSnapshot) {
+            this.oldSnapshot = oldSnapshot;
+            this.newSnapshot = newSnapshot;
+        }
+        public void run() {
+            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
+            	CellBackup newBackup = newSnapshot.getCell(i);
+            	CellBackup oldBackup = oldSnapshot.getCell(i);
+                ERectangle newBounds = newSnapshot.getCellBounds(i);
+                ERectangle oldBounds = oldSnapshot.getCellBounds(i);
+            	if (newBackup != oldBackup || newBounds != oldBounds) {
+            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            		User.markCellForRedraw(cell, true);
+            	}
+            }
+            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
+            Undo.fireDatabaseChangeEvent(event);
+        }
+	}
+    
+    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
+        private boolean cellTreeChanged;
+        
+        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
+            super(null);
+            this.cellTreeChanged = cellTreeChanged;
+        }
+        
+        /**
+         * Returns true if ElectricObject eObj was created, killed or modified
+         * in the new database state.
+         * @param eObj ElectricObject to test.
+         * @return true if the ElectricObject was changed.
+         */
+        public boolean objectChanged(ElectricObject eObj) { return true; }
+        
+        /**
+         * Returns true if cell explorer tree was changed
+         * in the new database state.
+         * @return true if cell explorer tree was changed.
+         */
+        public boolean cellTreeChanged() {
+            return cellTreeChanged;
+//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
+//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
+//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
+//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
+//                }
+        }
+    }
+    
 }

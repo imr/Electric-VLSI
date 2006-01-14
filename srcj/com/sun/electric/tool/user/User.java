@@ -106,7 +106,7 @@ public class User extends Listener
 		setOn();
 		setIncremental();
 
-        if (!Job.CLIENT)
+        if (Job.getRunMode() != Job.Mode.CLIENT)
             Clipboard.clear(); // To initialize Clibpoard Cell
 	}
 
