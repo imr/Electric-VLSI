@@ -24,10 +24,13 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -542,6 +545,82 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.writeLibrary("+lib+")");
 	}
 
+    /**
+     * Update network information from old immutable snapshot to new immutable snapshot.
+     * @param oldSnapshot old immutable snapshot.
+     * @param newSnapshot new immutable snapshot.
+     */
+    public static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        invalidate();
+        int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
+        // killed Cells
+        for (int i = 0; i < maxCells; i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (newBackup != null || oldBackup == null) continue;
+            cells[i] = null;
+        }
+        // new Cells
+        for (int i = 0; i < maxCells; i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (newBackup == null || oldBackup != null) continue;
+            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            if (cell.isIcon() || cell.isSchematic())
+                new NetSchem(cell);
+            else
+                new NetCell(cell);
+        }
+        // Changed CellGroups
+        if (oldSnapshot.cellGroups != newSnapshot.cellGroups) {
+            // Lower Cell changed
+            for (int i = 0; i < newSnapshot.cellGroups.length; i++) {
+                if (newSnapshot.cellGroups[i] != i) continue;
+                if (i < oldSnapshot.cellGroups.length && i == oldSnapshot.cellGroups[i]) continue;
+                Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+                NetSchem.updateCellGroup(cell.getCellGroup());
+            }
+            // Lower Cell same, but some cells deleted
+            for (int i = 0; i < oldSnapshot.cellGroups.length; i++) {
+                int l = oldSnapshot.cellGroups[i];
+                if (l < 0 || l >= newSnapshot.cellGroups.length || newSnapshot.cellGroups[l] != l) continue;
+                if (i < newSnapshot.cellGroups.length && newSnapshot.cellGroups[i] == l) continue;
+                Cell cell = (Cell)CellId.getByIndex(l).inCurrentThread();
+                NetSchem.updateCellGroup(cell.getCellGroup());
+            }
+        }
+        // Main schematics changed
+        for (int i = 0; i < maxCells; i++) {
+            CellBackup newBackup = newSnapshot.getCell(i);
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            if (newBackup == null || oldBackup == null) continue;
+            if (oldBackup.isMainSchematics == newBackup.isMainSchematics) continue;
+            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            NetSchem.updateCellGroup(cell.getCellGroup());
+        }
+        // Cell contents changed
+        for (int i = 0; i < maxCells; i++) {
+            CellBackup oldBackup = oldSnapshot.getCell(i);
+            CellBackup newBackup = newSnapshot.getCell(i);
+            if (newBackup == null || oldBackup == null) continue;
+            if (oldBackup == newBackup) continue;
+            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+            boolean exportsChanged = !newBackup.sameExports(oldBackup);
+            if (!exportsChanged) {
+                for (int j = 0; j < newBackup.exports.length; j++) {
+                    if (newBackup.exports[j].name != oldBackup.exports[j].name)
+                        exportsChanged = true;
+                }
+            }
+            NetCell netCell = NetworkTool.getNetCell(cell);
+            if (exportsChanged)
+                netCell.exportsChanged();
+            else
+                netCell.setNetworksDirty();
+        }
+        redoNetworkNumbering(false);
+    }
+    
 	/****************************** OPTIONS ******************************/
 
 //	private static Pref cacheUnifyPowerAndGround = Pref.makeBooleanPref("UnifyPowerAndGround", NetworkTool.tool.prefs, false);

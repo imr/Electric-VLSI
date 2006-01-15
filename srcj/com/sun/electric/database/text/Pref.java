@@ -962,8 +962,8 @@ public class Pref
 	 * Method to check whether examining of Prefs is allowed.
 	 */
     private void checkExamine() {
-        if (!Job.preferencesAccessible() && meaning == null)
-            (new IllegalStateException("Access to preference <" + name + "> in change job")).printStackTrace(System.out);
+//        if (!Job.preferencesAccessible() && meaning == null)
+//            (new IllegalStateException("Access to preference <" + name + "> in change job")).printStackTrace(System.out);
     }
     
 

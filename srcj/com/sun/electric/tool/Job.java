@@ -1056,6 +1056,7 @@ public abstract class Job implements Serializable {
 		if (Thread.currentThread() != databaseChangesThread)
 		{
 			if (NOTHREADING) return;
+            if (threadMode == Mode.CLIENT) return;
 			String msg = "Database is being changed by another thread";
             System.out.println(msg);
 			throw new IllegalStateException(msg);
@@ -1222,6 +1223,7 @@ public abstract class Job implements Serializable {
         }
         public void run() {
             boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            NetworkTool.updateAll(oldSnapshot, newSnapshot);
             for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
             	CellBackup newBackup = newSnapshot.getCell(i);
             	CellBackup oldBackup = oldSnapshot.getCell(i);
