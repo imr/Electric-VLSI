@@ -553,6 +553,11 @@ public class NetworkTool extends Listener
     public static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
         invalidate();
         int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
+        if (cells.length < maxCells) {
+            NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];
+            System.arraycopy(cells, 0, newCells, 0, cells.length);
+            cells = newCells;
+        }
         // killed Cells
         for (int i = 0; i < maxCells; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);

@@ -55,7 +55,7 @@ public class SnapshotWriter {
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
    
     /** Creates a new instance of SnapshotWriter */
-    SnapshotWriter(DataOutputStream out) {
+    public SnapshotWriter(DataOutputStream out) {
         this.out = out;
     }
 

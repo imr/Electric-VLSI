@@ -1109,7 +1109,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public void update(CellBackup newBackup, BitSet exportsModified) {
      	this.d = newBackup.d;
     	setCellName(newBackup.cellName);
-       	System.out.println("Update cell " + this);
+//       	System.out.println("Update cell " + this);
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();

@@ -48,15 +48,12 @@ public class Snapshot {
     public final ArrayList<ERectangle> cellBounds = new ArrayList<ERectangle>();
     public final ArrayList<LibraryBackup> libBackups = new ArrayList<LibraryBackup>();
 
-    public static Snapshot currentSnapshot = new Snapshot();
-    public static volatile SnapshotWriter writer = null;
-    
     /** Creates a new instance of Snapshot */
     public Snapshot() {
         cellGroups = new int[0];
     }
     
-    private Snapshot(Snapshot oldSnapshot) {
+    public Snapshot(Snapshot oldSnapshot) {
         for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
             Library lib = lit.next();
             LibraryBackup oldLibBackup = oldSnapshot.getLib(lib.getId());
@@ -123,58 +120,28 @@ public class Snapshot {
         return libIndex < libBackups.size() ? libBackups.get(libIndex) : null; 
     }
     
-    /**
-     * Initialize SnapshotWriter to file with given name.
-     * @param dumpName file name of dump.
-     */
-    public static void initWriter(String dumpFile) {
-        try {
-            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dumpFile))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private boolean equals(Snapshot that) {
+        return cellBackups.equals(that.cellBackups) &&
+                libBackups.equals(that.libBackups) &&
+                cellGroups.equals(that.cellGroups) &&
+                cellBounds.equals(that.cellBounds);
     }
     
-    /**
-     * Initialize SnapshotWriter to socket with given port.
-     * @param port port to write.
-     */
-    public static void initWriter(OutputStream outStream) {
-        //try {
-            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(outStream)));
-        //} catch (IOException e) {
-        //    e.printStackTrace();
-        //}
-    }
-    
-    public static void advanceWriter() {
-        if (writer == null) return;
-        Snapshot oldSnapshot = currentSnapshot;
-        Snapshot newSnapshot = new Snapshot(oldSnapshot);
-        try {
-            newSnapshot.writeDiffs(writer, oldSnapshot);
-            writer.out.flush();
-        } catch (IOException e) {
-            ActivityLogger.logException(e);
-        }
-        currentSnapshot = newSnapshot;
-    }
-
-    private void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
+    public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
         int numLibs = Math.max(oldSnapshot.libBackups.size(), libBackups.size());
         for (int i = 0; i < numLibs; i++) {
             LibraryBackup oldBackup = oldSnapshot.getLib(i);
             LibraryBackup newBackup = getLib(i);
             if (oldBackup == newBackup) continue;
             if (oldBackup == null) {
-                System.out.println("Created library " + i + " " + newBackup.d.libName);
+//                System.out.println("Created library " + i + " " + newBackup.d.libName);
                 writer.out.writeInt(i);
                 newBackup.write(writer);
             } else if (newBackup == null) {
-                System.out.println("Killed library " + i + " " + oldBackup.d.libName);
+//                System.out.println("Killed library " + i + " " + oldBackup.d.libName);
                 writer.out.writeInt(~i);
             } else {
-                System.out.print("Modified library " + i + " " + oldBackup.d.libName);
+//                System.out.print("Modified library " + i + " " + oldBackup.d.libName);
                 if (newBackup.d.libName != oldBackup.d.libName)
                     System.out.print(" -> " + newBackup.d.libName);
                 System.out.println();
@@ -190,17 +157,17 @@ public class Snapshot {
             CellBackup newBackup = getCell(i);
             if (oldBackup == newBackup) continue;
             if (oldBackup == null) {
-                System.out.println("Created cell " + i + " " + newBackup.cellName);
+//                System.out.println("Created cell " + i + " " + newBackup.cellName);
                 writer.out.writeInt(i);
                 newBackup.write(writer);
             } else if (newBackup == null) {
-                System.out.println("Killed cell " + i + " " + oldBackup.cellName);
+//                System.out.println("Killed cell " + i + " " + oldBackup.cellName);
                 writer.out.writeInt(~i);
             } else {
-                System.out.print("Modified cell " + i + " " + oldBackup.cellName);
-                if (newBackup.cellName != oldBackup.cellName)
-                    System.out.print(" -> " + newBackup.cellName);
-                System.out.println();
+//                System.out.print("Modified cell " + i + " " + oldBackup.cellName);
+//                if (newBackup.cellName != oldBackup.cellName)
+//                    System.out.print(" -> " + newBackup.cellName);
+//                System.out.println();
                 writer.out.writeInt(i);
                 newBackup.write(writer);
             }
@@ -214,7 +181,6 @@ public class Snapshot {
             ERectangle newBounds = getCellBounds(i);
             assert newBounds != null;
             if (oldBounds != newBounds) {
-                System.out.println("New cell bounds " + i + " " + newBounds);
                 writer.out.writeInt(i);
                 writer.out.writeDouble(newBounds.getX());
                 writer.out.writeDouble(newBounds.getY());
@@ -227,7 +193,7 @@ public class Snapshot {
         boolean cellGroupsChanged = cellGroups != oldSnapshot.cellGroups;
         writer.out.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
-            System.out.println("Changed cell groups");
+//            System.out.println("Changed cell groups");
             writer.out.writeInt(cellGroups.length);
             for (int i = 0; i < cellGroups.length; i++)
                 writer.out.writeInt(cellGroups[i]);

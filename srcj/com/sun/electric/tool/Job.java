@@ -30,6 +30,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
+import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.ERectangle;
@@ -54,6 +55,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -165,8 +167,8 @@ public abstract class Job implements Serializable {
 	private static class DatabaseChangesThread extends Thread
 	{
         // Job Management
-        /** all jobs */                             private static ArrayList<Job> allJobs = new ArrayList<Job>();
-        /** number of started jobs */               private static int numStarted = 0;
+        /** started jobs */                         private static final ArrayList<Job> startedJobs = new ArrayList<Job>();
+        /** waiting jobs */                         private static final ArrayList<Job> waitingJobs = new ArrayList<Job>();
         /** number of examine jobs */               private static int numExamine = 0;
 
 		DatabaseChangesThread() {
@@ -174,7 +176,83 @@ public abstract class Job implements Serializable {
 			start();
 		}
 
-		public void run()
+        public void run() {
+            for (;;) {
+                UserInterface userInterface = Main.getUserInterface();
+                if (userInterface != null)
+                    userInterface.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
+                ServerConnection connection = selectConnection();
+                Job job;
+                if (connection != null) {
+                    job = deserializeJob(connection);
+                    if (job == null)
+                        continue;
+                } else {
+                    synchronized (this) {
+                        job = waitingJobs.remove(0);
+                    }
+                    if (job.scheduledToAbort || job.aborted)
+                        continue;
+                }
+                if (job.jobType == Type.EXAMINE) {
+                    synchronized (this) {
+                        job.started = true;
+                        startedJobs.add(job);
+                        numExamine++;
+                    }
+                    //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
+                    Thread t = new ExamineThread(job);
+                    t.start();
+                } else { 
+                    synchronized (this) {
+                        assert numExamine == 0;
+                        job.started = true;
+                        startedJobs.add(job);
+                    }
+                    job.run();
+                }
+            }
+        }
+        
+        private synchronized ServerConnection selectConnection() {
+            for (;;) {
+                // Search for examine
+                if (!waitingJobs.isEmpty()) {
+                    Job job = waitingJobs.get(0);
+                    if (job.scheduledToAbort || job.aborted || job.jobType == Type.EXAMINE)
+                        return null;
+                }
+                if (numExamine == 0) {
+                    if (!waitingJobs.isEmpty())
+                        return null;
+                    if (threadMode == Mode.SERVER && serverJobManager != null) {
+                        for (ServerConnection conn: serverJobManager.serverConnections) {
+                            if (conn.reader.bytes != null)
+                                return conn;
+                        }
+                    }
+                }
+                try {
+                    wait();
+                } catch (InterruptedException e) {}
+            }
+        }
+        
+        private Job deserializeJob(ServerConnection connection) {
+            try {
+                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(connection.reader.bytes));
+                Job job = (Job)in.readObject();
+                job.connection = connection;
+                in.close();
+                return job;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                connection.sendFailedJob(serverJobManager.currentSnapshot, e);
+                return null;
+            }
+        }
+
+		public void run_()
 		{
 			for (;;)
 			{
@@ -192,12 +270,14 @@ public abstract class Job implements Serializable {
 			}
 		}
 
-		private synchronized Job waitChangeJob() {
+ 		private synchronized Job waitChangeJob() {
 			for (;;)
 			{
-				if (numStarted < allJobs.size())
+                if (!waitingJobs.isEmpty())
+//				if (numStarted < allJobs.size())
 				{
-					Job job = (Job)allJobs.get(numStarted);
+                    Job job = waitingJobs.get(0);
+//					Job job = (Job)allJobs.get(numStarted);
                     if (job.scheduledToAbort || job.aborted) {
                         // remove jobs that have been aborted
                         removeJob(job);
@@ -224,7 +304,9 @@ public abstract class Job implements Serializable {
 //                            }
 //                            continue;
 //                        }
-                        numStarted++;
+                        waitingJobs.remove(0);
+                        startedJobs.add(job);
+//                        numStarted++;
                         numExamine++;
                         //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
 						Thread t = new ExamineThread(job);
@@ -235,7 +317,9 @@ public abstract class Job implements Serializable {
 					if (numExamine == 0)
 					{
 						job.started = true;
-						numStarted++;
+                        waitingJobs.remove(0);
+                        startedJobs.add(job);
+//						numStarted++;
 						return job;
 					}
 				}
@@ -248,9 +332,12 @@ public abstract class Job implements Serializable {
     
 		/** Add job to list of jobs */
 		private synchronized void addJob(Job j) {
-			if (numStarted == allJobs.size())
-				notify();
-            allJobs.add(j);
+            if (waitingJobs.isEmpty())
+                notify();
+            waitingJobs.add(j);
+//			if (numStarted == allJobs.size())
+//				notify();
+//            allJobs.add(j);
             if (!BATCHMODE && j.jobType == Type.CHANGE) {
                 Main.getUserInterface().invokeLaterBusyCursor(true);
             }
@@ -305,14 +392,21 @@ public abstract class Job implements Serializable {
 //        }
 
 		/** Remove job from list of jobs */
-		private synchronized void removeJob(Job j) { 
-			int index = allJobs.indexOf(j);
-			if (index != -1) {
-				allJobs.remove(index);
-				if (index == numStarted)
-					notify();
-				if (index < numStarted) numStarted--;
-			}
+		private synchronized void removeJob(Job j) {
+            if (j.started) {
+                startedJobs.remove(j);
+            } else {
+                if (!waitingJobs.isEmpty() && waitingJobs.get(0) == j)
+                    notify();
+                waitingJobs.remove(j);
+            }
+//			int index = allJobs.indexOf(j);
+//			if (index != -1) {
+//				allJobs.remove(index);
+//				if (index == numStarted)
+//					notify();
+//				if (index < numStarted) numStarted--;
+//			}
             //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
             if (j.getDisplay()) {
                 Main.getUserInterface().wantToRedoJobTree();
@@ -337,20 +431,29 @@ public abstract class Job implements Serializable {
 
         /** get all jobs iterator */
         public synchronized Iterator<Job> getAllJobs() {
-            List<Job> jobsList = new ArrayList<Job>();
-            for (Iterator<Job> it = allJobs.iterator(); it.hasNext() ;) {
-                jobsList.add(it.next());
-            }
+            ArrayList<Job> jobsList = new ArrayList<Job>(startedJobs);
+            jobsList.addAll(waitingJobs);
+//            List<Job> jobsList = new ArrayList<Job>();
+//            for (Iterator<Job> it = allJobs.iterator(); it.hasNext() ;) {
+//                jobsList.add(it.next());
+//            }
             return jobsList.iterator();
         }
 
         private synchronized boolean isChangeJobQueuedOrRunning() {
-            Iterator<Job> it;
-            for (it = allJobs.iterator(); it.hasNext(); ) {
-                Job j = (Job)it.next();
-                if (j.finished) continue;               // ignore finished jobs
+            for (Job j: startedJobs) {
+                if (j.finished) continue;
                 if (j.jobType == Type.CHANGE) return true;
             }
+            for (Job j: waitingJobs) {
+                if (j.jobType == Type.CHANGE) return true;
+            }
+//            Iterator<Job> it;
+//            for (it = allJobs.iterator(); it.hasNext(); ) {
+//                Job j = (Job)it.next();
+//                if (j.finished) continue;               // ignore finished jobs
+//                if (j.jobType == Type.CHANGE) return true;
+//            }
             return false;
         }
 	}
@@ -373,7 +476,8 @@ public abstract class Job implements Serializable {
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
-    /** stream for cleint to send Jobs. */      private static EObjectOutputStream clientOutputStream;
+    /** server job manager */                   private static ServerJobManager serverJobManager; 
+    /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
     /** True if preferences are accessible. */  private static boolean preferencesAccessible = true;
 
     /** delete when done if true */             private boolean deleteWhenDone;
@@ -401,7 +505,7 @@ public abstract class Job implements Serializable {
     /** Fields changed on server side. */       private transient ArrayList<Field> changedFields;
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
-    /** Is from network ? */                    private transient boolean fromNetwork;
+    /** Connection from which we accepted */    private transient ServerConnection connection = null;
 
     public static void setThreadMode(Mode mode) {
         threadMode = mode;
@@ -412,7 +516,8 @@ public abstract class Job implements Serializable {
                 BATCHMODE = true;
                 break;
             case SERVER:
-                (new ConnectionWaiter(socketPort)).start();
+                serverJobManager = new ServerJobManager(socketPort);
+                serverJobManager.start();
                 break;
             case CLIENT:
                 clientLoop(socketPort);
@@ -481,14 +586,19 @@ public abstract class Job implements Serializable {
             Job tmp = testSerialization();
             if (tmp != null) {
                 try {
-                    clientOutputStream.writeObject(this);
-                    clientOutputStream.reset();
+                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream(); 
+                    EObjectOutputStream out = new EObjectOutputStream(byteStream);
+                    out.writeObject(this);
+                    out.close();
+                    byte[] bytes = byteStream.toByteArray();
+                    clientOutputStream.writeInt(bytes.length);
+                    clientOutputStream.write(bytes);
                     clientOutputStream.flush();
                 } catch (IOException e) {
+                    System.out.println("Job " + this + " was not launched in CLIENT mode");
                     e.printStackTrace(System.out);
                 }
             }
-            System.out.println("Job " + this + " was not launched in CLIENT mode");
             return;
         }
 
@@ -613,7 +723,7 @@ public abstract class Job implements Serializable {
 
         Job serverJob = this;
         String className = getClass().getName();
-        if (getDebug() && !fromNetwork && !className.endsWith("RenderJob")) {
+        if (getDebug() && connection == null && !className.endsWith("RenderJob")) {
             serverJob = testSerialization();
             if (serverJob != null) {
                 // transient fields ???
@@ -628,7 +738,7 @@ public abstract class Job implements Serializable {
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 
         Cell cell = Main.getUserInterface().getCurrentCell();
-        if (!fromNetwork)
+        if (connection == null)
             ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
 		try {
@@ -658,11 +768,31 @@ public abstract class Job implements Serializable {
 				databaseChangesThread.endExamine(this);
 			} else {
 				changingJob = null;
-                Snapshot.advanceWriter();
+                if (threadMode == Mode.SERVER)
+                    serverJobManager.updateSnapshot();
 			}
 		}
-        if (fromNetwork) {
-        } else {
+        if (connection != null) {
+            if (jobException != null) {
+                connection.sendFailedJob(serverJobManager.currentSnapshot, jobException);
+            } else {
+                try {
+                    byte[] bytes = null;
+                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                    ObjectOutputStream out = new EObjectOutputStream(byteStream);
+                    out.writeInt(serverJob.changedFields.size());
+                    for (Field f: serverJob.changedFields) {
+                        Object value = f.get(serverJob);
+                        out.writeUTF(f.getName());
+                        out.writeObject(value);
+                    }
+                    out.close();
+                    connection.sendTerminateJob(serverJobManager.currentSnapshot, bytes);
+                } catch (Throwable e) {
+                    connection.sendFailedJob(serverJobManager.currentSnapshot, e);
+                }
+            }
+       } else {
             try {
                 if (!serverJob.changedFields.isEmpty()) {
                     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -1144,30 +1274,163 @@ public abstract class Job implements Serializable {
         return buf.toString();
     }
         
-    private static class ConnectionWaiter extends Thread {
-        private int port;
+    private static class ServerJobManager extends Thread {
+        private final int port;
+        private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
+        private int cursor;
+        private volatile Snapshot currentSnapshot = new Snapshot();
         
-        ConnectionWaiter(int port) {
+        ServerJobManager(int port) {
+            super(null, null, "ConnectionWaiter", 0/*10*1020*/);
             this.port = port;
+        }
+        
+        public synchronized void updateSnapshot() {
+            Snapshot oldSnapshot = currentSnapshot;
+            Snapshot newSnapshot = new Snapshot(oldSnapshot);
+            if (newSnapshot.equals(oldSnapshot)) return;
+            currentSnapshot = newSnapshot;
+            for (ServerConnection conn: serverConnections)
+                conn.updateSnapshot(newSnapshot);
         }
         
         public void run() {
             try {
-                ServerSocket ss = new ServerSocket(port, 1);
-                Socket socket = ss.accept();
-                System.out.println("Accepted connection to port " + port +  " ...");
-                Snapshot.initWriter(socket.getOutputStream());
-                
-                ObjectInputStream jobStream = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+                ServerSocket ss = new ServerSocket(port);
+                System.out.println("ServerSocket waits for port " + port);
                 for (;;) {
-                    Job job = (Job)jobStream.readObject();
-                    job.fromNetwork = true;
-                    databaseChangesThread.addJob(job);
+                    Socket socket = ss.accept();
+                    ServerConnection conn;
+                    synchronized (this) {
+                        conn = new ServerConnection(serverConnections.size(), socket);
+                        serverConnections.add(conn);
+                    }
+                    conn.updateSnapshot(currentSnapshot);
+                    conn.start();
+                    conn.reader.start();
                 }
             } catch (IOException e) {
                 e.printStackTrace(System.out);
-            } catch (ClassNotFoundException e) {
+            }
+        }
+    }
+    
+    private static class ServerConnection extends Thread {
+        private static final int STACK_SIZE = 20*1024;
+        private final int connectionId;
+        private final Socket socket;
+        private final ConnectionReader reader;
+        private Snapshot currentSnapshot;
+        private volatile Snapshot newSnapshot;
+        
+        ServerConnection(int connectionId, Socket socket) {
+            super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
+            this.connectionId = connectionId;
+            this.socket = socket;
+            newSnapshot = currentSnapshot = new Snapshot();
+            reader = new ConnectionReader("ConndectionReader-" + connectionId, socket);
+        }
+        
+        synchronized void updateSnapshot(Snapshot newSnapshot) {
+            this.newSnapshot = newSnapshot;
+            notify();
+        }
+        
+        void sendTerminateJob(Snapshot newSnapshot, byte[] result) {
+            reader.enable();
+        }  
+        
+        void sendFailedJob(Snapshot newSnapshot, Throwable e) {
+            byte[] bytes = null;
+            try {
+                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                ObjectOutputStream out = new EObjectOutputStream(byteStream);
+                out.writeObject(e);
+                out.writeInt(0);
+                out.close();
+                bytes = byteStream.toByteArray();
+            } catch (Throwable ee) {}
+            sendTerminateJob(serverJobManager.currentSnapshot, bytes);
+        }
+        
+       public void run() {
+            try {
+                SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+                for (;;) {
+                    Snapshot newSnapshot;
+                    synchronized (this) {
+                        while (this.newSnapshot == currentSnapshot)
+                            wait();
+                        newSnapshot = this.newSnapshot;
+                    }
+                    if (newSnapshot != currentSnapshot) {
+                        newSnapshot.writeDiffs(writer, currentSnapshot);
+                        writer.out.flush();
+                        currentSnapshot = newSnapshot;
+                    }
+                }
+            } catch (IOException e) {
                 e.printStackTrace(System.out);
+            } catch (InterruptedException e) {
+                e.printStackTrace(System.out);
+            }
+        }
+    }
+
+    private static class ConnectionReader extends Thread {
+        private final static int STACK_SIZE = 1024;
+        private final Socket socket;
+        private byte[] bytes;
+        
+        ConnectionReader(String name, Socket socket) {
+            super(null, null, name, STACK_SIZE);
+            this.socket = socket;
+        }
+        
+        byte[] getBytes() {
+            if (bytes == null) return null;
+            byte[] bytes = this.bytes;
+            notify();
+            return bytes;
+        }
+        
+        synchronized void enable() {
+            assert this.bytes != null;
+            this.bytes = null;
+            notify();
+        }
+        
+        public void run() {
+            try {
+                DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                for (;;) {
+                    int len = in.readInt();
+                    byte[] bytes = new byte[len];
+                    in.read(bytes);
+                    this.bytes = bytes;
+                    synchronized (databaseChangesThread) {
+                        databaseChangesThread.notify();
+                    }
+                    synchronized (this) {
+                        while (this.bytes != null) {
+                            try {
+                                wait();
+                            } catch (InterruptedException e) {}
+                        }
+                    }
+//                    try {
+//                        ObjectInputStream ino = new ObjectInputStream(new ByteArrayInputStream(bytes));
+//                        Job job = (Job)ino.readObject();
+//                        ino.close();
+//                        job.fromNetwork = true;
+//                        databaseChangesThread.addJob(job);
+//                    } catch (Throwable e) {
+//                        System.out.println("Job deserialization failed");
+//                        e.printStackTrace(System.out);
+//                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -1179,7 +1442,7 @@ public abstract class Job implements Serializable {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = new Socket((String)null, port);
             reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
-            clientOutputStream = new EObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             System.out.println("Connected");
         } catch (IOException e) {
             e.printStackTrace();
