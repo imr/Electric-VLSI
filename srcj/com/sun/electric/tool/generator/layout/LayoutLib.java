@@ -217,7 +217,7 @@ public class LayoutLib {
 	 * If no wire is attached to port then return DEF_SIZE.
 	 */
 	public static double widestWireWidth(PortInst port) {
-		NodeInst ni = port.getNodeInst();
+//		NodeInst ni = port.getNodeInst();
 		PortProto pp = port.getPortProto();
 		double maxWid = -1;
 		for (Iterator<ArcInst> arcs=getArcInstsOnPortInst(port); arcs.hasNext();) {
@@ -235,7 +235,7 @@ public class LayoutLib {
 	 * @param pi PortInst on which to find attached ArcInsts. */
 	public static Iterator<ArcInst> getArcInstsOnPortInst(PortInst pi) {
 		ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
-		NodeInst ni = pi.getNodeInst();
+//		NodeInst ni = pi.getNodeInst();
 		for (Iterator<Connection> it=pi.getConnections(); it.hasNext();) {
 			Connection c = (Connection) it.next();
 			arcs.add(c.getArc());
@@ -253,7 +253,7 @@ public class LayoutLib {
 		return DBMath.round(pi.getBounds().getCenterX());
 	}
 	public static double roundCenterY(PortInst pi) {
-		Rectangle2D bounds = pi.getBounds();
+//		Rectangle2D bounds = pi.getBounds();
 		return DBMath.round(pi.getBounds().getCenterY());
 	}
 
