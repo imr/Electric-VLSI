@@ -440,7 +440,7 @@ public class FillGen extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = items.get(i).intValue();
         }
-        new FillGenerator.FillGenJob(Main.getUserInterface().getCurrentCell(), fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, null);
+//        new FillGenerator.FillGenJob(Main.getUserInterface().getCurrentCell(), fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells);
         setVisible(false);;
     }//GEN-LAST:event_jButton1ActionPerformed
 

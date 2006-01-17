@@ -1541,12 +1541,10 @@ public class FillGenerator {
         private int firstMetal, lastMetal;
         private int[] cellsList;
         private Cell topCell;
-        private List<PortInst> portList;
 
         public FillGenJob() {}
 
-		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
-                          List<PortInst> list)
+		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
             this.perimeter = perim;
@@ -1555,16 +1553,51 @@ public class FillGenerator {
             this.lastMetal = last;
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
-            this.portList = list;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+            // Searching common power/gnd connections and only
+            List<PortInst> portList = new ArrayList<PortInst>();
+
+            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                boolean pwrCover = false;
+                boolean gndCover = false;
+
+                for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                {
+                    PortInst p = itP.next();
+
+                    if (p.getPortProto().isGround())
+                    {
+                        if (!gndCover)
+                        {
+                            portList.add(p);
+                            gndCover = true;
+                        }
+                        else
+                            System.out.println("Skipping Gnd " + p + " in " + ni);
+                    }
+                    else if (p.getPortProto().isPower())
+                    {
+                        if (!pwrCover)
+                        {
+                            portList.add(p);
+                            pwrCover = true;
+                        }
+                        else
+                            System.out.println("Skipping Power " + p + " in " + ni);
+                    }
+                }
+            }
+
             Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
             fillGen.makeGallery();
 
-            if (topCell == null || portList == null) return true;
+            if (topCell == null || portList == null || portList.size() == 0) return true;
 
             Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill{lay}");
             Rectangle2D bnd = topCell.getBounds();
@@ -1642,6 +1675,14 @@ public class FillGenerator {
                     globalWidth = added.getBounds().getWidth(); // assuming all contacts have the same width;
                     continue;
                 }
+                else
+                {
+
+                    ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
+                    l.addPoly(p.getPoly(), true, topCell);
+                    if (p.getPortProto() instanceof Export)
+                        l.addExport((Export)p.getPortProto(), true, topCell, null);
+                }
 
 //                // Transformation of the cell instance containing this port
 //                nodeBounds.setRect(ni.getBounds());
@@ -1668,72 +1709,72 @@ public class FillGenerator {
 
             // Checking if ports not falling over power/gnd bars can be connected using existing contacts
             // along same X axis
-            PortInst[] ports = new PortInst[portNotReadList.size()];
-            portNotReadList.toArray(ports);
-            portNotReadList.clear();
-            Rectangle2D[] rects = new Rectangle2D[ports.length];
-            bndNotReadList.toArray(rects);
-            bndNotReadList.clear();
-
-            for (int i = 0; i < ports.length; i++)
-            {
-                PortInst p = ports[i];
-                Rectangle2D portBnd = rects[i];
-                NodeInst minNi = connectToExistingContacts(p, portBnd, fillContactList, fillPortInstList);
-
-                if (minNi != null)
-                {
-                    int index = fillContactList.indexOf(minNi);
-                    PortInst fillNiPort = fillPortInstList.get(index);
-                    // Connecting the export in the top cell
-                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
-                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
-                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
-                }
-                else
-                {
-                    portNotReadList.add(p);
-                    bndNotReadList.add(rects[i]);
-                }
-            }
-
-            // If nothing works, try to insert contacts in location with same Y
-            // Cleaning fillContacts so it doesn't try again with the same sets
-            fillPortInstList.clear();
-            fillContactList.clear();
-            for (int i = 0; i < portNotReadList.size(); i++)
-            {
-                PortInst p = portNotReadList.get(i);
-                Rectangle2D r = bndNotReadList.get(i);
-                double newWid = r.getWidth()+globalWidth;
-                Rectangle2D rect = new Rectangle2D.Double(r.getX()-newWid, r.getY(),
-                        2*newWid, r.getHeight()); // copy the rectangle to add extra width
-
-                // Check possible new contacts added
-                NodeInst minNi = connectToExistingContacts(p, rect, fillContactList, fillPortInstList);
-                if (minNi != null)
-                {
-                    int index = fillContactList.indexOf(minNi);
-                    PortInst fillNiPort = fillPortInstList.get(index);
-                    // Connecting the export in the top cell
-                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
-                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
-                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
-                }
-                else
-                {
-                    // Searching arcs again
-                    Geometric geom = routeToClosestArc(container, p, rect, 10, fillTransOut);
-                    if (geom == null)
-                    {
-                        ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
-                        l.addPoly(p.getPoly(), true, topCell);
-                        if (p.getPortProto() instanceof Export)
-                            l.addExport((Export)p.getPortProto(), true, topCell, null);
-                        l.addGeom(p.getNodeInst(), true, fillCell, null);
-                    }
-                }
-            }
+//            PortInst[] ports = new PortInst[portNotReadList.size()];
+//            portNotReadList.toArray(ports);
+//            portNotReadList.clear();
+//            Rectangle2D[] rects = new Rectangle2D[ports.length];
+//            bndNotReadList.toArray(rects);
+//            bndNotReadList.clear();
+//
+//            for (int i = 0; i < ports.length; i++)
+//            {
+//                PortInst p = ports[i];
+//                Rectangle2D portBnd = rects[i];
+//                NodeInst minNi = connectToExistingContacts(p, portBnd, fillContactList, fillPortInstList);
+//
+//                if (minNi != null)
+//                {
+//                    int index = fillContactList.indexOf(minNi);
+//                    PortInst fillNiPort = fillPortInstList.get(index);
+//                    // Connecting the export in the top cell
+//                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
+//                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
+//                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+//                }
+//                else
+//                {
+//                    portNotReadList.add(p);
+//                    bndNotReadList.add(rects[i]);
+//                }
+//            }
+//
+//            // If nothing works, try to insert contacts in location with same Y
+//            // Cleaning fillContacts so it doesn't try again with the same sets
+//            fillPortInstList.clear();
+//            fillContactList.clear();
+//            for (int i = 0; i < portNotReadList.size(); i++)
+//            {
+//                PortInst p = portNotReadList.get(i);
+//                Rectangle2D r = bndNotReadList.get(i);
+//                double newWid = r.getWidth()+globalWidth;
+//                Rectangle2D rect = new Rectangle2D.Double(r.getX()-newWid, r.getY(),
+//                        2*newWid, r.getHeight()); // copy the rectangle to add extra width
+//
+//                // Check possible new contacts added
+//                NodeInst minNi = connectToExistingContacts(p, rect, fillContactList, fillPortInstList);
+//                if (minNi != null)
+//                {
+//                    int index = fillContactList.indexOf(minNi);
+//                    PortInst fillNiPort = fillPortInstList.get(index);
+//                    // Connecting the export in the top cell
+//                    Route exportRoute = router.planRoute(topCell, p, fillNiPort,
+//                            new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
+//                    Router.createRouteNoJob(exportRoute, topCell, true, false, null);
+//                }
+//                else
+//                {
+//                    // Searching arcs again
+//                    Geometric geom = routeToClosestArc(container, p, rect, 10, fillTransOut);
+//                    if (geom == null)
+//                    {
+//                        ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
+//                        l.addPoly(p.getPoly(), true, topCell);
+//                        if (p.getPortProto() instanceof Export)
+//                            l.addExport((Export)p.getPortProto(), true, topCell, null);
+//                        l.addGeom(p.getNodeInst(), true, fillCell, null);
+//                    }
+//                }
+//            }
             log.termLogging(false);
 
             return true;
@@ -1912,10 +1953,21 @@ public class FillGenerator {
                 // Add only the piece that overlap. If more than 1 arc covers the same area -> only 1 contact
                 // will be added.
                 Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), width, height);
+                // Don't consider no overlapping areas
+                if (newElem.getMaxX() < geomBnd.getMinX() || geomBnd.getMaxX() < newElem.getMaxX())
+                    continue;
+                // Getting the intersection along X axis. Along Y it should cover completely
+                double minX = Math.max(geomBnd.getMinX(), contactArea.getMinX());
+                double maxX = Math.min(geomBnd.getMaxX(), contactArea.getMaxX());
+                double overlap = (maxX-minX)/width;
                 // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                 // the missing contact
-                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
+                // Acepting more than 50% overlap
+                System.out.println("Overlap " + overlap);
+                if (overlap < 0.5)
+//                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
                 {
+                    System.out.println("Not enough overlap in " + ai + " to cover " + p);
                     continue;
                 }
                 handler.add(ai.getProto().getLayers()[0].getLayer(), newElem, true);
@@ -1989,7 +2041,7 @@ public class FillGenerator {
                 Route pinExportRoute = container.router.planRoute(container.fillCell, aiC, pinExport.getOriginalPort(),
                         new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
                 Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
-                // Connecting the export in the top cell
+                // Connecting the fill export in the connection cell
                 PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
                 Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
