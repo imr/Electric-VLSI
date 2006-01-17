@@ -686,7 +686,7 @@ public class MoCMOS extends Technology
         foundries.add(mosis);
         foundries.add(tsmc);
         loadRules(mosis, tsmc);
-        setFactorySelecedFound(Foundry.Type.MOSIS.name());  // default
+        setFactoryPrefFoundry(Foundry.Type.MOSIS.name());  // default
 
 		//**************************************** LAYERS ****************************************
         Layer[] metalLayers = new Layer[6]; // 1 -> 6

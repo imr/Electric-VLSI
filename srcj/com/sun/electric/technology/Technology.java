@@ -3277,7 +3277,7 @@ public class Technology implements Comparable<Technology>
      * Method to set default preference for foundry.
      * It takes the first elemenet on the foundries list
      */
-    protected void setFactorySelecedFound(String factoryName)
+    protected void setFactoryPrefFoundry(String factoryName)
     {
         prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName.toUpperCase());
         prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
