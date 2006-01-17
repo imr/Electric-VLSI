@@ -28,6 +28,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -109,6 +111,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof ArcProto) return new EArcProto((ArcProto)obj);
         if (obj instanceof Tool) return new ETool((Tool)obj);
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
+        if (obj instanceof Network) return new ENetwork((Network)obj);
 
         if (obj instanceof Component) {
             throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
@@ -330,6 +333,24 @@ public class EObjectOutputStream extends ObjectOutputStream {
             Variable.Key varKey = Variable.findKey(varName);
             if (varKey == null) throw new InvalidObjectException("Variable.Key");
             return varKey;
+        }
+    }
+    
+    private static class ENetwork implements Serializable {
+        int cellIndex, netIndex;
+        
+        private ENetwork(Network net) {
+            cellIndex = net.getParent().getCellIndex();
+            netIndex = net.getNetIndex();
+        }
+        
+        private Object readResolve() throws ObjectStreamException {
+            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
+            Netlist netlist = cell.getUserNetlist();
+            Network net = netlist.getNetwork(netIndex);
+            // It is necessary to check that it is the same Netlist
+            if (net == null) throw new InvalidObjectException("Network");
+            return net;
         }
     }
     

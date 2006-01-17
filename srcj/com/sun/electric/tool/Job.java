@@ -247,7 +247,7 @@ public abstract class Job implements Serializable {
                 return job;
             } catch (Throwable e) {
                 e.printStackTrace();
-                connection.sendFailedJob(serverJobManager.currentSnapshot, e);
+                connection.sendFailedJob(null, e);
                 return null;
             }
         }
@@ -474,7 +474,7 @@ public abstract class Job implements Serializable {
     }
     
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
-	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
+	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread;/* = new DatabaseChangesThread();*/
 	/** changing job */                         private static Job changingJob;
     /** server job manager */                   private static ServerJobManager serverJobManager; 
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
@@ -506,9 +506,11 @@ public abstract class Job implements Serializable {
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
     /** Connection from which we accepted */    private transient ServerConnection connection = null;
+    private static Job clientJob;
 
     public static void setThreadMode(Mode mode) {
         threadMode = mode;
+        databaseChangesThread = new DatabaseChangesThread();
         switch (mode) {
             case FULL_SCREEN:
                 break;
@@ -594,6 +596,7 @@ public abstract class Job implements Serializable {
                     clientOutputStream.writeInt(bytes.length);
                     clientOutputStream.write(bytes);
                     clientOutputStream.flush();
+                    clientJob = this;
                 } catch (IOException e) {
                     System.out.println("Job " + this + " was not launched in CLIENT mode");
                     e.printStackTrace(System.out);
@@ -687,9 +690,26 @@ public abstract class Job implements Serializable {
     /**
      * This method executes in the Client side after termination of doIt method.
      * This method should perform all needed termination actions.
-     * @param jobException null if doIt terminated normally, otherwise exception thrown by it.
+     * @param jobException null if doIt terminated normally, otherwise exception thrown by doIt.
      */
     public void terminateIt(Throwable jobException) {
+        if (jobException == null)
+            terminateOk();
+        else
+            terminateFail(jobException);
+    }
+    
+    /**
+     * This method executes in the Client side after normal termination of doIt method.
+     * This method should perform all needed termination actions.
+     */
+    public void terminateOk() {}
+    
+    /**
+     * This method executes in the Client side after exceptional termination of doIt method.
+     * @param jobException null exception thrown by doIt.
+     */
+    public void terminateFail(Throwable jobException) {
         if (jobException instanceof CantEditException) {
             ((CantEditException)jobException).presentProblem();
         } else if (jobException instanceof JobException) {
@@ -773,13 +793,15 @@ public abstract class Job implements Serializable {
 			}
 		}
         if (connection != null) {
+            assert threadMode == Mode.SERVER;
             if (jobException != null) {
-                connection.sendFailedJob(serverJobManager.currentSnapshot, jobException);
+                connection.sendFailedJob(serverJob, jobException);
             } else {
                 try {
                     byte[] bytes = null;
                     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                     ObjectOutputStream out = new EObjectOutputStream(byteStream);
+                    out.writeObject(null); // No exception
                     out.writeInt(serverJob.changedFields.size());
                     for (Field f: serverJob.changedFields) {
                         Object value = f.get(serverJob);
@@ -787,9 +809,9 @@ public abstract class Job implements Serializable {
                         out.writeObject(value);
                     }
                     out.close();
-                    connection.sendTerminateJob(serverJobManager.currentSnapshot, bytes);
+                    connection.sendTerminateJob(serverJob, byteStream.toByteArray());
                 } catch (Throwable e) {
-                    connection.sendFailedJob(serverJobManager.currentSnapshot, e);
+                    connection.sendFailedJob(serverJob, e);
                 }
             }
        } else {
@@ -1285,13 +1307,15 @@ public abstract class Job implements Serializable {
             this.port = port;
         }
         
-        public synchronized void updateSnapshot() {
+        public void updateSnapshot() {
             Snapshot oldSnapshot = currentSnapshot;
             Snapshot newSnapshot = new Snapshot(oldSnapshot);
             if (newSnapshot.equals(oldSnapshot)) return;
-            currentSnapshot = newSnapshot;
-            for (ServerConnection conn: serverConnections)
-                conn.updateSnapshot(newSnapshot);
+            synchronized (this) {
+                currentSnapshot = newSnapshot;
+                for (ServerConnection conn: serverConnections)
+                    conn.updateSnapshot(newSnapshot);
+            }
         }
         
         public void run() {
@@ -1305,6 +1329,7 @@ public abstract class Job implements Serializable {
                         conn = new ServerConnection(serverConnections.size(), socket);
                         serverConnections.add(conn);
                     }
+                    System.out.println("Accepted connection " + conn.connectionId);
                     conn.updateSnapshot(currentSnapshot);
                     conn.start();
                     conn.reader.start();
@@ -1322,6 +1347,8 @@ public abstract class Job implements Serializable {
         private final ConnectionReader reader;
         private Snapshot currentSnapshot;
         private volatile Snapshot newSnapshot;
+        private volatile String jobName;
+        private volatile byte[] result;
         
         ServerConnection(int connectionId, Socket socket) {
             super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
@@ -1332,15 +1359,20 @@ public abstract class Job implements Serializable {
         }
         
         synchronized void updateSnapshot(Snapshot newSnapshot) {
+            if (this.result != null) return;
             this.newSnapshot = newSnapshot;
             notify();
         }
         
-        void sendTerminateJob(Snapshot newSnapshot, byte[] result) {
-            reader.enable();
+        synchronized void sendTerminateJob(Job job, byte[] result) {
+            assert this.result == null;
+            assert result != null;
+            this.result = result;
+            jobName = job != null ? job.jobName : "Unknown";
+            notify();
         }  
         
-        void sendFailedJob(Snapshot newSnapshot, Throwable e) {
+        void sendFailedJob(Job job, Throwable e) {
             byte[] bytes = null;
             try {
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -1350,7 +1382,7 @@ public abstract class Job implements Serializable {
                 out.close();
                 bytes = byteStream.toByteArray();
             } catch (Throwable ee) {}
-            sendTerminateJob(serverJobManager.currentSnapshot, bytes);
+            sendTerminateJob(job, bytes);
         }
         
        public void run() {
@@ -1359,14 +1391,24 @@ public abstract class Job implements Serializable {
                 for (;;) {
                     Snapshot newSnapshot;
                     synchronized (this) {
-                        while (this.newSnapshot == currentSnapshot)
+                        while (this.newSnapshot == currentSnapshot && result == null)
                             wait();
                         newSnapshot = this.newSnapshot;
                     }
                     if (newSnapshot != currentSnapshot) {
+                        writer.out.writeByte(1);
                         newSnapshot.writeDiffs(writer, currentSnapshot);
                         writer.out.flush();
                         currentSnapshot = newSnapshot;
+                    }
+                    if (result != null) {
+                        writer.out.writeByte(2);
+                        writer.out.writeUTF(jobName);
+                        writer.out.writeInt(result.length);
+                        writer.out.write(result);
+                        writer.out.flush();
+                        result = null;
+                        reader.enable();
                     }
                 }
             } catch (IOException e) {
@@ -1406,7 +1448,7 @@ public abstract class Job implements Serializable {
                 for (;;) {
                     int len = in.readInt();
                     byte[] bytes = new byte[len];
-                    in.read(bytes);
+                    in.readFully(bytes);
                     this.bytes = bytes;
                     synchronized (databaseChangesThread) {
                         databaseChangesThread.notify();
@@ -1464,9 +1506,43 @@ public abstract class Job implements Serializable {
         
         for (;;) {
             try {
-                Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
-                currentSnapshot = newSnapshot;
+                int tag = reader.in.readByte();
+                switch (tag) {
+                    case 1:
+                        Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
+                        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
+                        currentSnapshot = newSnapshot;
+                        break;
+                    case 2:
+                        String jobName = reader.in.readUTF();
+                        int len = reader.in.readInt();
+                        byte[] bytes = new byte[len];
+                        reader.in.readFully(bytes);
+                        System.out.println("Result of Job <" + jobName + "> is packed in " + len + " bytes");
+                        try {
+                            assert clientJob.jobName.equals(jobName);
+                            Class jobClass = clientJob.getClass();
+                            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes));
+                            Throwable jobException = (Throwable)in.readObject();
+                            System.out.println("\tjobException = " + jobException);
+                            int numFields = in.readInt();
+                            for (int i = 0; i < numFields; i++) {
+                                String fieldName = in.readUTF();
+                                Object value = in.readObject();
+                                System.out.println("\tField " + fieldName + " = " + value);
+                                Field f = jobClass.getDeclaredField(fieldName);
+                                f.setAccessible(true);
+                                f.set(clientJob, value);
+                            }
+                            in.close();
+                            clientJob.terminateIt(jobException);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    default:
+                        assert false;
+                }
             } catch (IOException e) {
                 // reader.in.close();
                 reader = null;
