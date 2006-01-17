@@ -71,7 +71,6 @@ import java.util.List;
  */
 public class AutoStitch
 {
-	/** the prefered arc */											private static ArcProto preferredArc;
     /** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
 	/** list of all routes to be created at end of analysis */		private static List<Route> allRoutes;
 	/** sets of netlists that will be connected */					private static Pairs intendedPairs;
@@ -86,55 +85,17 @@ public class AutoStitch
 	 */
 	public static void autoStitch(boolean highlighted, boolean forced)
 	{
-		AutoStitchJob job = new AutoStitchJob(highlighted, forced);
-	}
+		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
 
-	/**
-	 * Class to do auto-stitching in a new thread.
-	 */
-	private static class AutoStitchJob extends Job
-	{
-		private boolean highlighted;
-		private boolean forced;
-
-		public AutoStitchJob() {}
- 
-		protected AutoStitchJob(boolean highlighted, boolean forced)
-		{
-			super("Auto-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.highlighted = highlighted;
-			this.forced = forced;
-            setReportExecutionFlag(true);
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			UserInterface ui = Main.getUserInterface();
-			Cell cell = ui.needCurrentCell();
-			if (cell == null) return false;
-			runAutoStitch(cell, highlighted, forced, null);
-			return true;
-		}
-	}
-
-	/**
-	 * This is the public interface for Auto-stitching when done in batch mode.
-	 * @param cell the cell in which to stitch.
-	 * @param highlighted true to auto-stitch only what is highlighted; false to do the entire current cell.
-	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
-	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 */
-	public static void runAutoStitch(Cell cell, boolean highlighted, boolean forced, PolyMerge stayInside)
-	{
 		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
 		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
 		Rectangle2D limitBound = null;
 		if (highlighted)
 		{
-			UserInterface ui = Main.getUserInterface();
-            EditWindow_ wnd = ui.getCurrentEditWindow_();
-            if (wnd == null) return;
+	        EditWindow_ wnd = ui.getCurrentEditWindow_();
+	        if (wnd == null) return;
 			List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
 			limitBound = wnd.getHighlightedArea();
 			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
@@ -182,6 +143,79 @@ public class AutoStitch
             return;
         }
 
+		double lX = 0, hX = 0, lY = 0, hY = 0;
+		if (limitBound != null)
+		{
+			lX = limitBound.getMinX();
+			hX = limitBound.getMaxX();
+			lY = limitBound.getMinY();
+			hY = limitBound.getMaxY();
+		}
+
+		// find out the prefered routing arc
+		ArcProto preferredArc = null;
+		String preferredName = Routing.getPreferredRoutingArc();
+		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
+		if (preferredArc == null)
+		{
+			// see if there is a default user arc
+			ArcProto curAp = User.getUserTool().getCurrentArcProto();
+			if (curAp != null) preferredArc = curAp;
+		}
+		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced, preferredArc);
+	}
+
+	/**
+	 * Class to do auto-stitching in a new thread.
+	 */
+	private static class AutoStitchJob extends Job
+	{
+		private Cell cell;
+		private List<NodeInst> nodesToStitch;
+		private List<ArcInst> arcsToStitch;
+		private double lX, hX, lY, hY;
+		private boolean forced;
+		private ArcProto preferredArc;
+
+		public AutoStitchJob() {}
+ 
+		protected AutoStitchJob(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
+			double lX, double hX, double lY, double hY, boolean forced, ArcProto preferredArc)
+		{
+			super("Auto-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.nodesToStitch = nodesToStitch;
+			this.arcsToStitch = arcsToStitch;
+			this.lX = lX;
+			this.hX = hX;
+			this.lY = lY;
+			this.hY = hY;
+			this.forced = forced;
+			this.preferredArc = preferredArc;
+            setReportExecutionFlag(true);
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Rectangle2D limitBound = null;
+			if (lX != hX && lY != hY)
+				limitBound = new Rectangle2D.Double(lX, hX-lX, lY, hY-lY);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, preferredArc);
+			return true;
+		}
+	}
+
+	/**
+	 * This is the public interface for Auto-stitching when done in batch mode.
+	 * @param cell the cell in which to stitch.
+	 * @param highlighted true to auto-stitch only what is highlighted; false to do the entire current cell.
+	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param stayInside is the area in which to route (null to route arbitrarily).
+	 */
+	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, PolyMerge stayInside,
+			Rectangle2D limitBound, boolean forced, ArcProto preferredArc)
+	{
 		allRoutes = new ArrayList<Route>();
 		intendedPairs = new Pairs();
         possibleInlinePins = new HashSet<NodeInst>();
@@ -232,17 +266,6 @@ public class AutoStitch
 			nodeMark.add(ni);
 		}
 
-		// find out the prefered routing arc
-		preferredArc = null;
-		String preferredName = Routing.getPreferredRoutingArc();
-		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
-		if (preferredArc == null)
-		{
-			// see if there is a default user arc
-			ArcProto curAp = User.getUserTool().getCurrentArcProto();
-			if (curAp != null) preferredArc = curAp;
-		}
-
 		// finally, initialize the information about which layer is smallest on each arc
 		HashMap<ArcProto,Layer> arcLayers = new HashMap<ArcProto,Layer>();
 
@@ -258,7 +281,7 @@ public class AutoStitch
 				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
 				break;
 			}
-			count += checkStitching(ni, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
+			count += checkStitching(ni, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
 		}
 
 		// now run through the arcinsts to be checked for stitching
@@ -277,7 +300,7 @@ public class AutoStitch
 				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
 				break;
 			}
-			count += checkStitching(ai, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
+			count += checkStitching(ai, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
 		}
 
 		// report results
@@ -343,11 +366,6 @@ public class AutoStitch
 					}
 				}
 				if (already) continue;
-//                Netlist nl = c.acquireUserNetlist();
-//                if (nl == null) continue;
-//            	Network startNet = nl.getNetwork(startPi);
-//            	Network endNet = nl.getNetwork(endPi);
-//            	if (startNet == endNet) continue;
             }
 
             // if requesting no new geometry, make sure all arcs are default width
@@ -472,7 +490,7 @@ public class AutoStitch
 	 * Method to check an object for possible stitching to neighboring objects.
 	 */
 	private static int checkStitching(Geometric geom, HashMap<ArcProto, Integer> arcCount, HashMap<NodeInst, Rectangle2D[]> nodeBounds,
-		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
+		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound, ArcProto preferredArc)
 	{
 		Cell cell = geom.getParent();
 		NodeInst ni = null;
@@ -528,14 +546,15 @@ public class AutoStitch
 				}
 
 				// compare node "ni" against node "oNi"
-				count += compareTwoNodes(ni, oNi, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound);
+				count += compareTwoNodes(ni, oNi, arcCount, nodeBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
 			}
 		}
 		return count;
 	}
 
 	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap<ArcProto, Integer> arcCount,
-		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
+		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside,
+		Netlist netlist, Rectangle2D limitBound, ArcProto preferredArc)
 	{
 		int count = 0;
 

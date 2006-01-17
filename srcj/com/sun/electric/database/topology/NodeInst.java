@@ -45,6 +45,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -1260,6 +1261,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			polys[start].setStyle(style);
 			polys[start].setString(getProto().describe(false));
 			polys[start].setTextDescriptor(td);
+			polys[start].setDisplayedText(new DisplayedText(this, NODE_PROTO));
 			start++;
 		}
 
@@ -1462,8 +1464,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			polys[start].setString(getNameKey().toString());
 			polys[start].setTextDescriptor(td);
 			polys[start].setLayer(null);
-			//polys[start].setVariable(var); ???
-			polys[start].setName(getNameKey());
+			polys[start].setDisplayedText(new DisplayedText(this, NODE_NAME));
 			numAddedVariables = 1;
 		}
 		numAddedVariables += super.addDisplayableVariables(rect, polys, start + numAddedVariables, wnd, multipleStrings);

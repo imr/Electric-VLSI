@@ -57,11 +57,6 @@ public abstract class Highlight2 implements Cloneable{
         this.cell = c;
     }
 
-//    public static Highlight2 newHighlightEOBJ()
-//    {
-//        new HighlightEOBJ(eobj, cell, highlightConnected, -1);
-//    }
-
     public Cell getCell() { return cell; }
 
     boolean isValid()
@@ -79,10 +74,7 @@ public abstract class Highlight2 implements Cloneable{
 
     public Object getObject() { return null; }
 
-    public Variable getVar() { return null; }
-    public void setVar(Variable v) { new Error("No setVar"); }
-
-    public Name getName() { return null; }
+    public Variable.Key getVarKey() { return null; }
 
     // point variable, only useful for HighlightEOBJ?
     public void setPoint(int p) {;}
@@ -106,7 +98,7 @@ public abstract class Highlight2 implements Cloneable{
 	 */
     boolean sameThing(Highlight2 obj)
     {
-        return (false);
+        return false;
     }
 
     /**
@@ -263,7 +255,7 @@ public abstract class Highlight2 implements Cloneable{
             {
                 if (eobj instanceof Export)
                 {
-                    if (h.getVar() != null)
+                    if (h.getVarKey() != null)
                         counts[3]++;
                     else
                         counts[2]++;
@@ -1272,28 +1264,40 @@ class HighlightEOBJ extends Highlight2
 class HighlightText extends Highlight2
 {                                                          
 	/** The highlighted object. */								protected ElectricObject eobj;
-	/** The highlighted variable. */							protected Variable var;
-	/** The highlighted Name. */								protected Name name;
+	/** The highlighted variable. */							protected Variable.Key varKey;
 
-    public HighlightText(ElectricObject e, Cell c, Variable v, Name n)
+    public HighlightText(ElectricObject e, Cell c, Variable.Key key)
     {
         super(c);  
-        this.eobj = e;      
-        if (var != null && !var.isLinked(eobj))
-            System.out.println("Unlinked var " + var + " added to highlight");
-        this.var = v;
-        this.name = n;
+        this.eobj = e;
+        this.varKey = key;
     }
 
     void internalDescribe(StringBuffer desc)
     {
-        if (var != null) {
-            desc.append(", var: ");
-            desc.append(var.describe(-1));
-        }
-        if (name != null) {
-            desc.append(", name: ");
-            desc.append(name.toString());
+        if (varKey != null)
+        {
+        	if (varKey == NodeInst.NODE_NAME)
+        	{
+	            desc.append(", name: ");
+	            desc.append(((NodeInst)eobj).getName());
+        	} else if (varKey == NodeInst.NODE_PROTO)
+        	{
+	            desc.append(", instance: ");
+	            desc.append(((NodeInst)eobj).getProto().getName());
+        	} else if (varKey == ArcInst.ARC_NAME)
+        	{
+	            desc.append(", name: ");
+	            desc.append(((ArcInst)eobj).getName());
+        	} else if (varKey == Export.EXPORT_NAME)
+        	{
+	            desc.append(", export: ");
+	            desc.append(((Export)eobj).getName());
+        	} else
+        	{
+	            desc.append(", var: ");
+	            desc.append(eobj.getVar(varKey).describe(-1));
+        	}
         }
     }
 
@@ -1302,27 +1306,19 @@ class HighlightText extends Highlight2
     // creating so HighlightText is not a public class
     public boolean isHighlightText() { return true; }
 
-    public Variable getVar() { return var; }
-    public void setVar(Variable v) { var = v; }
-    public Name getName() { return name; }
+    public Variable.Key getVarKey() { return varKey; }
 
     boolean isValid()
     {
         if (!super.isValid()) return false;
-        if (name != null) {
-            // name on an arc or node: check if name is still valid
-            if (eobj instanceof NodeInst) {
-                NodeInst ni = (NodeInst)eobj;
-                return (ni.getNameKey() == name);
-            }
-            if (eobj instanceof ArcInst) {
-                ArcInst ai = (ArcInst)eobj;
-                return (ai.getNameKey() == name);
-            }
-        }
-        if (var != null) return eobj != null && var.isLinked(eobj);
-        if (eobj != null) return eobj.isLinked();
-        return false;
+        if (eobj == null || varKey == null) return false;
+        if (!eobj.isLinked()) return false;
+
+    	if (varKey == NodeInst.NODE_NAME ||
+			varKey == ArcInst.ARC_NAME ||
+			varKey == NodeInst.NODE_PROTO ||
+			varKey == Export.EXPORT_NAME) return true;
+    	return eobj.getVar(varKey) != null;
     }
 
     boolean sameThing(Highlight2 obj)
@@ -1336,13 +1332,7 @@ class HighlightText extends Highlight2
         HighlightText other = (HighlightText)obj;
         if (eobj != other.eobj) return false;
         if (cell != other.cell) return false;
-        if (var != other.var) return false;
-        if (name != other.name)
-        {
-            if (name.equals(other.name))
-                System.out.println("Check this condition in HighlightText.sameThing");
-            return false;
-        }
+        if (varKey != other.varKey) return false;
         return true;
     }
 
@@ -1350,7 +1340,7 @@ class HighlightText extends Highlight2
                                       boolean onlyHighlight, boolean setConnected)
     {
         Graphics2D g2 = (Graphics2D)g;
-        Point2D [] points = Highlighter.describeHighlightText(wnd, eobj, var, name);
+        Point2D [] points = Highlighter.describeHighlightText(wnd, eobj, varKey);
         if (points == null) return;
         Point2D [] linePoints = new Point2D[2];
         for(int i=0; i<points.length; i += 2)
@@ -1401,7 +1391,7 @@ class HighlightText extends Highlight2
 	 */
     public boolean nodeMovesWithText()
 	{
-		if (var != null)
+		if (varKey != null)
 		{
 			// moving variable text
 			if (!(eobj instanceof NodeInst)) return false;
@@ -1445,8 +1435,7 @@ class HighlightText extends Highlight2
 
     void getHighlightedNetworks(Set<Network> nets, Netlist netlist)
     {
-        if (var == null && name == null &&
-            eobj instanceof Export)
+        if (varKey == null && eobj instanceof Export)
         {
             Export pp = (Export)eobj;
             int width = netlist.getBusWidth(pp);
@@ -1460,23 +1449,9 @@ class HighlightText extends Highlight2
 
     DisplayedText makeDisplayedText()
     {
-    	DisplayedText dt = null;
-    	if (var != null)
-    	{
-    		dt = new DisplayedText(eobj, var.getKey());
-    	} else
-    	{
-    		if (name != null)
-    		{
-    			if (eobj instanceof NodeInst) dt = DisplayedText.makeDisplayedNodeName((NodeInst)eobj); else
-    				if (eobj instanceof ArcInst) dt = DisplayedText.makeDisplayedArcName((ArcInst)eobj);
-    		} else
-    		{
-    			if (eobj instanceof Export) dt = DisplayedText.makeDisplayedExport((Export)eobj); else
-    				dt = DisplayedText.makeDisplayedNodeProtoName((NodeInst)eobj);
-    		}
-    	}
-    	return dt;
+    	if (varKey != null)
+    		return new DisplayedText(eobj, varKey);
+    	return null;
     }
 
     void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight2> getHighlights)
@@ -1489,7 +1464,7 @@ class HighlightText extends Highlight2
         if (unique)
         {
             ElectricObject onObj = null;
-            if (var != null)
+            if (varKey != null)
             {
                 if (eobj instanceof Export)
                 {
@@ -1500,21 +1475,6 @@ class HighlightText extends Highlight2
                 } else if (eobj instanceof Geometric)
                 {
                     onObj = eobj;
-                }
-            } else
-            {
-                if (name != null)
-                {
-                    if (eobj instanceof Geometric) onObj = eobj;
-                } else
-                {
-                    if (eobj instanceof Export)
-                    {
-                        onObj = ((Export)eobj).getOriginalPort().getNodeInst();
-                    } else
-                    {
-                        if (eobj instanceof NodeInst) onObj = eobj;
-                    }
                 }
             }
 
@@ -1542,7 +1502,7 @@ class HighlightText extends Highlight2
     {
         if (wnd != null)
         {
-            Poly poly = eobj.computeTextPoly(wnd, var, name);
+            Poly poly = eobj.computeTextPoly(wnd, varKey);
             if (poly != null) return poly.getBounds2D();
         }
         return null;
@@ -1551,32 +1511,39 @@ class HighlightText extends Highlight2
     boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter)
     {
         Point2D start = wnd.screenToDatabase((int)x, (int)y);
-        Poly poly = eobj.computeTextPoly(wnd, var, name);
+        Poly poly = eobj.computeTextPoly(wnd, varKey);
         if (poly != null)
             if (poly.isInside(start)) return true;
         return false;
     }
 
-    public void getInfo(List<String> displayList)
+    public String describe()
     {
         String description = "Text: unknown";
-        if (var != null)
+        if (varKey != null)
         {
-            description = "Text: " + var.getFullDescription(eobj);
-        } else
-        {
-            if (name != null)
-            {
-                if (eobj instanceof NodeInst) description = "Node name for " + ((NodeInst)eobj).describe(true); else
-                    if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe(true);
-            } else if (eobj instanceof Export)
-            {
-                description = "Text: Export '" + ((Export)eobj).getName() + "'";
-            } else if (eobj instanceof NodeInst)
-            {
-                description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
-            }
+        	if (varKey == NodeInst.NODE_NAME)
+        	{
+        		description = "Node name for " + ((NodeInst)eobj).describe(true);
+        	} else if (varKey == ArcInst.ARC_NAME)
+        	{
+        		description = "Arc name for " + ((ArcInst)eobj).describe(true);
+        	} else if (varKey == Export.EXPORT_NAME)
+        	{
+        		description = "Text: Export '" + ((Export)eobj).getName() + "'";
+        	} else if (varKey == NodeInst.NODE_PROTO)
+        	{
+        		description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
+        	} else
+        	{
+        		description = "Text: " + eobj.getVar(varKey).getFullDescription(eobj);
+        	}
         }
-        displayList.add(description);
+        return description;
+    }
+
+    public void getInfo(List<String> displayList)
+    {
+        displayList.add(describe());
     }
 }

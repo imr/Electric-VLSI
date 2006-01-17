@@ -318,7 +318,7 @@ public class NccCellAnnotations {
 				nccVar = cell.newVar(NCC_ANNOTATION_KEY, initial, td);
 				if (nccVar == null) return true;
 			}
-			wnd.addHighlightText(cell, cell, nccVar, null);
+			wnd.addHighlightText(cell, cell, NCC_ANNOTATION_KEY);
 			wnd.finishedHighlighting();
 			return true;
         }

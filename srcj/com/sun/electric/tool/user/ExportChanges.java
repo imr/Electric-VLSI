@@ -952,7 +952,7 @@ public final class ExportChanges
 				}
 			} else if (h.isHighlightText())
 			{
-				if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
+				if (h.getVarKey() == Export.EXPORT_NAME && h.getElectricObject() instanceof Export)
 				{
 					source = (Export)h.getElectricObject();
 					used = true;
@@ -1004,7 +1004,7 @@ public final class ExportChanges
 	{
         EditWindow wnd = EditWindow.getCurrent();
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
-		if (h == null || h.getVar() != null || h.getName() != null || h.getElectricObject() != null && !(h.getElectricObject() instanceof Export))
+		if (h == null || h.getVarKey() != Export.EXPORT_NAME || !(h.getElectricObject() instanceof Export))
 		{
 			System.out.println("Must select an export name before renaming it");
 			return;

@@ -111,7 +111,7 @@ public class SavedViews extends EDialog implements HighlightListener
 		boolean found = false;
 		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			String name = var.getKey().getName();
 			if (name.startsWith("USER_windowview_"))
 			{
@@ -264,7 +264,7 @@ public class SavedViews extends EDialog implements HighlightListener
 		// save the view
 		double scale = wnd.getScale();
 		Point2D off = wnd.getOffset();
-		SaveViewJob job = new SaveViewJob(this, cell, name, scale, off);
+		SaveViewJob job = new SaveViewJob(this, cell, name, scale, off.getX(), off.getY());
 	}//GEN-LAST:event_saveViewActionPerformed
 
 	/**
@@ -272,22 +272,22 @@ public class SavedViews extends EDialog implements HighlightListener
 	 */
 	private static class SaveViewJob extends Job
 	{
-		private SavedViews dialog;
+		private transient SavedViews dialog;
 		private Cell cell;
 		private String name;
-		private double scale;
-		private Point2D off;
+		private double scale, offX, offY;
 
     	public SaveViewJob() {}
 
-		protected SaveViewJob(SavedViews dialog, Cell cell, String name, double scale, Point2D off)
+		protected SaveViewJob(SavedViews dialog, Cell cell, String name, double scale, double offX, double offY)
 		{
 			super("Save Window View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			this.cell = cell;
 			this.name = name;
 			this.scale = scale;
-			this.off = off;
+			this.offX = offX;
+			this.offY = offY;
 			startJob();
 		}
 
@@ -295,12 +295,17 @@ public class SavedViews extends EDialog implements HighlightListener
 		{
 			Double [] pos = new Double[3];
 			pos[0] = new Double(scale);
-			pos[1] = new Double(off.getX());
-			pos[2] = new Double(off.getY());
+			pos[1] = new Double(offX);
+			pos[2] = new Double(offY);
 			cell.newVar("USER_windowview_" + name, pos);
-			dialog.loadInfo();
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			dialog.loadInfo();
+            super.terminateIt(jobException);
+        }
 	}
 
 	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done

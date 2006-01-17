@@ -246,30 +246,35 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Even though the Poly is scaled for a particular EditWindow,
 	 * its coordinates are in object space, not screen space.
 	 */
-	public Poly computeTextPoly(EditWindow0 wnd, Variable var, Name name)
+	public Poly computeTextPoly(EditWindow0 wnd, Variable.Key varKey)
 	{
 		checkExamine();
 		Poly poly = null;
-		if (var != null)
+		if (varKey != null)
 		{
 			if (this instanceof Export)
 			{
 				Export pp = (Export)this;
-				PortInst pi = pp.getOriginalPort();
-//				Rectangle2D bounds = pi.getPoly().getBounds2D();
-				Rectangle2D bounds = pp.getNamePoly().getBounds2D();
-				TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
-				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-				if (polys.length > 0)
+				if (varKey == Export.EXPORT_NAME)
 				{
-					poly = polys[0];
-//					poly.transform(pi.getNodeInst().rotateOut());
+					poly = pp.getNamePoly();
+				} else
+				{
+					PortInst pi = pp.getOriginalPort();
+					Rectangle2D bounds = pp.getNamePoly().getBounds2D();
+					TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
+					Poly [] polys = pp.getPolyList(pp.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+					if (polys.length > 0)
+					{
+						poly = polys[0];
+//						poly.transform(pi.getNodeInst().rotateOut());
+					}
 				}
 			} else if (this instanceof PortInst)
 			{
 				PortInst pi = (PortInst)this;
 				Rectangle2D bounds = pi.getPoly().getBounds2D();
-				Poly [] polys = pi.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				Poly [] polys = pi.getPolyList(pi.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
 				if (polys.length > 0)
 				{
 					poly = polys[0];
@@ -278,66 +283,31 @@ public abstract class ElectricObject // extends Observable implements Observer
 			} else if (this instanceof Geometric)
 			{
 				Geometric geom = (Geometric)this;
-				double x = geom.getTrueCenterX();
-				double y = geom.getTrueCenterY();
-				if (geom instanceof NodeInst)
+				if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME)
 				{
-					NodeInst ni = (NodeInst)geom;
-					Rectangle2D uBounds = ni.getUntransformedBounds();
-					x = uBounds.getCenterX();
-					y = uBounds.getCenterY();
-				}
-				Poly [] polys = geom.getPolyList(var, x, y, wnd, false);
-				if (polys.length > 0)
-				{
-					poly = polys[0];
+					TextDescriptor td = geom.getTextDescriptor(varKey);
+					Poly.Type style = td.getPos().getPolyType();
+					Point2D [] pointList = null;
+					if (style == Poly.Type.TEXTBOX)
+					{
+						pointList = Poly.makePoints(geom.getBounds());
+					} else
+					{
+						pointList = new Point2D.Double[1];
+						pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
+					}
+					poly = new Poly(pointList);
+					poly.setStyle(style);
 					if (geom instanceof NodeInst)
 					{
-						NodeInst ni = (NodeInst)geom;
-						poly.transform(ni.rotateOut());
+						poly.transform(((NodeInst)geom).rotateOutAboutTrueCenter());
 					}
-				}
-			} else if (this instanceof Cell)
-			{
-				Cell cell = (Cell)this;
-				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
-				if (polys.length > 0) poly = polys[0];
-			}
-		} else
-		{
-			if (name != null)
-			{
-				if (!(this instanceof Geometric)) return null;
-				Geometric geom = (Geometric)this;
-				TextDescriptor td = geom.getTextDescriptor(this instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME);
-				Poly.Type style = td.getPos().getPolyType();
-				Point2D [] pointList = null;
-				if (style == Poly.Type.TEXTBOX)
+					poly.setTextDescriptor(td);
+					if (varKey == NodeInst.NODE_NAME) poly.setString(((NodeInst)geom).getName()); else
+						poly.setString(((ArcInst)geom).getName());
+				} else if (varKey == NodeInst.NODE_PROTO)
 				{
-					pointList = Poly.makePoints(geom.getBounds());
-				} else
-				{
-					pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
-				}
-				poly = new Poly(pointList);
-				poly.setStyle(style);
-				if (geom instanceof NodeInst)
-				{
-					poly.transform(((NodeInst)geom).rotateOutAboutTrueCenter());
-				}
-				poly.setTextDescriptor(td);
-				poly.setString(name.toString());
-			} else
-			{
-				if (this instanceof Export)
-				{
-					Export pp = (Export)this;
-					poly = pp.getNamePoly();
-				} else
-				{
-					// cell instance name
-					if (!(this instanceof NodeInst)) return null;
+					if (!(geom instanceof NodeInst)) return null;
 					NodeInst ni = (NodeInst)this;
 					TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					Poly.Type style = td.getPos().getPolyType();
@@ -354,7 +324,33 @@ public abstract class ElectricObject // extends Observable implements Observer
 					poly.setStyle(style);
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe(false));
+				} else
+				{
+					double x = geom.getTrueCenterX();
+					double y = geom.getTrueCenterY();
+					if (geom instanceof NodeInst)
+					{
+						NodeInst ni = (NodeInst)geom;
+						Rectangle2D uBounds = ni.getUntransformedBounds();
+						x = uBounds.getCenterX();
+						y = uBounds.getCenterY();
+					}
+					Poly [] polys = geom.getPolyList(geom.getVar(varKey), x, y, wnd, false);
+					if (polys.length > 0)
+					{
+						poly = polys[0];
+						if (geom instanceof NodeInst)
+						{
+							NodeInst ni = (NodeInst)geom;
+							poly.transform(ni.rotateOut());
+						}
+					}
 				}
+			} else if (this instanceof Cell)
+			{
+				Cell cell = (Cell)this;
+				Poly [] polys = cell.getPolyList(cell.getVar(varKey), 0, 0, wnd, false);
+				if (polys.length > 0) poly = polys[0];
 			}
 		}
 		if (poly != null)
@@ -376,7 +372,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			if (!var.isDisplay()) continue;
 			TextDescriptor td = var.getTextDescriptor();
 //			if (td.getSize().isAbsolute()) continue;
-			Poly poly = computeTextPoly(wnd, var, null);
+			Poly poly = computeTextPoly(wnd, var.getKey());
 			if (poly == null) continue;
 			Rectangle2D polyBound = poly.getBounds2D();
 			if (bounds == null) bounds = polyBound; else
@@ -389,7 +385,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			Name name = ai.getNameKey();
 			if (!name.isTempname())
 			{
-				Poly poly = computeTextPoly(wnd, null, name);
+				Poly poly = computeTextPoly(wnd, ArcInst.ARC_NAME);
 				if (poly != null)
 				{
 					Rectangle2D polyBound = poly.getBounds2D();
@@ -404,7 +400,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			Name name = ni.getNameKey();
 			if (!name.isTempname())
 			{
-				Poly poly = computeTextPoly(wnd, null, name);
+				Poly poly = computeTextPoly(wnd, NodeInst.NODE_NAME);
 				if (poly != null)
 				{
 					Rectangle2D polyBound = poly.getBounds2D();
@@ -415,7 +411,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
 				Export pp = it.next();
-				Poly poly = pp.computeTextPoly(wnd, null, null);
+				Poly poly = pp.computeTextPoly(wnd, Export.EXPORT_NAME);
 				if (poly != null)
 				{
 					Rectangle2D polyBound = poly.getBounds2D();
@@ -563,7 +559,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 			polys[i].setString(message);
 			polys[i].setStyle(style);
 			polys[i].setTextDescriptor(entryTD);
-			polys[i].setVariable(var);
+			polys[i].setDisplayedText(new DisplayedText(this, var.getKey()));
 			polys[i].setLayer(null);
 			cX -= lineOffX;
 			cY -= lineOffY;

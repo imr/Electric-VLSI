@@ -929,7 +929,13 @@ public class PadGenerator
 //              if (var != null) {
 //                  var.setDisplay(true);
 //              }
-           }
+            }
+
+            // get icon preferences
+    		int exportTech = User.getIconGenExportTech();
+    		boolean drawLeads = User.isIconGenDrawLeads();
+    		int exportStyle = User.getIconGenExportStyle();
+    		int exportLocation = User.getIconGenExportLocation();
 
             // place pins around the Black Box
             int total = 0;
@@ -947,10 +953,11 @@ public class PadGenerator
                 xPos = xBBPos - leadLength;
                 if (leftSide * 2 < rightSide) spacing = leadSpacing * 2;
                 yBBPos = yPos = ySize / 2 - ((ySize - (leftSide - 1) * spacing) / 2 + total * spacing);
-                if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell))
-                    total++;
-            }
 
+                if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell,
+                	exportTech, drawLeads, exportStyle, exportLocation))
+                    	total++;
+            }
             total = 0;
             for (Iterator<Export> it = corePorts.iterator(); it.hasNext();) {
                 Export pp = (Export) it.next();
@@ -969,8 +976,9 @@ public class PadGenerator
                 xPos = xBBPos + leadLength;
                 if (rightSide * 2 < leftSide) spacing = leadSpacing * 2;
                 yBBPos = yPos = ySize / 2 - ((ySize - (rightSide - 1) * spacing) / 2 + total * spacing);
-                if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell))
-                    total++;
+                if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell,
+                    exportTech, drawLeads, exportStyle, exportLocation))
+                    	total++;
             }
 
             // if no body, leads, or cell center is drawn, and there is only 1 export, add more

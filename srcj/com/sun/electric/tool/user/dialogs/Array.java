@@ -407,7 +407,8 @@ public class Array extends EDialog
 //		}
 
 		// create the array
-		ArrayStuff job = new ArrayStuff(nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY);
+		new ArrayStuff(nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY,
+			User.isArcsAutoIncremented());
 	}
 
 	/**
@@ -420,11 +421,12 @@ public class Array extends EDialog
 		private List<Export> exportList;
 		private int xRepeat, yRepeat;
 		private double xOverlap, yOverlap, cX, cY;
+		private boolean arcsAutoIncrement;
 
 		public ArrayStuff() {}
 
 		protected ArrayStuff(List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
-			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY)
+			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
 		{
 			super("Make Array", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nodeList = nodeList;
@@ -436,6 +438,7 @@ public class Array extends EDialog
 			this.yOverlap = yOverlap;
 			this.cX = cX;
 			this.cY = cY;
+			this.arcsAutoIncrement = arcsAutoIncrement;
 			startJob();
 		}
 
@@ -592,7 +595,7 @@ public class Array extends EDialog
 						if (!arcNameKey.isTempname())
 						{
 							String newName = ai.getName();
-							if (User.isArcsAutoIncremented())
+							if (arcsAutoIncrement)
 								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class);
 							newAi.setName(newName);
 							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);

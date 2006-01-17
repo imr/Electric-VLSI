@@ -157,7 +157,7 @@ class AssertionTableModel extends ExportTableModel {
             
         // find what to highlight 
         if (obj instanceof Export) {
-            highlighter.addText((Export)obj, cell, null, null);
+            highlighter.addText((Export)obj, cell, null);
         } else if (obj instanceof Network) {
             highlighter.addNetwork((Network)obj, cell);
         }

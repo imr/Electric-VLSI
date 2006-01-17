@@ -335,7 +335,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	            {
 	                Highlight2 high = wnd.getHighlighter().getHighlights().iterator().next();
 	                ElectricObject eobj = high.getElectricObject();
-	                selectedVar = high.getVar();
 	                if (high.isHighlightEOBJ())
 	                {
 	                    if (eobj instanceof ArcInst)
@@ -352,6 +351,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	                    }
 	                } else if (high.isHighlightText())
 	                {
+	                	selectedVar = eobj.getVar(high.getVarKey());
 	                    if (selectedVar != null)
 	                    {
 	                        if (eobj instanceof NodeInst)
@@ -368,19 +368,15 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	                        {
 	                            selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
 	                        }
-	                    } else if (high.getName() != null)
+	                    } else if (high.getVarKey() == NodeInst.NODE_NAME || high.getVarKey() == NodeInst.NODE_PROTO)
 	                    {
-	                        // node or arc name
-	                        if (eobj instanceof NodeInst)
-	                        {
-	                            // node name
-	                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
-	                        } else if (eobj instanceof ArcInst)
-	                        {
-	                            // arc variable
-	                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
-	                        }
-	                    } else if (eobj instanceof Export)
+                            // node name
+                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+	                    } else if (high.getVarKey() == ArcInst.ARC_NAME)
+	                    {
+                            // arc name
+                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+	                    } else if (high.getVarKey() == Export.EXPORT_NAME)
 	                    {
 	                        selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
 	                    }
@@ -590,8 +586,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      */
     private static class DeleteAttribute extends Job
 	{
-        Variable var;
-        ElectricObject owner;
+        private Variable var;
+        private ElectricObject owner;
 
 		public DeleteAttribute() {}
 
@@ -627,35 +623,29 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             startJob();
         }
 
-        public boolean doIt() throws JobException {
+        public boolean doIt() throws JobException
+        {
             Variable.Key newKey = Variable.newKey(newName);
+
             // check if var of this name already exists on object
-            if (owner.getVar(newKey) != null) {
-                JOptionPane.showMessageDialog(null, "Can't create new attribute "+newName+", already exists",
-                        "Invalid Action", JOptionPane.WARNING_MESSAGE);
-                return false;
-            }
-            // create the attribut
-            // e
+            if (owner.getVar(newKey) != null)
+				throw new JobException("Can't create new attribute "+newName+", already exists");
+
+            // create the attribute
             Variable var = owner.newVar(newKey, newValue);
+
             // if created on a cell, set the parameter and inherits properties
             if (owner instanceof Cell)
                 owner.addVar(var.withParam(true).withInherit(true));
-//            if (owner instanceof Cell) {
-//                Variable var = owner.getVar(newKey);
-//                if (var == null) return false;
-//                var.setParam(true);
-//                var.setInherit(true);
-//            }
             return true;
         }
     }
 
     private static class RenameAttribute extends Job
     {
-        String varName;
-        String newVarName;
-        ElectricObject owner;
+        private String varName;
+        private String newVarName;
+        private ElectricObject owner;
 
 		public RenameAttribute() {}
 
@@ -685,9 +675,9 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      */
     private static class ChangeAttribute extends Job
 	{
-        Variable.Key varKey;
-        ElectricObject owner;
-        Object newValue;
+        private Variable.Key varKey;
+        private ElectricObject owner;
+        private Object newValue;
 
 		public ChangeAttribute() {}
 
@@ -704,21 +694,22 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         {
             // get Variable by name
             Variable var = owner.getVar(varKey);
-            if (var == null) {
-                System.out.println("Could not update Attribute "+varKey+": it does not exist");
-                return false;
-            }
+            if (var == null)
+				throw new JobException("Could not update Attribute " + varKey + ": it does not exist");
 
             // change the Value field if a new Variable is being created or if the value changed
             var = owner.updateVar(varKey, newValue);
-            if (var == null) {
-                System.out.println("Error updating Attribute "+varKey);
-                return false;
-            }
-
-            // queue it for redraw
-            Undo.redrawObject(owner);
+            if (var == null)
+				throw new JobException("Error updating Attribute " + varKey);
             return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+            // queue it for redraw
+        	if (jobException == null)
+        		Undo.redrawObject(owner);
+            super.terminateIt(jobException);
         }
     }
 

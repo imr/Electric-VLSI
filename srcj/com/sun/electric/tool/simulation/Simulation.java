@@ -185,7 +185,7 @@ public class Simulation extends Listener
 	{
 		private Cell cell, originalCell;
 		private int activities;
-		private /*transient*/ Engine prevEngine;
+		private transient Engine prevEngine;
 
     	public DoALSActivity() {}
 

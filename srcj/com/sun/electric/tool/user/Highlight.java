@@ -125,7 +125,8 @@ public class Highlight
 	/** The highlighted object. */								private ElectricObject eobj;
 	/** The Cell containing the selection. */					private Cell cell;
 	/** The highlighted outline point (only for NodeInst). */	private int point;
-	/** The highlighted variable. */							private Variable var;
+//	/** The highlighted variable. */							private Variable var;
+	/** The highlighted variable. */							private Variable.Key varKey;
 	/** The highlighted Name. */								private Name name;
 	/** The highlighted area. */								private Rectangle2D bounds;
 	/** The highlighted line. */								private Point2D pt1, pt2;
@@ -149,7 +150,8 @@ public class Highlight
 		this.eobj = eobj;
 		this.cell = cell;
 		this.point = -1;
-		this.var = null;
+//		this.var = null;
+		this.varKey = null;
 		this.name = null;
 		this.bounds = null;
 		this.pt1 = null;
@@ -266,19 +268,20 @@ public class Highlight
 	protected void setName(Name name) { this.name = name; }
 
 	/**
-	 * Method to return the Variable associated with this Highlight object.
-	 * @return the Variable associated with this Highlight object.
+	 * Method to return the Variable Key associated with this Highlight object.
+	 * @return the Variable Key associated with this Highlight object.
 	 */
-	public Variable getVar() { return var; }
+	public Variable.Key getVarKey() { return varKey; }
 
 	/**
 	 * Method to set the Variable associated with this Highlight object.
 	 * @param var the Variable associated with this Highlight object.
 	 */
-	public void setVar(Variable var) {
+	public void setVar(Variable var)
+	{
         if (var != null && !var.isLinked(eobj))
             System.out.println("Unlinked var " + var + " added to highlight");
-        this.var = var;
+        this.varKey = var.getKey();
     }
 
 	/**
@@ -410,7 +413,7 @@ public class Highlight
                     return (ai.getNameKey() == name);
                 }
             }
-            if (var != null) return eobj != null && var.isLinked(eobj);
+            if (varKey != null) return eobj != null && eobj.getVar(varKey) != null;
             if (eobj != null) return eobj.isLinked();
             return false;
         }
@@ -425,7 +428,7 @@ public class Highlight
     protected Object clone() {
         Highlight h = new Highlight(type, eobj, cell);
         h.point = point;
-        h.var = var;
+        h.varKey = varKey;
         h.name = name;
         h.bounds = bounds;
         h.pt1 = pt1;
@@ -452,7 +455,7 @@ public class Highlight
         }
         if (type == Type.TEXT) {
             return ((eobj == h.getElectricObject()) &&
-                    (var == h.getVar()) &&
+                    (varKey == h.getVarKey()) &&
                     (name == h.getName()));
         }
         if (type == Type.MESSAGE) {
@@ -498,7 +501,7 @@ public class Highlight
 	public boolean nodeMovesWithText()
 	{
 		if (type != Type.TEXT) return false;
-		if (var != null)
+		if (varKey != null)
 		{
 			// moving variable text
 			if (!(eobj instanceof NodeInst)) return false;
@@ -559,7 +562,8 @@ public class Highlight
 		}
 		if (type == Type.TEXT)
 		{
-			Point2D [] points = Highlighter.describeHighlightText(wnd, getElectricObject(), getVar(), getName());
+			ElectricObject eObj = getElectricObject();
+			Point2D [] points = Highlighter.describeHighlightText(wnd, eObj, getVarKey());
 			if (points == null) return;
 			Point2D [] linePoints = new Point2D[2];
 			for(int i=0; i<points.length; i += 2)
@@ -571,7 +575,6 @@ public class Highlight
 			if (onlyHighlight)
 			{
                 // this is the only thing highlighted: show the attached object
-				ElectricObject eObj = getElectricObject();
 				if (eObj != null && eObj instanceof Geometric)
 				{
 					Geometric geom = (Geometric)eObj;
@@ -1036,9 +1039,9 @@ public class Highlight
             }
         }
         else if (type == Type.TEXT) {
-            if (var != null) {
+            if (varKey != null) {
                 desc.append(", var: ");
-                desc.append(var.describe(-1));
+                desc.append(eobj.getVar(varKey).describe(-1));
             }
             if (name != null) {
                 desc.append(", name: ");
@@ -1236,7 +1239,7 @@ public class Highlight
 		{
 			if (eobj != other.getElectricObject()) return false;
 			if (cell != other.getCell()) return false;
-			if (var != other.getVar()) return false;
+			if (varKey != other.getVarKey()) return false;
 			if (name != other.getName()) return false;
 		}
 		return true;

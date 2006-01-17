@@ -89,82 +89,14 @@ import java.util.*;
 /**
  * Class to handle the commands in the debugging pulldown menus.
  */
-public class DebugMenus {
-	private static class FrankJob extends Job
+public class DebugMenus
+{
+	protected static void addDebugMenus(MenuBar menuBar, MenuBar.Menu helpMenu)
 	{
-		protected FrankJob()
-		{
-			super("Make fake circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// read library with test setup
-			Cell lay = WindowFrame.getCurrentCell();
-
-			// find all exports
-			List<Export> aList = new ArrayList<Export>();
-			List<Export> bList = new ArrayList<Export>();
-			for(Iterator<PortProto> it = lay.getPorts(); it.hasNext(); )
-			{
-				Export e = (Export)it.next();
-				if (e.getName().startsWith("a")) aList.add(e);
-				if (e.getName().startsWith("b")) bList.add(e);
-			}
-
-			for(Iterator<Export> it = aList.iterator(); it.hasNext(); )
-			{
-				Export e = (Export)it.next();
-				PortInst pi = e.getOriginalPort();
-				Poly poly = pi.getPoly();
-				double x = poly.getCenterX();
-				double y = poly.getCenterY();
-
-				// figure out the layer
-				ArcProto [] possibilities = pi.getPortProto().getBasePort().getConnections();
-				ArcProto desired = possibilities[0];
-				ArcProto.Function fun = desired.getFunction();
-				if (!fun.isMetal()) System.out.println("HEY, not metal");
-				int level = fun.getLevel();
-				ArcProto.Function nextFun = ArcProto.Function.getMetal(level+1);
-				ArcProto nextLevel = null;
-				for(Iterator<ArcProto> tIt = desired.getTechnology().getArcs(); tIt.hasNext(); )
-				{
-					ArcProto other = (ArcProto)tIt.next();
-					if (other.getFunction() == nextFun) { nextLevel = other;   break; }
-				}
-				PrimitiveNode pinType = desired.findPinProto();
-
-				// find contact between desired and nextLevel
-				PrimitiveNode contact = null;
-				for(Iterator<PrimitiveNode> cIt = desired.getTechnology().getNodes(); cIt.hasNext(); )
-				{
-					PrimitiveNode np = (PrimitiveNode)cIt.next();
-					if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
-					PrimitivePort pp = (PrimitivePort)np.getPort(0);
-					if (pp.connectsTo(desired) && pp.connectsTo(nextLevel)) { contact = np;   break; }
-				}
-
-				// make pin 10 lower
-				NodeInst pin = NodeInst.makeInstance(contact, new Point2D.Double(x, y-10), contact.getDefWidth(), contact.getDefHeight(), lay);
-
-				// run arc to it
-				ArcInst arc = ArcInst.makeInstance(desired, desired.getDefaultWidth(), pi, pin.getOnlyPortInst());
-
-				System.out.println("'A' export: " + e.getName()+" at ("+x+","+y+")");
-			}
-            return true;
-        }
-	}
-
-	protected static void addDebugMenus(MenuBar menuBar, MenuBar.Menu helpMenu) {
         MenuBar.MenuItem m;
 
 		/****************************** ADDITIONS TO THE HELP MENU ******************************/
 
-//		helpMenu.addMenuItem("Frank's code", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { new FrankJob(); } });
 		helpMenu.addSeparator();
 
 		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
@@ -379,9 +311,12 @@ public class DebugMenus {
         if (asJob)
         {
             MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
+        } else
+        {
+            Cell myCell = MakeFakeCircuitry.doItInternal(tech);
+            if (!Job.BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
         }
-        else
-            MakeFakeCircuitry.doItInternal(tech);
 	}
 
 	/**
@@ -390,6 +325,7 @@ public class DebugMenus {
 	private static class MakeFakeCircuitry extends Job
 	{
 		private String theTechnology;
+		private Cell myCell;
 
         public MakeFakeCircuitry() {}
 
@@ -402,7 +338,20 @@ public class DebugMenus {
 
 		public boolean doIt() throws JobException
 		{
-            return (doItInternal(theTechnology));
+            myCell = doItInternal(theTechnology);
+			fieldVariableChanged("myCell");
+            return true;
+        }
+
+        public void terminateIt(Throwable jobException)
+        {
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
+
+			// display a cell
+            if (!BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
+            super.terminateIt(jobException);
         }
 
         /**
@@ -410,19 +359,16 @@ public class DebugMenus {
          * @param technology
          * @return
          */
-		private static boolean doItInternal(String technology)
+		private static Cell doItInternal(String technology)
 		{
 			// get information about the nodes
-			Technology  tech = Technology.findTechnology(technology);
-
+			Technology tech = Technology.findTechnology(technology);
 			if (tech == null)
 			{
 				System.out.println("Technology not found in MakeFakeCircuitry");
-				return (false);
+				return null;
 			}
 			tech.setCurrent();
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
 
 			StringBuffer polyName = new StringBuffer("Polysilicon");
 			String lateral = "top";
@@ -459,7 +405,7 @@ public class DebugMenus {
 			NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), myCell);
 			NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), myCell, Orientation.fromAngle(3150), "rotated", 0);
 			if (metal12Via == null || contactNode == null || metal2Pin == null || poly1PinA == null ||
-				poly1PinB == null || transistor == null || rotTrans == null) return false;
+				poly1PinB == null || transistor == null || rotTrans == null) return myCell;
 
 			// make arcs to connect them
 			PortInst m1m2Port = metal12Via.getOnlyPortInst();
@@ -474,18 +420,18 @@ public class DebugMenus {
             // Old style
             if (transRPortR == null) transRPortR = rotTrans.findPortInst("n-trans-poly-" + lateral);
 			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
-			if (metal2Arc == null) return false;
+			if (metal2Arc == null) return myCell;
 			metal2Arc.setRigid(true);
 			ArcInst metal1Arc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port);
-			if (metal1Arc == null) return false;
+			if (metal1Arc == null) return myCell;
 			ArcInst polyArc1 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB);
-			if (polyArc1 == null) return false;
+			if (polyArc1 == null) return myCell;
 			ArcInst polyArc3 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA);
-			if (polyArc3 == null) return false;
+			if (polyArc3 == null) return myCell;
 			ArcInst polyArc2 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA);
-			if (polyArc2 == null) return false;
+			if (polyArc2 == null) return myCell;
 			ArcInst polyArc4 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB);
-			if (polyArc4 == null) return false;
+			if (polyArc4 == null) return myCell;
 			// export the two pins
 			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
 			m1Export.setCharacteristic(PortCharacteristic.IN);
@@ -555,11 +501,7 @@ public class DebugMenus {
 				}
 			}
 			System.out.println("Created " + bigCell);
-
-			// display a cell
-            if (!BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-			return true;
+			return myCell;
 		}
 	}
 
@@ -571,12 +513,17 @@ public class DebugMenus {
             FakeCoverageCircuitry job = new FakeCoverageCircuitry(tech);
         }
         else
-            FakeCoverageCircuitry.doItInternal(tech);
+        {
+            Cell myCell = FakeCoverageCircuitry.doItInternal(tech);
+            if (!Job.BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
+        }
 	}
 
     private static class FakeCoverageCircuitry extends Job
     {
         private String theTechnology;
+        private Cell myCell;
 
         public FakeCoverageCircuitry() {}
 
@@ -589,22 +536,31 @@ public class DebugMenus {
 
         public boolean doIt() throws JobException
         {
-            return (doItInternal(theTechnology));
+            myCell = doItInternal(theTechnology);
+			fieldVariableChanged("myCell");
+            return true;
         }
 
-        private static boolean doItInternal(String technology)
+        public void terminateIt(Throwable jobException)
+        {
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
+			// display a cell
+            if (!BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
+            super.terminateIt(jobException);
+        }
+
+        private static Cell doItInternal(String technology)
 		{
 			// get information about the nodes
-			Technology  tech = Technology.findTechnology(technology);
-
+			Technology tech = Technology.findTechnology(technology);
 			if (tech == null)
 			{
 				System.out.println("Technology not found in createCoverageTestCells");
-				return (false);
+				return null;
 			}
 			tech.setCurrent();
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
 
 			NodeProto m1NodeProto = Cell.findNodeProto(technology+":Metal-1-Node");
             NodeProto m2NodeProto = Cell.findNodeProto(technology+":Metal-2-Node");
@@ -649,10 +605,7 @@ public class DebugMenus {
             }
 			System.out.println("Created " + higherCell);
 
-			// display a cell
-            if (!BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-            return (true);
+            return myCell;
 		}
     }
 
@@ -1462,8 +1415,6 @@ public class DebugMenus {
 
         public boolean doIt() throws JobException {
             long startTime = System.currentTimeMillis();
-
-            EditWindow wnd = EditWindow.getCurrent();
             for (int i=0; i<100; i++) {
                 if (getScheduledToAbort()) return false;
                 //wnd.redrawTestOnly();

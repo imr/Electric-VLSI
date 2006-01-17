@@ -4292,7 +4292,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			errorCount += ni.checkAndRepair(repair, list, errorLogger);
 		}
         if (repair && list.size() > 0)
-        	CircuitChangeJobs.eraseObjectsInList(this, list);
+        {
+        	CircuitChangeJobs.eraseObjectsInList(this, list, false);
+        }
 		return errorCount;
 	}
 

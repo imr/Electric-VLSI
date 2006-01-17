@@ -109,59 +109,51 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			NodeInst ni = null;
 			if (owner instanceof NodeInst)
 			{
-				ni = (NodeInst) owner;
+				ni = (NodeInst)owner;
 			}
-			var = shownText.getVar();
-			if (var != null)
+			varKey = shownText.getVarKey();
+			if (varKey != null)
 			{
-				if (ni != null && ni.isInvisiblePinWithText() && var.getKey() == Artwork.ART_MESSAGE)
+				if (ni != null && ni.isInvisiblePinWithText() && varKey == Artwork.ART_MESSAGE)
 					multiLineCapable = true;
-				varKey = var.getKey();
-				Object obj = var.getObject();
-				if (obj instanceof Object[])
+				var = owner.getVar(varKey);
+				if (var != null)
 				{
-					// unwind the array elements by hand
-					Object[] theArray = (Object[]) obj;
-					initialText = "";
-					for (int i = 0; i < theArray.length; i++)
+					Object obj = var.getObject();
+					if (obj instanceof Object[])
 					{
-						if (i != 0) initialText += "\n";
-						initialText += theArray[i];
-					}
-					multiLineCapable = true;
-				} else
-				{
-					initialText = var.getPureValue(-1);
-				}
-				description = var.getFullDescription(owner);
-			} else
-			{
-				if (shownText.getName() != null)
-				{
-					if (owner instanceof Geometric)
-					{
-						Geometric geom = (Geometric) owner;
-						if (geom instanceof NodeInst)
+						// unwind the array elements by hand
+						Object[] theArray = (Object[]) obj;
+						initialText = "";
+						for (int i = 0; i < theArray.length; i++)
 						{
-							NodeInst ni1 = (NodeInst)geom;
-							description = "Name of " + ni1.getProto();
-							varKey = NodeInst.NODE_NAME;
-                            initialText = ni1.getName();
-						} else
-						{
-							ArcInst ai = (ArcInst)geom;
-							description = "Name of " + ai.getProto();
-							varKey = ArcInst.ARC_NAME;
-                            initialText = ai.getName();
+							if (i != 0) initialText += "\n";
+							initialText += theArray[i];
 						}
+						multiLineCapable = true;
+					} else
+					{
+						initialText = var.getPureValue(-1);
 					}
-				} else if (owner instanceof NodeInst)
+					description = var.getFullDescription(owner);
+				} else if (varKey == NodeInst.NODE_NAME)
+				{
+					description = "Name of " + ni.getProto();
+					varKey = NodeInst.NODE_NAME;
+                    initialText = ni.getName();
+				} else if (varKey == ArcInst.ARC_NAME)
+				{
+					ArcInst ai = (ArcInst)owner;
+					description = "Name of " + ai.getProto();
+					varKey = ArcInst.ARC_NAME;
+                    initialText = ai.getName();
+				} else if (varKey == NodeInst.NODE_PROTO)
 				{
 					description = "Name of cell instance " + ni.describe(true);
 					varKey = NodeInst.NODE_PROTO;
 					initialText = ni.getProto().describe(true);
 					instanceName = true;
-				} else if (owner instanceof Export)
+				} else if (varKey == Export.EXPORT_NAME)
 				{
 					Export pp = (Export)owner;
 					description = "Name of export " + pp.getName();
@@ -239,7 +231,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 //         if (cti != null)
 //         {
 // 	        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-// 	            Undo.Change change = (Undo.Change)it.next();
+// 	            Undo.Change change = it.next();
 // 	            ElectricObject obj = change.getObject();
 // 	            if (obj == cti.owner) {
 // 	                reload = true;
@@ -270,11 +262,10 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         Highlight2 textHighlight = null;
         int textCount = 0;
         if (wnd != null) {
-            for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-                Highlight2 h = it.next();
+            for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
                 if (!h.isHighlightText()) continue;
                 // ignore export text
-                if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
+                if (h.getVarKey() == Export.EXPORT_NAME) continue;
                 textHighlight = h;
                 textCount++;
             }
@@ -317,7 +308,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         // if multiline text, make it a TextArea, otherwise it's a TextField
         if (cti.initialText.indexOf('\n') != -1) {
             // if this is the name of an object it should not be multiline
-            if (cti.var == null && cti.shownText != null && cti.shownText.getName() != null) {
+            if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
                 multiLine.setEnabled(false);
                 multiLine.setSelected(false);
             } else {
@@ -326,7 +317,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             }
         } else {
             // if this is the name of an object it should not be multiline
-            if (cti.var == null && cti.shownText != null && cti.shownText.getName() != null) {
+            if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
                 multiLine.setEnabled(false);
             } else {
                 multiLine.setEnabled(true);
@@ -367,7 +358,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         super(parent, modal);
         initComponents();
         getRootPane().setDefaultButton(ok);
-//        setLocation(100, 50);
 
         Undo.addDatabaseChangeListener(this);
 
@@ -389,9 +379,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		// must have a single text selected
 		Highlight2 theHigh = null;
 		int textCount = 0;
-		for (Iterator<Highlight2> it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
+		for (Highlight2 h : curWnd.getHighlighter().getHighlights())
 		{
-			Highlight2 h = it.next();
 			if (!h.isHighlightText()) continue;
 			theHigh = h;
 			textCount++;
@@ -415,7 +404,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			showDialog();
 			return;
 		}
-		Point2D [] points = Highlighter.describeHighlightText(curWnd, cti.owner, cti.var, cti.shownText.getName());
+		Point2D [] points = Highlighter.describeHighlightText(curWnd, cti.owner, cti.varKey);
 		int lowX=0, highX=0, lowY=0, highY=0;
 		for(int i=0; i<points.length; i++)
 		{
@@ -585,7 +574,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				if (textArray.length > 0)
 				{
 					// generate job to change text
-					ChangeText job = new ChangeText(cti, textArray);
+		            boolean isName = cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME;
+					new ChangeText(cti.owner, cti.varKey, textArray, isName);
 				}
 			}
 		}
@@ -621,44 +611,48 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	}
 
     private static class ChangeText extends Job {
-		CachedTextInfo cti;
-        String[] newText;
+		private ElectricObject owner;
+		private Variable.Key key;
+		private String[] newText;
+		private boolean isName;
 
 		public ChangeText() {}
 
-        protected ChangeText(CachedTextInfo cti, String[] newText) {
+		private ChangeText(ElectricObject owner, Variable.Key key, String[] newText, boolean isName) {
             super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cti = cti;
+            this.owner = owner;
+            this.key = key;
             this.newText = newText;
+            this.isName = isName;
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-            if (cti.var != null)
+            if (key != null)
             {
                 Variable newVar = null;
                 if (newText.length > 1)
                 {
-                    newVar = cti.owner.updateVar(cti.var.getKey(), newText);
+                    newVar = owner.updateVar(key, newText);
                 } else
                 {
                     // change variable
-                    newVar = cti.owner.updateVar(cti.var.getKey(), newText[0]);
+                    newVar = owner.updateVar(key, newText[0]);
                 }
-                if (newVar != null)
-					cti.shownText.setVar(newVar);
+//                if (newVar != null)
+//					cti.shownText.setVar(newVar);
             } else
             {
-                if (cti.owner instanceof NodeInst) {
-                    if (cti.shownText.getName() != null)
-                        ((NodeInst)cti.owner).setName(newText[0]);
-                } else if (cti.owner instanceof ArcInst) {
-                    if (cti.shownText.getName() != null)
-                        ((ArcInst)cti.owner).setName(newText[0]);
-                } else if (cti.owner instanceof Export)
+                if (owner instanceof NodeInst) {
+                    if (isName)
+                        ((NodeInst)owner).setName(newText[0]);
+                } else if (owner instanceof ArcInst) {
+                    if (isName)
+                        ((ArcInst)owner).setName(newText[0]);
+                } else if (owner instanceof Export)
                 {
-                	Export pp = (Export)cti.owner;
+                	Export pp = (Export)owner;
 					pp.rename(newText[0]);
                 }
             }
@@ -926,7 +920,8 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
             if (textArray.length > 0) {
                 // generate job to change text
-                ChangeText job = new ChangeText(cti, textArray);
+	            boolean isName = cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME;
+                new ChangeText(cti.owner, cti.varKey, textArray, isName);
 				cti.initialText = currentText;
             }
         }

@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -185,7 +186,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            newlocY = point.getY();
 
 	            // create export in icon
-	            if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon))
+	    		int exportTech = User.getIconGenExportTech();
+	    		boolean drawLeads = User.isIconGenDrawLeads();
+	    		int exportStyle = User.getIconGenExportStyle();
+	    		int exportLocation = User.getIconGenExportLocation();
+	            if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon,
+	            		exportTech, drawLeads, exportStyle, exportLocation))
 	            {
 	                System.out.println("Warning: Failed to create associated export in icon "+icon.describe(true));
 	            }
@@ -483,6 +489,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		poly.setPort(this);
 		poly.setString(getName());
 		poly.setTextDescriptor(td);
+		poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
 		return poly;
 	}
 

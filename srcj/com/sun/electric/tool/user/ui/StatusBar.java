@@ -423,23 +423,24 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             }
         } else if (h.isHighlightText())
         {
-            if (h.getVar() != null)
-            {
-                return "TEXT: " + h.getVar().getFullDescription(h.getElectricObject());
-            } else
-            {
-                if (h.getName() != null)
-                {
-                    if (h.getElectricObject() instanceof NodeInst)
-                        return "TEXT: Node name "+h.getName().toString(); else
-                            return "TEXT: Arc name "+h.getName().toString();
-                } else
-                {
-                    if (h.getElectricObject() instanceof Export)
-                        return "TEXT: Export name "+((Export)h.getElectricObject()).getName(); else
-                            return "TEXT: Cell instance name ";
-                }
-            }
+        	return h.describe();
+//            if (h.getVar() != null)
+//            {
+//                return "TEXT: " + h.getVar().getFullDescription(h.getElectricObject());
+//            } else
+//            {
+//                if (h.getName() != null)
+//                {
+//                    if (h.getElectricObject() instanceof NodeInst)
+//                        return "TEXT: Node name "+h.getName().toString(); else
+//                            return "TEXT: Arc name "+h.getName().toString();
+//                } else
+//                {
+//                    if (h.getElectricObject() instanceof Export)
+//                        return "TEXT: Export name "+((Export)h.getElectricObject()).getName(); else
+//                            return "TEXT: Cell instance name ";
+//                }
+//            }
         }
         return null;
     }

@@ -212,6 +212,7 @@ public class View implements Comparable<View>
 	 */
 	public void kill()
 	{
+		System.out.println("Cannot delete views");
 // 		// cannot delete the permanent views (created at initialization)
 // 		if (isPermanentView()) return;
 // 

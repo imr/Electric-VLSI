@@ -154,7 +154,7 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs == 1)
 		{
 			ArcInst ai = lastActivity.createdArcs[0];
-			MimicStitchJob job = new MimicStitchJob(ai.getHead(), ai.getTail(), ai.getWidth(), ai.getProto(), 0, 0, forced, wnd);
+			new MimicStitchJob(ai, 0, ai, 1, ai.getWidth(), ai.getProto(), 0, 0, forced);
 			lastActivity.numCreatedArcs = 0;
 			return;
 		}
@@ -230,7 +230,8 @@ public class MimicStitch
 					prefY = (lastActivity.createdNodes[0].getAnchorCenterY() +
 						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 - (y0+y1) / 2;
 				}
-				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, null, prefX, prefY, forced, wnd);
+				new MimicStitchJob(ends[0].getArc(), ends[0].getEndIndex(), ends[1].getArc(), ends[1].getEndIndex(),
+					width, null, prefX, prefY, forced);
 			}
 			lastActivity.numCreatedArcs = 0;
 			return;
@@ -334,7 +335,7 @@ public class MimicStitch
 		boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
 		boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 		boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
-		processPossibilities(cell, arcKills, 0, 0, wnd, Job.Type.EXAMINE, true,
+		processPossibilities(cell, arcKills, 0, 0, Job.Type.EXAMINE, true,
 			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 	}
 
@@ -343,27 +344,29 @@ public class MimicStitch
 	 */
 	private static class MimicStitchJob extends Job
 	{
+		private ArcInst ai1, ai2;
+		private int end1, end2;
 		private Connection conn1, conn2;
 		private double oWidth;
 		private ArcProto oProto;
 		private double prefX, prefY;
 		private boolean forced;
-		private EditWindow_ wnd;
 
 		public MimicStitchJob() {}
 
-		private MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
-								double prefX, double prefY, boolean forced, EditWindow_ wnd)
+		private MimicStitchJob(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
+								double prefX, double prefY, boolean forced)
 		{
 			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.conn1 = conn1;
-			this.conn2 = conn2;
+			this.ai1 = ai1;
+			this.end1 = end1;
+			this.ai2 = ai2;
+			this.end2 = end2;
 			this.oWidth = oWidth;
 			this.oProto = oProto;
 			this.prefX = prefX;
 			this.prefY = prefY;
 			this.forced = forced;
-			this.wnd = wnd;
 			setReportExecutionFlag(true);
 			startJob();
 		}
@@ -378,7 +381,7 @@ public class MimicStitch
 			boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 
-			mimicOneArc(conn1, conn2, oWidth, oProto, prefX, prefY, forced, wnd, Job.Type.EXAMINE,
+			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.EXAMINE,
 				mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 			return true;
 		}
@@ -394,7 +397,6 @@ public class MimicStitch
 	 * @param prefX the preferred X position of the mimic (if there is a choice).
 	 * @param prefY the preferred Y position of the mimic (if there is a choice).
 	 * @param forced true if this was an explicitly requested mimic.
-	 * @param highlighter the highlighter to use for highlighting the results.
 	 * @param method the type of job that is running (CHANGE or EXAMINE).
 	 * @param mimicInteractive true to run interactively.
 	 * @param matchPorts true to require port types to match.
@@ -403,13 +405,15 @@ public class MimicStitch
 	 * @param matchNodeSize true to require the node sizes to match.
 	 * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
 	 */
-	public static void mimicOneArc(Connection conn1, Connection conn2, double oWidth, ArcProto oProto, double prefX, double prefY,
-			boolean forced, EditWindow_ wnd, Job.Type method,
-			boolean mimicInteractive, boolean matchPorts, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+	public static void mimicOneArc(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
+		double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
+		boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
 	{
 		if (forced) System.out.println("Mimicing last arc...");
 
 		PortInst [] endPi = new PortInst[2];
+		Connection conn1 = ai1.getConnection(end1);
+		Connection conn2 = ai2.getConnection(end2);
 		endPi[0] = conn1.getPortInst();   endPi[1] = conn2.getPortInst();
 		Point2D [] endPts = new Point2D[2];
 		endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
@@ -696,18 +700,18 @@ public class MimicStitch
 		}
 
 		// now create the mimiced arcs
-		processPossibilities(cell, possibleArcs, prefX, prefY, wnd, method, forced,
+		processPossibilities(cell, possibleArcs, prefX, prefY, method, forced,
 			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 	}
 	
-	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY, EditWindow_ wnd,
+	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY,
 		Job.Type method, boolean forced, boolean mimicInteractive,
 		boolean matchPorts, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
 	{
 		if (mimicInteractive)
 		{
 			// do this in a separate thread so that this examine job can finish
-			MimicInteractive task = new MimicInteractive(cell, possibleArcs, prefX, prefY, wnd);
+			MimicInteractive task = new MimicInteractive(cell, possibleArcs, prefX, prefY);
 			SwingUtilities.invokeLater(task);
 			return;
 		}
@@ -763,11 +767,11 @@ public class MimicStitch
 			if (method == Job.Type.EXAMINE)
 			{
 				// since this is an examine job, queue a change job to make the wires
-				MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, false);
+				MimicWireJob job = new MimicWireJob(allRoutes, allKills, false);
 			} else
 			{
 				// since this is a change job, do the wires now
-				runTheWires(allRoutes, wnd, false);
+				runTheWires(allRoutes, false);
 			}
 			count += total;
 		}
@@ -798,13 +802,15 @@ public class MimicStitch
 		}
 	}
 
-	private static void runTheWires(List<Route> allRoutes, EditWindow_ wnd, boolean redisplay)
+	private static void runTheWires(List<Route> allRoutes, boolean redisplay)
 	{
 		// create the routes
 		for (Route route : allRoutes)
 		{
 			RouteElement re = (RouteElement)route.get(0);
 			Cell c = re.getCell();
+			UserInterface ui = Main.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			Router.createRouteNoJob(route, c, false, false, wnd);
 		}
 		if (redisplay)
@@ -821,17 +827,15 @@ public class MimicStitch
 	{
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
-		private EditWindow_ wnd;
 		private boolean redisplay;
 
 		public MimicWireJob() {}
 
-		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, EditWindow_ wnd, boolean redisplay)
+		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, boolean redisplay)
 		{
 			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.allRoutes = allRoutes;
 			this.allKills = allKills;
-			this.wnd = wnd;
 			this.redisplay = redisplay;
 			startJob();
 		}
@@ -841,7 +845,7 @@ public class MimicStitch
 			if (allRoutes.size() > 0)
 			{
 				// create the routes
-				runTheWires(allRoutes, wnd, redisplay);
+				runTheWires(allRoutes, redisplay);
 			} else
 			{
 				// delete the arcs
@@ -884,21 +888,19 @@ public class MimicStitch
 		private Cell cell;
 		private List<PossibleArc> possibleArcs;
 		private double prefX, prefY;
-		private EditWindow_ wnd;
 
-		private MimicInteractive(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY, EditWindow_ wnd)
+		private MimicInteractive(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY)
 	    {
 	    	this.cell = cell;
 	    	this.possibleArcs = possibleArcs;
 	    	this.prefX = prefX;
 	    	this.prefY = prefY;
-	    	this.wnd = wnd;
 	    }
 
 	    public void run()
 	    {
 			// interactive mode: show paths before creating arcs
-	    	presentNextSituation(0, 0, possibleArcs, cell, wnd, prefX, prefY);
+	    	presentNextSituation(0, 0, possibleArcs, cell, prefX, prefY);
 	    }
 	}
 
@@ -913,7 +915,7 @@ public class MimicStitch
 	 * @param prefY preferred Y coordinate when arcs bend.
 	 */
 	private static void presentNextSituation(int count, int situationNumber, List<PossibleArc> possibleArcs,
-		Cell cell, EditWindow_ wnd, double prefX, double prefY)
+		Cell cell, double prefX, double prefY)
 	{
 		// find the next situation
  		for(int j=situationNumber; j<situations.length; j++)
@@ -952,6 +954,8 @@ public class MimicStitch
 			if (total == 0) continue;
 
 			// save what is highlighted
+			UserInterface ui = Main.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			List<Object> saveHighlights = wnd.saveHighlightList();
 
 			// show the wires to be created/deleted
@@ -979,7 +983,7 @@ public class MimicStitch
 			wnd.finishedHighlighting();
 
 			// ask if the user wants to do it
-			MimicDialog md = new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
+			new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
 			return;
 		}
  
@@ -1085,9 +1089,9 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, true);
+			MimicWireJob job = new MimicWireJob(allRoutes, allKills, true);
 			count += allRoutes.size() + allKills.size();
-			presentNextSituation(count, situations.length, possibleArcs, cell, wnd, prefX, prefY);
+			presentNextSituation(count, situations.length, possibleArcs, cell, prefX, prefY);
 
 			setVisible(false);
 			dispose();
@@ -1099,7 +1103,7 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			presentNextSituation(count, situations.length, possibleArcs, cell, wnd, prefX, prefY);
+			presentNextSituation(count, situations.length, possibleArcs, cell, prefX, prefY);
 
 			setVisible(false);
 			dispose();
@@ -1111,9 +1115,9 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, allKills, wnd, true);
+			MimicWireJob job = new MimicWireJob(allRoutes, allKills, true);
 			count += allRoutes.size() + allKills.size();
-			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, wnd, prefX, prefY);
+			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, prefX, prefY);
 
 			setVisible(false);
 			dispose();
@@ -1125,7 +1129,7 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, wnd, prefX, prefY);
+			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, prefX, prefY);
 
 			setVisible(false);
 			dispose();

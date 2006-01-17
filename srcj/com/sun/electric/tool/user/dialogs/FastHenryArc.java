@@ -286,10 +286,6 @@ public class FastHenryArc extends EDialog
     			if (!newGroupName.equals(fha.initialGroupName))
     			{
     				Variable var = fha.ai.newDisplayVar(FastHenry.GROUP_NAME_KEY, newGroupName);
-//    				if (var != null)
-//    				{
-//    					var.setDisplay(true);
-//    				}
        			}
 
     			// update variables

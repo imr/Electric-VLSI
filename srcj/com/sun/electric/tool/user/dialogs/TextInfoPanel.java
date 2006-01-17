@@ -100,7 +100,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // populate Anchor combo box
         for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); ) {
-            TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
+            TextDescriptor.Position pos = it.next();
             textAnchor.addItem(pos);
         }
 
@@ -522,13 +522,18 @@ public class TextInfoPanel extends javax.swing.JPanel
         }
 
         // changes made: generate job and update initial values
+        Integer absSize = null;
+        Double relSize = null;
+        if (newSize.isAbsolute()) absSize = new Integer((int)newSize.getSize()); else
+        	relSize = new Double(newSize.getSize());
         ChangeText job = new ChangeText(
                 owner,
 				unTransformNi,
                 varKey,
-                newSize,
-                newPosition, newBoxedWidth, newBoxedHeight,
-                newRotation,
+                absSize, relSize,
+                newPosition.getIndex(),
+                newBoxedWidth, newBoxedHeight,
+                newRotation.getIndex(),
                 (String)font.getSelectedItem(),
                 currentXOffset, currentYOffset,
                 newItalic, newBold, newUnderlined, newInvis, newColorIndex);
@@ -556,10 +561,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         private ElectricObject owner;
         private NodeInst unTransformNi;
         private Variable.Key varKey;
-        private TextDescriptor.Size size;
-        private TextDescriptor.Position position;
+        private Integer absSize;
+        private Double relSize;
+        private int position;
         private double boxedWidth, boxedHeight;
-        private TextDescriptor.Rotation rotation;
+        private int rotation;
         private String font;
         private double xoffset, yoffset;
         private boolean italic, bold, underline, invis;
@@ -571,9 +577,10 @@ public class TextInfoPanel extends javax.swing.JPanel
                 ElectricObject owner,
 				NodeInst unTransformNi,
                 Variable.Key varKey,
-                TextDescriptor.Size size,
-                TextDescriptor.Position position, double boxedWidth, double boxedHeight,
-                TextDescriptor.Rotation rotation,
+                Integer absSize, Double relSize,
+                int position,
+                double boxedWidth, double boxedHeight,
+                int rotation,
                 String font,
                 double xoffset, double yoffset,
                 boolean italic, boolean bold, boolean underline, boolean invis, int newColorIndex
@@ -583,7 +590,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             this.owner = owner;
             this.unTransformNi = unTransformNi;
             this.varKey = varKey;
-            this.size = size;
+            this.absSize = absSize;
+            this.relSize = relSize;
             this.position = position;
             this.boxedWidth = boxedWidth;
             this.boxedHeight = boxedHeight;
@@ -597,44 +605,40 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         public boolean doIt() throws JobException
         {
-            // if td is null, use future var name to look up var and get td
-//             if (td == null) {
-//                 Variable var = owner.getVar(futureVar);
-//                 if (var == null) return false;                // var doesn't exist, failed
-//                 td = var.getTextDescriptor();           // use TextDescriptor from new var
-//             }
 			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
 			if (td == null) return false;
 
             // handle changes to the size
-            if (size.isAbsolute())
-                td.setAbsSize((int)size.getSize());
+            if (absSize != null)
+                td.setAbsSize(absSize.intValue());
             else
-                td.setRelSize(size.getSize());
+                td.setRelSize(relSize.doubleValue());
 
             // handle changes to the text corner
-            td.setPos(position);
-            if (owner instanceof NodeInst) {
+            TextDescriptor.Position realPos = TextDescriptor.Position.getPositionAt(position);
+            td.setPos(realPos);
+            if (owner instanceof NodeInst)
+            {
                 NodeInst ni = (NodeInst)owner;
-                if (position == TextDescriptor.Position.BOXED) {
+                if (realPos == TextDescriptor.Position.BOXED)
+                {
                     // set the boxed size
                     ni.resize(boxedWidth-ni.getXSize(), boxedHeight-ni.getYSize());
-//                    ni.modifyInstance(0, 0, boxedWidth-ni.getXSize(),
-//                            boxedHeight-ni.getYSize(), 0);
-//                } else {
+
                     // make invisible pin zero size if no longer boxed
-                    if (ni.getProto() == Generic.tech.invisiblePinNode) {
-                        if (ni.getXSize() != 0 || ni.getYSize() != 0) {
+                    if (ni.getProto() == Generic.tech.invisiblePinNode)
+                    {
+                        if (ni.getXSize() != 0 || ni.getYSize() != 0)
+                        {
                             // no longer boxed: make it zero size
                             ni.resize(-ni.getXSize(), -ni.getYSize());
-//                            ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
                         }
                     }
                 }
             }
 
             // handle changes to the rotation
-            td.setRotation(rotation);
+            td.setRotation(TextDescriptor.Rotation.getRotationAt(rotation));
 
             // handle changes to the offset
 			NodeInst ni = null;
@@ -668,28 +672,6 @@ public class TextInfoPanel extends javax.swing.JPanel
 				}
                 td.setOff(xoffset, yoffset);
 			}
-
-//			if (owner instanceof NodeInst) {
-//                NodeInst ni = (NodeInst)owner;
-//                if (ni.getProto() == Generic.tech.invisiblePinNode) {
-//                    double dX = xoffset - ni.getAnchorCenterX();
-//                    double dY = yoffset - ni.getAnchorCenterY();
-//                    ni.move(dX, dY);
-//                } else
-//                {
-//                	td.setOff(xoffset, yoffset);
-//                }
-//            } else {
-//            	if (unTransformNi != null)
-//            	{
-//            		Point2D off = new Point2D.Double(xoffset, yoffset);
-//            		AffineTransform trans = unTransformNi.pureRotateIn();
-//            		trans.transform(off, off);
-//            		xoffset = off.getX();
-//            		yoffset = off.getY();
-//            	}
-//                td.setOff(xoffset, yoffset);
-//            }
 
             // handle changes to "invisible outside cell"
             td.setInterior(invis);

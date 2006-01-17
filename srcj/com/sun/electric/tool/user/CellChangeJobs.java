@@ -686,13 +686,15 @@ public class CellChangeJobs
 	public static class ExtractCellInstances extends Job
 	{
         private List<NodeInst> nodes;
+        private boolean copyExports;
 
 		public ExtractCellInstances() {}
 
-        public ExtractCellInstances(List<NodeInst> highlighted)
+        public ExtractCellInstances(List<NodeInst> highlighted, boolean copyExports)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.nodes = highlighted;
+            this.copyExports = copyExports;
 			startJob();
 		}
 
@@ -704,7 +706,7 @@ public class CellChangeJobs
 				NodeProto np = ni.getProto();
 				if (!(np instanceof Cell)) continue;
 				foundInstance = true;
-				extractOneNode(ni);
+				extractOneNode(ni, copyExports);
 			}
 			if (!foundInstance)
 			{
@@ -715,7 +717,7 @@ public class CellChangeJobs
 		}
 	}
 
-	private static void extractOneNode(NodeInst topno)
+	private static void extractOneNode(NodeInst topno, boolean copyExports)
 	{
 		// make transformation matrix for this cell
 		Cell cell = topno.getParent();
@@ -857,7 +859,7 @@ public class CellChangeJobs
 		}
 
 		// copy the exports if requested
-		if (User.isExtractCopiesExports())
+		if (copyExports)
 		{
 			// initialize for queueing creation of new exports
 			for(Iterator<Export> it = subCell.getExports(); it.hasNext(); )

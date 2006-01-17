@@ -38,9 +38,9 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
@@ -51,7 +51,10 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -93,7 +96,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private boolean swapXY;
     private AttributesTable attributesTable;
     private EditWindow wnd;
-    private boolean changingValues = false;;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
@@ -168,7 +170,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 //         // check if we care about the changes
 //         boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = (Undo.Change)it.next();
+//             Undo.Change change = it.next();
 //             ElectricObject obj = change.getObject();
 //             if (obj == shownNode || obj == shownPort) {
 //                 reload = true;
@@ -782,16 +784,62 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	private static class ChangeNode extends Job
 	{
-		NodeInst ni;
-		GetInfoNode dialog;
+		private NodeInst ni;
+		private double initialXPos, initialYPos, currentXPos, currentYPos;
+		private String initialXSize, initialYSize, currentXSize, currentYSize;
+		private boolean initialMirrorX, initialMirrorY, currentMirrorX, currentMirrorY;
+		private int initialRotation, currentRotation;
+		private int initialPopupIndex, currentPopupIndex;
+		private boolean initialEasyToSelect, currentEasyToSelect;
+		private boolean initialInvisibleOutsideCell, currentInvisibleOutsideCell;
+		private boolean initialLocked, currentLocked;
+		private boolean initialExpansion, currentExpansion;
+		private String initialName, currentName;
+		private String initialTextField, currentTextField;
+		private String initialPopupEntry, currentPopupEntry;
+		private boolean bigger;
+		private boolean scalableTrans;
+		private boolean swapXY;
 
 		public ChangeNode() {}
 
-		protected ChangeNode(NodeInst ni, GetInfoNode dialog)
+		public ChangeNode(NodeInst ni,
+			double initialXPos, double currentXPos, double initialYPos, double currentYPos,
+			String initialXSize, String currentXSize, String initialYSize, String currentYSize,
+			boolean initialMirrorX, boolean currentMirrorX, boolean initialMirrorY, boolean currentMirrorY,
+			int initialRotation, int currentRotation,
+			int initialPopupIndex, int currentPopupIndex,
+			boolean initialEasyToSelect, boolean currentEasyToSelect,
+			boolean initialInvisibleOutsideCell, boolean currentInvisibleOutsideCell,
+			boolean initialLocked, boolean currentLocked,
+			boolean initialExpansion, boolean currentExpansion,
+			String initialName, String currentName,
+			String initialTextField, String currentTextField,
+			String initialPopupEntry, String currentPopupEntry,
+			boolean bigger,
+			boolean scalableTrans,
+			boolean swapXY)
 		{
 			super("Modify Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
-			this.dialog = dialog;
+			this.initialXPos = initialXPos;                                   this.currentXPos = currentXPos;
+			this.initialYPos = initialYPos;                                   this.currentYPos = currentYPos;
+			this.initialXSize = initialXSize;                                 this.currentXSize = currentXSize;
+			this.initialYSize = initialYSize;                                 this.currentYSize = currentYSize;
+			this.initialMirrorX = initialMirrorX;                             this.currentMirrorX = currentMirrorX;
+			this.initialMirrorY = initialMirrorY;                             this.currentMirrorY = currentMirrorY;
+			this.initialRotation = initialRotation;                           this.currentRotation = currentRotation;
+			this.initialPopupIndex = initialPopupIndex;                       this.currentPopupIndex = currentPopupIndex;
+			this.initialEasyToSelect = initialEasyToSelect;                   this.currentEasyToSelect = currentEasyToSelect;
+			this.initialInvisibleOutsideCell = initialInvisibleOutsideCell;   this.currentInvisibleOutsideCell = currentInvisibleOutsideCell;
+			this.initialLocked = initialLocked;                               this.currentLocked = currentLocked;
+			this.initialExpansion = initialExpansion;                         this.currentExpansion = currentExpansion;
+			this.initialName = initialName;                                   this.currentName = currentName;
+			this.initialTextField = initialTextField;                         this.currentTextField = currentTextField;
+			this.initialPopupEntry = initialPopupEntry;                       this.currentPopupEntry = currentPopupEntry;
+			this.bigger = bigger;
+			this.scalableTrans = scalableTrans;
+			this.swapXY = swapXY;
 			startJob();
 		}
 
@@ -800,11 +848,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			boolean changed = false;
 			NodeProto np = ni.getProto();
 
-			dialog.changingValues = true;
-			String currentName = dialog.name.getText().trim();
-			if (!currentName.equals(dialog.initialName))
+			if (!currentName.equals(initialName))
 			{
-				dialog.initialName = new String(currentName);
 				if (currentName.length() == 0) currentName = null;
 				ni.setName(currentName);
 				changed = true;
@@ -812,56 +857,46 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 			if (np instanceof Cell)
 			{
-				boolean currentExpansion = dialog.expanded.isSelected();
-				if (currentExpansion != dialog.initialExpansion)
+				if (currentExpansion != initialExpansion)
 				{
 					if (currentExpansion) ni.setExpanded(); else
 						ni.clearExpanded();
-					dialog.initialExpansion = currentExpansion;
 					changed = true;
 				}
 			}
 
-			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();
-			if (currentEasyToSelect != dialog.initialEasyToSelect)
+			if (currentEasyToSelect != initialEasyToSelect)
 			{
 				if (currentEasyToSelect) ni.clearHardSelect(); else
 					ni.setHardSelect();
-				dialog.initialEasyToSelect = currentEasyToSelect;
 			}
 
-			boolean currentInvisibleOutsideCell = dialog.invisibleOutsideCell.isSelected();
-			if (currentInvisibleOutsideCell != dialog.initialInvisibleOutsideCell)
+			if (currentInvisibleOutsideCell != initialInvisibleOutsideCell)
 			{
 				if (currentInvisibleOutsideCell) ni.setVisInside(); else
 					ni.clearVisInside();
-				dialog.initialInvisibleOutsideCell = currentInvisibleOutsideCell;
 				changed = true;
 			}
 
-			boolean currentLocked = dialog.locked.isSelected();
-			if (currentLocked != dialog.initialLocked)
+			if (currentLocked != initialLocked)
 			{
 				if (currentLocked) ni.setLocked(); else
 					ni.clearLocked();
-				dialog.initialLocked = currentLocked;
 			}
 
             // handle special node information
-			if (dialog.scalableTrans)
+			if (scalableTrans)
 			{
-				int index = dialog.popup.getSelectedIndex();
-				if (index != dialog.initialPopupIndex)
+				if (currentPopupIndex != initialPopupIndex)
 				{
-					int numContacts = 2 - (index / 2);
-					boolean inset = (index&1) != 0;
+					int numContacts = 2 - (currentPopupIndex / 2);
+					boolean inset = (currentPopupIndex&1) != 0;
 					String contactInfo = String.valueOf(numContacts);
 					if (inset) contactInfo += "i";
 					ni.newVar(MoCMOS.TRANS_CONTACT, contactInfo);
 				}
 
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					double width = TextUtils.atof(currentTextField);
 					Variable oldVar = ni.getVar(Schematics.ATTR_WIDTH);
@@ -869,91 +904,68 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					if (var != null && oldVar == null)
 					{
                         ni.addVar(var.withDisplay(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE));
-//						var.setDisplay(true);
-//						var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					}
-					dialog.initialTextField = currentTextField;
 				}
 			}
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_DIODE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
-			if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
+			if (fun.isResistor())
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_RESISTANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
-			if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+			if (fun.isCapacitor())
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_CAPACITANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
 			if (fun == PrimitiveNode.Function.INDUCT)
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_INDUCTANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
 			if (np == Schematics.tech.bboxNode)
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_FUNCTION, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
 			if (np == Schematics.tech.globalNode)
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
-//					if (var != null) var.setDisplay(true);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 
-				String currentCharacteristic = (String)dialog.popup.getSelectedItem();
-				if (!currentCharacteristic.equals(dialog.initialPopupEntry))
+				if (!currentPopupEntry.equals(initialPopupEntry))
 				{
-					PortCharacteristic ch = PortCharacteristic.findCharacteristic(currentCharacteristic);
+					PortCharacteristic ch = PortCharacteristic.findCharacteristic(currentPopupEntry);
 					ni.setTechSpecific(ch.getBits());
-					dialog.initialPopupEntry = currentCharacteristic;
 					changed = true;
 				}
 			}
@@ -961,8 +973,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			// load the degrees of a circle if appropriate
 			if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
 			{
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
+				if (!currentTextField.equals(initialTextField))
 				{
 					double start = 0;
 					double curvature = TextUtils.atof(currentTextField) * Math.PI / 180.0;
@@ -973,52 +984,49 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 						curvature = TextUtils.atof(currentTextField.substring(slashPos+1)) * Math.PI / 180.0;
 					}
 					ni.setArcDegrees(start, curvature);
-					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
 			}
 
 			SizeOffset so = ni.getSizeOffset();
-			double currentXPos = TextUtils.atof(dialog.xPos.getText(), new Double(dialog.initialXPos));
-			double currentYPos = TextUtils.atof(dialog.yPos.getText(), new Double(dialog.initialYPos));
-			double currentXSize = 0, currentYSize = 0;
             double initXSize = 0, initYSize = 0;
+    		double currXSize, currYSize;
 
             // Figure out change in X and Y size
             // if swapXY, X size was put in Y text box, and vice versa.
-            if (dialog.swapXY)
+            if (swapXY)
             {
                 // get true size minus offset (this is the size the user sees)
-                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
-                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
-                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentXSize));
-                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentYSize));
+                currXSize = TextUtils.atof(currentYSize, new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
+                currYSize = TextUtils.atof(currentXSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                initXSize = TextUtils.atof(initialYSize, new Double(currXSize));
+                initYSize = TextUtils.atof(initialXSize, new Double(currYSize));
                 // bloat by offset
-                currentXSize += (so.getLowXOffset() + so.getHighXOffset());
-                currentYSize += (so.getLowYOffset() + so.getHighYOffset());
+                currXSize += (so.getLowXOffset() + so.getHighXOffset());
+                currYSize += (so.getLowYOffset() + so.getHighYOffset());
                 initXSize += (so.getLowXOffset() + so.getHighXOffset());
                 initYSize += (so.getLowYOffset() + so.getHighYOffset());
                 // mirror
-				if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
-				if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
-				if (dialog.initialMirrorX) initYSize = -initYSize;
-				if (dialog.initialMirrorY) initXSize = -initXSize;
+				if (currentMirrorX) currYSize = -currYSize;
+				if (currentMirrorY) currXSize = -currXSize;
+				if (initialMirrorX) initYSize = -initYSize;
+				if (initialMirrorY) initXSize = -initXSize;
             } else
             {
-                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
-                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
-                initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize));
-                initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize));
+                currXSize = TextUtils.atof(currentXSize, new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
+                currYSize = TextUtils.atof(currentYSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                initXSize = TextUtils.atof(initialXSize, new Double(currXSize));
+                initYSize = TextUtils.atof(initialYSize, new Double(currYSize));
                 // bloat by offset
-                currentXSize += (so.getLowXOffset() + so.getHighXOffset());
-                currentYSize += (so.getLowYOffset() + so.getHighYOffset());
+                currXSize += (so.getLowXOffset() + so.getHighXOffset());
+                currYSize += (so.getLowYOffset() + so.getHighYOffset());
                 initXSize += (so.getLowXOffset() + so.getHighXOffset());
                 initYSize += (so.getLowYOffset() + so.getHighYOffset());
                 // mirror
-                if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-                if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-				if (dialog.initialMirrorX) initXSize = -initXSize;
-				if (dialog.initialMirrorY) initYSize = -initYSize;
+                if (currentMirrorX) currXSize = -currXSize;
+                if (currentMirrorY) currYSize = -currYSize;
+				if (initialMirrorX) initXSize = -initXSize;
+				if (initialMirrorY) initYSize = -initYSize;
             }
 
             // The following code is specific for transistors, and uses the X/Y size fields for
@@ -1029,24 +1037,24 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             {
                 // see if this is a schematic transistor
                 if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node ||
-                        np == Schematics.tech.resistorNode)
+                    np == Schematics.tech.resistorNode)
                 {
-                        Object width, length;
+                    Object width, length;
                     if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
 					{
                         // see if we can convert width and length to a Number
-                        double w = TextUtils.atof(dialog.xSize.getText(), null);
+                        double w = TextUtils.atof(currentXSize, null);
                         if (w == 0) {
                             // set width to whatever text is there
-                            width = dialog.xSize.getText();
+                            width = currentXSize;
                         } else {
                             width = new Double(w);
                         }
 
-                        double l = TextUtils.atof(dialog.ySize.getText(), null);
+                        double l = TextUtils.atof(currentYSize, null);
                         if (l == 0) {
                             // set length to whatever text is there
-                            length = dialog.ySize.getText();
+                            length = currentYSize;
                         } else {
                             length = new Double(l);
                         }
@@ -1058,15 +1066,15 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                     if (ni.isSerpentineTransistor()) {
                         // serpentine transistors can only set length
                         double initialLength = ni.getSerpentineTransistorLength();
-                        double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
+                        double length = TextUtils.atof(currentYSize, new Double(initialLength));
                         if (length != initialLength)
                             ni.setSerpentineTransistorLength(length);
                     } else {
                         // set length and width by node size for layout transistors
                         double initialWidth = size.getDoubleWidth();
                         double initialLength = size.getDoubleLength();
-                        double width = TextUtils.atof(dialog.xSize.getText(), new Double(initialWidth));
-                        double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
+                        double width = TextUtils.atof(currentXSize, new Double(initialWidth));
+                        double length = TextUtils.atof(currentYSize, new Double(initialLength));
                         if (!DBMath.doublesEqual(width, initialWidth) ||
                             !DBMath.doublesEqual(length, initialLength))
                         {
@@ -1076,48 +1084,35 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                     }
                 }
                 // ignore size change, but retain mirroring change (sign)
-                currentXSize = initXSize = ni.getXSize();
-                currentYSize = initYSize = ni.getYSize();
-                if (dialog.swapXY) {
-                    if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
-                    if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
-                    if (dialog.initialMirrorX) initYSize = -initYSize;
-                    if (dialog.initialMirrorY) initXSize = -initXSize;
+                currXSize = initXSize = ni.getXSize();
+                currYSize = initYSize = ni.getYSize();
+                if (swapXY) {
+                    if (currentMirrorX) currYSize = -currYSize;
+                    if (currentMirrorY) currXSize = -currXSize;
+                    if (initialMirrorX) initYSize = -initYSize;
+                    if (initialMirrorY) initXSize = -initXSize;
                 } else {
-                    if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-                    if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-                    if (dialog.initialMirrorX) initXSize = -initXSize;
-                    if (dialog.initialMirrorY) initYSize = -initYSize;
+                    if (currentMirrorX) currXSize = -currXSize;
+                    if (currentMirrorY) currYSize = -currYSize;
+                    if (initialMirrorX) initXSize = -initXSize;
+                    if (initialMirrorY) initYSize = -initYSize;
                 }
             }
 
-			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
-			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
-				!DBMath.doublesEqual(currentYPos, dialog.initialYPos) ||
-				!DBMath.doublesEqual(currentXSize, initXSize) ||
-				!DBMath.doublesEqual(currentYSize, initYSize) ||
-				currentRotation != dialog.initialRotation || changed)
+			if (!DBMath.doublesEqual(currentXPos, initialXPos) ||
+				!DBMath.doublesEqual(currentYPos, initialYPos) ||
+				!DBMath.doublesEqual(currXSize, initXSize) ||
+				!DBMath.doublesEqual(currYSize, initYSize) ||
+				currentRotation != initialRotation || changed)
 			{
                 Orientation orient = Orientation.fromJava(currentRotation,
-                        currentXSize < 0 || currentXSize == 0 && 1/currentXSize < 0,
-                        currentYSize < 0 || currentYSize == 0 && 1/currentYSize < 0);
+                        currXSize < 0 || currXSize == 0 && 1/currXSize < 0,
+                        currYSize < 0 || currYSize == 0 && 1/currYSize < 0);
                 orient = orient.concatenate(ni.getOrient().inverse());
-				ni.modifyInstance(DBMath.round(currentXPos - dialog.initialXPos), DBMath.round(currentYPos - dialog.initialYPos),
-					DBMath.round(Math.abs(currentXSize) - Math.abs(initXSize)),
-                    DBMath.round(Math.abs(currentYSize) - Math.abs(initYSize)), orient);
-//				ni.modifyInstance(DBMath.round(currentXPos - dialog.initialXPos), DBMath.round(currentYPos - dialog.initialYPos),
-//					DBMath.round(currentXSize - initXSize), DBMath.round(currentYSize - initYSize),
-//					currentRotation - dialog.initialRotation);
-				dialog.initialXPos = currentXPos;
-				dialog.initialYPos = currentYPos;
-				dialog.initialXSize = dialog.xSize.getText();
-				dialog.initialYSize = dialog.ySize.getText();
-				dialog.initialMirrorX = dialog.mirrorX.isSelected();
-				dialog.initialMirrorY = dialog.mirrorY.isSelected();
-				dialog.initialRotation = currentRotation;
+				ni.modifyInstance(DBMath.round(currentXPos - initialXPos), DBMath.round(currentYPos - initialYPos),
+					DBMath.round(Math.abs(currXSize) - Math.abs(initXSize)),
+                    DBMath.round(Math.abs(currYSize) - Math.abs(initYSize)), orient);
 			}
-
-			dialog.changingValues = false;
 
 			return true;
 		}
@@ -1653,8 +1648,43 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
 		if (shownNode == null) return;
-		ChangeNode job = new ChangeNode(shownNode, this);
+
+		double currentXPos = TextUtils.atof(xPos.getText(), new Double(initialXPos));
+		double currentYPos = TextUtils.atof(yPos.getText(), new Double(initialYPos));
+		int currentRotation = (int)(TextUtils.atof(rotation.getText(), new Double(initialRotation)) * 10);
+
+		new ChangeNode(shownNode,
+			initialXPos, currentXPos, initialYPos, currentYPos,
+			initialXSize, xSize.getText(), initialYSize, ySize.getText(),
+			initialMirrorX, mirrorX.isSelected(), initialMirrorY, mirrorY.isSelected(),
+			initialRotation, currentRotation,
+			initialPopupIndex, popup.getSelectedIndex(),
+			initialEasyToSelect, easyToSelect.isSelected(),
+			initialInvisibleOutsideCell, invisibleOutsideCell.isSelected(),
+			initialLocked, locked.isSelected(),
+			initialExpansion, expanded.isSelected(),
+			initialName, name.getText().trim(),
+			initialTextField, textField.getText(),
+			initialPopupEntry, (String)popup.getSelectedItem(),
+			bigger,
+			scalableTrans,
+			swapXY);
         attributesTable.applyChanges();
+
+		initialName = name.getText().trim();
+		initialExpansion = expanded.isSelected();
+		initialEasyToSelect = easyToSelect.isSelected();
+		initialInvisibleOutsideCell = invisibleOutsideCell.isSelected();
+		initialLocked = locked.isSelected();
+		initialTextField = textField.getText();
+		initialPopupEntry = (String)popup.getSelectedItem();
+		initialXPos = currentXPos;
+		initialYPos = currentYPos;
+		initialXSize = xSize.getText();
+		initialYSize = ySize.getText();
+		initialMirrorX = mirrorX.isSelected();
+		initialMirrorY = mirrorY.isSelected();
+		initialRotation = currentRotation;
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed

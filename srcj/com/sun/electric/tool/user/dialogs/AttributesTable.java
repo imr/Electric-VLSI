@@ -311,8 +311,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             vars.clear();
             varsToDelete.clear();
             // sort by name
-            for (Iterator<Variable> it = variables.iterator(); it.hasNext(); ) {
-                Variable var = (Variable)it.next();                 // do cast here to catch source of non-var in list
+            for (Variable var : variables) {
                 vars.add(new VarEntry(owner, var));
             }
             Collections.sort(vars, new VarEntrySort());
@@ -421,8 +420,62 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         /**
          * Apply all new/delete/duplicate/modify changes
          */
-        public void applyChanges() {
-            ApplyChanges job = new ApplyChanges(new ArrayList<VarEntry>(vars), new ArrayList<VarEntry>(varsToDelete));
+        public void applyChanges()
+        {
+        	// prepare information about deleted attributes
+        	List<Variable.Key> deleteTheseVars = new ArrayList<Variable.Key>();
+        	ElectricObject owner = null;
+            for (VarEntry ve : varsToDelete)
+            {
+                Variable var = ve.var;
+                if (var == null) continue;
+                owner = ve.getOwner();
+                deleteTheseVars.add(var.getKey());
+            }
+
+            // prepare information about new and modified attributes
+        	List<Variable.Key> createKey = new ArrayList<Variable.Key>();
+        	List<Object> createValue = new ArrayList<Object>();
+        	List<Boolean> createNew = new ArrayList<Boolean>();
+        	List<Boolean> createDisplay = new ArrayList<Boolean>();
+        	List<Integer> createCode = new ArrayList<Integer>();
+        	List<Integer> createDispPos = new ArrayList<Integer>();
+        	List<Integer> createUnits = new ArrayList<Integer>();
+
+            for(VarEntry ve : vars)
+            {
+                Variable var = ve.var;
+                owner = ve.getOwner();
+                Variable.Key newKey = null;
+                Object newValue = ve.getObject();
+                boolean newCreate = false;
+                boolean newDisplay = ve.isDisplay();
+                int newCode = ve.getCode().getCFlags();
+                int newDispPos = ve.getDispPos().getIndex();
+                int newUnits = ve.getUnits().getIndex();
+
+                if (var == null)
+                {
+                    // this is a new var
+                	newCreate = true;
+                    String name = ve.getName();
+                    if (!name.startsWith("ATTR_") && !name.startsWith("ATTRP_"))
+                        name = "ATTR_"+name;
+                    newKey = Variable.newKey(name);
+                } else
+                {
+                    if (!ve.isChanged()) continue;
+                    newKey = ve.getKey();
+                }
+            	createKey.add(newKey);
+            	createValue.add(newValue);
+            	createNew.add(new Boolean(newCreate));
+            	createDisplay.add(new Boolean(newDisplay));
+            	createCode.add(new Integer(newCode));
+            	createDispPos.add(new Integer(newDispPos));
+            	createUnits.add(new Integer(newUnits));
+            }
+            new ApplyChanges(owner, createKey, createValue, createNew, createDisplay, createCode, createDispPos, createUnits, deleteTheseVars);
         }
 
         /**
@@ -439,8 +492,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             while (nameConflict) {
                 nameConflict = false;
                 i++;
-                for (Iterator<VarEntry> it = vars.iterator(); it.hasNext(); ) {
-                    VarEntry ve = (VarEntry)it.next();
+                for (VarEntry ve : vars) {
                     if (newName.equals(ve.getName())) {
                         nameConflict = true;
                         newName = name + "_" + i;
@@ -451,60 +503,81 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             return newName;
         }
 
-        private static class ApplyChanges extends Job {
-            private List<VarEntry> varEntries;
-            private List<VarEntry> varEntriesToDelete;
+        private static class ApplyChanges extends Job
+        {
+        	private ElectricObject owner;
+            private List<Variable.Key> createKey;
+            private List<Object> createValue;
+            private List<Boolean> createNew;
+            private List<Boolean> createDisplay;
+            private List<Integer> createCode;
+            private List<Integer> createDispPos;
+            private List<Integer> createUnits;
+            private List<Variable.Key> varsToDelete;
 
     		public ApplyChanges() {}
 
-            private ApplyChanges(List<VarEntry> varEntries, List<VarEntry> varEntriesToDelete) {
+            private ApplyChanges(ElectricObject owner,
+            	List<Variable.Key> createKey,
+	            List<Object> createValue,
+	            List<Boolean> createNew,
+	            List<Boolean> createDisplay,
+	            List<Integer> createCode,
+	            List<Integer> createDispPos,
+	            List<Integer> createUnits,
+	            List<Variable.Key> varsToDelete)
+            {
                 super("Apply Attribute Changes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-                this.varEntries = varEntries;
-                this.varEntriesToDelete = varEntriesToDelete;
+                this.owner = owner;
+                this.createKey = createKey;
+                this.createValue = createValue;
+                this.createNew = createNew;
+                this.createDisplay = createDisplay;
+                this.createCode = createCode;
+                this.createDispPos = createDispPos;
+                this.createUnits = createUnits;
+                this.varsToDelete = varsToDelete;
                 startJob();
             }
 
-            public boolean doIt() throws JobException {
-                // delete vars first
-                for (Iterator<VarEntry> it = varEntriesToDelete.iterator(); it.hasNext(); ) {
-                    VarEntry ve = (VarEntry)it.next();
-                    Variable var = ve.var;
-                    if (var == null) continue;
-                    ElectricObject owner = ve.getOwner();
-                    owner.delVar(var.getKey());
+            public boolean doIt() throws JobException
+            {
+                // delete variables first
+                for (Variable.Key key : varsToDelete)
+                {
+                    owner.delVar(key);
                 }
 
-                for (Iterator<VarEntry> it = varEntries.iterator(); it.hasNext(); ) {
-                    VarEntry ve = (VarEntry)it.next();
-                    Variable var = ve.var;
-                    ElectricObject owner = ve.getOwner();
+                // now create new and update existing variables
+                for(int i=0; i<createKey.size(); i++)
+                {
+                	Variable.Key key = createKey.get(i);
+                	Object obj = createValue.get(i);
+                	boolean makeNew = createNew.get(i).booleanValue();
+                	boolean display = createDisplay.get(i).booleanValue();
+                	TextDescriptor.Code code = TextDescriptor.Code.getByCBits(createCode.get(i).intValue());
+                	TextDescriptor.DispPos dispPos = TextDescriptor.DispPos.getShowStylesAt(createDispPos.get(i).intValue());
+                	TextDescriptor.Unit units = TextDescriptor.Unit.getUnitAt(createUnits.get(i).intValue());
+
                     Variable newVar = null;
-
-                    if (var == null) {
-                        // this is a new var
-                        String name = ve.getName();
-                        if (!name.startsWith("ATTR_") && !name.startsWith("ATTRP_")) {
-                            name = "ATTR_"+name;
-                        }
-
-                        newVar = owner.newVar(name, ve.getObject());
-                        ve.var = newVar;
-                    } else {
-                        if (!ve.isChanged()) continue;
-                        // update var
-                        newVar = owner.updateVar(ve.getKey(), ve.getObject());
-                        ve.var = newVar;
+                    if (makeNew)
+                    {
+                        // this is a new variable
+                        newVar = owner.newVar(key, obj);
+//                        ve.var = newVar;
+                    } else
+                    {
+                        // update variable
+                        newVar = owner.updateVar(key, obj);
+//                        ve.var = newVar;
                     }
 
-                    if (newVar != null) {
+                    if (newVar != null)
+                    {
                         // set/update properties
                         TextDescriptor td = newVar.getTextDescriptor();
-                        td = td.withDisplay(ve.isDisplay()).withCode(ve.getCode()).withDispPart(ve.getDispPos()).withUnit(ve.getUnits());
+                        td = td.withDisplay(display).withCode(code).withDispPart(dispPos).withUnit(units);
                         owner.setTextDescriptor(newVar.getKey(), td);
-//                        newVar.setCode(ve.getCode());
-//                        newVar.setDispPart(ve.getDispPos());
-//                        newVar.setUnit(ve.getUnits());
-//                        newVar.setDisplay(ve.isDisplay());
                     }
                 }
                 return true;
@@ -754,7 +827,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             List<Variable> vars = new ArrayList<Variable>();
             for (Iterator<Variable> it = eobj.getVariables(); it.hasNext(); ) {
                 // only add attributes
-                Variable var = (Variable)it.next();
+                Variable var = it.next();
                 if (var.isAttribute())
                     vars.add(var);
             }

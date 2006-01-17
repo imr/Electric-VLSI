@@ -120,7 +120,7 @@ public class HighlightTools {
             if (! net.hasName(name)) continue;
             for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
                 Export exp = (Export)it2.next();
-                highlighter.addText(exp, cell, null, null);
+                highlighter.addText(exp, cell, null);
             }
         }
     }
@@ -152,7 +152,7 @@ public class HighlightTools {
                 highlighter.addNetwork(net, cell);
                 for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
                     Export exp = (Export)it2.next();
-                    highlighter.addText(exp, cell, null, null);
+                    highlighter.addText(exp, cell, null);
                 }
             }
         }

@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 
@@ -80,7 +81,7 @@ public class AnnularRing extends EDialog
 	}
 
     /** Creates new form AnnularRing */
-	private AnnularRing(java.awt.Frame parent, boolean modal, Cell cell)
+	private AnnularRing(Frame parent, boolean modal, Cell cell)
     {
 		super(parent, modal);
 		this.cell = cell;
@@ -119,7 +120,16 @@ public class AnnularRing extends EDialog
 	private void makeRing()
 	{
 		cacheValues();
-		MakeAnnulus job = new MakeAnnulus(this);
+		if (lastSegments < 4) lastSegments = 4;
+		if (lastDegrees <= 0) lastDegrees = 360;
+		if (lastDegrees > 360) lastDegrees = 360;
+		int degrees = lastDegrees * 10;
+
+		// figure out what node to use
+		String nodeName = (String)layerJList.getSelectedValue();
+		PrimitiveNode np = Technology.getCurrent().findNodeProto(nodeName);
+		if (np == null) return;
+		MakeAnnulus job = new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter);
 	}
 
 	/**
@@ -127,50 +137,48 @@ public class AnnularRing extends EDialog
 	 */
 	private static class MakeAnnulus extends Job
 	{
-		AnnularRing dialog;
+		private Cell cell;
+		private PrimitiveNode np;
+		private int segments, degrees;
+		private double inner, outer;
 
 		public MakeAnnulus() {}
 
-		protected MakeAnnulus(AnnularRing dialog)
+		protected MakeAnnulus(Cell cell, PrimitiveNode np, int segments, int degrees, double inner, double outer)
 		{
 			super("Make Annular Ring", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.cell = cell;
+			this.np = np;
+			this.segments = segments;
+			this.degrees = degrees;
+			this.inner = inner;
+			this.outer = outer;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			if (lastSegments < 4) lastSegments = 4;
-			if (lastDegrees <= 0) lastDegrees = 360;
-			if (lastDegrees > 360) lastDegrees = 360;
-			int degrees = lastDegrees * 10;
-
-			// figure out what node to use
-			String nodeName = (String)dialog.layerJList.getSelectedValue();
-			PrimitiveNode np = Technology.getCurrent().findNodeProto(nodeName);
-			if (np == null) return false;
-
 			// allocate space for the trace
-			int numSegments = lastSegments + 1;
-			if (lastInner > 0) numSegments *= 2;
+			int numSegments = segments + 1;
+			if (inner > 0) numSegments *= 2;
 			EPoint [] points = new EPoint[numSegments];
 	
 			int l = 0;
-			if (lastInner > 0)
+			if (inner > 0)
 			{
-				for(int i=0; i<=lastSegments; i++)
+				for(int i=0; i<=segments; i++)
 				{
-					int p = degrees * i / lastSegments;
-					double x = lastInner * DBMath.cos(p);
-					double y = lastInner * DBMath.sin(p);
+					int p = degrees * i / segments;
+					double x = inner * DBMath.cos(p);
+					double y = inner * DBMath.sin(p);
 					points[l++] = new EPoint(x, y);
 				}
 			}
-			for(int i=lastSegments; i>=0; i--)
+			for(int i=segments; i>=0; i--)
 			{
-				int p = degrees*i/lastSegments;
-				double x = lastOuter * DBMath.cos(p);
-				double y = lastOuter * DBMath.sin(p);
+				int p = degrees*i/segments;
+				double x = outer * DBMath.cos(p);
+				double y = outer * DBMath.sin(p);
 				points[l++] = new EPoint(x, y);
 			}
 			double lX = points[0].getX();
@@ -192,7 +200,7 @@ public class AnnularRing extends EDialog
 			double sY = hY - lY;
 
 			Point2D center = new Point2D.Double(0, 0);
-			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, dialog.cell);
+			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, cell);
 			ni.newVar(NodeInst.TRACE, points);
 			return true;
 		}

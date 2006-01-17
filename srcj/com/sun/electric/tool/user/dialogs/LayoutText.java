@@ -27,8 +27,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -36,9 +36,10 @@ import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
@@ -61,7 +62,7 @@ public class LayoutText extends EDialog
 	private static String lastMessage = null;
 
 	/** Creates new form Layout Text */
-	public LayoutText(java.awt.Frame parent, boolean modal)
+	public LayoutText(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -77,7 +78,7 @@ public class LayoutText extends EDialog
 
 		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np.getFunction() == PrimitiveNode.Function.NODE)
 				textLayer.addItem(np.getName());
 		}
@@ -128,50 +129,6 @@ public class LayoutText extends EDialog
 		Font theFont = new Font(fontName, fontStyle, size);
 		if (theFont != null)
 			textMessage.setFont(theFont);
-	}
-
-	/*
-	 * Houtine to convert the text in "msg" to bits on the display.
-	 */
-	private void makeLayoutText(String layer, int tsize, double scale, String font, boolean italic,
-		boolean bold, boolean underline, double separation, String msg)
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-
-		// determine the primitive to use for the layout
-		String nodeName = (String)textLayer.getSelectedItem();
-		NodeProto primNode = Technology.getCurrent().findNodeProto(nodeName);
-		if (primNode == null)
-		{
-			System.out.println("Cannot find " + nodeName + " primitive");
-			return;
-		}
-
-		// get the raster
-		int yOffset = 0;
-		String [] strings = msg.split("\n");
-		for(int i=0; i<strings.length; i++)
-		{
-			String str = strings[i];
-			Raster ras = PixelDrawing.renderText(str, font, tsize, italic, bold, underline, -1, -1);
-			if (ras == null) return;
-			DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
-			byte [] samples = dbb.getData();
-			int samp = 0;
-			for(int y=0; y<ras.getHeight(); y++)
-			{
-				for(int x=0; x<ras.getWidth(); x++)
-				{
-					if (samples[samp++] == 0) continue;
-					Point2D center = new Point2D.Double(x*scale, -(y+yOffset)*scale);
-					double wid = scale - separation;
-					double hei = scale - separation;
-					NodeInst ni = NodeInst.newInstance(primNode, center, wid, hei, curCell);
-				}
-			}
-			yOffset += ras.getHeight();
-		}
 	}
 
 	/** This method is called from within the constructor to
@@ -385,8 +342,34 @@ public class LayoutText extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		// create the cell
-		CreateLayoutText job = new CreateLayoutText(this);
+		grabDialogValues();
+
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+		// determine the primitive to use for the layout
+		NodeProto primNode = Technology.getCurrent().findNodeProto(lastLayer);
+		if (primNode == null)
+		{
+			System.out.println("Cannot find " + lastLayer + " primitive");
+			return;
+		}
+
+		// get the raster
+		int yOffset = 0;
+		String [] strings = lastMessage.split("\n");
+		for(int i=0; i<strings.length; i++)
+		{
+			String str = strings[i];
+			Raster ras = PixelDrawing.renderText(str, lastFont, lastSize, lastItalic, lastBold, lastUnderline, -1, -1);
+			if (ras == null) return;
+			DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
+			byte [] samples = dbb.getData();
+			// create the layout text
+			new CreateLayoutText(curCell, primNode, lastScale, lastSeparation, ras.getWidth(), ras.getHeight(), yOffset, samples);
+			yOffset += ras.getHeight();
+		}
+
 
 		closeDialog(null);
 	}//GEN-LAST:event_ok
@@ -417,23 +400,50 @@ public class LayoutText extends EDialog
 	 */
 	private static class CreateLayoutText extends Job
 	{
-		LayoutText dialog;
+		private Cell curCell;
+		private NodeProto primNode;
+		private double lastScale;
+		private double lastSeparation;
+		private int wid, hei, yOffset;
+		private byte [] samples;
 
 		public CreateLayoutText() {}
 
-		protected CreateLayoutText(LayoutText dialog)
+		protected CreateLayoutText(
+			Cell curCell,
+			NodeProto primNode,
+			double lastScale,
+			double lastSeparation,
+			int wid, int hei,
+			int yOffset,
+			byte [] samples)
 		{
 			super("Create Layout Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.curCell = curCell;
+			this.primNode = primNode;
+			this.lastScale = lastScale;
+			this.lastSeparation = lastSeparation;
+			this.wid = wid;
+			this.hei = hei;
+			this.yOffset = yOffset;
+			this.samples = samples;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// should ensure that the name is valid
-			dialog.grabDialogValues();
-			dialog.makeLayoutText(lastLayer, lastSize, lastScale, lastFont, lastItalic,
-				lastBold, lastUnderline, lastSeparation, lastMessage);
+			double width = lastScale - lastSeparation;
+			double height = lastScale - lastSeparation;
+			int samp = 0;
+			for(int y=0; y<hei; y++)
+			{
+				for(int x=0; x<wid; x++)
+				{
+					if (samples[samp++] == 0) continue;
+					Point2D center = new Point2D.Double(x*lastScale, -(y+yOffset)*lastScale);
+					NodeInst.newInstance(primNode, center, width, height, curCell);
+				}
+			}
 			return true;
 		}
 	}

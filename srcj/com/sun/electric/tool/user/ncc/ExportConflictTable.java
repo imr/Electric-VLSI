@@ -261,7 +261,7 @@ abstract class ExportConflictTableModel extends ExportTableModel {
             if (col != 3) return;
             ExportConflict.CharactConflict cc = 
                 (ExportConflict.CharactConflict)conflicts[row];
-            highlighter.addText(cc.getLocalExport(), cc.getCell(), null, null);
+            highlighter.addText(cc.getLocalExport(), cc.getCell(), null);
         }
         
         /**

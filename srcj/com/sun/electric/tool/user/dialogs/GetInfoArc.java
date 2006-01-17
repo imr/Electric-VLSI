@@ -148,7 +148,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 //		 // check if we care about the changes
 //	     boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = (Undo.Change)it.next();
+//             Undo.Change change = it.next();
 //             ElectricObject obj = change.getObject();
 //             if (obj == shownArc) {
 //                 reload = true;
@@ -248,9 +248,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		// must have a single node selected
 		ArcInst ai = null;
 		int arcCount = 0;
-		for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+		for(Highlight2 h : wnd.getHighlighter().getHighlights())
 		{
-			Highlight2 h = it.next();
 			if (h.isHighlightEOBJ())
 			{
 				ElectricObject eobj = h.getElectricObject();
@@ -363,7 +362,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			allAttributes.clear();
 			for(Iterator<Variable> it = ai.getVariables(); it.hasNext(); )
 			{
-				Variable aVar = (Variable)it.next();
+				Variable aVar = it.next();
 				String name = aVar.getKey().getName();
 				if (!name.startsWith("ATTR_")) continue;
 
@@ -959,7 +958,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         {
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();
-            highlighter.addText(ai, ai.getParent(), null, arcName);
+            highlighter.addText(ai, ai.getParent(), ArcInst.ARC_NAME);
             highlighter.addElectricObject(ai, ai.getParent());
             highlighter.finished();
             GetInfoText.showDialog();
@@ -1040,7 +1039,79 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
 		if (shownArc == null) return;
-		ChangeArc job = new ChangeArc(shownArc, this);
+
+		String newName = name.getText().trim();
+		if (newName.equals(initialName)) newName = null; else
+		{
+			initialName = new String(newName);
+		}
+
+		Boolean newEasyToSelect = null;
+		boolean currentEasyToSelect = easyToSelect.isSelected();
+		if (currentEasyToSelect != initialEasyToSelect)
+		{
+			newEasyToSelect = new Boolean(currentEasyToSelect);
+			initialEasyToSelect = currentEasyToSelect;
+		}
+
+		Boolean newRigid = null;
+		boolean currentRigid = rigid.isSelected();
+		if (currentRigid != initialRigid)
+		{
+			newRigid = new Boolean(currentRigid);
+			initialRigid = currentRigid;
+		}
+
+		Boolean newFixedAngle = null;
+		boolean currentFixedAngle = fixedAngle.isSelected();
+		if (currentFixedAngle != initialFixedAngle)
+		{
+			newFixedAngle = new Boolean(currentFixedAngle);
+			initialFixedAngle = currentFixedAngle;
+		}
+
+		Boolean newSlidable = null;
+		boolean currentSlidable = slidable.isSelected();
+		if (currentSlidable != initialSlidable)
+		{
+			newSlidable = new Boolean(currentSlidable);
+			initialSlidable = currentSlidable;
+		}
+
+		Integer newDirectional = null;
+		int currentDirectional = directionality.getSelectedIndex();
+		if (currentDirectional != initialDirectional)
+		{
+			newDirectional = new Integer(currentDirectional);
+			initialDirectional = currentDirectional;
+		}
+
+		Integer newExtended = null;
+		int currentExtend = extension.getSelectedIndex();
+		if (currentExtend != initialExtension)
+		{
+			newExtended = new Integer(currentExtend);
+			initialExtension = currentExtend;
+		}
+
+		Integer newNegated = null;
+		int currentNegated = negation.getSelectedIndex();
+		if (currentNegated != initialNegated)
+		{
+			newNegated = new Integer(currentNegated);
+			initialNegated = currentNegated;
+		}
+
+		Double newDWidth = null;
+		double currentWidth = TextUtils.atof(width.getText()) + shownArc.getProto().getWidthOffset();
+		if (!DBMath.doublesEqual(currentWidth, initialWidth))
+		{
+			newDWidth = new Double(currentWidth - initialWidth);
+			initialWidth = currentWidth;
+		}
+
+		ChangeArc job = new ChangeArc(shownArc, newName, newEasyToSelect, newRigid, newFixedAngle,
+			newSlidable, newDirectional, newExtended, newNegated, newDWidth);
         attributesTable.applyChanges();
 	}//GEN-LAST:event_applyActionPerformed
 
@@ -1067,16 +1138,28 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 	private static class ChangeArc extends Job
 	{
-		ArcInst ai;
-		GetInfoArc dialog;
+		private ArcInst ai;
+		private String newName;
+		private Boolean newEasyToSelect, newRigid, newFixedAngle, newSlidable;
+		private Integer newDirectional, newExtended, newNegated;
+		private Double newDWidth;
 
 		public ChangeArc() {}
 
-		protected ChangeArc(ArcInst ai, GetInfoArc dialog)
+		protected ChangeArc(ArcInst ai, String newName, Boolean newEasyToSelect, Boolean newRigid, Boolean newFixedAngle,
+			Boolean newSlidable, Integer newDirectional, Integer newExtended, Integer newNegated, Double newDWidth)
 		{
 			super("Modify Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ai = ai;
-			this.dialog = dialog;
+			this.newName = newName;
+			this.newEasyToSelect = newEasyToSelect;
+			this.newRigid = newRigid;
+			this.newFixedAngle = newFixedAngle;
+			this.newSlidable = newSlidable;
+			this.newDirectional = newDirectional;
+			this.newExtended = newExtended;
+			this.newNegated = newNegated;
+			this.newDWidth = newDWidth;
 			startJob();
 		}
 
@@ -1084,47 +1167,39 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		{
 			boolean changed = false;
 
-			String currentName = dialog.name.getText().trim();
-			if (!currentName.equals(dialog.initialName))
+			if (newName != null)
 			{
-				dialog.initialName = new String(currentName);
-				if (currentName.length() == 0) currentName = null;
-				ai.setName(currentName);
-				changed = true;
-			}
-			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();
-			if (currentEasyToSelect != dialog.initialEasyToSelect)
-			{
-                ai.setHardSelect(!currentEasyToSelect);
-				dialog.initialEasyToSelect = currentEasyToSelect;
-			}
-
-			boolean currentRigid = dialog.rigid.isSelected();
-			if (currentRigid != dialog.initialRigid)
-			{
-				ai.setRigid(currentRigid);
-				dialog.initialRigid = currentRigid;
-				changed = true;
-			}
-			boolean currentFixedAngle = dialog.fixedAngle.isSelected();
-			if (currentFixedAngle != dialog.initialFixedAngle)
-			{
-                ai.setFixedAngle(currentFixedAngle);
-				dialog.initialFixedAngle = currentFixedAngle;
-				changed = true;
-			}
-			boolean currentSlidable = dialog.slidable.isSelected();
-			if (currentSlidable != dialog.initialSlidable)
-			{
-                ai.setSlidable(currentSlidable);
-				dialog.initialSlidable = currentSlidable;
+				if (newName.length() == 0) newName = null;
+				ai.setName(newName);
 				changed = true;
 			}
 
-			int currentDirectional = dialog.directionality.getSelectedIndex();
-			if (currentDirectional != dialog.initialDirectional)
+			if (newEasyToSelect != null)
 			{
-				switch (currentDirectional)
+                ai.setHardSelect(!newEasyToSelect.booleanValue());
+			}
+
+			if (newRigid != null)
+			{
+				ai.setRigid(newRigid.booleanValue());
+				changed = true;
+			}
+
+			if (newFixedAngle != null)
+			{
+                ai.setFixedAngle(newFixedAngle.booleanValue());
+				changed = true;
+			}
+
+			if (newSlidable != null)
+			{
+                ai.setSlidable(newSlidable.booleanValue());
+				changed = true;
+			}
+
+			if (newDirectional != null)
+			{
+				switch (newDirectional.intValue())
 				{
 					case 0: ai.setBodyArrowed(false);  ai.setHeadArrowed(false);   ai.setTailArrowed(false);   break;
 					case 1: ai.setBodyArrowed(true);   ai.setHeadArrowed(true);    ai.setTailArrowed(false);   break;
@@ -1132,41 +1207,37 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 					case 3: ai.setBodyArrowed(true);   ai.setHeadArrowed(false);   ai.setTailArrowed(false);   break;
 					case 4: ai.setBodyArrowed(true);   ai.setHeadArrowed(true);    ai.setTailArrowed(true);    break;
 				}
-				dialog.initialDirectional = currentDirectional;
 				changed = true;
 			}
-			int currentExtend = dialog.extension.getSelectedIndex();
-			if (currentExtend != dialog.initialExtension)
+
+			if (newExtended != null)
 			{
-				switch (currentExtend)
+				switch (newExtended.intValue())
 				{
 					case 0: ai.setHeadExtended(true);     ai.setTailExtended(true);    break;
 					case 1: ai.setHeadExtended(false);    ai.setTailExtended(false);   break;
 					case 2: ai.setHeadExtended(true);     ai.setTailExtended(false);   break;
 					case 3: ai.setHeadExtended(false);    ai.setTailExtended(true);    break;
 				}
-				dialog.initialExtension = currentExtend;
 				changed = true;
 			}
-			int currentNegated = dialog.negation.getSelectedIndex();
-			if (currentNegated != dialog.initialNegated)
+
+			if (newNegated != null)
 			{
-				switch (currentNegated)
+				switch (newNegated.intValue())
 				{
 					case 0: ai.setHeadNegated(false);    ai.setTailNegated(false);    break;
 					case 1: ai.setHeadNegated(true);     ai.setTailNegated(false);    break;
 					case 2: ai.setHeadNegated(false);    ai.setTailNegated(true);     break;
 					case 3: ai.setHeadNegated(true);     ai.setTailNegated(true);     break;
 				}
-				dialog.initialNegated = currentNegated;
 				changed = true;
 			}
 
-			double currentWidth = TextUtils.atof(dialog.width.getText()) + ai.getProto().getWidthOffset();
-			if (!DBMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
+			if (newDWidth != null || changed)
 			{
-				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);
-				dialog.initialWidth = currentWidth;
+				if (newDWidth == null) newDWidth = new Double(0);
+				ai.modify(newDWidth.doubleValue(), 0, 0, 0, 0);
 			}
 			return true;
 		}

@@ -189,7 +189,7 @@ public abstract class InteractiveRouter extends Router {
 
     private static class MakeVerticalRouteJob extends Router.CreateRouteJob {
         protected MakeVerticalRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router, route, cell, false);
+            super(router.toString(), route, cell, false);
         }
 
         /** Implemented doIt() method to perform Job */

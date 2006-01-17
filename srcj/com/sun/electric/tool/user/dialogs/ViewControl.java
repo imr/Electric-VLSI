@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 import java.util.List;
@@ -100,8 +101,8 @@ public class ViewControl extends EDialog
 	 */
 	private static class DeleteView extends Job
 	{
-		View view;
-		ViewControl dialog;
+		private View view;
+		private transient ViewControl dialog;
 
     	public DeleteView() {}
 
@@ -116,9 +117,14 @@ public class ViewControl extends EDialog
 		public boolean doIt() throws JobException
 		{
 			view.kill();
-			dialog.loadViews();
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			dialog.loadViews();
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -126,10 +132,10 @@ public class ViewControl extends EDialog
 	 */
 	private static class CreateView extends Job
 	{
-		String viewName;
-		String viewAbbr;
-		boolean isText;
-		ViewControl dialog;
+		private String viewName;
+		private String viewAbbr;
+		private boolean isText;
+		private transient ViewControl dialog;
 
     	public CreateView() {}
 
@@ -153,9 +159,14 @@ public class ViewControl extends EDialog
 			{
 				newView = View.newInstance(viewName, viewAbbr);
 			}
-			dialog.loadViews();
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			dialog.loadViews();
+            super.terminateIt(jobException);
+        }
 	}
 
 	/** This method is called from within the constructor to

@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
@@ -226,39 +227,42 @@ public class Routing extends Listener
 	 */
 	public static void unrouteCurrent()
 	{
-		UnrouteJob job = new UnrouteJob();
+		// see what is highlighted
+		UserInterface ui = Main.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd == null) return;
+		Cell cell = wnd.getCell();
+		Set<Network> nets = wnd.getHighlightedNetworks();
+		if (nets.size() == 0)
+		{
+			System.out.println("Must select networks to unroute");
+			return;
+		}
+
+		new UnrouteJob(cell, nets);
 	}
 
 	private static class UnrouteJob extends Job
 	{
-		protected UnrouteJob()
+		private Cell cell;
+		private Set<Network> nets;
+		private List<ArcInst> highlightThese;
+
+		private UnrouteJob(Cell cell, Set<Network> nets)
 		{
 			super("Unroute", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.nets = nets;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// see what is highlighted
-			UserInterface ui = Main.getUserInterface();
-			EditWindow_ wnd = ui.getCurrentEditWindow_();
-			if (wnd == null) return false;
-			Set<Network> nets = wnd.getHighlightedNetworks();
-			if (nets.size() == 0)
-			{
-				System.out.println("Must select networks to unroute");
-				return false;
-			}
-
 			// convert requested nets
-			Cell cell = wnd.getCell();
 			Netlist netList = cell.acquireUserNetlist();
 			if (netList == null)
-			{
-				System.out.println("Sorry, a deadlock aborted unrouting (network information unavailable).  Please try again");
-				return false;
-			}
-			wnd.clearHighlighting();
+				throw new JobException("Sorry, a deadlock aborted unrouting (network information unavailable).  Please try again");
+			highlightThese = new ArrayList<ArcInst>();
 
 			// make arrays of what to unroute
 			int total = nets.size();
@@ -279,14 +283,29 @@ public class Routing extends Listener
 			// do the unrouting
 			for(int j=0; j<total; j++)
 			{
-				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, wnd)) return false;
+				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, highlightThese)) break;
 			}
-			wnd.finishedHighlighting();
+			fieldVariableChanged("highlightThese");
 			return true;
 		}
 
+        public void terminateIt(Throwable jobException)
+        {
+        	if (jobException == null)
+        	{
+	    		UserInterface ui = Main.getUserInterface();
+	    		EditWindow_ wnd = ui.getCurrentEditWindow_();
+	    		if (wnd == null) return;
+				wnd.clearHighlighting();
+				for(ArcInst ai : highlightThese)
+					wnd.addElectricObject(ai, ai.getParent());
+				wnd.finishedHighlighting();
+        	}
+            super.terminateIt(jobException);
+        }
+
 		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
-			List<Connection> netEnds, Netlist netList, EditWindow_ wnd)
+			List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
 		{
 			// remove marked nodes and arcs
 			for(ArcInst ai : arcsToDelete)
@@ -344,7 +363,7 @@ public class Routing extends Listener
 					System.out.println("Could not create unrouted arc");
 					return true;
 				}
-				wnd.addElectricObject(ai, ai.getParent());
+				highlightThese.add(ai);
 			}
 			return false;
 		}
@@ -492,7 +511,7 @@ public class Routing extends Listener
 		}
 
 		// do the copy
-		CopyRoutingTopology job = new CopyRoutingTopology(copiedTopologyCell, toCell);
+		new CopyRoutingTopology(copiedTopologyCell, toCell);
 	}
 
 	/**
@@ -500,7 +519,7 @@ public class Routing extends Listener
 	 */
 	private static class CopyRoutingTopology extends Job
 	{
-		Cell fromCell, toCell;
+		private Cell fromCell, toCell;
 
     	public CopyRoutingTopology() {}
 

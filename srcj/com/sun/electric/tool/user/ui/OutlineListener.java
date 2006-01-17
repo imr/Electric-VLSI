@@ -88,7 +88,7 @@ public class OutlineListener
 	 */
 	private static class InitializePoints extends Job
 	{
-		private /*transient*/ OutlineListener listener;
+		private transient OutlineListener listener;
 		private NodeInst ni;
 
     	public InitializePoints() {}
@@ -362,7 +362,14 @@ public class OutlineListener
 
 	private void setNewPoints(Point2D [] newPoints, int newPoint)
 	{
-		SetPoints job = new SetPoints(this, outlineNode, newPoints, newPoint);
+		double [] x = new double[newPoints.length];
+		double [] y = new double[newPoints.length];
+		for(int i=0; i<newPoints.length; i++)
+		{
+			x[i] = newPoints[i].getX();
+			y[i] = newPoints[i].getY();
+		}
+		SetPoints job = new SetPoints(this, outlineNode, x, y, newPoint);
 	}
 
 	/**
@@ -370,19 +377,20 @@ public class OutlineListener
 	 */
 	private static class SetPoints extends Job
 	{
-		private /*transient*/ OutlineListener listener;
+		private transient OutlineListener listener;
 		private NodeInst ni;
-		private Point2D [] newPoints;
+		private double [] x, y;
 		private int newPoint;
 
     	public SetPoints() {}
 
-		protected SetPoints(OutlineListener listener, NodeInst ni, Point2D [] newPoints, int newPoint)
+		protected SetPoints(OutlineListener listener, NodeInst ni, double [] x, double [] y, int newPoint)
 		{
 			super("Change Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.listener = listener;
 			this.ni = ni;
-			this.newPoints = newPoints;
+			this.x = x;
+			this.y = y;
 			this.newPoint = newPoint;
 			startJob();
 		}
@@ -393,7 +401,12 @@ public class OutlineListener
 			if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true) != 0) return false;
 
 			// get the extent of the data
-			ni.setTrace(newPoints);
+			Point2D [] points = new Point2D[x.length];
+			for(int i=0; i<x.length; i++)
+			{
+				points[i] = new Point2D.Double(x[i], y[i]);
+			}
+			ni.setTrace(points);
 			return true;
 		}
 

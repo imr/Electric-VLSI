@@ -1522,11 +1522,8 @@ public class PolyBase implements Shape, PolyNodeMerge
      * @throws ClassCastException if the arguments' types are not PolyBase.
      */
     private static Comparator<PolyBase> AREA_COMPARATOR = new Comparator<PolyBase>() {
-/*5*/	public int compare(PolyBase p1, PolyBase p2)
-//4*/	public int compare(Object o1, Object o2)
+    	public int compare(PolyBase p1, PolyBase p2)
 		{
-//4*/		PolyBase p1 = (PolyBase)o1;
-//4*/		PolyBase p2 = (PolyBase)o2;
 			double diff = p1.getArea() - p2.getArea();
 			if (diff < 0.0) return -1;
 			if (diff > 0.0) return 1;
@@ -2100,11 +2097,8 @@ public class PolyBase implements Shape, PolyNodeMerge
      */
 	private static class AngleListDescending implements Comparator<AngleList>
 	{
-/*5*/	public int compare(AngleList c1, AngleList c2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(AngleList c1, AngleList c2)
 		{
-//4*/		AngleList c1 = (AngleList)o1;
-//4*/		AngleList c2 = (AngleList)o2;
 			double diff = c2.angle - c1.angle;
 			if (diff < 0.0) return -1;
 			if (diff > 0.0) return 1;
@@ -2129,10 +2123,8 @@ public class PolyBase implements Shape, PolyNodeMerge
     	double lx2 = to.getX();
     	double ly2 = to.getY();
 
-    	/*
-    	 * construct a line that is perpendicular to the intersection line and passes
-    	 * through the circle center.  It meets the intersection line at (segx, segy)
-    	 */
+    	// construct a line that is perpendicular to the intersection line and passes
+    	// through the circle center.  It meets the intersection line at (segx, segy)
     	double segx = 0, segy = 0;
     	if (ly1 == ly2)
     	{
@@ -2175,12 +2167,10 @@ public class PolyBase implements Shape, PolyNodeMerge
     		to.setLocation(icx + Math.cos(-angle) * radius, icy + Math.sin(-angle) * radius);
     	} else
     	{
-    		/*
-    		 * construct a right triangle with the three points: (icx, icy), (segx, segy), and (ix1,iy1)
-    		 * the right angle is at the point (segx, segy) and the hypotenuse is the circle radius
-    		 * The unknown point is (ix1, iy1), the intersection of the line and the circle.
-    		 * To find it, determine the angle at the point (icx, icy)
-    		 */
+    		// construct a right triangle with the three points: (icx, icy), (segx, segy), and (ix1,iy1)
+    		// the right angle is at the point (segx, segy) and the hypotenuse is the circle radius
+    		// The unknown point is (ix1, iy1), the intersection of the line and the circle.
+    		// To find it, determine the angle at the point (icx, icy)
     		double fx = isx - icx;   double fy = isy - icy;
     		double radius = Math.sqrt(fx*fx + fy*fy);
     		fx = segx - icx;   fy = segy - icy;
@@ -2203,10 +2193,8 @@ public class PolyBase implements Shape, PolyNodeMerge
     			to.setLocation(icx, icy);
     		} else
     		{
-    			/*
-    			 * now determine the angle from the center to the point (segx, segy) and offset that angle
-    			 * by "angle".  Then project it by "radius" to get the two intersection points
-    			 */
+    			// now determine the angle from the center to the point (segx, segy) and offset that angle
+    			// by "angle".  Then project it by "radius" to get the two intersection points
     			double angle = Math.acos(adjacent / radius);
     			fx = segx - icx;   fy = segy - icy;
     			if (fx == 0.0 && fy == 0.0)

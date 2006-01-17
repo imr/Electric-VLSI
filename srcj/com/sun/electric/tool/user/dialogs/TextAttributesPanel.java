@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -35,11 +34,13 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 
+import javax.swing.JPanel;
+
 /**
  * A Panel to display Code, Units, ShowStyle, and isParameter/isInherits
  * information about a Variable (or TextDescriptor, if passed Variable is null).
  */
-public class TextAttributesPanel extends javax.swing.JPanel
+public class TextAttributesPanel extends JPanel
 {
     private static final String displaynone = "None";
 
@@ -70,7 +71,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
         // populate units dialog box
         for (Iterator<TextDescriptor.Unit> it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
-            units.addItem((TextDescriptor.Unit)it.next());
+            units.addItem(it.next());
         }
 
         // populate show style dialog box
@@ -213,18 +214,21 @@ public class TextAttributesPanel extends javax.swing.JPanel
         // see if show style changed - check if DispPos changed
         Object newDisp = show.getSelectedItem();
         if (newDisp != initialDispPos) changed = true;
+        int newDispIndex = -1;
+        if (newDisp != displaynone)
+        	newDispIndex = ((TextDescriptor.DispPos)newDisp).getIndex();
 
         if (td != null) {
             // nothing changed on current var/td, return
             if (!changed) return false;
         }
 
-        ChangeText job = new ChangeText(
+        new ChangeText(
                 owner,
                 varKey,
-                newCode,
-                newUnit,
-                newDisp
+                newCode.getCFlags(),
+                newUnit.getIndex(),
+                newDispIndex
         );
 
         initialCode = newCode;
@@ -241,7 +245,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         // populate show style dialog box
         if (includeNoneChoice) show.addItem(displaynone);
         for (Iterator<TextDescriptor.DispPos> it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
-            show.addItem((TextDescriptor.DispPos)it.next());
+            show.addItem(it.next());
         }
 
     }
@@ -250,19 +254,18 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
         private ElectricObject owner;
         private Variable.Key varKey;
-        private TextDescriptor.Code code;
-        private TextDescriptor.Unit unit;
-        private Object dispPos;
+        private int code;
+        private int unit;
+        private int dispPos;
 
     	public ChangeText() {}
 
         private ChangeText(
                 ElectricObject owner,
                 Variable.Key varKey,
-                TextDescriptor.Code code,
-                TextDescriptor.Unit unit,
-                Object dispPos
-                )
+                int code,
+                int unit,
+                int dispPos)
         {
             super("Modify Text Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
@@ -280,17 +283,17 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
             // change the code type
             if (var != null) {
-                td = td.withCode(code);
+                td = td.withCode(TextDescriptor.Code.getByCBits(code));
             }
             // change the units
-            td = td.withUnit(unit);
+            td = td.withUnit(TextDescriptor.Unit.getUnitAt(unit));
             // change the show style
-            if (dispPos == displaynone) {
+            if (dispPos < 0) {
                 // var should not be null
                 if (var != null) td = td.withDisplay(false);
             } else {
                 if (var != null) td = td.withDisplay(true);
-                td = td.withDispPart((TextDescriptor.DispPos)dispPos);
+                td = td.withDispPart(TextDescriptor.DispPos.getShowStylesAt(dispPos));
             }
 			owner.setTextDescriptor(varKey, td);
 			return true;

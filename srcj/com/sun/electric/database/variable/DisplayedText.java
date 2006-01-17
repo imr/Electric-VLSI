@@ -68,6 +68,8 @@ public class DisplayedText implements Serializable
 
 	public Variable.Key getVariableKey() { return key; }
 
+	public Variable getVariable() { return eObj.getVar(key); }
+
     /**
 	 * Method to tell whether this DisplayedText stays with its node.
 	 * The two possibilities are (1) text on invisible pins

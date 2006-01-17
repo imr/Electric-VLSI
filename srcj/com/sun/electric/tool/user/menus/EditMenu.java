@@ -981,12 +981,12 @@ public class EditMenu {
             if (User.isTextVisibilityOnNode())
 			{
 				if (ni.isUsernamed())
-					highlighter.addText(ni, curCell, null, ni.getNameKey());
+					highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = vIt.next();
 					if (var.isDisplay())
-						highlighter.addText(ni, curCell, var, null);
+						highlighter.addText(ni, curCell, var.getKey());
 				}
 			}
 		}
@@ -1006,19 +1006,19 @@ public class EditMenu {
             if (User.isTextVisibilityOnArc())
 			{
 				if (ai.isUsernamed())
-					highlighter.addText(ai, curCell, null, ai.getNameKey());
+					highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
 				for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 				{
 					Variable var = vIt.next();
 					if (var.isDisplay())
-						highlighter.addText(ai, curCell, var, null);
+						highlighter.addText(ai, curCell, var.getKey());
 				}
 			}
 		}
 		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
 		{
 			Export pp = it.next();
-			highlighter.addText(pp, curCell, null, null);
+			highlighter.addText(pp, curCell, null);
 		}
 
 		// Selecting annotations
@@ -1034,7 +1034,7 @@ public class EditMenu {
 					{
 						if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
 					}
-					highlighter.addText(curCell, curCell, var, null);
+					highlighter.addText(curCell, curCell, var.getKey());
 				}
 			}
 		}
@@ -1081,7 +1081,7 @@ public class EditMenu {
 					Variable var = vIt.next();
 					if (var.isDisplay())
 					{
-						highlighter.addText(ni, curCell, var, null);
+						highlighter.addText(ni, curCell, var.getKey());
 						break;
 					}
 				}

@@ -104,7 +104,7 @@ public class ViewChanges
 		}
 		Collections.sort(multiPageCells/*, new TextUtils.CellsByName()*/);
 
-		FixOldMultiPageSchematics job = new FixOldMultiPageSchematics(multiPageCells);
+		new FixOldMultiPageSchematics(multiPageCells, User.getAlignmentToGrid());
 	}
 
 	/**
@@ -113,13 +113,15 @@ public class ViewChanges
 	private static class FixOldMultiPageSchematics extends Job
 	{
 		private List<Cell> multiPageCells;
+		private double alignment;
 
     	public FixOldMultiPageSchematics() {}
 
-		protected FixOldMultiPageSchematics(List<Cell> multiPageCells)
+		protected FixOldMultiPageSchematics(List<Cell> multiPageCells, double alignment)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.multiPageCells = multiPageCells;
+			this.alignment = alignment;
 			startJob();
 		}
 
@@ -150,7 +152,8 @@ public class ViewChanges
 					geomList.add(nIt.next());
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					geomList.add(aIt.next());
-				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY), true, true);
+				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY),
+					true, true, alignment);
 	
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
@@ -449,20 +452,64 @@ public class ViewChanges
 				"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
-		MakeIconView job = new MakeIconView(curCell);
+		double leadLength = User.getIconGenLeadLength();
+		double leadSpacing = User.getIconGenLeadSpacing();
+		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
+		boolean drawBody = User.isIconGenDrawBody();
+		boolean drawLeads = User.isIconGenDrawLeads();
+		boolean placeCellCenter = User.isPlaceCellCenter();
+		int exportTech = User.getIconGenExportTech();
+		int exportStyle = User.getIconGenExportStyle();
+		int exportLocation = User.getIconGenExportLocation();
+		int inputSide = User.getIconGenInputSide();
+		int outputSide = User.getIconGenOutputSide();
+		int bidirSide = User.getIconGenBidirSide();
+		int pwrSide = User.getIconGenPowerSide();
+		int gndSide = User.getIconGenGroundSide();
+		int clkSide = User.getIconGenClockSide();
+		new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
+			reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
+			inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
 	}
 
 	private static class MakeIconView extends Job
 	{
 		private Cell curCell;
+		private double alignment;
+		private int exampleLocation;
+		private double leadLength, leadSpacing;
+		private boolean reverseIconExportOrder, drawBody, drawLeads, placeCellCenter;
+		private int exportTech, exportStyle, exportLocation;
+		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
 		private NodeInst iconNode;
 
     	public MakeIconView() {}
 
-		private MakeIconView(Cell cell)
+		// get icon style controls
+		private MakeIconView(Cell cell, double alignment, int exampleLocation,
+			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
+			int exportTech, int exportStyle, int exportLocation,
+			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+			this.alignment = alignment;
+			this.exampleLocation = exampleLocation;
+			this.leadLength = leadLength;
+			this.leadSpacing = leadSpacing;
+			this.reverseIconExportOrder = reverseIconExportOrder;
+			this.drawBody = drawBody;
+			this.drawLeads = drawLeads;
+			this.placeCellCenter = placeCellCenter;
+			this.exportTech = exportTech;
+			this.exportStyle = exportStyle;
+			this.exportLocation = exportLocation;
+			this.inputSide = inputSide;
+			this.outputSide = outputSide;
+			this.bidirSide = bidirSide;
+			this.pwrSide = pwrSide;
+			this.gndSide = gndSide;
+			this.clkSide = clkSide;
 			startJob();
 		}
 
@@ -470,11 +517,12 @@ public class ViewChanges
 		{
 			Library lib = curCell.getLibrary();
 
-			Cell iconCell = makeIconForCell(curCell);
+			Cell iconCell = makeIconForCell(curCell, leadLength, leadSpacing, reverseIconExportOrder,
+				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
+				inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
 			if (iconCell == null) return false;
 
 			// place an icon in the schematic
-			int exampleLocation = User.getIconGenInstanceLocation();
 			Point2D iconPos = new Point2D.Double(0,0);
 			Rectangle2D cellBounds = curCell.getBounds();
 			Rectangle2D iconBounds = iconCell.getBounds();
@@ -495,7 +543,7 @@ public class ViewChanges
 					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
 					break;
 			}
-			EditWindow.gridAlign(iconPos);
+			EditWindow.gridAlign(iconPos, alignment);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
 			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
@@ -530,14 +578,12 @@ public class ViewChanges
 	 * @param curCell the cell to turn into an icon.
 	 * @return the icon cell (null on error).
 	 */
-	public static Cell makeIconForCell(Cell curCell)
-		throws JobException
+	public static Cell makeIconForCell(Cell curCell, double leadLength, double leadSpacing,
+		boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
+		int exportTech, int exportStyle, int exportLocation,
+		int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
+			throws JobException
 	{
-		// get icon style controls
-		double leadLength = User.getIconGenLeadLength();
-		double leadSpacing = User.getIconGenLeadSpacing();
-		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
-
 		// make a sorted list of exports
 		List<Export> exportList = new ArrayList<Export>();
 		for(Iterator<PortProto> it = curCell.getPorts(); it.hasNext(); )
@@ -560,7 +606,7 @@ public class ViewChanges
 		for(Export pp : exportList)
 		{
 			if (pp.isBodyOnly()) continue;
-			int index = iconPosition(pp);
+			int index = iconPosition(pp, inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
 			switch (index)
 			{
 				case 0: portIndex.put(pp, new Integer(leftSide++));    break;
@@ -576,7 +622,7 @@ public class ViewChanges
 
 		// create the "black box"
 		NodeInst bbNi = null;
-		if (User.isIconGenDrawBody())
+		if (drawBody)
 		{
 			bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 			if (bbNi == null) return null;
@@ -590,8 +636,6 @@ public class ViewChanges
 
 			// put the original cell name on it
 			Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
-//			if (var != null)
-//				var.setDisplay(true);
 		}
 
 		// place pins around the Black Box
@@ -602,7 +646,7 @@ public class ViewChanges
 			Integer portPosition = (Integer)portIndex.get(pp);
 
 			// determine location of the port
-			int index = iconPosition(pp);
+			int index = iconPosition(pp, inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
 			double spacing = leadSpacing;
 			double xPos = 0, yPos = 0;
 			double xBBPos = 0, yBBPos = 0;
@@ -634,15 +678,13 @@ public class ViewChanges
 					break;
 			}
 
-			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell))
-				total++;
+			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell,
+				exportTech, drawLeads, exportStyle, exportLocation))
+					total++;
 		}
 
 		// if no body, leads, or cell center is drawn, and there is only 1 export, add more
-		if (!User.isIconGenDrawBody() &&
-			!User.isIconGenDrawLeads() &&
-			User.isPlaceCellCenter() &&
-			total <= 1)
+		if (!drawBody && !drawLeads && placeCellCenter && total <= 1)
 		{
 			NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 		}
@@ -657,12 +699,13 @@ public class ViewChanges
 	 * It uses icon style "style".
 	 */
 	public static boolean makeIconExport(Export pp, int index,
-		double xPos, double yPos, double xBBPos, double yBBPos, Cell np)
+		double xPos, double yPos, double xBBPos, double yBBPos, Cell np,
+		int exportTech, boolean drawLeads, int exportStyle, int exportLocation)
 	{
 		// presume "universal" exports (Generic technology)
 		NodeProto pinType = Generic.tech.universalPinNode;
 		double pinSizeX = 0, pinSizeY = 0;
-		if (User.getIconGenExportTech() != 0)
+		if (exportTech != 0)
 		{
 			// instead, use "schematic" exports (Schematic Bus Pins)
 			pinType = Schematics.tech.busPinNode;
@@ -681,7 +724,7 @@ public class ViewChanges
 		}
 
 		// if the export is on the body (no leads) then move it in
-		if (!User.isIconGenDrawLeads())
+		if (!drawLeads)
 		{
 			xPos = xBBPos;   yPos = yBBPos;
 		}
@@ -696,7 +739,7 @@ public class ViewChanges
 		if (port != null)
 		{
 			TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
-			switch (User.getIconGenExportStyle())
+			switch (exportStyle)
 			{
 				case 0:		// Centered
 					td = td.withPos(TextDescriptor.Position.CENT);
@@ -722,8 +765,8 @@ public class ViewChanges
 			}
 			port.setTextDescriptor(Export.EXPORT_NAME, td);
 			double xOffset = 0, yOffset = 0;
-			int loc = User.getIconGenExportLocation();
-			if (!User.isIconGenDrawLeads()) loc = 0;
+			int loc = exportLocation;
+			if (!drawLeads) loc = 0;
 			switch (loc)
 			{
 				case 0:		// port on body
@@ -743,7 +786,7 @@ public class ViewChanges
 		}
 
 		// add lead if requested
-		if (User.isIconGenDrawLeads())
+		if (drawLeads)
 		{
 			pinType = wireType.findPinProto();
 			if (pinType == Schematics.tech.busPinNode)
@@ -771,7 +814,7 @@ public class ViewChanges
 	/**
 	 * Method to determine the side of the icon that port "pp" belongs on.
 	 */
-	private static int iconPosition(Export pp)
+	private static int iconPosition(Export pp, int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
 	{
 		PortCharacteristic character = pp.getCharacteristic();
 
@@ -780,22 +823,16 @@ public class ViewChanges
 		if (pp.isGround()) character = PortCharacteristic.GND;
 
 		// see which side this type of port sits on
-		if (character == PortCharacteristic.IN)
-			return User.getIconGenInputSide();
-		if (character == PortCharacteristic.OUT)
-			return User.getIconGenOutputSide();
-		if (character == PortCharacteristic.BIDIR)
-			return User.getIconGenBidirSide();
-		if (character == PortCharacteristic.PWR)
-			return User.getIconGenPowerSide();
-		if (character == PortCharacteristic.GND)
-			return User.getIconGenGroundSide();
+		if (character == PortCharacteristic.IN) return inputSide;
+		if (character == PortCharacteristic.OUT) return outputSide;
+		if (character == PortCharacteristic.BIDIR) return bidirSide;
+		if (character == PortCharacteristic.PWR) return pwrSide;
+		if (character == PortCharacteristic.GND) return gndSide;
 		if (character == PortCharacteristic.CLK || character == PortCharacteristic.C1 ||
 			character == PortCharacteristic.C2 || character == PortCharacteristic.C3 ||
 			character == PortCharacteristic.C4 || character == PortCharacteristic.C5 ||
-			character == PortCharacteristic.C6)
-				return User.getIconGenClockSide();
-		return User.getIconGenInputSide();
+			character == PortCharacteristic.C6) return clkSide;
+		return inputSide;
 	}
 
 	/****************************** CONVERT TO SCHEMATICS ******************************/
@@ -1131,56 +1168,58 @@ public class ViewChanges
 	{
 		Cell oldCell = WindowFrame.needCurCell();
 		if (oldCell == null) return;
-		MakeLayoutView job = new MakeLayoutView(oldCell);
+		
+		// find out which technology they want to convert to
+		Technology oldTech = oldCell.getTechnology();
+		int numTechs = 0;
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			if (tech.isScaleRelevant()) numTechs++;
+		}
+		String [] techNames = new String[numTechs];
+		int i=0;
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
+		}
+		String selectedValue = (String)JOptionPane.showInputDialog(null,
+			"New technology to create", "Technology conversion",
+			JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology());
+		if (selectedValue == null) return;
+		Technology newTech = Technology.findTechnology(selectedValue);
+		if (newTech == null) return;
+		if (newTech == oldTech)
+		{
+			System.out.println("Cell " + oldCell.describe(true) + " is already in the " + newTech.getTechName() + " technology");
+			return;
+		}
+
+		new MakeLayoutView(oldCell, newTech);
 	}
 
 	private static class MakeLayoutView extends Job
 	{
-		private static boolean reverseIconExportOrder;
 		private Cell oldCell;
-		private Cell newCell;
 		private Technology newTech;
+		private Cell newCell;
 		private HashMap<NodeInst,NodeInst> convertedNodes;
 
     	public MakeLayoutView() {}
 
-		protected MakeLayoutView(Cell oldCell)
+		protected MakeLayoutView(Cell oldCell, Technology newTech)
 		{
 			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = oldCell;
+			this.newTech = newTech;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// find out which technology they want to convert to
-			Technology oldTech = oldCell.getTechnology();
-			int numTechs = 0;
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				if (tech.isScaleRelevant()) numTechs++;
-			}
-			String [] techNames = new String[numTechs];
-			int i=0;
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
-			}
-			String selectedValue = (String)JOptionPane.showInputDialog(null,
-				"New technology to create", "Technology conversion",
-				JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology());
-			if (selectedValue == null) return false;
-			newTech = Technology.findTechnology(selectedValue);
-			if (newTech == null) return false;
-			if (newTech == oldTech)
-			{
-				System.out.println("Cell " + oldCell.describe(true) + " is already in the " + newTech.getTechName() + " technology");
-				return false;
-			}
-
 			// convert the cell and all subcells
+			Technology oldTech = oldCell.getTechnology();
 			HashMap<Cell,Cell> convertedCells = new HashMap<Cell,Cell>();
 			newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
 			fieldVariableChanged("newCell");

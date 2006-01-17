@@ -45,6 +45,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -804,7 +805,7 @@ public class EDIF extends Topology
                 int num = ni.numDisplayableVariables(false);
                 Poly [] varPolys = new Poly[num];
                 ni.addDisplayableVariables(ni.getBounds(), varPolys, 0, null, false);
-                writeDisplayableVariables(varPolys, "NODE_name", ni.rotateOut());
+                writeDisplayableVariables(varPolys, ni.rotateOut());
 			}
 			blockClose("instance");
             if (openedPortImplementation) {
@@ -1766,7 +1767,7 @@ public class EDIF extends Topology
 				setGraphic(EGUNKNOWN);
 			Poly [] varPolys = new Poly[num];
 			ni.addDisplayableVariables(ni.getBounds(), varPolys, 0, null, false);
-            writeDisplayableVariables(varPolys, "NODE_name", prevtrans);
+            writeDisplayableVariables(varPolys, prevtrans);
 
 			// search through cell
 			for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
@@ -1811,44 +1812,43 @@ public class EDIF extends Topology
 		Poly [] varPolys = new Poly[num];
 		ai.addDisplayableVariables(ai.getBounds(), varPolys, 0, null, false);
 //        writeDisplayableVariables(varPolys, "ARC_name", trans);
-        writeDisplayableVariables(varPolys, null, trans);
+        writeDisplayableVariables(varPolys, trans);
 	}
 
-    private void writeDisplayableVariables(Poly [] varPolys, String defaultVarName, AffineTransform prevtrans) {
+    private void writeDisplayableVariables(Poly [] varPolys, AffineTransform prevtrans) {
         for(int i=0; i<varPolys.length; i++)
         {
             Poly varPoly = varPolys[i];
             String name = null;
 			String append = null;
 			double scale = 1;
-            Variable var = varPoly.getVariable();
+			DisplayedText dt = varPoly.getDisplayedText();
+			Variable var = null;
+            if (dt != null) var = dt.getVariable();
             if (var != null)
 			{
 				// see if there is a translation
                 name = var.getTrueName();
-				EDIFEquiv.VariableEquivalence ve = equivs.getElectricVariableEquivalence(var.getKey().getName());
+				EDIFEquiv.VariableEquivalence ve = equivs.getElectricVariableEquivalence(dt.getVariableKey().getName());
 				if (ve != null)
 				{
 					name = ve.externVarName;
 					append = ve.appendElecOutput;
 					scale = ve.scale;
 				}
-			} else {
-                if (varPoly.getName() != null)
-                    name = defaultVarName;
             }
             if (name == null) continue;
 
             if (prevtrans != null) varPoly.transform(prevtrans);
             // make sure poly type is some kind of text
-            if (!varPoly.getStyle().isText()) {
+            if (!varPoly.getStyle().isText() && var != null) {
                 TextDescriptor td = var.getTextDescriptor();
                 if (td != null) {
                     Poly.Type style = td.getPos().getPolyType();
                     varPoly.setStyle(style);
                 }
             }
-            if (varPoly.getString() == null)
+            if (varPoly.getString() == null && var != null)
                 varPoly.setString(var.getObject().toString());
             blockOpen("property");
             blockPutIdentifier(name);
@@ -1963,12 +1963,12 @@ public class EDIF extends Topology
 		}
 		if (type.isText())
 		{
-            if (IOTool.isEDIFCadenceCompatibility() && obj.getVariable() != null) {
+            if (IOTool.isEDIFCadenceCompatibility() && obj.getDisplayedText() != null) {
                 // Properties in Cadence do not have position info, Cadence
                 // determines position automatically and cannot be altered by user.
                 // There also does not seem to be any way to set the 'display' so
                 // that it shows up on the instance
-				String value = obj.getVariable().getPureValue(-1);
+				String value = obj.getDisplayedText().getVariable().getPureValue(-1);
 				if (scale != 1)
 				{
 					double scaled = TextUtils.atof(value);

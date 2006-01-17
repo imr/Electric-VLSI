@@ -161,12 +161,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable var, Name name)
+	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
 	{
-        HighlightText h1 = new HighlightText(eobj, cell, var, name);
-//		Highlight h = new Highlight(Highlight.Type.TEXT, eobj, cell);
-//        h.setVar(var);
-//        h.setName(name);
+        HighlightText h1 = new HighlightText(eobj, cell, varKey);
 
         addHighlight(h1);
 		return h1;
@@ -409,7 +406,6 @@ public class Highlighter implements DatabaseChangeListener {
 		for(Iterator<Highlight2> it = getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight2 h = it.next();
-//			if (h.getType() == Highlight.Type.EOBJ)
             if (h instanceof HighlightEOBJ)
 			{
 				ElectricObject eobj = ((HighlightEOBJ)h).eobj;
@@ -730,7 +726,7 @@ public class Highlighter implements DatabaseChangeListener {
                 ElectricObject eobj = hh.eobj;
 				if (cell.objInCell(eobj))
 				{
-					addText(eobj, cell, hh.var, hh.name);
+					addText(eobj, cell, hh.varKey);
 				}
 			} else if (h instanceof HighlightArea)
 			{
@@ -1376,14 +1372,14 @@ public class Highlighter implements DatabaseChangeListener {
     /**
 	 * Method to convert the Variable to a series of points that describes the text.
 	 */
-	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eObj, Variable var, Name name)
+	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eObj, Variable.Key varKey)
 	{
         if (!Job.acquireExamineLock(false)) return null;
         Poly.Type style = null;
         Point2D[] points = null;
         Rectangle2D bounds = null;
         try {
-            Poly poly = eObj.computeTextPoly(wnd, var, name);
+            Poly poly = eObj.computeTextPoly(wnd, varKey);
             if (poly == null) {
                 Job.releaseExamineLock();
                 return null;
@@ -1702,7 +1698,7 @@ public class Highlighter implements DatabaseChangeListener {
                             {
                                 if (poly.polyDistance(bounds) >= directHitDist) continue;
                             }
-                            HighlightText h = new HighlightText(cell, cell, poly.getVariable(), null);
+                            HighlightText h = new HighlightText(cell, cell, poly.getDisplayedText().getVariableKey());
 //                            Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
 //                            h.setVar(poly.getVariable());
                             list.add(h);
@@ -1734,13 +1730,11 @@ public class Highlighter implements DatabaseChangeListener {
                             double hitdist = poly.polyDistance(bounds);
                             if (hitdist >= directHitDist) continue;
                         }
-//                        Highlight h = new Highlight(Highlight.Type.TEXT, null, cell);
-                        ElectricObject obj = null;
+                        ElectricObject obj = ni;
                         if (poly.getPort() != null)
                         {
                             PortProto pp = poly.getPort();
 							if (pp instanceof Export)
-//								h.setElectricObject((Export)pp);
                                obj = (Export)pp;
                             for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
                             {
@@ -1748,16 +1742,11 @@ public class Highlighter implements DatabaseChangeListener {
                                 if (pi.getPortProto() == pp)
                                 {
                                     obj = pi;
-//                                    h.setElectricObject(pi);
                                     break;
                                 }
                             }
-                        } else
-                            obj = ni;
-//                            h.setElectricObject(ni);
-//                        h.setVar(poly.getVariable());
-//                        h.setName(poly.getName());
-                        HighlightText h = new HighlightText(obj, cell, poly.getVariable(), poly.getName());
+                        }
+                        HighlightText h = new HighlightText(obj, cell, poly.getDisplayedText().getVariableKey());
                         list.add(h);
                     }
                 }
@@ -1783,10 +1772,7 @@ public class Highlighter implements DatabaseChangeListener {
                             {
                                 if (poly.polyDistance(bounds) >= directHitDist) continue;
                             }
-//                            Highlight h = new Highlight(Highlight.Type.TEXT, ai, cell);
-//                            h.setVar(poly.getVariable());
-//                            h.setName(poly.getName());
-                            HighlightText h = new HighlightText(ai, cell, poly.getVariable(), poly.getName());
+                            HighlightText h = new HighlightText(ai, cell, poly.getDisplayedText().getVariableKey());
                             list.add(h);
                         }
                     }

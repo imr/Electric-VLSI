@@ -603,9 +603,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     private static class ReadSpiceLibrary extends Job
     {
     	private URL fileURL;
-        private /*transient*/ JPopupMenu cellMenu;
-        private /*transient*/ TechPalette panel;
-        private /*transient*/ int x, y;
+        private transient JPopupMenu cellMenu;
+        private transient TechPalette panel;
+        private transient int x, y;
         private Library lib;
 
     	public ReadSpiceLibrary() {}

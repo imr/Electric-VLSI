@@ -249,7 +249,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 //         boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); )
 //         {
-//             Undo.Change change = (Undo.Change)it.next();
+//             Undo.Change change = it.next();
 //             ElectricObject obj = change.getObject();
 //             if (obj == ni)
 //             {
@@ -407,7 +407,17 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
-		AdjustOutline job = new AdjustOutline(this);
+		int newPointCount = model.size();
+		double [] x = new double[newPointCount];
+		double [] y = new double[newPointCount];
+		for(int i=0; i<newPointCount; i++)
+		{
+			String line = (String)model.get(i);
+			Point2D pt = getPointValue(line);
+			x[i] = pt.getX();
+			y[i] = pt.getY();
+		}
+		AdjustOutline job = new AdjustOutline(ni, x, y);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void duplicatePointActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_duplicatePointActionPerformed
@@ -465,14 +475,17 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	 */
 	private static class AdjustOutline extends Job
 	{
-		GetInfoOutline dialog;
+		private NodeInst ni;
+		private double [] x, y;
 
 		public AdjustOutline() {}
 
-		protected AdjustOutline(GetInfoOutline dialog)
+		private AdjustOutline(NodeInst ni, double [] x, double [] y)
 		{
 			super("Adjust Outline", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.ni = ni;
+			this.x = x;
+			this.y = y;
 			startJob();
 		}
 
@@ -481,14 +494,10 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 		 */
 		public boolean doIt() throws JobException
 		{
-			int newPointCount = dialog.model.size();
-			Point2D [] points = new Point2D[newPointCount];
-			for(int i=0; i<newPointCount; i++)
-			{
-				String line = (String)dialog.model.get(i);
-				points[i] = dialog.getPointValue(line);
-			}
-			dialog.ni.setTrace(points);
+			Point2D [] points = new Point2D[x.length];
+			for(int i=0; i<x.length; i++)
+				points[i] = new Point2D.Double(x[i], y[i]);
+			ni.setTrace(points);
 			return true;
 		}
 	}

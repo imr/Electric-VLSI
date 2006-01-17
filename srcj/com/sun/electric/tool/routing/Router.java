@@ -97,7 +97,7 @@ public abstract class Router {
      * @param cell the cell in which to create the route
      */
     public void createRoute(Route route, Cell cell) {
-        CreateRouteJob job = new CreateRouteJob(this, route, cell, verbose);
+        new CreateRouteJob(toString(), route, cell, verbose);
     }
 
     /**
@@ -113,54 +113,46 @@ public abstract class Router {
      * @param wnd EditWindow for the highlights
      */
     public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
-                                           boolean highlightRouteEnd, EditWindow_ wnd) {
-
+                                           boolean highlightRouteEnd, EditWindow_ wnd)
+    {
         Job.checkChanging();
 
         // check if we can edit this cell
-        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) {
-            //Highlight.clear();
-            //Highlight.finished();
-            return false;
-        }
+        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
-//        int arcsCreated = 0;
-//        int nodesCreated = 0;
         HashMap<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
         HashMap<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
+
         // pass 1: build all newNodes
-        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
-            RouteElement e = (RouteElement)it.next();
-            if (e.getAction() == RouteElement.RouteElementAction.newNode) {
+        for (RouteElement e : route)
+        {
+            if (e.getAction() == RouteElement.RouteElementAction.newNode)
+            {
                 if (e.isDone()) continue;
                 e.doAction();
-//                nodesCreated++;
                 RouteElementPort rep = (RouteElementPort)e;
                 Integer i = (Integer)nodesCreatedMap.get(rep.getPortProto().getParent());
-                if (i == null) {
-                    i = new Integer(0);
-                }
+                if (i == null) i = new Integer(0);
                 i = new Integer(i.intValue() + 1);
                 nodesCreatedMap.put(rep.getPortProto().getParent(), i);
             }
         }
+
         // pass 2: do all other actions (deletes, newArcs)
-        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
-            RouteElement e = (RouteElement)it.next();
+        for (RouteElement e : route)
+        {
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
-//                arcsCreated++;
                 RouteElementArc rea = (RouteElementArc)e;
                 Integer i = (Integer)arcsCreatedMap.get(rea.getArcProto());
-                if (i == null) {
-                    i = new Integer(0);
-                }
+                if (i == null) i = new Integer(0);
                 i = new Integer(i.intValue() + 1);
                 arcsCreatedMap.put(rea.getArcProto(), i);
             }
         }
 
-        if (verbose) {
+        if (verbose)
+        {
             List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
             List<NodeProto> nodeEntries = new ArrayList<NodeProto>(nodesCreatedMap.keySet());
             if (arcEntries.size() == 0 && nodeEntries.size() == 0) {
@@ -190,16 +182,6 @@ public abstract class Router {
                     System.out.println("    "+i+" "+np.describe(true)+" nodes");
                 }
             }
-/*
-            if (arcsCreated == 1)
-                System.out.print("1 arc, ");
-            else
-                System.out.print(arcsCreated+" arcs, ");
-            if (nodesCreated == 1)
-                System.out.println("1 node created");
-            else
-                System.out.println(nodesCreated+" nodes created");
-*/
 			User.playSound();
         }
 
@@ -232,15 +214,14 @@ public abstract class Router {
     	public CreateRouteJob() {}
 
         /** Constructor */
-        protected CreateRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router.toString(), Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+        protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose) {
+            super(what, Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.route = route;
             this.verbose = verbose;
             this.cell = cell;
             startJob();
         }
 
-        /** Implemented doIt() method to perform Job */
         public boolean doIt() throws JobException {
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 

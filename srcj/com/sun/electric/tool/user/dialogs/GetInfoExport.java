@@ -52,7 +52,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	private Export shownExport;
 	private String initialName;
 	private String initialRefName;
-	private PortCharacteristic initialCharacteristic;
+	private String initialCharacteristicName;
 	private boolean initialBodyOnly, initialAlwaysDrawn;
     private EditWindow wnd;
 
@@ -118,7 +118,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 //         // check if we care about the changes
 //         boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = (Undo.Change)it.next();
+//             Undo.Change change = it.next();
 //             ElectricObject obj = change.getObject();
 //             if (obj == shownExport) {
 //                 reload = true;
@@ -151,11 +151,10 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		Export pp = null;
 		int exportCount = 0;
         if (wnd != null) {
-            for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            for(Highlight2 h : wnd.getHighlighter().getHighlights())
             {
-                Highlight2 h = it.next();
                 if (!h.isHighlightText()) continue;
-                if (h.getVar() != null) continue;
+                if (h.getVarKey() != Export.EXPORT_NAME) continue;
                 ElectricObject eobj = h.getElectricObject();
                 if (eobj instanceof Export)
                 {
@@ -198,8 +197,9 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		alwaysDrawn.setSelected(initialAlwaysDrawn);
 
         // set characteristic and reference name
-		initialCharacteristic = pp.getCharacteristic();
-		characteristics.setSelectedItem(initialCharacteristic.getName());
+		PortCharacteristic initialCharacteristic = pp.getCharacteristic();
+		initialCharacteristicName = initialCharacteristic.getName();
+		characteristics.setSelectedItem(initialCharacteristicName);
 		initialRefName = "";
 		if (initialCharacteristic == PortCharacteristic.REFBASE ||
 			initialCharacteristic == PortCharacteristic.REFIN ||
@@ -243,9 +243,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
         // set characteristic combo box
 		List<PortCharacteristic> chars = PortCharacteristic.getOrderedCharacteristics();
-		for(Iterator<PortCharacteristic> it = chars.iterator(); it.hasNext(); )
+		for(PortCharacteristic ch : chars)
 		{
-			PortCharacteristic ch = (PortCharacteristic)it.next();
 			characteristics.addItem(ch.getName());
 		}
 
@@ -269,12 +268,12 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
 	private static class ChangeExport extends Job
 	{
-		Export pp;
-        String oldName;
-        String newName;
-        boolean newBodyOnly, newAlwaysDrawn;
-        PortCharacteristic newChar;
-        String newRefName;
+		private Export pp;
+		private String oldName;
+		private String newName;
+		private boolean newBodyOnly, newAlwaysDrawn;
+		private String newCharName;
+		private String newRefName;
 
 		public ChangeExport() {}
 
@@ -282,7 +281,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
                 String oldName,
                 String newName,
                 boolean newBodyOnly, boolean newAlwaysDrawn,
-                PortCharacteristic newChar, String newRefName)
+                String newCharName, String newRefName)
 		{
 			super("Modify Export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
@@ -290,7 +289,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 			this.newName = newName;
             this.newBodyOnly = newBodyOnly;
             this.newAlwaysDrawn = newAlwaysDrawn;
-            this.newChar = newChar;
+            this.newCharName = newCharName;
             this.newRefName = newRefName;
 			startJob();
 		}
@@ -306,6 +305,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 			pp.setAlwaysDrawn(newAlwaysDrawn);
 
 			// change the characteristic
+	        PortCharacteristic newChar = PortCharacteristic.findCharacteristic(newCharName);
 			pp.setCharacteristic(newChar);
 
             // change reference name
@@ -539,29 +539,23 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         if (newAlwaysDrawn != initialAlwaysDrawn) changed = true;
         // check characteristic
         String newCharName = (String)characteristics.getSelectedItem();
-        PortCharacteristic newChar = PortCharacteristic.findCharacteristic(newCharName);
-        if (newChar != initialCharacteristic) changed = true;
+        if (!newCharName.equals(initialCharacteristicName)) changed = true;
         // check reference name
         String newRefName = refName.getText();
         if (!newRefName.equals(initialRefName)) changed = true;
 
         if (changed) {
             // generate Job to change export port options
-            ChangeExport job = new ChangeExport(
-                    shownExport,
-                    initialName,
-                    newName,
-                    newBodyOnly, newAlwaysDrawn,
-                    newChar, newRefName
-                    );
+            new ChangeExport(shownExport, initialName, newName, newBodyOnly, newAlwaysDrawn, newCharName, newRefName);
         }
+
         // possibly generate job to change export text options
         textPanel.applyChanges();
 
         initialName = newName;
         initialBodyOnly = newBodyOnly;
         initialAlwaysDrawn = newAlwaysDrawn;
-        initialCharacteristic = newChar;
+        initialCharacteristicName = newCharName;
         initialRefName = newRefName;
         
 	}//GEN-LAST:event_applyActionPerformed

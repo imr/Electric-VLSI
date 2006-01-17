@@ -488,6 +488,7 @@ public final class Main
 			URL url = TextUtils.makeURLToFile(arg);
             if (url == null) continue;
             fileURLs.add(url);
+            User.setWorkingDirectory(TextUtils.getFilePath(url));
         }
 
         // open any libraries but only when there is at least one

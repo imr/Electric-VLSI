@@ -136,7 +136,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * Method to return the integer equivalent of this Position.
 		 * @return the integer equivalent of this Position.
 		 */
-		/*private*/ int getIndex() { return index; }
+		public int getIndex() { return index; }
 
 		/**
 		 * Method to return the Poly.Type to use for this Position.

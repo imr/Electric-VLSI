@@ -393,11 +393,15 @@ public class PaletteFrame implements MouseListener
 				}
 			}
 
+			int defAngle = 0;
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
+			{
 				descript += np.getName() + " Primitive";
+				defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
+			}
             wnd.getHighlighter().clear();
-            new PlaceNewNode(descript, np, ni, where, cell, textNode, makePort);
+            new PlaceNewNode(descript, np, ni, defAngle, where, cell, textNode, makePort);
 
 			// restore the former listener to the edit windows
             finished(wnd, false);
@@ -461,20 +465,22 @@ public class PaletteFrame implements MouseListener
 	{
 		private NodeProto np;
 		private NodeInst ni;
+		private int defAngle;
 		private EPoint where;
 		private Cell cell;
 		private String varName;
 		private boolean export;
-		private Variable varToHighlight;
+		private Variable.Key varKeyToHighlight;
 		private ElectricObject objToHighlight;
 
     	public PlaceNewNode() {}
 
-		public PlaceNewNode(String description, NodeProto np, NodeInst ni, Point2D where, Cell cell, String varName, boolean export)
+		public PlaceNewNode(String description, NodeProto np, NodeInst ni, int defAngle, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.np = np;
 			this.ni = ni;
+			this.defAngle = defAngle;
 			this.where = EPoint.snap(where);
 			this.cell = cell;
 			this.varName = varName;
@@ -497,7 +503,6 @@ public class PaletteFrame implements MouseListener
 				techBits = ni.getTechSpecific();
 			} else if (np instanceof PrimitiveNode)
 			{
-				int defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
                 defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
 			}
 
@@ -509,10 +514,11 @@ public class PaletteFrame implements MouseListener
 			if (varName != null)
 			{
 				// text object: add initial text
-				varToHighlight = newNi.newVar(Variable.newKey(varName), "text", TextDescriptor.getAnnotationTextDescriptor());
+				varKeyToHighlight = Variable.newKey(varName);
+				newNi.newVar(varKeyToHighlight, "text", TextDescriptor.getAnnotationTextDescriptor());
 				objToHighlight = newNi;
 				fieldVariableChanged("objToHighlight");
-				fieldVariableChanged("varToHighlight");
+				fieldVariableChanged("varKeyToHighlight");
 			} else
 			{
 				if (np == Schematics.tech.resistorNode)
@@ -583,9 +589,9 @@ public class PaletteFrame implements MouseListener
         {
             EditWindow wnd = EditWindow.getCurrent();
             Highlighter highlighter = wnd.getHighlighter();
-            if (varToHighlight != null)
+            if (varKeyToHighlight != null)
         	{
-        		highlighter.addText(objToHighlight, cell, varToHighlight, null);
+        		highlighter.addText(objToHighlight, cell, varKeyToHighlight);
         	} else
         	{
 				highlighter.addElectricObject(objToHighlight, cell);

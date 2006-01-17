@@ -206,44 +206,12 @@ public class Maze
 	public static void mazeRoute()
 	{
 		UserInterface ui = Main.getUserInterface();
-		Cell curCell = ui.needCurrentCell();
-		if (curCell == null) return;
-		MazeRouteJob job = new MazeRouteJob(curCell);
-	}
-
-	private static class MazeRouteJob extends Job
-	{
-		private Cell cell;
-
-		public MazeRouteJob() {}
-
-		protected MazeRouteJob(Cell cell)
-		{
-			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Maze router = new Maze();
-			router.routeSelected(cell);
-			return true;
-		}
-	}
-
-	/**
-	 * This is the public interface for Maze Routing when done in batch mode.
-	 * It replaces the selected unrouted arcs with routed geometry
-	 * @param cell the cell to be Maze-routed.
-	 */
-	public void routeSelected(Cell cell)
-	{
-		UserInterface ui = Main.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd == null) return;
 
-		netList = cell.acquireUserNetlist();
+		Netlist netList = cell.acquireUserNetlist();
 		if (netList == null)
 		{
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
@@ -254,44 +222,78 @@ public class Maze
 		{
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
 				Network net = netList.getNetwork(ai, 0);
 				nets.add(net);
 			}
 		}
 
+		// turn off highlighting
+		wnd.clearHighlighting();
+		wnd.finishedHighlighting();
+
+		MazeRouteJob job = new MazeRouteJob(cell, nets);
+	}
+
+	private static class MazeRouteJob extends Job
+	{
+		private Cell cell;
+		private Set<Network> nets;
+
+		public MazeRouteJob() {}
+
+		protected MazeRouteJob(Cell cell, Set<Network> nets)
+		{
+			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.nets = nets;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Maze router = new Maze();
+			router.routeSelected(cell, nets);
+			return true;
+		}
+	}
+
+	/**
+	 * This is the public interface for Maze Routing when done in batch mode.
+	 * It replaces the selected unrouted arcs with routed geometry
+	 * @param cell the cell to be Maze-routed.
+	 */
+	public void routeSelected(Cell cell, Set<Network> nets)
+	{
 		// turn this into a list of ArcInsts on each net so that it survives renetlisting after each route
 		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
-		for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+		for(Network net : nets)
 		{
-			Network net = (Network)it.next();
 			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)aIt.next();
+				ArcInst ai = aIt.next();
 				arcsToRoute.add(ai);
 				break;
 			}
 		}
 
 		// now route each arc
-		for(Iterator<ArcInst> it = arcsToRoute.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcsToRoute)
 		{
-			ArcInst ai = (ArcInst)it.next();
-
 			// reacquire the netlist for the current configuration
 			netList = cell.acquireUserNetlist();
 
 			// route the unrouted arc
 			Network net = netList.getNetwork(ai, 0);
-			if (routeNet(net, wnd)) continue;
+			if (routeNet(net)) continue;
 		}
 	}
 
 	/**
 	 * Method to reroute networks "net".  Returns true on error.
 	 */
-	private boolean routeNet(Network net, EditWindow_ wnd)
+	private boolean routeNet(Network net)
 	{
 		// get extent of net and mark nodes and arcs on it
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
@@ -310,7 +312,7 @@ public class Maze
 		Rectangle2D routingBounds = null;
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
 			Rectangle2D arcBounds = ai.getBounds();
@@ -324,10 +326,6 @@ public class Maze
 			System.out.println("Internal error: no bounding area for routing");
 			return true;
 		}
-
-		// turn off highlighting
-		wnd.clearHighlighting();
-		wnd.finishedHighlighting();
 
 		// now create the routing region
 		int lx = (int)routingBounds.getMinX();
@@ -376,14 +374,12 @@ public class Maze
 		}
 
 		// remove marked networks
-		for(Iterator<ArcInst> it = arcsToDelete.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcsToDelete)
 		{
-			ArcInst ai = (ArcInst)it.next();
 			ai.kill();
 		}
-		for(Iterator<NodeInst> it = nodesToDelete.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToDelete)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			ni.kill();
 		}
 
@@ -427,11 +423,11 @@ public class Maze
 			}
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
-				Technology tech = (Technology)it.next();
+				Technology tech = it.next();
 				if (tech == Generic.tech) continue;
 				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 				{
-					ArcProto ap = (ArcProto)aIt.next();
+					ArcProto ap = aIt.next();
 					if (!arcsUsed.contains(ap)) continue;
 					boolean allFound = true;
 					for(SRPORT port = net.ports; port != null; port = port.next)
@@ -1493,7 +1489,7 @@ public class Maze
 		Rectangle2D searchBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
-			Geometric geom = (Geometric)sea.next();
+			Geometric geom = sea.next();
 			if (geom instanceof NodeInst)
 			{
 				// draw this cell
@@ -1569,12 +1565,12 @@ public class Maze
 			Cell subCell = (Cell)np;
 			for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst iNo = (NodeInst)it.next();
+				NodeInst iNo = it.next();
 				drawCell(iNo, subRot, region);
 			}
 			for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 			{
-				ArcInst iAr = (ArcInst)it.next();
+				ArcInst iAr = it.next();
 				drawArcInst(iAr, subRot, region);
 			}
 		}
@@ -2266,7 +2262,7 @@ public class Maze
 		Rectangle2D searchBounds = new Rectangle2D.Double(x-0.5, y-0.5, 1, 1);
 		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
-			Geometric geom = (Geometric)sea.next();
+			Geometric geom = sea.next();
 
 			if (geom instanceof NodeInst)
 			{
@@ -2274,7 +2270,7 @@ public class Maze
 				NodeInst ni = (NodeInst)geom;
 				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 				{
-					PortInst pi = (PortInst)it.next();
+					PortInst pi = it.next();
 					Poly portPoly = pi.getPoly();
 					if (portPoly.isInside(searchPoint))
 					{

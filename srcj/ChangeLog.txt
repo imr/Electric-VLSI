@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/16/06, SMR) Further reorganization for client/server split:
+     More Job classes recoded.
+     Removed use of "Name" object for tracking highlighting, replaced with Variable.Key.
+
 IMP: (1/12/06, DN) Serialization/deserialization of Job objects. It is tested in "-debug" mode.
 
 IMP: (1/12/06, SMR) Further reorganization for client/server split:

@@ -36,6 +36,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -128,7 +129,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	List<NodeInst> nodeList;
 	List<ArcInst>arcList;
 	List<Export> exportList;
-	List<Highlight2> textList;
+	List<DisplayedText> textList;
 
     private EditWindow wnd;
 
@@ -283,7 +284,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		nodeList = new ArrayList<NodeInst>();
 		arcList = new ArrayList<ArcInst>();
 		exportList = new ArrayList<Export>();
-		textList = new ArrayList<Highlight2>();
+		textList = new ArrayList<DisplayedText>();
 		Geometric firstGeom = null, secondGeom = null;
 		double xPositionLow = Double.MAX_VALUE, xPositionHigh = -Double.MAX_VALUE;
 		double yPositionLow = Double.MAX_VALUE, yPositionHigh = -Double.MAX_VALUE;
@@ -336,22 +337,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				}
 			} else if (h.isHighlightText())
 			{
-				if (h.getVar() != null)
-				{
-					textList.add(h);
-				} else
-				{
-					if (h.getName() != null)
-					{
-                        textList.add(h);
-					} else if (eobj instanceof Export)
-					{
-						exportList.add((Export)eobj);
-					} else if (eobj instanceof NodeInst)
-					{
-						textList.add(h);
-					}
-				}
+				Variable.Key varKey = h.getVarKey();
+				if (varKey != null)
+					textList.add(new DisplayedText(eobj, varKey));
 			}
 		}
 
@@ -683,38 +671,128 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	 */
 	private static class MultiChange extends Job
 	{
-		GetInfoMulti dialog;
+		private String xPos, yPos;
+		private String xSize, ySize;
+		private String rot;
+		private int lr, ud;
+		private int expanded;
+		private int easySelect;
+		private int invisOutside;
+		private int locked;
+		private String width;
+		private int rigid, fixedangle, slidable;
+		private int extension, directional, negated;
+		private String characteristics;
+		private int bodyOnly;
+		private int alwaysDrawn;
+		private String pointSize, unitSize;
+		private String xOff, yOff;
+		private int textRotation;
+		private int anchor;
+		private String font;
+		private int color;
+		private int bold, italic, underline;
+		private int code;
+		private int units;
+		private int show;
+		private List<NodeInst> nodeList;
+		private List<ArcInst> arcList;
+		private List<Export> exportList;
+		private List<DisplayedText> textList;
 
 		public MultiChange() {}
 
-		protected MultiChange(GetInfoMulti dialog)
+		protected MultiChange(
+			String xPos,
+			String yPos,
+			String xSize,
+			String ySize,
+			String rot,
+			int lr,
+			int ud,
+			int expanded,
+			int easySelect,
+			int invisOutside,
+			int locked,
+			String width,
+			int rigid,
+			int fixedangle,
+			int slidable,
+			int extension,
+			int directional,
+			int negated,
+			String characteristics,
+			int bodyOnly,
+			int alwaysDrawn,
+			String pointSize,
+			String unitSize,
+			String xOff,
+			String yOff,
+			int textRotation,
+			int anchor,
+			String font,
+			int color,
+			int bold,
+			int italic,
+			int underline,
+			int code,
+			int units,
+			int show,
+			List<NodeInst> nodeList, List<ArcInst> arcList,
+			List<Export> exportList, List<DisplayedText> textList)
 		{
 			super("Modify Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.xPos = xPos;
+			this.yPos = yPos;
+			this.xSize = xSize;
+			this.ySize = ySize;
+			this.rot = rot;
+			this.lr = lr;
+			this.ud = ud;
+			this.expanded = expanded;
+			this.easySelect = easySelect;
+			this.invisOutside = invisOutside;
+			this.locked = locked;
+			this.width = width;
+			this.rigid = rigid;
+			this.fixedangle = fixedangle;
+			this.slidable = slidable;
+			this.extension = extension;
+			this.directional = directional;
+			this.negated = negated;
+			this.characteristics = characteristics;
+			this.bodyOnly = bodyOnly;
+			this.alwaysDrawn = alwaysDrawn;
+			this.pointSize = pointSize;
+			this.unitSize = unitSize;
+			this.xOff = xOff;
+			this.yOff = yOff;
+			this.textRotation = textRotation;
+			this.anchor = anchor;
+			this.font = font;
+			this.color = color;
+			this.bold = bold;
+			this.italic = italic;
+			this.underline = underline;
+			this.code = code;
+			this.units = units;
+			this.show = show;
+			this.nodeList = nodeList;
+			this.arcList = arcList;
+			this.exportList = exportList;
+			this.textList = textList;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// change nodes
-			int numNodes = dialog.nodeList.size();
+			int numNodes = nodeList.size();
 			if (numNodes > 0)
 			{
-				String xPos = dialog.findComponentStringValue(CHANGEXPOS);
-				String yPos = dialog.findComponentStringValue(CHANGEYPOS);
-				String xSize = dialog.findComponentStringValue(CHANGEXSIZE);
-				String ySize = dialog.findComponentStringValue(CHANGEYSIZE);
-				String rot = dialog.findComponentStringValue(CHANGEROTATION);
-				int lr = dialog.findComponentIntValue(CHANGEMIRRORLR);
-				int ud = dialog.findComponentIntValue(CHANGEMIRRORUD);
-				int expanded = dialog.findComponentIntValue(CHANGEEXPANDED);
-				int easySelect = dialog.findComponentIntValue(CHANGEEASYSELECT);
-				int invisOutside = dialog.findComponentIntValue(CHANGEINVOUTSIDECELL);
-				int locked = dialog.findComponentIntValue(CHANGELOCKED);				
-
 				// make other node changes
 				boolean changes = false;
-				for(NodeInst ni : dialog.nodeList)
+				for(NodeInst ni : nodeList)
 				{
 					if (ni.getProto() instanceof Cell)
 					{
@@ -752,7 +830,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						double newXPosition = TextUtils.atof(xPos);
 						double newYPosition = TextUtils.atof(yPos);
 						int i = 0;
-						for(NodeInst ni : dialog.nodeList)
+						for(NodeInst ni : nodeList)
 						{
 		                    SizeOffset so = ni.getSizeOffset();
 							nis[i] = ni;
@@ -781,7 +859,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						NodeInst.modifyInstances(nis, dXP, dYP, dXS, dYS);
 					} else
 					{
-						for(NodeInst ni : dialog.nodeList)
+						for(NodeInst ni : nodeList)
 						{
 		                    SizeOffset so = ni.getSizeOffset();
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
@@ -804,7 +882,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 								dYS = trueYSize - ni.getYSize();
 							}
 							int dRot = 0;
-							if (rot.length() > 0) dRot = (TextUtils.atoi(rot) - ni.getAngle() + 3600) % 3600;
+							if (rot.length() > 0) dRot = ((int)(TextUtils.atof(rot)*10) - ni.getAngle() + 3600) % 3600;
 							boolean dMirrorLR = false;
 							if (lr == 1 && !ni.isXMirrored()) dMirrorLR = true; else
 								if (lr == 2 && ni.isXMirrored()) dMirrorLR = true;
@@ -818,18 +896,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				}
 			}
 
-			if (dialog.arcList.size() > 0)
+			if (arcList.size() > 0)
 			{
-				String width = dialog.findComponentStringValue(CHANGEWIDTH);
-				int rigid = dialog.findComponentIntValue(CHANGERIGID);
-				int fixedangle = dialog.findComponentIntValue(CHANGEFIXANGLE);
-				int slidable = dialog.findComponentIntValue(CHANGESLIDABLE);
-				int extension = dialog.findComponentIntValue(CHANGEEXTENSION);
-				int directional = dialog.findComponentIntValue(CHANGEDIRECTION);
-				int negated = dialog.findComponentIntValue(CHANGENEGATION);
-				int easySelect = dialog.findComponentIntValue(CHANGEEASYSELECT);
-
-				for(ArcInst ai : dialog.arcList)
+				for(ArcInst ai : arcList)
 				{
 					if (width.length() > 0)
 					{
@@ -875,31 +944,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				}
 			}
 
-			if (dialog.exportList.size() > 0)
+			if (exportList.size() > 0)
 			{
-				int characteristics = dialog.findComponentIntValue(CHANGECHARACTERISTICS);
-				int bodyOnly = dialog.findComponentIntValue(CHANGEBODYONLY);
-				int alwaysDrawn = dialog.findComponentIntValue(CHANGEALWAYSDRAWN);
-				String pointSize = dialog.findComponentStringValue(CHANGEPOINTSIZE);
-				String unitSize = dialog.findComponentStringValue(CHANGEUNITSIZE);
-				String xOff = dialog.findComponentStringValue(CHANGEXOFF);
-				String yOff = dialog.findComponentStringValue(CHANGEYOFF);
-				int textRotation = dialog.findComponentIntValue(CHANGETEXTROT);
-				int anchor = dialog.findComponentIntValue(CHANGEANCHOR);
-				int font = dialog.findComponentIntValue(CHANGEFONT);
-				int color = dialog.findComponentIntValue(CHANGECOLOR);
-				int bold = dialog.findComponentIntValue(CHANGEBOLD);
-				int italic = dialog.findComponentIntValue(CHANGEITALIC);
-				int underline = dialog.findComponentIntValue(CHANGEUNDERLINE);
-				int invisOutside = dialog.findComponentIntValue(CHANGEINVOUTSIDECELL);
-
-				for(Export e : dialog.exportList)
+				for(Export e : exportList)
 				{
-					if (characteristics != 0)
+					if (characteristics != null)
 					{
-						JComboBox chBox = (JComboBox)dialog.findComponentRawValue(CHANGECHARACTERISTICS);
-						String charName = (String)chBox.getSelectedItem();
-						PortCharacteristic ch = PortCharacteristic.findCharacteristic(charName);
+						PortCharacteristic ch = PortCharacteristic.findCharacteristic(characteristics);
 						e.setCharacteristic(ch);
 					}
 					if (bodyOnly == 1) e.setBodyOnly(true); else
@@ -940,28 +991,23 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						}
 						tdChanged = true;
 					}
-					if (anchor > 0)
+					if (anchor >= 0)
 					{
-						JComboBox anBox = (JComboBox)dialog.findComponentRawValue(CHANGEANCHOR);
-				        TextDescriptor.Position newPosition = (TextDescriptor.Position)anBox.getSelectedItem();
+				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(anchor);
 						td.setPos(newPosition);
 						tdChanged = true;
 					}
-					if (font > 0)
+					if (font != null)
 					{
-						JComboBox foBox = (JComboBox)dialog.findComponentRawValue(CHANGEFONT);
-						String fontName = (String)foBox.getSelectedItem();
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(fontName);
+		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
 		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
 		                td.setFace(newFontIndex);
 						tdChanged = true;
 					}
 					if (color > 0)
 					{
-						JComboBox coBox = (JComboBox)dialog.findComponentRawValue(CHANGECOLOR);
 						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorComboIndex = coBox.getSelectedIndex();
-				        int newColorIndex = colorIndices[newColorComboIndex-1];
+				        int newColorIndex = colorIndices[color-1];
 						td.setColorIndex(newColorIndex);
 						tdChanged = true;
 					}
@@ -980,46 +1026,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				}
 			}
 
-			if (dialog.textList.size() > 0)
+			if (textList.size() > 0)
 			{
-				for(Highlight2 h : dialog.textList)
+				for(DisplayedText dt : textList)
 				{
-					ElectricObject eobj = h.getElectricObject();
-					if (!h.isHighlightText()) continue;
-
-					Variable.Key descKey = null;
-					if (h.getVar() != null)
-					{
-						descKey = h.getVar().getKey();
-					} else
-					{
-						if (h.getName() != null)
-						{
-							if (eobj instanceof NodeInst) descKey = NodeInst.NODE_NAME; else
-								if (eobj instanceof ArcInst) descKey = ArcInst.ARC_NAME;
-						} else if (eobj instanceof NodeInst)
-						{
-							descKey = NodeInst.NODE_PROTO;
-						}
-					}
-					if (descKey == null) continue;
+					ElectricObject eobj = dt.getElectricObject();
+					Variable.Key descKey = dt.getVariableKey();
 					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
-
-					String pointSize = dialog.findComponentStringValue(CHANGEPOINTSIZE);
-					String unitSize = dialog.findComponentStringValue(CHANGEUNITSIZE);
-					String xOff = dialog.findComponentStringValue(CHANGEXOFF);
-					String yOff = dialog.findComponentStringValue(CHANGEYOFF);
-					int textRotation = dialog.findComponentIntValue(CHANGETEXTROT);
-					int anchor = dialog.findComponentIntValue(CHANGEANCHOR);
-					int font = dialog.findComponentIntValue(CHANGEFONT);
-					int color = dialog.findComponentIntValue(CHANGECOLOR);
-					int code = dialog.findComponentIntValue(CHANGECODE);
-					int units = dialog.findComponentIntValue(CHANGEUNITS);
-					int show = dialog.findComponentIntValue(CHANGESHOW);
-					int bold = dialog.findComponentIntValue(CHANGEBOLD);
-					int italic = dialog.findComponentIntValue(CHANGEITALIC);
-					int underline = dialog.findComponentIntValue(CHANGEUNDERLINE);
-					int invisOutside = dialog.findComponentIntValue(CHANGEINVOUTSIDECELL);
 
 					boolean tdChanged = false;
 					if (pointSize.length() > 0)
@@ -1053,49 +1066,41 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						}
 						tdChanged = true;
 					}
-					if (anchor > 0)
+					if (anchor >= 0)
 					{
-						JComboBox anBox = (JComboBox)dialog.findComponentRawValue(CHANGEANCHOR);
-				        TextDescriptor.Position newPosition = (TextDescriptor.Position)anBox.getSelectedItem();
+				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(anchor);
 						td.setPos(newPosition);
 						tdChanged = true;
 					}
-					if (font > 0)
+					if (font != null)
 					{
-						JComboBox foBox = (JComboBox)dialog.findComponentRawValue(CHANGEFONT);
-						String fontName = (String)foBox.getSelectedItem();
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(fontName);
+		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
 		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
 		                td.setFace(newFontIndex);
 						tdChanged = true;
 					}
 					if (color > 0)
 					{
-						JComboBox coBox = (JComboBox)dialog.findComponentRawValue(CHANGECOLOR);
 						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorComboIndex = coBox.getSelectedIndex();
-				        int newColorIndex = colorIndices[newColorComboIndex-1];
+				        int newColorIndex = colorIndices[color-1];
 						td.setColorIndex(newColorIndex);
 						tdChanged = true;
 					}
 					if (code > 0)
 					{
-						JComboBox cdBox = (JComboBox)dialog.findComponentRawValue(CHANGECODE);
-						TextDescriptor.Code cd = (TextDescriptor.Code)cdBox.getSelectedItem();
+						TextDescriptor.Code cd = TextDescriptor.Code.getByCBits(code);
 						td.setCode(cd);
 						tdChanged = true;
 					}
 					if (units > 0)
 					{
-						JComboBox unBox = (JComboBox)dialog.findComponentRawValue(CHANGEUNITS);
-						TextDescriptor.Unit un = (TextDescriptor.Unit)unBox.getSelectedItem();
+						TextDescriptor.Unit un = TextDescriptor.Unit.getUnitAt(units);
 						td.setUnit(un);
 						tdChanged = true;
 					}
 					if (show > 0)
 					{
-						JComboBox shBox = (JComboBox)dialog.findComponentRawValue(CHANGESHOW);
-						TextDescriptor.DispPos sh = (TextDescriptor.DispPos)shBox.getSelectedItem();
+						TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(show);
 						td.setDispPart(sh);
 						tdChanged = true;
 					}					
@@ -1280,7 +1285,118 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
-		MultiChange job = new MultiChange(this);
+		// change nodes
+		String xPos = null;
+		String yPos = null;
+		String xSize = null;
+		String ySize = null;
+		String rot = null;
+		int lr = 0;
+		int ud = 0;
+		int expanded = 0;
+		int easySelect = 0;
+		int invisOutside = 0;
+		int locked = 0;
+		String width = null;
+		int rigid = 0;
+		int fixedangle = 0;
+		int slidable = 0;
+		int extension = 0;
+		int directional = 0;
+		int negated = 0;
+		String characteristics = null;
+		int bodyOnly = 0;
+		int alwaysDrawn = 0;
+		String pointSize = null;
+		String unitSize = null;
+		String xOff = null;
+		String yOff = null;
+		int textRotation = 0;
+		int anchor = -1;
+		String font = null;
+		int color = 0;
+		int bold = 0;
+		int italic = 0;
+		int underline = 0;
+		int code = -1;
+		int units = -1;
+		int show = -1;
+		if (nodeList.size() > 0)
+		{
+			xPos = findComponentStringValue(CHANGEXPOS);
+			yPos = findComponentStringValue(CHANGEYPOS);
+			xSize = findComponentStringValue(CHANGEXSIZE);
+			ySize = findComponentStringValue(CHANGEYSIZE);
+			rot = findComponentStringValue(CHANGEROTATION);
+			lr = findComponentIntValue(CHANGEMIRRORLR);
+			ud = findComponentIntValue(CHANGEMIRRORUD);
+			expanded = findComponentIntValue(CHANGEEXPANDED);
+			easySelect = findComponentIntValue(CHANGEEASYSELECT);
+			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+			locked = findComponentIntValue(CHANGELOCKED);
+		}
+		if (arcList.size() > 0)
+		{
+			width = findComponentStringValue(CHANGEWIDTH);
+			rigid = findComponentIntValue(CHANGERIGID);
+			fixedangle = findComponentIntValue(CHANGEFIXANGLE);
+			slidable = findComponentIntValue(CHANGESLIDABLE);
+			extension = findComponentIntValue(CHANGEEXTENSION);
+			directional = findComponentIntValue(CHANGEDIRECTION);
+			negated = findComponentIntValue(CHANGENEGATION);
+			easySelect = findComponentIntValue(CHANGEEASYSELECT);
+		}
+		if (exportList.size() > 0)
+		{
+			characteristics = (String)((JComboBox)findComponentRawValue(CHANGECHARACTERISTICS)).getSelectedItem();
+			bodyOnly = findComponentIntValue(CHANGEBODYONLY);
+			alwaysDrawn = findComponentIntValue(CHANGEALWAYSDRAWN);
+			pointSize = findComponentStringValue(CHANGEPOINTSIZE);
+			unitSize = findComponentStringValue(CHANGEUNITSIZE);
+			xOff = findComponentStringValue(CHANGEXOFF);
+			yOff = findComponentStringValue(CHANGEYOFF);
+			textRotation = findComponentIntValue(CHANGETEXTROT);
+			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
+			if (anValue instanceof TextDescriptor.Position)
+				anchor = ((TextDescriptor.Position)anValue).getIndex();
+			font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
+			color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
+			bold = findComponentIntValue(CHANGEBOLD);
+			italic = findComponentIntValue(CHANGEITALIC);
+			underline = findComponentIntValue(CHANGEUNDERLINE);
+			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+		}
+		if (textList.size() > 0)
+		{
+			pointSize = findComponentStringValue(CHANGEPOINTSIZE);
+			unitSize = findComponentStringValue(CHANGEUNITSIZE);
+			xOff = findComponentStringValue(CHANGEXOFF);
+			yOff = findComponentStringValue(CHANGEYOFF);
+			textRotation = findComponentIntValue(CHANGETEXTROT);
+			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
+			if (anValue instanceof TextDescriptor.Position)
+				anchor = ((TextDescriptor.Position)anValue).getIndex();
+			font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
+			color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
+			Object cdValue = ((JComboBox)findComponentRawValue(CHANGECODE)).getSelectedItem();
+			if (cdValue instanceof TextDescriptor.Code)
+				code = ((TextDescriptor.Code)cdValue).getCFlags();
+			Object unValue = ((JComboBox)findComponentRawValue(CHANGEUNITS)).getSelectedItem();
+			if (unValue instanceof TextDescriptor.Unit)
+				units = ((TextDescriptor.Unit)unValue).getIndex();
+			Object shValue = ((JComboBox)findComponentRawValue(CHANGESHOW)).getSelectedItem();
+			if (shValue instanceof TextDescriptor.DispPos)
+				show = ((TextDescriptor.DispPos)shValue).getIndex();
+			bold = findComponentIntValue(CHANGEBOLD);
+			italic = findComponentIntValue(CHANGEITALIC);
+			underline = findComponentIntValue(CHANGEUNDERLINE);
+			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+		}
+
+		new MultiChange(xPos, yPos, xSize, ySize, rot, lr, ud, expanded, easySelect, invisOutside,
+			locked, width, rigid, fixedangle, slidable, extension, directional, negated,
+			characteristics, bodyOnly, alwaysDrawn, pointSize, unitSize, xOff, yOff, textRotation,
+			anchor, font, color, bold, italic, underline, code, units, show, nodeList, arcList, exportList, textList);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed

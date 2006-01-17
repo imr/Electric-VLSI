@@ -774,15 +774,18 @@ public class EditWindow extends JPanel
 
 			NodeInst ni = null;
 			NodeProto np = null;
+			int defAngle = 0;
 			if (obj instanceof NodeProto)
 			{
 				np = (NodeProto)obj;
+				if (np instanceof PrimitiveNode)
+					defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
 			} else if (obj instanceof NodeInst)
 			{
 				ni = (NodeInst)obj;
 				np = ni.getProto();
 			}
-			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", np, ni, where, wnd.getCell(), null, false);
+			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
 		}
 	}
 
@@ -2029,12 +2032,11 @@ public class EditWindow extends JPanel
 		printFind(currentStringInCell);
 		if (currentStringInCell.object == null)
 		{
-			highlighter.addText(cell, cell, (Variable)currentStringInCell.object, null);
+			highlighter.addText(cell, cell, currentStringInCell.key);
 		} else
 		{
 			ElectricObject eObj = (ElectricObject)currentStringInCell.object;
-			Variable var = eObj.getVar(currentStringInCell.key);
-			highlighter.addText(eObj, cell, var, currentStringInCell.name);
+			highlighter.addText(eObj, cell, currentStringInCell.key);
 		}
 		highlighter.finished();
 		return true;	
@@ -2790,9 +2792,9 @@ public class EditWindow extends JPanel
 		highlighter.addLine(pt1, pt2, cell);
 	}
 
-	public void addHighlightText(ElectricObject eObj, Cell cell, Variable var, Name name)
+	public void addHighlightText(ElectricObject eObj, Cell cell, Variable.Key varKey)
 	{
-		highlighter.addText(eObj, cell, var, name);
+		highlighter.addText(eObj, cell, varKey);
 	}
 
 	public ElectricObject getOneElectricObject(Class clz) { return highlighter.getOneElectricObject(clz); }

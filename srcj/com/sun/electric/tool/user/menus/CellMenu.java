@@ -301,7 +301,7 @@ public class CellMenu {
 				double ctrY = ai.getBounds().getCenterY();
 				if (ctrY > lY && ctrY < hY) deleteList.add(ai);
 			}
-			CircuitChangeJobs.eraseObjectsInList(cell, deleteList);
+			CircuitChangeJobs.eraseObjectsInList(cell, deleteList, false);
 
 			// now slide circuitry down if this isn't the last page
 			numPages = cell.getNumMultiPages();

@@ -59,6 +59,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -360,7 +362,35 @@ public class Connectivity
 		System.out.print("geometry, ");
 
 		// cleanup by auto-stitching
-		AutoStitch.runAutoStitch(newCell, false, false, originalMerge);
+		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
+		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
+		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.isIconOfParent()) continue;
+			if (ni.getProto() instanceof PrimitiveNode)
+			{
+				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+				if (pnp.getTechnology() == Generic.tech) continue;
+				if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+			}
+			nodesToStitch.add(ni);
+		}
+		for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			arcsToStitch.add(ai);
+		}
+		ArcProto preferredArc = null;
+		String preferredName = Routing.getPreferredRoutingArc();
+		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
+		if (preferredArc == null)
+		{
+			// see if there is a default user arc
+			ArcProto curAp = User.getUserTool().getCurrentArcProto();
+			if (curAp != null) preferredArc = curAp;
+		}
+		AutoStitch.runAutoStitch(newCell, nodesToStitch, arcsToStitch, originalMerge, null, false, preferredArc);
 		System.out.println("done.");
 
 		// if top level, display results

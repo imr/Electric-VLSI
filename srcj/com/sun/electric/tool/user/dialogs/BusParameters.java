@@ -91,7 +91,7 @@ public class BusParameters extends EDialog
 		}
 		if (owner instanceof ArcInst)
 		{
-			if (h.getName() == null)
+			if (h.getVarKey() != ArcInst.ARC_NAME)
 			{
 				Main.getUserInterface().showErrorMessage("Must select the arc's name", "Incorrect Selection");
 				return;

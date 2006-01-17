@@ -23,24 +23,17 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.util.HashSet;
-import java.util.Iterator;
 
 
 /**
@@ -206,7 +199,14 @@ public class Spread extends EDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		// spread it
-		SpreadJob job = new SpreadJob(this);
+		char direction = 0;
+		if (spreadUp.isSelected()) direction = 'u'; else
+		if (spreadDown.isSelected()) direction = 'd'; else
+		if (spreadLeft.isSelected()) direction = 'l'; else
+		if (spreadRight.isSelected()) direction = 'r';
+		double amount = TextUtils.atof(spreadAmount.getText());
+		if (ni == null) return;
+		SpreadJob job = new SpreadJob(ni, direction, amount);
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 
@@ -222,14 +222,18 @@ public class Spread extends EDialog
 	 */
 	private static class SpreadJob extends Job
 	{
-		Spread dialog;
+		private NodeInst ni;
+		private char direction;
+		private double amount;
 
     	public SpreadJob() {}
 
-		private SpreadJob(Spread dialog)
+		private SpreadJob(NodeInst ni, char direction, double amount)
 		{
 			super("Spread Circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.ni = ni;
+			this.direction = direction;
+			this.amount = amount;
 			startJob();
 		}
 
@@ -238,17 +242,6 @@ public class Spread extends EDialog
 		 */
 		public boolean doIt() throws JobException
 		{
-			// should ensure that the name is valid
-			char direction = 0;
-			if (dialog.spreadUp.isSelected()) direction = 'u'; else
-			if (dialog.spreadDown.isSelected()) direction = 'd'; else
-			if (dialog.spreadLeft.isSelected()) direction = 'l'; else
-			if (dialog.spreadRight.isSelected()) direction = 'r';
-			double amount = TextUtils.atof(dialog.spreadAmount.getText());
-
-            Cell cell = WindowFrame.needCurCell();
-            NodeInst ni = dialog.ni;
-			if (ni == null) return false;
 			SizeOffset so = ni.getSizeOffset();
 			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 			double sHx = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
@@ -256,7 +249,7 @@ public class Spread extends EDialog
 			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 
 			// spread it
-			CircuitChangeJobs.spreadCircuitry(cell, ni, direction, amount, sLx, sHx, sLy, sHy);
+			CircuitChangeJobs.spreadCircuitry(ni.getParent(), ni, direction, amount, sLx, sHx, sLy, sHy);
 			return true;
 		}
 	}

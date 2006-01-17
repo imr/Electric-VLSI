@@ -208,7 +208,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 					Export pp = (Export)it.next();
 					if (s.equals(pp.getName()))
 					{
-						highlighter.addText(pp, cell, null, null);
+						highlighter.addText(pp, cell, null);
 						break;
 					}
 				}

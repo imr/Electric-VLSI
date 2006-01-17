@@ -161,7 +161,7 @@ public class CircuitChanges
 			selected.add(ni);
 
 		// now align them
-		new CircuitChangeJobs.AlignObjects(selected);
+		new CircuitChangeJobs.AlignObjects(selected, User.getAlignmentToGrid());
 	}
 
 	/**
@@ -426,7 +426,7 @@ public class CircuitChanges
             List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
             List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
             if (highlightedText.size() == 0 && highlighted.size() == 0) return;
-	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted);
+	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted, User.isReconstructArcsToDeletedCells());
 		}
 	}
 
@@ -625,7 +625,7 @@ public class CircuitChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		new CellChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes());
+		new CellChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes(), User.isExtractCopiesExports());
 	}
 
 	/****************************** CLEAN-UP ******************************/

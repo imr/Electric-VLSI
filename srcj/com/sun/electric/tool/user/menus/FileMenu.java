@@ -450,7 +450,6 @@ public class FileMenu {
                     }
                 }
                 if (defType == null) defType = FileType.DEFAULTLIB;
-                User.setWorkingDirectory(TextUtils.getFilePath(file));
                 showThisCell = openALibrary(file, defType);
             }
 			fieldVariableChanged("showThisCell");

@@ -35,6 +35,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -830,8 +831,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			polys[start].setString(getNameKey().toString());
 			polys[start].setTextDescriptor(td);
 			polys[start].setLayer(null);
-			//polys[start].setVariable(var); ???
-			polys[start].setName(getNameKey());
+			polys[start].setDisplayedText(new DisplayedText(this, ARC_NAME));
 			numVars = 1;
 		}
 		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;

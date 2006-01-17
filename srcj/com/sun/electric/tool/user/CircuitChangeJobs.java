@@ -419,13 +419,15 @@ public class CircuitChangeJobs
 	public static class AlignObjects extends Job
 	{
         private List<Geometric> list;          // list of highlighted objects to align
+        private double alignment;
 
 		public AlignObjects() {}
 
-        public AlignObjects(List<Geometric> highs)
+        public AlignObjects(List<Geometric> highs, double alignment)
 		{
 			super("Align Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.list = highs;
+            this.alignment = alignment;
 			startJob();
 		}
 
@@ -436,7 +438,7 @@ public class CircuitChangeJobs
 				System.out.println("Must select something before aligning it to the grid");
 				return false;
 			}
-			if (User.getAlignmentToGrid() <= 0)
+			if (alignment <= 0)
 			{
 				System.out.println("No alignment given: set Alignment Options first");
 				return false;
@@ -452,7 +454,7 @@ public class CircuitChangeJobs
 				// ignore pins
 //				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-				EditWindow.gridAlign(center);
+				EditWindow.gridAlign(center, alignment);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
 				double bodyYOffset = center.getY() - ni.getAnchorCenterY();
 	
@@ -465,7 +467,7 @@ public class CircuitChangeJobs
 					PortInst pi = pIt.next();
 					Poly poly = pi.getPoly();
 					Point2D portCenter = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-					EditWindow.gridAlign(portCenter);
+					EditWindow.gridAlign(portCenter, alignment);
 					double pXO = portCenter.getX() - poly.getCenterX();
 					double pYO = portCenter.getY() - poly.getCenterY();
 					if (firstPort)
@@ -498,8 +500,8 @@ public class CircuitChangeJobs
 							if (bounds == null) continue;
 							Point2D polyPoint1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 							Point2D polyPoint2 = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-							EditWindow.gridAlign(polyPoint1);
-							EditWindow.gridAlign(polyPoint2);
+							EditWindow.gridAlign(polyPoint1, alignment);
+							EditWindow.gridAlign(polyPoint2, alignment);
 							if (polyPoint1.getX() == bounds.getMinX() &&
 								polyPoint2.getX() == bounds.getMaxX()) bodyXOffset = 0;
 							if (polyPoint1.getY() == bounds.getMinY() &&
@@ -553,8 +555,8 @@ public class CircuitChangeJobs
 				Point2D origTail = ai.getTailLocation();
 				Point2D arcHead = new Point2D.Double(origHead.getX(), origHead.getY());
 				Point2D arcTail = new Point2D.Double(origTail.getX(), origTail.getY());
-				EditWindow.gridAlign(arcHead);
-				EditWindow.gridAlign(arcTail);
+				EditWindow.gridAlign(arcHead, alignment);
+				EditWindow.gridAlign(arcTail, alignment);
 	
 				double headXOff = arcHead.getX() - origHead.getX();
 				double headYOff = arcHead.getY() - origHead.getY();
@@ -1070,15 +1072,17 @@ public class CircuitChangeJobs
 		private Cell cell;
         private List<DisplayedText> highlightedText;
         private List<Geometric> highlighted;
+        private boolean reconstructArcs;
 
 		public DeleteSelected() {}
 
-        public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Geometric> highlighted)
+        public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Geometric> highlighted, boolean reconstructArcs)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.highlightedText = highlightedText;
             this.highlighted = highlighted;
+            this.reconstructArcs = reconstructArcs;
 			startJob();
 		}
 
@@ -1165,7 +1169,7 @@ public class CircuitChangeJobs
 				}
 			}
 			if (cell != null)
-				eraseObjectsInList(cell, highlighted);
+				eraseObjectsInList(cell, highlighted, reconstructArcs);
 
 			// remove highlighting
 			UserInterface ui = Main.getUserInterface();
@@ -1371,8 +1375,9 @@ public class CircuitChangeJobs
 	 * Method to delete all of the Geometrics in a list.
 	 * @param cell the cell with the objects to be deleted.
 	 * @param list a List of Geometric or Highlight objects to be deleted.
+	 * @param reconstructArcs true to reconstruct arcs to deleted cell instances.
 	 */
-	public static void eraseObjectsInList(Cell cell, List<Geometric> list)
+	public static void eraseObjectsInList(Cell cell, List<Geometric> list, boolean reconstructArcs)
 	{
 		// make sets of all of the arcs and nodes explicitly selected for deletion
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
@@ -1424,7 +1429,7 @@ public class CircuitChangeJobs
 		}
 
 		// reconnect hair to cells (if requested)
-		if (User.isReconstructArcsToDeletedCells())
+		if (reconstructArcs)
 		{
 			for(NodeInst ni : nodesToDelete)
 			{

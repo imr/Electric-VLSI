@@ -32,11 +32,12 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.*;
-import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.util.Iterator;
 import javax.swing.JOptionPane;
 
 
@@ -56,9 +57,8 @@ public class NewExport extends EDialog
 
 		// setup the export characteristics popup
 		String last = latestCharacteristic;
-		for(Iterator<PortCharacteristic> it = PortCharacteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
+		for(PortCharacteristic ch : PortCharacteristic.getOrderedCharacteristics())
 		{
-			PortCharacteristic ch = (PortCharacteristic)it.next();
 			exportCharacteristics.addItem(ch.getName());
 		}
 		if (last != null)
@@ -247,7 +247,6 @@ public class NewExport extends EDialog
 		String name = exportName.getText();
 		String referenceName = referenceExport.getText();
 		String characteristics = (String)exportCharacteristics.getSelectedItem();
-		PortCharacteristic ch = PortCharacteristic.findCharacteristic(characteristics);
 		boolean drawn = alwaysDrawn.isSelected();
 		boolean body = bodyOnly.isSelected();
 		if (name.length() <= 0)
@@ -285,40 +284,39 @@ public class NewExport extends EDialog
 		PortInst pi = null;
 		if (pp == null)
 		{
-			pi = ni.getOnlyPortInst();
-		} else
-		{
-			pi = ni.findPortInstFromProto(pp);
-		}
-		if (pi == null)
-		{
-			System.out.println("Cannot figure out which port to export");
-			return;
+			if (ni.getProto().getNumPorts() == 0)
+			{
+				System.out.println("There is no port to export");
+				return;
+			}
+			pp = ni.getProto().getPort(0);
 		}
 
 		// make the export
-		MakeExport job = new MakeExport(parent, pi, name, body, drawn, ch, referenceName);
+		MakeExport job = new MakeExport(parent, ni, pp, name, body, drawn, characteristics, referenceName);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
 	private static class MakeExport extends Job
 	{
 		Cell cell;
-		PortInst pi;
+		NodeInst ni;
+		PortProto pp;
 		String name;
 		String referenceName;
 		boolean body;
 		boolean drawn;
-		PortCharacteristic ch;
+		String ch;
 
     	public MakeExport() {}
 
-		protected MakeExport(Cell cell, PortInst pi, String name,
-			boolean body, boolean drawn, PortCharacteristic ch, String referenceName)
+		protected MakeExport(Cell cell, NodeInst ni, PortProto pp, String name,
+			boolean body, boolean drawn, String ch, String referenceName)
 		{
 			super("Make Export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.pi = pi;
+			this.ni = ni;
+			this.pp = pp;
 			this.name = name;
 			this.body = body;
 			this.drawn = drawn;
@@ -337,7 +335,7 @@ public class NewExport extends EDialog
 				if (cell.isMultiPage())
 				{
 					int exportPage = e.getOriginalPort().getNodeInst().whichMultiPage();
-					int currentPage = pi.getNodeInst().whichMultiPage();
+					int currentPage = ni.whichMultiPage();
 					if (currentPage != exportPage)
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -347,18 +345,20 @@ public class NewExport extends EDialog
 			}
 
 			// make sure the export is possible
-	        if (CircuitChangeJobs.cantEdit(cell, pi.getNodeInst(), true) != 0) return false;
+	        if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return false;
 
+			PortInst pi = ni.findPortInstFromProto(pp);
 			e = Export.newInstance(cell, pi, name);
 			if (e == null)
 			{
 				System.out.println("Failed to create export");
 				return false;
 			}
-			e.setCharacteristic(ch);
+			PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(ch);
+			e.setCharacteristic(characteristic);
 			e.setAlwaysDrawn(drawn);
 			e.setBodyOnly(body);
-			if (ch.isReference())
+			if (characteristic.isReference())
 				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
 
 			return true;

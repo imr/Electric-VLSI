@@ -25,6 +25,7 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -42,9 +43,8 @@ import java.awt.geom.Rectangle2D;
 public class Poly extends PolyBase {
 
 	/** the string (if of type TEXT) */						private String string;
-	/** the Name (if of type TEXT) */						private Name name;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
-	/** the variable (if of type TEXT) */					private Variable var;
+	/** the ElectricObject/Variable (if of type TEXT) */	private DisplayedText dt;
 
 	/**
 	 * The constructor creates a new Poly given an array of points.
@@ -91,20 +91,6 @@ public class Poly extends PolyBase {
 	public void setString(String string) { this.string = string; }
 
 	/**
-	 * Method to return the Name associated with this Poly.
-	 * This only applies to text Polys which come from Named objects (Node and Arc names).
-	 * @return the Name associated with this Poly.
-	 */
-	public Name getName() { return name; }
-
-	/**
-	 * Method to set the String associated with this Poly.
-	 * This only applies to text Polys which come from Named objects (Node and Arc names).
-	 * @param name the Name associated with this Poly.
-	 */
-	public void setName(Name name) { this.name = name; }
-
-	/**
 	 * Method to return the Text Descriptor associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * Only the size, face, italic, bold, and underline fields are relevant.
@@ -121,18 +107,18 @@ public class Poly extends PolyBase {
 	public void setTextDescriptor(TextDescriptor descript) { this.descript = descript; }
 
 	/**
-	 * Method to return the Variable associated with this Poly.
+	 * Method to return the DisplayedText associated with this Poly.
 	 * This only applies to text Polys which display a message.
-	 * @return the Variable associated with this Poly.
+	 * @return the DisplayedText associated with this Poly.
 	 */
-	public Variable getVariable() { return var; }
+	public DisplayedText getDisplayedText() { return dt; }
 
 	/**
-	 * Method to set the Variable associated with this Poly.
+	 * Method to set the DisplayedText associated with this Poly.
 	 * This only applies to text Polys which display a message.
-	 * @param var the Variable associated with this Poly.
+	 * @param var the DisplayedText associated with this Poly.
 	 */
-	public void setVariable(Variable var) { this.var = var; }
+	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
 
 	/**
 	 * Method to construct a Poly for an arc with a given length, width, angle, endpoint, and extension.
@@ -234,18 +220,22 @@ public class Poly extends PolyBase {
 		String theString = getString().trim();
 		if (theString.length() == 0) return true;
 		int numLines = 1;
-		if (var != null)
+		if (dt != null)
 		{
-			numLines = var.getLength();
-			if (numLines > 1)
+			Variable var = dt.getVariable();
+			if (var != null)
 			{
-				Object [] objList = (Object [])var.getObject();
-				for(int i=0; i<numLines; i++)
+				numLines = var.getLength();
+				if (numLines > 1)
 				{
-					// empty line
-					if (objList[i] == null) continue;
-					String str = objList[i].toString();
-					if (str.length() > theString.length()) theString = str;
+					Object [] objList = (Object [])var.getObject();
+					for(int i=0; i<numLines; i++)
+					{
+						// empty line
+						if (objList[i] == null) continue;
+						String str = objList[i].toString();
+						if (str.length() > theString.length()) theString = str;
+					}
 				}
 			}
 		}
