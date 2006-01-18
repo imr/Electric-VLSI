@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 
 public class CantEditException extends JobException
@@ -49,7 +49,7 @@ public class CantEditException extends JobException
 	public int presentProblem()
 	{
 		String [] options = {"Yes", "No", "Always", "Cancel"};
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 
 		// if an instance is specified, check it
 		if (lockedNode != null)

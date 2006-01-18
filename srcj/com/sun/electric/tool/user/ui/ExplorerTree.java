@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -585,7 +584,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		if (currentSelectedObjects.length > 1)
 		{
-			Main.getUserInterface().showErrorMessage("Can drag only one selected object", "Too Much Selected");
+			Job.getUserInterface().showErrorMessage("Can drag only one selected object", "Too Much Selected");
 			return;
 		}
 
@@ -892,7 +891,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				// must have only 1 selection
 				if (tree.currentSelectedObjects.length != 1)
 				{
-					Main.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
+					Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 					return;
 				}
 
@@ -943,7 +942,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (tree.currentSelectedObjects[0] instanceof ErrorLogger.MessageLog)
 				{
 					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)tree.currentSelectedObjects[0];
-					String msg = Main.getUserInterface().reportLog(el,true, null);
+					String msg = Job.getUserInterface().reportLog(el,true, null);
 					System.out.println(msg);
 					return;
 				}
@@ -1078,7 +1077,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					Class clz = selectedObject.getClass();
 					if (!clz.isInstance(tree.currentSelectedObjects[i]))
 					{
-						Main.getUserInterface().showErrorMessage("All selected entries must be of the same type", "Incorrect Selection");
+						Job.getUserInterface().showErrorMessage("All selected entries must be of the same type", "Incorrect Selection");
 						return;
 					}
 				}
@@ -1156,7 +1155,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			// restrict to a single selection
 			if (tree.currentSelectedObjects.length != 1)
 			{
-				Main.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
+				Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 				return;
 			}
 

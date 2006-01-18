@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -265,7 +264,7 @@ public class River
 
 	public static void riverRoute()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 		RiverRouteJob job = new RiverRouteJob(curCell);
@@ -291,7 +290,7 @@ public class River
 
         public void terminateOK()
         {
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 	        if (wnd != null)
 	        {

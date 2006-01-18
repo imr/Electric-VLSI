@@ -24,7 +24,6 @@
 
 package com.sun.electric.tool;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectOutputStream;
@@ -178,7 +177,7 @@ public abstract class Job implements Serializable {
 
         public void run() {
             for (;;) {
-                UserInterface userInterface = Main.getUserInterface();
+                UserInterface userInterface = Job.getUserInterface();
                 if (userInterface != null)
                     userInterface.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
                 ServerConnection connection = selectConnection();
@@ -261,10 +260,10 @@ public abstract class Job implements Serializable {
             else
                 waitingJobs.add(j);
             if (!BATCHMODE && j.jobType == Type.CHANGE) {
-                Main.getUserInterface().invokeLaterBusyCursor(true);
+                Job.getUserInterface().invokeLaterBusyCursor(true);
             }
             if (j.getDisplay()) {
-                Main.getUserInterface().wantToRedoJobTree();
+                Job.getUserInterface().wantToRedoJobTree();
             }
 		}
 
@@ -279,7 +278,7 @@ public abstract class Job implements Serializable {
             }
             //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
             if (j.getDisplay()) {
-                Main.getUserInterface().wantToRedoJobTree();
+                Job.getUserInterface().wantToRedoJobTree();
             }
 		}
 
@@ -358,6 +357,7 @@ public abstract class Job implements Serializable {
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
     /** Connection from which we accepted */    private transient ServerConnection connection = null;
+	private static UserInterface currentUI;
     private static Job clientJob;
 
     public static void setThreadMode(Mode mode) {
@@ -479,9 +479,9 @@ public abstract class Job implements Serializable {
 
         if (NOTHREADING) {
             // turn off threading if needed for debugging
-            Main.getUserInterface().setBusyCursor(true);
+            Job.getUserInterface().setBusyCursor(true);
             run();
-            Main.getUserInterface().setBusyCursor(false);
+            Job.getUserInterface().setBusyCursor(false);
         } else {
             databaseChangesThread.addJob(this, onMySnapshot);
         }
@@ -598,7 +598,7 @@ public abstract class Job implements Serializable {
         
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 
-        Cell cell = Main.getUserInterface().getCurrentCell();
+        Cell cell = Job.getUserInterface().getCurrentCell();
         if (connection == null)
             ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
@@ -710,7 +710,7 @@ public abstract class Job implements Serializable {
 
     protected synchronized void setProgress(String progress) {
         this.progress = progress;
-        Main.getUserInterface().wantToRedoJobTree();
+        Job.getUserInterface().wantToRedoJobTree();
     }        
     
     private synchronized String getProgress() { return progress; }
@@ -727,7 +727,7 @@ public abstract class Job implements Serializable {
             return;
         }
         scheduledToAbort = true;
-        Main.getUserInterface().wantToRedoJobTree();
+        Job.getUserInterface().wantToRedoJobTree();
     }
 
     /** Save current Highlights */
@@ -735,7 +735,7 @@ public abstract class Job implements Serializable {
         savedHighlights.clear();
 
         // for now, just save highlights in current window
-        UserInterface ui = Main.getUserInterface();
+        UserInterface ui = Job.getUserInterface();
         EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
 
@@ -744,7 +744,7 @@ public abstract class Job implements Serializable {
     }
 
 	/** Confirmation that thread is aborted */
-    protected synchronized void setAborted() { aborted = true; Main.getUserInterface().wantToRedoJobTree(); }
+    protected synchronized void setAborted() { aborted = true; Job.getUserInterface().wantToRedoJobTree(); }
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /**
@@ -1070,7 +1070,11 @@ public abstract class Job implements Serializable {
         return buf.toString();
     }
         
-    private static class ServerJobManager extends Thread {
+    public static UserInterface getUserInterface() { return currentUI; }
+
+    public static void setUserInterface(UserInterface ui) { currentUI = ui; }
+
+	private static class ServerJobManager extends Thread {
         private final int port;
         private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
         private int cursor;

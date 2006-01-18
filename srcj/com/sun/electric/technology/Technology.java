@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -4039,7 +4038,7 @@ public class Technology implements Comparable<Technology>
 			VectorDrawing.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			ui.repaintAllEditWindows();
 		}
 

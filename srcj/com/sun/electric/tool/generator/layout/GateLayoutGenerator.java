@@ -24,7 +24,6 @@
 package com.sun.electric.tool.generator.layout;
 import java.lang.reflect.Method;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
@@ -133,7 +132,7 @@ public class GateLayoutGenerator extends Job {
 		String outLibDir = "";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return false;
 		Cell cell = wnd.getCell();

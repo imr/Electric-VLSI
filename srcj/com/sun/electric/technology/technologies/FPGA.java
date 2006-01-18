@@ -25,7 +25,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -951,7 +950,7 @@ public class FPGA extends Technology
 				internalDisplay = (internalDisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
 				break;
 		}
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		ui.repaintAllEditWindows();
 	}
 
@@ -963,7 +962,7 @@ public class FPGA extends Technology
 	{
 		if (show) internalDisplay |= TEXTDISPLAY; else
 			internalDisplay &= ~TEXTDISPLAY;
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		ui.repaintAllEditWindows();
 	}
 
@@ -972,7 +971,7 @@ public class FPGA extends Technology
 	 */
 	public static void programPips()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd == null) return;
 		ElectricObject eObj = wnd.getOneElectricObject(NodeInst.class);
@@ -1012,7 +1011,7 @@ public class FPGA extends Technology
 
         public void terminateOK()
         {
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			ui.repaintAllEditWindows();
         }
 	}
@@ -1056,7 +1055,7 @@ public class FPGA extends Technology
 			if (topCell != null)
 			{
 				// display top cell
-				UserInterface ui = Main.getUserInterface();
+				UserInterface ui = Job.getUserInterface();
 				ui.displayCell(topCell);
 			}
         }

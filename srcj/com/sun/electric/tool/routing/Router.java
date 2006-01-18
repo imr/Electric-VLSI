@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -226,7 +225,7 @@ public abstract class Router {
         {
         	if (portToHighlight != null)
         	{
-	            UserInterface ui = Main.getUserInterface();
+	            UserInterface ui = Job.getUserInterface();
 	            EditWindow_ wnd = ui.getCurrentEditWindow_();
 	            if (wnd != null)
 	            {

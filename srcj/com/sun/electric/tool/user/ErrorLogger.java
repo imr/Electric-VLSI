@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.Main;
 
 import java.awt.geom.Point2D;
 import java.io.*;
@@ -378,7 +377,7 @@ public class ErrorLogger implements DatabaseChangeListener
         allErrors.add(el);
 //        currentLogNumber = allErrors.size()-1;
 
-        if (persistent) Main.getUserInterface().wantToRedoErrorTree();
+        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -413,7 +412,7 @@ public class ErrorLogger implements DatabaseChangeListener
         // add the ErrorLog into the global list
         allWarnings.add(el);
 
-        if (persistent) Main.getUserInterface().wantToRedoErrorTree();
+        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -485,7 +484,7 @@ public class ErrorLogger implements DatabaseChangeListener
             allErrors.clear();
 			allWarnings.clear();
             currentLogNumber = -1;
-            Main.getUserInterface().wantToRedoErrorTree();
+            Job.getUserInterface().wantToRedoErrorTree();
             return;
         }
 
@@ -498,7 +497,7 @@ public class ErrorLogger implements DatabaseChangeListener
         }
         Undo.removeDatabaseChangeListener(this);
 
-        Main.getUserInterface().wantToRedoErrorTree();
+        Job.getUserInterface().wantToRedoErrorTree();
     }
 
     public void save(PrintStream buffWriter)
@@ -608,7 +607,7 @@ public class ErrorLogger implements DatabaseChangeListener
 
 //		if (db_errorchangedroutine != 0) (*db_errorchangedroutine)();
 
-        Main.getUserInterface().termLogging(this, explain);
+        Job.getUserInterface().termLogging(this, explain);
 //        alreadyExplained = true;
         terminated = true;
     }
@@ -711,7 +710,7 @@ public class ErrorLogger implements DatabaseChangeListener
             el = (MessageLog)allWarnings.get(logNumber-allErrors.size());
             extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
         }
-        String message = Main.getUserInterface().reportLog(el, showHigh, gPair);
+        String message = Job.getUserInterface().reportLog(el, showHigh, gPair);
         return (errorSystem + extraMsg + ": " + message);
     }
 
@@ -770,7 +769,7 @@ public class ErrorLogger implements DatabaseChangeListener
                 changed = true;
             }
         }
-        if (changed) Main.getUserInterface().wantToRedoErrorTree();
+        if (changed) Job.getUserInterface().wantToRedoErrorTree();
 
     }
 

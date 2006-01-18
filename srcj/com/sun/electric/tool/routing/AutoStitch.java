@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -85,7 +84,7 @@ public class AutoStitch
 	 */
 	public static void autoStitch(boolean highlighted, boolean forced)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 

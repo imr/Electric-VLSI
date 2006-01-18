@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.routing;
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -211,7 +210,7 @@ public class Routing extends Listener
 	 */
 	public void mimicSelected()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd == null) return;
 
@@ -228,7 +227,7 @@ public class Routing extends Listener
 	public static void unrouteCurrent()
 	{
 		// see what is highlighted
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd == null) return;
 		Cell cell = wnd.getCell();
@@ -291,7 +290,7 @@ public class Routing extends Listener
 
         public void terminateOK()
         {
-    		UserInterface ui = Main.getUserInterface();
+    		UserInterface ui = Job.getUserInterface();
     		EditWindow_ wnd = ui.getCurrentEditWindow_();
     		if (wnd == null) return;
 			wnd.clearHighlighting();
@@ -468,7 +467,7 @@ public class Routing extends Listener
 	 */
 	public static void copyRoutingTopology()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell np = ui.needCurrentCell();
 		if (np == null) return;
 		copiedTopologyCell = np;
@@ -495,7 +494,7 @@ public class Routing extends Listener
 		}
 
 		// get the destination cell
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell toCell = ui.needCurrentCell();
 		if (toCell == null) return;
 

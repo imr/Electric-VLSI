@@ -24,7 +24,6 @@
  */
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
@@ -201,7 +200,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (current.keeperRatio != local.keeperRatio) System.out.println("keeperRatio:\t"+current.keeperRatio+" vs "+local.keeperRatio);
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                	Main.getUserInterface().showErrorMessage("Conflicting global parameter settings were found, " +
+                	Job.getUserInterface().showErrorMessage("Conflicting global parameter settings were found, " +
                             "please see message window for details", "Settings Conflict Found!!");
                 }
             });

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -130,7 +129,7 @@ public class Simulation extends Listener
     	String fileName = null;
 		if (prevCell != null) cell = prevCell; else
 		{
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 	    	if (forceDeck)
 	    	{
 	    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
@@ -472,7 +471,7 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceModel()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
 
@@ -509,7 +508,7 @@ public class Simulation extends Listener
 	 */
 	public static void setVerilogWireCommand(int type)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
 
@@ -569,7 +568,7 @@ public class Simulation extends Listener
 	 */
 	public static void setTransistorStrengthCommand(boolean weak)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
 

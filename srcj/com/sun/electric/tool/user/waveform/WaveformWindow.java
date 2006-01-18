@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.waveform;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,6 +41,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
@@ -3227,7 +3227,7 @@ if (wp.getSignalButtons() != null)
 				{
 					if (analysisType != anAnalysisType)
 					{
-						Main.getUserInterface().showErrorMessage("All signals must be the same type", "Incorrect Signal Selection");
+						Job.getUserInterface().showErrorMessage("All signals must be the same type", "Incorrect Signal Selection");
 						dtde.dropComplete(false);
 						return;
 					}
@@ -3246,7 +3246,7 @@ if (wp.getSignalButtons() != null)
 				// make sure only one signal was selected
 				if (sigNames.length != 1)
 				{
-					Main.getUserInterface().showErrorMessage("Only one signal can be dragged to a ruler", "Too Much Selected");
+					Job.getUserInterface().showErrorMessage("Only one signal can be dragged to a ruler", "Too Much Selected");
 					dtde.dropComplete(false);
 					return;			
 				}

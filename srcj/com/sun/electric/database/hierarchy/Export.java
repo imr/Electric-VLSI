@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -47,6 +46,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -181,7 +181,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 	            // round
 	            Point2D point = new Point2D.Double(newlocX, newlocY);
-	            Main.getUserInterface().alignToGrid(point);
+	            Job.getUserInterface().alignToGrid(point);
 	            newlocX = point.getX();
 	            newlocY = point.getY();
 

@@ -320,7 +320,7 @@ public class Pref
 			return;
 		}
 
-        Main.getUserInterface().restoreSavedBindings(false);
+        Job.getUserInterface().restoreSavedBindings(false);
 //        if (!Job.BATCHMODE) {
 //            TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
 //            top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
@@ -897,7 +897,7 @@ public class Pref
 
 		if (meaningsToReconcile.size() == 0) return;
 
-        Main.getUserInterface().finishPrefReconcilation(libName, meaningsToReconcile);
+        Job.getUserInterface().finishPrefReconcilation(libName, meaningsToReconcile);
 //		if (Job.BATCHMODE)
 //		{
 //            finishPrefReconcilation(meaningsToReconcile);

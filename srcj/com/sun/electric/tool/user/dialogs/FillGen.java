@@ -24,11 +24,11 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.Main;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -389,7 +389,7 @@ public class FillGen extends EDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
-        Cell cell = Main.getUserInterface().getCurrentCell();
+        Cell cell = Job.getUserInterface().getCurrentCell();
         Technology tech = cell.getTechnology();
 
         for (Tech.TechType t : Tech.TechType.values())

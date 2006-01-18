@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
@@ -85,7 +84,7 @@ public class ActivityLogger {
 	public static synchronized void finished() {
 		if (out != null) out.close();
 		if (exceptionLogged && TEST_VERSION) {
-			Main.getUserInterface().showInformationMessage(new String []
+			Job.getUserInterface().showInformationMessage(new String []
 			    { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
 				"Exception Logged");
 		}
@@ -101,7 +100,7 @@ public class ActivityLogger {
         printDelimeter(true);
         out.println("Menu Activated: "+menuDescription);
         //System.out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
-        UserInterface ui = Main.getUserInterface();
+        UserInterface ui = Job.getUserInterface();
         EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd != null)
         {
@@ -195,7 +194,7 @@ public class ActivityLogger {
 		{
 			msg = new String[] {msg1, msg2, msg4};
 		}
-        Main.getUserInterface().showErrorMessage(msg, "Exception Caught");
+        Job.getUserInterface().showErrorMessage(msg, "Exception Caught");
         exceptionLogged = true;
     }
 

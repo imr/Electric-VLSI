@@ -24,9 +24,9 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.Launcher;
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
@@ -105,7 +105,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                 default:
                     exitMsg = "Error"; 
             }
-            Main.getUserInterface().showErrorMessage("EpicReaderProcess exited with code " + exitCode + " (" + exitMsg + ")", "EpicReaderProcess");
+            Job.getUserInterface().showErrorMessage("EpicReaderProcess exited with code " + exitCode + " (" + exitMsg + ")", "EpicReaderProcess");
         }
         
         // stop progress dialog

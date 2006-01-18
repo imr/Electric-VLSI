@@ -18,7 +18,6 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -328,7 +327,7 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before setting it High",
+			Job.getUserInterface().showErrorMessage("Must select a signal before setting it High",
 				"No Signals Selected");
 			return;
 		}
@@ -350,7 +349,7 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before setting it Low",
+			Job.getUserInterface().showErrorMessage("Must select a signal before setting it Low",
 				"No Signals Selected");
 			return;
 		}
@@ -380,7 +379,7 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before setting it Undefined",
+			Job.getUserInterface().showErrorMessage("Must select a signal before setting it Undefined",
 				"No Signals Selected");
 			return;
 		}
@@ -402,7 +401,7 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before displaying it",
+			Job.getUserInterface().showErrorMessage("Must select a signal before displaying it",
 				"No Signals Selected");
 			return;
 		}
@@ -427,7 +426,7 @@ public class Analyzer extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() != 1)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a single signal on which to clear stimuli",
+			Job.getUserInterface().showErrorMessage("Must select a single signal on which to clear stimuli",
 				"No Signals Selected");
 			return;
 		}

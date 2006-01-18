@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -67,7 +66,7 @@ public class Simulate extends Input
 	 */
 	public static void plotSpiceResultsThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		FileType type = getCurrentSpiceOutputType();
@@ -88,7 +87,7 @@ public class Simulate extends Input
 	 */
 	public static void plotVerilogResultsThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);

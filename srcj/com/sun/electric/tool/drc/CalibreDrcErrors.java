@@ -1,10 +1,10 @@
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -330,7 +330,7 @@ public class CalibreDrcErrors {
         }
         System.out.println("Imported "+count+" errors");
         if (count == 0) {
-        	Main.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
+        	Job.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
         }
         logger.termLogging(true);
     }
@@ -425,7 +425,7 @@ public class CalibreDrcErrors {
         if (matchedNames.size() == 1) return matchedNames.get(0);
 
         // more than one match, ask user to choose, or just return the first one in non-interactive mode
-        UserInterface ui = Main.getUserInterface();
+        UserInterface ui = Job.getUserInterface();
         String choices[] = new String[matchedNames.size()];
         for (int i=0; i<choices.length; i++) {
             choices[i] = matchedNames.get(i).describe(false);

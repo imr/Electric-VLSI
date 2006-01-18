@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -40,6 +39,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -204,7 +204,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 			if (newCurLib == null)
 			{
 				System.out.println("Cannot delete the last library");
-				Main.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
+				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
 					"Close library");
 				return false;
 			}
@@ -214,7 +214,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (libraries.get(d.libName) != this)
 		{
 			System.out.println("Cannot delete library " + this);
-			Main.getUserInterface().showErrorMessage("Cannot delete "+toString(),
+			Job.getUserInterface().showErrorMessage("Cannot delete "+toString(),
 				"Close library");
 			return false;
 		}
@@ -237,7 +237,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() == this)
 						{
-							Main.getUserInterface().showErrorMessage("Library close failed. Cannot " + reason + " " + toString() +
+							Job.getUserInterface().showErrorMessage("Library close failed. Cannot " + reason + " " + toString() +
 								" because one of its cells (" + subCell.noLibDescribe() + ") is being used (by " + cell.libDescribe() + ")",
 								"Close library");
 							 referenced = true;

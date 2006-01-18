@@ -24,7 +24,6 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -144,7 +143,7 @@ public class FileMenu {
 		importSubMenu.addMenuItem("_Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 		importSubMenu.addMenuItem("_Preferences...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Main.getUserInterface().importPrefs(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Job.getUserInterface().importPrefs(); }});
 
 		fileMenu.addSeparator();
 
@@ -200,7 +199,7 @@ public class FileMenu {
 		exportSubMenu.addMenuItem("ELI_B (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
 		exportSubMenu.addMenuItem("P_references...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Main.getUserInterface().exportPrefs(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Job.getUserInterface().exportPrefs(); }});
 
 		fileMenu.addSeparator();
 

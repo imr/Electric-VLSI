@@ -24,7 +24,6 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -152,12 +151,12 @@ public class ToolMenu {
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkDRCHierarchically(Main.getUserInterface().needCurrentCell(),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(),
                     null, GeometryHandler.GHMode.ALGO_SWEEP); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e)
             {
-                EditWindow_ wnd = Main.getUserInterface().getCurrentEditWindow_();
+                EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                 if (wnd == null) return;
                 DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP);
             }});

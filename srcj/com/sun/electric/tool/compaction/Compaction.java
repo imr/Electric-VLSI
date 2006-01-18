@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.compaction;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
@@ -100,7 +99,7 @@ public class Compaction extends Listener
 	 */
 	public static void compactNow()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.getCurrentCell();
 		if (cell == null) return;
 

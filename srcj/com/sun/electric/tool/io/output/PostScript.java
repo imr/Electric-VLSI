@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
@@ -152,7 +151,7 @@ public class PostScript extends Output
 	private boolean start()
 	{
 		// find the edit window
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		wnd = ui.getCurrentEditWindow_();
 		if (wnd != null && wnd.getCell() != cell) wnd = null;
 
@@ -811,7 +810,7 @@ public class PostScript extends Output
 		if (syncOther)
 		{
 			String [] options = {"Yes", "No"};
-			int ret = Main.getUserInterface().askForChoice("Would you like to synchronize all PostScript drawings?",
+			int ret = Job.getUserInterface().askForChoice("Would you like to synchronize all PostScript drawings?",
 				"Synchronize EPS files", options, options[1]);
 			if (ret == 1) syncOther = false;
 		}

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -106,7 +105,7 @@ public class ERCWellCheck
 	 */
 	public static void analyzeCurCell(GeometryHandler.GHMode newAlgorithm)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 
@@ -164,7 +163,7 @@ public class ERCWellCheck
         public void terminateOK()
         {
 			// show the farthest distance from a well contact
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			if (wnd != null && (worstPWellDist > 0 || worstNWellDist > 0))
 			{

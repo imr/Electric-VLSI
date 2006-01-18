@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.change;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -1173,7 +1172,7 @@ public class Undo
 		List<Object> savedHighlights = null;
 		Point2D offset = new Point2D.Double(0, 0);
 		// for now, just save from the current window
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd != null)
 		{
@@ -1245,7 +1244,7 @@ public class Undo
 	 */
 	public static boolean redoABatch()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd != null)
 		{

@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -543,7 +542,7 @@ public class CellChangeJobs
 					}
 				}
 			}
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			ui.displayCell(graphCell);
 			return true;
 		}

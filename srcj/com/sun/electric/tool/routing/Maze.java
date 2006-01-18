@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
@@ -205,7 +204,7 @@ public class Maze
 
 	public static void mazeRoute()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		EditWindow_ wnd = ui.getCurrentEditWindow_();

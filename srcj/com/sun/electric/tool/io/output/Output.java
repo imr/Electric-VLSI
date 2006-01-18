@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -172,7 +171,7 @@ public class Output
         if (dummyCells.size() > 1) {
             dummyCells.add("Do you really want to write this library?");
             String [] options = {"Continue Writing", "Cancel" };
-            int val = Main.getUserInterface().askForChoice(dummyCells.toArray(),
+            int val = Job.getUserInterface().askForChoice(dummyCells.toArray(),
                     "Dummy Cells Found in "+lib, options, options[1]);
             if (val == 1) return true;
         }

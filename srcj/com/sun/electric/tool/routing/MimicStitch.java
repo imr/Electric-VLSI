@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -131,7 +130,7 @@ public class MimicStitch
 	 */
 	public static void mimicStitch(boolean forced)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
 
@@ -243,7 +242,7 @@ public class MimicStitch
 	 */
 	private static void mimicdelete(Routing.Activity activity)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
 
@@ -869,7 +868,7 @@ public class MimicStitch
 		{
 			if (redisplay)
 			{
-				UserInterface ui = Main.getUserInterface();
+				UserInterface ui = Job.getUserInterface();
 				EditWindow_ wnd = ui.getCurrentEditWindow_();
 				if (wnd != null)
 				{
@@ -962,7 +961,7 @@ public class MimicStitch
 			if (total == 0) continue;
 
 			// save what is highlighted
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			List<Object> saveHighlights = wnd.saveHighlightList();
 

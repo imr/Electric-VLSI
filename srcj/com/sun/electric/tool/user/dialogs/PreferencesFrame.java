@@ -77,7 +77,6 @@ import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.Main;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -493,12 +492,12 @@ public class PreferencesFrame extends EDialog
 
 	private void exportActionPerformed()
 	{
-		Main.getUserInterface().exportPrefs();
+		Job.getUserInterface().exportPrefs();
 	}
 
 	private void importActionPerformed()
 	{
-		Main.getUserInterface().importPrefs();
+		Job.getUserInterface().importPrefs();
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
         top.getTheMenuBar().restoreSavedBindings(false); // trying to cache again
 

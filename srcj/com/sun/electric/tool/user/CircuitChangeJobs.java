@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.Main;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -1156,7 +1155,7 @@ public class CircuitChangeJobs
 				eraseObjectsInList(cell, highlighted, reconstructArcs);
 
 			// remove highlighting
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			if (wnd != null)
 			{

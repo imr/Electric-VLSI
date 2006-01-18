@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -238,7 +237,7 @@ public class PLA
 				if (plaCell != null)
 				{
 					System.out.println("DONE");
-					UserInterface ui = Main.getUserInterface();
+					UserInterface ui = Job.getUserInterface();
 					ui.displayCell(plaCell);
 				}
 				break;

@@ -24,7 +24,6 @@
  */
 package com.sun.electric.plugins.j3d;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -214,7 +213,7 @@ public class View3DWindow extends JPanel
             if (!alreadyChecked)
             {
                 String[] possibleValues = { "Full", "Limit", "Cancel" };
-                int response = Main.getUserInterface().askForChoice("Number of nodes in graph scene reached limit of " + maxNumNodes +
+                int response = Job.getUserInterface().askForChoice("Number of nodes in graph scene reached limit of " + maxNumNodes +
                     " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in " +cell +
                     ", 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
                     "Warning", possibleValues, possibleValues[2]);
@@ -1256,7 +1255,7 @@ public class View3DWindow extends JPanel
 		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
 		{
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			ui.alignToGrid(pt);
 
 			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + ", " + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);

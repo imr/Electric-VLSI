@@ -196,10 +196,10 @@ public class DebugMenus
         gildaMenu.addMenuItem("Test Parameters", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {testParameters();}});
         gildaMenu.addMenuItem("DRC QTree", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkDRCHierarchically(Main.getUserInterface().needCurrentCell(),
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(),
                                 null, GeometryHandler.GHMode.ALGO_QTREE);}});
         gildaMenu.addMenuItem("DRC Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkDRCHierarchically(Main.getUserInterface().needCurrentCell(),
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(),
                                 null, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Test Bash", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});

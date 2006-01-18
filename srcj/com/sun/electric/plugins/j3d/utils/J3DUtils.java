@@ -24,10 +24,10 @@
  */
 package com.sun.electric.plugins.j3d.utils;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -311,7 +311,7 @@ public final class J3DUtils
                 // responce 0 -> Accept All
                 if (response != 0)
                 {
-                    response = Main.getUserInterface().askForChoice("Applying following data " + line, "Action",
+                    response = Job.getUserInterface().askForChoice("Applying following data " + line, "Action",
                   		possibleValues, possibleValues[0]);
                     if (response == 2) continue; // skip
                     else if (response == 3) break; // cancel option

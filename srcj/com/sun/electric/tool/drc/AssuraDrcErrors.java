@@ -24,8 +24,8 @@
 
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Shape;
@@ -167,7 +167,7 @@ public class AssuraDrcErrors {
         }
         System.out.println("Imported "+count+" errors from file "+filename);
         if (count == 0) {
-        	Main.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
+        	Job.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
         }
         logger.termLogging(true);
     }

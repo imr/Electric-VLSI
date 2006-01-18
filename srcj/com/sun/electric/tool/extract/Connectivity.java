@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.extract;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -99,7 +98,7 @@ public class Connectivity
 	 */
 	public static void extractCurCell(boolean recursive)
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null)
 		{
@@ -303,7 +302,7 @@ public class Connectivity
 				if (Extract.isGridAlignExtraction())
 				{
 					for(int i=0; i<points.length; i++)
-						Main.getUserInterface().alignToGrid(points[i]);
+						Job.getUserInterface().alignToGrid(points[i]);
 				} else
 				{
 					for(int i=0; i<points.length; i++)
@@ -395,7 +394,7 @@ public class Connectivity
 		if (top)
 		{
 			// show the new version
-			UserInterface ui = Main.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			ui.displayCell(newCell);
 
 			// highlight pure layer nodes

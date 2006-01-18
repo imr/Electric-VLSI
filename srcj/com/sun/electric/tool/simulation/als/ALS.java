@@ -26,10 +26,10 @@
  */
 package com.sun.electric.tool.simulation.als;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -478,7 +478,7 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before setting a Clock on it",
+			Job.getUserInterface().showErrorMessage("Must select a signal before setting a Clock on it",
 				"No Signals Selected");
 			return;
 		}
@@ -555,7 +555,7 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal before displaying it",
+			Job.getUserInterface().showErrorMessage("Must select a signal before displaying it",
 				"No Signals Selected");
 			return;
 		}
@@ -591,7 +591,7 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal on which to clear stimuli",
+			Job.getUserInterface().showErrorMessage("Must select a signal on which to clear stimuli",
 				"No Signals Selected");
 			return;
 		}
@@ -843,7 +843,7 @@ public class ALS extends Engine
 		List<Signal> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Main.getUserInterface().showErrorMessage("Must select a signal on which to set stimuli",
+			Job.getUserInterface().showErrorMessage("Must select a signal on which to set stimuli",
 				"No Signals Selected");
 			return;
 		}

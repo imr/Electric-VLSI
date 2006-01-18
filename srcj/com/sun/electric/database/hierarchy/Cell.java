@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
@@ -1559,7 +1558,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			ni.move(in.getX(), in.getY());
 		}
 
-        Main.getUserInterface().adjustReferencePoint(this, cX, cY);
+        Job.getUserInterface().adjustReferencePoint(this, cX, cY);
 //		// adjust all windows showing this cell
 //		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //		{
@@ -2976,7 +2975,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public String [] getTextViewContents()
 	{
 		// first see if this cell is being actively edited in a TextWindow
-		String [] strings = Main.getUserInterface().getEditedText(this);
+		String [] strings = Job.getUserInterface().getEditedText(this);
 		if (strings != null) return strings;
 
 		// look on the cell for its text
@@ -2998,7 +2997,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		Job.checkChanging();
 
 		// see if this cell is being actively edited in a TextWindow
-		Main.getUserInterface().updateText(this, strings);
+		Job.getUserInterface().updateText(this, strings);
 
 		newVar(Cell.CELL_TEXT_KEY, strings);
 	}
@@ -3573,7 +3572,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (parents != null)
 		{
 			if (!quiet)
-				Main.getUserInterface().showErrorMessage("Cannot " + action + " " + this +
+				Job.getUserInterface().showErrorMessage("Cannot " + action + " " + this +
 					" because it is used in " + parents, action + " failed");
 			return true;
 		}

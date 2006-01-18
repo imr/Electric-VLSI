@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator;
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -825,7 +824,7 @@ public class PadGenerator
             pad.ni = ni;
         }
 
-        UserInterface ui = Main.getUserInterface();
+        UserInterface ui = Job.getUserInterface();
         EditWindow_ wnd = ui.displayCell(framecell);
 
         // select all
@@ -847,7 +846,7 @@ public class PadGenerator
 
                 Rectangle2D bounds = framecell.getBounds();
                 Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-                Main.getUserInterface().alignToGrid(center);
+                Job.getUserInterface().alignToGrid(center);
 
                 SizeOffset so = corenp.getProtoSizeOffset();
                 NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
@@ -896,7 +895,7 @@ public class PadGenerator
             String iconCellName = framecell.getName() + "{ic}";
             Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
             if (iconCell == null) {
-            	Main.getUserInterface().showErrorMessage("Cannot create Icon cell " + iconCellName,
+            	Job.getUserInterface().showErrorMessage("Cannot create Icon cell " + iconCellName,
                     "Icon creation failed");
                 return;
             }
@@ -1008,7 +1007,7 @@ public class PadGenerator
                     iconPos.setLocation(cellBounds.getMinX() - halfWidth, cellBounds.getMinY() - halfHeight);
                     break;
             }
-            Main.getUserInterface().alignToGrid(iconPos);
+            Job.getUserInterface().alignToGrid(iconPos);
             double px = iconCell.getBounds().getWidth();
             double py = iconCell.getBounds().getHeight();
             NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);

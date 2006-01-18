@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.project;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -315,7 +314,7 @@ public class Project extends Listener
 				}
 				if (repositoryLocation == null)
 				{
-					Main.getUserInterface().showInformationMessage(
+					Job.getUserInterface().showInformationMessage(
 						"You should setup Project Management by choosing a Repository location.  Use the 'Project Management' tab under General Preferences",
 						"Setup Project Management");
 				} else
@@ -347,7 +346,7 @@ public class Project extends Listener
 		{
 			if (tryLockProjectFile())
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Cannot lock the project file.  It may be in use by another user, or it may be damaged.",
 					"Internal Error");
 				return true;
@@ -369,7 +368,7 @@ public class Project extends Listener
 				if (pl.tryLockProjectFile())
 				{
 					// failed
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"Cannot lock the project file for library " + pl.lib.getName() +
 						".  It may be in use by another user, or it may be damaged.",
 						"Access Error");
@@ -715,7 +714,7 @@ public class Project extends Listener
 	 */
 	public static void checkInThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		checkIn(cell);
@@ -737,7 +736,7 @@ public class Project extends Listener
 	 */
 	public static void checkOutThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		checkOut(cell);
@@ -758,7 +757,7 @@ public class Project extends Listener
 	 */
 	public static void cancelCheckOutThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		cancelCheckOut(cell);
@@ -780,7 +779,7 @@ public class Project extends Listener
 	 */
 	public static void addThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		addCell(cell);
@@ -800,7 +799,7 @@ public class Project extends Listener
 	 */
 	public static void removeThisCell()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		removeCell(cell);
@@ -820,7 +819,7 @@ public class Project extends Listener
 	 */
 	public static void examineThisHistory()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		examineHistory(cell);
@@ -861,14 +860,14 @@ public class Project extends Listener
 	{
 		if (getRepositoryLocation().length() == 0)
 		{
-			Main.getUserInterface().showInformationMessage(
+			Job.getUserInterface().showInformationMessage(
 				"Before entering libraries, set a repository location in the 'Project Management' tab under General Preferences",
 				"Must Setup Project Management");
 			return;
 		}
 
 		// verify that projects are to be built
-		boolean response = Main.getUserInterface().confirmMessage(
+		boolean response = Job.getUserInterface().confirmMessage(
 			"Are you sure you want to enter libraries into the repository?");
 		if (!response) return;
 
@@ -892,14 +891,14 @@ public class Project extends Listener
 	{
 		if (getRepositoryLocation().length() == 0)
 		{
-			Main.getUserInterface().showInformationMessage(
+			Job.getUserInterface().showInformationMessage(
 				"Before entering a library, set a repository location in the 'Project Management' tab under General Preferences",
 				"Must Setup Project Management");
 			return;
 		}
 
 		// verify that project is to be built
-		boolean response = Main.getUserInterface().confirmMessage(
+		boolean response = Job.getUserInterface().confirmMessage(
 			"Are you sure you want to enter this library into the repository?");
 		if (!response) return;
 
@@ -951,7 +950,7 @@ public class Project extends Listener
 					if (!yesToAll)
 					{
 						String [] options = {"Yes", "No", "Yes to All"};
-						ret = Main.getUserInterface().askForChoice(
+						ret = Job.getUserInterface().askForChoice(
 							"Do you also want to add dependent library " + oLib.getName() + " to the repository?",
 							"Add Dependent Library To Repository", options, "Yes");		
 					}
@@ -1258,7 +1257,7 @@ public class Project extends Listener
 					errorMsg += cell.describe(true);
 				}
 				String [] options = {"Yes", "No", "Always"};
-				int ret = Main.getUserInterface().askForChoice("Cannot change unchecked-out cells: " + errorMsg +
+				int ret = Job.getUserInterface().askForChoice("Cannot change unchecked-out cells: " + errorMsg +
 					".  Do you want to check them out?", "Change Blocked by Checked-in Cells", options, "No");
 				if (ret == 0) undoChange = false;
 				if (ret == 2) { alwaysCheckOut = true;   undoChange = false; }
@@ -1611,7 +1610,7 @@ public class Project extends Listener
 			{
 				if (newestProjectCell.owner.length() == 0)
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"A more recent version of cell " + oldVers.describe(false) + " is in the repository.  Do an update first.",
 						"Check-Out Error");
 					ProjectLibrary.releaseManyProjectFiles(projectLibs);
@@ -1619,14 +1618,14 @@ public class Project extends Listener
 				}
 				if (newestProjectCell.owner.equals(getCurrentUserName()))
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.",
 						"Check-Out Warning");
 					ProjectLibrary.releaseManyProjectFiles(projectLibs);
 					return null;
 				} else
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.owner + "'",
 						"Check-Out Error");
 					ProjectLibrary.releaseManyProjectFiles(projectLibs);
@@ -1638,7 +1637,7 @@ public class Project extends Listener
 			ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
 			if (pc == null)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Cell " + oldVers.describe(false) + " is not in the project.  You must add it to the project before being able to check it out and in.",
 					"Check Out Error");
 				ProjectLibrary.releaseManyProjectFiles(projectLibs);
@@ -1650,13 +1649,13 @@ public class Project extends Listener
 			{
 				if (pc.owner.equals(getCurrentUserName()))
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"Cell " + oldVers.describe(false) + " is already checked out to you.",
 						"Check Out Error");
 					markLocked(oldVers, false);
 				} else
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.owner + "'",
 						"Check Out Error");
 				}
@@ -1667,7 +1666,7 @@ public class Project extends Listener
 			// make sure we have the latest version
 			if (pc.cellVersion > oldVers.getVersion())
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Cannot check out cell " + oldVers.describe(false) +
 					" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
 					pc.cellVersion + ").  Do an 'update' first",
@@ -1718,7 +1717,7 @@ public class Project extends Listener
 		Cell newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
 		if (newVers == null)
 		{
-			Main.getUserInterface().showErrorMessage(
+			Job.getUserInterface().showErrorMessage(
 				"Error making new version of cell " + oldVers.describe(false),
 				"Check Out Error");
 			return null;
@@ -1727,7 +1726,7 @@ public class Project extends Listener
 		// replace former usage with new version
 		if (useNewestVersion(oldVers, newVers))
 		{
-			Main.getUserInterface().showErrorMessage(
+			Job.getUserInterface().showErrorMessage(
 				"Error replacing instances of cell " + oldVers.describe(false),
 				"Check Out Error");
 			return null;
@@ -1801,7 +1800,7 @@ public class Project extends Listener
 								cancelled = pc;
 							} else
 							{
-								Main.getUserInterface().showErrorMessage(
+								Job.getUserInterface().showErrorMessage(
 									"This cell is not checked out to you.  Only user '" + pc.owner + "' can cancel the check-out.",
 									"Error Cancelling Check-out");
 								setChangeStatus(false);
@@ -1820,7 +1819,7 @@ public class Project extends Listener
 
 			if (cancelled == null)
 			{
-				Main.getUserInterface().showErrorMessage("This cell is not checked out.",
+				Job.getUserInterface().showErrorMessage("This cell is not checked out.",
 					"Error Cancelling Check-out");
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
@@ -1829,14 +1828,14 @@ public class Project extends Listener
 
 			if (former == null)
 			{
-				Main.getUserInterface().showErrorMessage("Cannot find former version to restore.",
+				Job.getUserInterface().showErrorMessage("Cannot find former version to restore.",
 					"Error Cancelling Check-out");
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
 				return false;
 			}
 
-			boolean response = Main.getUserInterface().confirmMessage(
+			boolean response = Job.getUserInterface().confirmMessage(
 				"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
 			if (!response) return false;
 
@@ -1844,7 +1843,7 @@ public class Project extends Listener
 			getCellFromRepository(former, lib, false, false);
 			if (former.cell == null)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Error bringing in former version (" + former.cellVersion + ")",
 					"Error Cancelling Check-out");
 				setChangeStatus(false);
@@ -1854,7 +1853,7 @@ public class Project extends Listener
 
 			if (useNewestVersion(cell, former.cell))
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Error replacing instances of former " + cell,
 					"Error Cancelling Check-out");
 				setChangeStatus(false);
@@ -1936,7 +1935,7 @@ public class Project extends Listener
 				ProjectCell pc = ProjectCell.findProjectCell(cell);
 				if (pc == null)
 				{
-					Main.getUserInterface().showErrorMessage(
+					Job.getUserInterface().showErrorMessage(
 						"Cell " + cell.describe(true) + " is not in the project.  Add it before checking it in or out.",
 						"Check In Error");
 				} else
@@ -1944,19 +1943,19 @@ public class Project extends Listener
 					// see if it is available
 					if (!pc.owner.equals(getCurrentUserName()))
 					{
-						Main.getUserInterface().showErrorMessage(
+						Job.getUserInterface().showErrorMessage(
 							"You cannot check-in " + cell + " because it is checked out to '" + pc.owner + "', not you.",
 							"Check In Error");
 					} else
 					{
 						if (comment == null)
-							comment = Main.getUserInterface().askForInput("Reason for checking-in " + cellNames, "", null);
+							comment = Job.getUserInterface().askForInput("Reason for checking-in " + cellNames, "", null);
 						if (comment == null) break;
 
 						// write the cell out there
 						if (writeCell(cell, pc))
 						{
-							Main.getUserInterface().showErrorMessage("Error writing " + cell,
+							Job.getUserInterface().showErrorMessage("Error writing " + cell,
 								"Check In Error");
 						} else
 						{
@@ -2294,7 +2293,7 @@ public class Project extends Listener
 			Cell exists = cell.getLibrary().findNodeProto(cellName);
 			if (exists != null)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Version " + version + " of cell " + cell.getName() + " is already in your library",
 					"Cannot Retrieve Version");
 				return false;
@@ -2313,7 +2312,7 @@ public class Project extends Listener
 			getCellFromRepository(foundPC, lib, false, false);
 			if (foundPC.cell == null)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Error retrieving old version of cell",
 					"Error Getting Old Versions");
 			}
@@ -2346,7 +2345,7 @@ public class Project extends Listener
 			Library lib = Library.findLibrary(libName);
 			if (lib != null)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Library '" + lib.getName() + "' already exists",
 					"Cannot Retrieve Library");
 				return false;
@@ -2389,7 +2388,7 @@ public class Project extends Listener
 					getCellFromRepository(pc, lib, true, true);
 					if (pc.cell == null)
 					{
-						Main.getUserInterface().showErrorMessage(
+						Job.getUserInterface().showErrorMessage(
 							"Error retrieving old version of cell",
 							"Error Getting Old Versions");
 					}
@@ -2510,7 +2509,7 @@ public class Project extends Listener
 			}
 
 			// advise the user of these libraries
-			Main.getUserInterface().showInformationMessage(
+			Job.getUserInterface().showInformationMessage(
 				"Libraries have been checked-into the repository and marked appropriately.",
 				"Libraries Added");
 			return true;
@@ -2533,14 +2532,14 @@ public class Project extends Listener
 		File dir = new File(pl.projDirectory);
 		if (dir.exists())
 		{
-			Main.getUserInterface().showErrorMessage(
+			Job.getUserInterface().showErrorMessage(
 				"Repository directory '" + pl.projDirectory + "' already exists",
 				"Error Adding Library");
 			return false;
 		}
 		if (!dir.mkdir())
 		{
-			Main.getUserInterface().showErrorMessage(
+			Job.getUserInterface().showErrorMessage(
 				"Could not create repository directory '" + pl.projDirectory + "'",
 				"Error Adding Library");
 			return false;
@@ -2630,7 +2629,7 @@ public class Project extends Listener
 		{
 			if (cell.getNewestVersion() != cell)
 			{
-				Main.getUserInterface().showErrorMessage("Cannot add an old version of the cell",
+				Job.getUserInterface().showErrorMessage("Cannot add an old version of the cell",
 					"Error Adding Cell");
 				return false;
 			}
@@ -2649,7 +2648,7 @@ public class Project extends Listener
 			ProjectCell foundPC = pl.findProjectCellByNameView(cell.getName(), cell.getView());
 			if (foundPC != null)
 			{
-				Main.getUserInterface().showErrorMessage("This cell is already in the repository",
+				Job.getUserInterface().showErrorMessage("This cell is already in the repository",
 					"Error Adding Cell");
 			} else
 			{
@@ -2668,7 +2667,7 @@ public class Project extends Listener
 
 				if (writeCell(cell, pc))
 				{
-					Main.getUserInterface().showErrorMessage("Error writing the cell to the repository",
+					Job.getUserInterface().showErrorMessage("Error writing the cell to the repository",
 						"Error Adding Cell");
 				} else
 				{
@@ -2735,7 +2734,7 @@ public class Project extends Listener
 			}
 			if (markedCells.size() > 0)
 			{
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Cannot delete " + cell + " because it is still being used by: " + err.toString(),
 					"Error Deleting Cell");
 				return false;
@@ -2764,7 +2763,7 @@ public class Project extends Listener
 					if (infstr.length() > 0) infstr.append(", ");
 					infstr.append(pc.describe());
 				}
-				Main.getUserInterface().showErrorMessage(
+				Job.getUserInterface().showErrorMessage(
 					"Before deleting a cell from the repository, you must check-in all of your work. " +
 					"This is because the deletion may be dependent upon changes recently made. " +
 					"These cells are checked out to you: " + infstr.toString(),
@@ -2801,7 +2800,7 @@ public class Project extends Listener
 					System.out.println("Cell " + cell.describe(true) + " deleted from the repository");
 				} else
 				{
-					Main.getUserInterface().showErrorMessage("This cell is not in the repository",
+					Job.getUserInterface().showErrorMessage("This cell is not in the repository",
 						"Error Deleting Cell");
 				}
 			}
@@ -3285,7 +3284,7 @@ public class Project extends Listener
 							Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);
 							if (newVers == null)
 							{
-								Main.getUserInterface().showErrorMessage(
+								Job.getUserInterface().showErrorMessage(
 									"Error making new version of cell " + oldCell.describe(false),
 									"Check Out Error");
 								setChangeStatus(false);
@@ -3295,7 +3294,7 @@ public class Project extends Listener
 							// replace former usage with new version
 							if (useNewestVersion(oldCell, newVers))
 							{
-								Main.getUserInterface().showErrorMessage(
+								Job.getUserInterface().showErrorMessage(
 									"Error replacing instances of cell " + oldCell.describe(false),
 									"Check Out Error");
 								setChangeStatus(false);
@@ -3757,7 +3756,7 @@ public class Project extends Listener
 				return false;
 			}
 			
-			Main.getUserInterface().showErrorMessage(
+			Job.getUserInterface().showErrorMessage(
 				"You must select a user first (in the 'Project Management' panel of the Preferences dialog)",
 				"No Valid User");
 			return true;

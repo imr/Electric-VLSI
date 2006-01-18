@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -80,20 +79,20 @@ public class BusParameters extends EDialog
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null)
 		{
-			Main.getUserInterface().showErrorMessage("Select an arc or export name first", "Nothing Selected");
+			Job.getUserInterface().showErrorMessage("Select an arc or export name first", "Nothing Selected");
 			return;
 		}
 		ElectricObject owner = h.getElectricObject();
 		if (owner == null || !(owner instanceof ArcInst || owner instanceof Export))
 		{
-			Main.getUserInterface().showErrorMessage("Select an arc or export name first", "Incorrect Selection");
+			Job.getUserInterface().showErrorMessage("Select an arc or export name first", "Incorrect Selection");
 			return;
 		}
 		if (owner instanceof ArcInst)
 		{
 			if (h.getVarKey() != ArcInst.ARC_NAME)
 			{
-				Main.getUserInterface().showErrorMessage("Must select the arc's name", "Incorrect Selection");
+				Job.getUserInterface().showErrorMessage("Must select the arc's name", "Incorrect Selection");
 				return;
 			}
 		}
@@ -550,7 +549,7 @@ public class BusParameters extends EDialog
 		Library lib = Library.findLibrary(libName);
 		if (lib == null) return;
 		String [] parameterList = libParameters.get(lib);
-		String newParName = Main.getUserInterface().askForInput("New Bus Parameter Name:", "Create New Bus Parameter", "");
+		String newParName = Job.getUserInterface().askForInput("New Bus Parameter Name:", "Create New Bus Parameter", "");
 		if (newParName == null) return;
 
 		// make sure the name is unique
@@ -562,7 +561,7 @@ public class BusParameters extends EDialog
 			String varName = parameterList[i].substring(0, equalPos);
 			if (varName.equalsIgnoreCase(newParName))
 			{
-				Main.getUserInterface().showErrorMessage("That bus parameter name already exists", "Duplicate Name");
+				Job.getUserInterface().showErrorMessage("That bus parameter name already exists", "Duplicate Name");
 				return;
 			}
 			if (varName.compareToIgnoreCase(newParName) < 0) insertAfter = i;

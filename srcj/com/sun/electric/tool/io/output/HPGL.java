@@ -26,7 +26,6 @@
 
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -47,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -124,7 +124,7 @@ public class HPGL extends Output
 		fillEmitted = false;
 
 		// determine the window to use for text scaling
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		wnd = ui.getCurrentEditWindow_();
 		if (wnd != null && wnd.getCell() != cell) wnd = null;
 

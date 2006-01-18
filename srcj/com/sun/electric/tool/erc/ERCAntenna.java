@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -126,7 +125,7 @@ public class ERCAntenna
 	 */
 	public static void doAntennaCheck()
 	{
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		new AntennaCheckJob(cell);

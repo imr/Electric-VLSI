@@ -30,12 +30,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.Aborter;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -84,7 +84,7 @@ public class NccUtils {
 	}
 	
 	public static CellContext getCurrentCellContext() {
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		return getCellContext(wnd);
 	}
@@ -104,7 +104,7 @@ public class NccUtils {
 		List<CellContext> cellCtxts = new ArrayList<CellContext>();
 
 		// first is always current window
-		UserInterface ui = Main.getUserInterface();
+		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		CellContext curCellCtxt = getCellContext(wnd);
 

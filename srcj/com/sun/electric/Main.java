@@ -97,9 +97,7 @@ import javax.swing.SwingUtilities;
  */
 public final class Main
 {
-	private static UserInterface currentUI;
-
-    private Main() {}
+	private Main() {}
 
 	/**
 	 * The main entry point of Electric.
@@ -152,7 +150,7 @@ public final class Main
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
         if (runMode != Job.Mode.BATCH)
         {
-        	currentUI = new UserInterfaceMain();
+        	Job.setUserInterface(new UserInterfaceMain());
             if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
             {
                 try
@@ -183,7 +181,7 @@ public final class Main
     //		MacOSXInterface.registerMacOSXApplication(argsList);
         } else
         {
-        	currentUI = new UserInterfaceDummy();
+        	Job.setUserInterface(new UserInterfaceDummy());
         }
 
 		// -help
@@ -436,8 +434,6 @@ public final class Main
 			sw.toFront();
 		}
 	}
-
-	public static UserInterface getUserInterface() { return currentUI; }
 
 	/** check if command line option 'option' present in 
      * command line args. If present, return true and remove if from the list.
