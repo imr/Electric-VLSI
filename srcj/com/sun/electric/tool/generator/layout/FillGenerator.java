@@ -1599,6 +1599,7 @@ public class FillGenerator {
 
             if (topCell == null || portList == null || portList.size() == 0) return true;
 
+
             Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill{lay}");
             Rectangle2D bnd = topCell.getBounds();
 
@@ -1623,6 +1624,28 @@ public class FillGenerator {
 
             AffineTransform fillTransIn = conNi.transformIn();
             AffineTransform fillTransOut = conNi.transformOut();
+
+            // Checking if any arc in FillCell collides with rest of the cells
+            // Enough with checking only the arcs?
+            List<ArcInst> toRemove = new ArrayList<ArcInst>();
+            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
+            for (Iterator<ArcInst> itArc = fillCell.getArcs(); itArc.hasNext(); )
+            {
+                ArcInst ai = itArc.next();
+                tmp.clear();
+                tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
+                Rectangle2D rect = (Rectangle2D)ai.getBounds().clone();
+                DBMath.transformRect(rect, fillTransOut);
+                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
+                    toRemove.add(ai);
+            }
+
+            for (ArcInst ai : toRemove)
+            {
+                System.out.println("Removing arc " + ai);
+                ai.kill();
+//                fillCell.removeArc(ai);
+            }
             InteractiveRouter router  = new SimpleWirer();
             List<PortInst> fillPortInstList = new ArrayList<PortInst>();
             List<NodeInst> fillContactList = new ArrayList<NodeInst>();
@@ -1835,10 +1858,14 @@ public class FillGenerator {
          * Method to determine if new contact will overlap with other metals in the configuration
          * @param parent
          * @param nodeBounds
-         * @param container
+         * @param p
+         * @param fillNi
+         * @param connectionNi
+         * @param upTrans
          * @return
          */
-        private boolean searchCollision(Cell parent, PortInst p, Rectangle2D nodeBounds, FillGenJobContainer container, AffineTransform upTrans)
+        private boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers, PortInst p,
+                                        NodeInst fillNi, NodeInst connectionNi, AffineTransform upTrans)
         {
             // Not checking if they belong to the same net!. If yes, ignore the collision
             Rectangle2D subBound = new Rectangle2D.Double();
@@ -1848,10 +1875,10 @@ public class FillGenerator {
             {
                 Geometric geom = it.next();
 
-                if (geom == p.getNodeInst())
+                if (p != null && geom == p.getNodeInst())
                     continue; // port belongs to this node
 
-                if (geom == container.fillNi || geom == container.connectionNi) continue; // ignore these extra cells
+                if (geom == fillNi || geom == connectionNi) continue; // ignore these extra cells
 
                 if (geom instanceof NodeInst)
                 {
@@ -1870,7 +1897,7 @@ public class FillGenerator {
                         subBound.setRect(nodeBounds);
                         DBMath.transformRect(subBound, rTransI);
 
-                        if (searchCollision((Cell)np, p, subBound, container, upTrans))
+                        if (searchCollision((Cell)np, subBound, theseLayers, p, fillNi, connectionNi, upTrans))
                             return true;
                     } else
                     {
@@ -1880,7 +1907,7 @@ public class FillGenerator {
                             PortInst port = itP.next();
                             Network net = netlist.getNetwork(port);
                             // They export the same, power or gnd so no worries about overlapping
-                            if (net.findExportWithSameCharacteristic(p) != null)
+                            if (p != null && net.findExportWithSameCharacteristic(p) != null)
                             {
                                 found = true;
                                 break;
@@ -1890,7 +1917,7 @@ public class FillGenerator {
                             continue; // no match in network type
 
                         Poly [] subPolyList = parent.getTechnology().getShapeOfNode(ni, null, null, true, true,
-                                fillLayers);
+                                theseLayers);
                         // Overlap found
                         if (subPolyList.length > 0)
                             return true;
@@ -1903,10 +1930,10 @@ public class FillGenerator {
                     Network net = netlist.getNetwork(ai, 0);
 
                     // They export the same, power or gnd so no worries about overlapping
-                    if (net.findExportWithSameCharacteristic(p) != null)
+                    if (p != null && net.findExportWithSameCharacteristic(p) != null)
                         continue; // no match in network type
 
-                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, fillLayers);
+                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, theseLayers);
 
                     // Something overlaps
                     if (subPolyList.length > 0)
@@ -1941,11 +1968,13 @@ public class FillGenerator {
                 Geometric geom = it.next();
                 if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
+                if (!ai.isLinked())
+                    System.out.println("Error link");
                 if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
 
                 // No export with the same characteristic found in this netlist
-                if (arcNet.findExportWithSameCharacteristic(p) == null)
+                if (arcNet == null || arcNet.findExportWithSameCharacteristic(p) == null)
                     continue; // no match in network type
 
                 Rectangle2D geomBnd = geom.getBounds();
@@ -1975,7 +2004,7 @@ public class FillGenerator {
             }
             handler.postProcess(false);
 
-            Collection<Layer> results = handler.getKeySet();
+            Set<Layer> results = handler.getKeySet();
             int size = results.size();
 
             assert(size <= 1); // Must contain only m3
@@ -1996,7 +2025,7 @@ public class FillGenerator {
                 DBMath.transformRect(newElemTop, fillTransOut);
 
                 // Search if there is a collision with existing nodes/arcs
-                if (searchCollision(topCell, p, newElemTop, container, null))
+                if (searchCollision(topCell, newElemTop, fillLayers, p, container.fillNi, container.connectionNi, null))
                     continue;
 
                 // adding contact
@@ -2085,7 +2114,7 @@ public class FillGenerator {
                 DBMath.transformRect(newElem, fillTransOut);
 
                 // Search if there is a collision with existing nodes/arcs
-                if (searchCollision(topCell, p, newElem, container, null))
+                if (searchCollision(topCell, newElem, fillLayers, p, container.fillNi, container.connectionNi, null))
                     continue;
 
                 NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),

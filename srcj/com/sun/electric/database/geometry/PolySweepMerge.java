@@ -49,20 +49,21 @@ public class PolySweepMerge extends GeometryHandler
 
     private static class PolySweepContainer
     {
-        private List areas = null; // Needs to be a list to apply sort
+        private List<Area> areas = null; // Needs to be a list to apply sort
 
         public PolySweepContainer(boolean createPolyList)
         {
-            areas = (createPolyList) ? new ArrayList() : null;
+            areas = (createPolyList) ? new ArrayList<Area>() : null;
         }
 
         public void add(Object value)
         {
+            Area a = null;
             if (value instanceof Shape)
-                value = new Area((Shape)value);
+                a = new Area((Shape)value);
             else
                 System.out.println("Error: invalid class for addition in PolySweepMerge");
-            areas.add(value);
+            areas.add(a);
         }
 
         public void subtract(Object element)
@@ -74,7 +75,7 @@ public class PolySweepMerge extends GeometryHandler
                 System.out.println("Error: invalid class for subtraction in PolySweepMerge");
             for (int i = 0; i < areas.size(); i++)
             {
-                Area a = (Area)areas.get(i);
+                Area a = areas.get(i);
                 a.subtract(elem);
             }
         }
@@ -128,11 +129,11 @@ public class PolySweepMerge extends GeometryHandler
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans)
     {
         PolySweepMerge other = (PolySweepMerge)subMerge;
-        List list = new ArrayList();
+        List<Area> list = new ArrayList<Area>();
 
-		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
+		for(Iterator<Layer> it = other.layers.keySet().iterator(); it.hasNext();)
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
             PolySweepContainer otherContainer = (PolySweepContainer)other.layers.get(layer);
 
@@ -142,22 +143,22 @@ public class PolySweepMerge extends GeometryHandler
                 // No need of creating polyListArray
                 container = new PolySweepContainer(false);
                 layers.put(layer, container);
-                container.areas = new ArrayList(otherContainer.areas.size());
+                container.areas = new ArrayList<Area>(otherContainer.areas.size());
             }
 
             // Since I have to apply local transformation, I can't use the same array
-            List otherAreas = new ArrayList(otherContainer.areas.size());
+            List<Area> otherAreas = new ArrayList<Area>(otherContainer.areas.size());
             for (int i = 0; i < otherContainer.areas.size(); i++)
             {
-                Area area = (Area)otherContainer.areas.get(i);
-                otherAreas.add(area.clone());
+                Area area = otherContainer.areas.get(i);
+                otherAreas.add((Area)area.clone());
             }
             Collections.sort(otherAreas, areaSort);
             Collections.sort(container.areas, areaSort);
 
             for (int i = 0; i < otherAreas.size(); i++)
             {
-                Area area = (Area)otherAreas.get(i);
+                Area area = otherAreas.get(i);
                 if (tTrans != null) area.transform(tTrans);
                 Rectangle2D rect = area.getBounds2D();
                 double areaMinX = rect.getMinX();
@@ -168,7 +169,7 @@ public class PolySweepMerge extends GeometryHandler
                 // Search for all elements that might overlap
                 for (int j = 0; j < container.areas.size() && !done; j++)
                 {
-                    Area thisArea = (Area)container.areas.get(j);
+                    Area thisArea = container.areas.get(j);
                     Rectangle2D thisRect = thisArea.getBounds2D();
                     if (areaMaxX < thisRect.getMinX())
                     {
@@ -189,23 +190,6 @@ public class PolySweepMerge extends GeometryHandler
             otherAreas = null;
         }
     }
-
-	/**
-	 * Access to keySet to create a collection.
-	 */
-	public Collection<Layer> getKeySet()
-	{
-		return (layers.keySet());
-	}
-
-	/**
-	 * Access to keySet with iterator
-	 * @return iterator for keys in hashmap
-	 */
-	public Iterator<Layer> getKeyIterator()
-	{
-		return (getKeySet().iterator());
-	}
 
     public void postProcess(boolean merge)
     {
@@ -228,12 +212,12 @@ public class PolySweepMerge extends GeometryHandler
             Collections.sort(container.areas, areaSort);
             double maxXSweep = -Double.MAX_VALUE;
             Area areaXTmp = null;
-            List twoFrontierAreas = new ArrayList();
-            List tmp = new ArrayList();
+            List<Area> twoFrontierAreas = new ArrayList<Area>();
+            List<Area> tmp = new ArrayList<Area>();
 
             for (int i = 0; i < container.areas.size(); i++)
             {
-                Area geomArea = (Area)container.areas.get(i);
+                Area geomArea = container.areas.get(i);
                 Rectangle2D rectX = geomArea.getBounds2D();
                 double minX = rectX.getX();
                 double maxX = rectX.getMaxX();
@@ -275,13 +259,13 @@ public class PolySweepMerge extends GeometryHandler
             Collections.sort(container.areas, areaSort);
             double maxXSweep = -Double.MAX_VALUE;
             Area areaXTmp = null;
-            List areas = new ArrayList();
+            List<Area> areas = new ArrayList<Area>();
             //List twoFrontierAreas = new ArrayList();
             //List tmp = new ArrayList();
 
             for (int i = 0; i < container.areas.size(); i++)
             {
-                Area geom = (Area)container.areas.get(i);
+                Area geom = container.areas.get(i);
                 Rectangle2D rectX = geom.getBounds2D();
                 double minX = rectX.getX();
                 double maxX = rectX.getMaxX();
@@ -349,7 +333,7 @@ public class PolySweepMerge extends GeometryHandler
         }
     }
 
-    private static void sweepYFrontier(List twoFrontierAreas, List tmp, boolean merge)
+    private static void sweepYFrontier(List<Area> twoFrontierAreas, List<Area> tmp, boolean merge)
     {
         // No fully tested yet
         if (merge) return;
@@ -360,7 +344,7 @@ public class PolySweepMerge extends GeometryHandler
         Area areaYTmp = null;
         for (int j = 0; j < tmp.size(); j++)
         {
-           Area area = (Area)tmp.get(j);
+           Area area = tmp.get(j);
            Rectangle2D rectY = area.getBounds2D();
            double minY = rectY.getY();
            double maxY = rectY.getMaxY();
@@ -429,9 +413,9 @@ public class PolySweepMerge extends GeometryHandler
         if (container == null) return null;
 
         List<PolyBase> list = new ArrayList<PolyBase>();
-        for (Iterator it = container.areas.iterator(); it.hasNext(); )
+        for (Iterator<Area> it = container.areas.iterator(); it.hasNext(); )
         {
-            Area area = (Area)it.next();
+            Area area = it.next();
             PolyBase.getPointsInArea(area, (Layer)layer, simple, false, list);
         }
 

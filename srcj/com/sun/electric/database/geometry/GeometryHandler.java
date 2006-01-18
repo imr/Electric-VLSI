@@ -30,10 +30,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Comparator;
+import java.util.*;
 
 /**
  * To handle merge operation. Two different classes have been proposed
@@ -113,7 +110,7 @@ public abstract class GeometryHandler {
 	/**
 	 * Access to keySet to create a collection for example.
 	 */
-	public Collection<Layer> getKeySet()
+	public Set<Layer> getKeySet()
 	{
 		return (layers.keySet());
 	}
