@@ -50,7 +50,7 @@ import java.util.List;
 public class SilComp extends Listener
 {
 	/** the Silicon Compiler tool. */		private static SilComp tool = new SilComp();
-	private static Library cellLibrary;
+	public static final String SCLIBNAME = "sclib";
 
 	/****************************** TOOL INTERFACE ******************************/
 
@@ -74,18 +74,6 @@ public class SilComp extends Listener
      * @return the SilComp tool.
      */
     public static SilComp getSilCompTool() { return tool; }
-
-	/**
-	 * Method to return the cell library that will be used for silicon compilation.
-	 * @return the cell library that will be used for silicon compilation (null if none).
-	 */
-	public static Library getCellLib() { return cellLibrary; }
-
-	/**
-	 * Method to set the cell library that will be used for silicon compilation.
-	 * @param lib the cell library that will be used for silicon compilation).
-	 */
-	public static void setCellLib(Library lib) { cellLibrary = lib; }
 
 	static double leafCellXSize(Cell cell)
 	{

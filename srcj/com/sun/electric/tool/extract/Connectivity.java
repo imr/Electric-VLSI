@@ -378,16 +378,7 @@ public class Connectivity
 			ArcInst ai = it.next();
 			arcsToStitch.add(ai);
 		}
-		ArcProto preferredArc = null;
-		String preferredName = Routing.getPreferredRoutingArc();
-		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
-		if (preferredArc == null)
-		{
-			// see if there is a default user arc
-			ArcProto curAp = User.getUserTool().getCurrentArcProto();
-			if (curAp != null) preferredArc = curAp;
-		}
-		AutoStitch.runAutoStitch(newCell, nodesToStitch, arcsToStitch, originalMerge, null, false, preferredArc);
+		AutoStitch.runAutoStitch(newCell, nodesToStitch, arcsToStitch, originalMerge, null, false, Routing.getPreferredRoutingArcProto());
 		System.out.println("done.");
 
 		// if top level, display results

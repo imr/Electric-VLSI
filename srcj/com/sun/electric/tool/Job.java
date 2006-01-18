@@ -256,7 +256,7 @@ public abstract class Job implements Serializable {
             if (waitingJobs.isEmpty())
                 notify();
             if (onMySnapshot)
-                waitingJobs.add(j);
+                waitingJobs.add(0, j);
             else
                 waitingJobs.add(j);
             if (!BATCHMODE && j.jobType == Type.CHANGE) {

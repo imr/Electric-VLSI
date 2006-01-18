@@ -30,20 +30,20 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -51,8 +51,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import javax.swing.SwingUtilities;
 
 /**
  * Class to build ROMs from personality tables.
@@ -115,6 +113,7 @@ public class ROMGenerator
 	private static class DoROM extends Job
 	{
 		private String romfile;
+		private Cell topLevel;
 
 		private DoROM(String romfile)
 		{
@@ -129,14 +128,16 @@ public class ROMGenerator
 			String romcell = "ROMCELL";
 
 			// build the ROM
-			Cell toplevel = makeAROM(romfile, romcell);
-			if (toplevel == null) return false;
-
-			// show the top-level cell
-			FileMenu.CreateCellWindow creator = new FileMenu.CreateCellWindow(toplevel);
-			SwingUtilities.invokeLater(creator);
+			topLevel = makeAROM(romfile, romcell);
+			fieldVariableChanged("topLevel");
 			return true;
 		}
+
+        public void terminateOK()
+        {
+            if (topLevel != null)
+                WindowFrame.createEditWindow(topLevel);
+        }
 	}
 
 	/**

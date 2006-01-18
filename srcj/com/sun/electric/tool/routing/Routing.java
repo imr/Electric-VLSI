@@ -37,12 +37,14 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
@@ -239,6 +241,25 @@ public class Routing extends Listener
 		}
 
 		new UnrouteJob(cell, nets);
+	}
+
+	/**
+	 * Method to determine the preferred ArcProto to use for routing.
+	 * Examines preferences in the Routing tool and User interface.
+	 * @return the preferred ArcProto to use for routing.
+	 */
+	public static ArcProto getPreferredRoutingArcProto()
+	{
+		ArcProto preferredArc = null;
+		String preferredName = getPreferredRoutingArc();
+		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
+		if (preferredArc == null)
+		{
+			// see if there is a default user arc
+			ArcProto curAp = User.getUserTool().getCurrentArcProto();
+			if (curAp != null) preferredArc = curAp;
+		}
+		return preferredArc;
 	}
 
 	private static class UnrouteJob extends Job

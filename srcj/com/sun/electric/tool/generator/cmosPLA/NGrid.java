@@ -362,7 +362,6 @@ public class NGrid
 	private boolean nmosInitRows(int heightIn, int x, int y, int yOffset, int yMOffset, Cell arrayCell)
 	{
 		int limit = (heightIn/2) + (heightIn % 2);
-		System.out.println("        Height limit is " + limit);
 		for (int i = 0; i < limit; i++)
 		{
 			if (((i % 2) == 0) && (i != 0)) y -= yOffset;

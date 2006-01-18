@@ -483,9 +483,8 @@ public class GetNetlist
 	 */
 	private SCNiTree findNi(SCCell cell, String name)
 	{
-		for(Iterator<SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for(SCNiTree nPtr : cell.niList)
 		{
-			SCNiTree nPtr = (SCNiTree)it.next();
 			if (nPtr.name.equalsIgnoreCase(name)) return nPtr;
 		}
 		return null;
@@ -862,7 +861,7 @@ public class GetNetlist
 		NodeProto np = Cell.findNodeProto(name);
 		if (!(np instanceof Cell)) np = null;
 		Cell cell = (Cell)np;
-		Library lib = SilComp.getCellLib();
+		Library lib = Library.findLibrary(SilComp.SCLIBNAME);
 		if (cell == null && lib != null)
 		{
 			cell = lib.findNodeProto(name);
@@ -1004,9 +1003,8 @@ public class GetNetlist
 	 */
 	private void extractClearFlag(SCCell cell)
 	{
-		for (Iterator<SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree ntp : cell.niList)
 		{
-			SCNiTree ntp = (SCNiTree)it.next();
 			ntp.flags &= Place.BITS_EXTRACT;
 			for (SCNiPort port = ntp.ports; port != null; port = port.next)
 				port.extNode = null;
@@ -1018,9 +1016,8 @@ public class GetNetlist
 	 */
 	private void extractFindNodes(SCCell cell)
 	{
-		for (Iterator<SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree niTree : cell.niList)
 		{
-			SCNiTree niTree = (SCNiTree)it.next();
 			niTree.flags |= Place.BITS_EXTRACT;
 			for (ConList cl = niTree.connect; cl != null; cl = cl.next)
 			{
@@ -1109,10 +1106,8 @@ public class GetNetlist
 	 */
 	private void extractFindPower(SCCell cell, SCCell vars)
 	{
-		for (Iterator<SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree ntp : cell.niList)
 		{
-			SCNiTree ntp = (SCNiTree)it.next();
-
 			// process node
 			if (ntp.number > PWR)
 			{
@@ -1166,32 +1161,29 @@ public class GetNetlist
 
 		// remember the original ones and delete them later
 		List<SCNiTree> cellList = new ArrayList<SCNiTree>();
-		for (Iterator<SCNiTree> it = curSCCell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree inst : curSCCell.niList)
 		{
-			SCNiTree inst = (SCNiTree)it.next();
 			if (inst.type == COMPLEXCELL)
 				cellList.add(inst);
 		}
 
 		// expand all instances of complex cell type
-		for (Iterator<SCNiTree> it = cellList.iterator(); it.hasNext(); )
+		for (SCNiTree inst : cellList)
 		{
-			SCNiTree inst = (SCNiTree)it.next();
 			String err = pullInst(inst, curSCCell);
 			if (err != null) return err;
 		}
 
 		// now remove the original ones
 		List<SCNiTree> deleteList = new ArrayList<SCNiTree>();
-		for (Iterator<SCNiTree> it = curSCCell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree inst : curSCCell.niList)
 		{
-			SCNiTree inst = (SCNiTree)it.next();
 			if (inst.type == COMPLEXCELL)
 				deleteList.add(inst);
 		}
-		for (Iterator<SCNiTree> it = deleteList.iterator(); it.hasNext(); )
+		for (SCNiTree inst : deleteList)
 		{
-			curSCCell.niList.remove(it.next());
+			curSCCell.niList.remove(inst);
 		}
 		return null;
 	}
@@ -1206,9 +1198,8 @@ public class GetNetlist
 		SCCell subCell = (SCCell)inst.np;
 
 		// first create components
-		for (Iterator<SCNiTree> it = subCell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree subInst : subCell.niList)
 		{
-			SCNiTree subInst = (SCNiTree)it.next();
 			if (subInst.type != SPECIALCELL)
 			{
 				List<String> createPars = new ArrayList<String>();
@@ -1447,9 +1438,8 @@ public class GetNetlist
 		}
 
 		// flatten any subinstances which are also complex cells
-		for (Iterator<SCNiTree> it = subCell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree subInst : subCell.niList)
 		{
-			SCNiTree subInst = (SCNiTree)it.next();
 			if (subInst.type == COMPLEXCELL)
 			{
 				SCNiTree ninst = findNi(cell, inst.name + "." + subInst.name);
@@ -1558,10 +1548,8 @@ public class GetNetlist
 	 */
 	private void extractCollectUnconnected(SCCell cell)
 	{
-		for (Iterator<SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (SCNiTree nPtr : cell.niList)
 		{
-			SCNiTree nPtr = (SCNiTree)it.next();
-
 			// process node
 			switch (nPtr.type)
 			{

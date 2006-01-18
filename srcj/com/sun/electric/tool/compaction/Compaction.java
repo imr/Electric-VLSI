@@ -102,7 +102,14 @@ public class Compaction extends Listener
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.getCurrentCell();
 		if (cell == null) return;
+		compactNow(cell);
+	}
 
+	/**
+	 * Method to compact the requested cell.
+	 */
+	public static void compactNow(Cell cell)
+	{
 		// do the compaction in a job
 		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL);
         job.startJob();

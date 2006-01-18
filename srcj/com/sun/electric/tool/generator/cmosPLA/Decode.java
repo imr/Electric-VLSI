@@ -55,7 +55,6 @@ public class Decode
 		NodeInst pNode = pla.makeInstance(cell, pmosCell, 0, 0, false);
 		if (pNode == null) return null;
 		pNode.rotate(Orientation.RRR);  // rotate by 90 degrees
-//		pNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
 
 		Rectangle2D nodeRect = pNode.getBounds();
 		double x = nodeRect.getWidth();
@@ -65,7 +64,6 @@ public class Decode
 		NodeInst nNode = pla.makeInstance(cell, nmosCell, x, 0, false);
 		if (nNode == null) return null;
 		nNode.rotate(Orientation.RRR);  // rotate by 90 degrees
-//		nNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
 
 		NodeInst [] both = decodeBufs(pmosCell, pNode, nmosCell, nNode, cell, x, inputsOnTop);
 		if (both == null) return null;

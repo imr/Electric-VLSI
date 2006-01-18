@@ -36,7 +36,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
@@ -49,6 +48,7 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -122,14 +122,9 @@ public class PLA
 		// prompt the user for some information
 		SetupPLAGen dialog = new SetupPLAGen();
 		if (dialog.failed()) return;
-		String cellName = dialog.getCellName();
-		String andFileName = dialog.getAndFileName();
-		String orFileName = dialog.getOrFileName();
-		boolean inputsOnTop = dialog.isInputsOnTop();
-		boolean outputsOnBottom = dialog.isOutputsOnBottom();
 
-		PLA me = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
-		new GeneratePLAJob(0, me, null);
+		generate(dialog.getCellName(), dialog.getAndFileName(), dialog.getOrFileName(),
+			dialog.isInputsOnTop(), dialog.isOutputsOnBottom());
 	}
 
 	/**
@@ -141,11 +136,79 @@ public class PLA
 	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
 	 * @param completion runnable to invoke when the generation has finished.
 	 */
-	public static void generate(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom,
-		Job completion)
+	public static void generate(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
 	{
-		PLA me = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
-		new GeneratePLAJob(0, me, completion);
+		// make sure the standard cell library is read in
+		String libName = "pla_mocmos";
+		if (Library.findLibrary(libName) == null)
+		{
+            // start a job to read the PLA support library
+			new ReadPLALibraryJob(libName);
+		}
+		new GeneratePLAJob(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+	}
+
+	/**
+	 * Class to read the PLA support library in a new job.
+	 */
+	private static class ReadPLALibraryJob extends Job
+	{
+		private String libName;
+
+		private ReadPLALibraryJob(String libName)
+		{
+			super("Read PLA Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.libName = libName;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			URL fileURL = LibFile.getLibFile(libName + ".jelib");
+    		Library lib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
+            new Technology.ResetDefaultWidthJob(lib);
+            Undo.noUndoAllowed();
+			return true;
+		}
+	}
+
+	/**
+	 * Class to build a CMOS PLA in a new Job.
+	 */
+	private static class GeneratePLAJob extends Job
+	{
+		private String cellName;
+		private String andFileName;
+		private String orFileName;
+		private boolean inputsOnTop;
+		private boolean outputsOnBottom;
+		private Cell newCell;
+
+		protected GeneratePLAJob(String cellName, String andFileName, String orFileName,
+			boolean inputsOnTop, boolean outputsOnBottom)
+		{
+			super("Generate MOSIS CMOS PLA", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cellName = cellName;
+			this.andFileName = andFileName;
+			this.orFileName = orFileName;
+			this.inputsOnTop = inputsOnTop;
+			this.outputsOnBottom = outputsOnBottom;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+			newCell = pla.doStep();
+			fieldVariableChanged("newCell");
+			return true;
+		}
+
+        public void terminateOK()
+        {
+            if (newCell != null)
+                WindowFrame.createEditWindow(newCell);
+        }
 	}
 
 	private PLA(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
@@ -160,172 +223,86 @@ public class PLA
 		dec = new Decode(this);
 	}
 
-	/**
-	 * This class implement the command to repair libraries.
-	 */
-	private static class GeneratePLAJob extends Job
+	private Cell doStep()
+		throws JobException
 	{
-		private int step;
-		private PLA pla;
-		private Job completion;
+		initialize();
 
-		protected GeneratePLAJob(int step, PLA pla, Job completion)
-		{
-			super("Generate MOSIS CMOS PLA, Step " + (step+1), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.step = step;
-			this.pla = pla;
-			this.completion = completion;
-			startJob();
-		}
+		// generate the AND plane (Decode unit of a ROM)
+		String thisCellName = cellName + "_p_cell{lay}";
+		pmosCell = pg.pmosGrid(Library.getCurrent(), andFileName, thisCellName);
+		if (pmosCell == null) return null;
 
-		public boolean doIt() throws JobException
-		{
-			return pla.doStep(step, completion);
-		}
+		thisCellName = cellName + "_n_cell{lay}";
+		nmosCell = ng.nmosGrid(Library.getCurrent(), andFileName, thisCellName);
+		if (nmosCell == null) return null;
+
+		thisCellName = cellName + "_decode{lay}";
+		decodeCell = dec.decodeGen(Library.getCurrent(), pmosCell, nmosCell, thisCellName, inputsOnTop);
+		if (decodeCell == null) return null;
+
+		// Generate the OR plane
+		thisCellName = cellName + "_or_cell{lay}";
+		orCell = ng.nmosGrid(Library.getCurrent(), orFileName, thisCellName);
+		if (orCell == null) return null;
+
+		thisCellName = cellName + "_or_plane{lay}";
+		orPlaneCell = makeOrPlane(Library.getCurrent(), thisCellName, outputsOnBottom);
+		if (orPlaneCell == null) return null;
+
+		Cell plaCell = makePLA(Library.getCurrent(), cellName + "{lay}");
+		return plaCell;
 	}
 
-	private boolean doStep(int step, Job completion)
-	{
-		boolean error = false;
-		switch (step)
-		{
-			case 0:		// initialize
-				System.out.println("STEP 1: initialize");
-				if (!initialize()) error = true;
-				break;
-
-			case 1:
-				// generate the AND plane (Decode unit of a ROM)
-				System.out.println("STEP 2: AND plane, part 1");
-				String thisCellName = cellName + "_p_cell{lay}";
-				pmosCell = pg.pmosGrid(Library.getCurrent(), andFileName, thisCellName);
-				if (pmosCell == null) error = true;
-				break;
-
-			case 2:
-				System.out.println("STEP 2: AND plane, part 2");
-				thisCellName = cellName + "_n_cell{lay}";
-				nmosCell = ng.nmosGrid(Library.getCurrent(), andFileName, thisCellName);
-				if (nmosCell == null) error = true;
-				break;
-
-			case 3:
-				System.out.println("STEP 3: Decoder");
-				thisCellName = cellName + "_decode{lay}";
-				decodeCell = dec.decodeGen(Library.getCurrent(), pmosCell, nmosCell, thisCellName, inputsOnTop);
-				if (decodeCell == null) error = true;
-				break;
-
-			case 4:
-				// Generate the OR plane
-				System.out.println("STEP 4: OR plane, part 1");
-				thisCellName = cellName + "_or_cell{lay}";
-				orCell = ng.nmosGrid(Library.getCurrent(), orFileName, thisCellName);
-				if (orCell == null) error = true;
-				break;
-
-			case 5:
-				System.out.println("STEP 5: OR plane, part 2");
-				thisCellName = cellName + "_or_plane{lay}";
-				orPlaneCell = makeOrPlane(Library.getCurrent(), thisCellName, outputsOnBottom);
-				if (orPlaneCell == null) error = true;
-				break;
-
-			case 6:
-				System.out.println("STEP 6: Final assembly");
-				Cell plaCell = makePLA(Library.getCurrent(), cellName + "{lay}");
-				if (plaCell != null)
-				{
-					System.out.println("DONE");
-					UserInterface ui = Job.getUserInterface();
-					ui.displayCell(plaCell);
-				}
-				break;
-		}
-
-		// queue the next step
-		if (step < 6 && !error)
-		{
-			new GeneratePLAJob(step+1, this, completion);
-			return true;
-		}
-		if (completion != null) completion.startJob();
-		return true;
-	}
-
-	private boolean initialize()
+	private void initialize()
+		throws JobException
 	{
 		// get the right technology and all its nodes and arcs
 		Technology theTech = Technology.findTechnology("mocmos");
-		if (theTech == null) { System.out.println("Cannot find technology 'mocmos'");   return false; }
+		if (theTech == null) throw new JobException("Cannot find technology 'mocmos'");
 
 		m1Pin = theTech.findNodeProto("Metal-1-Pin");
-		if (m1Pin == null) { System.out.println("Cannot find Metal-1-Pin primitive");   return false; }
+		if (m1Pin == null) throw new JobException("Cannot find Metal-1-Pin primitive");
 		m2Pin = theTech.findNodeProto("Metal-2-Pin");
-		if (m2Pin == null) { System.out.println("Cannot find Metal-2-Pin primitive");   return false; }
+		if (m2Pin == null) throw new JobException("Cannot find Metal-2-Pin primitive");
 		m12Con = theTech.findNodeProto("Metal-1-Metal-2-Con");
-		if (m12Con == null) { System.out.println("Cannot find Metal-1-Metal-2-Con primitive");   return false; }
+		if (m12Con == null) throw new JobException("Cannot find Metal-1-Metal-2-Con primitive");
 		mpCon = theTech.findNodeProto("Metal-1-Polysilicon-1-Con");
-		if (mpCon == null) { System.out.println("Cannot find Metal-1-Polysilicon-1-Con primitive");   return false; }
+		if (mpCon == null) throw new JobException("Cannot find Metal-1-Polysilicon-1-Con primitive");
 		maCon = theTech.findNodeProto("Metal-1-N-Active-Con");
-		if (maCon == null) { System.out.println("Cannot find Metal-1-N-Active-Con primitive");   return false; }
+		if (maCon == null) throw new JobException("Cannot find Metal-1-N-Active-Con primitive");
 		mwBut = theTech.findNodeProto("Metal-1-P-Well-Con");
-		if (mwBut == null) { System.out.println("Cannot find Metal-1-P-Well-Con primitive");   return false; }
+		if (mwBut == null) throw new JobException("Cannot find Metal-1-P-Well-Con primitive");
 		msBut = theTech.findNodeProto("Metal-1-N-Well-Con");
-		if (msBut == null) { System.out.println("Cannot find Metal-1-N-Well-Con primitive");   return false; }
+		if (msBut == null) throw new JobException("Cannot find Metal-1-N-Well-Con primitive");
 		pwNode = theTech.findNodeProto("P-Well-Node");
-		if (pwNode == null) { System.out.println("Cannot find P-Well-Node primitive");   return false; }
+		if (pwNode == null) throw new JobException("Cannot find P-Well-Node primitive");
 
 		m1Arc = theTech.findArcProto("Metal-1");
-		if (msBut == null) { System.out.println("Cannot find Metal-1 arc");   return false; }
+		if (msBut == null) throw new JobException("Cannot find Metal-1 arc");
 		m2Arc = theTech.findArcProto("Metal-2");
-		if (msBut == null) { System.out.println("Cannot find Metal-2 arc");   return false; }
+		if (msBut == null) throw new JobException("Cannot find Metal-2 arc");
 		pArc = theTech.findArcProto("Polysilicon-1");
-		if (msBut == null) { System.out.println("Cannot find Polysilicon-1 arc");   return false; }
+		if (msBut == null) throw new JobException("Cannot find Polysilicon-1 arc");
 		aArc = theTech.findArcProto("N-Active");
-		if (msBut == null) { System.out.println("Cannot find N-Active arc");   return false; }
+		if (msBut == null) throw new JobException("Cannot find N-Active arc");
 
 		// make sure the standard cell library is read in
 		String libName = "pla_mocmos";
 		Library cellLib = Library.findLibrary(libName);
-		if (cellLib == null)
-		{
-			URL url = LibFile.getLibFile(libName + ".jelib");
-			cellLib = LibraryFiles.readLibrary(url, null, FileType.JELIB, false);
-	        Undo.noUndoAllowed();
-		}
+		if (cellLib == null) throw new JobException("Cannot find the 'pla_mocmos' support library");
 
 		// find required cells in the library
 		nmosOne = cellLib.findNodeProto("nmos_one");
-		if (nmosOne == null)
-		{
-			System.out.println("Unable to find cell 'nmos_one'");
-			return false;
-		}
+		if (nmosOne == null) throw new JobException("Unable to find cell 'nmos_one'");
 		pmosOne = cellLib.findNodeProto("pmos_one");
-		if (pmosOne == null)
-		{
-			System.out.println("Unable to find cell 'pmos_one'");
-			return false;
-		}
+		if (pmosOne == null) throw new JobException("Unable to find cell 'pmos_one'");
 		decoderInv = cellLib.findNodeProto("decoder_inv1");
-		if (decoderInv == null)
-		{
-			System.out.println("Unable to find cell 'decoder_inv1'");
-			return false;
-		}
+		if (decoderInv == null) throw new JobException("Unable to find cell 'decoder_inv1'");
 		ioInv4 = cellLib.findNodeProto("io-inv-4");
-		if (ioInv4 == null)
-		{
-			System.out.println("Unable to find cell 'io-inv-4'");
-			return false;
-		}
+		if (ioInv4 == null) throw new JobException("Unable to find cell 'io-inv-4'");
 		pullUps = cellLib.findNodeProto("pullups");
-		if (pullUps == null)
-		{
-			System.out.println("Unable to find cell 'pullups'");
-			return false;
-		}
+		if (pullUps == null) throw new JobException("Unable to find cell 'pullups'");
 
 		// initialize the global tables
 		columnList = new UCRow[MAX_COL_SIZE];
@@ -337,7 +314,6 @@ public class PLA
 			rowList[i][1] = new UCRow();
 			rowList[i][2] = new UCRow();
 		}
-		return true;
 	}
 
 	/**
@@ -347,7 +323,6 @@ public class PLA
 	{
 		private JTextField andPlaneFile, orPlaneFile, cellName;
 		private JCheckBox inputs, outputs;
-
 		private boolean good;
 
 		/** Creates new form to setup PLA generation */
@@ -750,7 +725,6 @@ public class PLA
 		double decodeY = decodePoly.getCenterY();
 		double dY = decodeY - orY;
 		if (orY != decodeY) orNode.move(0, dY);
-//		if (orY != decodeY) orNode.modifyInstance(0, dY, 0, 0, 0);
 
 		int x = 0;
 		while (orPort != null && decodePort != null)
@@ -803,22 +777,20 @@ public class PLA
 		}
 	}
 
-	NodeInst makeInstance(Cell cell, Cell Inst_proto, double x, double y, boolean mirror)
+	NodeInst makeInstance(Cell cell, Cell instProto, double x, double y, boolean mirror)
 	{
-		Rectangle2D protoBounds = Inst_proto.getBounds();
+		Rectangle2D protoBounds = instProto.getBounds();
 		double sX = protoBounds.getWidth();
 		double sY = protoBounds.getHeight();
 		Orientation orient = Orientation.IDENT;
 		if (mirror)
 		{
 			orient = Orientation.Y;
-//			sY = -sY;
-			double Y1 = protoBounds.getMinY() + y;
-			double Y2 = protoBounds.getMaxY() + y;
-			y = Y2 + Y1 - y;
+			double y1 = protoBounds.getMinY() + y;
+			double y2 = protoBounds.getMaxY() + y;
+			y = y2 + y1 - y;
 		}
-		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell, orient, null, 0);
- //		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell);
+		NodeInst ni = NodeInst.makeInstance(instProto, new Point2D.Double(x, y), sX, sY, cell, orient, null, 0);
 		return ni;
 	}
 }

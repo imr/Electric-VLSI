@@ -176,10 +176,10 @@ public class Place
 
 		// create a cluster tree node for each cluster
 		ClusterTree nStart = null;
-		for (Iterator<Cluster> it = clusters.iterator(); it.hasNext(); )
+		for (Cluster clus : clusters)
 		{
 			ClusterTree node = new ClusterTree();
-			node.cluster = (Cluster)it.next();
+			node.cluster = clus;
 			node.parent = null;
 			node.next = nStart;
 			nStart = node;
@@ -269,9 +269,8 @@ public class Place
 		int size = 0;
 		int num = 0;
 		int height = 0;
-		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (GetNetlist.SCNiTree iList : cell.niList)
 		{
-			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
 			if (iList.type == GetNetlist.LEAFCELL)
 			{
 				num++;
@@ -304,9 +303,8 @@ public class Place
 		// create cluster list
 		int i = 0;
 		boolean warn = false;
-		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (GetNetlist.SCNiTree node : cell.niList)
 		{
-			GetNetlist.SCNiTree node = (GetNetlist.SCNiTree)it.next();
 			if (node.type != GetNetlist.LEAFCELL)
 			{
 				if (node.type == GetNetlist.COMPLEXCELL) warn = true;
@@ -563,9 +561,8 @@ public class Place
 			for(int i=0; i<2; i++)
 			{
 				Temp nList = null;
-				for(Iterator<Temp> it = sList.iterator(); it.hasNext(); )
+				for(Temp nl : sList)
 				{
-					Temp nl = (Temp)it.next();
 					if (nl.node == nConnect.node[i])
 					{
 						nList = nl;
@@ -588,9 +585,8 @@ public class Place
 
 		// find the minimum count
 		Temp best = null;
-		for(Iterator<Temp> it = sList.iterator(); it.hasNext(); )
+		for(Temp nList : sList)
 		{
-			Temp nList = (Temp)it.next();
 			if (best == null || nList.count <= best.count) best = nList;
 		}
 		return best.ref;
@@ -963,9 +959,8 @@ public class Place
 	private void nBAllCells(GetNetlist.SCCell cell, List<Channel> channels)
 	{
 		// process cell
-		for (Iterator<GetNetlist.SCNiTree> it = cell.niList.iterator(); it.hasNext(); )
+		for (GetNetlist.SCNiTree iList : cell.niList)
 		{
-			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
 			if (iList.type == GetNetlist.LEAFCELL)
 				nBDoCell((NBPlace)iList.tp, channels, cell);
 		}
@@ -1080,9 +1075,8 @@ public class Place
 	private int nBCost(List<RowList> theRows, List<Channel> channels, GetNetlist.SCCell cell)
 	{
 		// initialize all trunks
-		for(Iterator<Channel> it = channels.iterator(); it.hasNext(); )
+		for(Channel nChan : channels)
 		{
-			Channel nChan = (Channel)it.next();
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
 				nTrunk.minX = Double.MAX_VALUE;
@@ -1172,9 +1166,9 @@ public class Place
 		int cost = 0;
 
 		// calculate horizontal costs
-		for(Iterator<Channel> it = channels.iterator(); it.hasNext(); )
+		for(Channel aChan : channels)
 		{
-			nChan = (Channel)it.next();
+			nChan = aChan;
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
 				if (nTrunk.minX != Double.MAX_VALUE)
@@ -1243,9 +1237,8 @@ public class Place
 			place.next.last = oldLast;
 
 		// check if row change
-		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for(RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			if (row.start == place)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1291,9 +1284,8 @@ public class Place
 		}
 
 		// check if row change
-		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for(RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1335,9 +1327,8 @@ public class Place
 
 		// check if row change
 		RowList rows = (RowList)theRows.get(0);
-		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for (RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1400,9 +1391,8 @@ public class Place
 	 */
 	private void numberPlacement(List<RowList> theRows)
 	{
-		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for (RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			int xPos = 0;
 			NBPlace nPlace = row.start;
 			while (nPlace != null)
@@ -1428,9 +1418,8 @@ public class Place
 	 */
 	private void reorderRows(List<RowList> theRows)
 	{
-		for(Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for(RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			if ((row.rowNum % 2) != 0)
 			{
 				// odd row
@@ -1458,9 +1447,8 @@ public class Place
 	 */
 	private void showPlacement(List<RowList> theRows)
 	{
-		for (Iterator<RowList> it = theRows.iterator(); it.hasNext(); )
+		for (RowList row : theRows)
 		{
-			RowList row = (RowList)it.next();
 			System.out.println("For Row #" + row.rowNum + ", size " + row.rowSize+ ":");
 			NBPlace inst;
 			for (inst = row.start; inst != row.end;)

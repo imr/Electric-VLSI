@@ -5849,7 +5849,7 @@ public class CompileVHDL
 		netlist.add("!********* End of command file *******************");
 
 		// scan unresolved references for reality inside of Electric
-		Library cellLib = SilComp.getCellLib();
+		Library cellLib = Library.findLibrary(SilComp.SCLIBNAME);
 		int total = 0;
 		for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
 		{

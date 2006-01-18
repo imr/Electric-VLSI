@@ -498,7 +498,7 @@ public class ToolMenu {
 		MenuBar.Menu silCompSubMenu = MenuBar.makeMenu("Silicon Co_mpiler");
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(WindowFrame.needCurCell(), null); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(WindowFrame.needCurCell()); }});
 		silCompSubMenu.addSeparator();
 		silCompSubMenu.addMenuItem("Compile VHDL to _Netlist View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { compileVHDL();}});
@@ -1374,12 +1374,10 @@ public class ToolMenu {
         }
     }
 
-	private static final String SCLIBNAME = "sclib";
-	private static final int READ_LIBRARY         =  1;
-	private static final int CONVERT_TO_VHDL      =  2;
-	private static final int COMPILE_VHDL_FOR_SC  =  4;
-	private static final int PLACE_AND_ROUTE      =  8;
-	private static final int SHOW_CELL            = 16;
+	private static final int CONVERT_TO_VHDL     = 1;
+	private static final int COMPILE_VHDL_FOR_SC = 2;
+	private static final int PLACE_AND_ROUTE     = 4;
+	private static final int SHOW_CELL           = 8;
 
 	/**
 	 * Method to handle the menu command to convert a cell to layout.
@@ -1393,7 +1391,7 @@ public class ToolMenu {
 	 * @param cell the cell to compile.
 	 * @param completion runnable to invoke when the compilation has finished.
 	 */
-	public static void doSiliconCompilation(Cell cell, Job completion)
+	public static void doSiliconCompilation(Cell cell)
 	{
 		if (cell == null) return;
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
@@ -1416,13 +1414,9 @@ public class ToolMenu {
 					activities |= COMPILE_VHDL_FOR_SC;
 			}
 		}
-		if (SilComp.getCellLib() == null)
-		{
-			Library lib = Library.findLibrary(SCLIBNAME);
-			if (lib != null) SilComp.setCellLib(lib); else
-				activities |= READ_LIBRARY;
-		}
-	    new DoSilCompActivity(cell, activities, completion);
+		if (Library.findLibrary(SilComp.SCLIBNAME) == null)
+			new ReadSCLibraryJob();
+	    new DoSilCompActivity(cell, activities);
 	}
 
 	/**
@@ -1438,7 +1432,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, null);
+	    new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL);
 	}
 
 	/**
@@ -1454,7 +1448,30 @@ public class ToolMenu {
 			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
 			return;
 		}
-	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, null);
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
+	}
+
+	/**
+	 * Class to read the Silicon Compiler support library in a new job.
+	 */
+	private static class ReadSCLibraryJob extends Job
+	{
+		private ReadSCLibraryJob()
+		{
+			super("Read Silicon Compiler Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// read standard cell library
+			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
+			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
+			Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
+            new Technology.ResetDefaultWidthJob(lib);
+	        Undo.noUndoAllowed();
+			return true;
+		}
 	}
 
 	/**
@@ -1464,30 +1481,18 @@ public class ToolMenu {
 	{
 		private Cell cell;
 		private int activities;
-		private Job completion;
 
-		private DoSilCompActivity(Cell cell, int activities, Job completion)
+		private DoSilCompActivity(Cell cell, int activities)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
-			this.completion = completion;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			fieldVariableChanged("cell");
-			if ((activities&READ_LIBRARY) != 0)
-			{
-				// read standard cell library
-				System.out.println("Reading Standard Cell Library '" + SCLIBNAME + "' ...");
-				URL fileURL = LibFile.getLibFile(SCLIBNAME + ".jelib");
-				Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
-		        Undo.noUndoAllowed();
-				if (lib != null) SilComp.setCellLib(lib);
-				System.out.println(" Done");
-			}
 
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
@@ -1495,9 +1500,7 @@ public class ToolMenu {
 				System.out.print("Generating VHDL from " + cell + " ...");
 				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
-				{
 					throw new JobException("No VHDL produced");
-				}
 
 				String cellName = cell.getName() + "{vhdl}";
 				Cell vhdlCell = cell.getLibrary().findNodeProto(cellName);
@@ -1519,14 +1522,10 @@ public class ToolMenu {
 				System.out.print("Compiling VHDL in " + cell + " ...");
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
-				{
 					throw new JobException("ERRORS during compilation, no netlist produced");
-				}
 				List<String> netlistStrings = c.getQUISCNetlist();
 				if (netlistStrings == null)
-				{
 					throw new JobException("No netlist produced");
-				}
 
 				// store the QUISC netlist
 				String cellName = cell.getName() + "{net.quisc}";
@@ -1546,57 +1545,40 @@ public class ToolMenu {
 			if ((activities&PLACE_AND_ROUTE) != 0)
 			{
 				// first grab the information in the netlist
-				System.out.print("Reading netlist in " + cell + " ...");
+				System.out.println("Reading netlist in " + cell);
 				GetNetlist gnl = new GetNetlist();
 				if (gnl.readNetCurCell(cell))
-				{
-					System.out.println();
 					throw new JobException("Error compiling netlist");
-				}
-				System.out.println(" Done");
 
 				// do the placement
-				System.out.print("Placing cells ...");
+				System.out.println("Placing cells");
 				Place place = new Place();
 				String err = place.placeCells(gnl);
 				if (err != null)
-				{
-					System.out.println();
 					throw new JobException(err);
-				}
-				System.out.println(" Done");
 
 				// do the routing
-				System.out.print("Routing cells ...");
+				System.out.println("Routing cells");
 				Route route = new Route();
 				err = route.routeCells(gnl);
 				if (err != null)
-				{
-					System.out.println();
 					throw new JobException(err);
-				}
-				System.out.println(" Done");
 
 				// generate the results
-				System.out.print("Generating layout ...");
+				System.out.println("Generating layout");
 				Maker maker = new Maker();
 				Object result = maker.makeLayout(gnl);
 				if (result instanceof String)
 				{
-					System.out.println("\n" + (String)result);
+					System.out.println((String)result);
 					if (Technology.getCurrent() == Schematics.tech)
 						throw new JobException("Should switch to a layout technology first (currently in Schematics)");
 				}
-				if (!(result instanceof Cell))
-				{
-					System.out.println();
-				    return true;
-				}
+				if (!(result instanceof Cell)) return true;
 				cell = (Cell)result;
-				System.out.println(" Done, created " + cell);
-			    return true;
+				System.out.println("Created " + cell);
 			}
-			return false;
+		    return true;
 		}
 
         public void terminateOK()
@@ -1605,11 +1587,6 @@ public class ToolMenu {
 			{
 				// show the cell
 				WindowFrame.createEditWindow(cell);
-			}
-
-			if (completion != null)
-			{
-				completion.startJob();
 			}
         }
 	}

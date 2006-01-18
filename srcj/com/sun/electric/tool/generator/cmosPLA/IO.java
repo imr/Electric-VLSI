@@ -78,7 +78,7 @@ public class IO
 			line = line.substring(sep).trim();
 			width = TextUtils.atoi(line);
 
-			System.out.println("        Height=" + height + ", width=" + width);
+			System.out.println("PLA table height=" + height + ", width=" + width);
 
 			widthIn = width;
 			heightIn = height;

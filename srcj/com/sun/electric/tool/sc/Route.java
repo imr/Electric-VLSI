@@ -255,9 +255,8 @@ public class Route
 	 */
 	private void squeezeCells(List<Place.RowList> theRows)
 	{
-		for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
+		for(Place.RowList row : theRows)
 		{
-			Place.RowList row = (Place.RowList)it.next();
 			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
 				if (place.next == null) continue;
@@ -301,9 +300,8 @@ public class Route
 		// create a route row list for each placement row
 		RouteRow firstRRow = null, lastRRow = null;
 		RouteNode sameNode = null;
-		for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
+		for(Place.RowList row : theRows)
 		{
-			Place.RowList row = (Place.RowList)it.next();
 			RouteRow newRRow = new RouteRow();
 			newRRow.number = row.rowNum;
 			newRRow.nodes = null;
@@ -1043,9 +1041,9 @@ public class Route
 
 			// determine which row we are in
 			Place.RowList row = null;
-			for(Iterator<Place.RowList> it = theRows.iterator(); it.hasNext(); )
+			for(Place.RowList r : theRows)
 			{
-				row = (Place.RowList)it.next();
+				row = r;
 				if (row.rowNum == chan.number) break;
 			}
 

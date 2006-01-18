@@ -51,6 +51,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -898,6 +899,43 @@ public class Output
             return true;
         }
 
+    }
+
+	/**
+	 * Class to write a library in a CHANGE Job.
+	 * Used by regressions that need to queue the output after existing change jobs.
+	 */
+	public static class WriteJELIB extends Job
+    {
+        private Library lib;
+        private String newName;
+
+        public WriteJELIB(Library lib, String newName)
+        {
+            super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.lib = lib;
+            this.newName = newName;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            boolean success = false;
+            try
+            {
+            	if (newName != null)
+            	{
+	                URL libURL = TextUtils.makeURLToFile(newName);
+	                lib.setLibFile(libURL);
+	                lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
+            	}
+                success = Output.writeLibrary(lib, FileType.JELIB, false, false);
+            } catch (Exception e)
+            {
+            	throw new JobException("Exception caught when saving library: " + e.getMessage());
+            }
+            return success;
+        }
     }
 }
 

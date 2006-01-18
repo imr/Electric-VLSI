@@ -54,11 +54,13 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Analysis;
@@ -69,6 +71,8 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
+import com.sun.electric.tool.user.menus.FileMenu.ReadLibrary;
+import com.sun.electric.tool.user.menus.FileMenu.SaveLibrary;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -315,6 +319,28 @@ public class DebugMenus
         }
 	}
 
+//	/**
+//	 * Class to test compaction regressions in a new thread.
+//	 */
+//	private static class TestCompactionRegression extends Job
+//	{
+//		protected TestCompactionRegression()
+//		{
+//			super("Test Regression", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			URL fileURL = TextUtils.makeURLToFile("compactionInput.jelib");
+//			Library lib = LibraryFiles.readLibrary(fileURL, "compactionTests", FileType.JELIB, true);
+//			Cell lay = lib.findNodeProto("CompactionTest1{lay}");
+//			Compaction.compactNow(lay);
+//			new Output.WriteJELIB(lib, "compactionOutput.jelib");			
+//            return true;
+//        }
+//	}
+
 	/**
 	 * Class to read a library in a new thread.
 	 */
@@ -332,7 +358,7 @@ public class DebugMenus
 
 		public boolean doIt() throws JobException
 		{
-            myCell = doItInternal(theTechnology);
+			myCell = doItInternal(theTechnology);
 			fieldVariableChanged("myCell");
             return true;
         }

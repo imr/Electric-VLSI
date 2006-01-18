@@ -120,7 +120,7 @@ public class AutoStitch
 		{
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.isIconOfParent()) continue;
 				if (ni.getProto() instanceof PrimitiveNode)
 				{
@@ -131,10 +131,7 @@ public class AutoStitch
 				nodesToStitch.add(ni);
 			}
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				arcsToStitch.add(ai);
-			}
+				arcsToStitch.add(it.next());
 		}
 		if (nodesToStitch.size() == 0 && arcsToStitch.size() == 0)
 		{
@@ -152,16 +149,7 @@ public class AutoStitch
 		}
 
 		// find out the prefered routing arc
-		ArcProto preferredArc = null;
-		String preferredName = Routing.getPreferredRoutingArc();
-		if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
-		if (preferredArc == null)
-		{
-			// see if there is a default user arc
-			ArcProto curAp = User.getUserTool().getCurrentArcProto();
-			if (curAp != null) preferredArc = curAp;
-		}
-		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced, preferredArc);
+		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced, Routing.getPreferredRoutingArcProto());
 	}
 
 	/**

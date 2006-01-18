@@ -310,7 +310,6 @@ public class FileMenu {
     public static void openLibraryCommand()
     {
         String fileName = OpenFile.chooseInputFile(FileType.LIBRARYFORMATS, null);
-        //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
         if (fileName != null)
         {
             // start a job to do the input
@@ -689,7 +688,7 @@ public class FileMenu {
                     oLib.setChangedMajor();
             }
         }
-        SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6, false);
+        new SaveLibrary(lib, fileName, type, compatibleWith6, false);
         return true;
     }
 
@@ -1093,7 +1092,7 @@ public class FileMenu {
         if (preventLoss(null, 0)) return false;
 
 	    try {
-            QuitJob job = new QuitJob();
+            new QuitJob();
 	    } catch (java.lang.NoClassDefFoundError e)
 	    {
 		    // Ignoring this one
@@ -1110,7 +1109,7 @@ public class FileMenu {
      * Class to quit Electric in a Job.
      * The quit function is done in a Job so that it can force all other jobs to finish.
      */
-	private static class QuitJob extends Job
+    public static class QuitJob extends Job
     {
         public QuitJob()
         {
