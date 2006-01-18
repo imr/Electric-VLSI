@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/17/06, DN) Serialization ot TextDescriptor, RouteElement .
+
 IMP: (1/17/06, DN) Added Job.startJobOnMyResult method to start a new Job on result snapshot of current Job.
     Compaction tools uses it to launch a chain of Jobs.
     Job.terminateOk and Job.terminateFail instead of Job.terminateIt .

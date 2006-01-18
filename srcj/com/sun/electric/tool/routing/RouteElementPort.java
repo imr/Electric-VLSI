@@ -25,6 +25,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.ArcProto;
@@ -37,9 +38,11 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -53,11 +56,11 @@ public class RouteElementPort extends RouteElement {
     // ---- New Port info ----
     /** Node type to create */                      private NodeProto np;
     /** Port on node to use */                      private PortProto portProto;
-    /** location to create Node */                  private Point2D location;
+    /** location to create Node */                  private EPoint location;
     /** size aspect that is seen on screen */       private double width, height;
     /** if this bisects an arc */                   private boolean isBisectArcPin;
     /** RouteElementArcs connecting to this */      private List<RouteElementArc> newArcs;
-    /** port site spatial extents (db units) */     private Poly portInstSite;
+    /** port site spatial extents (db units) */     private transient Poly portInstSite;
 
     /** This contains the newly created instance, or the instance to delete */ private NodeInst nodeInst;
     /** This contains the newly created portinst, or the existing port inst */ private PortInst portInst;
@@ -80,7 +83,7 @@ public class RouteElementPort extends RouteElement {
         RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.newNode, cell);
         e.np = np;
         e.portProto = newNodePort;
-        e.location = location;
+        e.location = EPoint.snap(location);
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(width, height));
@@ -99,7 +102,7 @@ public class RouteElementPort extends RouteElement {
         RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.deleteNode, nodeInstToDelete.getParent());
         e.np = nodeInstToDelete.getProto();
         e.portProto = null;
-        e.location = nodeInstToDelete.getTrueCenter();
+        e.location = EPoint.snap(nodeInstToDelete.getTrueCenter());
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSize(), nodeInstToDelete.getYSize()));
@@ -116,7 +119,7 @@ public class RouteElementPort extends RouteElement {
      * we start building the route.
      * @param existingPortInst the already existing portInst to connect to
      */
-    public static RouteElementPort existingPortInst(PortInst existingPortInst, Point2D portInstSite) {
+    public static RouteElementPort existingPortInst(PortInst existingPortInst, EPoint portInstSite) {
         Point2D [] points = {portInstSite};
         Poly poly = new Poly(points);
         return existingPortInst(existingPortInst, poly);
@@ -134,7 +137,7 @@ public class RouteElementPort extends RouteElement {
         NodeInst nodeInst = existingPortInst.getNodeInst();
         e.np = nodeInst.getProto();
         e.portProto = existingPortInst.getPortProto();
-        e.location = nodeInst.getTrueCenter();
+        e.location = EPoint.snap(nodeInst.getTrueCenter());
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList<RouteElementArc>();
         e.setNodeSize(new Dimension2D.Double(nodeInst.getXSize(), nodeInst.getYSize()));
@@ -334,4 +337,41 @@ public class RouteElementPort extends RouteElement {
         return "RouteElement bad action";
     }
 
+    /**
+     * Save the state of the <tt>RouteElementPort</tt> instance to a stream (that
+     * is, serialize it).
+     *
+     * @serialData The numnber of points in portInstSite polygon is emitted (int),
+     * followed by all of its coordianates ( as pair of doubles ) in the proper order.
+     */
+    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+        s.defaultWriteObject();
+        if (portInstSite != null) {
+            Point2D[] points = portInstSite.getPoints();
+            s.writeInt(points.length);
+            for (int i = 0; i < points.length; i++) {
+                s.writeDouble(points[i].getX());
+                s.writeDouble(points[i].getY());
+            }
+        } else {
+            s.writeInt(-1);
+        }
+    }
+
+    /**
+     * Reconstitute the <tt>RouteElementPort</tt> instance from a stream (that is,
+     * deserialize it).
+     */
+    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+        s.defaultReadObject();
+        int len = s.readInt();
+        if (len >= 0) {
+            Point2D[] points = new Point2D[len];
+            for (int i = 0; i < len; i++) {
+                double x = s.readDouble();
+                double y = s.readDouble();
+                points[i] = new Point2D.Double(x, y);
+            }
+        }
+    }
 }

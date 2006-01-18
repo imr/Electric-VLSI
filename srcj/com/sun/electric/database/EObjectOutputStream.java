@@ -34,6 +34,8 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -47,6 +49,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * ObjectOutputStream which repalaces Electric objects by serializable key objects.
@@ -111,6 +114,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof ArcProto) return new EArcProto((ArcProto)obj);
         if (obj instanceof Tool) return new ETool((Tool)obj);
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
+        if (obj instanceof TextDescriptor) return new ETextDescriptor((TextDescriptor)obj);
         if (obj instanceof Network) return new ENetwork((Network)obj);
 
         if (obj instanceof Component) {
@@ -333,6 +337,36 @@ public class EObjectOutputStream extends ObjectOutputStream {
             Variable.Key varKey = Variable.findKey(varName);
             if (varKey == null) throw new InvalidObjectException("Variable.Key");
             return varKey;
+        }
+    }
+   
+    private static class ETextDescriptor implements Serializable {
+        /** the text descriptor is displayable */   private boolean display;
+        /** the bits of the text descriptor */		private long bits;
+        /** the color of the text descriptor */		private int colorIndex;
+        /** the code type of the text descriptor */ private int cFlags;
+        /** the name of font of text descriptor */  private String fontName;
+        
+        private ETextDescriptor(TextDescriptor td) {
+            display = td.isDisplay();
+            bits = td.lowLevelGet();
+            colorIndex = td.getColorIndex();
+            cFlags = td.getCode().getCFlags();
+            int face = td.getFace();
+            if (face != 0)
+                fontName = TextDescriptor.ActiveFont.findActiveFont(face).toString();
+        }
+        
+        private Object readResolve() throws ObjectStreamException {
+            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(cFlags);
+            MutableTextDescriptor mtd = new MutableTextDescriptor(bits, colorIndex, display, code);
+            int face = 0;
+            if (fontName != null)
+                face = TextDescriptor.ActiveFont.findActiveFont(fontName).getIndex();
+            mtd.setFace(face);
+            TextDescriptor td = TextDescriptor.newTextDescriptor(mtd);
+            if (td == null) throw new InvalidObjectException("TextDescriptor");
+            return td;
         }
     }
     

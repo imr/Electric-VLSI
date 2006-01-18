@@ -26,6 +26,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -53,8 +54,8 @@ public class RouteElementArc extends RouteElement {
     /** width of arc */                             private double arcWidth;
     /** Head of arc */                              private RouteElementPort headRE;
     /** Tail of arc */                              private RouteElementPort tailRE;
-    /** Head connecting point */                    private Point2D headConnPoint;
-    /** Tail connecting point */                    private Point2D tailConnPoint;
+    /** Head connecting point */                    private EPoint headConnPoint;
+    /** Tail connecting point */                    private EPoint tailConnPoint;
     /** Name of arc */                              private String arcName;
     /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
@@ -96,8 +97,8 @@ public class RouteElementArc extends RouteElement {
             System.out.println("  ERROR: tailRE of newArc RouteElementArc must be newNode or existingPortInst");
         headRE.addConnectingNewArc(e);
         tailRE.addConnectingNewArc(e);
-        e.headConnPoint = headConnPoint;
-        e.tailConnPoint = tailConnPoint;
+        e.headConnPoint = EPoint.snap(headConnPoint);
+        e.tailConnPoint = EPoint.snap(tailConnPoint);
         assert(e.headConnPoint != null);
         assert(e.tailConnPoint != null);
         e.arcAngle = 0;

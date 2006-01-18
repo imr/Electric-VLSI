@@ -26,6 +26,7 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.Highlighter;
+import java.io.Serializable;
 
 /**
  * A Route describes a new connection to be made.
@@ -40,27 +41,14 @@ import com.sun.electric.tool.user.Highlighter;
  * Author: gainsley
  */
 
-public abstract class RouteElement {
+public abstract class RouteElement implements Serializable {
 
     /**
      * RouteElementAction is a type safe enum class for
      * describing the action to be take by a RouteElement
      * object.
      */
-    public static class RouteElementAction {
-        private String name;
-
-        public RouteElementAction(String name) { this.name = name; }
-        public String toString() { return name; }
-
-        public static final RouteElementAction newNode = new RouteElementAction("newNode");
-        public static final RouteElementAction newArc = new RouteElementAction("newArc");
-        public static final RouteElementAction deleteNode = new RouteElementAction("deleteNode");
-        public static final RouteElementAction deleteArc = new RouteElementAction("deleteArc");
-        /** used to demark already existing end/start point of route */
-        public static final RouteElementAction existingPortInst = new RouteElementAction("existingPortInst");
-    }
-
+    public static enum RouteElementAction { newNode, newArc, deleteNode, deleteArc, existingPortInst; }; 
 
     /** the action to be taken */                   private RouteElementAction action;
     /** the Cell in which to take the action */     private Cell cell;

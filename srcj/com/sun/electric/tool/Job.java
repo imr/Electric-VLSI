@@ -472,6 +472,7 @@ public abstract class Job implements Serializable {
         }
         
         public void run() {
+            System.out.println("Started ExamineThread " + this);
             job.run();
         }
     }
@@ -1542,26 +1543,8 @@ public abstract class Job implements Serializable {
                         byte[] bytes = new byte[len];
                         reader.in.readFully(bytes);
                         System.out.println("Result of Job <" + jobName + "> is packed in " + len + " bytes");
-                        try {
-                            assert clientJob.jobName.equals(jobName);
-                            Class jobClass = clientJob.getClass();
-                            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes));
-                            Throwable jobException = (Throwable)in.readObject();
-                            System.out.println("\tjobException = " + jobException);
-                            int numFields = in.readInt();
-                            for (int i = 0; i < numFields; i++) {
-                                String fieldName = in.readUTF();
-                                Object value = in.readObject();
-                                System.out.println("\tField " + fieldName + " = " + value);
-                                Field f = jobClass.getDeclaredField(fieldName);
-                                f.setAccessible(true);
-                                f.set(clientJob, value);
-                            }
-                            in.close();
-                            clientJob.terminateIt(jobException);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
+                        assert clientJob.jobName.equals(jobName);
+                        SwingUtilities.invokeLater(new JobTerminateRun(clientJob, bytes));
                         break;
                     default:
                         assert false;
@@ -1632,4 +1615,37 @@ public abstract class Job implements Serializable {
         }
     }
     
+    private static class JobTerminateRun implements Runnable {
+        private Job job;
+        private byte[] result;
+        
+        JobTerminateRun(Job job, byte[] result) {
+            this.job = job;
+            this.result = result;
+        }
+        
+        public void run() {
+            try {
+                Class jobClass = job.getClass();
+                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(result));
+                Throwable jobException = (Throwable)in.readObject();
+                System.out.println("\tjobException = " + jobException);
+                int numFields = in.readInt();
+                for (int i = 0; i < numFields; i++) {
+                    String fieldName = in.readUTF();
+                    Object value = in.readObject();
+                    System.out.println("\tField " + fieldName + " = " + value);
+                    Field f = jobClass.getDeclaredField(fieldName);
+                    f.setAccessible(true);
+                    f.set(job, value);
+                }
+                in.close();
+                job.terminateIt(jobException);
+            } catch (Throwable e) {
+                System.out.println("Exception executing terminateIt");
+                e.printStackTrace(System.out);
+            }
+            
+        }
+    }
 }
