@@ -1653,9 +1653,10 @@ public class FillGenerator {
 
                 // Getting all gnd/power metal associated to this node inside the cell.
                 // Only one connection per this type of ports?
-                assert(ni.getNumConnections() == 1);
+//                assert(ni.getNumConnections() == 1);
                 Cell exportCell = (Cell)p.getNodeInst().getProto();
-                Rectangle2D rect = LayerCoverageJob.getGeometryOnNetwork(exportCell, ni);
+                Rectangle2D rect = LayerCoverageJob.getGeometryOnNetwork(exportCell, ni, ex.getOriginalPort(),
+                        Tech.m2pin.getLayers()[0].getLayer().getNonPseudoLayer());
 
                 // Transformation of the cell instance containing this port
                 AffineTransform trans = p.getNodeInst().transformOut();

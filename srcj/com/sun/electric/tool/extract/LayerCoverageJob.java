@@ -86,20 +86,19 @@ public class LayerCoverageJob extends Job
      * @param ni
      * @return
      */
-    public static Rectangle2D getGeometryOnNetwork(Cell exportCell, NodeInst ni)
+    public static Rectangle2D getGeometryOnNetwork(Cell exportCell, NodeInst ni, PortInst pi, Layer layer)
     {
-        NodeProto np = ni.getProto();
-
+//        NodeProto np = ni.getProto();
         // Only pins for now
-        assert(np.getFunction() == PrimitiveNode.Function.PIN);
-        PrimitiveNode pn = (PrimitiveNode)np;
-        assert(pn.getLayers().length == 1);
-        Layer layer = pn.getLayers()[0].getLayer().getNonPseudoLayer();
+//        assert(np.getFunction() == PrimitiveNode.Function.PIN);
+//        PrimitiveNode pn = (PrimitiveNode)np;
+//        assert(pn.getLayers().length == 1);
+//        Layer layer = pn.getLayers()[0].getLayer().getNonPseudoLayer();
 
         // NP should be only a PIN!
         Netlist netlist = exportCell.getNetlist(false);
         // Should I get other busIndex?
-        Network net = netlist.getNetwork(ni, np.getPort(0), 0);
+        Network net = netlist.getNetwork(pi); // netlist.getNetwork(ni, np.getPort(0), 0);
         HashSet<Network> nets = new HashSet<Network>();
         nets.add(net);
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false);
