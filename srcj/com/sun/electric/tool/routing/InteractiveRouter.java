@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
@@ -40,7 +41,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -632,8 +632,8 @@ public abstract class InteractiveRouter extends Router {
      */
     protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point) {
 
-        Point2D head = arc.getHeadLocation();
-        Point2D tail = arc.getTailLocation();
+        EPoint head = arc.getHeadLocation();
+        EPoint tail = arc.getTailLocation();
         RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHeadPortInst(), head);
         RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTailPortInst(), tail);
         RouteElementPort startRE = null;
@@ -704,8 +704,8 @@ public abstract class InteractiveRouter extends Router {
     protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint) {
 
         Cell cell = arc.getParent();
-        Point2D head = arc.getHeadLocation();
-        Point2D tail = arc.getTailLocation();
+        EPoint head = arc.getHeadLocation();
+        EPoint tail = arc.getTailLocation();
 
         // determine pin type to use if bisecting arc
         PrimitiveNode pn = arc.getProto().findOverridablePinProto();
