@@ -876,7 +876,7 @@ public class Undo
      * Fire DatabaseChangeEvent to DatabaseChangeListeners.
      * @param e DatabaseChangeEvent.
      */
-    public static void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
+    public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
         for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
             DatabaseChangeListener l = (DatabaseChangeListener)it.next();
             l.databaseChanged(e);

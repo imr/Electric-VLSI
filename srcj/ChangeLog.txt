@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/17/06, DN) Added Job.startJobOnMyResult method to start a new Job on result snapshot of current Job.
+    Compaction tools uses it to launch a chain of Jobs.
+    Job.terminateOk and Job.terminateFail instead of Job.terminateIt .
+
 IMP: (1/16/06, SMR) Further reorganization for client/server split:
      More Job classes recoded.
      Removed use of "Name" object for tracking highlighting, replaced with Variable.Key.

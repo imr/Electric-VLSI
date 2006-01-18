@@ -105,7 +105,8 @@ public class Compaction extends Listener
 		if (cell == null) return;
 
 		// do the compaction in a job
-		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.HORIZONTAL, completion);
+		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, completion);
+        job.startJob();
 	}
 
 	/**
@@ -127,7 +128,6 @@ public class Compaction extends Listener
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;
 			this.completion = completion;
-			startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -139,8 +139,9 @@ public class Compaction extends Listener
 			boolean change = cc.compactOneDirection(curAxis);
 			if (lastTime || change)
 			{
-				curAxis = (curAxis == CompactCell.HORIZONTAL) ? CompactCell.VERTICAL : CompactCell.HORIZONTAL;
+				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
 				CompactCellJob job = new CompactCellJob(cell, change, curAxis, completion);
+                job.startJobOnMyResult();
 			} else
 			{
 				System.out.println("Compaction complete");
@@ -175,9 +176,7 @@ public class Compaction extends Listener
 	{
 		private static final double DEFAULT_VAL = -99999999;
 
-		private static class Axis {}
-		private static final Axis HORIZONTAL = new Axis();
-		private static final Axis VERTICAL   = new Axis();
+		private static enum Axis { HORIZONTAL, VERTICAL };
 
 		private static class PolyList
 		{
@@ -231,7 +230,7 @@ public class Compaction extends Listener
 			// determine maximum drc surround for entire technology
 			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
 
-			if (curAxis == HORIZONTAL) System.out.println("Compacting horizontally"); else
+			if (curAxis == Axis.HORIZONTAL) System.out.println("Compacting horizontally"); else
 				System.out.println("Compacting vertically");
 
 			// number ports of cell "cell"
@@ -368,7 +367,7 @@ public class Compaction extends Listener
 					HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
 					setupTemporaryRigidity(line, lineStretch);
 
-					if (curAxis == HORIZONTAL)
+					if (curAxis == Axis.HORIZONTAL)
 						change = moveLine(curLine, bestMotion, 0, change); else
 							change = moveLine(curLine, 0, bestMotion, change);
 
@@ -426,12 +425,12 @@ public class Compaction extends Listener
 
 			double bestMotion = DEFAULT_VAL;
 			double geomLow = object.lowy;
-			if (curAxis == HORIZONTAL) geomLow = object.lowx;
+			if (curAxis == Axis.HORIZONTAL) geomLow = object.lowx;
 
 			// search the line
 			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				if (curAxis == HORIZONTAL)
+				if (curAxis == Axis.HORIZONTAL)
 				{
 					if (!isInBound(nbox.getMinY()-bound, nbox.getMaxY()+bound, curObject.outerLowy, curObject.outerHighy)) continue;
 				} else
@@ -462,7 +461,7 @@ public class Compaction extends Listener
 					if (polyBox == null)
 					{
 						double niHigh = curObject.outerHighy;
-						if (curAxis == HORIZONTAL) niHigh = curObject.outerHighx;
+						if (curAxis == Axis.HORIZONTAL) niHigh = curObject.outerHighx;
 
 						double thisMotion = geomLow - niHigh - bound;
 						if (thisMotion == DEFAULT_VAL) continue;
@@ -499,7 +498,7 @@ public class Compaction extends Listener
 					}
 
 					// if the two layers are offset on the axis so that there is no possible contraint between them
-					if (curAxis == HORIZONTAL)
+					if (curAxis == Axis.HORIZONTAL)
 					{
 						if (!isInBound(nbox.getMinY()-dist, nbox.getMaxY()+dist, polyBox.getMinY(), polyBox.getMaxY())) continue;
 					} else
@@ -543,7 +542,7 @@ public class Compaction extends Listener
 			}
 
 			// now compare the box extents
-			if (curAxis == HORIZONTAL)
+			if (curAxis == Axis.HORIZONTAL)
 			{
 				if (bound1.getMaxY()+dist > bound2.getMinY() && bound1.getMinY()-dist < bound2.getMaxY())
 				{
@@ -595,7 +594,7 @@ public class Compaction extends Listener
 				HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
 				setupTemporaryRigidity(line, lineStretch);
 
-				if (curAxis == HORIZONTAL) change = moveLine(line, i, 0, change); else
+				if (curAxis == Axis.HORIZONTAL) change = moveLine(line, i, 0, change); else
 					change = moveLine(line, 0, i, change);
 
 				// restore slidability on stretching lines
@@ -667,7 +666,7 @@ public class Compaction extends Listener
 			{
 				if (!(curObject.inst instanceof NodeInst)) continue;
 				double thisLow = curObject.lowy;
-				if (curAxis == HORIZONTAL) thisLow = curObject.lowx;
+				if (curAxis == Axis.HORIZONTAL) thisLow = curObject.lowx;
 
 				if (!first) low = Math.min(low, thisLow); else
 				{
@@ -768,7 +767,7 @@ public class Compaction extends Listener
 					if (curObject.outerHighy > hy) hy = curObject.outerHighy;
 				}
 			}
-			if (curAxis == HORIZONTAL)
+			if (curAxis == Axis.HORIZONTAL)
 			{
 				line.low = lx;
 				line.high = hx;
@@ -801,7 +800,7 @@ public class Compaction extends Listener
 				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
 					double len = 0, ctr = 0;
-					if (curAxis == HORIZONTAL)
+					if (curAxis == Axis.HORIZONTAL)
 					{
 						len = curObject.highy - curObject.lowy;
 						ctr = (curObject.lowx+curObject.highx) / 2;
@@ -892,7 +891,7 @@ public class Compaction extends Listener
 				thisObject.add(makeNodeInstObject(ni, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices));
 			GeomObj firstObject = (GeomObj)thisObject.get(0);
 			double stLow, stHigh;
-			if (curAxis == HORIZONTAL)
+			if (curAxis == Axis.HORIZONTAL)
 			{
 				stLow = firstObject.lowx;
 				stHigh = firstObject.highx;
@@ -918,7 +917,7 @@ public class Compaction extends Listener
 
 				double bdLow, bdHigh;
 				boolean partOfLine = false;
-				if (curAxis == HORIZONTAL)
+				if (curAxis == Axis.HORIZONTAL)
 				{
 					bdLow = secondObject.lowx;
 					bdHigh = secondObject.highx;
@@ -1017,7 +1016,7 @@ public class Compaction extends Listener
 				if (object == null)
 				{
 					Rectangle2D bounds = ni.getBounds();
-					if (curAxis == HORIZONTAL)
+					if (curAxis == Axis.HORIZONTAL)
 					{
 						low1 = bounds.getMinX();
 						high1 = bounds.getMinX() + maxBoundary;
@@ -1060,7 +1059,7 @@ public class Compaction extends Listener
 					if (object != null)
 					{
 						Rectangle2D bounds = poly.getBounds2D();
-						if (curAxis == HORIZONTAL)
+						if (curAxis == Axis.HORIZONTAL)
 						{
 							if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) &&
 								(bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
@@ -1185,7 +1184,7 @@ public class Compaction extends Listener
 				{
 					poly.transform(newTrans);
 					Rectangle2D bounds = poly.getBounds2D();
-					if (curAxis == HORIZONTAL)
+					if (curAxis == Axis.HORIZONTAL)
 					{
 						if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) &&
 							(bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;

@@ -331,10 +331,13 @@ public abstract class Job implements Serializable {
 		}
     
 		/** Add job to list of jobs */
-		private synchronized void addJob(Job j) {
+		private synchronized void addJob(Job j, boolean onMySnapshot) {
             if (waitingJobs.isEmpty())
                 notify();
-            waitingJobs.add(j);
+            if (onMySnapshot)
+                waitingJobs.add(j);
+            else
+                waitingJobs.add(j);
 //			if (numStarted == allJobs.size())
 //				notify();
 //            allJobs.add(j);
@@ -573,13 +576,33 @@ public abstract class Job implements Serializable {
     }
 	
     /**
+     * Start a job on snapshot obtained at the end of current job. By default displays Job on Job List UI, and
+     * delete Job when done.
+     */
+	public void startJobOnMyResult()
+	{
+        startJob(!BATCHMODE, true, true);
+    }
+	
+    /**
      * Start the job by placing it on the JobThread queue.
      * If <code>display</code> is true, display job on Job List UI.
      * If <code>deleteWhenDone</code> is true, Job will be deleted
      * after it is done (frees all data and references it stores/created)
      * @param deleteWhenDone delete when job is done if true, otherwise leave it around
      */
-    public void startJob(boolean display, boolean deleteWhenDone)
+    public void startJob(boolean display, boolean deleteWhenDone) {
+        startJob(display, deleteWhenDone, false);
+    }
+    
+    /**
+     * Start the job by placing it on the JobThread queue.
+     * If <code>display</code> is true, display job on Job List UI.
+     * If <code>deleteWhenDone</code> is true, Job will be deleted
+     * after it is done (frees all data and references it stores/created)
+     * @param deleteWhenDone delete when job is done if true, otherwise leave it around
+     */
+    private void startJob(boolean display, boolean deleteWhenDone, boolean onMySnapshot)
     {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
@@ -611,7 +634,7 @@ public abstract class Job implements Serializable {
             run();
             Main.getUserInterface().setBusyCursor(false);
         } else {
-            databaseChangesThread.addJob(this);
+            databaseChangesThread.addJob(this, onMySnapshot);
         }
     }
 
