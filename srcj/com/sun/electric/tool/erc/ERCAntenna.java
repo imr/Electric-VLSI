@@ -105,30 +105,31 @@ public class ERCAntenna
 	/** search was aborted */								private static final int ERCABORTED       = 3;
 
 	/** head of linked list of antenna objects to spread */	private List<AntennaObject>     firstSpreadAntennaObj;
-	/** current technology being considered */				private Technology curTech;	
-	/** top-level cell being checked */						private Cell       topCell;
-	/** accumulated gate area */							private double     totalGateArea;
-	/** the worst ratio found */							private double     worstRatio;
+	/** current technology being considered */				private Technology              curTech;	
+	/** top-level cell being checked */						private Cell                    topCell;
+	/** accumulated gate area */							private double                  totalGateArea;
+	/** the worst ratio found */							private double                  worstRatio;
 	/** A list of AntennaObjects to process. */				private List<AntennaObject>     pathList;
 	/** Map from ArcProtos to Layers. */					private HashMap<ArcProto,Layer> arcProtoToLayer;
 	/** Map from Layers to ArcProtos. */					private HashMap<Layer,ArcProto> layerToArcProto;
 	/** Map for marking ArcInsts and NodeInsts. */			private HashSet<Geometric>      fsGeom;
 	/** Map for marking Cells. */							private HashSet<Cell>           fsCell;
-
-    /** for storing errors */                               private ErrorLogger errorLogger;
+    /** for storing errors */                               private ErrorLogger             errorLogger;
 
 	/************************ CONTROL ***********************/
+
+	private ERCAntenna() {}
 
 	/**
 	 * The main entrypoint for Antenna checking.
 	 * Creating an ERCAntenna object checks the current cell.
 	 */
-	public ERCAntenna()
+	public static void doAntennaCheck()
 	{
 		UserInterface ui = Main.getUserInterface();
-		topCell = ui.needCurrentCell();
-		if (topCell == null) return;
-		AntennaCheckJob job = new AntennaCheckJob(this);
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
+		new AntennaCheckJob(cell);
 	}
 
 	/**
@@ -136,19 +137,21 @@ public class ERCAntenna
 	 */
 	private static class AntennaCheckJob extends Job
 	{
-		private ERCAntenna handler;
+		private Cell cell;
 
-        public AntennaCheckJob() {}
+		public AntennaCheckJob() {}
 
-		protected AntennaCheckJob(ERCAntenna handler)
+        private AntennaCheckJob(Cell cell)
 		{
 			super("ERC Antenna Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.handler = handler;
+			this.cell = cell;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+			ERCAntenna handler = new ERCAntenna();
+			handler.topCell = cell;
 			handler.doCheck(this);
 			return true;
 		}
@@ -170,12 +173,12 @@ public class ERCAntenna
 		layerToArcProto = new HashMap<Layer,ArcProto>();
 		for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			ArcProto.Function aFun = ap.getFunction();
 			if (!aFun.isMetal() && aFun != ArcProto.Function.POLY1) continue;
 			for(Iterator<Layer> lIt = curTech.getLayers(); lIt.hasNext(); )
 			{
-				Layer lay = (Layer)lIt.next();
+				Layer lay = lIt.next();
 				Layer.Function lFun = lay.getFunction();
 				if ((aFun.isMetal() && lFun.isMetal() && aFun.getLevel() == lFun.getLevel()) ||
 					(aFun.isPoly() && lFun.isPoly() && aFun.getLevel() == lFun.getLevel()))
@@ -194,9 +197,8 @@ public class ERCAntenna
 		// now check each layer of the cell
 		int lasterrorcount = 0;
 		worstRatio = 0;
-		for(Iterator<Layer> it = layerToArcProto.keySet().iterator(); it.hasNext(); )
+		for(Layer lay : layerToArcProto.keySet())
 		{
-			Layer lay = (Layer)it.next();
 			System.out.println("Checking Antenna rules for " + lay.getName() + "...");
 
 			// clear timestamps on all cells
@@ -241,26 +243,26 @@ public class ERCAntenna
 		{
 			if (job.checkAbort()) return true;
 
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (fsGeom.contains(ni)) continue;
 			fsGeom.add(ni);
 
 			// check every connection on the node
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 
 				// ignore if an arc on this port is already seen
 				boolean seen = false;
 				for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					ArcInst ai = con.getArc();
 					if (fsGeom.contains(ai)) { seen = true;   break; }
 				}
 //				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 //				{
-//					Connection con = (Connection)cIt.next();
+//					Connection con = cIt.next();
 //					ArcInst ai = con.getArc();
 //					if (con.getPortInst() == pi && fsGeom.contains(ai)) { seen = true;   break; }
 //				}
@@ -275,10 +277,8 @@ public class ERCAntenna
 				{
 					// gather the geometry here
 					PolyMerge vmerge = null;
-					for(Iterator<AntennaObject> hIt = pathList.iterator(); hIt.hasNext(); )
+					for(AntennaObject ao : pathList)
 					{
-						AntennaObject ao = (AntennaObject)hIt.next();
-
 						if (ao.geom instanceof NodeInst)
 						{
 							NodeInst oni = (NodeInst)ao.geom;
@@ -335,7 +335,7 @@ public class ERCAntenna
 						double totalRegionPerimeterArea = 0.0;
 						for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 						{
-							Layer oLay = (Layer)lIt.next();
+							Layer oLay = lIt.next();
 							double thickness = oLay.getThickness();
 							if (thickness == 0)
 							{
@@ -343,16 +343,14 @@ public class ERCAntenna
 									if (oLay.getFunction().isPoly()) thickness = DEFPOLYTHICKNESS;
 							}
 							List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
-							for(Iterator<PolyBase> mIt = merges.iterator(); mIt.hasNext(); )
+							for(PolyBase merged : merges)
 							{
-								PolyBase merged = (PolyBase)mIt.next();
 								totalRegionPerimeterArea += merged.getPerimeter() * thickness;
 							}
 						}
 
 						// see if it is an antenna violation
 						double ratio = totalRegionPerimeterArea / totalGateArea;
-//System.out.println("   Perimeter area="+totalRegionPerimeterArea+" and gate area="+totalGateArea+" so ratio="+ratio);
 						double neededratio = getAntennaRatio(lay);
 						if (ratio > worstRatio) worstRatio = ratio;
 						if (ratio >= neededratio)
@@ -363,11 +361,10 @@ public class ERCAntenna
 							ErrorLogger.MessageLog err = errorLogger.logError(errMsg, cell, 0);
 							for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
-								Layer oLay = (Layer)lIt.next();
+								Layer oLay = lIt.next();
 								List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
-								for(Iterator<PolyBase> mIt = merges.iterator(); mIt.hasNext(); )
+								for(PolyBase merged : merges)
 								{
-									PolyBase merged = (PolyBase)mIt.next();
 									err.addPoly(merged, true, cell);
 								}
 							}
@@ -381,7 +378,7 @@ public class ERCAntenna
 		fsCell.add(cell);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			Cell subCell = (Cell)ni.getProto();
 			if (fsCell.contains(subCell)) continue;
@@ -514,10 +511,10 @@ public class ERCAntenna
         PortInst pi = ni.findPortInstFromProto(pp);
 		for(Iterator<Connection> it = pi.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 //		for(Iterator it = ni.getConnections(); it.hasNext(); )
 //		{
-//			Connection con = (Connection)it.next();
+//			Connection con = it.next();
 //			PortInst pi = con.getPortInst();
 //			if (pi.getPortProto() != pp) continue;
 			ArcInst ai = con.getArc();
@@ -553,7 +550,7 @@ public class ERCAntenna
 		depth--;
 		for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 		{
-			Export e = (Export)it.next();
+			Export e = it.next();
 			if (e != pp) continue;
 
 			ni = antstack[depth];
@@ -576,10 +573,8 @@ public class ERCAntenna
 	 */
 	private boolean haveAntennaObject(AntennaObject ao)
 	{
-		for(Iterator<AntennaObject> it = pathList.iterator(); it.hasNext(); )
-		{
-			AntennaObject oAo = (AntennaObject)it.next();
-	
+		for(AntennaObject oAo : pathList)
+		{	
 			if (oAo.geom == ao.geom && oAo.depth == ao.depth)
 			{
 				boolean found = true;

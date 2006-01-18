@@ -824,46 +824,46 @@ public class Artwork extends Technology
 		return graphics;
 	}
 	
-	/**
-	 * Method to set Variables on an ElectricObject to capture information in an EGraphics.
-	 * @param graphics the EGraphics to store on the ElectricObject.
-	 * @param eObj the ElectricObject that will have new graphics information.
-	 */
-	public static void setGraphics(EGraphics graphics, ElectricObject eObj)
-	{
-		// see what is already on the object
-		Variable colorVar = eObj.getVar(ART_COLOR, Integer.class);
-		Variable patternVar = eObj.getVar(ART_PATTERN);
-
-		// set the color if specified
-		int transparent = graphics.getTransparentLayer();
-		Color newColor = graphics.getColor();
-		if (transparent == 0 && newColor == Color.BLACK)
-		{
-			if (colorVar != null) eObj.delVar(ART_COLOR);
-		} else
-		{
-			int index = 0;
-			if (transparent > 0) index = EGraphics.makeIndex(transparent); else
-				index = EGraphics.makeIndex(newColor);
-			eObj.newVar(ART_COLOR, new Integer(index));
-		}
-
-		// set the stipple pattern if specified
-		if (graphics.isPatternedOnDisplay())
-		{
-			// set the pattern
-			int [] pattern = graphics.getPattern();
-			Integer [] pat = new Integer[17];
-			for(int i=0; i<16; i++)
-				pat[i] = new Integer(pattern[i]);
-			pat[16] = new Integer(graphics.getOutlined().getIndex());
-			eObj.newVar(ART_PATTERN, pat);
-		} else
-		{
-			if (patternVar != null) eObj.delVar(ART_PATTERN);
-		}
-	}
+//	/**
+//	 * Method to set Variables on an ElectricObject to capture information in an EGraphics.
+//	 * @param graphics the EGraphics to store on the ElectricObject.
+//	 * @param eObj the ElectricObject that will have new graphics information.
+//	 */
+//	public static void setGraphics(EGraphics graphics, ElectricObject eObj)
+//	{
+//		// see what is already on the object
+//		Variable colorVar = eObj.getVar(ART_COLOR, Integer.class);
+//		Variable patternVar = eObj.getVar(ART_PATTERN);
+//
+//		// set the color if specified
+//		int transparent = graphics.getTransparentLayer();
+//		Color newColor = graphics.getColor();
+//		if (transparent == 0 && newColor == Color.BLACK)
+//		{
+//			if (colorVar != null) eObj.delVar(ART_COLOR);
+//		} else
+//		{
+//			int index = 0;
+//			if (transparent > 0) index = EGraphics.makeIndex(transparent); else
+//				index = EGraphics.makeIndex(newColor);
+//			eObj.newVar(ART_COLOR, new Integer(index));
+//		}
+//
+//		// set the stipple pattern if specified
+//		if (graphics.isPatternedOnDisplay())
+//		{
+//			// set the pattern
+//			int [] pattern = graphics.getPattern();
+//			Integer [] pat = new Integer[17];
+//			for(int i=0; i<16; i++)
+//				pat[i] = new Integer(pattern[i]);
+//			pat[16] = new Integer(graphics.getOutlined().getIndex());
+//			eObj.newVar(ART_PATTERN, pat);
+//		} else
+//		{
+//			if (patternVar != null) eObj.delVar(ART_PATTERN);
+//		}
+//	}
 
 	/**
 	 * Method to convert old primitive names to their proper NodeProtos.

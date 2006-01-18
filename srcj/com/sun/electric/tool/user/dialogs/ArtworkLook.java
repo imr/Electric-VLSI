@@ -44,10 +44,7 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JPanel;
 
 /**
  * Class to handle the "Artwork Look" dialog.
@@ -86,22 +83,17 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return artworkObjects;
 		List<Geometric> objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		for(Iterator<Geometric> it = objects.iterator(); it.hasNext(); )
+		for(Geometric geom : objects)
 		{
-			ElectricObject eObj = (ElectricObject)it.next();
-			if (eObj instanceof PortInst)
+			if (geom instanceof NodeInst)
 			{
-				eObj = ((PortInst)eObj).getNodeInst();
-			}
-			if (eObj instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)eObj;
+				NodeInst ni = (NodeInst)geom;
 				if (ni.getProto() instanceof PrimitiveNode &&
 					ni.getProto().getTechnology() == Artwork.tech)
 						artworkObjects.add(ni);
-			} else if (eObj instanceof ArcInst)
+			} else if (geom instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)eObj;
+				ArcInst ai = (ArcInst)geom;
 				if (ai.getProto().getTechnology() == Artwork.tech) artworkObjects.add(ai);
 			}
 		}
@@ -191,7 +183,29 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		if (li == null) return;
 		if (li.updateGraphics())
 		{
-			new ApplyChanges(this);
+			int transparent = li.graphics.getTransparentLayer();
+			Color newColor = li.graphics.getColor();
+			int index = -1;
+			if (transparent != 0 || newColor != Color.BLACK)
+			{
+				if (transparent > 0) index = EGraphics.makeIndex(transparent); else
+					index = EGraphics.makeIndex(newColor);
+			}
+
+			// set the stipple pattern if specified
+			Integer [] pat = null;
+			if (li.graphics.isPatternedOnDisplay())
+			{
+				// set the pattern
+				int [] pattern = li.graphics.getPattern();
+				pat = new Integer[17];
+				for(int i=0; i<16; i++)
+					pat[i] = new Integer(pattern[i]);
+				pat[16] = new Integer(li.graphics.getOutlined().getIndex());
+			}
+
+			// change the objects
+			new ApplyChanges(artworkObjects, index, pat);
 		}
 	}
 
@@ -200,23 +214,42 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	 */
 	private static class ApplyChanges extends Job
 	{
-		private ArtworkLook dialog;
+		private List<Geometric> artworkObjects;
+		private int index;
+		private Integer [] pat;
 
 		public ApplyChanges() {}
 
-		protected ApplyChanges(ArtworkLook dialog)
+		protected ApplyChanges(List<Geometric> artworkObjects, int index, Integer [] pat)
 		{
-			super("Update Edit Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			super("Change Artwork Appearance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.artworkObjects = artworkObjects;
+			this.index = index;
+			this.pat = pat;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator<Geometric> it = dialog.artworkObjects.iterator(); it.hasNext(); )
+			for(Geometric eObj : artworkObjects)
 			{
-				Geometric eObj = (Geometric)it.next();
-				Artwork.setGraphics(dialog.li.graphics, eObj);
+				if (index == -1)
+				{
+					if (eObj.getVar(Artwork.ART_COLOR, Integer.class) != null)
+						eObj.delVar(Artwork.ART_COLOR);
+				} else
+				{
+					eObj.newVar(Artwork.ART_COLOR, new Integer(index));
+				}
+				if (pat != null)
+				{
+					// set the pattern
+					eObj.newVar(Artwork.ART_PATTERN, pat);
+				} else
+				{
+					if (eObj.getVar(Artwork.ART_PATTERN) != null)
+						eObj.delVar(Artwork.ART_PATTERN);
+				}
 			}
 			return true;
 		}

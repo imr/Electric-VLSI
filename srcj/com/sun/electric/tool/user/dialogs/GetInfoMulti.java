@@ -58,6 +58,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -667,9 +668,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	}
 
 	/**
-	 * This class implements database changes requested by the dialog.
+	 * Class to hold the parameters for a multi-object change job.
 	 */
-	private static class MultiChange extends Job
+	private static class MultiChangeParameters implements Serializable
 	{
 		private String xPos, yPos;
 		private String xSize, ySize;
@@ -695,6 +696,14 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		private int code;
 		private int units;
 		private int show;
+	}
+
+	/**
+	 * This class implements database changes requested by the dialog.
+	 */
+	private static class MultiChange extends Job
+	{
+		private MultiChangeParameters mcp;
 		private List<NodeInst> nodeList;
 		private List<ArcInst> arcList;
 		private List<Export> exportList;
@@ -702,81 +711,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 		public MultiChange() {}
 
-		protected MultiChange(
-			String xPos,
-			String yPos,
-			String xSize,
-			String ySize,
-			String rot,
-			int lr,
-			int ud,
-			int expanded,
-			int easySelect,
-			int invisOutside,
-			int locked,
-			String width,
-			int rigid,
-			int fixedangle,
-			int slidable,
-			int extension,
-			int directional,
-			int negated,
-			String characteristics,
-			int bodyOnly,
-			int alwaysDrawn,
-			String pointSize,
-			String unitSize,
-			String xOff,
-			String yOff,
-			int textRotation,
-			int anchor,
-			String font,
-			int color,
-			int bold,
-			int italic,
-			int underline,
-			int code,
-			int units,
-			int show,
+		private MultiChange(
+			MultiChangeParameters mcp,
 			List<NodeInst> nodeList, List<ArcInst> arcList,
 			List<Export> exportList, List<DisplayedText> textList)
 		{
 			super("Modify Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.xPos = xPos;
-			this.yPos = yPos;
-			this.xSize = xSize;
-			this.ySize = ySize;
-			this.rot = rot;
-			this.lr = lr;
-			this.ud = ud;
-			this.expanded = expanded;
-			this.easySelect = easySelect;
-			this.invisOutside = invisOutside;
-			this.locked = locked;
-			this.width = width;
-			this.rigid = rigid;
-			this.fixedangle = fixedangle;
-			this.slidable = slidable;
-			this.extension = extension;
-			this.directional = directional;
-			this.negated = negated;
-			this.characteristics = characteristics;
-			this.bodyOnly = bodyOnly;
-			this.alwaysDrawn = alwaysDrawn;
-			this.pointSize = pointSize;
-			this.unitSize = unitSize;
-			this.xOff = xOff;
-			this.yOff = yOff;
-			this.textRotation = textRotation;
-			this.anchor = anchor;
-			this.font = font;
-			this.color = color;
-			this.bold = bold;
-			this.italic = italic;
-			this.underline = underline;
-			this.code = code;
-			this.units = units;
-			this.show = show;
+			this.mcp = mcp;
 			this.nodeList = nodeList;
 			this.arcList = arcList;
 			this.exportList = exportList;
@@ -796,30 +737,30 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				{
 					if (ni.getProto() instanceof Cell)
 					{
-						if (expanded == 1)
+						if (mcp.expanded == 1)
 						{
 							ni.setExpanded();
 							changes = true;
-						} else if (expanded == 2)
+						} else if (mcp.expanded == 2)
 						{
 							ni.clearExpanded();
 							changes = true;
 						}
 					}
-					if (easySelect == 1) ni.clearHardSelect(); else
-						if (easySelect == 2) ni.setHardSelect();
-					if (invisOutside == 1) ni.setVisInside(); else
-						if (invisOutside == 2) ni.clearVisInside();
-					if (locked == 1) ni.setLocked(); else
-						if (locked == 2) ni.clearLocked();	
+					if (mcp.easySelect == 1) ni.clearHardSelect(); else
+						if (mcp.easySelect == 2) ni.setHardSelect();
+					if (mcp.invisOutside == 1) ni.setVisInside(); else
+						if (mcp.invisOutside == 2) ni.clearVisInside();
+					if (mcp.locked == 1) ni.setLocked(); else
+						if (mcp.locked == 2) ni.clearLocked();	
 				}
 
 				// see if size, position, or orientation changed
-				if (xPos.length() > 0 || yPos.length() > 0 || xSize.length() > 0 || ySize.length() > 0 ||
-					rot.length() > 0 || lr != 0 || ud != 0 || changes)
+				if (mcp.xPos.length() > 0 || mcp.yPos.length() > 0 || mcp.xSize.length() > 0 || mcp.ySize.length() > 0 ||
+						mcp.rot.length() > 0 || mcp.lr != 0 || mcp.ud != 0 || changes)
 				{
 					// can do mass changes, but not orientation
-					if (rot.length() == 0 && lr == 0 && ud == 0)
+					if (mcp.rot.length() == 0 && mcp.lr == 0 && mcp.ud == 0)
 					{
 						// change all nodes
 						NodeInst [] nis = new NodeInst[numNodes];
@@ -827,19 +768,19 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						double [] dYP = new double[numNodes];
 						double [] dXS = new double[numNodes];
 						double [] dYS = new double[numNodes];
-						double newXPosition = TextUtils.atof(xPos);
-						double newYPosition = TextUtils.atof(yPos);
+						double newXPosition = TextUtils.atof(mcp.xPos);
+						double newYPosition = TextUtils.atof(mcp.yPos);
 						int i = 0;
 						for(NodeInst ni : nodeList)
 						{
 		                    SizeOffset so = ni.getSizeOffset();
 							nis[i] = ni;
-							if (xPos.length() == 0) dXP[i] = 0; else
+							if (mcp.xPos.length() == 0) dXP[i] = 0; else
 								dXP[i] = newXPosition - ni.getAnchorCenterX();
-							if (yPos.equals("")) dYP[i] = 0; else
+							if (mcp.yPos.equals("")) dYP[i] = 0; else
 								dYP[i] = newYPosition - ni.getAnchorCenterY();
-							String newXSize = xSize;
-							String newYSize = ySize;
+							String newXSize = mcp.xSize;
+							String newYSize = mcp.ySize;
 					        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
 							{
 								String swap = newXSize;   newXSize = newYSize;   newYSize = swap;
@@ -863,10 +804,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						{
 		                    SizeOffset so = ni.getSizeOffset();
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
-							if (xPos.length() > 0) dX = TextUtils.atof(xPos) - ni.getAnchorCenterX();
-							if (yPos.length() > 0) dY = TextUtils.atof(yPos) - ni.getAnchorCenterY();
-							String newXSize = xSize;
-							String newYSize = ySize;
+							if (mcp.xPos.length() > 0) dX = TextUtils.atof(mcp.xPos) - ni.getAnchorCenterX();
+							if (mcp.yPos.length() > 0) dY = TextUtils.atof(mcp.yPos) - ni.getAnchorCenterY();
+							String newXSize = mcp.xSize;
+							String newYSize = mcp.ySize;
 					        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
 							{
 								String swap = newXSize;   newXSize = newYSize;   newYSize = swap;
@@ -882,13 +823,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 								dYS = trueYSize - ni.getYSize();
 							}
 							int dRot = 0;
-							if (rot.length() > 0) dRot = ((int)(TextUtils.atof(rot)*10) - ni.getAngle() + 3600) % 3600;
+							if (mcp.rot.length() > 0) dRot = ((int)(TextUtils.atof(mcp.rot)*10) - ni.getAngle() + 3600) % 3600;
 							boolean dMirrorLR = false;
-							if (lr == 1 && !ni.isXMirrored()) dMirrorLR = true; else
-								if (lr == 2 && ni.isXMirrored()) dMirrorLR = true;
+							if (mcp.lr == 1 && !ni.isXMirrored()) dMirrorLR = true; else
+								if (mcp.lr == 2 && ni.isXMirrored()) dMirrorLR = true;
 							boolean dMirrorUD = false;
-							if (ud == 1 && !ni.isYMirrored()) dMirrorUD = true; else
-								if (ud == 2 && ni.isYMirrored()) dMirrorUD = true;
+							if (mcp.ud == 1 && !ni.isYMirrored()) dMirrorUD = true; else
+								if (mcp.ud == 2 && ni.isYMirrored()) dMirrorUD = true;
 			                Orientation orient = Orientation.fromJava(dRot, dMirrorLR, dMirrorUD);
 							ni.modifyInstance(dX, dY, dXS, dYS, orient);
 						}
@@ -900,26 +841,26 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			{
 				for(ArcInst ai : arcList)
 				{
-					if (width.length() > 0)
+					if (mcp.width.length() > 0)
 					{
-						double newWidth = TextUtils.atof(width) + ai.getProto().getWidthOffset();
+						double newWidth = TextUtils.atof(mcp.width) + ai.getProto().getWidthOffset();
 						if (newWidth != ai.getWidth())
 							ai.modify(newWidth - ai.getWidth(), 0, 0, 0, 0);
 					}
-					if (rigid == 1) ai.setRigid(true); else
-						if (rigid == 2) ai.setRigid(false);
-					if (fixedangle == 1) ai.setFixedAngle(true); else
-						if (fixedangle == 2) ai.setFixedAngle(false);
-					if (slidable == 1) ai.setSlidable(true); else
-						if (slidable == 2) ai.setSlidable(false);
-					switch (extension)
+					if (mcp.rigid == 1) ai.setRigid(true); else
+						if (mcp.rigid == 2) ai.setRigid(false);
+					if (mcp.fixedangle == 1) ai.setFixedAngle(true); else
+						if (mcp.fixedangle == 2) ai.setFixedAngle(false);
+					if (mcp.slidable == 1) ai.setSlidable(true); else
+						if (mcp.slidable == 2) ai.setSlidable(false);
+					switch (mcp.extension)
 					{
 						case 1: ai.setExtended(ArcInst.HEADEND, true);    ai.setExtended(ArcInst.TAILEND, true);    break;
 						case 2: ai.setExtended(ArcInst.HEADEND, false);   ai.setExtended(ArcInst.TAILEND, false);   break;
 						case 3: ai.setExtended(ArcInst.HEADEND, true);    ai.setExtended(ArcInst.TAILEND, false);   break;
 						case 4: ai.setExtended(ArcInst.HEADEND, false);   ai.setExtended(ArcInst.TAILEND, true);    break;
 					}
-					switch (directional)
+					switch (mcp.directional)
 					{
 						case 1: ai.setArrowed(ArcInst.HEADEND, false);   ai.setArrowed(ArcInst.TAILEND, false);
 							ai.setBodyArrowed(false);   break;
@@ -932,15 +873,15 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						case 5: ai.setArrowed(ArcInst.HEADEND, true);    ai.setArrowed(ArcInst.TAILEND, true);
 							ai.setBodyArrowed(true);    break;
 					}
-					switch (negated)
+					switch (mcp.negated)
 					{
 						case 1: ai.setNegated(ArcInst.HEADEND, false);   ai.setNegated(ArcInst.TAILEND, false);   break;
 						case 2: ai.setNegated(ArcInst.HEADEND, true);    ai.setNegated(ArcInst.TAILEND, false);   break;
 						case 3: ai.setNegated(ArcInst.HEADEND, false);   ai.setNegated(ArcInst.TAILEND, true);    break;
 						case 4: ai.setNegated(ArcInst.HEADEND, true);    ai.setNegated(ArcInst.TAILEND, true);    break;
 					}
-					if (easySelect == 1) ai.setHardSelect(false); else
-						if (easySelect == 2) ai.setHardSelect(true);
+					if (mcp.easySelect == 1) ai.setHardSelect(false); else
+						if (mcp.easySelect == 2) ai.setHardSelect(true);
 				}
 			}
 
@@ -948,41 +889,41 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			{
 				for(Export e : exportList)
 				{
-					if (characteristics != null)
+					if (mcp.characteristics != null)
 					{
-						PortCharacteristic ch = PortCharacteristic.findCharacteristic(characteristics);
+						PortCharacteristic ch = PortCharacteristic.findCharacteristic(mcp.characteristics);
 						e.setCharacteristic(ch);
 					}
-					if (bodyOnly == 1) e.setBodyOnly(true); else
-						if (bodyOnly == 2) e.setBodyOnly(false);
-					if (alwaysDrawn == 1) e.setAlwaysDrawn(true); else
-						if (alwaysDrawn == 2) e.setAlwaysDrawn(false);
+					if (mcp.bodyOnly == 1) e.setBodyOnly(true); else
+						if (mcp.bodyOnly == 2) e.setBodyOnly(false);
+					if (mcp.alwaysDrawn == 1) e.setAlwaysDrawn(true); else
+						if (mcp.alwaysDrawn == 2) e.setAlwaysDrawn(false);
 
 					MutableTextDescriptor td = e.getMutableTextDescriptor(Export.EXPORT_NAME);
 					boolean tdChanged = false;
-					if (pointSize.length() > 0)
+					if (mcp.pointSize.length() > 0)
 					{
-						td.setAbsSize(TextUtils.atoi(pointSize));
+						td.setAbsSize(TextUtils.atoi(mcp.pointSize));
 						tdChanged = true;
 					}
-					if (unitSize.length() > 0)
+					if (mcp.unitSize.length() > 0)
 					{
-						td.setRelSize(TextUtils.atof(unitSize));
+						td.setRelSize(TextUtils.atof(mcp.unitSize));
 						tdChanged = true;
 					}
-					if (xOff.length() > 0)
+					if (mcp.xOff.length() > 0)
 					{
-						td.setOff(TextUtils.atof(xOff), td.getYOff());
+						td.setOff(TextUtils.atof(mcp.xOff), td.getYOff());
 						tdChanged = true;
 					}
-					if (yOff.length() > 0)
+					if (mcp.yOff.length() > 0)
 					{
-						td.setOff(td.getXOff(), TextUtils.atof(yOff));
+						td.setOff(td.getXOff(), TextUtils.atof(mcp.yOff));
 						tdChanged = true;
 					}
-					if (textRotation > 0)
+					if (mcp.textRotation > 0)
 					{
-						switch (textRotation)
+						switch (mcp.textRotation)
 						{
 							case 1: td.setRotation(TextDescriptor.Rotation.ROT0);     break;
 							case 2: td.setRotation(TextDescriptor.Rotation.ROT90);    break;
@@ -991,34 +932,34 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						}
 						tdChanged = true;
 					}
-					if (anchor >= 0)
+					if (mcp.anchor >= 0)
 					{
-				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(anchor);
+				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(mcp.anchor);
 						td.setPos(newPosition);
 						tdChanged = true;
 					}
-					if (font != null)
+					if (mcp.font != null)
 					{
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
+		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(mcp.font);
 		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
 		                td.setFace(newFontIndex);
 						tdChanged = true;
 					}
-					if (color > 0)
+					if (mcp.color > 0)
 					{
 						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorIndex = colorIndices[color-1];
+				        int newColorIndex = colorIndices[mcp.color-1];
 						td.setColorIndex(newColorIndex);
 						tdChanged = true;
 					}
-					if (bold == 1) { td.setBold(true);   tdChanged = true; } else
-						if (bold == 2) { td.setBold(false);   tdChanged = true; }
-					if (italic == 1) { td.setItalic(true);   tdChanged = true; } else
-						if (italic == 2) { td.setItalic(false);   tdChanged = true; }
-					if (underline == 1) { td.setUnderline(true);   tdChanged = true; } else
-						if (underline == 2) { td.setUnderline(false);   tdChanged = true; }
-					if (invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
-						if (invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
+					if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
+						if (mcp.bold == 2) { td.setBold(false);   tdChanged = true; }
+					if (mcp.italic == 1) { td.setItalic(true);   tdChanged = true; } else
+						if (mcp.italic == 2) { td.setItalic(false);   tdChanged = true; }
+					if (mcp.underline == 1) { td.setUnderline(true);   tdChanged = true; } else
+						if (mcp.underline == 2) { td.setUnderline(false);   tdChanged = true; }
+					if (mcp.invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
+						if (mcp.invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
 
 					// update text descriptor if it changed
 					if (tdChanged)
@@ -1035,29 +976,29 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
 
 					boolean tdChanged = false;
-					if (pointSize.length() > 0)
+					if (mcp.pointSize.length() > 0)
 					{
-						td.setAbsSize(TextUtils.atoi(pointSize));
+						td.setAbsSize(TextUtils.atoi(mcp.pointSize));
 						tdChanged = true;
 					}
-					if (unitSize.length() > 0)
+					if (mcp.unitSize.length() > 0)
 					{
-						td.setRelSize(TextUtils.atof(unitSize));
+						td.setRelSize(TextUtils.atof(mcp.unitSize));
 						tdChanged = true;
 					}
-					if (xOff.length() > 0)
+					if (mcp.xOff.length() > 0)
 					{
-						td.setOff(TextUtils.atof(xOff), td.getYOff());
+						td.setOff(TextUtils.atof(mcp.xOff), td.getYOff());
 						tdChanged = true;
 					}
-					if (yOff.length() > 0)
+					if (mcp.yOff.length() > 0)
 					{
-						td.setOff(td.getXOff(), TextUtils.atof(yOff));
+						td.setOff(td.getXOff(), TextUtils.atof(mcp.yOff));
 						tdChanged = true;
 					}
-					if (textRotation > 0)
+					if (mcp.textRotation > 0)
 					{
-						switch (textRotation)
+						switch (mcp.textRotation)
 						{
 							case 1: td.setRotation(TextDescriptor.Rotation.ROT0);     break;
 							case 2: td.setRotation(TextDescriptor.Rotation.ROT90);    break;
@@ -1066,52 +1007,52 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						}
 						tdChanged = true;
 					}
-					if (anchor >= 0)
+					if (mcp.anchor >= 0)
 					{
-				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(anchor);
+				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(mcp.anchor);
 						td.setPos(newPosition);
 						tdChanged = true;
 					}
-					if (font != null)
+					if (mcp.font != null)
 					{
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
+		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(mcp.font);
 		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
 		                td.setFace(newFontIndex);
 						tdChanged = true;
 					}
-					if (color > 0)
+					if (mcp.color > 0)
 					{
 						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorIndex = colorIndices[color-1];
+				        int newColorIndex = colorIndices[mcp.color-1];
 						td.setColorIndex(newColorIndex);
 						tdChanged = true;
 					}
-					if (code > 0)
+					if (mcp.code > 0)
 					{
-						TextDescriptor.Code cd = TextDescriptor.Code.getByCBits(code);
+						TextDescriptor.Code cd = TextDescriptor.Code.getByCBits(mcp.code);
 						td.setCode(cd);
 						tdChanged = true;
 					}
-					if (units > 0)
+					if (mcp.units > 0)
 					{
-						TextDescriptor.Unit un = TextDescriptor.Unit.getUnitAt(units);
+						TextDescriptor.Unit un = TextDescriptor.Unit.getUnitAt(mcp.units);
 						td.setUnit(un);
 						tdChanged = true;
 					}
-					if (show > 0)
+					if (mcp.show > 0)
 					{
-						TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(show);
+						TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(mcp.show);
 						td.setDispPart(sh);
 						tdChanged = true;
 					}					
-					if (bold == 1) { td.setBold(true);   tdChanged = true; } else
-						if (bold == 2) { td.setBold(false);   tdChanged = true; }
-					if (italic == 1) { td.setItalic(true);   tdChanged = true; } else
-						if (italic == 2) { td.setItalic(false);   tdChanged = true; }
-					if (underline == 1) { td.setUnderline(true);   tdChanged = true; } else
-						if (underline == 2) { td.setUnderline(false);   tdChanged = true; }
-					if (invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
-						if (invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
+					if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
+						if (mcp.bold == 2) { td.setBold(false);   tdChanged = true; }
+					if (mcp.italic == 1) { td.setItalic(true);   tdChanged = true; } else
+						if (mcp.italic == 2) { td.setItalic(false);   tdChanged = true; }
+					if (mcp.underline == 1) { td.setUnderline(true);   tdChanged = true; } else
+						if (mcp.underline == 2) { td.setUnderline(false);   tdChanged = true; }
+					if (mcp.invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
+						if (mcp.invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
 
 					// update text descriptor if it changed
 					if (tdChanged)
@@ -1286,117 +1227,81 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
 		// change nodes
-		String xPos = null;
-		String yPos = null;
-		String xSize = null;
-		String ySize = null;
-		String rot = null;
-		int lr = 0;
-		int ud = 0;
-		int expanded = 0;
-		int easySelect = 0;
-		int invisOutside = 0;
-		int locked = 0;
-		String width = null;
-		int rigid = 0;
-		int fixedangle = 0;
-		int slidable = 0;
-		int extension = 0;
-		int directional = 0;
-		int negated = 0;
-		String characteristics = null;
-		int bodyOnly = 0;
-		int alwaysDrawn = 0;
-		String pointSize = null;
-		String unitSize = null;
-		String xOff = null;
-		String yOff = null;
-		int textRotation = 0;
-		int anchor = -1;
-		String font = null;
-		int color = 0;
-		int bold = 0;
-		int italic = 0;
-		int underline = 0;
-		int code = -1;
-		int units = -1;
-		int show = -1;
+		MultiChangeParameters mcp = new MultiChangeParameters();
+		mcp.anchor = mcp.code = mcp.units = mcp.show = -1;
 		if (nodeList.size() > 0)
 		{
-			xPos = findComponentStringValue(CHANGEXPOS);
-			yPos = findComponentStringValue(CHANGEYPOS);
-			xSize = findComponentStringValue(CHANGEXSIZE);
-			ySize = findComponentStringValue(CHANGEYSIZE);
-			rot = findComponentStringValue(CHANGEROTATION);
-			lr = findComponentIntValue(CHANGEMIRRORLR);
-			ud = findComponentIntValue(CHANGEMIRRORUD);
-			expanded = findComponentIntValue(CHANGEEXPANDED);
-			easySelect = findComponentIntValue(CHANGEEASYSELECT);
-			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
-			locked = findComponentIntValue(CHANGELOCKED);
+			mcp.xPos = findComponentStringValue(CHANGEXPOS);
+			mcp.yPos = findComponentStringValue(CHANGEYPOS);
+			mcp.xSize = findComponentStringValue(CHANGEXSIZE);
+			mcp.ySize = findComponentStringValue(CHANGEYSIZE);
+			mcp.rot = findComponentStringValue(CHANGEROTATION);
+			mcp.lr = findComponentIntValue(CHANGEMIRRORLR);
+			mcp.ud = findComponentIntValue(CHANGEMIRRORUD);
+			mcp.expanded = findComponentIntValue(CHANGEEXPANDED);
+			mcp.easySelect = findComponentIntValue(CHANGEEASYSELECT);
+			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+			mcp.locked = findComponentIntValue(CHANGELOCKED);
 		}
 		if (arcList.size() > 0)
 		{
-			width = findComponentStringValue(CHANGEWIDTH);
-			rigid = findComponentIntValue(CHANGERIGID);
-			fixedangle = findComponentIntValue(CHANGEFIXANGLE);
-			slidable = findComponentIntValue(CHANGESLIDABLE);
-			extension = findComponentIntValue(CHANGEEXTENSION);
-			directional = findComponentIntValue(CHANGEDIRECTION);
-			negated = findComponentIntValue(CHANGENEGATION);
-			easySelect = findComponentIntValue(CHANGEEASYSELECT);
+			mcp.width = findComponentStringValue(CHANGEWIDTH);
+			mcp.rigid = findComponentIntValue(CHANGERIGID);
+			mcp.fixedangle = findComponentIntValue(CHANGEFIXANGLE);
+			mcp.slidable = findComponentIntValue(CHANGESLIDABLE);
+			mcp.extension = findComponentIntValue(CHANGEEXTENSION);
+			mcp.directional = findComponentIntValue(CHANGEDIRECTION);
+			mcp.negated = findComponentIntValue(CHANGENEGATION);
+			mcp.easySelect = findComponentIntValue(CHANGEEASYSELECT);
 		}
 		if (exportList.size() > 0)
 		{
-			characteristics = (String)((JComboBox)findComponentRawValue(CHANGECHARACTERISTICS)).getSelectedItem();
-			bodyOnly = findComponentIntValue(CHANGEBODYONLY);
-			alwaysDrawn = findComponentIntValue(CHANGEALWAYSDRAWN);
-			pointSize = findComponentStringValue(CHANGEPOINTSIZE);
-			unitSize = findComponentStringValue(CHANGEUNITSIZE);
-			xOff = findComponentStringValue(CHANGEXOFF);
-			yOff = findComponentStringValue(CHANGEYOFF);
-			textRotation = findComponentIntValue(CHANGETEXTROT);
+			mcp.characteristics = (String)((JComboBox)findComponentRawValue(CHANGECHARACTERISTICS)).getSelectedItem();
+			mcp.bodyOnly = findComponentIntValue(CHANGEBODYONLY);
+			mcp.alwaysDrawn = findComponentIntValue(CHANGEALWAYSDRAWN);
+			mcp.pointSize = findComponentStringValue(CHANGEPOINTSIZE);
+			mcp.unitSize = findComponentStringValue(CHANGEUNITSIZE);
+			mcp.xOff = findComponentStringValue(CHANGEXOFF);
+			mcp.yOff = findComponentStringValue(CHANGEYOFF);
+			mcp.textRotation = findComponentIntValue(CHANGETEXTROT);
 			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
 			if (anValue instanceof TextDescriptor.Position)
-				anchor = ((TextDescriptor.Position)anValue).getIndex();
-			font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
-			color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
-			bold = findComponentIntValue(CHANGEBOLD);
-			italic = findComponentIntValue(CHANGEITALIC);
-			underline = findComponentIntValue(CHANGEUNDERLINE);
-			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
+			mcp.font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
+			mcp.color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
+			mcp.bold = findComponentIntValue(CHANGEBOLD);
+			mcp.italic = findComponentIntValue(CHANGEITALIC);
+			mcp.underline = findComponentIntValue(CHANGEUNDERLINE);
+			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
 		}
 		if (textList.size() > 0)
 		{
-			pointSize = findComponentStringValue(CHANGEPOINTSIZE);
-			unitSize = findComponentStringValue(CHANGEUNITSIZE);
-			xOff = findComponentStringValue(CHANGEXOFF);
-			yOff = findComponentStringValue(CHANGEYOFF);
-			textRotation = findComponentIntValue(CHANGETEXTROT);
+			mcp.pointSize = findComponentStringValue(CHANGEPOINTSIZE);
+			mcp.unitSize = findComponentStringValue(CHANGEUNITSIZE);
+			mcp.xOff = findComponentStringValue(CHANGEXOFF);
+			mcp.yOff = findComponentStringValue(CHANGEYOFF);
+			mcp.textRotation = findComponentIntValue(CHANGETEXTROT);
 			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
 			if (anValue instanceof TextDescriptor.Position)
-				anchor = ((TextDescriptor.Position)anValue).getIndex();
-			font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
-			color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
+				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
+			mcp.font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
+			mcp.color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
 			Object cdValue = ((JComboBox)findComponentRawValue(CHANGECODE)).getSelectedItem();
 			if (cdValue instanceof TextDescriptor.Code)
-				code = ((TextDescriptor.Code)cdValue).getCFlags();
+				mcp.code = ((TextDescriptor.Code)cdValue).getCFlags();
 			Object unValue = ((JComboBox)findComponentRawValue(CHANGEUNITS)).getSelectedItem();
 			if (unValue instanceof TextDescriptor.Unit)
-				units = ((TextDescriptor.Unit)unValue).getIndex();
+				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();
 			Object shValue = ((JComboBox)findComponentRawValue(CHANGESHOW)).getSelectedItem();
 			if (shValue instanceof TextDescriptor.DispPos)
-				show = ((TextDescriptor.DispPos)shValue).getIndex();
-			bold = findComponentIntValue(CHANGEBOLD);
-			italic = findComponentIntValue(CHANGEITALIC);
-			underline = findComponentIntValue(CHANGEUNDERLINE);
-			invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+				mcp.show = ((TextDescriptor.DispPos)shValue).getIndex();
+			mcp.bold = findComponentIntValue(CHANGEBOLD);
+			mcp.italic = findComponentIntValue(CHANGEITALIC);
+			mcp.underline = findComponentIntValue(CHANGEUNDERLINE);
+			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
 		}
 
-		new MultiChange(xPos, yPos, xSize, ySize, rot, lr, ud, expanded, easySelect, invisOutside,
-			locked, width, rigid, fixedangle, slidable, extension, directional, negated,
-			characteristics, bodyOnly, alwaysDrawn, pointSize, unitSize, xOff, yOff, textRotation,
-			anchor, font, color, bold, italic, underline, code, units, show, nodeList, arcList, exportList, textList);
+		new MultiChange(mcp, nodeList, arcList, exportList, textList);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed

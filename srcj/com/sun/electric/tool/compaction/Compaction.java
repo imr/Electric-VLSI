@@ -98,14 +98,14 @@ public class Compaction extends Listener
 	/**
 	 * Method to compact the current cell.
 	 */
-	public static void compactNow(Job completion)
+	public static void compactNow()
 	{
 		UserInterface ui = Main.getUserInterface();
 		Cell cell = ui.getCurrentCell();
 		if (cell == null) return;
 
 		// do the compaction in a job
-		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, completion);
+		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL);
         job.startJob();
 	}
 
@@ -117,17 +117,15 @@ public class Compaction extends Listener
 		private Cell cell;
 		private boolean lastTime;
 		private CompactCell.Axis curAxis;
-		private Job completion;
 
         public CompactCellJob() {}
 
-		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis, Job completion)
+		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
 		{
 			super("Compact " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;
-			this.completion = completion;
 		}
 
 		public boolean doIt() throws JobException
@@ -140,13 +138,13 @@ public class Compaction extends Listener
 			if (lastTime || change)
 			{
 				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
-				CompactCellJob job = new CompactCellJob(cell, change, curAxis, completion);
+				CompactCellJob job = new CompactCellJob(cell, change, curAxis);
                 job.startJobOnMyResult();
 			} else
 			{
 				System.out.println("Compaction complete");
-				if (completion != null)
-					completion.startJob();
+//				if (completion != null)
+//					completion.startJob();
 			}
 			return true;
 		}

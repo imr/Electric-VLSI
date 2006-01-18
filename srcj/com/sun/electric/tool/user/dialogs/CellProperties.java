@@ -34,7 +34,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -121,7 +123,7 @@ public class CellProperties extends EDialog
 	}
 
 	/** Creates new form Cell Properties */
-	public CellProperties(java.awt.Frame parent, boolean modal)
+	public CellProperties(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -142,7 +144,7 @@ public class CellProperties extends EDialog
 		// build the technology popup
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			whichTechnology.addItem(tech.getTechName());
 		}
 
@@ -164,10 +166,8 @@ public class CellProperties extends EDialog
 
 		// make a popup of libraries
 		List<Library> libList = Library.getVisibleLibraries();
-		/*for(Library lib: libList) libraryPopup.addItem(lib.getName());*/
-		for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
+		for(Library lib : libList)
 		{
-			Library lib = (Library)it.next();
 			libraryPopup.addItem(lib.getName());
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());
@@ -197,7 +197,7 @@ public class CellProperties extends EDialog
 		cellListModel.clear();
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			cellListModel.addElement(cell.noLibDescribe());
 			any = true;
 		}
@@ -1035,7 +1035,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.useTechEditor.setBoolean(false);
 		}
@@ -1048,7 +1048,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.useTechEditor.setBoolean(true);
 		}
@@ -1061,7 +1061,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.inCellLib.setBoolean(false);
 		}
@@ -1074,7 +1074,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.inCellLib.setBoolean(true);
 		}
@@ -1087,7 +1087,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.disInstMod.setBoolean(false);
 		}
@@ -1100,7 +1100,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.disInstMod.setBoolean(true);
 		}
@@ -1113,7 +1113,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.disAllMod.setBoolean(false);
 		}
@@ -1126,7 +1126,7 @@ public class CellProperties extends EDialog
 		Library lib = Library.findLibrary(libName);
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			PerCellValues pcv = getPCV(cell);
 			pcv.disAllMod.setBoolean(true);
 		}
@@ -1140,7 +1140,86 @@ public class CellProperties extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		SetCellOptions job = new SetCellOptions(this);
+		List<Cell> cells = new ArrayList<Cell>();
+		List<Boolean> disAllMod = new ArrayList<Boolean>();
+		List<Boolean> disAllModFactory = new ArrayList<Boolean>();
+		List<Boolean> disInstMod = new ArrayList<Boolean>();
+		List<Boolean> disInstModFactory = new ArrayList<Boolean>();
+		List<Boolean> inCellLib = new ArrayList<Boolean>();
+		List<Boolean> inCellLibFactory = new ArrayList<Boolean>();
+		List<Boolean> useTechEditor = new ArrayList<Boolean>();
+		List<Boolean> useTechEditorFactory = new ArrayList<Boolean>();
+		List<Boolean> defExpanded = new ArrayList<Boolean>();
+		List<Boolean> defExpandedFactory = new ArrayList<Boolean>();
+		List<Double> charX = new ArrayList<Double>();
+		List<Double> charXFactory = new ArrayList<Double>();
+		List<Double> charY = new ArrayList<Double>();
+		List<Double> charYFactory = new ArrayList<Double>();
+		List<String> frameSize = new ArrayList<String>();
+		List<String> frameSizeFactory = new ArrayList<String>();
+		List<String> designerName = new ArrayList<String>();
+		List<String> designerNameFactory = new ArrayList<String>();
+		List<String> technologyName = new ArrayList<String>();
+		List<String> technologyNameFactory = new ArrayList<String>();
+		List<String> textCellFont = new ArrayList<String>();
+		List<String> textCellFontFactory = new ArrayList<String>();
+		List<Integer> textCellSize = new ArrayList<Integer>();
+		List<Integer> textCellSizeFactory = new ArrayList<Integer>();
+
+		for (Cell cell : origValues.keySet())
+		{
+            cells.add(cell);
+			PerCellValues pcv = getPCV(cell);
+			disAllMod.add(new Boolean(pcv.disAllMod.getBoolean()));
+			disAllModFactory.add(new Boolean(pcv.disAllMod.getBooleanFactoryValue()));
+
+			disInstMod.add(new Boolean(pcv.disInstMod.getBoolean()));
+			disInstModFactory.add(new Boolean(pcv.disInstMod.getBooleanFactoryValue()));
+			inCellLib.add(new Boolean(pcv.inCellLib.getBoolean()));
+			inCellLibFactory.add(new Boolean(pcv.inCellLib.getBooleanFactoryValue()));
+			useTechEditor.add(new Boolean(pcv.useTechEditor.getBoolean()));
+			useTechEditorFactory.add(new Boolean(pcv.useTechEditor.getBooleanFactoryValue()));
+			defExpanded.add(new Boolean(pcv.defExpanded.getBoolean()));
+			defExpandedFactory.add(new Boolean(pcv.defExpanded.getBooleanFactoryValue()));
+
+			charX.add(new Double(pcv.charX.getDouble()));
+			charXFactory.add((Double)pcv.charX.getFactoryValue());
+			charY.add(new Double(pcv.charY.getDouble()));
+			charYFactory.add((Double)pcv.charY.getFactoryValue());
+
+			frameSize.add(pcv.frameSize.getString());
+			frameSizeFactory.add((String)pcv.frameSize.getFactoryValue());
+			String dn = pcv.designerName.getString();
+			if (pcv.frameSize.getString().length() != 0)
+			{
+				if (dn.length() == 0)
+					dn = System.getProperty("user.name");
+			}
+			designerName.add(dn);
+			designerNameFactory.add((String)pcv.designerName.getFactoryValue());
+			technologyName.add(pcv.technologyName.getString());
+			technologyNameFactory.add((String)pcv.technologyName.getFactoryValue());
+			textCellFont.add(pcv.textCellFont.getString());
+			textCellFontFactory.add((String)pcv.textCellFont.getFactoryValue());
+
+			textCellSize.add(new Integer(pcv.textCellSize.getInt()));
+			textCellSizeFactory.add(new Integer(pcv.textCellSize.getIntFactoryValue()));
+		}
+
+		SetCellOptions job = new SetCellOptions(
+			cells,
+			disAllMod, disAllModFactory,
+			disInstMod, disInstModFactory,
+			inCellLib, inCellLibFactory,
+			useTechEditor, useTechEditorFactory,
+			defExpanded, defExpandedFactory,
+			charX, charXFactory,
+			charY, charYFactory,
+			frameSize, frameSizeFactory,
+			designerName, designerNameFactory,
+			technologyName, technologyNameFactory,
+			textCellFont, textCellFontFactory,
+			textCellSize, textCellSizeFactory);
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 
@@ -1149,73 +1228,104 @@ public class CellProperties extends EDialog
 	 */
 	private static class SetCellOptions extends Job
 	{
-		CellProperties dialog;
+		private List<Cell> cells;
+		private List<Boolean> disAllMod, disAllModFactory;
+		private List<Boolean> disInstMod, disInstModFactory;
+		private List<Boolean> inCellLib, inCellLibFactory;
+		private List<Boolean> useTechEditor, useTechEditorFactory;
+		private List<Boolean> defExpanded, defExpandedFactory;
+		private List<Double> charX, charXFactory;
+		private List<Double> charY, charYFactory;
+		private List<String> frameSize, frameSizeFactory;
+		private List<String> designerName, designerNameFactory;
+		private List<String> technologyName, technologyNameFactory;
+		private List<String> textCellFont, textCellFontFactory;
+		private List<Integer> textCellSize, textCellSizeFactory;
 
 		public SetCellOptions() {}
 	
-		protected SetCellOptions(CellProperties dialog)
+		private SetCellOptions(
+			List<Cell> cells,
+			List<Boolean> disAllMod,     List<Boolean> disAllModFactory,
+			List<Boolean> disInstMod,    List<Boolean> disInstModFactory,
+			List<Boolean> inCellLib,     List<Boolean> inCellLibFactory,
+			List<Boolean> useTechEditor, List<Boolean> useTechEditorFactory,
+			List<Boolean> defExpanded,   List<Boolean> defExpandedFactory,
+			List<Double> charX,          List<Double> charXFactory,
+			List<Double> charY,          List<Double> charYFactory,
+			List<String> frameSize,      List<String> frameSizeFactory,
+			List<String> designerName,   List<String> designerNameFactory,
+			List<String> technologyName, List<String> technologyNameFactory,
+			List<String> textCellFont,   List<String> textCellFontFactory,
+			List<Integer> textCellSize,  List<Integer> textCellSizeFactory)
 		{
 			super("Change Cell Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.cells = cells;
+			this.disAllMod = disAllMod;            this.disAllModFactory = disAllModFactory;
+			this.disInstMod = disInstMod;          this.disInstModFactory = disInstModFactory;
+			this.inCellLib = inCellLib;            this.inCellLibFactory = inCellLibFactory;
+			this.useTechEditor = useTechEditor;    this.useTechEditorFactory = useTechEditorFactory;
+			this.defExpanded = defExpanded;        this.defExpandedFactory = defExpandedFactory;
+			this.charX = charX;                    this.charXFactory = charXFactory;
+			this.charY = charY;                    this.charYFactory = charYFactory;
+			this.frameSize = frameSize;            this.frameSizeFactory = frameSizeFactory;
+			this.designerName = designerName;      this.designerNameFactory = designerNameFactory;
+			this.technologyName = technologyName;  this.technologyNameFactory = technologyNameFactory;
+			this.textCellFont = textCellFont;      this.textCellFontFactory = textCellFontFactory;
+			this.textCellSize = textCellSize;      this.textCellSizeFactory = textCellSizeFactory;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-            for (Iterator<Cell> it = dialog.origValues.keySet().iterator(); it.hasNext(); )
+            for (int i=0; i<cells.size(); i++)
 			{
-                Cell cell = (Cell)it.next();
-				PerCellValues pcv = dialog.getPCV(cell);
-				if (pcv.disAllMod.getBoolean() != pcv.disAllMod.getBooleanFactoryValue())
+				Cell cell = cells.get(i);
+				if (disAllMod.get(i).booleanValue() != disAllModFactory.get(i).booleanValue())
 				{
-					if (pcv.disAllMod.getBoolean()) cell.setAllLocked(); else cell.clearAllLocked();
+					if (disAllMod.get(i).booleanValue()) cell.setAllLocked(); else cell.clearAllLocked();
 				}
-				if (pcv.disInstMod.getBoolean() != pcv.disInstMod.getBooleanFactoryValue())
+				if (disInstMod.get(i).booleanValue() != disInstModFactory.get(i).booleanValue())
 				{
-					if (pcv.disInstMod.getBoolean()) cell.setInstancesLocked(); else cell.clearInstancesLocked();
+					if (disInstMod.get(i).booleanValue()) cell.setInstancesLocked(); else cell.clearInstancesLocked();
 				}
-				if (pcv.inCellLib.getBoolean() != pcv.inCellLib.getBooleanFactoryValue())
+				if (inCellLib.get(i).booleanValue() != inCellLibFactory.get(i).booleanValue())
 				{
-					if (pcv.inCellLib.getBoolean()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+					if (inCellLib.get(i).booleanValue()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
 				}
-				if (pcv.useTechEditor.getBoolean() != pcv.useTechEditor.getBooleanFactoryValue())
+				if (useTechEditor.get(i).booleanValue() != useTechEditorFactory.get(i).booleanValue())
 				{
-					if (pcv.useTechEditor.getBoolean()) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
+					if (useTechEditor.get(i).booleanValue()) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
 				}
-				if (pcv.defExpanded.getBoolean() != pcv.defExpanded.getBooleanFactoryValue())
+				if (defExpanded.get(i).booleanValue() != defExpandedFactory.get(i).booleanValue())
 				{
-					if (pcv.defExpanded.getBoolean()) cell.setWantExpanded(); else cell.clearWantExpanded();
+					if (defExpanded.get(i).booleanValue()) cell.setWantExpanded(); else cell.clearWantExpanded();
 				}
-				if (pcv.charX.getDouble() != ((Double)pcv.charX.getFactoryValue()).doubleValue() ||
-					pcv.charY.getDouble() != ((Double)pcv.charY.getFactoryValue()).doubleValue())
+				if (charX.get(i).doubleValue() != charXFactory.get(i).doubleValue() ||
+					charY.get(i).doubleValue() != charYFactory.get(i).doubleValue())
 				{
-					cell.setCharacteristicSpacing(pcv.charX.getDouble(), pcv.charY.getDouble());
+					cell.setCharacteristicSpacing(charX.get(i).doubleValue(), charY.get(i).doubleValue());
 				}
-				if (!pcv.frameSize.getString().equals(pcv.frameSize.getFactoryValue()))
+				if (!frameSize.get(i).equals(frameSizeFactory.get(i)))
 				{
-					cell.newVar(User.FRAME_SIZE, pcv.frameSize.getString());
+					cell.newVar(User.FRAME_SIZE, frameSize.get(i));
 				}
-				if (pcv.frameSize.getString().length() != 0)
+				if (!designerName.get(i).equals(designerNameFactory.get(i)))
 				{
-					if (pcv.designerName.getString().length() == 0)
-						pcv.designerName.setString(System.getProperty("user.name"));
-				}
-				if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
-				{
-					cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
+					cell.newVar(User.FRAME_DESIGNER_NAME, designerName.get(i));
                 }
-				if (!pcv.technologyName.getString().equals(pcv.technologyName.getFactoryValue()))
+				if (!technologyName.get(i).equals(technologyNameFactory.get(i)))
 				{
-					Technology tech = Technology.findTechnology(pcv.technologyName.getString());
+					Technology tech = Technology.findTechnology(technologyName.get(i));
 					if (tech != null) cell.setTechnology(tech);
                 }
-				if (!pcv.textCellFont.getString().equals(pcv.textCellFont.getFactoryValue()))
+				if (!textCellFont.get(i).equals(textCellFontFactory.get(i)))
 				{
-					cell.newVar(Cell.TEXT_CELL_FONT_NAME, pcv.textCellFont.getString());
+					cell.newVar(Cell.TEXT_CELL_FONT_NAME, textCellFont.get(i));
 				}
-				if (pcv.textCellSize.getInt() != pcv.textCellSize.getIntFactoryValue())
+				if (textCellSize.get(i).intValue() != textCellSizeFactory.get(i).intValue())
 				{
-					cell.newVar(Cell.TEXT_CELL_FONT_SIZE, new Integer(pcv.textCellSize.getInt()));
+					cell.newVar(Cell.TEXT_CELL_FONT_SIZE, textCellSize.get(i));
 				}
 			}
 			return true;

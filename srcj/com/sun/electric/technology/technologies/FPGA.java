@@ -66,6 +66,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PromptAt;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -1008,10 +1009,15 @@ public class FPGA extends Technology
 		public boolean doIt() throws JobException
 		{
 			ni.newVar(ACTIVEPIPS_KEY, newPips);
-			UserInterface ui = Main.getUserInterface();
-			ui.repaintAllEditWindows();
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			UserInterface ui = Main.getUserInterface();
+			ui.repaintAllEditWindows();
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**
@@ -1021,6 +1027,7 @@ public class FPGA extends Technology
 	{
 		private LispTree lt;
 		private boolean placeAndWire;
+		private Cell topCell;
 
         public BuildTechnology() {}
 
@@ -1043,16 +1050,22 @@ public class FPGA extends Technology
 			// place and wire the primitives
 			if (placeAndWire)
 			{
-				Cell topCell = placePrimitives(lt);
-				if (topCell != null)
-				{
-					// display top cell
-					UserInterface ui = Main.getUserInterface();
-					ui.displayCell(topCell);
-				}
+				topCell = placePrimitives(lt);
+				fieldVariableChanged("topCell");
 			}
 			return true;
 		}
+
+        public void terminateIt(Throwable jobException)
+        {
+			if (topCell != null)
+			{
+				// display top cell
+				UserInterface ui = Main.getUserInterface();
+				ui.displayCell(topCell);
+			}
+            super.terminateIt(jobException);
+        }
 	}
 
 	/**

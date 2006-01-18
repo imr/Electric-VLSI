@@ -356,7 +356,7 @@ public class ToolMenu {
 		ercSubMenu.addMenuItem("Check _Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_SWEEP); } });
 		ercSubMenu.addMenuItem("_Antenna Check", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCAntenna.doAntennaCheck(); } });
 
 		// ------------------- NCC
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRS UVWXYZ
@@ -510,7 +510,7 @@ public class ToolMenu {
 		MenuBar.Menu compactionSubMenu = MenuBar.makeMenu("_Compaction");
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow(null);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
 
         //------------------- Others
 

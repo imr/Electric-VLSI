@@ -30,7 +30,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -45,7 +44,6 @@ import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JScrollBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -110,9 +108,8 @@ public class CrossLibCopy extends EDialog
 		if (curLibRight == null) curLibRight = Library.getCurrent();
 		if (curLibLeft == curLibRight)
 		{
-			for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
+			for(Library lib : libList)
 			{
-				Library lib = (Library)it.next();
 				if (lib != curLibLeft)
 				{
 					curLibRight = lib;
@@ -123,9 +120,8 @@ public class CrossLibCopy extends EDialog
 
 		// setup the library popups
 		Library saveLeft = curLibLeft, saveRight = curLibRight;
-		for(Iterator<Library> it = libList.iterator(); it.hasNext(); )
+		for(Library lib : libList)
 		{
-			Library lib = (Library)it.next();
 			librariesLeft.addItem(lib.getName());
 			librariesRight.addItem(lib.getName());
 		}
@@ -233,7 +229,6 @@ public class CrossLibCopy extends EDialog
 				Cell leftCell = (Cell)cellListLeft.get(leftPos);
 				Cell rightCell = (Cell)cellListRight.get(rightPos);
                 int j = leftCell.getCellName().compareTo(rightCell.getCellName());
-//				int j = TextUtils.STRING_NUMBER_ORDER.compare(leftCell.noLibDescribe(), rightCell.noLibDescribe());
 				if (j < 0) op = 1; else
 					if (j > 0) op = 2; else
 						op = 3;
@@ -292,104 +287,79 @@ public class CrossLibCopy extends EDialog
 		}
 	}
 
-	/**
-	 * This class gets run when a cross-library copy finishes.
-	 * It updates the dialog display.
-	 */
-	private static class DoneCopying implements Runnable
-	{
-		CrossLibCopy dialog;
-		int index;
-
-		DoneCopying(CrossLibCopy dialog, int index)
-		{
-			this.dialog = dialog;
-			this.index = index;
-		}
-
-		public void run()
-		{
-			// reload the dialog
-			dialog.showCells(false, false);
-
-			// reselect the last selected line
-			dialog.listLeft.setSelectedIndex(index);
-			dialog.listRight.setSelectedIndex(index);
-			dialog.listCenter.setSelectedIndex(index);
-		}
-	}
-
-	// Class to compare two cells
-	private static class CrossLibraryExamineJob extends Job
-	{
-		Cell leftC;
-		Cell rightC;
-		boolean reportResults; // to report to std output the comparison
-		boolean result;
-		StringBuffer buffer;
-
-        public CrossLibraryExamineJob() {}
-
-		protected CrossLibraryExamineJob(Cell left, Cell right, boolean report)
-		{
-			super("Cross-Library examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.leftC = left;
-			this.rightC = right;
-			this.reportResults = report;
-			startJob();
-		}
-		public boolean doIt() throws JobException
-		{
-			if (reportResults)
-				buffer = new StringBuffer("Cells '" + leftC.libDescribe() + "' and '" + rightC.libDescribe() + ":");
-			result = (leftC != null && leftC.compare(rightC, buffer));
-
-			if (reportResults)
-			{
-				if (result)
-					buffer.append("Do not differ");
-				System.out.println(buffer);
-			}
-			return (true);
-		}
-		public boolean getResult() { return (result); }
-		public StringBuffer getDifference() { return (buffer); }
-	}
+//	// Class to compare two cells
+//	private static class CrossLibraryExamineJob extends Job
+//	{
+//		private Cell leftC;
+//		private Cell rightC;
+//		private boolean reportResults; // to report to std output the comparison
+//		private boolean result;
+//		private StringBuffer buffer;
+//
+//        public CrossLibraryExamineJob() {}
+//
+//        private CrossLibraryExamineJob(Cell left, Cell right, boolean report)
+//		{
+//			super("Cross-Library examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+//			this.leftC = left;
+//			this.rightC = right;
+//			this.reportResults = report;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			if (reportResults)
+//				buffer = new StringBuffer("Cells '" + leftC.libDescribe() + "' and '" + rightC.libDescribe() + ":");
+//			result = (leftC != null && leftC.compare(rightC, buffer));
+//
+//			if (reportResults)
+//			{
+//				if (result)
+//					buffer.append("Do not differ");
+//				System.out.println(buffer);
+//			}
+//			return (true);
+//		}
+//		public boolean getResult() { return (result); }
+//		public StringBuffer getDifference() { return (buffer); }
+//	}
 
 	private static class CrossLibraryCopyJob extends Job
 	{
 		private Cell fromCell;
 		private Library toLibrary;
-		private CrossLibCopy dialog;
+		private transient CrossLibCopy dialog;
+		private boolean deleteAfter, copyRelated, copySubs, useExisting;
 		private List<Cell> deletedCells;
+		private int index;
 
         public CrossLibraryCopyJob() {}
 
-		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
+		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
+			boolean copyRelated, boolean copySubs, boolean useExisting)
 		{
 			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fromCell = fromCell;
 			this.toLibrary = toLibrary;
 			this.dialog = dialog;
+			this.deleteAfter = deleteAfter;
+			this.copyRelated = copyRelated;
+			this.copySubs = copySubs;
+			this.useExisting = useExisting;
+
+			// remember the selection line
+			index = dialog.listLeft.getSelectedIndex();
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// remember the selection line
-			int index = dialog.listLeft.getSelectedIndex();
-
 			// do the copy
-			boolean deleteAfter = dialog.deleteAfterCopy.isSelected();
-			boolean copyRelated = dialog.copyRelatedViews.isSelected();
-			boolean copySubs = dialog.copySubcells.isSelected();
-			boolean useExisting = dialog.useExistingSubcells.isSelected();
 			deletedCells = new ArrayList<Cell>();
 			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting, deletedCells);
 			fieldVariableChanged("deletedCells");
 
-			// schedule the dialog to refresh
-			SwingUtilities.invokeLater(new DoneCopying(dialog, index));
 			return true;
 		}
 
@@ -399,6 +369,14 @@ public class CrossLibCopy extends EDialog
         	{
         		CircuitChanges.cleanCellRef(cell);
         	}
+
+			// reload the dialog
+			dialog.showCells(false, false);
+
+			// reselect the last selected line
+			dialog.listLeft.setSelectedIndex(index);
+			dialog.listRight.setSelectedIndex(index);
+			dialog.listCenter.setSelectedIndex(index);
             super.terminateIt(jobException);
         }
 	}
@@ -708,7 +686,8 @@ public class CrossLibCopy extends EDialog
 		String cellName = (String)listLeft.getSelectedValue();
 		Cell fromCell = curLibLeft.findNodeProto(cellName);
 		if (fromCell == null) return;
-		CrossLibraryCopyJob job = new CrossLibraryCopyJob(fromCell, curLibRight, this);
+		new CrossLibraryCopyJob(fromCell, curLibRight, this, deleteAfterCopy.isSelected(),
+			copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
 	}//GEN-LAST:event_copyRightActionPerformed
 
 	private void doneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_doneActionPerformed
@@ -721,7 +700,8 @@ public class CrossLibCopy extends EDialog
 		String cellName = (String)listRight.getSelectedValue();
 		Cell fromCell = curLibRight.findNodeProto(cellName);
 		if (fromCell == null) return;
-		CrossLibraryCopyJob job = new CrossLibraryCopyJob(fromCell, curLibLeft, this);
+		new CrossLibraryCopyJob(fromCell, curLibLeft, this, deleteAfterCopy.isSelected(),
+			copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
 	}//GEN-LAST:event_copyLeftActionPerformed
 
 	/** Closes the dialog */
