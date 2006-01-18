@@ -203,8 +203,6 @@ public class Analyzer extends Engine
 	{
 		private Analyzer analyzer;
 
-		public StartIRSIM() {}
-
 		public StartIRSIM(Analyzer analyzer)
 		{
 			super("Simulate cell", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);

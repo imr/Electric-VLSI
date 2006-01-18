@@ -90,8 +90,6 @@ public class CircuitChangeJobs
         private boolean mirrorH;
         private List<Geometric> highs;
 
-		public RotateSelected() {}
-
         /**
          * @param cell
          * @param highs the highlighted objects (list of highlights)
@@ -421,8 +419,6 @@ public class CircuitChangeJobs
         private List<Geometric> list;          // list of highlighted objects to align
         private double alignment;
 
-		public AlignObjects() {}
-
         public AlignObjects(List<Geometric> highs, double alignment)
 		{
 			super("Align Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -610,14 +606,12 @@ public class CircuitChangeJobs
 
 	public static class AlignNodes extends Job
 	{
-		NodeInst [] nis;
-		double [] dCX;
-		double [] dCY;
-//		double [] dSX;
-//		double [] dSY;
-//		int [] dRot;
-
-		public AlignNodes() {}
+		private NodeInst [] nis;
+		private double [] dCX;
+		private double [] dCY;
+//		private double [] dSX;
+//		private double [] dSY;
+//		private int [] dRot;
 
 		public AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY)
 //		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
@@ -691,8 +685,6 @@ public class CircuitChangeJobs
 		private int how;
         private List<Highlight2> highlighted;
         private boolean repaintContents, repaintAny;
-
-		public ChangeArcProperties() {}
 
         public ChangeArcProperties(Cell cell, int how, List<Highlight2> highlighted)
 		{
@@ -810,14 +802,13 @@ public class CircuitChangeJobs
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	if (repaintAny)
         	{
 				if (repaintContents) EditWindow.repaintAllContents(); else
 					EditWindow.repaintAll();
         	}
-            super.terminateIt(jobException);
         }
 	}
 
@@ -826,8 +817,6 @@ public class CircuitChangeJobs
 		private Cell cell;
         private List<Highlight2> highlighted;
         private int numSet;
-
-		public ToggleNegationJob() {}
 
         public ToggleNegationJob(Cell cell, List<Highlight2> highlighted)
 		{
@@ -894,13 +883,12 @@ public class CircuitChangeJobs
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	if (numSet != 0)
         	{
         		EditWindow.repaintAllContents();
         	}
-            super.terminateIt(jobException);
         }
 	}
 
@@ -908,8 +896,6 @@ public class CircuitChangeJobs
 	{
 		private Cell cell;
 		private List<ArcInst> list;
-
-		public RipTheBus() {}
 
 		public RipTheBus(Cell cell, List<ArcInst> list)
 		{
@@ -1074,8 +1060,6 @@ public class CircuitChangeJobs
         private List<Geometric> highlighted;
         private boolean reconstructArcs;
 
-		public DeleteSelected() {}
-
         public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Geometric> highlighted, boolean reconstructArcs)
 		{
 			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1187,8 +1171,6 @@ public class CircuitChangeJobs
 	{
         private Cell cell;
         private Rectangle2D bounds;
-
-		public DeleteSelectedGeometry() {}
 
         public DeleteSelectedGeometry(Cell cell, Rectangle2D bounds)
 		{
@@ -1334,8 +1316,6 @@ public class CircuitChangeJobs
 	public static class DeleteArcs extends Job
 	{
         private Set<ArcInst> arcsToDelete;
-
-		public DeleteArcs() {}
 
         public DeleteArcs(Set<ArcInst> arcsToDelete)
 		{
@@ -1585,8 +1565,6 @@ public class CircuitChangeJobs
 		private HashSet<ArcInst> arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
-		public CleanupChanges() {}
-
 		public CleanupChanges(Cell cell, boolean justThis, List<NodeInst> pinsToRemove, List<Reconnect> pinsToPassThrough,
             HashMap<NodeInst,Point2D.Double> pinsToScale, List<NodeInst> textToMove, HashSet<ArcInst> arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
@@ -1725,8 +1703,6 @@ public class CircuitChangeJobs
 		private Cell cell;
         private List<ArcInst> selected;
 
-		public ShortenArcs() {}
-
         public ShortenArcs(Cell cell, List<ArcInst> selected)
 		{
 			super("Shorten selected arcs", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1768,14 +1744,12 @@ public class CircuitChangeJobs
 
 	public static class ManyMove extends Job
 	{
-        static final boolean verbose = false;
+		private static final boolean verbose = false;
         private Cell cell;
         private List<ElectricObject> highlightedObjs;
         private List<DisplayedText> highlightedText;
 		private double dX, dY;
 		private boolean updateStatusBar;
-
-		public ManyMove() {}
 
         public ManyMove(Cell cell, List<ElectricObject> highlightedObjs, List<DisplayedText> highlightedText, double dX, double dY)
 		{
@@ -2120,10 +2094,9 @@ public class CircuitChangeJobs
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			if (updateStatusBar) StatusBar.updateStatusBar();
-            super.terminateIt(jobException);
         }
 
 		/**
@@ -3129,10 +3102,8 @@ public class CircuitChangeJobs
 	 */
 	public static class RenameTechnology extends Job
 	{
-		Technology tech;
-		String newName;
-
-		public RenameTechnology() {}
+		private Technology tech;
+		private String newName;
 
 		public RenameTechnology(Technology tech, String newName)
 		{
@@ -3164,10 +3135,8 @@ public class CircuitChangeJobs
 	 */
 	public static class RenameLibrary extends Job
 	{
-		Library lib;
-		String newName;
-
-		public RenameLibrary() {}
+		private Library lib;
+		private String newName;
 
 		public RenameLibrary(Library lib, String newName)
 		{
@@ -3242,9 +3211,7 @@ public class CircuitChangeJobs
 	 */
 	public static class CheckAndRepairJob extends Job
 	{
-		boolean repair;
-
-		public CheckAndRepairJob() {}
+		private boolean repair;
 
 		public CheckAndRepairJob(boolean repair)
 		{

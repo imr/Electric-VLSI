@@ -657,8 +657,6 @@ public class ToolMenu {
     private static class BackAnnotateJob extends Job {
         private Cell cell;
 
-    	public BackAnnotateJob() {}
-
     	public BackAnnotateJob(Cell cell) {
             super("BackAnnotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -1127,8 +1125,6 @@ public class ToolMenu {
     private static class ListGeomsAllNetworksJob extends Job {
         private Cell cell;
 
-    	public ListGeomsAllNetworksJob() {}
-
     	public ListGeomsAllNetworksJob(Cell cell) {
             super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -1285,8 +1281,6 @@ public class ToolMenu {
     {
         private NodeInst ni;
 
-    	public AddMultiplier() {}
-
         protected AddMultiplier(NodeInst ni)
         {
             super("Add Spice Multiplier", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1315,8 +1309,6 @@ public class ToolMenu {
     private static class MakeTemplate extends Job
     {
         private Variable.Key templateKey;
-
-    	public MakeTemplate() {}
 
         protected MakeTemplate(Variable.Key templateKey)
         {
@@ -1475,8 +1467,6 @@ public class ToolMenu {
 		private int activities;
 		private Job completion;
 
-    	public DoSilCompActivity() {}
-
 		private DoSilCompActivity(Cell cell, int activities, Job completion)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1610,22 +1600,18 @@ public class ToolMenu {
 			return false;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
-        	if (jobException == null)
-        	{
-				if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
-				{
-					// show the cell
-					WindowFrame.createEditWindow(cell);
-				}
-	
-				if (completion != null)
-				{
-					completion.startJob();
-				}
-        	}
-            super.terminateIt(jobException);
+			if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
+			{
+				// show the cell
+				WindowFrame.createEditWindow(cell);
+			}
+
+			if (completion != null)
+			{
+				completion.startJob();
+			}
         }
 	}
 

@@ -277,8 +277,6 @@ public class SavedViews extends EDialog implements HighlightListener
 		private String name;
 		private double scale, offX, offY;
 
-    	public SaveViewJob() {}
-
 		protected SaveViewJob(SavedViews dialog, Cell cell, String name, double scale, double offX, double offY)
 		{
 			super("Save Window View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -301,10 +299,9 @@ public class SavedViews extends EDialog implements HighlightListener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			dialog.loadInfo();
-            super.terminateIt(jobException);
         }
 	}
 

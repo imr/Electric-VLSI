@@ -77,8 +77,6 @@ public class CellChangeJobs
 	{
 		Cell cell;
 
-		public DeleteCell() {}
-
 		public DeleteCell(Cell cell)
 		{
 			super("Delete " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -105,8 +103,6 @@ public class CellChangeJobs
 		private Cell cell;
 		private String newName;
 		private Cell.CellGroup newGroup;
-
-		public RenameCell() {}
 
 		public RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
 		{
@@ -135,8 +131,6 @@ public class CellChangeJobs
 	{
 		Cell.CellGroup cellGroup;
 		String newName;
-
-		public RenameCellGroup() {}
 
 		public RenameCellGroup(Cell.CellGroup cellGroup, String newName)
 		{
@@ -197,14 +191,13 @@ public class CellChangeJobs
 			return true;
 		}
 
-		public void terminateIt(Throwable jobException)
+		public void terminateOK()
 		{
 			if (totalDeleted == 0) System.out.println("No unused old cell versions to delete"); else
 			{
 				System.out.println("Deleted " + totalDeleted + " cells");
 				EditWindow.repaintAll();
 			}
-            super.terminateIt(jobException);
 		}
 	}
 
@@ -227,8 +220,6 @@ public class CellChangeJobs
 			NodeInst       pin;
 			CellGraphNode  main;
 		}
-
-		public GraphCells() {}
 
 		public GraphCells(Cell top)
 		{
@@ -604,8 +595,6 @@ public class CellChangeJobs
 		Rectangle2D bounds;
 		String newCellName;
 
-		public PackageCell() {}
-
 		public PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -687,8 +676,6 @@ public class CellChangeJobs
 	{
         private List<NodeInst> nodes;
         private boolean copyExports;
-
-		public ExtractCellInstances() {}
 
         public ExtractCellInstances(List<NodeInst> highlighted, boolean copyExports)
 		{
@@ -909,8 +896,6 @@ public class CellChangeJobs
 		private Cell cell;
 		private Cell newVersion;
 
-		public NewCellVersion() {}
-
 		public NewCellVersion(Cell cell)
 		{
 			super("Create new Version of " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -926,7 +911,7 @@ public class CellChangeJobs
 			return true;
 		}
 
-		public void terminateIt(Throwable jobException)
+		public void terminateOK()
 		{
 			if (newVersion == null) return;
 
@@ -942,7 +927,6 @@ public class CellChangeJobs
 
 			EditWindow.repaintAll();
             System.out.println("Created new version: "+newVersion+", old version renamed to "+cell);
-            super.terminateIt(jobException);
 		}
 	}
 
@@ -956,8 +940,6 @@ public class CellChangeJobs
 		private Cell cell;
 		private String newName;
 		private Cell dupCell;
-
-		public DuplicateCell() {}
 
 		public DuplicateCell(Cell cell, String newName)
 		{
@@ -1012,7 +994,7 @@ public class CellChangeJobs
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			// change the display of old cell to the new one
         	boolean found = false;
@@ -1044,7 +1026,6 @@ public class CellChangeJobs
 					}
 				}
             }
-            super.terminateIt(jobException);
         }
 	}
 

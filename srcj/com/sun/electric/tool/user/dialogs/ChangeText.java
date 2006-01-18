@@ -28,10 +28,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -42,42 +41,96 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Frame;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
-import java.util.Iterator;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
-
+import java.awt.event.ActionListener;
+import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * Class to handle the "Change Text" dialog.
  */
 public class ChangeText extends EDialog
 {
-	private static boolean nodesSelected = false;
-	private static boolean arcsSelected = false;
-	private static boolean exportsSelected = false;
-	private static boolean annotationsSelected = false;
-	private static boolean instancesSelected = false;
-	private static boolean cellsSelected = false;
+	private static boolean lastNodesSelected = false;
+	private static boolean lastArcsSelected = false;
+	private static boolean lastExportsSelected = false;
+	private static boolean lastAnnotationsSelected = false;
+	private static boolean lastInstancesSelected = false;
+	private static boolean lastCellsSelected = false;
 
+	private ChangeParameters cp;
 	private Cell cell;
-	private int numToChange;
-	private int lowPointSize, highPointSize;
-	private double lowUnitSize, highUnitSize;
-	private int numNodesChanged, numArcsChanged, numExportsChanged;
-	private int numAnnotationsChanged, numInstancesChanged, numCellsChanged;
     private EditWindow wnd;
 
-	public static void changeTextDialog()
+    private static class ChangeParameters implements Serializable
+    {
+    	// which types of text are to be changed
+    	private boolean nodesSelected;
+    	private boolean arcsSelected;
+    	private boolean exportsSelected;
+    	private boolean annotationsSelected;
+    	private boolean instancesSelected;
+    	private boolean cellsSelected;
+
+    	// how much text is to be changed
+    	private boolean changeSelectedObjects;
+    	private boolean changeAllInCell;
+    	private boolean changeCellsWithView;
+    	private boolean changeAllInLibrary;
+
+    	// the type of changes to be made
+    	private boolean usePoints;
+    	private String pointSize;
+    	private String unitSize;
+    	private int selectedFontIndex;
+    	private String selectedFontName;
+    	private boolean isBold, isItalic, isUnderline;
+    	private String viewListSelection;
+
+    	// statistics on the existing text
+    	private int numToChange;
+    	private int lowPointSize, highPointSize;
+    	private double lowUnitSize, highUnitSize;
+    	private int numNodesChanged, numArcsChanged, numExportsChanged;
+    	private int numAnnotationsChanged, numInstancesChanged, numCellsChanged;
+    }
+
+	private void gatherTextChoices()
+	{
+		// update which types of text are to be changed
+		lastNodesSelected = cp.nodesSelected = changeNodeText.isSelected();
+		lastArcsSelected = cp.arcsSelected = changeArcText.isSelected();
+		lastExportsSelected  = cp.exportsSelected = changeExportText.isSelected();
+		lastAnnotationsSelected = cp.annotationsSelected = changeAnnotationText.isSelected();
+		lastInstancesSelected = cp.instancesSelected = changeInstanceText.isSelected();
+		lastCellsSelected = cp.cellsSelected = changeCellText.isSelected();
+
+		// update how much text is to be changed
+    	cp.changeSelectedObjects = changeSelectedObjects.isSelected();
+    	cp.changeAllInCell = changeAllInCell.isSelected();
+    	cp.changeCellsWithView = changeCellsWithView.isSelected();
+    	cp.changeAllInLibrary = changeAllInLibrary.isSelected();
+
+    	// update the type of changes to be made
+    	cp.usePoints = usePoints.isSelected();
+    	cp.pointSize = pointSize.getText();
+    	cp.unitSize = unitSize.getText();
+    	cp.selectedFontIndex = font.getSelectedIndex();
+    	cp.selectedFontName = (String)font.getSelectedItem();
+    	cp.isBold = bold.isSelected();
+    	cp.isItalic = italic.isSelected();
+    	cp.isUnderline = underline.isSelected();
+    	cp.viewListSelection = (String)viewList.getSelectedItem();
+	}
+
+    public static void changeTextDialog()
 	{
 		ChangeText dialog = new ChangeText(TopLevel.getCurrentJFrame(), true);
 		dialog.setVisible(true);
@@ -91,18 +144,17 @@ public class ChangeText extends EDialog
 
 		getRootPane().setDefaultButton(ok);
 		useUnits.setSelected(true);
-		changeNodeText.setSelected(nodesSelected);
-		changeArcText.setSelected(arcsSelected);
-		changeExportText.setSelected(exportsSelected);
-		changeAnnotationText.setSelected(annotationsSelected);
-		changeInstanceText.setSelected(instancesSelected);
-		changeCellText.setSelected(cellsSelected);
+		changeNodeText.setSelected(lastNodesSelected);
+		changeArcText.setSelected(lastArcsSelected);
+		changeExportText.setSelected(lastExportsSelected);
+		changeAnnotationText.setSelected(lastAnnotationsSelected);
+		changeInstanceText.setSelected(lastInstancesSelected);
+		changeCellText.setSelected(lastCellsSelected);
 
 		cell = WindowFrame.getCurrentCell();
         wnd = EditWindow.getCurrent();
-		for(Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
+		for(View view : View.getOrderedViews())
 		{
-			View view = (View)it.next();
 			viewList.addItem(view.getFullName());
 		}
 
@@ -119,52 +171,53 @@ public class ChangeText extends EDialog
 		{
 			changeSelectedObjects.setSelected(true);
 		}
-		findSelectedText(false);
+		cp = new ChangeParameters();
+		gatherTextChoices();   findSelectedText();
 
 		changeSelectedObjects.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { gatherTextChoices();   findSelectedText(); }
 		});
 		changeAllInCell.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { gatherTextChoices();   findSelectedText(); }
 		});
 		changeCellsWithView.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { gatherTextChoices();   findSelectedText(); }
 		});
 		viewList.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { gatherTextChoices();   findSelectedText(); }
 		});
 		changeAllInLibrary.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { gatherTextChoices();   findSelectedText(); }
 		});
 
 		changeNodeText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		changeArcText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		changeExportText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		changeAnnotationText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		changeInstanceText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		changeCellText.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
+			public void actionPerformed(ActionEvent evt) { findSelectedText(); }
 		});
 		finishInitialization();
 	}
@@ -177,81 +230,112 @@ public class ChangeText extends EDialog
 	 * @param change true to change the relevant text according to the bottom of the dialog;
 	 * false to gather the relevant text sizes for display.
 	 */
-	private void findSelectedText(boolean change)
+	private void findSelectedText()
 	{
-		nodesSelected = changeNodeText.isSelected();
-		arcsSelected = changeArcText.isSelected();
-		exportsSelected = changeExportText.isSelected();
-		annotationsSelected = changeAnnotationText.isSelected();
-		instancesSelected = changeInstanceText.isSelected();
-		cellsSelected = changeCellText.isSelected();
-		numToChange = 0;
-		lowPointSize = -1;
-		lowUnitSize = -1;
-		if (changeSelectedObjects.isSelected())
+		gatherTextChoices();
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		cp.numToChange = 0;
+		cp.lowPointSize = -1;
+		cp.lowUnitSize = -1;
+		if (cp.changeSelectedObjects)
 		{
-			// make sure text adjustment is allowed
-			if (change)
-			{
-				Cell cell = WindowFrame.needCurCell();
-				if (cell == null) return;
-				if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return;
-			}
-
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd != null)
             {
-                for(Iterator<DisplayedText> it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
+                for(DisplayedText dt : wnd.getHighlighter().getHighlightedText(false))
                 {
-                	DisplayedText dt = it.next();
-                    accumulateTextFound(dt.getElectricObject(), dt.getVariableKey(), change);
+                    accumulateTextFound(cp, dt.getElectricObject(), dt.getVariableKey(), false);
                 }
             }
-		} else if (changeAllInCell.isSelected())
+		} else if (cp.changeAllInCell)
 		{
-			findAllInCell(cell, change);
-		} else if (changeCellsWithView.isSelected())
+			findAllInCell(cp, cell, false);
+		} else if (cp.changeCellsWithView)
 		{
-			String viewName = (String)viewList.getSelectedItem();
-			View v = View.findView(viewName);
+			View v = View.findView(cp.viewListSelection);
 			if (v != null)
 			{
 				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 				{
-					Cell c = (Cell)it.next();
-					if (c.getView() == v) findAllInCell(c, change);
+					Cell c = it.next();
+					if (c.getView() == v) findAllInCell(cp, c, false);
 				}
 			}
-		} else if (changeAllInLibrary.isSelected())
+		} else if (cp.changeAllInLibrary)
 		{
 			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
-				Cell c = (Cell)it.next();
-				findAllInCell(c, change);
+				Cell c = it.next();
+				findAllInCell(cp, c, false);
 			}
 		}
-		if (change) return;
-		if (numToChange == 0)
+		if (cp.numToChange == 0)
 		{
 			selectedText.setText("No text to change");
 		} else
 		{
 			String what = "Text runs from ";
-			if (lowPointSize >= 0) what += lowPointSize + " to " + highPointSize + " points";
-			if (lowUnitSize >= 0)
+			if (cp.lowPointSize >= 0) what += cp.lowPointSize + " to " + cp.highPointSize + " points";
+			if (cp.lowUnitSize >= 0)
 			{
-				if (lowPointSize >= 0) what += "; ";
-				what += lowUnitSize + " to " + highUnitSize + " units";
+				if (cp.lowPointSize >= 0) what += "; ";
+				what += cp.lowUnitSize + " to " + cp.highUnitSize + " units";
 			}
 			selectedText.setText(what);
-			if (lowUnitSize >= 0)
+			if (cp.lowUnitSize >= 0)
 			{
 				useUnits.setSelected(true);
-				unitSize.setText(TextUtils.formatDouble(highUnitSize));
+				unitSize.setText(TextUtils.formatDouble(cp.highUnitSize));
 			} else
 			{
 				usePoints.setSelected(true);
-				pointSize.setText(Integer.toString(highPointSize));
+				pointSize.setText(Integer.toString(cp.highPointSize));
+			}
+		}
+	}
+
+	/**
+	 * Method to scan for all relevant text.
+	 * This looks at the top part of the dialog to figure out which text is relevant.
+	 * @param change true to change the relevant text according to the bottom of the dialog;
+	 * false to gather the relevant text sizes for display.
+	 */
+	private static void changeSelectedText(Cell cell, ChangeParameters cp)
+	{
+		if (cp.changeSelectedObjects)
+		{
+			// make sure text adjustment is allowed
+			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return;
+
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null)
+            {
+                for(DisplayedText dt : wnd.getHighlighter().getHighlightedText(false))
+                {
+                    accumulateTextFound(cp, dt.getElectricObject(), dt.getVariableKey(), true);
+                }
+            }
+		} else if (cp.changeAllInCell)
+		{
+			findAllInCell(cp, cell, true);
+		} else if (cp.changeCellsWithView)
+		{
+			View v = View.findView(cp.viewListSelection);
+			if (v != null)
+			{
+				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+				{
+					Cell c = it.next();
+					if (c.getView() == v) findAllInCell(cp, c, true);
+				}
+			}
+		} else if (cp.changeAllInLibrary)
+		{
+			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+			{
+				Cell c = it.next();
+				findAllInCell(cp, c, true);
 			}
 		}
 	}
@@ -262,7 +346,7 @@ public class ChangeText extends EDialog
 	 * @param change true to change the text in the cell according to the bottom of the dialog;
 	 * false to gather the text sizes in the cell for display.
 	 */
-	private void findAllInCell(Cell cell, boolean change)
+	private static void findAllInCell(ChangeParameters cp, Cell cell, boolean change)
 	{
 		// make sure text adjustment is allowed
 		if (change)
@@ -273,39 +357,39 @@ public class ChangeText extends EDialog
 		// text on nodes
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() instanceof Cell && !ni.isExpanded())
 			{
 				// cell instance text
-				accumulateTextFound(ni, NodeInst.NODE_PROTO, change);
+				accumulateTextFound(cp, ni, NodeInst.NODE_PROTO, change);
 			}
 			if (!ni.getNameKey().isTempname())
 			{
 				// node name
-				accumulateTextFound(ni, NodeInst.NODE_NAME, change);
+				accumulateTextFound(cp, ni, NodeInst.NODE_NAME, change);
 			}
 			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 			{
-				Variable var = (Variable)vIt.next();
+				Variable var = vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(ni, var.getKey(), change);
+				accumulateTextFound(cp, ni, var.getKey(), change);
 			}
 		}
 
 		// text on arcs
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			if (!ai.getNameKey().isTempname())
 			{
 				// arc name
-				accumulateTextFound(ai, ArcInst.ARC_NAME, change);
+				accumulateTextFound(cp, ai, ArcInst.ARC_NAME, change);
 			}
 			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
-				Variable var = (Variable)vIt.next();
+				Variable var = vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(ai, var.getKey(), change);
+				accumulateTextFound(cp, ai, var.getKey(), change);
 			}
 		}
 
@@ -313,21 +397,21 @@ public class ChangeText extends EDialog
 		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
-			accumulateTextFound(pp, Export.EXPORT_NAME, change);
+			accumulateTextFound(cp, pp, Export.EXPORT_NAME, change);
 			for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
 			{
-				Variable var = (Variable)vIt.next();
+				Variable var = vIt.next();
 				if (!var.isDisplay()) continue;
-				accumulateTextFound(pp, var.getKey(), change);
+				accumulateTextFound(cp, pp, var.getKey(), change);
 			}
 		}
 
 		// text on the cell
 		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 		{
-			Variable var = (Variable)vIt.next();
+			Variable var = vIt.next();
 			if (!var.isDisplay()) continue;
-			accumulateTextFound(cell, var.getKey(), change);
+			accumulateTextFound(cp, cell, var.getKey(), change);
 		}
 	}
 
@@ -339,76 +423,77 @@ public class ChangeText extends EDialog
 	 * @param change true to change the text the cell according to the bottom of the dialog;
 	 * false to gather the text sizes for display.
 	 */
-	private void accumulateTextFound(ElectricObject eObj, Variable.Key varKey, boolean change)
+	private static void accumulateTextFound(ChangeParameters cp, ElectricObject eObj, Variable.Key varKey, boolean change)
 	{
 		if (eObj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)eObj;
 			if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
-				if (changeAnnotationText.isSelected())
+				if (cp.annotationsSelected)
 				{
-					if (processText(eObj, varKey, change))
-						numAnnotationsChanged++;
+					if (processText(cp, eObj, varKey, change))
+						cp.numAnnotationsChanged++;
 				}
 			} else if (varKey == NodeInst.NODE_PROTO)
 			{
-				if (changeInstanceText.isSelected())
+				if (cp.instancesSelected)
 				{
-					if (processText(eObj, varKey, change))
-						numInstancesChanged++;
+					if (processText(cp, eObj, varKey, change))
+						cp.numInstancesChanged++;
 				}
 			} else
 			{
-				if (changeNodeText.isSelected())
+				if (cp.nodesSelected)
 				{
-					if (processText(eObj, varKey, change))
-						numNodesChanged++;
+					if (processText(cp, eObj, varKey, change))
+						cp.numNodesChanged++;
 				}
 			}
 		} else if (eObj instanceof ArcInst)
 		{
-			if (changeArcText.isSelected())
+			if (cp.arcsSelected)
 			{
-				if (processText(eObj, varKey, change))
-					numArcsChanged++;
+				if (processText(cp, eObj, varKey, change))
+					cp.numArcsChanged++;
 			}
 		} else if (eObj instanceof Cell)
 		{
-			if (changeCellText.isSelected())
+			if (cp.cellsSelected)
 			{
-				if (processText(eObj, varKey, change))
-					numCellsChanged++;
+				if (processText(cp, eObj, varKey, change))
+					cp.numCellsChanged++;
 			}
 		} else if (eObj instanceof Export)
 		{
-			if (changeExportText.isSelected())
+			if (cp.exportsSelected)
 			{
-				if (processText(eObj, varKey, change))
-					numExportsChanged++;
+				if (processText(cp, eObj, varKey, change))
+					cp.numExportsChanged++;
 			}
 		}
 	}
 
 	/**
 	 * Method to process a single TextDescriptor that is on a relevant piece of text.
+	 * @param cp the ChangeParameters with information about how to handle the text.
 	 * @param owner ElectricObject which is owner of the TextDescriptor
 	 * @param varKey key of variable or speical key selecting TextDescriptor
 	 * @param change true to change the TextDescriptor according to the bottom of the dialog;
 	 * false to gather the TextDescriptor sizes for display.
 	 * @return true if a change was made.
 	 */
-	private boolean processText(ElectricObject owner, Variable.Key varKey, boolean change)
+	private static boolean processText(ChangeParameters cp, ElectricObject owner, Variable.Key varKey, boolean change)
 	{
 		TextDescriptor.Size s = owner.getTextDescriptor(varKey).getSize();
-		boolean changed = false;
 		if (change)
 		{
-			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
 			// change this text
-			if (usePoints.isSelected())
+			boolean changed = false;
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
+			if (cp.usePoints)
 			{
-				int size = TextUtils.atoi(pointSize.getText());
+				int size = TextUtils.atoi(cp.pointSize);
 				if (!s.isAbsolute() || s.getSize() != size)
 				{
 					td.setAbsSize(size);
@@ -416,7 +501,7 @@ public class ChangeText extends EDialog
 				}
 			} else
 			{
-				double size = TextUtils.atof(unitSize.getText());
+				double size = TextUtils.atof(cp.unitSize);
 				if (s.isAbsolute() || s.getSize() != size)
 				{
 					td.setRelSize(size);
@@ -424,10 +509,9 @@ public class ChangeText extends EDialog
 				}
 			}
 			int fontIndex = 0;
-			if (font.getSelectedIndex() != 0)
+			if (cp.selectedFontIndex != 0)
 			{
-				String nameOfFont = (String)font.getSelectedItem();
-				TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(nameOfFont);
+				TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(cp.selectedFontName);
                 if (newFont != null)
                     fontIndex = newFont.getIndex();
 			}
@@ -436,17 +520,17 @@ public class ChangeText extends EDialog
 				td.setFace(fontIndex);
 				changed = true;
 			}
-			if (bold.isSelected() != td.isBold())
+			if (cp.isBold != td.isBold())
 			{
                 td.setBold(!td.isBold());
 				changed = true;
 			}
-			if (italic.isSelected() != td.isItalic())
+			if (cp.isItalic != td.isItalic())
 			{
                 td.setItalic(!td.isItalic());
 				changed = true;
 			}
-			if (underline.isSelected() != td.isUnderline())
+			if (cp.isUnderline != td.isUnderline())
 			{
                 td.setUnderline(!td.isUnderline());
 				changed = true;
@@ -456,90 +540,90 @@ public class ChangeText extends EDialog
 			return changed;
 		}
 
-		// accumulate text to list the range of sizes
+		// accumulate information to list the range of sizes
 		double size = s.getSize();
-		if (numToChange == 0)
+		if (cp.numToChange == 0)
 		{
 			if (s.isAbsolute())
 			{
-				lowPointSize = highPointSize = (int)size;
+				cp.lowPointSize = cp.highPointSize = (int)size;
 			} else
 			{
-				lowUnitSize = highUnitSize = size;
+				cp.lowUnitSize = cp.highUnitSize = size;
 			}
 		} else
 		{
 			if (s.isAbsolute())
 			{
-				if ((int)size < lowPointSize) lowPointSize = (int)size;
-				if ((int)size > highPointSize) highPointSize = (int)size;
+				if ((int)size < cp.lowPointSize) cp.lowPointSize = (int)size;
+				if ((int)size > cp.highPointSize) cp.highPointSize = (int)size;
 			} else
 			{
-				if (size < lowUnitSize) lowUnitSize = size;
-				if (size > highUnitSize) highUnitSize = size;
+				if (size < cp.lowUnitSize) cp.lowUnitSize = size;
+				if (size > cp.highUnitSize) cp.highUnitSize = size;
 			}
 		}
-		numToChange++;
+		cp.numToChange++;
 		return false;
 	}
 
 	private static class ChangeTextSizes extends Job
 	{
-		ChangeText dialog;
+		private Cell cell;
+		private ChangeParameters cp;
 
-		public ChangeTextSizes() {}
-
-		protected ChangeTextSizes(ChangeText dialog)
+		private ChangeTextSizes(Cell cell, ChangeParameters cp)
 		{
 			super("Change Text Size", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+			this.cell = cell;
+			this.cp = cp;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			dialog.numNodesChanged = dialog.numArcsChanged = dialog.numExportsChanged = 0;
-			dialog.numAnnotationsChanged = dialog.numInstancesChanged = dialog.numCellsChanged = 0;
-			dialog.findSelectedText(true);
-			if (dialog.numNodesChanged != 0 || dialog.numArcsChanged != 0 ||
-				dialog.numExportsChanged != 0 || dialog.numAnnotationsChanged != 0 ||
-				dialog.numInstancesChanged != 0 || dialog.numCellsChanged != 0)
+			cp.numNodesChanged = cp.numArcsChanged = cp.numExportsChanged = 0;
+			cp.numAnnotationsChanged = cp.numInstancesChanged = cp.numCellsChanged = 0;
+			changeSelectedText(cell, cp);
+			if (cp.numNodesChanged != 0 || cp.numArcsChanged != 0 ||
+				cp.numExportsChanged != 0 || cp.numAnnotationsChanged != 0 ||
+				cp.numInstancesChanged != 0 || cp.numCellsChanged != 0)
 			{
 				String what = "Changed text on";
 				boolean others = false;
-				if (dialog.numNodesChanged != 0)
+				if (cp.numNodesChanged != 0)
 				{
-					what += " " + dialog.numNodesChanged + " nodes";
+					what += " " + cp.numNodesChanged + " nodes";
 					others = true;
 				}
-				if (dialog.numArcsChanged != 0)
+				if (cp.numArcsChanged != 0)
 				{
 					if (others) what += ", ";
-					what += " " + dialog.numArcsChanged + " arcs";
+					what += " " + cp.numArcsChanged + " arcs";
 					others = true;
 				}
-				if (dialog.numExportsChanged != 0)
+				if (cp.numExportsChanged != 0)
 				{
 					if (others) what += ", ";
-					what += " " + dialog.numExportsChanged + " exports";
+					what += " " + cp.numExportsChanged + " exports";
 					others = true;
 				}
-				if (dialog.numAnnotationsChanged != 0)
+				if (cp.numAnnotationsChanged != 0)
 				{
 					if (others) what += ", ";
-					what += " " + dialog.numAnnotationsChanged + " annotations";
+					what += " " + cp.numAnnotationsChanged + " annotations";
 					others = true;
 				}
-				if (dialog.numInstancesChanged != 0)
+				if (cp.numInstancesChanged != 0)
 				{
 					if (others) what += ", ";
-					what += " " + dialog.numInstancesChanged + " instances";
+					what += " " + cp.numInstancesChanged + " instances";
 					others = true;
 				}
-				if (dialog.numCellsChanged != 0)
+				if (cp.numCellsChanged != 0)
 				{
 					if (others) what += ", ";
-					what += " " + dialog.numCellsChanged + " cells";
+					what += " " + cp.numCellsChanged + " cells";
 					others = true;
 				}
 				System.out.println(what);				
@@ -819,7 +903,10 @@ public class ChangeText extends EDialog
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
-		ChangeTextSizes job = new ChangeTextSizes(this);
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		gatherTextChoices();
+		ChangeTextSizes job = new ChangeTextSizes(cell, cp);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 

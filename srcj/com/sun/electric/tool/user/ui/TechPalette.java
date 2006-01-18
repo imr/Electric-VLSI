@@ -608,8 +608,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         private transient int x, y;
         private Library lib;
 
-    	public ReadSpiceLibrary() {}
-
     	protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, TechPalette panel, int x, int y)
         {
             super("Read Spice Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -630,12 +628,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             if (lib == null) return;
             loadSpiceCells(lib, panel, cellMenu);
             cellMenu.show(panel, x, y);
-            super.terminateIt(jobException);
         }
 
         public static void loadSpiceCells(Library lib, TechPalette panel, JPopupMenu cellMenu)

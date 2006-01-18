@@ -299,16 +299,14 @@ public class NewExport extends EDialog
 
 	private static class MakeExport extends Job
 	{
-		Cell cell;
-		NodeInst ni;
-		PortProto pp;
-		String name;
-		String referenceName;
-		boolean body;
-		boolean drawn;
-		String ch;
-
-    	public MakeExport() {}
+		private Cell cell;
+		private NodeInst ni;
+		private PortProto pp;
+		private String name;
+		private String referenceName;
+		private boolean body;
+		private boolean drawn;
+		private String ch;
 
 		protected MakeExport(Cell cell, NodeInst ni, PortProto pp, String name,
 			boolean body, boolean drawn, String ch, String referenceName)

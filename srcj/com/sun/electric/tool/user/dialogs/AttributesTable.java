@@ -515,8 +515,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             private List<Integer> createUnits;
             private List<Variable.Key> varsToDelete;
 
-    		public ApplyChanges() {}
-
             private ApplyChanges(ElectricObject owner,
             	List<Variable.Key> createKey,
 	            List<Object> createValue,

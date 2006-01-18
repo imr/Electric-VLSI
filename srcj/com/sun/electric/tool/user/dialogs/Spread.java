@@ -226,8 +226,6 @@ public class Spread extends EDialog
 		private char direction;
 		private double amount;
 
-    	public SpreadJob() {}
-
 		private SpreadJob(NodeInst ni, char direction, double amount)
 		{
 			super("Spread Circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

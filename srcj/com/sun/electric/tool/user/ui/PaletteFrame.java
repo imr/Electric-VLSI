@@ -473,8 +473,6 @@ public class PaletteFrame implements MouseListener
 		private Variable.Key varKeyToHighlight;
 		private ElectricObject objToHighlight;
 
-    	public PlaceNewNode() {}
-
 		public PlaceNewNode(String description, NodeProto np, NodeInst ni, int defAngle, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -585,7 +583,7 @@ public class PaletteFrame implements MouseListener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             EditWindow wnd = EditWindow.getCurrent();
             Highlighter highlighter = wnd.getHighlighter();
@@ -607,7 +605,6 @@ public class PaletteFrame implements MouseListener
 			{
 				new NewExport(TopLevel.getCurrentJFrame(), true);
 			}
-            super.terminateIt(jobException);
         }
 	}
 }

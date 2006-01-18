@@ -407,8 +407,6 @@ public class LayoutText extends EDialog
 		private int wid, hei, yOffset;
 		private byte [] samples;
 
-		public CreateLayoutText() {}
-
 		protected CreateLayoutText(
 			Cell curCell,
 			NodeProto primNode,

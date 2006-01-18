@@ -104,8 +104,6 @@ public class ViewControl extends EDialog
 		private View view;
 		private transient ViewControl dialog;
 
-    	public DeleteView() {}
-
 		protected DeleteView(View view, ViewControl dialog)
 		{
 			super("Delete View " + view.getFullName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -120,10 +118,9 @@ public class ViewControl extends EDialog
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			dialog.loadViews();
-            super.terminateIt(jobException);
         }
 	}
 
@@ -136,8 +133,6 @@ public class ViewControl extends EDialog
 		private String viewAbbr;
 		private boolean isText;
 		private transient ViewControl dialog;
-
-    	public CreateView() {}
 
 		protected CreateView(String viewName, String viewAbbr, boolean isText, ViewControl dialog)
 		{
@@ -162,10 +157,9 @@ public class ViewControl extends EDialog
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			dialog.loadViews();
-            super.terminateIt(jobException);
         }
 	}
 

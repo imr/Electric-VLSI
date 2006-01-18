@@ -1144,8 +1144,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		private Integer newDirectional, newExtended, newNegated;
 		private Double newDWidth;
 
-		public ChangeArc() {}
-
 		protected ChangeArc(ArcInst ai, String newName, Boolean newEasyToSelect, Boolean newRigid, Boolean newFixedAngle,
 			Boolean newSlidable, Integer newDirectional, Integer newExtended, Integer newNegated, Double newDWidth)
 		{

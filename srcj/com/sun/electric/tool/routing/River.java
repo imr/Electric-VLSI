@@ -275,8 +275,6 @@ public class River
 	{
 		private Cell cell;
 
-    	public RiverRouteJob() {}
-
 		protected RiverRouteJob(Cell cell)
 		{
 			super("River Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -291,7 +289,7 @@ public class River
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			UserInterface ui = Main.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
@@ -300,7 +298,6 @@ public class River
 	        	wnd.clearHighlighting();
 	        	wnd.finishedHighlighting();
 	        }
-            super.terminateIt(jobException);
         }
 	}
 

@@ -318,8 +318,6 @@ public class SpecialProperties
 		private TextDescriptor.Code newCode, newCodeLen;
 		private int newBits;
 
-    	public ModifyNodeProperties() {}
-
 		private ModifyNodeProperties(NodeInst ni, Variable.Key key, String newValue)
 		{
 			super("Change Node Value", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

@@ -121,8 +121,6 @@ public class ERCWellCheck
 		private EPoint worstPWellCon, worstPWellEdge;
 		private EPoint worstNWellCon, worstNWellEdge;
 
-        public WellCheckJob() {}
-
         private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -163,7 +161,7 @@ public class ERCWellCheck
 			return result == 0;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			// show the farthest distance from a well contact
 			UserInterface ui = Main.getUserInterface();
@@ -183,7 +181,6 @@ public class ERCWellCheck
 				}
 				wnd.finishedHighlighting();
 			}
-            super.terminateIt(jobException);
         }
     }
 

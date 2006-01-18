@@ -474,8 +474,6 @@ public class User extends Listener
 		private String userName;
 		private List<Cell> updateLastDesigner;
 
-    	public SetLastDesigner() {}
-
 		protected SetLastDesigner(String userName, List<Cell> updateLastDesigner)
 		{
 			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

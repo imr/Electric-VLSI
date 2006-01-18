@@ -355,8 +355,7 @@ public class Manipulate
 		private Library lib;
 		private String name;
 		private int type;
-
-		public MakeOneCellJob() {}
+		private Cell newCell;
 
 		private MakeOneCellJob(Library lib, String name, int type)
 		{
@@ -369,33 +368,38 @@ public class Manipulate
 
 		public boolean doIt() throws JobException
 		{
-			Cell cell = Cell.makeInstance(lib, name);
-			if (cell == null) return false;
-			cell.setInTechnologyLibrary();
-			cell.setTechnology(Artwork.tech);
+			newCell = Cell.makeInstance(lib, name);
+			if (newCell == null) return false;
+			newCell.setInTechnologyLibrary();
+			newCell.setTechnology(Artwork.tech);
 
 			// specialty initialization
 			switch (type)
 			{
 				case 1:
 					LayerInfo li = new LayerInfo();
-					li.generate(cell);
+					li.generate(newCell);
 					break;
 				case 2:
 					ArcInfo aIn = new ArcInfo();
-					aIn.generate(cell);
+					aIn.generate(newCell);
 					break;
 				case 3:
 					NodeInfo nIn = new NodeInfo();
-					nIn.generate(cell);
+					nIn.generate(newCell);
 					break;
 			}
 
 			// show it
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-			if (wf != null) wf.setCellWindow(cell);
+			fieldVariableChanged("newCell");
 			return true;
 		}
+
+        public void terminateOK()
+        {
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf != null && newCell != null) wf.setCellWindow(newCell);
+        }
 	}
 
 	/**
@@ -424,8 +428,6 @@ public class Manipulate
 		private NodeInst newNi;
 		private NodeInst niTemplate;
 		private String portName;
-
-    	public AddTechEditMarks() {}
 
 		protected AddTechEditMarks(NodeInst newNi, NodeInst niTemplate, String portName)
 		{
@@ -514,7 +516,11 @@ public class Manipulate
 		{
 			if (goodButton)
 			{
-				new ModifyDependenciesJob(depLibsModel);
+				int numDeps = depLibsModel.size();
+				String [] depLibs = new String[numDeps];
+				for(int i=0; i<numDeps; i++)
+					depLibs[i] = (String)depLibsModel.get(i);
+				new ModifyDependenciesJob(depLibs);
 			}
 			setVisible(false);
 			dispose();
@@ -525,30 +531,24 @@ public class Manipulate
 		 */
 		private static class ModifyDependenciesJob extends Job
 		{
-			private DefaultListModel depLibsModel;
+			private String [] depLibs;
 
-			public ModifyDependenciesJob() {}
-
-			private ModifyDependenciesJob(DefaultListModel depLibsModel)
+			private ModifyDependenciesJob(String [] depLibs)
 			{
 				super("Modify Library Dependencies", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-				this.depLibsModel = depLibsModel;
+				this.depLibs = depLibs;
 				startJob();
 			}
 
 			public boolean doIt() throws JobException
 			{
 				Library lib = Library.getCurrent();
-				int numDeps = depLibsModel.size();
-				if (numDeps == 0)
+				if (depLibs.length == 0)
 				{
 					if (lib.getVar(Info.DEPENDENTLIB_KEY) != null)
 						lib.delVar(Info.DEPENDENTLIB_KEY);
 				} else
 				{
-					String [] depLibs = new String[numDeps];
-					for(int i=0; i<numDeps; i++)
-						depLibs[i] = (String)depLibsModel.get(i);
 					lib.newVar(Info.DEPENDENTLIB_KEY, depLibs);
 				}
 				return true;
@@ -680,9 +680,8 @@ public class Manipulate
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 			getContentPane().add(allLibsPane, gbc);
 			allLibsModel.clear();
-			for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+			for(Library lib : Library.getVisibleLibraries())
 			{
-				Library lib = it.next();
 				allLibsModel.addElement(lib.getName());
 			}
 
@@ -764,9 +763,8 @@ public class Manipulate
 
 		// count the number of appropriate samples in the main example
 		int total = 0;
-		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
+		for(Sample ns : neList.samples)
 		{
-			Sample ns = it.next();
 			if (!doPorts)
 			{
 				if (ns.layer != Generic.tech.portNode) total++;
@@ -824,9 +822,8 @@ public class Manipulate
 
 		// fill in sample associations
 		int k = 0;
-		for(Iterator<Sample> it = neList.samples.iterator(); it.hasNext(); )
+		for(Sample ns : neList.samples)
 		{
-			Sample ns = it.next();
 			if (!doPorts)
 			{
 				if (ns.layer != Generic.tech.portNode) whichSam[k++] = ns;
@@ -1495,8 +1492,6 @@ public class Manipulate
 		private NodeInst ni;
 		private int color;
 
-		public SetLayerPatternJob() {}
-
 		private SetLayerPatternJob(NodeInst ni, int color)
 		{
 			super("Change Pattern In Layer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1627,8 +1622,6 @@ public class Manipulate
 		private String choice;
 		private Cell [] layerCells;
 
-		public ModifyLayerJob() {}
-
 		private ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
 		{
 			super("Change Layer Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1648,7 +1641,6 @@ public class Manipulate
 					return true;
 				}
 				Variable var = ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
-//				if (var != null) var.setDisplay(true);
 				return true;
 			}
 
@@ -1724,7 +1716,12 @@ public class Manipulate
 		if (choice == null) return;
 
 		// save the results
-		ModifyPortJob job = new ModifyPortJob(ni, allArcs, fields);
+		String [] fieldValues = new String[allArcs.size()];
+		for(int i=0; i<allArcs.size(); i++)
+		{
+			fieldValues[i] = (String)fields[i].getFinal();
+		}
+		ModifyPortJob job = new ModifyPortJob(ni, allArcs, fieldValues);
 	}
 
 	/**
@@ -1734,16 +1731,14 @@ public class Manipulate
 	{
 		private NodeInst ni;
 		private List<Cell> allArcs;
-		private PromptAt.Field [] fields;
+		private String [] fieldValues;
 
-		public ModifyPortJob() {}
-
-		private ModifyPortJob(NodeInst ni, List<Cell> allArcs, PromptAt.Field [] fields)
+		private ModifyPortJob(NodeInst ni, List<Cell> allArcs, String [] fieldValues)
 		{
 			super("Change Port Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.allArcs = allArcs;
-			this.fields = fields;
+			this.fieldValues = fieldValues;
 			startJob();
 		}
 
@@ -1752,21 +1747,21 @@ public class Manipulate
 			int numConnects = 0;
 			for(int i=0; i<allArcs.size(); i++)
 			{
-				String answer = (String)fields[i].getFinal();
+				String answer = fieldValues[i];
 				if (answer.equals("Allowed")) numConnects++;
 			}
 			Cell [] newConnects = new Cell[numConnects];
 			int k = 0;
 			for(int i=0; i<allArcs.size(); i++)
 			{
-				String answer = (String)fields[i].getFinal();
+				String answer = fieldValues[i];
 				if (answer.equals("Allowed")) newConnects[k++] = (Cell)allArcs.get(i);
 			}
 			ni.newVar(Info.CONNECTION_KEY, newConnects);
 
-			int newAngle = TextUtils.atoi((String)fields[allArcs.size()].getFinal());
+			int newAngle = TextUtils.atoi(fieldValues[allArcs.size()]);
 			ni.newVar(Info.PORTANGLE_KEY, new Integer(newAngle));
-			int newRange = TextUtils.atoi((String)fields[allArcs.size()+1].getFinal());
+			int newRange = TextUtils.atoi(fieldValues[allArcs.size()+1]);
 			ni.newVar(Info.PORTRANGE_KEY, new Integer(newRange));
 			return true;
 		}
@@ -1920,8 +1915,6 @@ public class Manipulate
 		private NodeInst ni;
 		private String chr;
 
-		public SetTextJob() {}
-
 		private SetTextJob(NodeInst ni, String chr)
 		{
 			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1933,8 +1926,6 @@ public class Manipulate
 		public boolean doIt() throws JobException
 		{
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, chr);
-//			if (var != null)
-//				var.setDisplay(true);
 			return true;
 		}
 	}
@@ -1946,8 +1937,6 @@ public class Manipulate
 	{
 		private NodeInst ni;
 		private String chr;
-
-		public SetTransparentColorJob() {}
 
 		private SetTransparentColorJob(NodeInst ni, String chr)
 		{
@@ -1970,8 +1959,6 @@ public class Manipulate
 	private static class RedoLayerGraphicsJob extends Job
 	{
 		private Cell cell;
-
-		public RedoLayerGraphicsJob() {}
 
 		private RedoLayerGraphicsJob(Cell cell)
 		{
@@ -2177,8 +2164,6 @@ public class Manipulate
 			private String [] newList;
 			private int type;
 
-			public UpdateOrderingJob() {}
-
 			private UpdateOrderingJob(Library lib, String [] newList, int type)
 			{
 				super("Update Ordering", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2196,17 +2181,14 @@ public class Manipulate
 					case 2: lib.newVar(Info.ARCSEQUENCE_KEY, newList);     break;
 					case 3: lib.newVar(Info.NODESEQUENCE_KEY, newList);    break;
 				}
-
-				// force redraw of explorer tree
-				if (!SwingUtilities.isEventDispatchThread())
-				{
-					SwingUtilities.invokeLater(new Runnable()
-					{
-						public void run() { WindowFrame.wantToRedoLibraryTree(); }
-					});
-				}
 				return true;
 			}
+
+	        public void terminateOK()
+	        {
+				// force redraw of explorer tree
+	        	WindowFrame.wantToRedoLibraryTree();
+	        }
 		}
 
 		/**

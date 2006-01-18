@@ -352,8 +352,6 @@ public class MimicStitch
 		private double prefX, prefY;
 		private boolean forced;
 
-		public MimicStitchJob() {}
-
 		private MimicStitchJob(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
 								double prefX, double prefY, boolean forced)
 		{
@@ -828,8 +826,6 @@ public class MimicStitch
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
 		private boolean redisplay;
-
-		public MimicWireJob() {}
 
 		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, boolean redisplay)
 		{

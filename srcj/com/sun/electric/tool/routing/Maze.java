@@ -241,8 +241,6 @@ public class Maze
 		private Cell cell;
 		private Set<Network> nets;
 
-		public MazeRouteJob() {}
-
 		protected MazeRouteJob(Cell cell, Set<Network> nets)
 		{
 			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

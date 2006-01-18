@@ -298,8 +298,6 @@ public class TextWindow
 		private Cell cell;
 		private String [] strings;
 
-    	public SaveCellText() {}
-
 		private SaveCellText(Cell cell, String [] strings)
 		{
 			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

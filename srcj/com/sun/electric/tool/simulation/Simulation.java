@@ -187,8 +187,6 @@ public class Simulation extends Listener
 		private int activities;
 		private transient Engine prevEngine;
 
-    	public DoALSActivity() {}
-
 		private DoALSActivity(Cell cell, int activities, Cell originalCell, Engine prevEngine)
 		{
 			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -259,19 +257,15 @@ public class Simulation extends Listener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
-        	if (jobException == null)
-        	{
-				if (prevEngine != null)
-				{
-					ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
-				} else
-				{
-					ALS.simulateNetlist(cell, originalCell);
-				}
-        	}
-            super.terminateIt(jobException);
+			if (prevEngine != null)
+			{
+				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
+			} else
+			{
+				ALS.simulateNetlist(cell, originalCell);
+			}
         }
 	}
 
@@ -494,8 +488,6 @@ public class Simulation extends Listener
 	{
 		private NodeInst ni;
 
-    	public SetSpiceModel() {}
-
     	protected SetSpiceModel(NodeInst ni)
 		{
 			super("Set Spice Model", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -537,8 +529,6 @@ public class Simulation extends Listener
 	{
 		private List<Geometric> list;
 		private int type;
-
-    	public SetWireType() {}
 
     	protected SetWireType(List<Geometric> list, int type)
 		{
@@ -595,8 +585,6 @@ public class Simulation extends Listener
 	{
 		private NodeInst ni;
 		private boolean weak;
-
-    	public SetTransistorStrength() {}
 
     	protected SetTransistorStrength(NodeInst ni, boolean weak)
 		{

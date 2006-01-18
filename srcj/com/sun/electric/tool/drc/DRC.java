@@ -299,8 +299,6 @@ public class DRC extends Listener
 	{
 		Cell cell;
 
-        public CheckDRCLayoutJob() {}
-
 		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority)
 		{
 			super(title, tool, Job.Type.EXAMINE, null, null, priority);
@@ -374,8 +372,6 @@ public class DRC extends Listener
 	{
 		Cell cell;
 //		Rectangle2D bounds;
-
-        public CheckSchematicHierarchically() {}
 
         /**
          * Check bounds within Cell.  If bounds is null, check entire cell.

@@ -1276,8 +1276,6 @@ public class Project extends Listener
 		private List<Cell> cellsThatChanged;
 		private boolean undoChange;
 
-    	public UndoBatchesJob() {}
-
 		protected UndoBatchesJob(int lowestBatch, List<Cell> cellsThatChanged, boolean undoChange)
 		{
 			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1393,8 +1391,6 @@ public class Project extends Listener
 	private static class CheckOutJob extends Job
 	{
 		private Cell oldVers;
-
-    	public CheckOutJob() {}
 
 		protected CheckOutJob(Cell oldVers)
 		{
@@ -1770,8 +1766,6 @@ public class Project extends Listener
 	{
 		private Cell cell;
 
-    	public CancelCheckOutJob() {}
-
 		protected CancelCheckOutJob(Cell cell)
 		{
 			super("Cancel Check-out " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1900,8 +1894,6 @@ public class Project extends Listener
 	{
 		private Library lib;
 		private HashMap<Cell,MutableInteger> cellsMarked;
-
-    	public CheckInJob() {}
 
 		protected CheckInJob(Library lib, HashMap<Cell,MutableInteger> cellsMarked)
 		{
@@ -2284,8 +2276,6 @@ public class Project extends Listener
 		private Cell cell;
 		private int version;
 
-    	public GetOldVersionJob() {}
-
 		protected GetOldVersionJob(Cell cell, int version)
 		{
 			super("Update " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2343,8 +2333,6 @@ public class Project extends Listener
 	private static class RetrieveLibraryFromRepositoryJob extends Job
 	{
 		private String libName;
-
-    	public RetrieveLibraryFromRepositoryJob() {}
 
 		protected RetrieveLibraryFromRepositoryJob(String libName)
 		{
@@ -2503,8 +2491,6 @@ public class Project extends Listener
 	{
 		private Set<Library> libList;
 
-    	public AddLibraryJob() {}
-
 		protected AddLibraryJob(Set<Library> libList)
 		{
 			super("Add Library", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2633,8 +2619,6 @@ public class Project extends Listener
 	{
 		private Cell cell;
 
-    	public AddCellJob() {}
-
 		protected AddCellJob(Cell cell)
 		{
 			super("Add " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2715,8 +2699,6 @@ public class Project extends Listener
 	private static class DeleteCellJob extends Job
 	{
 		private Cell cell;
-
-    	public DeleteCellJob() {}
 
 		protected DeleteCellJob(Cell cell)
 		{

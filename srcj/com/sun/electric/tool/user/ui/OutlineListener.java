@@ -91,8 +91,6 @@ public class OutlineListener
 		private transient OutlineListener listener;
 		private NodeInst ni;
 
-    	public InitializePoints() {}
-
 		protected InitializePoints(OutlineListener listener, NodeInst ni)
 		{
 			super("Initialize Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -114,12 +112,11 @@ public class OutlineListener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd != null) wnd.repaintContents(null, false);
-            super.terminateIt(jobException);
         }
 	}
 
@@ -382,8 +379,6 @@ public class OutlineListener
 		private double [] x, y;
 		private int newPoint;
 
-    	public SetPoints() {}
-
 		protected SetPoints(OutlineListener listener, NodeInst ni, double [] x, double [] y, int newPoint)
 		{
 			super("Change Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -410,10 +405,9 @@ public class OutlineListener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			listener.high.setPoint(listener.point = newPoint);
-            super.terminateIt(jobException);
         }
 	}
 

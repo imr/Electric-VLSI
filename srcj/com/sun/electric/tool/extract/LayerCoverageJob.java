@@ -439,8 +439,6 @@ public class LayerCoverageJob extends Job
         }
 	}
 
-	public LayerCoverageJob() {}
-
 	public LayerCoverageJob(Job parentJob, Type jobType, Cell cell, LayerCoverage.LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)
 	{

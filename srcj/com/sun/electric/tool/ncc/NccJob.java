@@ -160,8 +160,6 @@ public class NccJob extends Job {
 
 	// ------------------------- public method --------------------------------
 
-	public NccJob() {}
-
 	/**
 	 * @param numWindows may be 1 or 2. 1 means compare the schematic and layout 
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.

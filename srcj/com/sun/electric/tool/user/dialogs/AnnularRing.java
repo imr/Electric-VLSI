@@ -142,8 +142,6 @@ public class AnnularRing extends EDialog
 		private int segments, degrees;
 		private double inner, outer;
 
-		public MakeAnnulus() {}
-
 		protected MakeAnnulus(Cell cell, PrimitiveNode np, int segments, int degrees, double inner, double outer)
 		{
 			super("Make Annular Ring", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

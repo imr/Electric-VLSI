@@ -176,8 +176,6 @@ public class AutoStitch
 		private double lX, hX, lY, hY;
 		private boolean forced;
 		private ArcProto preferredArc;
-
-		public AutoStitchJob() {}
  
 		protected AutoStitchJob(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
 			double lX, double hX, double lY, double hY, boolean forced, ArcProto preferredArc)

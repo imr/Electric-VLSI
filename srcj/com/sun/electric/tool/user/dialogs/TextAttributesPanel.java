@@ -258,8 +258,6 @@ public class TextAttributesPanel extends JPanel
         private int unit;
         private int dispPos;
 
-    	public ChangeText() {}
-
         private ChangeText(
                 ElectricObject owner,
                 Variable.Key varKey,

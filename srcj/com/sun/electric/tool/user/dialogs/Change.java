@@ -511,8 +511,6 @@ public class Change extends EDialog implements HighlightListener
 		private boolean changeInCell, changeInLibrary, changeEverywhere, changeConnected;
 		private List<Geometric> highlightThese;
 
-		public ChangeObject() {}
-
 		protected ChangeObject(
 			List<Geometric> geomsToChange,
 			List<Geometric> highs,
@@ -907,7 +905,7 @@ public class Change extends EDialog implements HighlightListener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd != null)
@@ -918,7 +916,6 @@ public class Change extends EDialog implements HighlightListener
 	        		highlighter.addElectricObject(geom, geom.getParent());
 	        	}
             }
-            super.terminateIt(jobException);
         }
 
 		/**

@@ -589,8 +589,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private Variable var;
         private ElectricObject owner;
 
-		public DeleteAttribute() {}
-
         private DeleteAttribute(Variable var, ElectricObject owner)
         {
             super("Delete Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -612,8 +610,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private String newName;
         private Object newValue;
         private ElectricObject owner;
-
-		public CreateAttribute() {}
 
         private CreateAttribute(String newName, Object newValue, ElectricObject owner) {
             super("Create Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -647,8 +643,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private String newVarName;
         private ElectricObject owner;
 
-		public RenameAttribute() {}
-
         protected RenameAttribute(String varName, String newVarName, ElectricObject owner)
         {
             super("Rename Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -679,8 +673,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private ElectricObject owner;
         private Object newValue;
 
-		public ChangeAttribute() {}
-
         protected ChangeAttribute(Variable.Key varKey, ElectricObject owner, Object newValue)
         {
             super("Change Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -704,12 +696,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             // queue it for redraw
-        	if (jobException == null)
-        		Undo.redrawObject(owner);
-            super.terminateIt(jobException);
+        	Undo.redrawObject(owner);
         }
     }
 

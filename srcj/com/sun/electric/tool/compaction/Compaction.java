@@ -118,8 +118,6 @@ public class Compaction extends Listener
 		private boolean lastTime;
 		private CompactCell.Axis curAxis;
 
-        public CompactCellJob() {}
-
 		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
 		{
 			super("Compact " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);

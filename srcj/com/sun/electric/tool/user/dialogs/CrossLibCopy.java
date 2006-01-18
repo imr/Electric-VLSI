@@ -296,8 +296,6 @@ public class CrossLibCopy extends EDialog
 //		private boolean result;
 //		private StringBuffer buffer;
 //
-//        public CrossLibraryExamineJob() {}
-//
 //        private CrossLibraryExamineJob(Cell left, Cell right, boolean report)
 //		{
 //			super("Cross-Library examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -334,8 +332,6 @@ public class CrossLibCopy extends EDialog
 		private List<Cell> deletedCells;
 		private int index;
 
-        public CrossLibraryCopyJob() {}
-
 		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
 			boolean copyRelated, boolean copySubs, boolean useExisting)
 		{
@@ -363,7 +359,7 @@ public class CrossLibCopy extends EDialog
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	for(Cell cell : deletedCells)
         	{
@@ -377,7 +373,6 @@ public class CrossLibCopy extends EDialog
 			dialog.listLeft.setSelectedIndex(index);
 			dialog.listRight.setSelectedIndex(index);
 			dialog.listCenter.setSelectedIndex(index);
-            super.terminateIt(jobException);
         }
 	}
 

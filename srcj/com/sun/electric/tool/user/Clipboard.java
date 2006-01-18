@@ -323,8 +323,6 @@ public class Clipboard
         private List<DisplayedText> highlightedText;
         private double alignment;
 
-        public CopyObjects() {}
-
 		protected CopyObjects(Cell cell, List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText, double alignment)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -354,8 +352,6 @@ public class Clipboard
         private List<DisplayedText> textList;
         private double alignment;
         private boolean reconstructArcs;
-
-        public CutObjects() {}
 
 		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment, boolean reconstructArcs)
 		{
@@ -412,8 +408,6 @@ public class Clipboard
 		private double alignment;
 		private NodeInst lastCreatedNode;
 
-        public DuplicateObjects() {}
-
         protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment)
         {
             super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -437,22 +431,19 @@ public class Clipboard
 			return true;
         }
 
-		public void terminateIt(Throwable jobException)
+		public void terminateOK()
 		{
 			// remember the last node created
 			lastDup = lastCreatedNode;
 
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
-            super.terminateIt(jobException);
 		}
     }
 
 	private static class PasteArcToArc extends Job
 	{
 		private ArcInst src, dst, newArc;
-
-        public PasteArcToArc() {}
 
 		protected PasteArcToArc(ArcInst dst, ArcInst src)
 		{
@@ -473,7 +464,7 @@ public class Clipboard
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             if (newArc != null)
             {
@@ -488,16 +479,13 @@ public class Clipboard
 		                highlighter.finished();
             		}
             	}
-            }
-            super.terminateIt(jobException);
+            };
         }
 	}
 
 	private static class PasteNodeToNode extends Job
 	{
 		private NodeInst src, dst, newNode;
-
-        public PasteNodeToNode() {}
 
 		protected PasteNodeToNode(NodeInst dst, NodeInst src)
 		{
@@ -518,7 +506,7 @@ public class Clipboard
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             if (newNode != null)
             {
@@ -534,7 +522,6 @@ public class Clipboard
             		}
             	}
             }
-            super.terminateIt(jobException);
         }
 	}
 
@@ -546,8 +533,6 @@ public class Clipboard
 		private double dX, dY, alignment;
 		private boolean copyExports, uniqueArcs;
 		private NodeInst lastCreatedNode;
-
-        public PasteObjects() {}
 
 		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList,
 			double dX, double dY, double alignment, boolean copyExports, boolean uniqueArcs)
@@ -580,14 +565,13 @@ public class Clipboard
 			return true;
 		}
 
-		public void terminateIt(Throwable jobException)
+		public void terminateOK()
 		{
 			// remember the last node created
 			lastDup = lastCreatedNode;
 
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
-            super.terminateIt(jobException);
 		}
 	}
 

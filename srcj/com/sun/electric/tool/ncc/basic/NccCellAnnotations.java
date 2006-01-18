@@ -297,8 +297,6 @@ public class NccCellAnnotations {
 		private EditWindow_ wnd;
         private Cell cell;
 
-		public MakeCellAnnotation() {}
-
 		private MakeCellAnnotation(EditWindow_ wnd, Cell cell)
         {
             super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

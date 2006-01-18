@@ -240,8 +240,6 @@ public class CellMenu {
 		private Cell cell;
 		private int numPages;
 
-		public SetMultiPageJob() {}
-
 		public SetMultiPageJob(Cell cell, int numPages)
 		{
 			super("Make Cell be Multi-Page", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -273,8 +271,6 @@ public class CellMenu {
 	{
 		private Cell cell;
 		private int page, numPages;
-
-		public DeleteMultiPageJob() {}
 
 		public DeleteMultiPageJob(Cell cell, int page)
 		{
@@ -314,26 +310,22 @@ public class CellMenu {
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
-            if (jobException == null)
-            {
-    	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-    	    	{
-    	    		WindowFrame wf = it.next();
-    	    		if (wf.getContent() instanceof EditWindow)
-    	    		{
-    	               	EditWindow wnd = (EditWindow)wf.getContent();
-    	               	if (wnd.getCell() == cell)
-    	               	{
-    	               		int wndPage = wnd.getMultiPageNumber();
-    	               		if (wndPage+1 >= numPages)
-    	               			wnd.setMultiPageNumber(wndPage-1);
-    	               	}
-    	    		}
+	    	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+	    	{
+	    		WindowFrame wf = it.next();
+	    		if (wf.getContent() instanceof EditWindow)
+	    		{
+	               	EditWindow wnd = (EditWindow)wf.getContent();
+	               	if (wnd.getCell() == cell)
+	               	{
+	               		int wndPage = wnd.getMultiPageNumber();
+	               		if (wndPage+1 >= numPages)
+	               			wnd.setMultiPageNumber(wndPage-1);
+	               	}
     	    	}
             }
-            super.terminateIt(jobException);
         }
 	}
 

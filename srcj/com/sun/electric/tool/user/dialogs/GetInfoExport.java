@@ -275,8 +275,6 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		private String newCharName;
 		private String newRefName;
 
-		public ChangeExport() {}
-
 		protected ChangeExport(Export pp,
                 String oldName,
                 String newName,

@@ -423,8 +423,6 @@ public class Array extends EDialog
 		private double xOverlap, yOverlap, cX, cY;
 		private boolean arcsAutoIncrement;
 
-		public ArrayStuff() {}
-
 		protected ArrayStuff(List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
 		{

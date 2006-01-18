@@ -79,7 +79,7 @@ public class TechToLib
 		List<Technology> techs = new ArrayList<Technology>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (tech.isNonStandard()) continue;
 			techs.add(tech);
 		}
@@ -108,8 +108,6 @@ public class TechToLib
 	private static class LibFromTechJob extends Job
 	{
 		private Technology tech;
-
-    	public LibFromTechJob() {}
 
 		private LibFromTechJob(Technology tech)
 		{
@@ -222,7 +220,7 @@ public class TechToLib
 		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			if (ap.isNotUsed()) continue;
 			String fName = "arc-" + ap.getName();
 
@@ -291,7 +289,7 @@ public class TechToLib
 		int arcIndex = 0;
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			if (ap.isNotUsed()) continue;
 			arcSequence[arcIndex++] = ap.getName();
 		}
@@ -302,14 +300,14 @@ public class TechToLib
 		int nodeTotal = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode pnp = (PrimitiveNode)it.next();
+			PrimitiveNode pnp = it.next();
 			if (!pnp.isNotUsed()) nodeTotal++;
 		}
 		String [] nodeSequence = new String[nodeTotal];
 		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode pnp = (PrimitiveNode)it.next();
+			PrimitiveNode pnp = it.next();
 			if (pnp.isNotUsed()) continue;
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;

@@ -170,8 +170,6 @@ public class PLA
 		private PLA pla;
 		private Job completion;
 
-    	public GeneratePLAJob() {}
-
 		protected GeneratePLAJob(int step, PLA pla, Job completion)
 		{
 			super("Generate MOSIS CMOS PLA, Step " + (step+1), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

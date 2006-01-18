@@ -405,8 +405,6 @@ public class LETool extends Listener {
         /** netlist */                          private LENetlister netlister;
         private boolean newAlg;
 
-		public AnalyzeCell() {}
-
         public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow_ wnd, boolean newAlg) {
             super("Analyze "+cell, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
@@ -515,8 +513,6 @@ public class LETool extends Listener {
         private LENetlister netlister;
         private EditWindow_ wnd;
 
-		public UpdateSizes() {}
-
         private UpdateSizes(LENetlister netlister, Cell cell, EditWindow_ wnd) {
             super("Update LE Sizes", tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             this.netlister = netlister;
@@ -569,8 +565,6 @@ public class LETool extends Listener {
     public static class ClearStoredSizes extends Job {
         private Nodable no;
 
-		public ClearStoredSizes() {}
-
 		public ClearStoredSizes(Nodable no) {
             super("Clear LE Sizes", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.no = no;
@@ -585,8 +579,6 @@ public class LETool extends Listener {
 
     public static class ClearStoredSizesLibrary extends Job {
         private Library lib;
-
-		public ClearStoredSizesLibrary() {}
 
 		public ClearStoredSizesLibrary(Library lib) {
             super("Clear LE Sizes", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);

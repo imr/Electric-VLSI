@@ -289,19 +289,15 @@ public class Routing extends Listener
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
-        	if (jobException == null)
-        	{
-	    		UserInterface ui = Main.getUserInterface();
-	    		EditWindow_ wnd = ui.getCurrentEditWindow_();
-	    		if (wnd == null) return;
-				wnd.clearHighlighting();
-				for(ArcInst ai : highlightThese)
-					wnd.addElectricObject(ai, ai.getParent());
-				wnd.finishedHighlighting();
-        	}
-            super.terminateIt(jobException);
+    		UserInterface ui = Main.getUserInterface();
+    		EditWindow_ wnd = ui.getCurrentEditWindow_();
+    		if (wnd == null) return;
+			wnd.clearHighlighting();
+			for(ArcInst ai : highlightThese)
+				wnd.addElectricObject(ai, ai.getParent());
+			wnd.finishedHighlighting();
         }
 
 		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
@@ -520,8 +516,6 @@ public class Routing extends Listener
 	private static class CopyRoutingTopology extends Job
 	{
 		private Cell fromCell, toCell;
-
-    	public CopyRoutingTopology() {}
 
 		protected CopyRoutingTopology(Cell fromCell, Cell toCell)
 		{

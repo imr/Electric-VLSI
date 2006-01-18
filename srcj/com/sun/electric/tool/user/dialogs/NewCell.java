@@ -362,13 +362,11 @@ public class NewCell extends EDialog
 	 */
 	private static class CreateCell extends Job
 	{
-		Library lib;
-		String cellName;
-		boolean newWindow;
-        Technology tech;
+		private Library lib;
+		private String cellName;
+		private boolean newWindow;
+		private Technology tech;
         private Cell newCell;
-
-    	public CreateCell() {}
 
 		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
 		{
@@ -385,28 +383,22 @@ public class NewCell extends EDialog
 			// should ensure that the name is valid
 			newCell = Cell.makeInstance(lib, cellName);
 			if (newCell == null)
-			{
 				throw new JobException("Unable to create cell " + cellName);
-			}
-			newCell.setTechnology(tech); // no need for checking if tech is null
+			newCell.setTechnology(tech);
 			fieldVariableChanged("newCell");
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
-            if (jobException == null)
+            if (newWindow)
             {
-                if (newWindow)
-                {
-                    WindowFrame.createEditWindow(newCell);
-                } else
-                {
-                    WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                    wf.setCellWindow(newCell);
-                }
+                WindowFrame.createEditWindow(newCell);
+            } else
+            {
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                wf.setCellWindow(newCell);
             }
-            super.terminateIt(jobException);
         }
     }
 

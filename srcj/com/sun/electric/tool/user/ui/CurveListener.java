@@ -280,8 +280,6 @@ public class CurveListener
 		private ArcInst curveAI;
 		private double curvature;
 
-        public SetArcCurvature() {}
-
 		protected SetArcCurvature(ArcInst curveAI, double curvature)
 		{
 			super("Set arc curvature", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

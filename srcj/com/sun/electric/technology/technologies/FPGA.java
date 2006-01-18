@@ -996,8 +996,6 @@ public class FPGA extends Technology
 		private NodeInst ni;
 		private String newPips;
 
-        public SetPips() {}
-
 		protected SetPips(NodeInst ni, String newPips)
 		{
 			super("Program Pips", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1012,11 +1010,10 @@ public class FPGA extends Technology
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			UserInterface ui = Main.getUserInterface();
 			ui.repaintAllEditWindows();
-            super.terminateIt(jobException);
         }
 	}
 
@@ -1028,8 +1025,6 @@ public class FPGA extends Technology
 		private LispTree lt;
 		private boolean placeAndWire;
 		private Cell topCell;
-
-        public BuildTechnology() {}
 
 		protected BuildTechnology(LispTree lt, boolean placeAndWire)
 		{
@@ -1056,7 +1051,7 @@ public class FPGA extends Technology
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			if (topCell != null)
 			{
@@ -1064,7 +1059,6 @@ public class FPGA extends Technology
 				UserInterface ui = Main.getUserInterface();
 				ui.displayCell(topCell);
 			}
-            super.terminateIt(jobException);
         }
 	}
 

@@ -727,9 +727,7 @@ public class EditMenu {
 		private int how;
         private List<Geometric> selected;
 
-        public ParameterVisibility() {}
-
-		protected ParameterVisibility(int how, List<Geometric> selected)
+        protected ParameterVisibility(int how, List<Geometric> selected)
 		{
 			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
@@ -822,8 +820,6 @@ public class EditMenu {
         private List<Geometric> highlighted;
         private boolean allLibraries;
         private int whatToUpdate;
-
-        public UpdateAttributes() {}
 
         /**
          * Update Attributes.
@@ -1164,8 +1160,6 @@ public class EditMenu {
 	{
 	    private boolean easy;
 		private List<Geometric> highlighted;
-
-        public SetEasyHardSelect() {}
 	
 		private SetEasyHardSelect(boolean easy, List<Geometric> highlighted)
 		{
@@ -1396,8 +1390,6 @@ public class EditMenu {
             private Highlighter highlighter;
             private NodeInst jogPoint;
 
-            public InsertJogPoint() {}
-
             protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
             {
                 super("Insert Jog in Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1493,14 +1485,12 @@ public class EditMenu {
                 return true;
             }
 
-            public void terminateIt(Throwable jobException)
+            public void terminateOK()
             {
                 // highlight one of the jog nodes
                 highlighter.clear();
                 highlighter.addElectricObject(jogPoint, jogPoint.getParent());
                 highlighter.finished();
-
-                super.terminateIt(jobException);
             }
         }
     }

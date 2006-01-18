@@ -616,8 +616,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private String[] newText;
 		private boolean isName;
 
-		public ChangeText() {}
-
 		private ChangeText(ElectricObject owner, Variable.Key key, String[] newText, boolean isName) {
             super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;

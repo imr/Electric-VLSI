@@ -34,8 +34,6 @@ public class NccBackAnnotate {
         private NccResult result;
         private int type;
 
-		public BackAnnotateJob() {}
-
 		private BackAnnotateJob(NccResult result, int type) {
             super("BackAnnotateJob", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.result = result;

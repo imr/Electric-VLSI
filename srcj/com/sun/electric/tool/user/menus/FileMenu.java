@@ -282,8 +282,6 @@ public class FileMenu {
 	private static class NewLibrary extends Job {
         private String newLibName;
 
-        public NewLibrary() {}
-
         public NewLibrary(String newLibName) {
             super("New Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.newLibName = newLibName;
@@ -299,11 +297,10 @@ public class FileMenu {
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             EditWindow.repaintAll();
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-            super.terminateIt(jobException);
         }
     }
 
@@ -356,8 +353,6 @@ public class FileMenu {
 		private Library deleteLib;
         private Cell showThisCell;
 
-        public ReadLibrary() {}
-
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
 			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -390,10 +385,9 @@ public class FileMenu {
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	doneOpeningLibrary(showThisCell);
-            super.terminateIt(jobException);
         }
 	}
 
@@ -404,8 +398,6 @@ public class FileMenu {
     {
         private List<URL> fileURLs;
         private Cell showThisCell;
-
-        public ReadInitialELIBs() {}
 
         public ReadInitialELIBs(List<URL> fileURLs) {
             super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -456,10 +448,9 @@ public class FileMenu {
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	doneOpeningLibrary(showThisCell);
-            super.terminateIt(jobException);
         }
     }
 
@@ -499,7 +490,7 @@ public class FileMenu {
 
     /**
      * Method to clean up from opening a library.
-     * Called from the "terminateIt()" method of a job.
+     * Called from the "terminateOK()" method of a job.
      */
     private static void doneOpeningLibrary(Cell cell)
     {
@@ -614,8 +605,6 @@ public class FileMenu {
         private Library lib;
 		private boolean clearClipboard;
 
-        public CloseLibrary() {}
-
         public CloseLibrary(Library lib, boolean clearClipboard) {
             super("Close "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
@@ -635,14 +624,13 @@ public class FileMenu {
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             WindowFrame.wantToRedoTitleNames();
             EditWindow.repaintAll();
 
             // Disable save icon if no more libraries are open
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-            super.terminateIt(jobException);
         }
     }
 
@@ -717,8 +705,6 @@ public class FileMenu {
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
-
-        public SaveLibrary() {}
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
@@ -952,10 +938,8 @@ public class FileMenu {
 
     private static class ExportImage extends Job
 	{
-		String filePath;
-		WindowContent wnd;
-
-        public ExportImage() {}
+    	private String filePath;
+		private WindowContent wnd;
 
 		public ExportImage(String description, WindowContent wnd, String filePath)
 		{
@@ -1140,7 +1124,7 @@ public class FileMenu {
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
             try {
                 Library.saveExpandStatus();
@@ -1151,7 +1135,6 @@ public class FileMenu {
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (response != JOptionPane.YES_OPTION)
                 {
-                    super.terminateIt(jobException);
                 	return;
                 }
             }

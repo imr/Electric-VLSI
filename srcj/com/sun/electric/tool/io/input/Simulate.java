@@ -184,8 +184,6 @@ public class Simulate extends Input
 		Cell cell;
 		WaveformWindow ww;
 
-    	public ReadSimulationOutput() {}
-
 		protected ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
 			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);

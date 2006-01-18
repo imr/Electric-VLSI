@@ -218,8 +218,6 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		private int index;
 		private Integer [] pat;
 
-		public ApplyChanges() {}
-
 		protected ApplyChanges(List<Geometric> artworkObjects, int index, Integer [] pat)
 		{
 			super("Change Artwork Appearance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

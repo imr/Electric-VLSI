@@ -266,9 +266,7 @@ public class FastHenryArc extends EDialog
      */
     private static class UpdateFastHenryArc extends Job
 	{
-    	FastHenryArc fha;
-
-        public UpdateFastHenryArc() {}
+    	private FastHenryArc fha;
 
         private UpdateFastHenryArc(FastHenryArc fha)
         {

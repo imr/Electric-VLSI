@@ -139,8 +139,6 @@ public class ERCAntenna
 	{
 		private Cell cell;
 
-		public AntennaCheckJob() {}
-
         private AntennaCheckJob(Cell cell)
 		{
 			super("ERC Antenna Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);

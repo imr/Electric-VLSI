@@ -115,8 +115,6 @@ public class ViewChanges
 		private List<Cell> multiPageCells;
 		private double alignment;
 
-    	public FixOldMultiPageSchematics() {}
-
 		protected FixOldMultiPageSchematics(List<Cell> multiPageCells, double alignment)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -207,8 +205,6 @@ public class ViewChanges
 		private Cell cell;
 		private View newView;
 
-    	public ChangeCellView() {}
-
 		protected ChangeCellView(Cell cell, View newView)
 		{
 			super("Change View of " + cell + " to " + newView.getFullName(),
@@ -225,7 +221,7 @@ public class ViewChanges
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
@@ -236,7 +232,6 @@ public class ViewChanges
 				}
 			}
 			EditWindow.repaintAll();
-            super.terminateIt(jobException);
         }
 	}
 
@@ -269,8 +264,6 @@ public class ViewChanges
 		private Cell curCell;
 		private Cell skeletonCell;
 
-    	public MakeSkeletonView() {}
-
 		protected MakeSkeletonView(Cell curCell)
 		{
 			super("Make Skeleton View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -296,7 +289,7 @@ public class ViewChanges
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	if (skeletonCell != null)
         	{
@@ -304,7 +297,6 @@ public class ViewChanges
 					curCell);
 				WindowFrame.createEditWindow(skeletonCell);
         	}
-            super.terminateIt(jobException);
         }
 	}
 
@@ -483,8 +475,6 @@ public class ViewChanges
 		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
 		private NodeInst iconNode;
 
-    	public MakeIconView() {}
-
 		// get icon style controls
 		private MakeIconView(Cell cell, double alignment, int exampleLocation,
 			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
@@ -553,7 +543,7 @@ public class ViewChanges
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			if (iconNode != null)
 			{
@@ -569,7 +559,6 @@ public class ViewChanges
 					}
 				}
 			}
-            super.terminateIt(jobException);
         }
 	}
 
@@ -852,8 +841,6 @@ public class ViewChanges
 		private Cell oldCell;
 		private Cell newCell;
 
-    	public MakeSchematicView() {}
-
 		protected MakeSchematicView(Cell cell)
 		{
 			super("Make Schematic View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -869,14 +856,13 @@ public class ViewChanges
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	if (newCell != null)
         	{
     			System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
 				WindowFrame.createEditWindow(newCell);
         	}
-            super.terminateIt(jobException);
         }
 	}
 
@@ -1206,8 +1192,6 @@ public class ViewChanges
 		private Cell newCell;
 		private HashMap<NodeInst,NodeInst> convertedNodes;
 
-    	public MakeLayoutView() {}
-
 		protected MakeLayoutView(Cell oldCell, Technology newTech)
 		{
 			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1226,7 +1210,7 @@ public class ViewChanges
 			return true;
 		}
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
         	if (newCell != null)
         	{
@@ -1234,7 +1218,6 @@ public class ViewChanges
     				" layout equivalent of " + oldCell);
 				WindowFrame.createEditWindow(newCell);
         	}
-            super.terminateIt(jobException);
         }
 
 		/**

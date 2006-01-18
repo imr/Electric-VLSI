@@ -801,8 +801,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		private boolean scalableTrans;
 		private boolean swapXY;
 
-		public ChangeNode() {}
-
 		public ChangeNode(NodeInst ni,
 			double initialXPos, double currentXPos, double initialYPos, double currentYPos,
 			String initialXSize, String currentXSize, String initialYSize, String currentYSize,

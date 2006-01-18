@@ -421,8 +421,6 @@ public class ParasiticTool extends Listener{
         Cell cell;
         Network net;
 
-    	public AnalyzeParasitic() {}
-
         protected AnalyzeParasitic(Network network, Cell cell)
         {
             super ("Analyze "+ network, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);

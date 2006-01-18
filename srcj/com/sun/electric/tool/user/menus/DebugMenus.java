@@ -260,8 +260,6 @@ public class DebugMenus
     {
     	private String cellName;
 
-        public SetCellJob() {}
-
         public SetCellJob(String cellName)
         {
             super("Set current cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -280,8 +278,6 @@ public class DebugMenus
 	private static class SaveLibraryJob extends Job
     {
     	private String fileName;
-
-        public SaveLibraryJob() {}
 
     	public SaveLibraryJob(String fileName)
         {
@@ -327,8 +323,6 @@ public class DebugMenus
 		private String theTechnology;
 		private Cell myCell;
 
-        public MakeFakeCircuitry() {}
-
 		protected MakeFakeCircuitry(String tech)
 		{
 			super("Make fake circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -343,7 +337,7 @@ public class DebugMenus
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
@@ -351,7 +345,6 @@ public class DebugMenus
 			// display a cell
             if (!BATCHMODE)
 			    WindowFrame.createEditWindow(myCell);
-            super.terminateIt(jobException);
         }
 
         /**
@@ -525,8 +518,6 @@ public class DebugMenus
         private String theTechnology;
         private Cell myCell;
 
-        public FakeCoverageCircuitry() {}
-
         protected FakeCoverageCircuitry(String tech)
         {
             super("Make fake circuitry for coverage tests", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -541,14 +532,13 @@ public class DebugMenus
             return true;
         }
 
-        public void terminateIt(Throwable jobException)
+        public void terminateOK()
         {
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
 			// display a cell
             if (!BATCHMODE)
 			    WindowFrame.createEditWindow(myCell);
-            super.terminateIt(jobException);
         }
 
         private static Cell doItInternal(String technology)
@@ -803,8 +793,6 @@ public class DebugMenus
     private static class convertTo7LayersTechJob extends Job
     {
         private String fileName;
-
-        public convertTo7LayersTechJob() {}
 
         convertTo7LayersTechJob(String name)
         {
@@ -1093,8 +1081,6 @@ public class DebugMenus
 		private Cell curCell;
         private Highlighter highlighter;
 
-        public CoverImplantOld() {}
-
 		protected CoverImplantOld(Cell cell, Highlighter highlighter)
 		{
 			super("Coverage Implant Old", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1345,8 +1331,6 @@ public class DebugMenus
     private static class AddStringVar extends Job {
         private ElectricObject eobj;
 
-        public AddStringVar() {}
-
         private AddStringVar(ElectricObject eobj) {
             super("AddStringVar", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.eobj = eobj;
@@ -1448,8 +1432,6 @@ public class DebugMenus
     private static class RedisplayTest extends Job {
 
         private long delayTimeMS;
-
-        public RedisplayTest() {}
 
         private RedisplayTest(long delayTimeMS) {
             super("RedisplayTest", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);

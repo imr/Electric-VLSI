@@ -1241,8 +1241,6 @@ public class CellProperties extends EDialog
 		private List<String> technologyName, technologyNameFactory;
 		private List<String> textCellFont, textCellFontFactory;
 		private List<Integer> textCellSize, textCellSizeFactory;
-
-		public SetCellOptions() {}
 	
 		private SetCellOptions(
 			List<Cell> cells,

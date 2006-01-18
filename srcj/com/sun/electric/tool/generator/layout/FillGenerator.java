@@ -1542,8 +1542,6 @@ public class FillGenerator {
         private int[] cellsList;
         private Cell topCell;
 
-        public FillGenJob() {}
-
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);

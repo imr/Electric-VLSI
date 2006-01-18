@@ -478,8 +478,6 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 		private NodeInst ni;
 		private double [] x, y;
 
-		public AdjustOutline() {}
-
 		private AdjustOutline(NodeInst ni, double [] x, double [] y)
 		{
 			super("Adjust Outline", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);

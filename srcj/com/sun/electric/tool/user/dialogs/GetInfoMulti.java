@@ -709,8 +709,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		private List<Export> exportList;
 		private List<DisplayedText> textList;
 
-		public MultiChange() {}
-
 		private MultiChange(
 			MultiChangeParameters mcp,
 			List<NodeInst> nodeList, List<ArcInst> arcList,
