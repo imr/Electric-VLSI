@@ -31,8 +31,8 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.FastHenry;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -81,9 +81,8 @@ public class FastHenryArc extends EDialog
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd != null)
         {
-			for(Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+			for(Highlight2 h : wnd.getHighlighter().getHighlights())
 			{
-				Highlight2 h = it.next();
 				if (h.isHighlightEOBJ())
 				{
 					ElectricObject eobj = h.getElectricObject();
@@ -109,20 +108,20 @@ public class FastHenryArc extends EDialog
 		Set<String> groupNames = new HashSet<String>();
 		for(Iterator<ArcInst> it = ai.getParent().getArcs(); it.hasNext(); )
 		{
-			ArcInst oAi = (ArcInst)it.next();
+			ArcInst oAi = it.next();
 			Variable var = oAi.getVar(FastHenry.GROUP_NAME_KEY);
 			if (var == null) continue;
 			groupNames.add(var.getPureValue(-1));
 		}
 		groupsList = new ArrayList<String>();
-		for(Iterator<String> it = groupNames.iterator(); it.hasNext(); )
+		for(String str : groupNames)
 		{
-			groupsList.add(it.next());
+			groupsList.add(str);
 		}
 		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
-		for(Iterator<String> it = groupsList.iterator(); it.hasNext(); )
+		for(String str : groupsList)
 		{
-			fhaGroups.addItem((String)it.next());
+			fhaGroups.addItem(str);
 		}
 
 		// see if an arc is selected
@@ -178,6 +177,7 @@ public class FastHenryArc extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { includeArcClicked(); }
 		});
+		pack();
 	}
 
 	private void makeNewGroup()
@@ -194,8 +194,8 @@ public class FastHenryArc extends EDialog
 		groupsList.add(groupName);
 		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
 		fhaGroups.removeAllItems();
-		for(Iterator<String> it = groupsList.iterator(); it.hasNext(); )
-			fhaGroups.addItem((String)it.next());
+		for(String str : groupsList)
+			fhaGroups.addItem(str);
 		fhaGroups.setSelectedItem(groupName);
 	}
 
@@ -266,62 +266,73 @@ public class FastHenryArc extends EDialog
      */
     private static class UpdateFastHenryArc extends Job
 	{
-    	private FastHenryArc fha;
+    	private ArcInst ai;
+    	private boolean includeArc;
+    	private String groupName, initialGroupName;
+    	private double thickness, initialThickness;
+    	private int widthSubdivs, initialWidthSubdivs;
+    	private int heightSubdivs, initialHeightSubdivs;
+    	private double headZ, initialHeadZ;
+    	private double tailZ, initialTailZ;
 
-        private UpdateFastHenryArc(FastHenryArc fha)
+        private UpdateFastHenryArc(
+        	ArcInst ai,
+        	boolean includeArc,
+        	String groupName, String initialGroupName,
+        	double thickness, double initialThickness,
+        	int widthSubdivs, int initialWidthSubdivs,
+        	int heightSubdivs, int initialHeightSubdivs,
+        	double headZ, double initialHeadZ,
+        	double tailZ, double initialTailZ)
         {
             super("Update FastHenry Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.fha = fha;
+            this.ai = ai;
+            this.includeArc = includeArc;
+            this.groupName = groupName;
+            this.initialGroupName = initialGroupName;
+            this.thickness = thickness;
+            this.initialThickness = initialThickness;
+            this.widthSubdivs = widthSubdivs;
+            this.initialWidthSubdivs = initialWidthSubdivs;
+            this.heightSubdivs = heightSubdivs;
+            this.initialHeightSubdivs = initialHeightSubdivs;
+            this.headZ = headZ;
+            this.initialHeadZ = initialHeadZ;
+            this.tailZ = tailZ;
+            this.initialTailZ = initialTailZ;
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-    		if (fha.fhaIncludeArc.isSelected())
+    		if (includeArc)
     		{
     			// add to fasthenry analysis
-    			String newGroupName = (String)fha.fhaGroups.getSelectedItem();
-    			if (!newGroupName.equals(fha.initialGroupName))
+    			if (!groupName.equals(initialGroupName))
     			{
-    				Variable var = fha.ai.newDisplayVar(FastHenry.GROUP_NAME_KEY, newGroupName);
+    				ai.newDisplayVar(FastHenry.GROUP_NAME_KEY, groupName);
        			}
 
     			// update variables
-    			double thickness = -1;
-    			if (fha.fhaThickness.getText().length() > 0)
-    				thickness = TextUtils.atof(fha.fhaThickness.getText());
-    			if (thickness != fha.initialThickness)
-    				fha.ai.newVar(FastHenry.THICKNESS_KEY, new Double(thickness));
+    			if (thickness != initialThickness)
+    				ai.newVar(FastHenry.THICKNESS_KEY, new Double(thickness));
 
-    			int widthSubdivs = -1;
-    			if (fha.fhaWidthSubdivs.getText().length() > 0)
-    				widthSubdivs = TextUtils.atoi(fha.fhaWidthSubdivs.getText());
-    			if (widthSubdivs != fha.initialWidthSubdivs)
-    				fha.ai.newVar(FastHenry.WIDTH_SUBDIVS_KEY, new Integer(widthSubdivs));
+    			if (widthSubdivs != initialWidthSubdivs)
+    				ai.newVar(FastHenry.WIDTH_SUBDIVS_KEY, new Integer(widthSubdivs));
 
-    			int heightSubdivs = -1;
-    			if (fha.fhaHeightSubdivs.getText().length() > 0)
-    				heightSubdivs = TextUtils.atoi(fha.fhaHeightSubdivs.getText());
-    			if (heightSubdivs != fha.initialHeightSubdivs)
-    				fha.ai.newVar(FastHenry.HEIGHT_SUBDIVS_KEY, new Integer(heightSubdivs));
+    			if (heightSubdivs != initialHeightSubdivs)
+    				ai.newVar(FastHenry.HEIGHT_SUBDIVS_KEY, new Integer(heightSubdivs));
 
-    			double zHead = -1;
-    			if (fha.fhaHeadZ.getText().length() > 0)
-    				zHead = TextUtils.atof(fha.fhaHeadZ.getText());
-    			if (zHead != fha.initialZHead)
-    				fha.ai.newVar(FastHenry.ZHEAD_KEY, new Double(zHead));
+    			if (headZ != initialHeadZ)
+    				ai.newVar(FastHenry.ZHEAD_KEY, new Double(headZ));
 
-    			double zTail = -1;
-    			if (fha.fhaTailZ.getText().length() > 0)
-    				zTail = TextUtils.atof(fha.fhaTailZ.getText());
-    			if (zTail != fha.initialZTail)
-    				fha.ai.newVar(FastHenry.ZTAIL_KEY, new Double(zTail));
+    			if (tailZ != initialTailZ)
+    				ai.newVar(FastHenry.ZTAIL_KEY, new Double(tailZ));
     		} else
     		{
-    			if (fha.ai.getVar(FastHenry.GROUP_NAME_KEY) != null)
-    				fha.ai.delVar(FastHenry.GROUP_NAME_KEY);
+    			if (ai.getVar(FastHenry.GROUP_NAME_KEY) != null)
+    				ai.delVar(FastHenry.GROUP_NAME_KEY);
     		}
-    		fha.closeDialog(null);
             return true;
         }
     }
@@ -330,7 +341,29 @@ public class FastHenryArc extends EDialog
 	{
 		if (ai != null)
 		{
-			UpdateFastHenryArc ufha = new UpdateFastHenryArc(this);
+			double thickness = -1;
+			if (fhaThickness.getText().length() > 0)
+				thickness = TextUtils.atof(fhaThickness.getText());
+			int widthSubdivs = -1;
+			if (fhaWidthSubdivs.getText().length() > 0)
+				widthSubdivs = TextUtils.atoi(fhaWidthSubdivs.getText());
+			int heightSubdivs = -1;
+			if (fhaHeightSubdivs.getText().length() > 0)
+				heightSubdivs = TextUtils.atoi(fhaHeightSubdivs.getText());
+			double headZ = -1;
+			if (fhaHeadZ.getText().length() > 0)
+				headZ = TextUtils.atof(fhaHeadZ.getText());
+			double tailZ = -1;
+			if (fhaTailZ.getText().length() > 0)
+				tailZ = TextUtils.atof(fhaTailZ.getText());
+			new UpdateFastHenryArc(ai,
+				fhaIncludeArc.isSelected(),
+				(String)fhaGroups.getSelectedItem(), initialGroupName,
+		    	thickness, initialThickness,
+		    	widthSubdivs, initialWidthSubdivs,
+		    	heightSubdivs, initialHeightSubdivs,
+		    	headZ, initialZHead,
+		    	tailZ, initialZTail);
 		}
 	}
 
@@ -613,6 +646,7 @@ public class FastHenryArc extends EDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		okPressed();
+		closeDialog(null);
 	}//GEN-LAST:event_ok
 
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel

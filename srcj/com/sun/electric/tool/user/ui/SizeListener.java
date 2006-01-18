@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -372,7 +373,7 @@ public class SizeListener
 			NodeInst ni = (NodeInst)stretchGeom;
 			Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			Point2D newSize = getNewNodeSize(evt, newCenter);
-			ScaleNode job = new ScaleNode(ni, newCenter, newSize.getX(), newSize.getY());
+			ScaleNode job = new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
 		} else
 		{
 			ArcInst ai = (ArcInst)stretchGeom;
@@ -641,10 +642,10 @@ public class SizeListener
 	private static class ScaleNode extends Job
 	{
 		private NodeInst stretchNode;
-		private Point2D newCenter;
+		private EPoint newCenter;
 		private double newWidth, newHeight;
 
-		protected ScaleNode(NodeInst stretchNode, Point2D newCenter, double newWidth, double newHeight)
+		protected ScaleNode(NodeInst stretchNode, EPoint newCenter, double newWidth, double newHeight)
 		{
 			super("Scale node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.stretchNode = stretchNode;

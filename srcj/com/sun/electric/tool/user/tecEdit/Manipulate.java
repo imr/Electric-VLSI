@@ -416,7 +416,20 @@ public class Manipulate
 			portName = JOptionPane.showInputDialog("Port name:", "");
 			if (portName == null) return;
 		}
-		new AddTechEditMarks(newNi, niTemplate, portName);
+		boolean isHighlight = false;
+		if (niTemplate != null)
+		{
+			Variable v = niTemplate.getVar(Info.OPTION_KEY);
+			if (v != null)
+			{
+				if (v.getObject() instanceof Integer &&
+					((Integer)v.getObject()).intValue() == Info.HIGHLIGHTOBJ)
+				{
+					isHighlight = true;
+				}
+			}
+		}
+		new AddTechEditMarks(newNi, isHighlight, portName);
 	}
 
 	/**
@@ -426,32 +439,24 @@ public class Manipulate
 	private static class AddTechEditMarks extends Job
 	{
 		private NodeInst newNi;
-		private NodeInst niTemplate;
+		private boolean isHighlight;
 		private String portName;
 
-		protected AddTechEditMarks(NodeInst newNi, NodeInst niTemplate, String portName)
+		private AddTechEditMarks(NodeInst newNi, boolean isHighlight, String portName)
 		{
 			super("Prepare node for technology editing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.newNi = newNi;
-			this.niTemplate = niTemplate;
+			this.isHighlight = isHighlight;
 			this.portName = portName;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			if (niTemplate != null)
+			if (isHighlight)
 			{
-				Variable v = niTemplate.getVar(Info.OPTION_KEY);
-				if (v != null)
-				{
-					if (v.getObject() instanceof Integer &&
-						((Integer)v.getObject()).intValue() == Info.HIGHLIGHTOBJ)
-					{
-						newNi.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
-						return true;
-					}
-				}
+				newNi.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
+				return true;
 			}
 
 			// set layer information
@@ -1925,7 +1930,7 @@ public class Manipulate
 
 		public boolean doIt() throws JobException
 		{
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, chr);
+			ni.newDisplayVar(Artwork.ART_MESSAGE, chr);
 			return true;
 		}
 	}
