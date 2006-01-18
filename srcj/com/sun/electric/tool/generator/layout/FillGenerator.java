@@ -2036,13 +2036,13 @@ public class FillGenerator {
                 conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
                 Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
                         new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
-                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false, null);
+                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
                 // Connecting the contact export in the top cell
                 PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
                 container.fillPortInstList.add(conNiPort);
                 Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
                         new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false, null);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
 
                 // Looking for arc in fillCell that is below this area. This could be improved.
                 // First arc overlapping is OK.
@@ -2068,12 +2068,12 @@ public class FillGenerator {
 //                        height, newElem.getCenterX(), newElem.getCenterY());
                 Route pinExportRoute = container.router.planRoute(container.fillCell, aiC, pinExport.getOriginalPort(),
                         new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
-                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
+                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false);
                 // Connecting the fill export in the connection cell
                 PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
                 Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
+                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
             }
             return added;
         }
@@ -2123,25 +2123,25 @@ public class FillGenerator {
                         height, nodeBounds.getCenterX(), nodeBounds.getCenterY());
                 Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
                         new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null, false);
-                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false, null);
+                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
                 // Connecting the contact export in the top cell
                 PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
                 container.fillPortInstList.add(conNiPort);
                 Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
                         new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false, null);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
 
                 // Creating the export above the pin in the fill cell
                 Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
                         height, geomBnd.getCenterX(), nodeBounds.getCenterY());
                 Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
                         new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
-                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false, null);
+                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false);
                 // Connecting the export in the top cell
                 PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
                 Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false, null);
+                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
 
                 return geom;
             }

@@ -44,6 +44,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -110,15 +111,14 @@ public abstract class Router {
      * @param verbose if true, prints objects created
      * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
      * highlights alone.
-     * @param wnd EditWindow for the highlights
      */
-    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
-                                           boolean highlightRouteEnd, EditWindow_ wnd)
+    public static PortInst createRouteNoJob(Route route, Cell cell, boolean verbose,
+                                           boolean highlightRouteEnd)
     {
         Job.checkChanging();
 
         // check if we can edit this cell
-        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return null;
 
         HashMap<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
         HashMap<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
@@ -158,12 +158,12 @@ public abstract class Router {
             if (arcEntries.size() == 0 && nodeEntries.size() == 0) {
                 System.out.println("Nothing wired");
             } else if (arcEntries.size() == 1 && nodeEntries.size() == 0) {
-                ArcProto ap = (ArcProto)arcEntries.iterator().next();
+                ArcProto ap = arcEntries.iterator().next();
                 Integer i = (Integer)arcsCreatedMap.get(ap);
                 System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs");
             } else if (arcEntries.size() == 1 && nodeEntries.size() == 1) {
-                ArcProto ap = (ArcProto)arcEntries.iterator().next();
-                NodeProto np = (NodeProto)nodeEntries.iterator().next();
+                ArcProto ap = arcEntries.iterator().next();
+                NodeProto np = nodeEntries.iterator().next();
                 Integer i = (Integer)arcsCreatedMap.get(ap);
                 Integer i2 = (Integer)nodesCreatedMap.get(np);
                 System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe(true)+" nodes");
@@ -171,13 +171,11 @@ public abstract class Router {
                 System.out.println("Wiring added:");
                 Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
                 Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
-                for (Iterator<ArcProto> it = arcEntries.iterator(); it.hasNext();) {
-                    ArcProto ap = (ArcProto)it.next();
+                for (ArcProto ap : arcEntries) {
                     Integer i = (Integer)arcsCreatedMap.get(ap);
                     System.out.println("    "+i+" "+ap.describe()+" arcs");
                 }
-                for (Iterator<NodeProto> it = nodeEntries.iterator(); it.hasNext();) {
-                    NodeProto np = (NodeProto)it.next();
+                for (NodeProto np : nodeEntries) {
                     Integer i = (Integer)nodesCreatedMap.get(np);
                     System.out.println("    "+i+" "+np.describe(true)+" nodes");
                 }
@@ -185,18 +183,13 @@ public abstract class Router {
 			User.playSound();
         }
 
-        if (highlightRouteEnd && (wnd != null)) {
+        PortInst created = null;
+        if (highlightRouteEnd) {
             RouteElementPort finalRE = route.getEnd();
-            if (finalRE != null) {
-                wnd.clearHighlighting();
-                PortInst pi = finalRE.getPortInst();
-                if (pi != null) {
-                    wnd.addElectricObject(pi, cell);
-                    wnd.finishedHighlighting();
-                }
-            }
+            if (finalRE != null)
+            	created = finalRE.getPortInst();
         }
-        return true;
+        return created;
     }
 
     // -------------------------- Job to build route ------------------------
@@ -208,8 +201,9 @@ public abstract class Router {
     protected static class CreateRouteJob extends Job {
 
         /** route to build */                       protected Route route;
-        /** print message on what was done */       protected boolean verbose;
-        /** cell in which to build route */         protected Cell cell;
+        /** print message on what was done */       private boolean verbose;
+        /** cell in which to build route */         private Cell cell;
+        /** port to highlight */                    private PortInst portToHighlight;
 
         /** Constructor */
         protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose) {
@@ -223,10 +217,25 @@ public abstract class Router {
         public boolean doIt() throws JobException {
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
-            UserInterface ui = Main.getUserInterface();
-            EditWindow_ wnd = ui.getCurrentEditWindow_();
-            return createRouteNoJob(route, cell, verbose, true, wnd);
+            portToHighlight = createRouteNoJob(route, cell, verbose, true);
+			fieldVariableChanged("portToHighlight");
+            return true;
        }
+
+        public void terminateOK()
+        {
+        	if (portToHighlight != null)
+        	{
+	            UserInterface ui = Main.getUserInterface();
+	            EditWindow_ wnd = ui.getCurrentEditWindow_();
+	            if (wnd != null)
+	            {
+	                wnd.clearHighlighting();
+	                wnd.addElectricObject(portToHighlight, cell);
+	                wnd.finishedHighlighting();
+	            }
+        	}
+        }
     }
 
 
@@ -264,16 +273,16 @@ public abstract class Router {
             Technology tech = pp1.getParent().getTechnology();
             for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
             {
-                ArcProto ap = (ArcProto)it.next();
+                ArcProto ap = it.next();
                 if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
             }
             // none in current technology: try any technology
             for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
             {
-                Technology anyTech = (Technology)it.next();
+                Technology anyTech = it.next();
                 for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
-                    ArcProto ap = (ArcProto)aIt.next();
+                    ArcProto ap = aIt.next();
                     if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
                 }
             }
@@ -286,16 +295,16 @@ public abstract class Router {
             Technology tech = pp1.getParent().getTechnology();
             for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
             {
-                ArcProto ap = (ArcProto)it.next();
+                ArcProto ap = it.next();
                 if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
             }
             // none in current technology: try any technology
             for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
             {
-                Technology anyTech = (Technology)it.next();
+                Technology anyTech = it.next();
                 for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
-                    ArcProto ap = (ArcProto)aIt.next();
+                    ArcProto ap = aIt.next();
                     if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
                 }
             }
@@ -311,8 +320,7 @@ public abstract class Router {
         // get widest wire connected to anything in route
         double width = getArcWidthToUse(route, ap);
         // set all new arcs of that type to use that width
-        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
+        for (RouteElement re : route) {
             if (re instanceof RouteElementArc) {
                 RouteElementArc reArc = (RouteElementArc)re;
                 if (reArc.getArcProto() == ap)
@@ -330,8 +338,7 @@ public abstract class Router {
      */
     protected static double getArcWidthToUse(Route route, ArcProto ap) {
         double widest = ap.getDefaultWidth();
-        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
+        for (RouteElement re : route) {
             double width = getArcWidthToUse(re, ap);
             if (width > widest) widest = width;
         }
@@ -355,7 +362,7 @@ public abstract class Router {
         // get all ArcInsts on pi, find largest
         double width = ap.getDefaultWidth();
         for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
-            Connection c = (Connection)it.next();
+            Connection c = it.next();
             ArcInst ai = c.getArc();
             if (ai.getProto() != ap) continue;
             double newWidth = c.getArc().getWidth() - c.getArc().getProto().getWidthOffset();
@@ -445,7 +452,7 @@ public abstract class Router {
             RouteElementPort rePort = (RouteElementPort)re;
             PortInst pi = rePort.getPortInst();
             for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
-                Connection conn = (Connection)it.next();
+                Connection conn = it.next();
                 ArcInst arc = conn.getArc();
 
                 Point2D head = arc.getHeadLocation();
@@ -467,7 +474,7 @@ public abstract class Router {
             RouteElementPort rePort = (RouteElementPort)re;
             Dimension2D dim = null;
             for (Iterator<RouteElement> it = rePort.getNewArcs(); it.hasNext(); ) {
-                RouteElement newArcRE = (RouteElement)it.next();
+                RouteElement newArcRE = it.next();
                 Dimension2D d = getContactSize(newArcRE);
                 if (dim == null) dim = d;
 

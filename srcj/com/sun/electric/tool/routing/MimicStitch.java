@@ -769,7 +769,7 @@ public class MimicStitch
 			} else
 			{
 				// since this is a change job, do the wires now
-				runTheWires(allRoutes, false);
+				runTheWires(allRoutes);
 			}
 			count += total;
 		}
@@ -800,22 +800,18 @@ public class MimicStitch
 		}
 	}
 
-	private static void runTheWires(List<Route> allRoutes, boolean redisplay)
+	private static List<PortInst> runTheWires(List<Route> allRoutes)
 	{
 		// create the routes
+		List<PortInst> portsToHighlight = new ArrayList<PortInst>();
 		for (Route route : allRoutes)
 		{
 			RouteElement re = (RouteElement)route.get(0);
 			Cell c = re.getCell();
-			UserInterface ui = Main.getUserInterface();
-			EditWindow_ wnd = ui.getCurrentEditWindow_();
-			Router.createRouteNoJob(route, c, false, false, wnd);
+			PortInst showThis = Router.createRouteNoJob(route, c, false, false);
+			if (showThis != null) portsToHighlight.add(showThis);
 		}
-		if (redisplay)
-		{
-			UserInterface ui = Main.getUserInterface();
-			ui.repaintAllEditWindows();
-		}
+		return portsToHighlight;
 	}
 
 	/**
@@ -826,6 +822,7 @@ public class MimicStitch
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
 		private boolean redisplay;
+		private List<PortInst> portsToHighlight;
 
 		private MimicWireJob(List<Route> allRoutes, List<ArcInst> allKills, boolean redisplay)
 		{
@@ -841,7 +838,8 @@ public class MimicStitch
 			if (allRoutes.size() > 0)
 			{
 				// create the routes
-				runTheWires(allRoutes, redisplay);
+				portsToHighlight = runTheWires(allRoutes);
+				fieldVariableChanged("portsToHighlight");
 			} else
 			{
 				// delete the arcs
@@ -863,13 +861,27 @@ public class MimicStitch
 						t.kill();
 					}
 				}
-				if (redisplay)
-				{
-					UserInterface ui = Main.getUserInterface();
-					ui.repaintAllEditWindows();
-				}
 			}
 			return true;
+		}
+
+		public void terminateOK()
+		{
+			if (redisplay)
+			{
+				UserInterface ui = Main.getUserInterface();
+				EditWindow_ wnd = ui.getCurrentEditWindow_();
+				if (wnd != null)
+				{
+	                wnd.clearHighlighting();
+					for(PortInst pi : portsToHighlight)
+					{
+		                wnd.addElectricObject(pi, pi.getNodeInst().getParent());
+					}
+	                wnd.finishedHighlighting();
+				}				
+				ui.repaintAllEditWindows();
+			}
 		}
 	}
 

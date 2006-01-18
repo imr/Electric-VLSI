@@ -407,7 +407,7 @@ public class AutoStitch
 	                }
 	            }
             }
-            Router.createRouteNoJob(route, c, false, false, null);
+            Router.createRouteNoJob(route, c, false, false);
         }
 
         // check for any inline pins due to created wires

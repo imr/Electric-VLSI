@@ -718,7 +718,7 @@ public abstract class Job implements Serializable {
      */
     public void terminateIt(Throwable jobException) {
         if (jobException == null)
-            terminateOk();
+            terminateOK();
         else
             terminateFail(jobException);
     }
@@ -727,7 +727,7 @@ public abstract class Job implements Serializable {
      * This method executes in the Client side after normal termination of doIt method.
      * This method should perform all needed termination actions.
      */
-    public void terminateOk() {}
+    public void terminateOK() {}
     
     /**
      * This method executes in the Client side after exceptional termination of doIt method.
