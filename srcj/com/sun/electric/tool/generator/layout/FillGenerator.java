@@ -248,7 +248,7 @@ class ExportBar
 }
 
 class MetalLayer implements VddGndStraps {
-	protected final Floorplan plan;
+	protected final MetalFloorplanBase plan;
 	protected final int layerNum;
 	protected final PrimitiveNode pin;
 	protected final ArcProto metal;
@@ -348,7 +348,7 @@ class MetalLayer implements VddGndStraps {
     }
 
 	public MetalLayer(int layerNum, Floorplan plan, Cell cell) {
-		this.plan = plan;
+		this.plan = (MetalFloorplanBase)plan;
 		this.layerNum = layerNum;
 		metal = METALS[layerNum];
 		pin = PINS[layerNum];
@@ -362,13 +362,13 @@ class MetalLayer implements VddGndStraps {
 	}
     public PortInst getVdd(int n, int pos)
     {return vddBars.get(n).ports[pos];}
-    public double getVddWidth(int n) {return ((MetalFloorplanBase)plan).vddWidth;}
+    public double getVddWidth(int n) {return plan.vddWidth;}
     public int numGnd() {return gndBars.size();}
     public double getGndCenter(int n) {
 		return (gndBars.get(n).center.doubleValue());
 	}
     public PortInst getGnd(int n, int pos) {return gndBars.get(n).ports[pos];}
-    public double getGndWidth(int n) {return ((MetalFloorplanBase)plan).gndWidth;}
+    public double getGndWidth(int n) {return (plan).gndWidth;}
 
     public PrimitiveNode getPinType() {return pin;}
 	public ArcProto getMetalType() {return metal;}
@@ -983,7 +983,7 @@ class FillCell {
 		}
    	}
 	
-	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer, 
+	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer,
 					 		   int topLayer, CapCell capCell, boolean wireLowest, 
 					 		   StdCellParams stdCell, boolean metalFlex) {
 		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
@@ -1283,21 +1283,9 @@ class TiledCell {
  * Object for building fill libraries
  */
 public class FillGenerator {
-	public static class Units {
-		private Units() {};
-		public static final Units LAMBDA = new Units();
-		public static final Units TRACKS = new Units();
-	}
-	public static class PowerType {
-		private PowerType() {};
-		public static final PowerType POWER = new PowerType();
-		public static final PowerType VDD = new PowerType();
-	}
-	public static class ExportConfig {
-		private ExportConfig() {}
-		public static final ExportConfig PERIMETER = new ExportConfig();
-		public static final ExportConfig PERIMETER_AND_INTERNAL = new ExportConfig();
-	}
+	public enum Units {LAMBDA, TRACKS}
+	public enum PowerType {POWER, VDD}
+	public enum ExportConfig {PERIMETER, PERIMETER_AND_INTERNAL}
 
 	private static final double m1via = 4;
 	private static final double m1sp = 3;
@@ -1556,39 +1544,53 @@ public class FillGenerator {
 
 		public boolean doIt() throws JobException
 		{
-            // Searching common power/gnd connections and only
+            // Searching common power/gnd connections and skip the ones are in the same network
             List<PortInst> portList = new ArrayList<PortInst>();
 
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = it.next();
-                boolean pwrCover = false;
-                boolean gndCover = false;
 
-                for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                if (!(ni.getProto() instanceof Cell))
                 {
-                    PortInst p = itP.next();
+                    boolean pwrCover = false;
+                    boolean gndCover = false;
+                    for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                    {
+                        PortInst p = itP.next();
 
-                    if (p.getPortProto().isGround())
+                        if (!p.getPortProto().isGround() && !p.getPortProto().isPower())
+                            continue;
+                        // Simple case
+                        portList.add(p);
+                    }
+                }
+                else
+                {
+                    Cell cell = (Cell)ni.getProto();
+                    Netlist netlist = cell.acquireUserNetlist();
+                    List<PortInst> list = new ArrayList<PortInst>();
+                    List<Network> nets = new ArrayList<Network>();
+                    for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                     {
-                        if (!gndCover)
+                        PortInst p = itP.next();
+
+                        if (!p.getPortProto().isGround() && !p.getPortProto().isPower())
+                            continue;
+                        // If subcell has two exports on the same network, it assumes they are connected inside
+                        // and therefore only one of them is checked
+                        assert(p.getPortProto() instanceof Export);
+                        Export ex = (Export)p.getPortProto();
+                        Network net = netlist.getNetwork(ex.getOriginalPort());
+                        if (!nets.contains(net))
                         {
-                            portList.add(p);
-                            gndCover = true;
+                            list.add(p);
+                            nets.add(net);
                         }
                         else
-                            System.out.println("Skipping Gnd " + p + " in " + ni);
+                            System.out.println("Skipping export " + p + " in " + ni);
                     }
-                    else if (p.getPortProto().isPower())
-                    {
-                        if (!pwrCover)
-                        {
-                            portList.add(p);
-                            pwrCover = true;
-                        }
-                        else
-                            System.out.println("Skipping Power " + p + " in " + ni);
-                    }
+                    portList.addAll(list);
                 }
             }
 
@@ -1624,26 +1626,8 @@ public class FillGenerator {
             AffineTransform fillTransOut = conNi.transformOut();
 
             // Checking if any arc in FillCell collides with rest of the cells
-            // Enough with checking only the arcs?
-            List<ArcInst> toRemove = new ArrayList<ArcInst>();
-            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
-            for (Iterator<ArcInst> itArc = fillCell.getArcs(); itArc.hasNext(); )
-            {
-                ArcInst ai = itArc.next();
-                tmp.clear();
-                tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
-                Rectangle2D rect = (Rectangle2D)ai.getBounds().clone();
-                DBMath.transformRect(rect, fillTransOut);
-                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
-                    toRemove.add(ai);
-            }
+            removeOverlappingBars(fillCell, fillNi, conNi, fillTransOut);
 
-            for (ArcInst ai : toRemove)
-            {
-                System.out.println("Removing arc " + ai);
-                ai.kill();
-//                fillCell.removeArc(ai);
-            }
             InteractiveRouter router  = new SimpleWirer();
             List<PortInst> fillPortInstList = new ArrayList<PortInst>();
             List<NodeInst> fillContactList = new ArrayList<NodeInst>();
@@ -1801,35 +1785,91 @@ public class FillGenerator {
 
             return true;
         }
-        
-        private NodeInst connectToExistingContacts(PortInst p, Rectangle2D portBnd,
-                                               List<NodeInst> fillContactList, List<PortInst> fillPortInstList)
+
+        private void removeOverlappingBars(Cell fillCell, NodeInst fillNi, NodeInst conNi, AffineTransform fillTransOut)
         {
-            double minDist = Double.POSITIVE_INFINITY;
-            NodeInst minNi = null;
+            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
+            // Check if any metalXY must be removed
+            List<NodeInst> nodesToRemove = new ArrayList<NodeInst>();
+//            for (Iterator<NodeInst> itNode = fillCell.getNodes(); itNode.hasNext(); )
+//            {
+//                NodeInst ni = itNode.next();
+//                tmp.clear();
+//                NodeProto np = ni.getProto();
+//                if (!(np instanceof PrimitiveNode)) continue;
+//                PrimitiveNode pn = (PrimitiveNode)np;
+//                if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
+//
+//                for (Technology.NodeLayer tlayer : pn.getLayers())
+//                {
+//                    tmp.add(tlayer.getLayer().getFunction());
+//                }
+//                Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
+//                DBMath.transformRect(rect, fillTransOut);
+//                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
+//                {
+//                    nodesToRemove.add(ni);
+//                }
+//            }
 
-            for (int j = 0; j < fillContactList.size(); j++)
+            // Checking if any arc in FillCell collides with rest of the cells
+            List<ArcInst> arcsToRemove = new ArrayList<ArcInst>();
+            for (Iterator<ArcInst> itArc = fillCell.getArcs(); itArc.hasNext(); )
             {
-                NodeInst ni = fillContactList.get(j);
-                PortInst fillNiPort = fillPortInstList.get(j);
-                // Checking only the X distance between a placed contact and the port
-                Rectangle2D contBox = ni.getBounds();
-
-                // check if contact is connected to the same grid
-                if (fillNiPort.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
-                    continue; // no match in network type
-
-                // If they are not aligned on Y, discard
-                if (!DBMath.areEquals(contBox.getCenterY(), portBnd.getCenterY())) continue;
-                double pdx = Math.abs(Math.max(contBox.getMinX()-portBnd.getMaxX(), portBnd.getMinX()-contBox.getMaxX()));
-                if (pdx < minDist)
+                ArcInst ai = itArc.next();
+                tmp.clear();
+                tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
+                Rectangle2D rect = (Rectangle2D)ai.getBounds().clone();
+                DBMath.transformRect(rect, fillTransOut);
+                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
                 {
-                    minNi = ni;
-                    minDist = pdx;
+                    arcsToRemove.add(ai);
+                    // Remove exports and pins as well
+                    nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+                    nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
                 }
             }
-            return minNi;
+
+            for (NodeInst ni : nodesToRemove)
+            {
+                System.out.println("Removing node " + ni);
+                ni.kill();
+            }
+            for (ArcInst ai : arcsToRemove)
+            {
+                System.out.println("Removing arc " + ai);
+                ai.kill();
+            }
         }
+
+//        private NodeInst connectToExistingContacts(PortInst p, Rectangle2D portBnd,
+//                                               List<NodeInst> fillContactList, List<PortInst> fillPortInstList)
+//        {
+//            double minDist = Double.POSITIVE_INFINITY;
+//            NodeInst minNi = null;
+//
+//            for (int j = 0; j < fillContactList.size(); j++)
+//            {
+//                NodeInst ni = fillContactList.get(j);
+//                PortInst fillNiPort = fillPortInstList.get(j);
+//                // Checking only the X distance between a placed contact and the port
+//                Rectangle2D contBox = ni.getBounds();
+//
+//                // check if contact is connected to the same grid
+//                if (fillNiPort.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
+//                    continue; // no match in network type
+//
+//                // If they are not aligned on Y, discard
+//                if (!DBMath.areEquals(contBox.getCenterY(), portBnd.getCenterY())) continue;
+//                double pdx = Math.abs(Math.max(contBox.getMinX()-portBnd.getMaxX(), portBnd.getMinX()-contBox.getMaxX()));
+//                if (pdx < minDist)
+//                {
+//                    minNi = ni;
+//                    minDist = pdx;
+//                }
+//            }
+//            return minNi;
+//        }
 
         private static class FillGenJobContainer
         {
@@ -1966,13 +2006,11 @@ public class FillGenerator {
                 Geometric geom = it.next();
                 if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
-                if (!ai.isLinked())
-                    System.out.println("Error link");
                 if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
 
                 // No export with the same characteristic found in this netlist
-                if (arcNet == null || arcNet.findExportWithSameCharacteristic(p) == null)
+                if (arcNet.findExportWithSameCharacteristic(p) == null)
                     continue; // no match in network type
 
                 Rectangle2D geomBnd = geom.getBounds();
@@ -1991,11 +2029,11 @@ public class FillGenerator {
                 // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                 // the missing contact
                 // Acepting more than 50% overlap
-                System.out.println("Overlap " + overlap);
+//                System.out.println("Overlap " + overlap);
                 if (overlap < 0.5)
 //                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
                 {
-                    System.out.println("Not enough overlap in " + ai + " to cover " + p);
+                    System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
                     continue;
                 }
                 handler.add(ai.getProto().getLayers()[0].getLayer(), newElem, true);
