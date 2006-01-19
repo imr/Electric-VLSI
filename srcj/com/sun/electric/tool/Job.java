@@ -29,7 +29,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.ERectangle;
@@ -43,6 +42,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -66,6 +66,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import javax.swing.SwingUtilities;
 
 /**
@@ -226,7 +228,7 @@ public abstract class Job implements Serializable {
                         return null;
                     if (threadMode == Mode.SERVER && serverJobManager != null) {
                         for (ServerConnection conn: serverJobManager.serverConnections) {
-                            if (conn.reader.bytes != null)
+                            if (conn.peekJob() != null)
                                 return conn;
                         }
                     }
@@ -238,15 +240,17 @@ public abstract class Job implements Serializable {
         }
         
         private Job deserializeJob(ServerConnection connection) {
+            ServerConnection.ReceivedJob rj = connection.getJob();
             try {
-                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(connection.reader.bytes));
+                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(rj.bytes));
                 Job job = (Job)in.readObject();
+                assert job.jobId == rj.jobId;
                 job.connection = connection;
                 in.close();
                 return job;
             } catch (Throwable e) {
                 e.printStackTrace();
-                connection.sendTerminateJob(null, serializeException(e));
+                connection.sendTerminateJob(rj.jobId, serializeException(e));
                 return null;
             }
         }
@@ -330,7 +334,9 @@ public abstract class Job implements Serializable {
     /** server job manager */                   private static ServerJobManager serverJobManager; 
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
     /** True if preferences are accessible. */  private static boolean preferencesAccessible = true;
+    /** Count of started Jobs. */               private static int numStarted;
 
+    /** id unique in this client. */            private int jobId;
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
     
@@ -371,6 +377,7 @@ public abstract class Job implements Serializable {
                 break;
             case SERVER:
                 serverJobManager = new ServerJobManager(socketPort);
+                TopLevel.getMessagesStream().addObserver(serverJobManager);
                 serverJobManager.start();
                 break;
             case CLIENT:
@@ -460,6 +467,7 @@ public abstract class Job implements Serializable {
             Job tmp = testSerialization();
             if (tmp != null) {
                 try {
+                    jobId = ++numStarted;
                     ByteArrayOutputStream byteStream = new ByteArrayOutputStream(); 
                     EObjectOutputStream out = new EObjectOutputStream(byteStream);
                     out.writeObject(this);
@@ -468,6 +476,11 @@ public abstract class Job implements Serializable {
                     clientOutputStream.writeInt(bytes.length);
                     clientOutputStream.write(bytes);
                     clientOutputStream.flush();
+                    
+                    started = true;
+                    synchronized (databaseChangesThread) {
+                        databaseChangesThread.startedJobs.add(this);
+                    }
                     clientJob = this;
                 } catch (IOException e) {
                     System.out.println("Job " + this + " was not launched in CLIENT mode");
@@ -656,31 +669,9 @@ public abstract class Job implements Serializable {
             result = serializeException(jobException);
         if (connection != null) {
             assert threadMode == Mode.SERVER;
-            connection.sendTerminateJob(serverJob.jobName, result);
+            connection.sendTerminateJob(serverJob.jobId, result);
         } else {
             SwingUtilities.invokeLater(new JobTerminateRun(this, result));
-        }
-        endTime = System.currentTimeMillis();
-               
-        if (DEBUG) System.out.println(jobType+" Job: "+jobName +" finished");
-
-		finished = true;                        // is this redundant with Thread.isAlive()?
-//        Job.removeJob(this);
-        //WindowFrame.wantToRedoJobTree();
-
-		// say something if it took more than a minute by default
-		if (reportExecution || (endTime - startTime) >= MIN_NUM_SECONDS)
-		{
-			if (User.isBeepAfterLongJobs())
-			{
-				Toolkit.getDefaultToolkit().beep();
-			}
-			System.out.println(this.getInfo());
-		}
-
-        // delete
-        if (deleteWhenDone) {
-            databaseChangesThread.removeJob(this);
         }
     }
 
@@ -1074,7 +1065,7 @@ public abstract class Job implements Serializable {
 
     public static void setUserInterface(UserInterface ui) { currentUI = ui; }
 
-	private static class ServerJobManager extends Thread {
+	private static class ServerJobManager extends Thread implements Observer {
         private final int port;
         private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
         private int cursor;
@@ -1096,6 +1087,21 @@ public abstract class Job implements Serializable {
             }
         }
         
+        /**
+         * This method is called whenever the observed object is changed. An
+         * application calls an <tt>Observable</tt> object's
+         * <code>notifyObservers</code> method to have all the object's
+         * observers notified of the change.
+         *
+         * @param   o     the observable object.
+         * @param   arg   an argument passed to the <code>notifyObservers</code>
+         *                 method.
+         */
+        public synchronized void update(Observable o, Object arg) {
+            for (ServerConnection conn: serverConnections)
+                conn.addMessage((String)arg);
+        }
+    
         public void run() {
             try {
                 ServerSocket ss = new ServerSocket(port);
@@ -1110,7 +1116,6 @@ public abstract class Job implements Serializable {
                     System.out.println("Accepted connection " + conn.connectionId);
                     conn.updateSnapshot(currentSnapshot);
                     conn.start();
-                    conn.reader.start();
                 }
             } catch (IOException e) {
                 e.printStackTrace(System.out);
@@ -1155,13 +1160,17 @@ public abstract class Job implements Serializable {
                         currentSnapshot = newSnapshot;
                         break;
                     case 2:
-                        String jobName = reader.in.readUTF();
+                        int jobId = reader.in.readInt();
                         int len = reader.in.readInt();
                         byte[] bytes = new byte[len];
                         reader.in.readFully(bytes);
-                        System.out.println("Result of Job <" + jobName + "> is packed in " + len + " bytes");
-                        assert clientJob.jobName.equals(jobName);
+                        System.out.println("Result of Job <" + clientJob.jobName + "> is packed in " + len + " bytes");
+                        assert clientJob.jobId == jobId;
                         SwingUtilities.invokeLater(new JobTerminateRun(clientJob, bytes));
+                        break;
+                    case 3:
+                        String str = reader.in.readUTF();
+                        System.out.print(str);
                         break;
                     default:
                         assert false;
@@ -1261,6 +1270,26 @@ public abstract class Job implements Serializable {
             } catch (Throwable e) {
                 System.out.println("Exception executing terminateIt");
                 e.printStackTrace(System.out);
+            }
+            job.endTime = System.currentTimeMillis();
+            job.finished = true;                        // is this redundant with Thread.isAlive()?
+
+    		// say something if it took more than a minute by default
+        	if (job.reportExecution || (job.endTime - job.startTime) >= MIN_NUM_SECONDS)
+            {
+                if (User.isBeepAfterLongJobs())
+                {   
+                    Toolkit.getDefaultToolkit().beep();
+                }
+                System.out.println(job.getInfo());
+            }
+
+            // delete
+            if (job.deleteWhenDone) {
+                databaseChangesThread.removeJob(job);
+                UserInterface userInterface = Job.getUserInterface();
+                if (userInterface != null)
+                    userInterface.invokeLaterBusyCursor(databaseChangesThread.isChangeJobQueuedOrRunning());
             }
             
         }

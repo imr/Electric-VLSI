@@ -23,129 +23,153 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotWriter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Class for maintaining Connection on Server side.
  */
 public class ServerConnection extends Thread {
     
-        private static final int STACK_SIZE = 20*1024;
-        final int connectionId;
-        private final Socket socket;
-        final ConnectionReader reader;
-        private Snapshot currentSnapshot;
-        private volatile Snapshot newSnapshot;
-        volatile String jobName;
-        private volatile byte[] result;
-        
-        ServerConnection(int connectionId, Socket socket) {
-            super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
-            this.connectionId = connectionId;
-            this.socket = socket;
-            newSnapshot = currentSnapshot = new Snapshot();
-            reader = new ConnectionReader("ConndectionReader-" + connectionId, socket);
-        }
-        
-        synchronized void updateSnapshot(Snapshot newSnapshot) {
-            if (this.result != null) return;
-            this.newSnapshot = newSnapshot;
+    private static final int STACK_SIZE = 20*1024;
+    final int connectionId;
+    private final Socket socket;
+    final ConnectionReader reader;
+    private Snapshot currentSnapshot;
+    private volatile Snapshot newSnapshot;
+    volatile String jobName;
+    private volatile byte[] result;
+    private final ArrayList<Object> writeQueue = new ArrayList<Object>();
+    private final ArrayList<ReceivedJob> receivedJobs = new ArrayList<ReceivedJob>();
+    
+    ServerConnection(int connectionId, Socket socket) {
+        super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
+        this.connectionId = connectionId;
+        this.socket = socket;
+        newSnapshot = currentSnapshot = new Snapshot();
+        reader = new ConnectionReader(this);
+    }
+    
+    public void start() {
+        super.start();
+        reader.start();
+    }
+    
+    synchronized void updateSnapshot(Snapshot newSnapshot) {
+        if (writeQueue.isEmpty())
             notify();
-        }
-        
-        synchronized void sendTerminateJob(String jobName, byte[] result) {
-            assert this.result == null;
-            assert result != null;
-            this.result = result;
-            jobName = jobName != null ? jobName : "Unknown";
+        writeQueue.add(newSnapshot);
+    }
+    
+    synchronized void sendTerminateJob(int jobId, byte[] result) {
+        if (writeQueue.isEmpty())
             notify();
-        }  
+        writeQueue.add(new Integer(jobId));
+        writeQueue.add(result);
+    }
+    
+    synchronized void addMessage(String str) {
+        if (writeQueue.isEmpty())
+            notify();
+        writeQueue.add(str);
         
-       public void run() {
-            try {
-                SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
-                for (;;) {
-                    Snapshot newSnapshot;
-                    synchronized (this) {
-                        while (this.newSnapshot == currentSnapshot && result == null)
-                            wait();
-                        newSnapshot = this.newSnapshot;
-                    }
-                    if (newSnapshot != currentSnapshot) {
-                        writer.out.writeByte(1);
-                        newSnapshot.writeDiffs(writer, currentSnapshot);
-                        writer.out.flush();
-                        currentSnapshot = newSnapshot;
-                    }
-                    if (result != null) {
-                        writer.out.writeByte(2);
-                        writer.out.writeUTF(jobName);
-                        writer.out.writeInt(result.length);
-                        writer.out.write(result);
-                        writer.out.flush();
-                        result = null;
-                        reader.enable();
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace(System.out);
-            } catch (InterruptedException e) {
-                e.printStackTrace(System.out);
+    }
+    
+    synchronized ReceivedJob peekJob() {
+        return receivedJobs.isEmpty() ? null : receivedJobs.get(0);
+    }
+    
+    synchronized void addJob(ReceivedJob rj) {
+        if (receivedJobs.isEmpty()) {
+            synchronized (Job.databaseChangesThread) {
+                Job.databaseChangesThread.notify();
             }
         }
+        receivedJobs.add(rj);
+    }
 
-    static class ConnectionReader extends Thread {
+    synchronized ReceivedJob getJob() {
+        if (receivedJobs.isEmpty()) return null;
+        return receivedJobs.remove(0);
+    }
+    
+    public void run() {
+        try {
+            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            for (;;) {
+                Object o;
+                synchronized (this) {
+                    while (writeQueue.isEmpty())
+                        wait();
+                    o = writeQueue.remove(0);
+                }
+                if (o instanceof Snapshot) {
+                    Snapshot newSnapshot = (Snapshot)o;
+                    writer.out.writeByte(1);
+                    newSnapshot.writeDiffs(writer, currentSnapshot);
+                    writer.out.flush();
+                    currentSnapshot = newSnapshot;
+                } else if (o instanceof Integer) {
+                    int jobId  = ((Integer)o).intValue();
+                    writer.out.writeByte(2);
+                    writer.out.writeInt(jobId);
+                } else if (o instanceof byte[]) {
+                    byte[] result = (byte[])o;
+                    writer.out.writeInt(result.length);
+                    writer.out.write(result);
+                    writer.out.flush();
+                } else if (o instanceof String) {
+                    String str = (String)o;
+                    writer.out.writeByte(3);
+                    writer.out.writeUTF(str);
+                    writer.out.flush();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace(System.out);
+        } catch (InterruptedException e) {
+            e.printStackTrace(System.out);
+        }
+    }
+    
+    static class ReceivedJob {
+        final ServerConnection connection;
+        final int jobId;
+        final byte[] bytes;
+
+        ReceivedJob(ServerConnection connection, int jobId, byte[] bytes) {
+            this.connection = connection;
+            this.jobId = jobId;
+            this.bytes = bytes;
+        }
+    }
+    
+    private static class ConnectionReader extends Thread {
         private final static int STACK_SIZE = 1024;
-        private final Socket socket;
-        byte[] bytes;
+        private final ServerConnection connection;
         
-        ConnectionReader(String name, Socket socket) {
-            super(null, null, name, STACK_SIZE);
-            this.socket = socket;
-        }
-        
-        byte[] getBytes() {
-            if (bytes == null) return null;
-            byte[] bytes = this.bytes;
-            notify();
-            return bytes;
-        }
-        
-        synchronized void enable() {
-            assert this.bytes != null;
-            this.bytes = null;
-            notify();
+        private ConnectionReader(ServerConnection connection) {
+            super(null, null, "ConnectionReader-" + connection.connectionId, STACK_SIZE);
+            this.connection = connection;
         }
         
         public void run() {
             try {
-                DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                DataInputStream in = new DataInputStream(new BufferedInputStream(connection.socket.getInputStream()));
+                int numStarted = 0;
                 for (;;) {
                     int len = in.readInt();
                     byte[] bytes = new byte[len];
                     in.readFully(bytes);
-                    this.bytes = bytes;
-                    synchronized (Job.databaseChangesThread) {
-                        Job.databaseChangesThread.notify();
-                    }
-                    synchronized (this) {
-                        while (this.bytes != null) {
-                            try {
-                                wait();
-                            } catch (InterruptedException e) {}
-                        }
-                    }
+                    connection.addJob(new ReceivedJob(connection, ++numStarted, bytes));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -620,7 +620,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             }
         }
         if (libChanged) {
-            System.out.println("Libraries changed");
+//            System.out.println("Libraries changed");
             libraries.clear();
             for (int i = 0; i < linkedLibs.size(); i++) {
                 Library lib = linkedLibs.get(i);
@@ -650,8 +650,8 @@ public class Library extends ElectricObject implements Comparable<Library>
                     !oldBackup.cellName.equals(newBackup.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
-        if (cellTreeChanged)
-            System.out.println("Cell tree changed");
+//        if (cellTreeChanged)
+//            System.out.println("Cell tree changed");
         Cell.updateAll(oldSnapshot, newSnapshot);
         if (libChanged || cellTreeChanged) {
             for (Library lib: libraries.values())
