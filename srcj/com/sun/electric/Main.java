@@ -143,7 +143,8 @@ public final class Main
             if (runMode != Job.Mode.FULL_SCREEN)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
             runMode = Job.Mode.CLIENT;
-        }
+        }          
+        Job.setThreadMode(runMode);
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
@@ -228,7 +229,6 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
-        Job.setThreadMode(runMode);
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{
