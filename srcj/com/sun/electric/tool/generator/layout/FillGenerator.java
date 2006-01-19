@@ -1545,7 +1545,7 @@ public class FillGenerator {
 		public boolean doIt() throws JobException
 		{
             // Searching common power/gnd connections and skip the ones are in the same network
-            List<PortInst> portList = new ArrayList<PortInst>();
+            Set<PortInst> portList = new HashSet<PortInst>();
 
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
@@ -1553,8 +1553,6 @@ public class FillGenerator {
 
                 if (!(ni.getProto() instanceof Cell))
                 {
-                    boolean pwrCover = false;
-                    boolean gndCover = false;
                     for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                     {
                         PortInst p = itP.next();
@@ -1790,7 +1788,7 @@ public class FillGenerator {
         {
             List<Layer.Function> tmp = new ArrayList<Layer.Function>();
             // Check if any metalXY must be removed
-            List<NodeInst> nodesToRemove = new ArrayList<NodeInst>();
+            HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
 //            for (Iterator<NodeInst> itNode = fillCell.getNodes(); itNode.hasNext(); )
 //            {
 //                NodeInst ni = itNode.next();
@@ -1813,7 +1811,7 @@ public class FillGenerator {
 //            }
 
             // Checking if any arc in FillCell collides with rest of the cells
-            List<ArcInst> arcsToRemove = new ArrayList<ArcInst>();
+            HashSet<ArcInst> arcsToRemove = new HashSet<ArcInst>();
             for (Iterator<ArcInst> itArc = fillCell.getArcs(); itArc.hasNext(); )
             {
                 ArcInst ai = itArc.next();
@@ -1829,16 +1827,15 @@ public class FillGenerator {
                     nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
                 }
             }
-
-            for (NodeInst ni : nodesToRemove)
-            {
-                System.out.println("Removing node " + ni);
-                ni.kill();
-            }
             for (ArcInst ai : arcsToRemove)
             {
                 System.out.println("Removing arc " + ai);
                 ai.kill();
+            }   
+            for (NodeInst ni : nodesToRemove)
+            {
+                System.out.println("Removing node " + ni);
+                ni.kill();
             }
         }
 
@@ -2072,9 +2069,10 @@ public class FillGenerator {
                 Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
                         p.getPortProto().getName());
                 conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
-                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
-                        new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
-                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
+                // Code below is only needed if export is not added directly on the contact
+//                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
+//                        new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
+//                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
                 // Connecting the contact export in the top cell
                 PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
                 container.fillPortInstList.add(conNiPort);
