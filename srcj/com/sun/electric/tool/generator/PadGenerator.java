@@ -84,7 +84,7 @@ public class PadGenerator
     public static void makePadFrame(String fileName)
 	{
         if (fileName == null) return;
-		MakePadFrame padFrame = new MakePadFrame(fileName);
+		new MakePadFrame(fileName);
     }
 
 	/**

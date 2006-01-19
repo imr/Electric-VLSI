@@ -73,6 +73,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.net.URL;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1103,6 +1104,42 @@ public class FileMenu {
 		    return false;
 	    }
         return true;
+    }
+
+    /**
+     * Class to clear the date information on a Cell.
+     * Used by regressions to reset date information so that files match.
+     */
+    public static class ClearCellDate extends Job
+    {
+    	private String cellName;
+    	private Cell cell;
+
+    	public ClearCellDate(String cellName)
+        {
+            super("Clear Cell Dates", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cellName = cellName;
+            startJob();
+        }
+
+    	public ClearCellDate(Cell cell)
+        {
+            super("Clear Cell Dates", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+        	if (cell == null && cellName != null)
+        		cell = (Cell)Cell.findNodeProto(cellName);
+        	if (cell != null)
+        	{
+	        	cell.lowLevelSetRevisionDate(new Date(0));
+	        	cell.lowLevelSetCreationDate(new Date(0));
+        	}
+            return true;
+        }
     }
 
     /**

@@ -100,11 +100,21 @@ public class ROMGenerator
 	public static void generateROM()
 	{
 		// get the personality file
-		String romfile = OpenFile.chooseInputFile(FileType.TEXT, null);
-		if (romfile == null) return;
+		String romFile = OpenFile.chooseInputFile(FileType.TEXT, null);
+		if (romFile == null) return;
 
 		// build the ROM (in a separate Job thread)
-		DoROM rom = new DoROM(romfile);
+		new DoROM(romFile);
+	}
+
+	/**
+	 * Method to generate a ROM from a given ROM file.
+	 * @param romFile the file to use.
+	 */
+	public static void generateROM(String romFile)
+	{
+		// build the ROM (in a separate Job thread)
+		new DoROM(romFile);
 	}
 
 	/**
