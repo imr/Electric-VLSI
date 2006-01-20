@@ -43,6 +43,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
@@ -401,16 +402,31 @@ public class DRC extends Listener
 	 */
 	public static void resetDRCDates()
 	{
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				DRC.cleanDRCDateAndBits(cell);
-			}
-		}
+        new ResetDRCDates();
 	}
+
+    private static class ResetDRCDates extends Job
+    {
+        ResetDRCDates()
+        {
+            super("Resetting DRC Dates", User.getUserTool(), Job.Type.CHANGE, null, null, Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+            {
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = (Library)it.next();
+                for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                {
+                    Cell cell = (Cell)cIt.next();
+                    DRC.cleanDRCDateAndBits(cell);
+                }
+            }
+            return true;
+        }
+    }
 
 	/****************************** DESIGN RULE CONTROL ******************************/
 
