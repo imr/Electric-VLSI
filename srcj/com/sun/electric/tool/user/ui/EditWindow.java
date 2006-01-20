@@ -106,6 +106,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -170,6 +172,8 @@ public class EditWindow extends JPanel
 	/** list of windows to redraw (gets synchronized) */	private static List<EditWindow> redrawThese = new ArrayList<EditWindow>();
 	/** list of window changes (synchronized) */			private static List<WindowChangeRequest> windowChangeRequests = new ArrayList<WindowChangeRequest>();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
+    /** Logger of this package. */                          private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
+    /** Class name for logging. */                          private static String CLASS_NAME = EditWindow.class.getName();
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
@@ -1118,14 +1122,18 @@ public class EditWindow extends JPanel
 		if (wf == null) return;
 //		if (wf == WindowFrame.getCurrentWindowFrame())
 //			requestFocusInWindow();
+        
+        logger.entering(CLASS_NAME, "paintComponent", this);
 
 		if (offscreen == null || !getSize().equals(sz))
 		{
+            logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "Rebuild with size {0}", sz);
 			Dimension newSize = getSize();
 			setScreenSize(newSize);
 			repaintContents(null, false);
 			g.setColor(new Color(User.getColorBackground()));
 			g.fillRect(0, 0, newSize.width, newSize.height);
+            logger.exiting(CLASS_NAME, "paintComponent");
 			return;
 		}
 
@@ -1143,6 +1151,7 @@ public class EditWindow extends JPanel
 		{
 			g.drawImage(img, 0, 0, this);
 		}
+        logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
 
 		// overlay other things if there is a valid cell
 		if (cell != null)
@@ -1233,6 +1242,7 @@ public class EditWindow extends JPanel
 				g.drawLine(i3.x, i3.y, i4.x, i4.y);
 				g.drawLine(i4.x, i4.y, i1.x, i1.y);
 			}
+            logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
 		}
 
 		// draw any components that are on top (such as in-line text edits)
@@ -1246,6 +1256,7 @@ public class EditWindow extends JPanel
 		// see if anything else is queued
 		synchronized(redrawThese)
 		{
+            logger.logp(Level.FINEST, CLASS_NAME, "paintComponent", "checkForOtherRequests");
 			if (runningNow == null)
 			{
 				if (handleWindowChangeRequests(this))
@@ -1257,11 +1268,14 @@ public class EditWindow extends JPanel
 				{
 					runningNow = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
+                    logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "restart RenderJob");
 					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null, false);
+                    logger.exiting(CLASS_NAME, "paintComponent");
 					return;
 				}
 			}
 		}
+        logger.exiting(CLASS_NAME, "paintComponent");
 	}
 
 	/**
@@ -1342,6 +1356,7 @@ public class EditWindow extends JPanel
 		if (wf == null) return;
 		if (offscreen == null) return;
 
+        logger.entering(CLASS_NAME, "repaintContents", bounds);
 		// do the redraw in a separate thread
 		synchronized(redrawThese)
 		{
@@ -1360,6 +1375,7 @@ public class EditWindow extends JPanel
 					if (!redrawThese.contains(this))
 						redrawThese.add(this);
 				}
+                logger.exiting(CLASS_NAME, "repaintContents");
 				return;
 			}
 			handleWindowChangeRequests(this);
@@ -1369,9 +1385,11 @@ public class EditWindow extends JPanel
 
         // do the redraw in the main thread
         setScrollPosition();                        // redraw scroll bars
+        logger.exiting(CLASS_NAME, "repaintContents");
 	}
 
-	/**
+    private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
+    /**
 	 * This class queues requests to rerender a window.
 	 */
 	private static class RenderJob extends Job
@@ -1393,6 +1411,7 @@ public class EditWindow extends JPanel
 
 		public boolean doIt() throws JobException
 		{
+            logger.entering(RENDER_JOB_CLASS_NAME, "doIt");
 			if (bounds == null)
 			{
 				// see if a real bounds is defined in the cell
@@ -1420,6 +1439,7 @@ public class EditWindow extends JPanel
 				runningNow = null;
 			}
 			wnd.repaint();
+            logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
 			return true;
 		}
 	}
@@ -2354,6 +2374,7 @@ public class EditWindow extends JPanel
 	 */
 	public void setScreenSize(Dimension sz)
 	{
+        logger.entering(CLASS_NAME, "setScreenSize", sz);
 		// see if the request must be queued
 		if (wf != null)
 		{
@@ -2367,6 +2388,7 @@ public class EditWindow extends JPanel
 					zap.sz = sz;
 					zap.requestType = WindowChangeRequest.RESIZEREQUEST;
 					windowChangeRequests.add(zap);
+                    logger.exiting(CLASS_NAME, "setScreenSize");
 					return;
 				}
 			}
@@ -2376,6 +2398,7 @@ public class EditWindow extends JPanel
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
 		offscreen = new PixelDrawing(this);
+        logger.exiting(CLASS_NAME, "setScreenSize");
 	}
 
 	/**

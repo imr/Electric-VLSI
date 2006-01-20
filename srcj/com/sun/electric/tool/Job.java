@@ -42,7 +42,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -68,6 +67,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 /**
@@ -100,6 +101,8 @@ public abstract class Job implements Serializable {
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
+    private static final String CLASS_NAME = Job.class.getName();
+    public static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
     
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
@@ -159,6 +162,11 @@ public abstract class Job implements Serializable {
 	}
 
     public static Iterator<Job> getDatabaseThreadJobs() {
+        if (threadMode == Mode.CLIENT) {
+            ArrayList<Job> jobs = new ArrayList(startedJobs);
+            jobs.addAll(waitingJobs);
+            return jobs.iterator();
+        }
         return databaseChangesThread.getAllJobs();
     }
 
@@ -168,10 +176,6 @@ public abstract class Job implements Serializable {
 	static class DatabaseChangesThread extends Thread
 	{
         // Job Management
-        /** started jobs */                         private static final ArrayList<Job> startedJobs = new ArrayList<Job>();
-        /** waiting jobs */                         private static final ArrayList<Job> waitingJobs = new ArrayList<Job>();
-        /** number of examine jobs */               private static int numExamine = 0;
-
 		DatabaseChangesThread() {
 			super("Database");
 			start();
@@ -328,6 +332,10 @@ public abstract class Job implements Serializable {
         }
     }
     
+        /** started jobs */                         private static final ArrayList<Job> startedJobs = new ArrayList<Job>();
+        /** waiting jobs */                         private static final ArrayList<Job> waitingJobs = new ArrayList<Job>();
+        /** number of examine jobs */               private static int numExamine = 0;
+
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              static DatabaseChangesThread databaseChangesThread;/* = new DatabaseChangesThread();*/
 	/** changing job */                         private static Job changingJob;
@@ -368,19 +376,23 @@ public abstract class Job implements Serializable {
 
     public static void setThreadMode(Mode mode) {
         threadMode = mode;
-        databaseChangesThread = new DatabaseChangesThread();
         switch (mode) {
             case FULL_SCREEN:
+                databaseChangesThread = new DatabaseChangesThread();
                 break;
             case BATCH:
                 BATCHMODE = true;
+                databaseChangesThread = new DatabaseChangesThread();
                 break;
             case SERVER:
+                databaseChangesThread = new DatabaseChangesThread();
                 serverJobManager = new ServerJobManager(socketPort);
                 TopLevel.getMessagesStream().addObserver(serverJobManager);
                 serverJobManager.start();
                 break;
             case CLIENT:
+                logger.finer("setThreadMode");
+//                databaseChangesThread = new DatabaseChangesThread();
                 clientLoop(socketPort);
                 // unreachable
                 break;
@@ -463,32 +475,18 @@ public abstract class Job implements Serializable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
-        if (threadMode == Mode.CLIENT && jobType != Type.EXAMINE) {
-            Job tmp = testSerialization();
-            if (tmp != null) {
-                try {
-                    jobId = ++numStarted;
-                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream(); 
-                    EObjectOutputStream out = new EObjectOutputStream(byteStream);
-                    out.writeObject(this);
-                    out.close();
-                    byte[] bytes = byteStream.toByteArray();
-                    clientOutputStream.writeInt(bytes.length);
-                    clientOutputStream.write(bytes);
-                    clientOutputStream.flush();
-                    
-                    started = true;
-                    synchronized (databaseChangesThread) {
-                        databaseChangesThread.startedJobs.add(this);
-                    }
-                    clientJob = this;
-                } catch (IOException e) {
-                    System.out.println("Job " + this + " was not launched in CLIENT mode");
-                    e.printStackTrace(System.out);
-                }
+        if (threadMode == Mode.CLIENT) {
+            assert SwingUtilities.isEventDispatchThread() || Thread.currentThread() instanceof ExamineThread;
+            if (onMySnapshot)
+                waitingJobs.add(0, this);
+            else
+                waitingJobs.add(this);
+            if (this.getDisplay()) {
+                Job.getUserInterface().wantToRedoJobTree();
             }
+            SwingUtilities.invokeLater(clientInvoke);
             return;
-        }
+      }
 
         if (NOTHREADING) {
             // turn off threading if needed for debugging
@@ -1123,7 +1121,154 @@ public abstract class Job implements Serializable {
         }
     }
     
+    private static class FIFO {
+        private static final String CLASS_NAME = Job.CLASS_NAME + ".FIFO";
+        private final ArrayList<Object> queueF = new ArrayList<Object>();
+        private final ArrayList<Object> queueT = new ArrayList<Object>();
+        private boolean getC = false;
+        private int getIndex = 0;
+        private int numGet;
+        private int numPut;
+        
+        private synchronized void put(Object o, Object o1) {
+            logger.logp(Level.FINEST, CLASS_NAME, "put", "ENTRY");
+            ArrayList<Object> thisQ;
+            ArrayList<Object> thatQ;
+            if (getC) {
+                thisQ = queueT;
+                thatQ = queueF;
+            } else {
+                thisQ = queueF;
+                thatQ = queueT;
+            }
+            boolean empty = numGet == numPut;
+            thatQ.add(o);
+            numPut++;
+            if (o1 != null) {
+                thatQ.add(o1);
+                numPut++;
+            }
+            if (empty) {
+                logger.logp(Level.FINEST, CLASS_NAME, "put", "invokeLater(clientInvoke)");
+                SwingUtilities.invokeLater(clientInvoke);
+            }
+            logger.logp(Level.FINEST, CLASS_NAME, "put", "RETURN");
+        }
+        
+        private synchronized Object get() {
+            logger.logp(Level.FINEST, CLASS_NAME, "get", "ENTRY");
+            if (numGet == numPut) return null;
+            ArrayList<Object> thisQ;
+            ArrayList<Object> thatQ;
+            if (getC) {
+                thisQ = queueT;
+                thatQ = queueF;
+            } else {
+                thisQ = queueF;
+                thatQ = queueT;
+            }
+            Object o = null;
+            if (getIndex < thisQ.size()) {
+                o = thisQ.set(getIndex++, null);
+            } else {
+                o = thatQ.set(0, null);
+                getIndex = 1;
+                getC = !getC;
+                thisQ.clear();
+            }
+            numGet++;
+            logger.logp(Level.FINEST, CLASS_NAME, "get", "RETURN");
+            return o;
+        }
+    }
+    
+    private static FIFO clientFifo = new FIFO();
+    
+    private static volatile int clientNumExamine = 0;
+    private static Snapshot clientSnapshot = new Snapshot();
+    
+    private static final String CLIENT_INVOKE_CLASS_NAME = Job.CLASS_NAME + ".clientInvoke";
+    private static Runnable clientInvoke = new Runnable() {
+        public void run() {
+            logger.entering(CLIENT_INVOKE_CLASS_NAME, "run");
+            assert SwingUtilities.isEventDispatchThread();
+            for (;;) {
+                logger.logp(Level.FINEST, CLIENT_INVOKE_CLASS_NAME, "run", "before get");
+                int numGet = clientFifo.numGet;
+                Object o = clientFifo.get();
+                if (o == null) break;
+                if (o instanceof Snapshot) {
+                    Snapshot newSnapshot = (Snapshot)o;
+                    logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "snapshot begin {0}", Integer.valueOf(numGet));
+                    (new SnapshotDatabaseChangeRun(clientSnapshot, newSnapshot)).run();
+                    clientSnapshot = newSnapshot;
+                    logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "snapshot end");
+                } else if (o instanceof Integer) {
+                    int jobId = ((Integer)o).intValue();
+                    logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "result begin {0}", Integer.valueOf(numGet));
+                    byte[] bytes = (byte[])clientFifo.get();
+                    Job job = null;
+                    for (Job j: startedJobs) {
+                        if (j.jobId == jobId) {
+                            job = j;
+                            break;
+                        }
+                    }
+                    if (job != null) {
+                        (new JobTerminateRun(clientJob, bytes)).run();
+                        logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "result end {0}", job.jobName);
+                    } else {
+                        logger.logp(Level.WARNING, CLIENT_INVOKE_CLASS_NAME, "run", "result of unknown job {0}", o);
+                        System.out.println("Job " + jobId + " was not found in startedJobs");
+                    }
+                } else if (o instanceof String) {
+                    logger.logp(Level.FINEST, CLIENT_INVOKE_CLASS_NAME, "run", "string begin");
+                    System.out.print((String)o);
+                    logger.logp(Level.FINEST, CLIENT_INVOKE_CLASS_NAME, "run", "string end {0}", o);
+                }
+            }
+            if (waitingJobs.isEmpty()) {
+                logger.exiting(CLIENT_INVOKE_CLASS_NAME, "run");
+                return;
+            }
+            Job job = waitingJobs.remove(0);
+            if (job.jobType == Type.EXAMINE) {
+                logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "Schedule EXAMINE {0}", job);
+                try {
+                    job.doIt();
+                } catch (JobException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                logger.logp(Level.FINER, CLIENT_INVOKE_CLASS_NAME, "run", "Schedule {0}", job);
+                Job tmp = job.testSerialization();
+                if (tmp != null) {
+                    try {
+                        job.jobId = ++numStarted;
+                        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                        EObjectOutputStream out = new EObjectOutputStream(byteStream);
+                        out.writeObject(job);
+                        out.close();
+                        byte[] bytes = byteStream.toByteArray();
+                        clientOutputStream.writeInt(bytes.length);
+                        clientOutputStream.write(bytes);
+                        clientOutputStream.flush();
+                        
+                        job.started = true;
+                        startedJobs.add(job);
+                        clientJob = job;
+                    } catch (IOException e) {
+                        System.out.println("Job " + this + " was not launched in CLIENT mode");
+                        e.printStackTrace(System.out);
+                    }
+                }
+            }
+            logger.exiting(CLIENT_INVOKE_CLASS_NAME, "run");
+       }
+    };
+    
     private static void clientLoop(int port) {
+        logger.entering(CLASS_NAME, "clinetLoop", port);
         SnapshotReader reader = null;
         Snapshot currentSnapshot = new Snapshot();
         try {
@@ -1137,48 +1282,59 @@ public abstract class Job implements Serializable {
             return;
         }
             
+        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
         Technology.initAllTechnologies();
         User.getUserTool().init();
         NetworkTool.getNetworkTool().init();
+        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies end");
         //Tool.initAllTools();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 // remove the splash screen
                 //if (sw != null) sw.removeNotify();
+                logger.entering(CLASS_NAME, "InitializeWindows");
                 TopLevel.InitializeWindows();
                 WindowFrame.wantToOpenCurrentLibrary(true);
+                logger.exiting(CLASS_NAME, "InitializeWindows");
             }
         });
         
         for (;;) {
             try {
-                int tag = reader.in.readByte();
+                logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
+                byte tag = reader.in.readByte();
                 switch (tag) {
                     case 1:
+                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
                         Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(currentSnapshot, newSnapshot));
+                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
+                        clientFifo.put(newSnapshot, null);
                         currentSnapshot = newSnapshot;
                         break;
                     case 2:
-                        int jobId = reader.in.readInt();
+                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
+                        Integer jobId = Integer.valueOf(reader.in.readInt());
                         int len = reader.in.readInt();
                         byte[] bytes = new byte[len];
                         reader.in.readFully(bytes);
-                        System.out.println("Result of Job <" + clientJob.jobName + "> is packed in " + len + " bytes");
-                        assert clientJob.jobId == jobId;
-                        SwingUtilities.invokeLater(new JobTerminateRun(clientJob, bytes));
+                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
+                        clientFifo.put(jobId, bytes);
                         break;
                     case 3:
+                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
                         String str = reader.in.readUTF();
-                        System.out.print(str);
+                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
+                        clientFifo.put(str, null);
                         break;
                     default:
+                        logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
                         assert false;
                 }
             } catch (IOException e) {
                 // reader.in.close();
                 reader = null;
-                System.out.println("END OF FILE");
+                logger.logp(Level.INFO, CLASS_NAME, "clientLoop", "failed", e);
+                System.out.println("END OF FILE reading from server");
                 return;
             }
         }
@@ -1286,12 +1442,17 @@ public abstract class Job implements Serializable {
 
             // delete
             if (job.deleteWhenDone) {
-                databaseChangesThread.removeJob(job);
-                UserInterface userInterface = Job.getUserInterface();
-                if (userInterface != null)
-                    userInterface.invokeLaterBusyCursor(databaseChangesThread.isChangeJobQueuedOrRunning());
+                if (threadMode == Mode.CLIENT) {
+                    startedJobs.remove(job);
+                } else {
+                    databaseChangesThread.removeJob(job);
+                    UserInterface userInterface = Job.getUserInterface();
+                    if (userInterface != null)
+                        userInterface.invokeLaterBusyCursor(databaseChangesThread.isChangeJobQueuedOrRunning());
+                }
             }
             
         }
     }
 }
+
