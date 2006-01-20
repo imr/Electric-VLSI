@@ -89,8 +89,8 @@ public class ServerConnection extends Thread {
     
     synchronized void addJob(ReceivedJob rj) {
         if (receivedJobs.isEmpty()) {
-            synchronized (Job.databaseChangesThread) {
-                Job.databaseChangesThread.notify();
+            synchronized (Job.databaseChangesMutex) {
+                Job.databaseChangesMutex.notify();
             }
         }
         receivedJobs.add(rj);

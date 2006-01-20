@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool;
 
 import com.sun.electric.database.CellBackup;
@@ -102,7 +101,7 @@ public abstract class Job implements Serializable {
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     private static final String CLASS_NAME = Job.class.getName();
-    public static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
+    static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
     
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
@@ -127,9 +126,10 @@ public abstract class Job implements Serializable {
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
 	public static enum Type {
-		/** Describes a database change. */			CHANGE,
-		/** Describes a database undo/redo. */      UNDO,
-		/** Describes a database examination. */	EXAMINE;
+		/** Describes a database change. */             CHANGE,
+		/** Describes a database undo/redo. */          UNDO,
+		/** Describes a database examination. */        EXAMINE,
+		/** Describes a remote database examination. */	REMOTE_EXAMINE;
 	}
 
 
@@ -167,21 +167,24 @@ public abstract class Job implements Serializable {
             jobs.addAll(waitingJobs);
             return jobs.iterator();
         }
-        return databaseChangesThread.getAllJobs();
+        return getAllJobs();
     }
 
 	/**
 	 * Thread which execute all database change Jobs.
 	 */
-	static class DatabaseChangesThread extends Thread
+	static class DatabaseChangesThread extends EThread
 	{
         // Job Management
 		DatabaseChangesThread() {
 			super("Database");
+            setUserInterface(currentUI);
 			start();
 		}
 
         public void run() {
+            setCanComputeBounds(true);
+            setCanComputeNetlist(true);
             for (;;) {
                 UserInterface userInterface = Job.getUserInterface();
                 if (userInterface != null)
@@ -193,14 +196,14 @@ public abstract class Job implements Serializable {
                     if (job == null)
                         continue;
                 } else {
-                    synchronized (this) {
+                    synchronized (databaseChangesMutex) {
                         job = waitingJobs.remove(0);
                     }
                     if (job.scheduledToAbort || job.aborted)
                         continue;
                 }
                 if (job.jobType == Type.EXAMINE) {
-                    synchronized (this) {
+                    synchronized (databaseChangesMutex) {
                         job.started = true;
                         startedJobs.add(job);
                         numExamine++;
@@ -209,7 +212,7 @@ public abstract class Job implements Serializable {
                     Thread t = new ExamineThread(job);
                     t.start();
                 } else { 
-                    synchronized (this) {
+                    synchronized (databaseChangesMutex) {
                         assert numExamine == 0;
                         job.started = true;
                         startedJobs.add(job);
@@ -219,108 +222,14 @@ public abstract class Job implements Serializable {
             }
         }
         
-        private synchronized ServerConnection selectConnection() {
-            for (;;) {
-                // Search for examine
-                if (!waitingJobs.isEmpty()) {
-                    Job job = waitingJobs.get(0);
-                    if (job.scheduledToAbort || job.aborted || job.jobType == Type.EXAMINE)
-                        return null;
-                }
-                if (numExamine == 0) {
-                    if (!waitingJobs.isEmpty())
-                        return null;
-                    if (threadMode == Mode.SERVER && serverJobManager != null) {
-                        for (ServerConnection conn: serverJobManager.serverConnections) {
-                            if (conn.peekJob() != null)
-                                return conn;
-                        }
-                    }
-                }
-                try {
-                    wait();
-                } catch (InterruptedException e) {}
-            }
-        }
-        
-        private Job deserializeJob(ServerConnection connection) {
-            ServerConnection.ReceivedJob rj = connection.getJob();
-            try {
-                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(rj.bytes));
-                Job job = (Job)in.readObject();
-                assert job.jobId == rj.jobId;
-                job.connection = connection;
-                in.close();
-                return job;
-            } catch (Throwable e) {
-                e.printStackTrace();
-                connection.sendTerminateJob(rj.jobId, serializeException(e));
-                return null;
-            }
-        }
-
-		/** Add job to list of jobs */
-		private synchronized void addJob(Job j, boolean onMySnapshot) {
-            if (waitingJobs.isEmpty())
-                notify();
-            if (onMySnapshot)
-                waitingJobs.add(0, j);
-            else
-                waitingJobs.add(j);
-            if (!BATCHMODE && j.jobType == Type.CHANGE) {
-                Job.getUserInterface().invokeLaterBusyCursor(true);
-            }
-            if (j.getDisplay()) {
-                Job.getUserInterface().wantToRedoJobTree();
-            }
-		}
-
-		/** Remove job from list of jobs */
-		private synchronized void removeJob(Job j) {
-            if (j.started) {
-                startedJobs.remove(j);
-            } else {
-                if (!waitingJobs.isEmpty() && waitingJobs.get(0) == j)
-                    notify();
-                waitingJobs.remove(j);
-            }
-            //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
-            if (j.getDisplay()) {
-                Job.getUserInterface().wantToRedoJobTree();
-            }
-		}
-
-		private synchronized void endExamine(Job j) {
-			numExamine--;
-            //System.out.println("EndExamine Job "+j+", numExamine now="+numExamine+", allJobs="+allJobs.size());
-			if (numExamine == 0)
-				notify();
-		}
-
-        /** get all jobs iterator */
-        public synchronized Iterator<Job> getAllJobs() {
-            ArrayList<Job> jobsList = new ArrayList<Job>(startedJobs);
-            jobsList.addAll(waitingJobs);
-            return jobsList.iterator();
-        }
-
-        private synchronized boolean isChangeJobQueuedOrRunning() {
-            for (Job j: startedJobs) {
-                if (j.finished) continue;
-                if (j.jobType == Type.CHANGE) return true;
-            }
-            for (Job j: waitingJobs) {
-                if (j.jobType == Type.CHANGE) return true;
-            }
-            return false;
-        }
 	}
 
-    private static class ExamineThread extends Thread {
+    private static class ExamineThread extends EThread {
         private Job job;
         
         ExamineThread(Job job) {
             super(job.jobName);
+            setUserInterface(currentUI);
             assert job.jobType == Type.EXAMINE;
             this.job = job;
  //           job.thread = this;
@@ -337,7 +246,8 @@ public abstract class Job implements Serializable {
         /** number of examine jobs */               private static int numExamine = 0;
 
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
-	/** database changes thread */              static DatabaseChangesThread databaseChangesThread;/* = new DatabaseChangesThread();*/
+	/** database changes thread */              static DatabaseChangesThread databaseChangesThread;
+    /** mutex for database synchronization. */  static final Object databaseChangesMutex = new Object();
 	/** changing job */                         private static Job changingJob;
     /** server job manager */                   private static ServerJobManager serverJobManager; 
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
@@ -370,12 +280,13 @@ public abstract class Job implements Serializable {
     /** Fields changed on server side. */       private transient ArrayList<Field> changedFields;
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
-    /** Connection from which we accepted */    private transient ServerConnection connection = null;
+    /** Connection from which we accepted */    transient ServerConnection connection = null;
 	private static UserInterface currentUI;
     private static Job clientJob;
 
-    public static void setThreadMode(Mode mode) {
+    public static void setThreadMode(Mode mode, UserInterface userInterface) {
         threadMode = mode;
+        currentUI = userInterface;
         switch (mode) {
             case FULL_SCREEN:
                 databaseChangesThread = new DatabaseChangesThread();
@@ -494,7 +405,7 @@ public abstract class Job implements Serializable {
             run();
             Job.getUserInterface().setBusyCursor(false);
         } else {
-            databaseChangesThread.addJob(this, onMySnapshot);
+            addJob(this, onMySnapshot);
         }
     }
 
@@ -581,6 +492,105 @@ public abstract class Job implements Serializable {
     
     //--------------------------PRIVATE JOB METHODS--------------------------
 
+    private static ServerConnection selectConnection() {
+        synchronized (databaseChangesMutex) {
+            for (;;) {
+                // Search for examine
+                if (!waitingJobs.isEmpty()) {
+                    Job job = waitingJobs.get(0);
+                    if (job.scheduledToAbort || job.aborted || job.jobType == Type.EXAMINE)
+                        return null;
+                }
+                if (numExamine == 0) {
+                    if (!waitingJobs.isEmpty())
+                        return null;
+                    if (threadMode == Mode.SERVER && serverJobManager != null) {
+                        for (ServerConnection conn: serverJobManager.serverConnections) {
+                            if (conn.peekJob() != null)
+                                return conn;
+                        }
+                    }
+                }
+                try {
+                    databaseChangesMutex.wait();
+                } catch (InterruptedException e) {}
+            }
+        }
+    }
+    
+    private static Job deserializeJob(ServerConnection connection) {
+        ServerConnection.ReceivedJob rj = connection.getJob();
+        try {
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(rj.bytes));
+            Job job = (Job)in.readObject();
+            assert job.jobId == rj.jobId;
+            job.connection = connection;
+            in.close();
+            return job;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            connection.sendTerminateJob(rj.jobId, serializeException(e));
+            return null;
+        }
+    }
+    
+    /** Add job to list of jobs */
+    private static void addJob(Job j, boolean onMySnapshot) {
+        synchronized (databaseChangesMutex) {
+            if (waitingJobs.isEmpty())
+                databaseChangesMutex.notify();
+            if (onMySnapshot)
+                waitingJobs.add(0, j);
+            else
+                waitingJobs.add(j);
+            if (!BATCHMODE && j.jobType == Type.CHANGE) {
+                Job.getUserInterface().invokeLaterBusyCursor(true);
+            }
+            if (j.getDisplay()) {
+                Job.getUserInterface().wantToRedoJobTree();
+            }
+        }
+    }
+    
+    /** Remove job from list of jobs */
+    private static void removeJob(Job j) {
+        synchronized (databaseChangesMutex) {
+            if (j.started) {
+                startedJobs.remove(j);
+            } else {
+                if (!waitingJobs.isEmpty() && waitingJobs.get(0) == j)
+                    databaseChangesMutex.notify();
+                waitingJobs.remove(j);
+            }
+            //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
+            if (j.getDisplay()) {
+                Job.getUserInterface().wantToRedoJobTree();
+            }
+        }
+    }
+    
+    private static void endExamine(Job j) {
+        synchronized (databaseChangesMutex) {
+            numExamine--;
+            //System.out.println("EndExamine Job "+j+", numExamine now="+numExamine+", allJobs="+allJobs.size());
+            if (numExamine == 0)
+                databaseChangesMutex.notify();
+        }
+    }
+    
+     private static boolean isChangeJobQueuedOrRunning() {
+        synchronized (databaseChangesMutex) {
+            for (Job j: startedJobs) {
+                if (j.finished) continue;
+                if (j.jobType == Type.CHANGE) return true;
+            }
+            for (Job j: waitingJobs) {
+                if (j.jobType == Type.CHANGE) return true;
+            }
+            return false;
+        }
+    }
+    
 	//--------------------------PROTECTED JOB METHODS-----------------------
 	/** Set reportExecution flag on/off */
 	protected void setReportExecutionFlag(boolean flag)
@@ -614,7 +624,10 @@ public abstract class Job implements Serializable {
             ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
 		try {
-            if (jobType != Type.EXAMINE) changingJob = this;
+            if (jobType != Type.EXAMINE) {
+                databaseChangesThread.setCanChanging(true);
+                databaseChangesThread.setJob(this);
+            }
 			if (jobType == Type.CHANGE)	{
                 Undo.startChanges(tool, jobName, /*upCell,*/ savedHighlights, savedHighlightsOffset);
                 if (!className.endsWith("InitDatabase"))
@@ -638,9 +651,10 @@ public abstract class Job implements Serializable {
 		} finally {
 			if (jobType == Type.EXAMINE)
 			{
-				databaseChangesThread.endExamine(this);
+				endExamine(this);
 			} else {
-				changingJob = null;
+				databaseChangesThread.setCanChanging(false);
+                databaseChangesThread.setJob(null);
                 if (threadMode == Mode.SERVER)
                     serverJobManager.updateSnapshot();
 			}
@@ -770,7 +784,13 @@ public abstract class Job implements Serializable {
 	}
 
     /** get all jobs iterator */
-    public static Iterator<Job> getAllJobs() { return databaseChangesThread.getAllJobs(); }
+    public static Iterator<Job> getAllJobs() {
+        synchronized (databaseChangesMutex) {
+            ArrayList<Job> jobsList = new ArrayList<Job>(startedJobs);
+            jobsList.addAll(waitingJobs);
+            return jobsList.iterator();
+        }
+    }
     
     /** get status */
     public String getStatus() {
@@ -788,7 +808,7 @@ public abstract class Job implements Serializable {
             //System.out.println("Cannot delete running jobs.  Wait till finished or abort");
             return false;
         }
-        databaseChangesThread.removeJob(this);
+        removeJob(this);
         return true;
     }
 
@@ -981,42 +1001,51 @@ public abstract class Job implements Serializable {
 
 	/**
 	 * Method to check whether changing of whole database is allowed.
-	 * Issues an error if it is not.
+	 * @throws IllegalStateException if changes are not allowed.
 	 */
-	public static void checkChanging()
-	{
-		if (Thread.currentThread() != databaseChangesThread)
-		{
-			if (NOTHREADING) return;
-            if (threadMode == Mode.CLIENT) return;
-			String msg = "Database is being changed by another thread";
-            System.out.println(msg);
-			throw new IllegalStateException(msg);
-		} else if (changingJob == null)
-		{
-			if (NOTHREADING) return;
-			String msg = "Database is changing but no change job is running";
-            System.out.println(msg);
-			throw new IllegalStateException(msg);
-		}
-/*       else if (changingJob.upCell != null)
-		{
-			String msg = "Database is changing which only up-tree of "+changingJob.upCell+" is locked";
-            System.out.println(msg);
-            Error e = new Error(msg);
+	public static void checkChanging() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread) {
+            ((EThread)currentThread).checkChanging();
+        } else {
+            IllegalStateException e = new IllegalStateException("Database changes are forbidden");
+            Job.logger.logp(Level.WARNING, CLASS_NAME, "checkChanging", e.getMessage(), e);
             throw e;
-			//throw new IllegalStateException("Undo.checkChanging()");
-		}*/
+        }
 	}
 
     /**
-     * Checks if bounds or netlist can be computed in this thread.
-     * @return true if bounds or netlist can be computed.
+     * Checks if cell bounds can be computed in this thread.
+     * @return true if cell bounds can be computed.
      */
-    public static boolean canCompute() {
-        return Thread.currentThread() == databaseChangesThread || Job.NOTHREADING || threadMode == Mode.CLIENT;
+    public static boolean canComputeBounds() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread)
+            return ((EThread)currentThread).canComputeBounds();
+        else
+            return Job.NOTHREADING || threadMode == Mode.CLIENT;
     }
     
+    /**
+     * Checks if netlist can be computed in this thread.
+     * @return true if netlist can be computed.
+     */
+    public static boolean canComputeNetlist() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread)
+            return ((EThread)currentThread).canComputeNetlist();
+        else
+            return Job.NOTHREADING || threadMode == Mode.CLIENT;
+    }
+    
+    public static UserInterface getUserInterface() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread)
+            return ((EThread)currentThread).getUserInterface();
+        else
+            return currentUI;
+    }
+
     /**
      * Asserts that this is the Swing Event thread
      */
@@ -1028,11 +1057,6 @@ public abstract class Job implements Serializable {
         }
     }
 
-    public static boolean preferencesAccessible()
-    {
-        return preferencesAccessible || Thread.currentThread() != databaseChangesThread;
-    }
-    
 	//-------------------------------JOB UI--------------------------------
     
     public String toString() { return jobName+" ("+getStatus()+")"; }
@@ -1059,10 +1083,6 @@ public abstract class Job implements Serializable {
         return buf.toString();
     }
         
-    public static UserInterface getUserInterface() { return currentUI; }
-
-    public static void setUserInterface(UserInterface ui) { currentUI = ui; }
-
 	private static class ServerJobManager extends Thread implements Observer {
         private final int port;
         private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
@@ -1096,8 +1116,9 @@ public abstract class Job implements Serializable {
          *                 method.
          */
         public synchronized void update(Observable o, Object arg) {
-            for (ServerConnection conn: serverConnections)
-                conn.addMessage((String)arg);
+            Thread currentThread = Thread.currentThread();
+            if (currentThread instanceof EThread)
+                ((EThread)currentThread).print((String)arg);
         }
     
         public void run() {
@@ -1445,10 +1466,10 @@ public abstract class Job implements Serializable {
                 if (threadMode == Mode.CLIENT) {
                     startedJobs.remove(job);
                 } else {
-                    databaseChangesThread.removeJob(job);
+                    removeJob(job);
                     UserInterface userInterface = Job.getUserInterface();
                     if (userInterface != null)
-                        userInterface.invokeLaterBusyCursor(databaseChangesThread.isChangeJobQueuedOrRunning());
+                        userInterface.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
                 }
             }
             

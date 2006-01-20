@@ -191,7 +191,7 @@ public class NetworkTool extends Listener
     private static void redoNetworkNumbering(boolean reload)
     {
 		// Check that we are in changing thread
-		Job.checkChanging();
+		assert Job.canComputeNetlist();
 
         long startTime = System.currentTimeMillis();
 		if (reload) {
@@ -221,7 +221,7 @@ public class NetworkTool extends Listener
 
 	private static void invalidate() {
 		// Check that we are in changing thread
-		Job.checkChanging();
+		assert Job.canComputeNetlist();
 
 		if (!networksValid)
 			return;
@@ -274,7 +274,7 @@ public class NetworkTool extends Listener
 	 * @return Netlist of this cell.
 	 */
 	public static Netlist getUserNetlist(Cell cell) {
-		if (Job.canCompute()) {
+		if (Job.canComputeNetlist()) {
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors_());
 		}
@@ -307,7 +307,7 @@ public class NetworkTool extends Listener
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
-		if (Job.canCompute()) {
+		if (Job.canComputeNetlist()) {
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}

@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -143,15 +144,14 @@ public final class Main
             if (runMode != Job.Mode.FULL_SCREEN)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
             runMode = Job.Mode.CLIENT;
-        }          
-        Job.setThreadMode(runMode);
+        }
+        Job.setThreadMode(runMode, runMode != Job.Mode.BATCH ? new UserInterfaceMain() : new UserInterfaceDummy());
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
         if (runMode != Job.Mode.BATCH)
         {
-        	Job.setUserInterface(new UserInterfaceMain());
             if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
             {
                 try
@@ -180,12 +180,9 @@ public final class Main
                 } catch (ClassNotFoundException e) {}
             }
     //		MacOSXInterface.registerMacOSXApplication(argsList);
-        } else
-        {
-        	Job.setUserInterface(new UserInterfaceDummy());
         }
 
-		// -help
+        // -help
         if (hasCommandLineOption(argsList, "-help"))
 		{
 	        System.out.println("Usage (without plugins):");
