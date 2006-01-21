@@ -47,20 +47,17 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.*;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Analysis;
@@ -71,8 +68,6 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
-import com.sun.electric.tool.user.menus.FileMenu.ReadLibrary;
-import com.sun.electric.tool.user.menus.FileMenu.SaveLibrary;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -188,11 +183,11 @@ public class DebugMenus
         gildaMenu.addMenuItem("Dialog fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.TSMC180);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(MoCMOS.tech, Tech.TechType.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.MOCMOS);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(MoCMOS.tech, Tech.TechType.MOCMOS);}});
         gildaMenu.addMenuItem("Gate Generator TSMC90", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TechType.TSMC90);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(Technology.getTSMC90Technology(), Tech.TechType.TSMC90);}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
@@ -773,11 +768,6 @@ public class DebugMenus
         new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null);
     }
 
-    private static void tsmcGateGenerator(Tech.TechType techNm)
-    {
-        GateRegression reg = new GateRegression(MoCMOS.tech, techNm);
-    }
-
     private static void cleanSetOfLibraries()
     {
         boolean noMoreFound = false;
@@ -797,7 +787,6 @@ public class DebugMenus
                 for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
                 {
                     Cell cell = (Cell)itCell.next();
-//                    if (CircuitChanges.deleteCell(cell, true, true))
                     if (!cell.isInUse("delete", true))
                     {
                         System.out.println(cell + " can be deleted");
