@@ -421,7 +421,7 @@ public class DRC extends Listener
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                 {
                     Cell cell = (Cell)cIt.next();
-                    DRC.cleanDRCDateAndBits(cell);
+                    cleanDRCDateAndBits(cell);
                 }
             }
             return true;
@@ -789,7 +789,7 @@ public class DRC extends Listener
      * Method to clean any DRC date stored previously
      * @param cell the cell to clean
      */
-    public static void cleanDRCDateAndBits(Cell cell)
+    private static void cleanDRCDateAndBits(Cell cell)
     {
         cell.delVar(DRC_LAST_GOOD_DATE);
         cell.delVar(DRC_LAST_GOOD_BIT);
@@ -814,8 +814,6 @@ public class DRC extends Listener
                 bits |= DRC_BIT_ST_FOUNDRY;
                 break;
         }
-//        if (foundry != DRCTemplate.DRCMode.ALL)
-//            bits |= (foundry == DRCTemplate.DRCMode.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
         return bits;
     }
 
@@ -949,16 +947,16 @@ public class DRC extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
-				Date now = (Date)goodDRCDate.get(cell);
+				Cell cell = it.next();
+				Date now = goodDRCDate.get(cell);
 				setLastDRCDateAndBits(cell, now, activeBits);
 			}
 
-			for(Iterator it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
+			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				cleanDRCDateAndBits(cell);
 			}
 			return true;
