@@ -46,7 +46,7 @@ import com.sun.electric.technology.Technology;
  */
 public class GateLayoutGenerator extends Job {
     private Technology technology;
-    private Tech.TechType foundry;
+    private Tech.Type foundry;
 
 	// specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -90,7 +90,7 @@ public class GateLayoutGenerator extends Job {
 	}
 	
 	public static StdCellParams locoParams(Library outLib) {
-		StdCellParams stdCell = new StdCellParams(outLib, Tech.TechType.MOCMOS);
+		StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -103,7 +103,7 @@ public class GateLayoutGenerator extends Job {
 	}
 
     private static StdCellParams sportParams(Library outLib) {
-        StdCellParams stdCell = new StdCellParams(outLib, Tech.TechType.TSMC90);
+        StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.TSMC90);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
         stdCell.setVddY(24.5);
@@ -115,7 +115,7 @@ public class GateLayoutGenerator extends Job {
     }
 
 	public static StdCellParams dividerParams(Library outLib) {
-		StdCellParams stdCell = new StdCellParams(outLib, Tech.TechType.MOCMOS);
+		StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -158,8 +158,8 @@ public class GateLayoutGenerator extends Job {
 		return true;
 	}
 
-	public GateLayoutGenerator(Technology technology, Tech.TechType techNm) {
-		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE, 
+	public GateLayoutGenerator(Technology technology, Tech.Type techNm) {
+		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = technology;
         this.foundry = techNm;

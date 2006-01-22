@@ -485,12 +485,12 @@ public class ToolMenu {
 		generationSubMenu.addMenuItem("MOSIS CMOS P_LA Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PLA.generate(); }});
 		generationSubMenu.addMenuItem("Generate gate layouts (_MoCMOS)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.TechType.MOCMOS); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.Type.MOCMOS); }});
         generationSubMenu.addMenuItem("Generate gate layouts (T_SMC180)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.TechType.TSMC180); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.Type.TSMC180); }});
         if (Technology.getTSMC90Technology() != null)
 	        generationSubMenu.addMenuItem("Generate gate layouts (_TSMC90)", null,
-	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology(), Tech.TechType.TSMC90); }});
+	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology(), Tech.Type.TSMC90); }});
 
 		//------------------- Silicon Compiler
 

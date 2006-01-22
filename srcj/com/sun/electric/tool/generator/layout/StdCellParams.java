@@ -651,9 +651,9 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Library lib, Tech.TechType tech) {
-        if      (tech == Tech.TechType.TSMC90) initTSMC90();
-        else if (tech == Tech.TechType.MOCMOS) initMoCMOS();
+	public StdCellParams(Library lib, Tech.Type tech) {
+        if      (tech == Tech.Type.TSMC90) initTSMC90();
+        else if (tech == Tech.Type.MOCMOS) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }

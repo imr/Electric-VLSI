@@ -957,6 +957,8 @@ public class DRC extends Listener
 			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = it.next();
+                if (!cell.isLinked())
+                    new JobException("Cell '" + cell + "' is invalid");
 				cleanDRCDateAndBits(cell);
 			}
 			return true;

@@ -89,7 +89,7 @@ public class Tech {
 	}
 
 	//---------------------------- private data ----------------------------------
-	private static TechType techType;
+	private static Type techType;
 	private static final String[] MOCMOS_LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
 	private static final String[] TSMC90_LAYER_NAMES = {"Polysilicon", "Metal-1", 
@@ -131,7 +131,7 @@ public class Tech {
 	public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
 	public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
     /** valid Electric technologies understood */
-    public enum TechType {INVALID, MOCMOS, TSMC90, TSMC180};
+    public enum Type {INVALID, MOCMOS, TSMC90, TSMC180};
 
 	/** layers
 	 *
@@ -254,14 +254,14 @@ public class Tech {
 	}
 	//----------------------------- public methods  ------------------------------
 	
-	public static void setTechnology(TechType techNm) {
+	public static void setTechnology(Type techNm) {
         techType = techNm;
 
-        boolean isTsmc90 = techType == TechType.TSMC90;
-        boolean isTsmc180 = techType == TechType.TSMC180;
+        boolean isTsmc90 = techType == Type.TSMC90;
+        boolean isTsmc180 = techType == Type.TSMC180;
         if (!isTsmc90) // either MOCMOS or TSMC180
 		{
-			tech = Technology.findTechnology(TechType.MOCMOS.name());
+			tech = Technology.findTechnology(Type.MOCMOS.name());
 			// My "TSMC180" really uses Electric's MoCMOS Technology in
 			// combination with the TSMC foundry.
             if (isTsmc180)
@@ -288,7 +288,7 @@ public class Tech {
 		m4 = layers[4];
 		m5 = layers[5];
 		m6 = layers[6];
-        if ((techType == TechType.TSMC90)) {
+        if ((techType == Type.TSMC90)) {
             m7 = layers[7];
             m8 = layers[8];
             m9 = layers[9];
@@ -491,7 +491,7 @@ public class Tech {
 		}
 	}
 
-    public static boolean isTSMC90() { return techType == TechType.TSMC90; }
+    public static boolean isTSMC90() { return techType == Type.TSMC90; }
 
 	public static PrimitiveNode getViaFor(ArcProto a1, ArcProto a2) {
 		int code = a1.hashCode() * a2.hashCode();

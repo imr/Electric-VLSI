@@ -392,7 +392,7 @@ public class FillGen extends EDialog {
         Cell cell = Job.getUserInterface().getCurrentCell();
         Technology tech = cell.getTechnology();
 
-        for (Tech.TechType t : Tech.TechType.values())
+        for (Tech.Type t : Tech.Type.values())
         {
 
         }

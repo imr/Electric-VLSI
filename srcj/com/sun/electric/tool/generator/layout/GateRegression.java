@@ -43,7 +43,7 @@ import com.sun.electric.tool.user.User;
  */
 public class GateRegression extends Job {
     private Technology technology;
-    private Tech.TechType foundry;
+    private Tech.Type foundry;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -99,7 +99,7 @@ public class GateRegression extends Job {
         return true;
     }
 
-     public static int runGildaTest(Technology technology, Tech.TechType techNm) {
+     public static int runGildaTest(Technology technology, Tech.Type techNm) {
 		System.out.println("begin Gate Regression");
         String name = "gilda"+techNm;
 		Library scratchLib =
@@ -109,7 +109,7 @@ public class GateRegression extends Job {
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            stdCell = new StdCellParams(scratchLib, Tech.TechType.TSMC90);
+            stdCell = new StdCellParams(scratchLib, Tech.Type.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
@@ -161,7 +161,7 @@ public class GateRegression extends Job {
     /** Programatic interface to gate regressions.
      * @param technology
      * @return the number of errors detected */
-    public static int runRegression(Technology technology, Tech.TechType techNm) {
+    public static int runRegression(Technology technology, Tech.Type techNm) {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib =
@@ -171,7 +171,7 @@ public class GateRegression extends Job {
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            stdCell = new StdCellParams(scratchLib, Tech.TechType.TSMC90);
+            stdCell = new StdCellParams(scratchLib, Tech.Type.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
@@ -235,8 +235,8 @@ public class GateRegression extends Job {
         return numCifErrs;
 	}
 
-	public GateRegression(Technology tech, Tech.TechType techNm) {
-		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE, 
+	public GateRegression(Technology tech, Tech.Type techNm) {
+		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = tech;
         this.foundry = techNm;

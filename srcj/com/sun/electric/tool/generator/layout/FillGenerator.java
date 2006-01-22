@@ -1360,8 +1360,8 @@ public class FillGenerator {
 		if (!metalFlex) printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
-		stdCell = new StdCellParams(null, Tech.TechType.MOCMOS);
-		stdCellP = new StdCellParams(null, Tech.TechType.MOCMOS);
+		stdCell = new StdCellParams(null, Tech.Type.MOCMOS);
+		stdCellP = new StdCellParams(null, Tech.Type.MOCMOS);
 		stdCellP.setVddExportName("power");
 		stdCellP.setVddExportRole(PortCharacteristic.IN);
 		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
@@ -1404,23 +1404,24 @@ public class FillGenerator {
 	
 	// Deprecated: Keep this for backwards compatibility
 	public FillGenerator() {
-		Tech.setTechnology(Tech.TechType.MOCMOS);
+		Tech.setTechnology(Tech.Type.MOCMOS);
 	}
 	
 	public FillGenerator(Technology tech) {
-        Tech.TechType techNm = Tech.TechType.INVALID;
+        Tech.Type techNm = Tech.Type.INVALID;
 
         if (tech == MoCMOS.tech)
         {
             techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
-                    Tech.TechType.TSMC180 :
-                    Tech.TechType.MOCMOS;
+                    Tech.Type.TSMC180 :
+                    Tech.Type.MOCMOS;
         }
+            techNm = Tech.Type.TSMC90;
 
-		LayoutLib.error((techNm != Tech.TechType.MOCMOS && techNm != Tech.TechType.TSMC180),
-						"FillGenerator only recognizes the technologies: "+
-						Tech.TechType.MOCMOS+" and "+Tech.TechType.TSMC180+".\n"+
-						"For 90nm use FillGenerator90");
+//		LayoutLib.error((techNm != Tech.Type.MOCMOS && techNm != Tech.Type.TSMC180),
+//						"FillGenerator only recognizes the technologies: "+
+//						Tech.Type.MOCMOS+" and "+Tech.Type.TSMC180+".\n"+
+//						"For 90nm use FillGenerator90");
 		Tech.setTechnology(techNm);
 	}
 
