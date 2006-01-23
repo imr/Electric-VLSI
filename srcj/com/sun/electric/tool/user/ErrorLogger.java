@@ -370,9 +370,6 @@ public class ErrorLogger implements DatabaseChangeListener
         // create a new ErrorLog object
         MessageLog el = new MessageLog(message, cell, sortKey);
 
-        // store information about the error
-        el.highlights = new ArrayList<ErrorHighlight>();
-
         // add the ErrorLog into the global list
         allErrors.add(el);
 //        currentLogNumber = allErrors.size()-1;
