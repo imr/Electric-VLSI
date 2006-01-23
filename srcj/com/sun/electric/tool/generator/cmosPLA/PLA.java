@@ -206,7 +206,7 @@ public class PLA
 
         public void terminateOK()
         {
-            if (newCell != null)
+            if (newCell != null && !Job.BATCHMODE)
                 WindowFrame.createEditWindow(newCell);
         }
 	}
