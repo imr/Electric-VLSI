@@ -87,15 +87,14 @@ public class Pads extends Output
 
 	/**
 	 * The main entry point for Pads deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Pads.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writePadsFile(OutputCellInfo cellJob)
+	public static void writePadsFile(Cell cell, VarContext context, String filePath)
 	{
 		Pads out = new Pads();
-		out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
+		out.writeNetlist(cell, context, filePath);
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)

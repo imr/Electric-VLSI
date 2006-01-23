@@ -61,17 +61,17 @@ public class MOSSIM extends Topology
 
 	/**
 	 * The main entry point for MOSSIM deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * filePath: the disk file to create with MOSSIM.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeMOSSIMFile(OutputCellInfo cellJob)
+	public static void writeMOSSIMFile(Cell cell, VarContext context, String filePath)
 	{
 		MOSSIM out = new MOSSIM();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		if (out.writeCell(cellJob.cell, cellJob.context)) return;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

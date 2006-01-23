@@ -148,23 +148,25 @@ public class Spice extends Topology
 
 	/**
 	 * The main entry point for Spice deck writing.
-	 * @param cellJob contains the top-level cell to write (cell) and
-	 * the disk file to create with Spice (filePath)
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
+	 * @param cdl true if this is CDL output (false for Spice).
 	 */
-	public static void writeSpiceFile(OutputCellInfo cellJob, boolean cdl)
+	public static void writeSpiceFile(Cell cell, VarContext context, String filePath, boolean cdl)
 	{
 		Spice out = new Spice();
 		out.useCDL = cdl;
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		if (out.writeCell(cellJob.cell, cellJob.context)) return;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 
 		// write CDL support file if requested
 		if (out.useCDL)
 		{
 			// write the control files
-			String deckFile = cellJob.filePath;
+			String deckFile = filePath;
 			String deckPath = "";
 			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
 			if (lastDirSep > 0)
@@ -173,7 +175,7 @@ public class Spice extends Topology
 				deckFile = deckFile.substring(lastDirSep+1);
 			}
 
-			String templateFile = deckPath + File.separator + cellJob.cell.getName() + ".cdltemplate";
+			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
 			if (out.openTextOutputStream(templateFile)) return;
 
 			String libName = Simulation.getCDLLibName();
@@ -186,7 +188,7 @@ public class Spice extends Topology
 			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
 			out.printWriter.print("    'userSkillFile          \"\"\n");
 			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
-			out.printWriter.print("    'primaryCell            \"" + cellJob.cell.getName() + "\"\n");
+			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
 			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
 			out.printWriter.print("    'hierarchy              \"flatten\"\n");
 			out.printWriter.print("    'cellTable              \"\"\n");
@@ -215,15 +217,15 @@ public class Spice extends Topology
             }
             File dir = new File(rundir);
 
-            int start = cellJob.filePath.lastIndexOf(File.separator);
+            int start = filePath.lastIndexOf(File.separator);
             if (start == -1) start = 0; else {
                 start++;
-                if (start > cellJob.filePath.length()) start = cellJob.filePath.length();
+                if (start > filePath.length()) start = filePath.length();
             }
-            int end = cellJob.filePath.lastIndexOf(".");
-            if (end == -1) end = cellJob.filePath.length();
-            String filename_noext = cellJob.filePath.substring(start, end);
-            String filename = cellJob.filePath.substring(start, cellJob.filePath.length());
+            int end = filePath.lastIndexOf(".");
+            if (end == -1) end = filePath.length();
+            String filename_noext = filePath.substring(start, end);
+            String filename = filePath.substring(start, filePath.length());
 
             // replace vars in command and args
             command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
@@ -235,7 +237,7 @@ public class Spice extends Topology
             FileType type = Simulate.getCurrentSpiceOutputType();
             String [] extensions = type.getExtensions();
             String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
-            Exec.FinishedListener l = new SpiceFinishedListener(cellJob.cell, type, outFile);
+            Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
             if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
                 Exec e = new Exec(command, null, dir, null, null);

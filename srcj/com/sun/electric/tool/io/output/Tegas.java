@@ -70,18 +70,17 @@ public class Tegas extends Topology
 
 	/**
 	 * The main entry point for Tegas deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Tegas.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeTegasFile(OutputCellInfo cellJob)
+	public static void writeTegasFile(Cell cell, VarContext context, String filePath)
 	{
 		Tegas out = new Tegas();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		if (out.writeCell(cellJob.cell, cellJob.context)) return;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

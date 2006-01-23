@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -87,28 +88,27 @@ public class HPGL extends Output
 
 	/**
 	 * Main entry point for HPGL output.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-     * context: the hierarchical context to the cell.
-	 * filePath: the name of the file to create.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeHPGLFile(OutputCellInfo cellJob)
+	public static void writeHPGLFile(Cell cell, VarContext context, String filePath)
 	{
 		HPGL out = new HPGL();
-		out.cell = cellJob.cell;
-		if (out.openTextOutputStream(cellJob.filePath)) return;
+		out.cell = cell;
+		if (out.openTextOutputStream(filePath)) return;
 		HPGLVisitor visitor = out.makeHPGLVisitor();
 
 		// gather all geometry
 		out.start();
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, visitor);
-//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, context, visitor);
+//		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 
 		// write the geometry
 		out.done();
 
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/** Creates a new instance of HPGL */

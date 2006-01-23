@@ -911,7 +911,7 @@ public class FileMenu {
                 if (filePath == null) return;
             }
 
-            Output.exportCellCommand(cell, context, filePath, type, true, override);
+            Output.exportCellCommand(cell, context, filePath, type, override);
             return;
         }
 
@@ -932,7 +932,7 @@ public class FileMenu {
 			return;
 	    }
 
-        Output.exportCellCommand(cell, context, filePath, type, true, override);
+        Output.exportCellCommand(cell, context, filePath, type, override);
     }
 
     private static class ExportImage extends Job

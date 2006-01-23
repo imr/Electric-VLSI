@@ -34,6 +34,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
@@ -48,18 +49,16 @@ public class ArchSim extends Output
 {
 	/**
 	 * The main entry point for ArchSim deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with ArchSim.
+     * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create with ArchSim.
 	 */
-	public static void writeArchSimFile(OutputCellInfo cellJob)
+	public static void writeArchSimFile(Cell cell, String filePath)
 	{
 		ArchSim out = new ArchSim();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		out.writeFlatCell(cellJob.cell);
+		if (out.openTextOutputStream(filePath)) return;
+		out.writeFlatCell(cell);
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

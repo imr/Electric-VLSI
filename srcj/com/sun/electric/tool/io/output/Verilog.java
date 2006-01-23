@@ -182,18 +182,17 @@ public class Verilog extends Topology
 
 	/**
 	 * The main entry point for Verilog deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Verilog.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeVerilogFile(OutputCellInfo cellJob)
+	public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
 	{
 		Verilog out = new Verilog();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		if (out.writeCell(cellJob.cell, cellJob.context)) return;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

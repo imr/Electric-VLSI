@@ -87,16 +87,12 @@ public class Output
      * @param context the VarContext of the Cell (its position in the hierarchy above it).
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
-     * @param startJob to start job immediately. In case of regressions, job is manually started.
      * @param override a list of Polys to draw instead of the cell contents.
-     * @return Job representing this task
     */
-    public static OutputCellInfo exportCellCommand(Cell cell, VarContext context, String filePath,
-                                                   FileType type, boolean startJob, List<PolyBase> override)
+    public static void exportCellCommand(Cell cell, VarContext context, String filePath,
+                                         FileType type, List<PolyBase> override)
     {
-        Job.Type jtype = Job.Type.EXAMINE;
-        if (type == FileType.EDIF) jtype = Job.Type.CHANGE;
-        return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype, override));
+        new OutputCellInfo(cell, context, filePath, type, override);
     }
 
 	static class OrderedExports implements Comparator<Export>
@@ -316,86 +312,86 @@ public class Output
      * filePath: the path to the disk file to be written.
      * type: the format of the output file.
      */
-    private static void writeCell(OutputCellInfo cellJob) //Cell cell, VarContext context, String filePath, FileType type, Job job)
+    private static void writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
     {
-		if (cellJob.type == FileType.ARCHSIM)
+		if (type == FileType.ARCHSIM)
 		{
-			ArchSim.writeArchSimFile(cellJob);
-		} else if (cellJob.type == FileType.CDL)
+			ArchSim.writeArchSimFile(cell, filePath);
+		} else if (type == FileType.CDL)
 		{
-			Spice.writeSpiceFile(cellJob, true);
-		} else if (cellJob.type == FileType.CIF)
+			Spice.writeSpiceFile(cell, context, filePath, true);
+		} else if (type == FileType.CIF)
 		{
-			CIF.writeCIFFile(cellJob);
-		} else if (cellJob.type == FileType.COSMOS)
+			CIF.writeCIFFile(cell, context, filePath);
+		} else if (type == FileType.COSMOS)
 		{
-			Sim.writeSimFile(cellJob);
-		} else if (cellJob.type == FileType.DXF)
+			Sim.writeSimFile(cell, context, filePath, type);
+		} else if (type == FileType.DXF)
 		{
-			DXF.writeDXFFile(cellJob);
-		} else if (cellJob.type == FileType.EAGLE)
+			DXF.writeDXFFile(cell, filePath);
+		} else if (type == FileType.EAGLE)
 		{
-			Eagle.writeEagleFile(cellJob);
-		} else if (cellJob.type == FileType.ECAD)
+			Eagle.writeEagleFile(cell, context, filePath);
+		} else if (type == FileType.ECAD)
 		{
-			ECAD.writeECADFile(cellJob);
-		} else if (cellJob.type == FileType.EDIF)
+			ECAD.writeECADFile(cell, context, filePath);
+		} else if (type == FileType.EDIF)
 		{
-			EDIF.writeEDIFFile(cellJob);
-		} else if (cellJob.type == FileType.ESIM || cellJob.type == FileType.RSIM)
+			EDIF.writeEDIFFile(cell, context, filePath);
+		} else if (type == FileType.ESIM || type == FileType.RSIM)
 		{
-			Sim.writeSimFile(cellJob);
-		} else if (cellJob.type == FileType.FASTHENRY)
+			Sim.writeSimFile(cell, context, filePath, type);
+		} else if (type == FileType.FASTHENRY)
 		{
-			FastHenry.writeFastHenryFile(cellJob);
-		} else if (cellJob.type == FileType.HPGL)
+			FastHenry.writeFastHenryFile(cell, context, filePath);
+		} else if (type == FileType.HPGL)
 		{
-			HPGL.writeHPGLFile(cellJob);
-		} else if (cellJob.type == FileType.GDS)
+			HPGL.writeHPGLFile(cell, context, filePath);
+		} else if (type == FileType.GDS)
 		{
-			GDS.writeGDSFile(cellJob);
-		} else if (cellJob.type == FileType.IRSIM)
+			GDS.writeGDSFile(cell, context, filePath);
+		} else if (type == FileType.IRSIM)
 		{
-			IRSIM.writeIRSIMFile(cellJob);
-		} else if (cellJob.type == FileType.L)
+			IRSIM.writeIRSIMFile(cell, context, filePath);
+		} else if (type == FileType.L)
 		{
-			L.writeLFile(cellJob);
-		} else if (cellJob.type == FileType.LEF)
+			L.writeLFile(cell, filePath);
+		} else if (type == FileType.LEF)
 		{
-			LEF.writeLEFFile(cellJob);
-		} else if (cellJob.type == FileType.MAXWELL)
+			LEF.writeLEFFile(cell, context, filePath);
+		} else if (type == FileType.MAXWELL)
 		{
-			Maxwell.writeMaxwellFile(cellJob);
-		} else if (cellJob.type == FileType.MOSSIM)
+			Maxwell.writeMaxwellFile(cell, context, filePath);
+		} else if (type == FileType.MOSSIM)
 		{
-			MOSSIM.writeMOSSIMFile(cellJob);
-		} else if (cellJob.type == FileType.PADS)
+			MOSSIM.writeMOSSIMFile(cell, context, filePath);
+		} else if (type == FileType.PADS)
 		{
-			Pads.writePadsFile(cellJob);
-		} else if (cellJob.type == FileType.PAL)
+			Pads.writePadsFile(cell, context, filePath);
+		} else if (type == FileType.PAL)
 		{
-			PAL.writePALFile(cellJob);
-		} else if (cellJob.type == FileType.POSTSCRIPT || cellJob.type == FileType.EPS)
+			PAL.writePALFile(cell, context, filePath);
+		} else if (type == FileType.POSTSCRIPT || type == FileType.EPS)
 		{
-			PostScript.writePostScriptFile(cellJob);
-		} else if (cellJob.type == FileType.SILOS)
+			PostScript.writePostScriptFile(cell, filePath, override);
+		} else if (type == FileType.SILOS)
 		{
-			Silos.writeSilosFile(cellJob);
-		} else if (cellJob.type == FileType.SKILL)
+			Silos.writeSilosFile(cell, context, filePath);
+		} else if (type == FileType.SKILL)
 		{
-			IOTool.writeSkill(cellJob.cell, cellJob.filePath, false);
-        } else if (cellJob.type == FileType.SKILLEXPORTSONLY)
+			IOTool.writeSkill(cell, filePath, false);
+        } else if (type == FileType.SKILLEXPORTSONLY)
         {
-            IOTool.writeSkill(cellJob.cell, cellJob.filePath, true);
-		} else if (cellJob.type == FileType.SPICE)
+            IOTool.writeSkill(cell, filePath, true);
+		} else if (type == FileType.SPICE)
 		{
-			Spice.writeSpiceFile(cellJob, false);
-		} else if (cellJob.type == FileType.TEGAS)
+			Spice.writeSpiceFile(cell, context, filePath, false);
+		} else if (type == FileType.TEGAS)
 		{
-			Tegas.writeTegasFile(cellJob);
-		} else if (cellJob.type == FileType.VERILOG)
+			Tegas.writeTegasFile(cell, context, filePath);
+		} else if (type == FileType.VERILOG)
 		{
-			Verilog.writeVerilogFile(cellJob);
+			Verilog.writeVerilogFile(cell, context, filePath);
 		}
     }
 
@@ -866,36 +862,32 @@ public class Output
      */
     public static class OutputCellInfo extends Job
     {
-        Cell cell;
-        VarContext context;
-        String filePath;
-        FileType type;
-        List<PolyBase> override;
+        private Cell cell;
+        private VarContext context;
+        private String filePath;
+        private FileType type;
+        private List<PolyBase> override;
 
         /**
          * @param cell the Cell to be written.
          * @param context the VarContext of the Cell (its position in the hierarchy above it).
          * @param filePath the path to the disk file to be written.
-         * @param type the format of the output file.
-         * @param startJob to start job immediately
          * @param override the list of Polys to write instead of cell contents.
          */
-        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob,
-        	Job.Type jobType, List<PolyBase> override)
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
         {
-            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), jobType, null, null, Priority.USER);
+            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
             this.type = type;
             this.override = override;
-            if (startJob)
-                startJob();
+            startJob();
         }
 
         public boolean doIt() throws JobException
         {
-            writeCell(this);
+            writeCell(cell, context, filePath, type, override);
             return true;
         }
 

@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.ArrayList;
@@ -55,23 +56,22 @@ public class PAL extends Output
 
 	/**
 	 * The main entry point for PAL deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Pal.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writePALFile(OutputCellInfo cellJob)
+	public static void writePALFile(Cell cell, VarContext context, String filePath)
 	{
 		PAL out = new PAL();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		out.initialize(cellJob.cell);
+		if (out.openTextOutputStream(filePath)) return;
+		out.initialize(cell);
 		PALNetlister netlister = new PALNetlister(out);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlister, true);
-//		Netlist netlist = cellJob.cell.getNetlist(true);
-//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlist, netlister);
-		out.terminate(cellJob.cell);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+//		Netlist netlist = cell.getNetlist(true);
+//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+		out.terminate(cell);
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

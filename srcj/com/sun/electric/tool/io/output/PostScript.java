@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -87,7 +88,6 @@ public class PostScript extends Output
 	/** true to generate stippled color PostScript. */					private boolean psUseColorStip;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
-    /** the Job being run for this operation */                         private Job job;
     private Rectangle2D printBounds;
     /** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
 	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
@@ -103,21 +103,20 @@ public class PostScript extends Output
 
 	/**
 	 * Main entry point for PostScript output.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the name of the file to create.
+     * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create.
+	 * @param override a list of overriding polygons to write.
 	 */
-	public static void writePostScriptFile(OutputCellInfo cellJob)
+	public static void writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
 	{
 		// just do this file
-		writeCellToFile(cellJob.cell, cellJob.filePath, cellJob, cellJob.override);
+		writeCellToFile(cell, filePath, override);
 	}
 
-	private static boolean writeCellToFile(Cell cell, String filePath, Job job, List<PolyBase> override)
+	private static boolean writeCellToFile(Cell cell, String filePath, List<PolyBase> override)
 	{
 		boolean error = false;
-		PostScript out = new PostScript(cell, job, override);
+		PostScript out = new PostScript(cell, override);
 		if (out.openTextOutputStream(filePath)) error = true;
         else // write out the cell
         {
@@ -137,10 +136,9 @@ public class PostScript extends Output
 	}
 
 	/** Creates a new instance of PostScript */
-	private PostScript(Cell cell, Job job, List<PolyBase> override)
+	private PostScript(Cell cell, List<PolyBase> override)
 	{
         this.cell = cell;
-        this.job = job;
         this.override = override;
 	}
 
@@ -576,9 +574,6 @@ public class PostScript extends Output
 
 	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel)
 	{
-        // Job has been aborted
-        if (job != null && job.checkAbort()) return;
-
         if (override != null)
         {
 			for (PolyBase poly : override)
@@ -842,7 +837,7 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-				boolean err = writeCellToFile(oCell, syncFileName, null, null);
+				boolean err = writeCellToFile(oCell, syncFileName, null);
 				if (err) return true;
 
 				// mark the synchronized date

@@ -83,15 +83,14 @@ public class ECAD extends Output
 
 	/**
 	 * The main entry point for ECAD deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with ECAD.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeECADFile(OutputCellInfo cellJob)
+	public static void writeECADFile(Cell cell, VarContext context, String filePath)
 	{
 		ECAD out = new ECAD();
-		out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
+		out.writeNetlist(cell, context, filePath);
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)

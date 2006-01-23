@@ -38,6 +38,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -61,22 +62,22 @@ public class Sim extends Output
 
 	/**
 	 * The main entry point for Sim deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-     * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Sim.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create with Sim.
+	 * @param type the type of deck being written.
 	 */
-	public static void writeSimFile(OutputCellInfo cellJob)
+	public static void writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
 	{
 		Sim out = new Sim();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
+		if (out.openTextOutputStream(filePath)) return;
 
-		out.init(cellJob.cell, cellJob.filePath, cellJob.type);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, new Visitor(out, cellJob.type), true);
+		out.init(cell, filePath, type);
+		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), true);
 //		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out, cellJob.type));
 
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

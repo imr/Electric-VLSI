@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -64,17 +65,16 @@ public class L extends Output
 
 	/**
 	 * The main entry point for L deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * filePath: the disk file to create with L.
+     * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeLFile(OutputCellInfo cellJob)
+	public static void writeLFile(Cell cell, String filePath)
 	{
 		L out = new L();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		out.writeLCells(cellJob.cell);
+		if (out.openTextOutputStream(filePath)) return;
+		out.writeLCells(cell);
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

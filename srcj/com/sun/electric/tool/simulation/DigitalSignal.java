@@ -69,14 +69,22 @@ public class DigitalSignal extends TimedSignal
 	 * Method to set the state information for all events in this signal.
 	 * @param state an array of state information for every event on this signal.
 	 */
-	public void setStateVector(int [] state) { this.state = state;   bounds = null; }
+	public void setStateVector(int [] state)
+	{
+		this.state = state;
+		bounds = null;
+	}
 
 	/**
 	 * Method to return the number of events in this signal.
 	 * This is the number of events along the horizontal axis, usually "time".
 	 * @return the number of events in this signal.
 	 */
-	public int getNumEvents() { return state.length; }
+	public int getNumEvents()
+	{
+		if (state == null) return 0;
+		return state.length;
+	}
 
 	/**
 	 * Method to compute the low and high range of time value on this signal.

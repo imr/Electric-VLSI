@@ -85,15 +85,14 @@ public class Eagle extends Output
 
 	/**
 	 * The main entry point for Eagle deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with Eagle.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeEagleFile(OutputCellInfo cellJob)
+	public static void writeEagleFile(Cell cell, VarContext context, String filePath)
 	{
 		Eagle out = new Eagle();
-		out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
+		out.writeNetlist(cell, context, filePath);
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)

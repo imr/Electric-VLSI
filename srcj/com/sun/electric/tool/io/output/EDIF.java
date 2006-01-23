@@ -177,7 +177,6 @@ public class EDIF extends Topology
     private static final String primitivesLibName = "ELECTRIC_PRIMS";
 
     private int scale = 20;
-    private Library scratchLib;
     EDIFEquiv equivs;
     private final HashMap<Library,LibToWrite> libsToWrite; // key is Library, Value is LibToWrite
     private final List<Library> libsToWriteOrder; // list of libraries to write, in order
@@ -206,18 +205,17 @@ public class EDIF extends Topology
 
 	/**
 	 * The main entry point for EDIF deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-     * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with EDIF.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeEDIFFile(OutputCellInfo cellJob)
+	public static void writeEDIFFile(Cell cell, VarContext context, String filePath)
 	{
 		EDIF out = new EDIF();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
-		if (out.writeCell(cellJob.cell, cellJob.context)) return;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**
@@ -234,10 +232,6 @@ public class EDIF extends Topology
 	{
         // find the edit window
 		String name = makeToken(topCell.getName());
-        scratchLib = Library.findLibrary("__edifTemp__");
-        if (scratchLib != null) scratchLib.kill("");
-        scratchLib = Library.newInstance("__edifTemp__", null);
-        scratchLib.setHidden();
 
 		// If this is a layout representation, then create the footprint
 		if (topCell.getView() == View.LAYOUT)
@@ -488,8 +482,6 @@ public class EDIF extends Topology
 
         // clean up
         blockFinish();
-
-        scratchLib.kill("");
 	}
 
     /**
@@ -1237,10 +1229,8 @@ public class EDIF extends Topology
 			blockClose("port");
 		}
 
-        Cell tempCell = Cell.newInstance(scratchLib, "temp");
-        NodeInst ni = NodeInst.newInstance(pn, new Point2D.Double(0,0), pn.getDefWidth(), pn.getDefHeight(), tempCell);
+        NodeInst ni = NodeInst.makeDummyInstance(pn);
         writeSymbol(pn, ni);
-        tempCell.kill();
 		blockClose("cell");
 	}
 
@@ -1705,7 +1695,6 @@ public class EDIF extends Topology
 	{
 		// make transformation matrix within the current nodeinst
 		if (ni.getOrient().equals(Orientation.IDENT))
-//		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
 		{
 			writeSymbolNodeInst(ni, prevtrans);
 		} else
@@ -1811,7 +1800,6 @@ public class EDIF extends Topology
 			setGraphic(EGUNKNOWN);
 		Poly [] varPolys = new Poly[num];
 		ai.addDisplayableVariables(ai.getBounds(), varPolys, 0, null, false);
-//        writeDisplayableVariables(varPolys, "ARC_name", trans);
         writeDisplayableVariables(varPolys, trans);
 	}
 

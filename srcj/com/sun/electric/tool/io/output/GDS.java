@@ -40,6 +40,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -130,27 +131,26 @@ public class GDS extends Geometry
 
 	/**
 	 * Main entry point for GDS output.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-     * context: the hierarchical context to the cell.
-	 * filePath: the name of the file to create.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeGDSFile(OutputCellInfo cellJob)
+	public static void writeGDSFile(Cell cell, VarContext context, String filePath)
 	{
-		if (cellJob.cell.getView() != View.LAYOUT)
+		if (cell.getView() != View.LAYOUT)
 		{
 			System.out.println("Can only write GDS for layout cells");
 			return;
 		}
 		GDS out = new GDS();
-		if (out.openBinaryOutputStream(cellJob.filePath)) return;
-		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cellJob.cell));
-		if (out.writeCell(cellJob.cell, cellJob.context, visitor)) return;
+		if (out.openBinaryOutputStream(filePath)) return;
+		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
+		if (out.writeCell(cell, context, visitor)) return;
 		if (out.closeBinaryOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 
 		// warn if library name was changed
-		String topCellName = cellJob.cell.getName();
+		String topCellName = cell.getName();
 		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
 		if (!topCellName.equals(mangledTopCellName))
 			System.out.println("Warning: library name in this file is " + mangledTopCellName +

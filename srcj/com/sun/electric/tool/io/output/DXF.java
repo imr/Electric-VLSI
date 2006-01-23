@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -59,19 +60,18 @@ public class DXF extends Output
 
 	/**
 	 * The main entry point for DXF deck writing.
-	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
-	 * filePath: the disk file to create with DXF.
+     * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create.
 	 */
-	public static void writeDXFFile(OutputCellInfo cellJob)
+	public static void writeDXFFile(Cell cell, String filePath)
 	{
 		DXF out = new DXF();
-		if (out.openTextOutputStream(cellJob.filePath)) return;
+		if (out.openTextOutputStream(filePath)) return;
 
-		out.writeDXF(cellJob.cell);
+		out.writeDXF(cell);
 
 		if (out.closeTextOutputStream()) return;
-		System.out.println(cellJob.filePath + " written");
+		System.out.println(filePath + " written");
 	}
 
 	/**

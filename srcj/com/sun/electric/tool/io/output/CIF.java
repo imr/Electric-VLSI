@@ -79,22 +79,10 @@ public class CIF extends Geometry
 	private static final String badNameChars = ":{}/\\";
 
 	/**
-	 * Main entry point for CIF output.
-	 * @param cellJob contains following information
-	 * cell: the top-level cell to write.
-	 * filePath: the name of the file to create.
-	 * @return the number of errors detected
-	 */
-	public static int writeCIFFile(OutputCellInfo cellJob)
-	{
-		// initialize preferences
-		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath);
-	}
-
-	/**
 	 * User Interface independent entry point for CIF output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the name of the file to create.
+     * @param cell the top-level cell to write.
+     * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
 	 * @return the number of errors detected
 	 */
 	public static int writeCIFFile(Cell cell, VarContext context, String filePath)

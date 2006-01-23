@@ -169,7 +169,7 @@ public class Simulate extends Input
 				fileURL = TextUtils.makeURLToFile(filePath + fileName);
 			}
 		}
-		ReadSimulationOutput job = new ReadSimulationOutput(type, is, fileURL, cell, ww);
+		new ReadSimulationOutput(type, is, fileURL, cell, ww);
 	}
 
 	/**
@@ -177,13 +177,13 @@ public class Simulate extends Input
 	 */
 	private static class ReadSimulationOutput extends Job
 	{
-		FileType type;
-		Simulate is;
-		URL fileURL;
-		Cell cell;
-		WaveformWindow ww;
+		private FileType type;
+		private Simulate is;
+		private URL fileURL;
+		private Cell cell;
+		private WaveformWindow ww;
 
-		protected ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
+		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
 			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
