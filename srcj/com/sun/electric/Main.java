@@ -128,6 +128,32 @@ public final class Main
 			System.exit(0);
 		}
 
+        // -help
+        if (hasCommandLineOption(argsList, "-help"))
+		{
+	        System.out.println("Usage (without plugins):");
+	        System.out.println("\tjava -jar electric.jar [electric-options]");
+	        System.out.println("Usage (with plugins):");
+	        System.out.println("\tjava -classpath electric.jar<delim>{list of plugins} com.sun.electric.Launcher [electric-options]");
+	        System.out.println("\t\twhere <delim> is OS-dependant separator (colon or semicolon)");
+	        System.out.println("\nOptions:");
+            System.out.println("\t-mdi: multiple document interface mode");
+	        System.out.println("\t-sdi: single document interface mode");
+	        System.out.println("\t-NOMINMEM: ignore minimum memory provided for JVM");
+	        System.out.println("\t-s <script name>: bean shell script to execute");
+	        System.out.println("\t-version: version information");
+	        System.out.println("\t-v: brief version information");
+	        System.out.println("\t-debug: debug mode. Extra information is available");
+            System.out.println("\t-NOTHREADING: turn off Job threading.");
+	        System.out.println("\t-batch: running in batch mode.");
+	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
+            System.out.println("\t-server: dump trace of snapshots");
+            System.out.println("\t-client: replay trace of snapshots");
+	        System.out.println("\t-help: this message");
+
+			System.exit(0);
+		}
+
 
 		// -debug for debugging
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
@@ -182,32 +208,6 @@ public final class Main
     //		MacOSXInterface.registerMacOSXApplication(argsList);
         }
 
-        // -help
-        if (hasCommandLineOption(argsList, "-help"))
-		{
-	        System.out.println("Usage (without plugins):");
-	        System.out.println("\tjava -jar electric.jar [electric-options]");
-	        System.out.println("Usage (with plugins):");
-	        System.out.println("\tjava -classpath electric.jar<delim>{list of plugins} com.sun.electric.Launcher [electric-options]");
-	        System.out.println("\t\twhere <delim> is OS-dependant separator (colon or semicolon)");
-	        System.out.println("\nOptions:");
-            System.out.println("\t-mdi: multiple document interface mode");
-	        System.out.println("\t-sdi: single document interface mode");
-	        System.out.println("\t-NOMINMEM: ignore minimum memory provided for JVM");
-	        System.out.println("\t-s <script name>: bean shell script to execute");
-	        System.out.println("\t-version: version information");
-	        System.out.println("\t-v: brief version information");
-	        System.out.println("\t-debug: debug mode. Extra information is available");
-            System.out.println("\t-NOTHREADING: turn off Job threading.");
-	        System.out.println("\t-batch: running in batch mode.");
-	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
-            System.out.println("\t-server: dump trace of snapshots");
-            System.out.println("\t-client: replay trace of snapshots");
-	        System.out.println("\t-help: this message");
-
-			System.exit(0);
-		}
-
         ActivityLogger.initialize(true, true, false);
         //runThreadStatusTimer();
         new EventProcessor();
@@ -226,6 +226,7 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
+        Job.initJobManager();
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{
@@ -656,22 +657,22 @@ public final class Main
 //        Timer timer = new Timer(delay, new ThreadStatusTask());
 //        timer.start();
 //    }
-
-    private static class ThreadStatusTask implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            Thread t = Thread.currentThread();
-            ThreadGroup group = t.getThreadGroup();
-            // get the top level group
-            while (group.getParent() != null)
-                group = group.getParent();
-            Thread [] threads = new Thread[200];
-            int numThreads = group.enumerate(threads, true);
-            StringBuffer buf = new StringBuffer();
-            for (int i=0; i<numThreads; i++) {
-                buf.append("Thread["+i+"] "+threads[i]+": alive: "+threads[i].isAlive()+", interrupted: "+threads[i].isInterrupted()+"\n");
-            }
-            ActivityLogger.logThreadMessage(buf.toString());
-        }
-    }
+//
+//    private static class ThreadStatusTask implements ActionListener {
+//        public void actionPerformed(ActionEvent e) {
+//            Thread t = Thread.currentThread();
+//            ThreadGroup group = t.getThreadGroup();
+//            // get the top level group
+//            while (group.getParent() != null)
+//                group = group.getParent();
+//            Thread [] threads = new Thread[200];
+//            int numThreads = group.enumerate(threads, true);
+//            StringBuffer buf = new StringBuffer();
+//            for (int i=0; i<numThreads; i++) {
+//                buf.append("Thread["+i+"] "+threads[i]+": alive: "+threads[i].isAlive()+", interrupted: "+threads[i].isInterrupted()+"\n");
+//            }
+//            ActivityLogger.logThreadMessage(buf.toString());
+//        }
+//    }
 
 }

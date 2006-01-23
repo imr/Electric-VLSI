@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -81,7 +82,7 @@ import java.util.Stack;
  * <P>
  * This class is thread-safe.
  */
-public class VarContext
+public class VarContext implements Serializable
 {
 	private static class ValueCache {
 
@@ -116,7 +117,7 @@ public class VarContext
 	private final VarContext prev;
     private final Nodable ni;
     private final PortInst pi;
-    private ValueCache cache;
+    private transient ValueCache cache;
 
     // ------------------------ private methods -------------------------------
 	// For the global context.

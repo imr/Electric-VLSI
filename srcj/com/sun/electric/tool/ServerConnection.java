@@ -48,7 +48,7 @@ public class ServerConnection extends Thread {
     volatile String jobName;
     private volatile byte[] result;
     private final ArrayList<Object> writeQueue = new ArrayList<Object>();
-    private final ArrayList<ReceivedJob> receivedJobs = new ArrayList<ReceivedJob>();
+    private final ArrayList<EJob> receivedJobs = new ArrayList<EJob>();
     
     ServerConnection(int connectionId, Socket socket) {
         super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
@@ -83,20 +83,20 @@ public class ServerConnection extends Thread {
         
     }
     
-    synchronized ReceivedJob peekJob() {
+    synchronized EJob peekJob() {
         return receivedJobs.isEmpty() ? null : receivedJobs.get(0);
     }
     
-    synchronized void addJob(ReceivedJob rj) {
+    synchronized void addJob(EJob ejob) {
         if (receivedJobs.isEmpty()) {
             synchronized (Job.databaseChangesMutex) {
                 Job.databaseChangesMutex.notify();
             }
         }
-        receivedJobs.add(rj);
+        receivedJobs.add(ejob);
     }
 
-    synchronized ReceivedJob getJob() {
+    synchronized EJob getJob() {
         if (receivedJobs.isEmpty()) return null;
         return receivedJobs.remove(0);
     }
@@ -140,18 +140,6 @@ public class ServerConnection extends Thread {
         }
     }
     
-    static class ReceivedJob {
-        final ServerConnection connection;
-        final int jobId;
-        final byte[] bytes;
-
-        ReceivedJob(ServerConnection connection, int jobId, byte[] bytes) {
-            this.connection = connection;
-            this.jobId = jobId;
-            this.bytes = bytes;
-        }
-    }
-    
     private static class ConnectionReader extends Thread {
         private final static int STACK_SIZE = 1024;
         private final ServerConnection connection;
@@ -164,12 +152,14 @@ public class ServerConnection extends Thread {
         public void run() {
             try {
                 DataInputStream in = new DataInputStream(new BufferedInputStream(connection.socket.getInputStream()));
-                int numStarted = 0;
                 for (;;) {
+                    int jobId = in.readInt();
+                    Job.Type jobType = Job.Type.valueOf(in.readUTF());
+                    String jobName = in.readUTF();
                     int len = in.readInt();
                     byte[] bytes = new byte[len];
                     in.readFully(bytes);
-                    connection.addJob(new ReceivedJob(connection, ++numStarted, bytes));
+                    connection.addJob(new EJob(connection, jobId, jobType, jobName, bytes));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

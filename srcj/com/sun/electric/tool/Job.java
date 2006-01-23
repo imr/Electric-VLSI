@@ -31,9 +31,11 @@ import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
@@ -41,6 +43,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -136,29 +139,11 @@ public abstract class Job implements Serializable {
 	/**
 	 * Priority is a typesafe enum class that describes the priority of a job.
 	 */
-	public static class Priority
-	{
-		private final String name;
-		private final int level;
-
-		private Priority(String name, int level) { this.name = name;   this.level = level; }
-
-		/**
-		 * Returns a printable version of this Priority.
-		 * @return a printable version of this Priority.
-		 */
-		public String toString() { return name; }
-
-		/**
-		 * Returns a level of this Priority.
-		 * @return a level of this Priority.
-		 */
-		public int getLevel() { return level; }
-
-		/** The highest priority: from the user. */		public static final Priority USER         = new Priority("user", 1);
-		/** Next lower priority: visible changes. */	public static final Priority VISCHANGES   = new Priority("visible-changes", 2);
-		/** Next lower priority: invisible changes. */	public static final Priority INVISCHANGES = new Priority("invisble-changes", 3);
-		/** Lowest priority: analysis. */				public static final Priority ANALYSIS     = new Priority("analysis", 4);
+	public static enum Priority {
+		/** The highest priority: from the user. */		USER,
+		/** Next lower priority: visible changes. */	VISCHANGES,
+		/** Next lower priority: invisible changes. */	INVISCHANGES,
+		/** Lowest priority: analysis. */				ANALYSIS;
 	}
 
     public static Iterator<Job> getDatabaseThreadJobs() {
@@ -178,7 +163,7 @@ public abstract class Job implements Serializable {
         // Job Management
 		DatabaseChangesThread() {
 			super("Database");
-            setUserInterface(currentUI);
+            setUserInterface(new UserInterfaceRedirect());
 			start();
 		}
 
@@ -267,9 +252,9 @@ public abstract class Job implements Serializable {
     /** schedule thread to abort */             private boolean scheduledToAbort;
 	/** report execution time regardless MIN_NUM_SECONDS */
 												private boolean reportExecution = false;
-    /** name of job */                          private String jobName;
+    /** name of job */                          String jobName;
     /** tool running the job */                 private Tool tool;
-    /** type of job (change or examine) */      private Type jobType;
+    /** type of job (change or examine) */      Type jobType;
 //    /** priority of job */                      private Priority priority;
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
@@ -277,22 +262,24 @@ public abstract class Job implements Serializable {
     /** progress */                             private String progress = null;
     /** list of saved Highlights */             private transient List<Object> savedHighlights;
     /** saved Highlight offset */               private transient Point2D savedHighlightsOffset;
-    /** Fields changed on server side. */       private transient ArrayList<Field> changedFields;
+    /** Fields changed on server side. */       transient ArrayList<Field> changedFields;
 //    /** Thread job will run in (null for new thread) */
 //                                                private transient Thread thread;
     /** Connection from which we accepted */    transient ServerConnection connection = null;
+    transient EJob ejob;
 	private static UserInterface currentUI;
     private static Job clientJob;
 
     public static void setThreadMode(Mode mode, UserInterface userInterface) {
         threadMode = mode;
+        BATCHMODE = (mode == Mode.BATCH);
         currentUI = userInterface;
-        switch (mode) {
+    }
+   
+    public static void initJobManager() {
+        switch (threadMode) {
             case FULL_SCREEN:
-                databaseChangesThread = new DatabaseChangesThread();
-                break;
             case BATCH:
-                BATCHMODE = true;
                 databaseChangesThread = new DatabaseChangesThread();
                 break;
             case SERVER:
@@ -303,13 +290,13 @@ public abstract class Job implements Serializable {
                 break;
             case CLIENT:
                 logger.finer("setThreadMode");
-//                databaseChangesThread = new DatabaseChangesThread();
                 clientLoop(socketPort);
                 // unreachable
                 break;
         }
     }
-   
+    
+    
     public static Mode getRunMode() { return threadMode; }
     
     public Job() {}
@@ -519,17 +506,17 @@ public abstract class Job implements Serializable {
     }
     
     private static Job deserializeJob(ServerConnection connection) {
-        ServerConnection.ReceivedJob rj = connection.getJob();
+        EJob ejob = connection.getJob();
         try {
-            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(rj.bytes));
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(ejob.serializedJob));
             Job job = (Job)in.readObject();
-            assert job.jobId == rj.jobId;
+            assert job.jobId == ejob.jobId;
             job.connection = connection;
             in.close();
             return job;
         } catch (Throwable e) {
             e.printStackTrace();
-            connection.sendTerminateJob(rj.jobId, serializeException(e));
+            connection.sendTerminateJob(ejob.jobId, serializeException(e));
             return null;
         }
     }
@@ -605,7 +592,7 @@ public abstract class Job implements Serializable {
 
         Job serverJob = this;
         String className = getClass().getName();
-        if (getDebug() && connection == null && !className.endsWith("RenderJob")) {
+        if (getDebug() && connection == null && jobType != Type.EXAMINE && jobType != Type.REMOTE_EXAMINE) {
             serverJob = testSerialization();
             if (serverJob != null) {
                 // transient fields ???
@@ -619,9 +606,9 @@ public abstract class Job implements Serializable {
         
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 
-        Cell cell = Job.getUserInterface().getCurrentCell();
-        if (connection == null)
-            ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
+//        Cell cell = Job.getUserInterface().getCurrentCell();
+//        if (connection == null)
+//            ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
 		try {
             if (jobType != Type.EXAMINE) {
@@ -1271,6 +1258,9 @@ public abstract class Job implements Serializable {
                         out.writeObject(job);
                         out.close();
                         byte[] bytes = byteStream.toByteArray();
+                        clientOutputStream.writeInt(job.jobId);
+                        clientOutputStream.writeUTF(job.jobType.toString());
+                        clientOutputStream.writeUTF(job.jobName);
                         clientOutputStream.writeInt(bytes.length);
                         clientOutputStream.write(bytes);
                         clientOutputStream.flush();
@@ -1475,5 +1465,181 @@ public abstract class Job implements Serializable {
             
         }
     }
-}
 
+    private static class UserInterfaceRedirect implements UserInterface
+	{
+		public EditWindow_ getCurrentEditWindow_() {
+//            System.out.println("UserInterface.getCurrentEditWindow was called from DatabaseChangesThread");
+            return currentUI.getCurrentEditWindow_();
+        }
+		public EditWindow_ needCurrentEditWindow_()
+		{
+            System.out.println("UserInterface.needCurrentEditWindow was called from DatabaseChangesThread");
+			return null; 
+		}
+        /** Get current cell from current library */
+		public Cell getCurrentCell()
+        {
+            System.out.println("UserInterface.getCurrentCell was called from DatabaseChangesThread");
+			Library lib = Library.getCurrent();
+			if (lib == null) return null;
+			return lib.getCurCell();
+        }
+		public Cell needCurrentCell()
+		{
+            System.out.println("UserInterface.needCurrentCell was called from DatabaseChangesThread");
+            /** Current cell based on current library */
+            Cell curCell = getCurrentCell();
+            if (curCell == null)
+            {
+                System.out.println("There is no current cell for this operation.  To create one, use the 'New Cell' command from the 'Cell' menu.");
+            }
+            return curCell;
+		}
+		public void repaintAllEditWindows() {
+            System.out.println("UserInterface.repaintAllEditWindow was called from DatabaseChangesThread");
+        }
+        
+        public void adjustReferencePoint(Cell cell, double cX, double cY) {
+            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
+        };
+		public void alignToGrid(Point2D pt) {
+            System.out.println("UserInterface.alignToGrid was called from DatabaseChangesThread");
+        }
+		public int getDefaultTextSize() { return 14; }
+//		public Highlighter getHighlighter();
+		public EditWindow_ displayCell(Cell cell) {
+            System.out.println("UserInterface.displayCell was called from DatabaseChangesThread");
+            return null;
+        }
+
+		public void wantToRedoErrorTree() {
+//            System.out.println("UserInterface.wantToRedoErrorTree was called from DatabaseChangesThread");
+            currentUI.wantToRedoErrorTree();
+        }
+        public void wantToRedoJobTree() {
+//            System.out.println("UserInterface.wantToRedoJobTree was called from DatabaseChangesThread");
+            currentUI.wantToRedoJobTree();
+        }
+
+        public void termLogging(final ErrorLogger logger, boolean explain) {
+            System.out.println("UserInterface.termLogging was called from DatabaseChangesThread");
+        }
+
+        /* Job related **/
+        public void invokeLaterBusyCursor(final boolean state){
+//            System.out.println("UserInterface.invokeLaterBusyCursor was called from DatabaseChangesThread");
+            currentUI.invokeLaterBusyCursor(state);
+        }
+        public void setBusyCursor(boolean state) {
+            System.out.println("UserInterface.setBusyCursor was called from DatabaseChangesThread");
+        }
+
+        /**
+         * Method to return the error message associated with the current error.
+         * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
+         * with associated geometry modules (if nonzero).
+         */
+        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
+        {
+            System.out.println("UserInterface.reportLog was called from DatabaseChangesThread");
+            // return the error message
+            return log.getMessageString();
+        }
+
+        /**
+         * Method to show an error message.
+         * @param message the error message to show.
+         * @param title the title of a dialog with the error message.
+         */
+        public void showErrorMessage(Object message, String title)
+        {
+            System.out.println("UserInterface.showErrorMessage was called from DatabaseChangesThread");
+        	System.out.println(message);
+        }
+
+        /**
+         * Method to show an informational message.
+         * @param message the message to show.
+         * @param title the title of a dialog with the message.
+         */
+        public void showInformationMessage(Object message, String title)
+        {
+            System.out.println("UserInterface.showInformationMessage was called from DatabaseChangesThread");
+        	System.out.println(message);
+        }
+
+        /**
+         * Method to show a message and ask for confirmation.
+         * @param message the message to show.
+         * @return true if "yes" was selected, false if "no" was selected.
+         */
+        public boolean confirmMessage(Object message) {
+            System.out.println("UserInterface.confirmMessage was called from DatabaseChangesThread");
+            return true;
+        }
+
+        /**
+         * Method to ask for a choice among possibilities.
+         * @param message the message to show.
+         * @param title the title of the dialog with the query.
+         * @param choices an array of choices to present, each in a button.
+         * @param defaultChoice the default choice.
+         * @return the index into the choices array that was selected.
+         */
+        public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
+        {
+            System.out.println("UserInterface.askForChoice was called from DatabaseChangesThread");
+        	System.out.println(message + " CHOOSING " + defaultChoice);
+        	for(int i=0; i<choices.length; i++) if (choices[i].equals(defaultChoice)) return i;
+        	return 0;
+        }
+
+        /**
+         * Method to ask for a line of text.
+         * @param message the prompt message.
+         * @param title the title of a dialog with the message.
+         * @param def the default response.
+         * @return the string (null if cancelled).
+         */
+        public String askForInput(Object message, String title, String def) {
+            System.out.println("UserInterface.askForInput was called from DatabaseChangesThread");
+            return def;
+        }
+
+        /** For Pref */
+        public void restoreSavedBindings(boolean initialCall) {
+            System.out.println("UserInterface.restoreSavedBindings was called from DatabaseChangesThread");
+        }
+        public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
+        {
+            System.out.println("UserInterface.finishPrefReconcilation was called from DatabaseChangesThread");
+            Pref.finishPrefReconcilation(meaningsToReconcile);
+        }
+
+        /**
+         * Method to import the preferences from an XML file.
+         * Prompts the user and reads the file.
+         */
+        public void importPrefs() {
+            System.out.println("UserInterface.importPrefs was called from DatabaseChangesThread");
+        }
+
+        /**
+         * Method to export the preferences to an XML file.
+         * Prompts the user and writes the file.
+         */
+        public void exportPrefs() {
+            System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
+        }
+
+        /** For TextWindow */
+        public String [] getEditedText(Cell cell) {
+            System.out.println("UserInterface.getEditedText was called from DatabaseChangesThread");
+            return null;
+        }
+        public void updateText(Cell cell, String [] strings) {
+            System.out.println("UserInterface.updateText was called from DatabaseChangesThread");
+        }
+	}
+}

@@ -27,6 +27,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -116,6 +117,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
         if (obj instanceof TextDescriptor) return new ETextDescriptor((TextDescriptor)obj);
         if (obj instanceof Network) return new ENetwork((Network)obj);
+        if (obj instanceof Nodable) return new ENodable((Nodable)obj);
 
         if (obj instanceof Component) {
             throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
@@ -388,4 +390,28 @@ public class EObjectOutputStream extends ObjectOutputStream {
         }
     }
     
+    private static class ENodable implements Serializable {
+        int cellIndex;
+        String nodableName;
+        
+        private ENodable(Nodable no) {
+            cellIndex = no.getParent().getCellIndex();
+            nodableName = no.getName();
+        }
+        
+        private Object readResolve() throws ObjectStreamException {
+            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
+            Netlist netlist = cell.getUserNetlist();
+            Nodable nodable = null;
+            for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
+                Nodable no = it.next();
+                if (no.getName().equals(nodableName)) {
+                    nodable = no;
+                    break;
+                }
+            }
+            if (nodable == null) throw new InvalidObjectException("Nodable");
+            return nodable;
+        }
+    }
 }
