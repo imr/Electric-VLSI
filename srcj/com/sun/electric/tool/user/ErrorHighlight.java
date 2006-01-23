@@ -56,7 +56,7 @@ class ErrorHighExport extends ErrorHighlight {
 
     void addToHighlighter(Highlighter h)
     {
-        h.addText(pp, cell, null);
+        h.addText(pp, cell, Export.EXPORT_NAME);
     }
 }
 
