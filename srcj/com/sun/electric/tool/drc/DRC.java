@@ -951,15 +951,19 @@ public class DRC extends Listener
 			{
 				Cell cell = it.next();
 				Date now = goodDRCDate.get(cell);
-				setLastDRCDateAndBits(cell, now, activeBits);
+                if (!cell.isLinked())
+                    System.out.println("Cell '" + cell + "' is invalid to update DRC date");
+                else
+				    setLastDRCDateAndBits(cell, now, activeBits);
 			}
 
 			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = it.next();
                 if (!cell.isLinked())
-                    new JobException("Cell '" + cell + "' is invalid");
-				cleanDRCDateAndBits(cell);
+                    System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
+                else
+				    cleanDRCDateAndBits(cell);
 			}
 			return true;
 		}
