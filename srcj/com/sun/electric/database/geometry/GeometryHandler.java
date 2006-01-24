@@ -156,7 +156,7 @@ public abstract class GeometryHandler {
     }
 
     /**
-     * Auxiliar class to sort shapes in array
+     * Auxiliar class to sort shapes in array based on X position
      */
 	private static class ShapeSort implements Comparator<Shape>
     {
@@ -175,7 +175,7 @@ public abstract class GeometryHandler {
     }
 
     /**
-     * Auxiliar class to sort areas in array
+     * Auxiliar class to sort areas in array based on X position
      */
     private static class AreaSort implements Comparator<Area>
     {
