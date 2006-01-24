@@ -68,7 +68,7 @@ import org.xml.sax.SAXParseException;
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger implements DatabaseChangeListener
+public class ErrorLogger implements DatabaseChangeListener, Serializable
 {
     /**
      * Create a Log of a single message.
