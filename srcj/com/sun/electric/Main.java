@@ -122,7 +122,6 @@ public final class Main
 		{
 			System.out.println(Version.getApplicationInformation());
 			System.out.println("\t"+Version.getVersionInformation());
-			System.out.println("\t"+Version.getAuthorInformation());
 			System.out.println("\t"+Version.getCopyrightInformation());
 			System.out.println("\t"+Version.getWarrantyInformation());
 			System.exit(0);
