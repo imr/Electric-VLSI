@@ -215,7 +215,7 @@ public class DXF extends Input
 			Cell found = null;
 			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cell.getName().equals(fr.refName)) { found = cell;   break; }
 			}
 			if (found == null)
@@ -334,9 +334,8 @@ public class DXF extends Input
 		{
 			String warning = "Ignored layers ";
 			boolean first = true;
-			for(Iterator<String> it = ignoredLayerNames.iterator(); it.hasNext(); )
+			for(String name : ignoredLayerNames)
 			{
-				String name = (String)it.next();
 				if (!first) warning += ", ";
 				first = false;
 				warning += "'" + name + "'";
@@ -804,7 +803,7 @@ public class DXF extends Input
 			Cell found = null;
 			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
-				Cell np = (Cell)it.next();
+				Cell np = it.next();
 				if (np.getName().equals(pt)) { found = np;   break; }
 			}
 			if (found == null)
@@ -1358,7 +1357,7 @@ public class DXF extends Input
 
 		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() instanceof Cell)
 			{
 				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
@@ -1435,7 +1434,7 @@ public class DXF extends Input
 
 		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() instanceof Cell)
 			{
 				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
@@ -1514,7 +1513,7 @@ public class DXF extends Input
 		validLayerNames = new HashSet<String>();
 		for(Iterator<Layer> it = Artwork.tech.getLayers(); it.hasNext(); )
 		{
-			Layer lay = (Layer)it.next();
+			Layer lay = it.next();
 			String layNames = lay.getDXFLayer();
 			if (layNames == null) continue;
 			while (layNames.length() > 0)

@@ -396,8 +396,7 @@ public class EDIFEquiv {
                 System.out.println("Could not find PrimitiveNode "+parts[2]+" in technology "+parts[1]+" on line "+lineno);
                 return false;
             }
-            for (Iterator<PrimitiveNode.Function> it = PrimitiveNode.Function.getFunctions().iterator(); it.hasNext(); ) {
-                PrimitiveNode.Function function = (PrimitiveNode.Function)it.next();
+            for (PrimitiveNode.Function function : PrimitiveNode.Function.getFunctions()) {
                 if (parts[3].equals(function.getName()) || parts[3].equals(function.getShortName()) ||
                         parts[3].equals(function.getConstantName())) {
                     func = function;
@@ -543,8 +542,7 @@ public class EDIFEquiv {
     }
 
     public void print() {
-        for (Iterator<NodeEquivalence> it = equivsByNodeProto.values().iterator(); it.hasNext(); ) {
-            NodeEquivalence ne = (NodeEquivalence)it.next();
+        for (NodeEquivalence ne : equivsByNodeProto.values()) {
             System.out.println(ne.toString());
         }
     }
@@ -573,13 +571,6 @@ public class EDIFEquiv {
             this.externalView = externalView;
             this.rotation = rotation;
             this.portEquivs = portEquivs;
-            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
-                Object obj = it.next();
-                if (!(obj instanceof PortEquivalence)) {
-                    System.out.println("EDIFEquiv.NodeEquivalence(): invalid argument, portEquivs list must be list of PortEquivalence objects");
-                    return;
-                }
-            }
         }
         /**
          * Get the PortEquivalence object for the Electric port name.
@@ -587,8 +578,7 @@ public class EDIFEquiv {
          * @return null if no such port
          */
         public PortEquivalence getPortEquivElec(String elecPortName) {
-            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
-                PortEquivalence pe = (PortEquivalence)it.next();
+            for (PortEquivalence pe : portEquivs) {
                 if (pe.getElecPort().name.equals(elecPortName))
                     return pe;
             }
@@ -600,8 +590,7 @@ public class EDIFEquiv {
          * @return null if no such port
          */
         public PortEquivalence getPortEquivExt(String extPortName) {
-            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
-                PortEquivalence pe = (PortEquivalence)it.next();
+            for (PortEquivalence pe : portEquivs) {
                 if (pe.getExtPort().name.equals(extPortName))
                     return pe;
             }
@@ -614,8 +603,7 @@ public class EDIFEquiv {
          */
         public List<Port> getExtPorts() {
             List<Port> extPorts = new ArrayList<Port>();
-            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
-                PortEquivalence pe = (PortEquivalence)it.next();
+            for (PortEquivalence pe : portEquivs) {
                 extPorts.add(pe.getExtPort());
             }
             return extPorts;
@@ -625,8 +613,7 @@ public class EDIFEquiv {
             StringBuffer buf = new StringBuffer();
             buf.append("NodeEquivalence Elec: "+np.describe(false)+", func: "+function+"\n");
             buf.append("  Ext: "+externalLib+" "+externalCell+" "+externalView+"\n");
-            for (Iterator<PortEquivalence> it = portEquivs.iterator(); it.hasNext(); ) {
-                PortEquivalence pe = (PortEquivalence)it.next();
+            for (PortEquivalence pe : portEquivs) {
                 buf.append(pe.toString()+"\n");
             }
             return buf.toString();

@@ -193,9 +193,8 @@ public class GDS extends Geometry
 
 		// write all polys by Layer
 		Set<Layer> layers = cellGeom.polyMap.keySet();
-		for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
+		for (Layer layer : layers)
 		{
-			Layer layer = (Layer)it.next();
             // No technology associated, case when art elements are added in layout
             // r.getTechnology() == Generic.tech for layer Glyph
             if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech) continue;
@@ -205,9 +204,9 @@ public class GDS extends Geometry
                 continue;
             }
 			List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
-			for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
+			for (Object obj : polyList)
 			{
-				PolyBase poly = (PolyBase)polyIt.next();
+				PolyBase poly = (PolyBase)obj;
 				Integer firstLayer = (Integer)currentLayerNumbers.getFirstLayer();
 				int layerNum = firstLayer.intValue() & 0xFFFF;
 				int layerType = (firstLayer.intValue() >> 16) & 0xFFFF;
@@ -216,9 +215,8 @@ public class GDS extends Geometry
 		}
 
 		// write all instances
-		for (Iterator<Nodable> noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
+		for (Nodable no : cellGeom.nodables)
 		{
-			Nodable no = (Nodable)noIt.next();
 			writeNodable(no);
 		}
 
@@ -271,12 +269,11 @@ public class GDS extends Geometry
         HashMap<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
         for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
 		{
-            List<NccCellAnnotations.NamePattern> list = (List<NccCellAnnotations.NamePattern>)it2.next();
+            List<NccCellAnnotations.NamePattern> list = it2.next();
             // list of all patterns that should be connected
             Set<String> connectedExports = new TreeSet<String>(new StringComparator());
-            for (Iterator<NccCellAnnotations.NamePattern> it3 = list.iterator(); it3.hasNext(); )
+            for (NccCellAnnotations.NamePattern pat : list)
 			{
-                NccCellAnnotations.NamePattern pat = (NccCellAnnotations.NamePattern)it3.next();
                 for (Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 				{
                     Export e = (Export)it.next();
@@ -546,7 +543,7 @@ public class GDS extends Geometry
 		boolean foundValid = false;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (selectLayer(layer)) foundValid = true;
 		}
 		if (!foundValid)
@@ -570,7 +567,7 @@ public class GDS extends Geometry
         if (!cellNames.containsKey(cell))
             cellNames.put(cell, makeUniqueName(cell, cellNames));
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (ni.getProto() instanceof Cell) {
                 Cell c = (Cell)ni.getProto();
                 Cell cproto = c.contentsView();

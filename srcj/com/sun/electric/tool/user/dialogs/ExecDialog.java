@@ -130,8 +130,8 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         errStream = new ProcessOutput(outputTextArea);
         exec = new Exec(command, envVars, dir, outStream, errStream);
         exec.addFinishedListener(this);
-        for (Iterator<Exec.FinishedListener> it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
-            exec.addFinishedListener((Exec.FinishedListener)it.next());
+        for (Exec.FinishedListener fl : finishedListenersToAdd) {
+            exec.addFinishedListener(fl);
         }
         finishedListenersToAdd.clear();
         setTitle("External Process");
@@ -155,8 +155,8 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         errStream = new ProcessOutput(outputTextArea);
         exec = new Exec(command, envVars, dir, outStream, errStream);
         exec.addFinishedListener(this);
-        for (Iterator<Exec.FinishedListener> it = finishedListenersToAdd.iterator(); it.hasNext(); ) {
-            exec.addFinishedListener((Exec.FinishedListener)it.next());
+        for (Exec.FinishedListener l : finishedListenersToAdd) {
+            exec.addFinishedListener(l);
         }
         finishedListenersToAdd.clear();
         setTitle("External Process");

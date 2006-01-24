@@ -137,8 +137,7 @@ public class ExportChecker {
 		prln("  However, the "+design2+
 		     " Exports are attached to more than one network.");
 		prln("    The "+design1+" Exports: "+exports1);
-		for (Iterator<Port> it=exports2.iterator(); it.hasNext();) {
-			Port p2 = (Port) it.next();
+		for (Port p2 : exports2) {
 			prln("      matches the "+design2+" Exports: "+p2.exportNamesString());
 		}
 	}

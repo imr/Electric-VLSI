@@ -123,7 +123,7 @@ public class ArcInfo extends Info
 		// look at all nodes in the arc description cell
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
 			String str = getValueOnNode(ni);
@@ -133,9 +133,8 @@ public class ArcInfo extends Info
 				case ARCFUNCTION:
 					aIn.func = ArcProto.Function.UNKNOWN;
 					List<ArcProto.Function> allFuncs = ArcProto.Function.getFunctions();
-					for(Iterator<ArcProto.Function> fIt = allFuncs.iterator(); fIt.hasNext(); )
+					for(ArcProto.Function fun : allFuncs)
 					{
-						ArcProto.Function fun = (ArcProto.Function)fIt.next();
 						if (fun.toString().equalsIgnoreCase(str))
 						{
 							aIn.func = fun;
@@ -172,7 +171,7 @@ public class ArcInfo extends Info
 		Rectangle2D nonSpecBounds = null;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 			// ignore the special text nodes
@@ -196,7 +195,7 @@ public class ArcInfo extends Info
 			{
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
 					if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 					// ignore the special text nodes

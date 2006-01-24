@@ -168,9 +168,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 //        public int getNumGeoms()
 //        {
 //            int total = 0;
-//            for(Iterator<ErrorLogger.ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+//            for(ErrorLogger.ErrorHighlight eh : highlights)
 //            {
-//                ErrorLogger.ErrorHighlight eh = (ErrorLogger.ErrorHighlight)it.next();
 //                if (eh.type == ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) total++;
 //            }
 //            return total;
@@ -184,9 +183,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         public ErrorHighlight getErrorGeom(int index)
         {
             int total = 0;
-            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(ErrorHighlight eh : highlights)
             {
-                ErrorHighlight eh = (ErrorHighlight)it.next();
                 if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
                 if (total == index) return eh;
                 total++;
@@ -200,9 +198,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             boolean eh1found = false;
             boolean eh2found = false;
 
-            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(ErrorHighlight eh : highlights)
             {
-                ErrorHighlight eh = it.next();
                 if (eh.containsObject(cell1, geo1))
 //                if (eh.type != ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) continue;
 //                if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
@@ -228,10 +225,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             String className = this.getClass().getSimpleName();
             msg.append("\t<" + className + " message=\"" + message + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
-            for(Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); )
+            for(ErrorHighlight eh : highlights)
             {
-                ErrorHighlight eh = it.next();
-
                 eh.xmlDescription(msg);
             }
             msg.append("\t</" + className + ">\n");
@@ -246,8 +241,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             if (!logCell.isLinked()) return false;
             // check validity of highlights
             boolean allValid = true;
-            for (Iterator<ErrorHighlight> it = highlights.iterator(); it.hasNext(); ) {
-                ErrorHighlight erh = it.next();
+            for (ErrorHighlight erh : highlights) {
                 if (!erh.isValid()) { allValid = false; break; }
             }
             return allValid;
@@ -457,16 +451,14 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void clearLogs(Cell cell) {
        ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
-        for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
-            MessageLog log = (MessageLog)it.next();
+        for (MessageLog log : allErrors) {
             if (log.logCell != cell) errLogs.add(log);
         }
         allErrors = errLogs;
 
 	    ArrayList<WarningLog> warndLogs = new ArrayList<WarningLog>();
         // Warnings
-        for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
-            WarningLog log = (WarningLog)it.next();
+        for (WarningLog log : allWarnings) {
             if (log.logCell != cell) warndLogs.add(log);
         }
         allWarnings = warndLogs;
@@ -534,13 +526,11 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         buffWriter.println();
         String className = this.getClass().getSimpleName();
         buffWriter.println("<" + className + " errorSystem=\"" + errorSystem + "\">");
-	    for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
-            MessageLog log = (MessageLog)it.next();
+	    for (MessageLog log : allErrors) {
             log.xmlDescription(buffWriter);
         }
         // Warnings
-        for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
-            WarningLog log = (WarningLog)it.next();
+        for (WarningLog log : allWarnings) {
             log.xmlDescription(buffWriter);
         }
         buffWriter.println("</" + className + ">");
@@ -574,14 +564,12 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     {
         // enumerate the errors
         int errs = 0;
-        for(Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); )
+        for(MessageLog el : allErrors)
         {
-            MessageLog el = (MessageLog)it.next();
             el.index = ++errs;
         }
-	    for(Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); )
+	    for(WarningLog el : allWarnings)
         {
-            WarningLog el = (WarningLog)it.next();
             el.index = ++errs;
         }
 
@@ -735,11 +723,11 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public synchronized Iterator<MessageLog> getLogs() {
         List<MessageLog> copy = new ArrayList<MessageLog>();
-        for (Iterator<MessageLog> it = allErrors.iterator(); it.hasNext(); ) {
-            copy.add(it.next());
+        for (MessageLog ml : allErrors) {
+            copy.add(ml);
         }
-	    for (Iterator<WarningLog> it = allWarnings.iterator(); it.hasNext(); ) {
-            copy.add(it.next());
+	    for (WarningLog wl : allWarnings) {
+            copy.add(wl);
         }
         return copy.iterator();
     }
@@ -760,7 +748,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         // check if any errors need to be deleted
         boolean changed = false;
         for (Iterator<MessageLog> it = getLogs(); it.hasNext(); ) {
-            MessageLog err = (MessageLog)it.next();
+            MessageLog err = it.next();
             if (!err.isValid()) {
                 deleteLog(err);
                 changed = true;
@@ -774,7 +762,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 //         // check if any errors need to be deleted
 //         boolean changed = false;
 //         for (Iterator<MessageLog> it = getLogs(); it.hasNext(); ) {
-//             MessageLog err = (MessageLog)it.next();
+//             MessageLog err = it.next();
 //             if (!err.isValid()) {
 //                 deleteLog(err);
 //                 changed = true;

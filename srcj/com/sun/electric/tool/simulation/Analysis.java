@@ -54,9 +54,8 @@ public class Analysis
 
 		public static AnalysisType findAnalysisType(String analysisName)
 		{
-			for(Iterator<AnalysisType> it = allTypes.iterator(); it.hasNext(); )
+			for(AnalysisType at : allTypes)
 			{
-				AnalysisType at = it.next();
 				if (at.name.equals(analysisName)) return at;
 			}
 			return null;
@@ -249,9 +248,8 @@ public class Analysis
 		if (bounds == null)
 		{
 			bounds = null;
-			for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+			for(Signal sig : signals)
 			{
-				Signal sig = (Signal)it.next();
 				Rectangle2D sigBounds = sig.getBounds();
 				if (bounds == null)
 				{

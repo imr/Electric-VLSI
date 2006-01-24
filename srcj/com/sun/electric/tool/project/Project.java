@@ -1298,71 +1298,113 @@ public class Project extends Listener
 				if (ret == 0) undoChange = false;
 				if (ret == 2) { alwaysCheckOut = true;   undoChange = false; }
 			}
-			new UndoBatchesJob(lowBatch, cellsThatChanged, undoChange);
+			if (undoChange)
+			{
+				// change disallowed: undo it
+				new UndoBatchesJob(lowBatch);
+			} else
+			{
+				// change allowed: check-out necessary cells
+				new AutoCheckoutJob(cellsThatChanged);
+			}
 		}
 	}
-	/**
-	 * This class checks out a cell from Project Management.
-	 * It involves updating the project database and making a new version of the cell.
-	 */
-	private static class UndoBatchesJob extends Job
-	{
-		private int lowestBatch;
-		private List<Cell> cellsThatChanged;
-		private boolean undoChange;
 
-		private UndoBatchesJob(int lowestBatch, List<Cell> cellsThatChanged, boolean undoChange)
+	/**
+	 * This class checks out cells from Project Management to allow changes that have been made.
+	 */
+	private static class AutoCheckoutJob extends Job
+	{
+		private List<Cell> cellsThatChanged;
+		private HashMap<Cell,Cell> newCells;
+
+		private AutoCheckoutJob(List<Cell> cellsThatChanged)
 		{
 			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.lowestBatch = lowestBatch;
 			this.cellsThatChanged = cellsThatChanged;
-			this.undoChange = undoChange;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			if (!undoChange)
+			// check out the cells (TODO: this won't work on the server)
+
+			// make a set of project libraries that are affected
+			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
+			for(Cell oldVers : cellsThatChanged)
 			{
-				// check out the cells (TODO: this won't work on the server)
-
-				// make a set of project libraries that are affected
-				Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
-				for(Cell oldVers : cellsThatChanged)
-				{
-					Library lib = oldVers.getLibrary();
-					ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-					projectLibs.add(pl);
-				}
-
-				// lock access to the project files
-				if (!ProjectLibrary.lockManyProjectFiles(projectLibs))
-				{
-					// check out the cell
-					List<Cell> newCells = preCheckOutCells(cellsThatChanged);
-					if (newCells == null)
-					{
-						ProjectLibrary.releaseManyProjectFiles(projectLibs);
-					} else
-					{
-						// prevent tools (including this one) from seeing the changes
-						setChangeStatus(true);
-
-						// make new version
-						newCells = new ArrayList<Cell>();
-						for(Cell oldVers : cellsThatChanged)
-						{
-							Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
-							if (newVers != null)
-								newCells.add(newVers);
-						}
-
-						setChangeStatus(false);
-					}
-				}
+				Library lib = oldVers.getLibrary();
+				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+				projectLibs.add(pl);
 			}
 
-			// undo the change
+			// lock access to the project files
+			if (!ProjectLibrary.lockManyProjectFiles(projectLibs))
+			{
+				// check out the cell
+				List<Cell> cellsThatCanChange = preCheckOutCells(cellsThatChanged);
+				if (newCells == null)
+				{
+					ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				} else
+				{
+					// prevent tools (including this one) from seeing the changes
+					setChangeStatus(true);
+
+					// make new version
+					newCells = new HashMap<Cell,Cell>();
+					for(Cell oldVers : cellsThatCanChange)
+					{
+						Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
+						if (newVers != null)
+							newCells.put(oldVers, newVers);
+					}
+
+					setChangeStatus(false);
+				}
+				fieldVariableChanged("newCells");
+			}
+			return true;
+		}
+
+		public void terminateIt(JobException je)
+        {
+			for(Cell oldVers : newCells.keySet())
+			{
+				Cell newVers = newCells.get(oldVers);
+
+				// update records for the changed cells
+	        	bumpRecordVersions(oldVers, newVers);
+	
+	        	// update user interface for the changed cells
+	        	updateUI(oldVers, newVers);
+			}
+
+			// update explorer tree
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run() { WindowFrame.wantToRedoLibraryTree(); }
+			});
+        }
+	}
+
+	/**
+	 * This class undoes changes to locked cells.
+	 */
+	private static class UndoBatchesJob extends Job
+	{
+		private int lowestBatch;
+
+		private UndoBatchesJob(int lowestBatch)
+		{
+			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lowestBatch = lowestBatch;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// undo the changes
 			ignoreChanges = true;
 			for(;;)
 			{
@@ -1457,7 +1499,8 @@ public class Project extends Listener
 	 */
 	private static class CheckOutJob extends Job
 	{
-		private List<Cell> checkOutCells, newCells;
+		private List<Cell> checkOutCells;
+		private HashMap<Cell,Cell> newCells;
 		private transient Set<ProjectLibrary> projectLibs;
 
 		private CheckOutJob(List<Cell> checkOutCells, Set<ProjectLibrary> projectLibs)
@@ -1474,12 +1517,12 @@ public class Project extends Listener
 			setChangeStatus(true);
 
 			// make new version
-			newCells = new ArrayList<Cell>();
+			newCells = new HashMap<Cell,Cell>();
 			for(Cell oldVers : checkOutCells)
 			{
 				Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
 				if (newVers != null)
-					newCells.add(newVers);
+					newCells.put(oldVers, newVers);
 			}
 
 			setChangeStatus(false);
@@ -1490,6 +1533,23 @@ public class Project extends Listener
 
         public void terminateIt(JobException je)
         {
+			for(Cell oldVers : newCells.keySet())
+			{
+				Cell newVers = newCells.get(oldVers);
+
+				// update records for the changed cells
+	        	bumpRecordVersions(oldVers, newVers);
+	
+	        	// update user interface for the changed cells
+	        	updateUI(oldVers, newVers);
+			}
+
+			// update explorer tree
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run() { WindowFrame.wantToRedoLibraryTree(); }
+			});
+
 			// relase project file lock
 			ProjectLibrary.releaseManyProjectFiles(projectLibs);
 			if (je == null)
@@ -1497,8 +1557,18 @@ public class Project extends Listener
 				// if it worked, print dependencies and display
 				if (newCells != null && newCells.size() > 0)
 				{
+					StringBuffer cellNames = new StringBuffer();
+					int numCells = 0;
+					for(Cell oldVers : newCells.keySet())
+					{
+						Cell newVers = newCells.get(oldVers);
+						if (cellNames.length() > 0) cellNames.append(", ");
+						cellNames.append(newVers.describe(false));
+						numCells++;
+					}
+					if (numCells > 1) System.out.println("Cells " + cellNames + " checked out for your use"); else
+						System.out.println("Cell " + cellNames + " checked out for your use");
 					Cell newVers = (Cell)newCells.get(0);
-					System.out.println("Cell " + newVers.describe(true) + " checked out for your use");
 
 					// advise of possible problems with other checkouts higher up in the hierarchy
 					HashMap<Cell,MutableInteger> cellsMarked = new HashMap<Cell,MutableInteger>();
@@ -1751,29 +1821,29 @@ public class Project extends Listener
 	 * @return the new Cell (null on error).
 	 */
 	private static Cell bumpVersion(Cell oldVers)
+		throws JobException
 	{
 		Library lib = oldVers.getLibrary();
-		ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-		ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
 		Cell newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
 		if (newVers == null)
-		{
-			Job.getUserInterface().showErrorMessage(
-				"Error making new version of cell " + oldVers.describe(false),
-				"Check Out Error");
-			return null;
-		}
+			throw new JobException("Error making new version of cell " + oldVers.describe(false));
 
 		// replace former usage with new version
 		if (useNewestVersion(oldVers, newVers))		// CHANGES DATABASE
-		{
-			Job.getUserInterface().showErrorMessage(
-				"Error replacing instances of cell " + oldVers.describe(false),
-				"Check Out Error");
-			return null;
-		}
+			throw new JobException("Error replacing instances of cell " + oldVers.describe(false));
+		markLocked(newVers, false);		// CHANGES DATABASE
+		lib.setChanged();
+		return newVers;
+	}
 
-		// update record for the cell
+	/**
+	 * Method to update the project databases to account for cell replacements.
+	 * @param newCells a map from old cells to new cells.
+	 */
+	private static void bumpRecordVersions(Cell oldVers, Cell newVers)
+	{
+		ProjectLibrary pl = ProjectLibrary.findProjectLibrary(oldVers.getLibrary());
+		ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
 		ProjectCell newPC = new ProjectCell();
 		newPC.cell = newVers;
 		newPC.latestVersion = true;
@@ -1791,11 +1861,35 @@ public class Project extends Listener
 		pl.byCell.remove(oldVers);
 		pl.byCell.put(newVers, newPC);
 		pl.addProjectCell(newPC);
-		markLocked(newVers, false);		// CHANGES DATABASE
+	}
 
-		// restore tool state
-		lib.setChanged();
-		return newVers;
+	/**
+	 * Method to fix the user interface to account for cell replacements.
+	 * @param newCells a map from old cells to new cells.
+	 */
+	private static void updateUI(Cell oldVers, Cell newVers)
+	{
+		// redraw windows that showed the old cell
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			if (wf.getContent().getCell() != oldVers) continue;
+			double scale = 1;
+			Point2D offset = null;
+			if (wf.getContent() instanceof EditWindow_)
+			{
+				EditWindow_ wnd = (EditWindow_)wf.getContent();
+				scale = wnd.getScale();
+				offset = wnd.getOffset();
+			}
+			wf.getContent().setCell(newVers, VarContext.globalContext);
+			if (wf.getContent() instanceof EditWindow_)
+			{
+				EditWindow_ wnd = (EditWindow_)wf.getContent();
+				wnd.setScale(scale);
+				wnd.setOffset(offset);
+			}
+		}
 	}
 
 	/**
@@ -1804,7 +1898,7 @@ public class Project extends Listener
 	 */
 	private static class CancelCheckOutJob extends Job
 	{
-		private Cell cell;
+		private Cell cell, newCell, oldCell;
 
 		private CancelCheckOutJob(Cell cell)
 		{
@@ -1859,9 +1953,10 @@ public class Project extends Listener
 				pl.releaseProjectFileLock(true);
 				throw new JobException("Cannot find former version to restore.");
 			}
+			oldCell = cancelled.cell;
 
 			boolean response = Job.getUserInterface().confirmMessage(
-				"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
+				"Cancel all changes to the checked-out " + oldCell + " and revert to the checked-in version?");
 			if (!response) return false;
 
 			// prevent tools (including this one) from seeing the change
@@ -1869,18 +1964,19 @@ public class Project extends Listener
 
 			// replace former usage with new version
 			getCellFromRepository(former, lib, false, false);		// CHANGES DATABASE
-			if (former.cell == null)
+			newCell = former.cell;
+			if (newCell == null)
 			{
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
 				throw new JobException("Error bringing in former version (" + former.cellVersion + ")");
 			}
 
-			if (useNewestVersion(cell, former.cell))		// CHANGES DATABASE
+			if (useNewestVersion(oldCell, newCell))		// CHANGES DATABASE
 			{
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
-				throw new JobException("Error replacing instances of former " + cell);
+				throw new JobException("Error replacing instances of former " + oldCell);
 			}
 
 			pl.removeProjectCell(cancelled);
@@ -1901,7 +1997,9 @@ public class Project extends Listener
 
         public void terminateOK()
         {
-			// update explorer tree
+        	updateUI(oldCell, newCell);
+
+        	// update explorer tree
         	WindowFrame.wantToRedoLibraryTree();
         }
 	}

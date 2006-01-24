@@ -115,9 +115,8 @@ public class Eagle extends Output
 		// add all network pairs
 		Collections.sort(networks, new NetNamesSort());
 		int widestNodeName = 0, widestNetName = 0;
-		for(Iterator<NetNames> it = networks.iterator(); it.hasNext(); )
+		for(NetNames nn : networks)
 		{
-			NetNames nn = (NetNames)it.next();
 			int nodeNameLen = nn.nodeName.length();
 			if (nodeNameLen > widestNodeName) widestNodeName = nodeNameLen;
 			int netNameLen = nn.netName.length();

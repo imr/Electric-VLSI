@@ -1246,9 +1246,8 @@ public class EditWindow extends JPanel
 		}
 
 		// draw any components that are on top (such as in-line text edits)
-//		for(Iterator<GetInfoText.EditInPlaceListener> it = inPlaceTextObjects.iterator(); it.hasNext(); )
+//		for(GetInfoText.EditInPlaceListener tl : inPlaceTextObjects)
 //		{
-//			GetInfoText.EditInPlaceListener tl = it.next();
 //			tl.getTextComponent().paint(g);
 //		}
 //		super.paint(g);
@@ -3125,9 +3124,8 @@ public class EditWindow extends JPanel
         	if (selectedExport != null) break;
         }
 //        List what>Highlight> = highlighter.getHighlights();
-//        for(Iterator<Highlight> it = what.iterator(); it.hasNext(); )
+//        for(Highlight h : what)
 //        {
-//        	Highlight h = it.next();
 //        	if (h.getType() == Highlight.Type.EOBJ)
 //        	{
 //        		ElectricObject eObj = h.getElectricObject();
@@ -3261,7 +3259,7 @@ public class EditWindow extends JPanel
 			} else if (found.size() == 1)
 			{
 				// just one parent cell: show it
-				Cell parent = (Cell)found.iterator().next();
+				Cell parent = found.iterator().next();
 				setCell(parent, VarContext.globalContext);
                 // highlight instance
 //                NodeInst highlightNi = null;

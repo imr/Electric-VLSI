@@ -86,11 +86,11 @@ public class AntennaRulesTab extends PreferencePanel
 		antennaOptions = new HashMap<ArcProto,Pref>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			this.technologySelection.addItem(tech.getTechName());
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)it.next();
+				ArcProto ap = it.next();
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
 				double ratio = ERC.getERCTool().getAntennaRatio(ap); //ap.getAntennaRatio();
@@ -114,7 +114,7 @@ public class AntennaRulesTab extends PreferencePanel
 		antennaArcListModel.clear();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			Pref pref = (Pref)antennaOptions.get(ap);
 			if (pref == null) continue;
 			antennaArcListModel.addElement(ap.getName() + " (" + pref.getDouble() + ")");
@@ -191,9 +191,8 @@ public class AntennaRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator<ArcProto> it = antennaOptions.keySet().iterator(); it.hasNext(); )
+		for(ArcProto ap : antennaOptions.keySet())
 		{
-			ArcProto ap = (ArcProto)it.next();
 			Pref pref = (Pref)antennaOptions.get(ap);
 			if (pref.getDoubleFactoryValue() != pref.getDouble())
 				ERC.getERCTool().setAntennaRatio(ap, pref.getDouble());

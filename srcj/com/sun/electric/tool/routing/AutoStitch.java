@@ -97,9 +97,9 @@ public class AutoStitch
 	        if (wnd == null) return;
 			List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
 			limitBound = wnd.getHighlightedArea();
-			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
+			for(Geometric geom : highs)
 			{
-				ElectricObject eObj = (ElectricObject)it.next();
+				ElectricObject eObj = (ElectricObject)geom;
 				if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
 				if (eObj instanceof NodeInst)
 				{
@@ -210,15 +210,14 @@ public class AutoStitch
 		// next pre-compute bounds on all nodes in cells to be changed
 		int count = 0;
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds = new HashMap<NodeInst, Rectangle2D[]>();
-		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
+		for(NodeInst nodeToStitch : nodesToStitch)
 		{
-			NodeInst nodeToStitch = (NodeInst)it.next();
 			if (cellMark.contains(cell)) continue;
 			cellMark.add(cell);
 
 			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)nIt.next();
+				NodeInst ni = nIt.next();
 				nodeMark.remove(ni);
 
 				// count the ports on this node
@@ -230,7 +229,7 @@ public class AutoStitch
 				int i = 0;
 				for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
-					PortProto pp = (PortProto)pIt.next();
+					PortProto pp = pIt.next();
 
 					PortOriginal fp = new PortOriginal(ni, pp);
 					AffineTransform trans = fp.getTransformToTop();
@@ -245,9 +244,8 @@ public class AutoStitch
 		}
 
 		// next mark nodes to be checked
-		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToStitch)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			nodeMark.add(ni);
 		}
 
@@ -256,9 +254,8 @@ public class AutoStitch
 
 		// now run through the nodeinsts to be checked for stitching
         HashMap<ArcProto, Integer> arcCount = new HashMap<ArcProto, Integer>();
-		for(Iterator<NodeInst> it = nodesToStitch.iterator(); it.hasNext(); )
+		for(NodeInst ni : nodesToStitch)
 		{
-			NodeInst ni = (NodeInst)it.next();
 			if (cell.isAllLocked()) continue;
 			Netlist netlist = cell.acquireUserNetlist();
 			if (netlist == null)
@@ -270,9 +267,8 @@ public class AutoStitch
 		}
 
 		// now run through the arcinsts to be checked for stitching
-		for(Iterator<ArcInst> it = arcsToStitch.iterator(); it.hasNext(); )
+		for(ArcInst ai : arcsToStitch)
 		{
-			ArcInst ai = (ArcInst)it.next();
 			if (!ai.isLinked()) continue;
 			if (cell.isAllLocked()) continue;
 
@@ -296,8 +292,7 @@ public class AutoStitch
 	            StringBuffer buf = new StringBuffer();
 	            buf.append("AUTO ROUTING: added ");
 	            boolean first = true;
-	            for (Iterator<ArcProto> it = arcCount.keySet().iterator(); it.hasNext(); ) {
-	                ArcProto ap = (ArcProto)it.next();
+	            for (ArcProto ap : arcCount.keySet()) {
 	                if (!first) buf.append("; ");
 	                Integer c = (Integer)arcCount.get(ap);
 	                buf.append(c + " " + ap.describe() + " wires");
@@ -313,10 +308,10 @@ public class AutoStitch
 		// clean up
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell c = (Cell)cIt.next();
+				Cell c = cIt.next();
 				if (!cellMark.contains(c)) continue;
 			}
 		}
@@ -324,9 +319,8 @@ public class AutoStitch
 		nodeMark = null;
 
         // create the routes
-        for (Iterator<Route> it = allRoutes.iterator(); it.hasNext(); )
+        for (Route route : allRoutes)
         {
-            Route route = (Route)it.next();
             RouteElement re = (RouteElement)route.get(0);
             Cell c = re.getCell();
 
@@ -340,7 +334,7 @@ public class AutoStitch
 				boolean already = false;
 				for(Iterator<Connection> cIt = startPi.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					ArcInst existingAI = con.getArc();
 					if (existingAI.getHead() == con)
 					{
@@ -356,9 +350,8 @@ public class AutoStitch
             // if requesting no new geometry, make sure all arcs are default width
             if (stayInside != null)
             {
-	            for (Iterator<RouteElement> rIt = route.iterator(); rIt.hasNext(); )
+	            for (RouteElement obj : route)
 	            {
-					RouteElement obj = rIt.next();
 	                if (obj instanceof RouteElementArc)
 	                {
 	                    RouteElementArc reArc = (RouteElementArc)obj;
@@ -399,8 +392,7 @@ public class AutoStitch
 
         // check for any inline pins due to created wires
         List<CircuitChangeJobs.Reconnect> pinsToPassThrough = new ArrayList<CircuitChangeJobs.Reconnect>();
-        for (Iterator<NodeInst> it = possibleInlinePins.iterator(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+        for (NodeInst ni : possibleInlinePins) {
             if (ni.isInlinePin()) {
             	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
                 if (re != null) {
@@ -488,12 +480,11 @@ public class AutoStitch
 		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
 			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
 		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
-			geomsInArea.add((Geometric)it.next());
+			geomsInArea.add(it.next());
 		int count = 0;
-		for(Iterator<Geometric> it = geomsInArea.iterator(); it.hasNext(); )
+		for(Geometric oGeom : geomsInArea)
 		{
 			// find another node in this area
-			Geometric oGeom = (Geometric)it.next();
 			if (oGeom instanceof ArcInst)
 			{
 				// other geometric is an ArcInst
@@ -555,7 +546,7 @@ public class AutoStitch
 			int bbp = 0;
 			for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 			{
-				PortProto pp = (PortProto)pIt.next();
+				PortProto pp = pIt.next();
 
 				// first do a bounding box check
 				if (boundArray != null)
@@ -570,7 +561,7 @@ public class AutoStitch
 				boolean found = false;
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					PortInst pi = con.getPortInst();
 					if (pi.getPortProto() != pp) continue;
 					if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
@@ -708,7 +699,7 @@ public class AutoStitch
 					double bestDist = 0;
 					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
-						PortProto tPp = (PortProto)pIt.next();
+						PortProto tPp = pIt.next();
 
 						// compute best distance to the other node
 						Poly portPoly = ni.getShapeOfPort(tPp);
@@ -737,7 +728,7 @@ public class AutoStitch
 					double bestDist = 0;
 					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
-						PortProto tPp = (PortProto)pIt.next();
+						PortProto tPp = pIt.next();
 						if (!netlist.portsConnected(ni, tPp, polyPtr.getPort())) continue;
 
 						// compute best distance to the other node
@@ -764,7 +755,7 @@ public class AutoStitch
 				boolean found = false;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					PortInst pi = con.getPortInst();
 					if (!netlist.portsConnected(ni, rPp, pi.getPortProto())) continue;
 					if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
@@ -899,7 +890,7 @@ public class AutoStitch
 				double bestDist = 0;
 				for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
-					PortProto tPp = (PortProto)pIt.next();
+					PortProto tPp = pIt.next();
 					if (!nl.portsConnected(ni, tPp, nodePoly.getPort())) continue;
 
 					// compute best distance to the other node
@@ -988,7 +979,7 @@ public class AutoStitch
 			Rectangle2D bounds = poly.getBounds2D();
 			for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
 			{
-				PortProto mPp = (PortProto)it.next();
+				PortProto mPp = it.next();
 
 				// first do a bounding box check
 				if (boundArray != null)
@@ -1009,7 +1000,7 @@ public class AutoStitch
                 PortInst oPi = oNi.findPortInstFromProto(mPp);
                 boolean ignore = false;
                 for (Iterator<Connection> piit = oPi.getConnections(); piit.hasNext(); ) {
-                    Connection conn = (Connection)piit.next();
+                    Connection conn = piit.next();
                     ArcInst ai = conn.getArc();
                     if (ai.getHeadPortInst() == pi) ignore = true;
                     if (ai.getTailPortInst() == pi) ignore = true;
@@ -1090,7 +1081,7 @@ public class AutoStitch
 				double bestDist = 0;
 				for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 				{
-					PortProto rPp = (PortProto)pIt.next();
+					PortProto rPp = pIt.next();
 					// compute best distance to the other node
 					
 					Poly portPoly = oNi.getShapeOfPort(rPp);
@@ -1146,7 +1137,7 @@ public class AutoStitch
 					double bestDist = 0;
 					for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 					{
-						PortProto rPp = (PortProto)pIt.next();
+						PortProto rPp = pIt.next();
 						if (!netlist.portsConnected(oNi, rPp, oPoly.getPort())) continue;
 
 						// compute best distance to the other node
@@ -1201,7 +1192,7 @@ public class AutoStitch
 		double dist = portCenter.distance(oPortCenter);
 		for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
 		{
-			PortProto tPp = (PortProto)it.next();
+			PortProto tPp = it.next();
 			if (tPp == opp) continue;
 			if (!netlist.portsConnected(oNi, tPp, opp)) continue;
 			portPoly = oNi.getShapeOfPort(tPp);
@@ -1214,7 +1205,7 @@ public class AutoStitch
 		}
 		for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 		{
-			PortProto tPp = (PortProto)it.next();
+			PortProto tPp = it.next();
 			if (tPp == pp) continue;
 			if (!netlist.portsConnected(ni, tPp, pp)) continue;
 			portPoly = ni.getShapeOfPort(tPp);
@@ -1282,7 +1273,7 @@ public class AutoStitch
 			Rectangle2D polyBounds = nodePolys[0].getBounds2D();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				ArcInst ai = con.getArc();
 				if (ai.getWidth() >= ni.getXSize() && ai.getWidth() >= ni.getYSize() && ai.isHeadExtended() && ai.isTailExtended())
 				{

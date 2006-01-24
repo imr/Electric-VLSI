@@ -336,11 +336,10 @@ public class EditKeyBinding extends EDialog {
             return;                         // do nothing
         } else if (removeConflicts == 0) {
             List<KeyBindings> conflicts = getConflicts();
-            for (Iterator<KeyBindings> it = conflicts.iterator(); it.hasNext(); ) {
-                KeyBindings k = (KeyBindings)it.next();
+            for (KeyBindings k : conflicts) {
                 // remove all bindings in k
                 for (Iterator<KeyStrokePair> kit = k.getKeyStrokePairs(); kit.hasNext(); ) {
-                    KeyStrokePair pair = (KeyStrokePair)kit.next();
+                    KeyStrokePair pair = kit.next();
                     menuBar.removeKeyBinding(k.getActionDesc(), pair);
                 }
             }

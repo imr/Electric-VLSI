@@ -190,8 +190,8 @@ public class DRC extends Listener
 		{
 			Geometric [] objectsToCheck = new Geometric[cellSet.size()];
 			int i = 0;
-			for(Iterator<Geometric> it = cellSet.iterator(); it.hasNext(); )
-				objectsToCheck[i++] = (Geometric)it.next();
+			for(Geometric geom : cellSet)
+				objectsToCheck[i++] = geom;
 			new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
 		}
 	}
@@ -417,10 +417,10 @@ public class DRC extends Listener
             {
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
-                Library lib = (Library)it.next();
+                Library lib = it.next();
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                 {
-                    Cell cell = (Cell)cIt.next();
+                    Cell cell = cIt.next();
                     cleanDRCDateAndBits(cell);
                 }
             }
@@ -946,9 +946,8 @@ public class DRC extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+			for(Cell cell : goodDRCDate.keySet())
 			{
-				Cell cell = it.next();
 				Date now = goodDRCDate.get(cell);
                 if (!cell.isLinked())
                     System.out.println("Cell '" + cell + "' is invalid to update DRC date");
@@ -956,9 +955,8 @@ public class DRC extends Listener
 				    setLastDRCDateAndBits(cell, now, activeBits);
 			}
 
-			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
+			for(Cell cell : cleanDRCDate.keySet())
 			{
-				Cell cell = it.next();
                 if (!cell.isLinked())
                     System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
                 else

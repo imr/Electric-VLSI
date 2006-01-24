@@ -764,7 +764,7 @@ public class MimicStitch
 			if (method == Job.Type.EXAMINE)
 			{
 				// since this is an examine job, queue a change job to make the wires
-				MimicWireJob job = new MimicWireJob(allRoutes, allKills, false);
+				new MimicWireJob(allRoutes, allKills, false);
 			} else
 			{
 				// since this is a change job, do the wires now
@@ -1096,7 +1096,7 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, allKills, true);
+			new MimicWireJob(allRoutes, allKills, true);
 			count += allRoutes.size() + allKills.size();
 			presentNextSituation(count, situations.length, possibleArcs, cell, prefX, prefY);
 

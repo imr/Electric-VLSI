@@ -153,8 +153,8 @@ public class ActivityLogger {
         if (out == null) return;
         if (highlights.size() == 0) return;
         out.println("Currently highlighted: ");
-        for (Iterator<Object> it = highlights.iterator(); it.hasNext(); ) {
-            Highlight2 h = (Highlight2)it.next();
+        for (Object obj : highlights) {
+            Highlight2 h = (Highlight2)obj;
             out.println("    "+h.describe());
         }
     }

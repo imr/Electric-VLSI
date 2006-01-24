@@ -102,15 +102,14 @@ public class ErrorLoggerTree {
         synchronized(ErrorLogger.getAllErrors()) {
             loggersCopy.addAll(ErrorLogger.getAllErrors());
         }
-        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); ) {
-            ErrorLogger logger = (ErrorLogger)eit.next();
+        for (ErrorLogger logger : loggersCopy) {
             if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(new ErrorLoggerTreeNode(logger));
             DefaultMutableTreeNode groupNode = loggerNode;
             int currentSortKey = -1;
             for (Iterator<ErrorLogger.MessageLog> it = logger.getLogs(); it.hasNext();)
             {
-                ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)it.next();
+                ErrorLogger.MessageLog el = it.next();
                 // by default, groupNode is entire loggerNode
                 // but, groupNode could be sub-node:
                 if (logger.getSortKeyToGroupNames() != null) {
@@ -141,9 +140,8 @@ public class ErrorLoggerTree {
         synchronized(ErrorLogger.getAllErrors()) {
             loggersCopy.addAll(ErrorLogger.getAllErrors());
         }
-        for (Iterator<ErrorLogger> eit = loggersCopy.iterator(); eit.hasNext(); )
+        for (ErrorLogger log : loggersCopy)
         {
-            ErrorLogger log = (ErrorLogger)eit.next();
             log.delete();
         }
     }

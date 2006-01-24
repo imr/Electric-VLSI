@@ -80,7 +80,7 @@ public class EquivRecord {
 	private ArrayList<HashMap<Integer,List<NetObject>>> getOneMapPerCircuit(Strategy js) {
 		ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt = new ArrayList<HashMap<Integer,List<NetObject>>>();
 		for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-			Circuit ckt = (Circuit)it.next();
+			Circuit ckt = it.next();
 			HashMap<Integer,List<NetObject>> codeToNetObjs = js.doFor(ckt);
 			mapPerCkt.add(codeToNetObjs);
 		}
@@ -92,8 +92,7 @@ public class EquivRecord {
 	 * @return the set of all keys from all the maps */
 	private Set<Integer> getKeysFromAllMaps(ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt) {
 		Set<Integer> keys = new HashSet<Integer>();
-		for (Iterator<HashMap<Integer,List<NetObject>>> it=mapPerCkt.iterator(); it.hasNext();) {
-			HashMap<Integer,List<NetObject>> map = (HashMap<Integer,List<NetObject>>) it.next();
+		for (HashMap<Integer,List<NetObject>> map : mapPerCkt) {
 			keys.addAll(map.keySet());
 		}
 		return keys;    	
@@ -109,8 +108,7 @@ public class EquivRecord {
 	 * @return a EquivRecord */
 	private EquivRecord makeEquivRecForKey(ArrayList<HashMap<Integer,List<NetObject>>> mapPerCkt, Integer key, NccGlobals globals) {
 		List<Circuit> ckts = new ArrayList<Circuit>();
-		for (Iterator<HashMap<Integer,List<NetObject>>> it=mapPerCkt.iterator(); it.hasNext();) {
-			HashMap<Integer,List<NetObject>> map = (HashMap<Integer,List<NetObject>>) it.next();
+		for (HashMap<Integer,List<NetObject>> map : mapPerCkt) {
 			ArrayList<NetObject> netObjs = (ArrayList<NetObject>) map.get(key);
 			if (netObjs==null)  netObjs = new ArrayList<NetObject>();
 			ckts.add(Circuit.please(netObjs));
@@ -140,8 +138,7 @@ public class EquivRecord {
 		circuits = null;
 		offspring = new RecordList();
 		
-		for (Iterator<Integer> it=keys.iterator(); it.hasNext();) {
-			Integer key = (Integer) it.next();
+		for (Integer key : keys) {
 			EquivRecord er = makeEquivRecForKey(mapPerCkt, key, js.globals); 
 			addOffspring(er);
 		}
@@ -155,7 +152,7 @@ public class EquivRecord {
 	private LeafList applyToInternal(Strategy js) {
 		LeafList offspring = new LeafList();
 		for (Iterator<EquivRecord> it=getOffspring(); it.hasNext();) {
-			EquivRecord jr= (EquivRecord) it.next();
+			EquivRecord jr= it.next();
 			offspring.addAll(js.doFor(jr));
 		}
 		return offspring;
@@ -195,10 +192,10 @@ public class EquivRecord {
 	 * @return PART, WIRE, or PORT */
 	public NetObject.Type getNetObjType() {
 		for (Iterator<Circuit> ci=getCircuits(); ci.hasNext();) {
-			Circuit c = (Circuit) ci.next();
+			Circuit c = ci.next();
 			Iterator<NetObject> ni = c.getNetObjs();
 			if (ni.hasNext()) {
-				NetObject no = (NetObject) ni.next();
+				NetObject no = ni.next();
 				return no.getNetObjType();
 			}
 		}
@@ -211,7 +208,7 @@ public class EquivRecord {
 	public int numNetObjs() {
 		int sum = 0;
 		for (Iterator<Circuit> ci=getCircuits(); ci.hasNext();) {
-			Circuit c = (Circuit) ci.next();
+			Circuit c = ci.next();
 			sum += c.numNetObjs();
 		}
 		return sum;
@@ -224,7 +221,7 @@ public class EquivRecord {
 	    if(numCircuits() == 0) return "0";
 	    String s= "";
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit jc= (Circuit) it.next();
+	        Circuit jc= it.next();
 	        s= s + " " + jc.numNetObjs() ;
 	    }
 	    return s;
@@ -237,7 +234,7 @@ public class EquivRecord {
 	    int out= 0;
 	    int max= maxSize();
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit j= (Circuit) it.next();
+	        Circuit j= it.next();
 	        int diff= max-j.numNetObjs();
 	        if(diff > out)out= diff;
 	    }
@@ -251,7 +248,7 @@ public class EquivRecord {
 	public int maxSize() {
 	    int out= 0;
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit j= (Circuit)it.next();;
+	        Circuit j= it.next();;
 	        out = Math.max(out, j.numNetObjs());
 	    }
 	    return out;
@@ -263,7 +260,7 @@ public class EquivRecord {
 	public boolean isActive() {
 	    error(numCircuits()==0, "leaf record with no circuits?");
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit c = (Circuit) it.next();
+	        Circuit c = it.next();
 	        if (c.numNetObjs()==0) return false; // mismatched
 	        if (c.numNetObjs()>1)  return true;  // live
 	    }
@@ -275,7 +272,7 @@ public class EquivRecord {
 		boolean first = true;
 		int sz = 0;
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit c = (Circuit) it.next();
+	        Circuit c = it.next();
 	        if (first) {
 	        	sz = c.numNetObjs();
 	        	first = false;
@@ -290,7 +287,7 @@ public class EquivRecord {
 	 * @return true if every Circuit has one NetObject */
 	public boolean isMatched() {
 		for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-			Circuit c = (Circuit) it.next();
+			Circuit c = it.next();
 			if (c.numNetObjs()!=1) return false;
 		}
 		return true;
@@ -302,7 +299,7 @@ public class EquivRecord {
 		// It's impossible for all Circuits to be zero sized so we only
 		// need to find the first zero sized.
 	    for (Iterator<Circuit> it=getCircuits(); it.hasNext();) {
-	        Circuit c = (Circuit) it.next();
+	        Circuit c = it.next();
 			if (c.numNetObjs()==0) return true;
 	    }
 	    return false;
@@ -373,8 +370,8 @@ public class EquivRecord {
 		r.circuits = new ArrayList<Circuit>();
 		r.value = key;
 		r.randCode = globals.getRandom();
-		for (Iterator<Circuit> it=ckts.iterator(); it.hasNext();) {
-			r.addCircuit((Circuit)it.next());
+		for (Circuit ckt : ckts) {
+			r.addCircuit(ckt);
 		}
 		error(r.maxSize()==0, 
 			  "invalid leaf EquivRecord: all Circuits are empty");
@@ -388,8 +385,8 @@ public class EquivRecord {
 		if (offspring.size()==0) return null;
 		EquivRecord r = new EquivRecord();
 		r.offspring = new RecordList();
-		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
-			r.addOffspring((EquivRecord) it.next());
+		for (EquivRecord er : offspring) {
+			r.addOffspring(er);
 		}
 		return r;		
 	}

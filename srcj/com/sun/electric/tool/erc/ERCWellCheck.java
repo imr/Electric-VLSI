@@ -330,9 +330,8 @@ public class ERCWellCheck
 			}
 			// NCC will detect if a ground or power network is incorrectly split into
 			// two or more pieces. So this check is not needed here.
-/*				for(Iterator oIt = wellCons.iterator(); oIt.hasNext(); )
+/*				for(WellCon oWc : wellCons)
 			{
-				WellCon oWc = oIt.next();
 				if (oWc.index <= wc.index) continue;
 
 				if (oWc.netNum == -1) continue;   // before ==0

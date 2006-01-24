@@ -144,7 +144,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
 //         boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = (Undo.Change)it.next();
+//             Undo.Change change = it.next();
 //             ElectricObject obj = change.getObject();
 //             if (obj == selectedObject) {
 //                 reload = true;
@@ -481,7 +481,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         // show the variables
         for(Iterator<Variable> it = selectedObject.getVariables(); it.hasNext(); )
         {
-            Variable var = (Variable)it.next();
+            Variable var = it.next();
             String varName = var.getKey().getName();
             if (cellRenderer.getShowAttrOnly()) {
                 // if only showing Attributes, only add if it is an attribute

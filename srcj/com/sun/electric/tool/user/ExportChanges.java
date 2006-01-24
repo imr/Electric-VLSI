@@ -1226,9 +1226,8 @@ public final class ExportChanges
         /*
 		if (nodes != null)
 		{
-			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			for(NodeInst ni : nodes)
 			{
-				NodeInst ni = (NodeInst)it.next();
 				highlighter.addElectricObject(ni, cell);
 			}
 		}*/

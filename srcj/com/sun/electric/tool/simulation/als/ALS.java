@@ -366,9 +366,8 @@ public class ALS extends Engine
 				int strength = sumNode.newStrength;
 
 				biDirClock++;
-				for(Iterator<Stat> it = sumNode.statList.iterator(); it.hasNext(); )
+				for(Stat statHead : sumNode.statList)
 				{
-					Stat statHead = (Stat)it.next();
 					if (statHead.primPtr == primHead) continue;
 
 					sumNode.visit = biDirClock;
@@ -483,9 +482,8 @@ public class ALS extends Engine
 			return;
 		}
 		String [] parameters = new String[1];
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sig : signals)
 		{
-			Signal sig = (Signal)it.next();
 			String sigName = sig.getFullName();
 			Node nodeHead = findNode(sigName);
 			if (nodeHead == null)
@@ -559,10 +557,8 @@ public class ALS extends Engine
 				"No Signals Selected");
 			return;
 		}
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sig : signals)
 		{
-			Signal sig = (Signal)it.next();
-
 			Node nodeHead = findNode(sig.getFullName());
 			if (nodeHead == null)
 			{
@@ -573,9 +569,8 @@ public class ALS extends Engine
 			String s1 = Stimuli.describeLevel(((Integer)nodeHead.newState).intValue());
 			System.out.println("Node " + sig.getFullName() + ": State = " + s1 +
 				", Strength = " + Stimuli.describeStrength(nodeHead.newStrength));
-			for(Iterator<Stat> sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
+			for(Stat statHead : nodeHead.statList)
 			{
-				Stat statHead = (Stat)sIt.next();
 				s1 = Stimuli.describeLevel(statHead.newState);
 				System.out.println("Primitive " + statHead.primPtr.name + ":    State = " + s1 +
 					", Strength = " + Stimuli.describeStrength(statHead.newStrength));
@@ -595,9 +590,8 @@ public class ALS extends Engine
 				"No Signals Selected");
 			return;
 		}
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sig : signals)
 		{
-			Signal sig = (Signal)it.next();
 			sig.clearControlPoints();
 
 			Link lastSet = null;
@@ -645,10 +639,9 @@ public class ALS extends Engine
 		boolean found = false;
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = it.next();
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				if (!ws.isHighlighted()) continue;
 				double [] selectedCPs = ws.getSelectedControlPoints();
 				if (selectedCPs == null) continue;
@@ -713,10 +706,9 @@ public class ALS extends Engine
 		clearAllVectors(false);
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = it.next();
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				Signal sig = ws.getSignal();
 				sig.clearControlPoints();
 			}
@@ -738,8 +730,8 @@ public class ALS extends Engine
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFileName)));
 			List<String> stimuliList = getStimuliToSave();
-			for(Iterator<String> it = stimuliList.iterator(); it.hasNext(); )
-				printWriter.println((String)it.next());
+			for(String str : stimuliList)
+				printWriter.println(str);
 			printWriter.close();
 		} catch (IOException e)
 		{
@@ -848,9 +840,8 @@ public class ALS extends Engine
 			return;
 		}
 		String [] parameters = new String[1];
-		for(Iterator<Signal> it = signals.iterator(); it.hasNext(); )
+		for(Signal sig : signals)
 		{
-			Signal sig = (Signal)it.next();
 			String sigName = sig.getFullName();
 			Node nodeHead = findNode(sigName);
 			if (nodeHead == null)
@@ -989,18 +980,16 @@ public class ALS extends Engine
 	private void addExports(Connect cr, Analysis an, String context)
 	{
 		// determine type of model
-		for(Iterator<Model> it = modelList.iterator(); it.hasNext(); )
+		for(Model modPtr1 : modelList)
 		{
-			Model modPtr1 = (Model)it.next();
 			if (modPtr1.name.equals(cr.modelName))
 			{
 				if (modPtr1.type != 'M') return;
 				break;
 			}
 		}
-		for(Iterator<ALSExport> it = cr.exList.iterator(); it.hasNext(); )
+		for(ALSExport e : cr.exList)
 		{
-			ALSExport e = (ALSExport)it.next();
 			if (e.nodePtr.sig != null) continue;
 			DigitalSignal sig = new DigitalSignal(an);
 			e.nodePtr.sig = sig;
@@ -1032,9 +1021,9 @@ public class ALS extends Engine
 					Row clokHead = (Row)setHead.ptr;
 					List<Object> vectList = clokHead.inList;
 					boolean first = true;
-					for(Iterator<Object> it = vectList.iterator(); it.hasNext(); )
+					for(Object obj : vectList)
 					{
-						Link vectHead = (Link)it.next();
+						Link vectHead = (Link)obj;
 						if (first)
 						{
 							String s1 = computeNodeName((Node)vectHead.ptr);
@@ -1064,10 +1053,9 @@ public class ALS extends Engine
 		}
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
-			for(Iterator<WaveSignal> sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			Panel wp = it.next();
+			for(WaveSignal ws : wp.getSignals())
 			{
-				WaveSignal ws = (WaveSignal)sIt.next();
 				Signal sig = ws.getSignal();
 				sig.clearControlPoints();
 			}
@@ -1086,7 +1074,7 @@ public class ALS extends Engine
 					theSim.initializeSimulator(true);
 					break;
 				}
-				s1 = (String)sIt.next();
+				s1 = sIt.next();
 				s1 = s1.toUpperCase();
 				parts = fragmentCommand(s1);
 			}
@@ -1138,7 +1126,7 @@ public class ALS extends Engine
 						theSim.initializeSimulator(false);
 						return;
 					}
-					s1 = (String)sIt.next();
+					s1 = sIt.next();
 					parts = fragmentCommand(s1.toUpperCase());
 					String com = parts[0];
 					if (com.equals("CLOCK") || com.equals("SET"))
@@ -1271,9 +1259,8 @@ public class ALS extends Engine
 		Connect cellHead = nodeHead.cellPtr;
 		String sp = computePathName(cellHead);
 
-		for(Iterator<ALSExport> it = cellHead.exList.iterator(); it.hasNext(); )
+		for(ALSExport exHead : cellHead.exList)
 		{
-			ALSExport exHead = (ALSExport)it.next();
 			if (nodeHead == exHead.nodePtr)
 			{
 				sp += "." + exHead.nodeName;
@@ -1312,9 +1299,8 @@ public class ALS extends Engine
 		if (sp.startsWith("$N"))
 		{
 			int i = TextUtils.atoi(sp.substring(2));
-			for(Iterator<Node> it = nodeList.iterator(); it.hasNext(); )
+			for(Node nodeHead : nodeList)
 			{
-				Node nodeHead = (Node)it.next();
 				if (nodeHead.num == i) return nodeHead;
 			}
 			return null;
@@ -1330,9 +1316,8 @@ public class ALS extends Engine
 		}
 		if (cellPtr == null) cellPtr = cellRoot;
 
-		for(Iterator<ALSExport> it = cellPtr.exList.iterator(); it.hasNext(); )
+		for(ALSExport exHead : cellPtr.exList)
 		{
-			ALSExport exHead = (ALSExport)it.next();
 			if (exHead.nodeName.equals(s2)) return exHead.nodePtr;
 		}
 
@@ -1391,9 +1376,8 @@ public class ALS extends Engine
 			System.out.println("Structure declaration: EOF unexpectedly found");
 			return true;
 		}
-		for(Iterator<Model> it = modelList.iterator(); it.hasNext(); )
+		for(Model modPtr1 : modelList)
 		{
-			Model modPtr1 = (Model)it.next();
 			if (modPtr1.name.equals(s1))
 			{
 				System.out.println("ERROR: Structure " + s1 + " already defined");
@@ -1426,9 +1410,8 @@ public class ALS extends Engine
 			}
 			if (s1.startsWith(")")) break;
 
-			for(Iterator<ALSExport> it = modPtr2.exList.iterator(); it.hasNext(); )
+			for(ALSExport exPtr1 : modPtr2.exList)
 			{
-				ALSExport exPtr1 = (ALSExport)it.next();
 				if (exPtr1.nodeName.equals(s1))
 				{
 					System.out.println("Node " + s1 + " specified more than once in argument list");
@@ -2040,7 +2023,7 @@ public class ALS extends Engine
 			boolean found = false;
 			for(Iterator<ALSExport> it = modPtr2.exList.iterator(); it.hasNext(); )
 			{
-				exPtr2 = (ALSExport)it.next();
+				exPtr2 = it.next();
 				if (s1.equals(exPtr2.nodeName))
 				{
 					exPtr2.nodePtr = dummyNode;

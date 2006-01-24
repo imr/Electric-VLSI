@@ -778,7 +778,7 @@ public class DebugMenus
             noMoreFound = true;
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
-                Library lib = (Library)it.next();
+                Library lib = it.next();
 
                 // skip top cell
                 if (lib.getName().indexOf(keyword) != -1)
@@ -786,7 +786,7 @@ public class DebugMenus
 
                 for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
                 {
-                    Cell cell = (Cell)itCell.next();
+                    Cell cell = itCell.next();
                     if (!cell.isInUse("delete", true))
                     {
                         System.out.println(cell + " can be deleted");
@@ -899,16 +899,16 @@ public class DebugMenus
     {
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
 
             for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); )
             {
-                Cell cell = (Cell)itCell.next();
+                Cell cell = itCell.next();
 
                 // Checking NodeInst/Cell master relation
                 for(Iterator<NodeInst> itNodes = cell.getNodes(); itNodes.hasNext(); )
                 {
-                    NodeInst node = (NodeInst)itNodes.next();
+                    NodeInst node = itNodes.next();
                     if (node.isIconOfParent()) continue;
                     NodeProto np = (NodeProto)node.getProto();
                     if (np instanceof Cell)
@@ -919,7 +919,7 @@ public class DebugMenus
                         // Searching for instance of that icon in master cell
                         for (Iterator<NodeInst> itU = master.getNodes(); itU.hasNext(); )
                         {
-                            NodeInst ni1 = (NodeInst)itU.next();
+                            NodeInst ni1 = itU.next();
                             if (ni1.isIconOfParent())
                             {
                                 ni = ni1;
@@ -934,7 +934,7 @@ public class DebugMenus
 
                         for (Iterator<Variable> itVar = node.getVariables(); itVar.hasNext();)
                         {
-                            Variable var = (Variable)itVar.next();
+                            Variable var = itVar.next();
                             if (var.isAttribute())
                             {
                                 // Not found in cell master
@@ -950,7 +950,7 @@ public class DebugMenus
                 // Checking schematic/icon relation
                 for (Iterator<NodeInst> itInstOf = cell.getInstancesOf(); itInstOf.hasNext(); )
                 {
-                    NodeInst instOf = (NodeInst)itInstOf.next();
+                    NodeInst instOf = itInstOf.next();
 
                     if (instOf.isIconOfParent())
                     {
@@ -959,7 +959,7 @@ public class DebugMenus
 
                         for (Iterator<Variable> itVar = icon.getVariables(); itVar.hasNext();)
                         {
-                            Variable var = (Variable)itVar.next();
+                            Variable var = itVar.next();
                             if (var.isAttribute())
                             {
                                 if (parent.getVar(var.getKey())==null)
@@ -997,7 +997,7 @@ public class DebugMenus
 //
 //        for(Iterator it = Library.getLibraries(); it.hasNext(); )
 //        {
-//            Library lib = (Library)it.next();
+//            Library lib = it.next();
 //            String libName = lib.getName();
 //            if (lib.getLibFile() == null) continue; // Clipboard
 //            String oldName = "../../data/"+testpath+"/"+libName+".jelib";
@@ -1114,7 +1114,7 @@ public class DebugMenus
 			// Traversing arcs
 			for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 			{
-				ArcInst arc = (ArcInst)it.next();
+				ArcInst arc = it.next();
 				ArcProto arcType = arc.getProto();
 				Technology tech = arcType.getTechnology();
 				Poly[] polyList = tech.getShapeOfArc(arc);
@@ -1144,7 +1144,7 @@ public class DebugMenus
 			// Traversing nodes
 			for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst node = (NodeInst)it.next();
+				NodeInst node = it.next();
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
@@ -1192,7 +1192,7 @@ public class DebugMenus
 			// Need to detect if geometry was really modified
 			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				List<PolyBase> list = merge.getMergedPoints(layer, true) ;
 
 				// Temp solution until qtree implementation is ready
@@ -1201,14 +1201,12 @@ public class DebugMenus
 				List<Poly> rectList = (List<Poly>)allLayers.get(layer);
 				List<PolyBase> delList = new ArrayList<PolyBase>();
 
-				for (Iterator<Poly> iter = rectList.iterator(); iter.hasNext();)
+				for (Poly p : rectList)
 				{
-					Poly p = (Poly)iter.next();
 					Rectangle2D rect = p.getBounds2D();
 
-					for (Iterator<PolyBase> i = list.iterator(); i.hasNext();)
+					for (PolyBase poly : list)
 					{
-						PolyBase poly = (PolyBase)i.next();
 						Rectangle2D r = poly.getBounds2D();
 
 						if (r.equals(rect))
@@ -1217,15 +1215,14 @@ public class DebugMenus
 						}
 					}
 				}
-				for (Iterator<PolyBase> iter = delList.iterator(); iter.hasNext();)
+				for (PolyBase pb : delList)
 				{
-					list.remove(iter.next());
+					list.remove(pb);
 				}
 
 				// Ready to create new implants.
-				for(Iterator<PolyBase> i = list.iterator(); i.hasNext(); )
+				for(PolyBase poly : list)
 				{
-					PolyBase poly = (PolyBase)i.next();
 					Rectangle2D rect = poly.getBounds2D();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();
@@ -1238,9 +1235,8 @@ public class DebugMenus
 				}
 			}
 			highlighter.finished();
-			for (Iterator<NodeInst> it = deleteList.iterator(); it.hasNext(); )
+			for (NodeInst node : deleteList)
 			{
-				NodeInst node = (NodeInst)it.next();
 				node.kill();
 			}
 			if ( nodesList.isEmpty() )
@@ -1276,8 +1272,7 @@ public class DebugMenus
             cell.getInfo();
 			return;
 		}
-		for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-			Highlight2 h = it.next();
+		for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
 			if (!h.isHighlightEOBJ()) continue;
 			ElectricObject eobj = h.getElectricObject();
             if (eobj instanceof PortInst) {
@@ -1303,13 +1298,12 @@ public class DebugMenus
         if (curEdit == null) return;
 
 		if (curEdit.getHighlighter().getNumHighlights() == 0) return;
-		for (Iterator<Highlight2> it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-			Highlight2 h = it.next();
+		for (Highlight2 h : curEdit.getHighlighter().getHighlights()) {
             if (!h.isHighlightEOBJ()) continue;
 			ElectricObject eobj = h.getElectricObject();
 			Iterator<Variable> itVar = eobj.getVariables();
 			while(itVar.hasNext()) {
-				Variable var = (Variable)itVar.next();
+				Variable var = itVar.next();
 				Object obj = curEdit.getVarContext().evalVar(var);
 				System.out.print(var.getKey().getName() + ": ");
 				System.out.println(obj);
@@ -1322,7 +1316,7 @@ public class DebugMenus
 		Iterator<Variable> itVar = lib.getVariables();
 		System.out.println("----------"+lib+" Vars-----------");
 		while(itVar.hasNext()) {
-			Variable var = (Variable)itVar.next();
+			Variable var = itVar.next();
 			Object obj = VarContext.globalContext.evalVar(var);
 			System.out.println(var.getKey().getName() + ": " +obj);
 		}
@@ -1333,8 +1327,7 @@ public class DebugMenus
         if (wnd == null) return;
 
         if (wnd.getHighlighter().getNumHighlights() == 0) return;
-        for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
-            Highlight2 h = it.next();
+        for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
             if (h.isHighlightEOBJ()) {
                 ElectricObject eobj = h.getElectricObject();
                 AddStringVar job = new AddStringVar(eobj);
@@ -1608,7 +1601,7 @@ public class DebugMenus
         int deleted = 0;
         int notDeleted = 0;
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell cell = (Cell)it.next();
+            Cell cell = it.next();
             if (cell.getView() != view) continue;
             if (CircuitChanges.deleteCell(cell, false, false))
                 deleted++;
@@ -1650,25 +1643,25 @@ public class DebugMenus
 
 		for (Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			countVars('H', lib);
 
 			for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				countVars('C', cell);
 				TreeSet<String> cellNodes = new TreeSet<String>();
 				TreeSet<String> cellArcs = new TreeSet<String>();
 
 				for (Iterator<CellUsage> uIt = cell.getUsagesIn(); uIt.hasNext(); )
 				{
-					CellUsage nu = (CellUsage)uIt.next();
+					CellUsage nu = uIt.next();
 					cellUsages++;
 				}
 
 				for (Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					countVars('N', ni);
 					if (ni.getProto() instanceof Cell) subCells++;
 					if (ni.isUsernamed()) namedNodes++;
@@ -1681,14 +1674,14 @@ public class DebugMenus
 					
 					for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
-						PortInst pi = (PortInst)pIt.next();
+						PortInst pi = pIt.next();
 						countVars('P', pi);
 					}
 				}
 
 				for (Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)aIt.next();
+					ArcInst ai = aIt.next();
 					countVars('A', ai);
 					if (ai.isUsernamed()) namedArcs++;
 // 					if (cellArcs.contains(ai.getName()))
@@ -1735,17 +1728,16 @@ public class DebugMenus
 		System.out.println(sameLocations + " same locations");
 		System.out.println(numPoints + " points " + points.size());
 		HashSet<Double> doubles = new HashSet<Double>();
-		for (Iterator<Point2D> it = points.iterator(); it.hasNext(); )
+		for (Point2D point : points)
 		{
-			Point2D point = (Point2D)it.next();
 			doubles.add(new Double(point.getX()));
 			doubles.add(new Double(point.getY()));
 		}
 		int whole = 0;
 		int quarter = 0;
-		for (Iterator<Double> it = doubles.iterator(); it.hasNext(); )
+		for (Double dO : doubles)
 		{
-			double d = ((Double)it.next()).doubleValue();
+			double d = dO.doubleValue();
 			double rd = Math.rint(d);
 			if (d == Math.rint(d))
 				whole++;
@@ -1802,7 +1794,7 @@ P 704883 0 0 0
 		vcnt[c] += numVars;
 		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
             countDescriptor(var.getTextDescriptor(), var.isDisplay(), var.getCode());
 			Object value = var.getObject();
 			if (value instanceof Point2D)

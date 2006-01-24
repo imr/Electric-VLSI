@@ -94,7 +94,7 @@ public class ArchSim extends Output
 		// write all components
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			if (ni.isIconOfParent()) continue;
 			Cell subCell = (Cell)ni.getProto();
@@ -111,17 +111,17 @@ public class ArchSim extends Output
 		}
 		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 		{
-			Network net = (Network)it.next();
+			Network net = it.next();
 			List<PortInst> inputs = new ArrayList<PortInst>();
 			List<PortInst> outputs = new ArrayList<PortInst>();
 			for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)oIt.next();
+				NodeInst ni = oIt.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				if (ni.isIconOfParent()) continue;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext();)
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					PortInst pi = con.getPortInst();
 					Network nodeNet = netlist.getNetwork(pi);
 					if (nodeNet != net) continue;
@@ -141,23 +141,21 @@ public class ArchSim extends Output
 			// get the network name
 			String netName = null;
 			Iterator<String> nIt = net.getNames();
-			if (nIt.hasNext()) netName = (String)nIt.next(); else
+			if (nIt.hasNext()) netName = nIt.next(); else
 				netName = net.describe(true);
 			printWriter.println();
 			printWriter.println("<connection name= \"" + netName + "\">");
 
 			// write the output connections ("from")
-			for(Iterator<PortInst> pIt = outputs.iterator(); pIt.hasNext(); )
+			for(PortInst pi : outputs)
 			{
-				PortInst pi = (PortInst)pIt.next();
 				printWriter.println("\t<from component= \"" + pi.getNodeInst().getName() + "\" terminal=\"" +
 					pi.getPortProto().getName() + "\" />");
 			}
 
 			// write the input connections ("to")
-			for(Iterator<PortInst> pIt = inputs.iterator(); pIt.hasNext(); )
+			for(PortInst pi : inputs)
 			{
-				PortInst pi = (PortInst)pIt.next();
 				printWriter.println("\t<to component= \"" + pi.getNodeInst().getName() + "\" terminal=\"" +
 					pi.getPortProto().getName() + "\" />");
 			}

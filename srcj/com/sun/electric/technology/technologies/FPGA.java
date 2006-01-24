@@ -920,16 +920,8 @@ public class FPGA extends Technology
 		String fileName = OpenFile.chooseInputFile(FileType.FPGA, null);
 		if (fileName == null) return;
 
-		// read the file
-		LispTree lt = readFile(fileName);
-		if (lt == null)
-		{
-			System.out.println("Error reading file");
-			return;
-		}
-
 		// turn the tree into primitives
-		new BuildTechnology(lt, placeAndWire);
+		new BuildTechnology(fileName, placeAndWire);
 	}
 
 	/**
@@ -995,7 +987,7 @@ public class FPGA extends Technology
 		private NodeInst ni;
 		private String newPips;
 
-		protected SetPips(NodeInst ni, String newPips)
+		private SetPips(NodeInst ni, String newPips)
 		{
 			super("Program Pips", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -1021,20 +1013,25 @@ public class FPGA extends Technology
 	 */
 	private static class BuildTechnology extends Job
 	{
-		private LispTree lt;
+		private String fileName;
 		private boolean placeAndWire;
 		private Cell topCell;
 
-		protected BuildTechnology(LispTree lt, boolean placeAndWire)
+		private BuildTechnology(String fileName, boolean placeAndWire)
 		{
 			super("Build FPGA Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.lt = lt;
+			this.fileName = fileName;
 			this.placeAndWire = placeAndWire;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+			// read the file
+			LispTree lt = readFile(fileName);
+			if (lt == null)
+				throw new JobException("Error reading file");
+
 			int total = makePrimitives(lt);
 			System.out.println("Created " + total + " primitives");
 

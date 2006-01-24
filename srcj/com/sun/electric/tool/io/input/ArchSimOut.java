@@ -105,9 +105,8 @@ public class ArchSimOut extends Simulate
 		Stimuli sd = new Stimuli();
 		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
-		for(Iterator<String> it = symbolTable.keySet().iterator(); it.hasNext(); )
+		for(String signalName : symbolTable.keySet())
 		{
-			String signalName = (String)it.next();
 			List<Point> values = (List<Point>)symbolTable.get(signalName);
 
 			int numStimuli = values.size();
@@ -116,9 +115,8 @@ public class ArchSimOut extends Simulate
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;
-			for(Iterator<Point> vIt = values.iterator(); vIt.hasNext(); )
+			for(Point pt : values)
 			{
-				Point pt = (Point)vIt.next();
 				sig.setTime(i, pt.x);
 				int state = Stimuli.LOGIC_LOW | Stimuli.GATE_STRENGTH;
 				if (pt.y != 0) state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;

@@ -228,11 +228,10 @@ public class Exec extends Thread {
                 FinishedEvent e = new FinishedEvent(this, com.toString(), dir, exitVal);
                 ArrayList<FinishedListener> copy = new ArrayList<FinishedListener>();
                 // make copy cause listeners may want to remove themselves if process finished
-                for (Iterator<FinishedListener> it = finishedListeners.iterator(); it.hasNext(); ) {
-                    copy.add(it.next());
+                for (FinishedListener l : finishedListeners) {
+                    copy.add(l);
                 }
-                for (Iterator<FinishedListener> it = copy.iterator(); it.hasNext(); ) {
-                    FinishedListener l = (FinishedListener)it.next();
+                for (FinishedListener l : copy) {
                     l.processFinished(e);
                 }
             }

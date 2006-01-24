@@ -418,7 +418,7 @@ public class EDIF extends Input
 			System.out.println("A total of " + errorCount + " errors, and " + warningCount + " warnings encountered during load");
 
 		if (curLibrary.getCurCell() == null && curLibrary.getCells().hasNext())
-			curLibrary.setCurCell((Cell)curLibrary.getCells().next());
+			curLibrary.setCurCell(curLibrary.getCells().next());
 		return false;
 	}
 
@@ -702,9 +702,8 @@ public class EDIF extends Input
 		String layer = getToken((char)0);
 
 		// now look for this layer in the list of layers
-		for(Iterator<NameEntry> it = nameEntryList.iterator(); it.hasNext(); )
+		for(NameEntry nt : nameEntryList)
 		{
-			NameEntry nt = (NameEntry)it.next();
 			if (nt.original.equalsIgnoreCase(layer))
 			{
 				// found the layer
@@ -790,7 +789,7 @@ public class EDIF extends Input
 	{
 		for(Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() != np) continue;
             if (!ni.getOrient().equals(orient)) continue;
 //			if (ni.getAngle() != angle) continue;
@@ -1075,7 +1074,7 @@ public class EDIF extends Input
 		ArcInst ai = null;
 		for(Iterator<Geometric> sea = cell.searchIterator(new Rectangle2D.Double(x, y, 0, 0)); sea.hasNext(); )
 		{
-			Geometric geom = (Geometric)sea.next();
+			Geometric geom = sea.next();
 
 			if (geom instanceof NodeInst)
 			{
@@ -1083,7 +1082,7 @@ public class EDIF extends Input
 				NodeInst ni = (NodeInst)geom;
 				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 				{
-					PortInst pi = (PortInst)it.next();
+					PortInst pi = it.next();
 					Poly poly = pi.getPoly();
 					if (poly.isInside(pt))
 					{
@@ -1191,7 +1190,7 @@ public class EDIF extends Input
 				// scan through this nodes portarcinst's
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection oCon = (Connection)it.next();
+					Connection oCon = it.next();
 					ArcInst pAi = oCon.getArc();
 					if (!seenArcs.contains(pAi))
 						checkBusNames(pAi, base, seenArcs);
@@ -1447,7 +1446,7 @@ public class EDIF extends Input
 			Cell proto = null;
 			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cell.getName().equalsIgnoreCase(aName) &&
 					cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
 			}
@@ -1799,9 +1798,8 @@ public class EDIF extends Input
 			String layer = getToken((char)0);
 
 			// now look for this layer in the list of layers
-			for(Iterator<NameEntry> it = nameEntryList.iterator(); it.hasNext(); )
+			for(NameEntry nt : nameEntryList)
 			{
-				NameEntry nt = (NameEntry)it.next();
 				if (nt == null) continue;
 				if (nt.original.equalsIgnoreCase(layer))
 				{
@@ -2075,7 +2073,7 @@ public class EDIF extends Input
 			Cell np = null;
 			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cell.getName().equals(cellName) &&
 					cell.getView() == View.SCHEMATIC) { np = cell;   break; }
 			}
@@ -2441,7 +2439,7 @@ public class EDIF extends Input
 			Cell proto = null;
 			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
 					{ proto = cell;   break; }
 			}
@@ -2513,8 +2511,7 @@ public class EDIF extends Input
 						fList = findEDIFPort(curCell, fX, fY, Schematics.tech.wire_arc, true);
                         if (fList.size() == 0) {
                             // check for NodeEquivalences with translated ports
-                            for (Iterator<PortInst> it = netPortRefs.iterator(); it.hasNext(); ) {
-                                PortInst pi = (PortInst)it.next();
+                            for (PortInst pi : netPortRefs) {
                                 EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(pi.getNodeInst());
                                 if (ne != null) {
                                     Point2D curPoint = new Point2D.Double(fX, fY);
@@ -2548,8 +2545,7 @@ public class EDIF extends Input
 					List<PortInst> tList = findEDIFPort(curCell, tX, tY, Schematics.tech.wire_arc, true);
                     if (tList.size() == 0) {
                         // check for NodeEquivalences with translated ports
-                        for (Iterator<PortInst> it = netPortRefs.iterator(); it.hasNext(); ) {
-                            PortInst pi = (PortInst)it.next();
+                        for (PortInst pi : netPortRefs) {
                             EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(pi.getNodeInst());
                             if (ne != null) {
                                 Point2D curPoint = new Point2D.Double(tX, tY);
@@ -2866,11 +2862,11 @@ public class EDIF extends Input
 						// scan all pages for this nodeinst
 						for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 						{
-							Cell cell = (Cell)it.next();
+							Cell cell = it.next();
 							if (!cell.getName().equalsIgnoreCase(cellName)) continue;
 							for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 							{
-								NodeInst oNi = (NodeInst)nIt.next();
+								NodeInst oNi = nIt.next();
 								Variable var = oNi.getVar("EDIF_name");
 								if (var != null && var.getPureValue(-1).equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
 								String name = oNi.getName();
@@ -2888,7 +2884,7 @@ public class EDIF extends Input
 						// net always references the current page
 						for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
 						{
-							NodeInst oNi = (NodeInst)nIt.next();
+							NodeInst oNi = nIt.next();
 							Variable var = oNi.getVar("EDIF_name");
 							if (var != null && var.getPureValue(-1).equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
 							String name = oNi.getName();
@@ -2974,7 +2970,7 @@ public class EDIF extends Input
 					Cell np = null;
 					for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 					{
-						Cell cell = (Cell)it.next();
+						Cell cell = it.next();
 						if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
 						{
 							np = cell;
@@ -3569,7 +3565,7 @@ public class EDIF extends Input
 			Cell proto = null;
 			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (cell.getName().equalsIgnoreCase(cellName) &&
 					cell.getView() == View.ICON) { proto = cell;   break; }
 			}
@@ -3606,15 +3602,14 @@ public class EDIF extends Input
 			// for all layers assign their GDS number
 			for (Iterator<Layer> it = curTechnology.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				String gdsLayer = layer.getGDSLayer();
 				if (gdsLayer == null || gdsLayer.length() == 0) continue;
 
 				// search for this layer
 				boolean found = false;
-				for(Iterator<NameEntry> nIt = nameEntryList.iterator(); nIt.hasNext(); )
+				for(NameEntry nt : nameEntryList)
 				{
-					NameEntry nt = (NameEntry)nIt.next();
 					if (nt.replace.equalsIgnoreCase(layer.getName())) { found = true;   break; }
 				}
 				if (!found)
@@ -3632,9 +3627,8 @@ public class EDIF extends Input
 			}
 
 			// now look for nodes to map MASK layers to
-			for (Iterator<NameEntry> nIt = nameEntryList.iterator(); nIt.hasNext(); )
+			for (NameEntry nt : nameEntryList)
 			{
-				NameEntry nt = (NameEntry)nIt.next();
 				String nodeName = nt.replace + "-node";
 				NodeProto np = curTechnology.findNodeProto(nodeName);
 				if (np == null) np = Artwork.tech.boxNode;
@@ -3899,7 +3893,7 @@ public class EDIF extends Input
 				HashSet<ArcInst> seenArcs = new HashSet<ArcInst>();
 				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)it.next();
+					ArcInst ai = it.next();
 					if (!seenArcs.contains(ai) && ai.getProto() == Schematics.tech.bus_arc)
 					{
 						// get name of arc
@@ -3980,7 +3974,7 @@ public class EDIF extends Input
 				Cell proto = null;
 				for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 				{
-					Cell cell = (Cell)it.next();
+					Cell cell = it.next();
 					if (cell.getName().equalsIgnoreCase(cellName) &&
 						cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
 				}

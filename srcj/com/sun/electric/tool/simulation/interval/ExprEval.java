@@ -45,8 +45,7 @@ public class ExprEval {
     public void printAll( boolean detailed )
     {
 		printDetailed = detailed;
-		for(Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
-			Expr e = (Expr)itr.next();
+		for(Expr e : el) {
 			//if (bp->_opref <= 0 || !detailed && (bp->_opref <= 1 || bp->isConst())) continue;
 			System.out.println(/*"[" + e._opref + "] " +*/ (e.name != null ? e.name : "_") + "." + e.id + " = " + e);
 		}
@@ -55,8 +54,7 @@ public class ExprEval {
 
     public void calcAll()
     {
-		for (Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
-			Expr e = (Expr)itr.next();
+		for (Expr e : el) {
 			//if (bp->_opref == 0) continue;
 			e.calcVal();
 			if (false) {
@@ -69,8 +67,7 @@ public class ExprEval {
     {
 		hasBoth = false;
 		//setFpu( true );
-		for (Iterator<Expr> itr = el.iterator(); itr.hasNext();) {
-			Expr e = (Expr)itr.next();
+		for (Expr e : el) {
 			//if (bp->_opref == 0) continue;
 			e.calcInterval();
 			if (false) {
