@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -488,7 +487,8 @@ public class ParasiticTool extends Listener{
                         Layer layer = nPoly.getLayer();
                         if (!layer.getFunction().isMetal()) continue;
 	                    nPoly = ai.cropPerLayer(nPoly);
-                        polyList.addAll(ParasiticValue.initParasiticValues(poly, nPoly));
+                        if (nPoly != null)  // @TODO check this null condition
+                            polyList.addAll(ParasiticValue.initParasiticValues(poly, nPoly));
                     }
                 }
             }
