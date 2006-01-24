@@ -148,7 +148,7 @@ public abstract class Job implements Serializable {
 
     public static Iterator<Job> getDatabaseThreadJobs() {
         if (threadMode == Mode.CLIENT) {
-            ArrayList<Job> jobs = new ArrayList(startedJobs);
+            ArrayList<Job> jobs = new ArrayList<Job>(startedJobs);
             jobs.addAll(waitingJobs);
             return jobs.iterator();
         }
