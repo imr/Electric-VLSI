@@ -925,7 +925,6 @@ public class DRC extends Listener
 	 * @param on true if DRC should check extension rules.
 	 */
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
-//	public static final Variable.Key POSTSCRIPT_FILEDATE = Variable.newKey("IO_postscript_filedate");
 
     /**
 	 * Class to save good DRC dates in a new thread.
