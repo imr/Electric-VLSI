@@ -45,7 +45,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
