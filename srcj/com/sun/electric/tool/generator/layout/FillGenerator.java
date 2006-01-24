@@ -27,6 +27,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.io.Serializable;
 
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -1282,7 +1283,7 @@ class TiledCell {
 /**
  * Object for building fill libraries
  */
-public class FillGenerator {
+public class FillGenerator implements Serializable {
 	public enum Units {LAMBDA, TRACKS}
 	public enum PowerType {POWER, VDD}
 	public enum ExportConfig {PERIMETER, PERIMETER_AND_INTERNAL}
@@ -1416,6 +1417,7 @@ public class FillGenerator {
                     Tech.Type.TSMC180 :
                     Tech.Type.MOCMOS;
         }
+        else
             techNm = Tech.Type.TSMC90;
 
 //		LayoutLib.error((techNm != Tech.Type.MOCMOS && techNm != Tech.Type.TSMC180),
@@ -1530,6 +1532,7 @@ public class FillGenerator {
         private int firstMetal, lastMetal;
         private int[] cellsList;
         private Cell topCell;
+        private ErrorLogger log;
 
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells)
 		{
@@ -1545,6 +1548,8 @@ public class FillGenerator {
 
 		public boolean doIt() throws JobException
 		{
+            log = ErrorLogger.newInstance("Fill", true);
+
             // Searching common power/gnd connections and skip the ones are in the same network
             Set<PortInst> portList = new HashSet<PortInst>();
 
@@ -1609,8 +1614,7 @@ public class FillGenerator {
                       bnd.getWidth()/2, bnd.getHeight()/2,
                       G.DEF_SIZE, G.DEF_SIZE, 0, connectionCell);
 
-            ErrorLogger log = ErrorLogger.newInstance("Fill", true);
-            double globalWidth = Double.POSITIVE_INFINITY;
+//            double globalWidth = Double.POSITIVE_INFINITY;
 
             // Adding the connection cell into topCell
             NodeInst conNi = LayoutLib.newNodeInst(connectionCell, bnd.getCenterX(), bnd.getCenterY(),
@@ -1676,8 +1680,8 @@ public class FillGenerator {
                     l.addPoly(p.getPoly(), true, topCell);
                     if (p.getPortProto() instanceof Export)
                         l.addExport((Export)p.getPortProto(), true, topCell, null);
-                    l.addGeom(added, true, fillCell, null);
-                    globalWidth = added.getBounds().getWidth(); // assuming all contacts have the same width;
+//                    l.addGeom(added, true, fillCell, null);
+//                    globalWidth = added.getBounds().getWidth(); // assuming all contacts have the same width;
                     continue;
                 }
                 else
@@ -1780,9 +1784,14 @@ public class FillGenerator {
 //                    }
 //                }
 //            }
-            log.termLogging(false);
 
+            fieldVariableChanged("log");
             return true;
+        }
+
+        public void terminateOK()
+        {
+            log.termLogging(false);
         }
 
         private void removeOverlappingBars(Cell fillCell, NodeInst fillNi, NodeInst conNi, AffineTransform fillTransOut)
