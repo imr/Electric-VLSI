@@ -311,8 +311,9 @@ public class Output
      * context: the VarContext of the Cell (its position in the hierarchy above it).
      * filePath: the path to the disk file to be written.
      * type: the format of the output file.
+     * NOTE: Keep public for regressions
      */
-    private static void writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
+    public static void writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
     {
 		if (type == FileType.ARCHSIM)
 		{
