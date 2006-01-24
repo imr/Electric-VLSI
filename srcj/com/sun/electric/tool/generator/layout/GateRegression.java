@@ -105,7 +105,7 @@ public class GateRegression extends Job {
 		Library scratchLib =
 		  LayoutLib.openLibForWrite(name, name);
 
-        Tech.setTechnology(techNm);
+//        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
@@ -167,7 +167,7 @@ public class GateRegression extends Job {
 		Library scratchLib =
 		  LayoutLib.openLibForWrite("scratch", "scratch"+techNm);
 
-        Tech.setTechnology(techNm);
+//        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
@@ -240,6 +240,7 @@ public class GateRegression extends Job {
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = tech;
         this.foundry = techNm;
+        Tech.setTechnology(techNm);
 		startJob();
 	}
 }

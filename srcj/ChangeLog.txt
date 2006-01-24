@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/23/06, GVG) FillGenerator, GateRegression, GateLayoutGenerator ready for new client/server structure. ErrorLogger is serializable.
+
 IMP: (1/23/06, DN) VarContext and Nodable are serializable.
 
 IMP: (1/20/06, GVG) DRC.resetDRCDates() using a Change job now.
