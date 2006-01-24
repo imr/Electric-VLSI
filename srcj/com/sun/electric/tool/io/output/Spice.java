@@ -1948,73 +1948,118 @@ public class Spice extends Topology
         return null;
     }
 
-    private void backAnnotateLayout() {
-        Job job = new BackAnnotateJob(segmentedParasiticInfo);
-        job.startJob();
+    private void backAnnotateLayout()
+    {
+    	Set<Cell>      cellsToClear = new HashSet<Cell>();
+    	List<PortInst> capsOnPorts  = new ArrayList<PortInst>();
+    	List<String>   valsOnPorts  = new ArrayList<String>();
+    	List<ArcInst>  resOnArcs    = new ArrayList<ArcInst>();
+    	List<Double>   valsOnArcs   = new ArrayList<Double>();
+        for (SegmentedNets segmentedNets : segmentedParasiticInfo)
+        {
+            Cell cell = segmentedNets.cell;
+            if (cell.getView() != View.LAYOUT) continue;
+
+            // gather cells to clear capacitor values
+            cellsToClear.add(cell);
+
+            // gather capacitor updates
+            for (Iterator<SegmentedNets.NetInfo> it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); )
+            {
+                SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
+                PortInst pi = (PortInst)info.joinedPorts.iterator().next();
+                if (info.cap > cell.getTechnology().getMinCapacitance())
+                {
+                	capsOnPorts.add(pi);
+                	valsOnPorts.add(TextUtils.formatDouble(info.cap, 2) + "fF");
+                }
+            }
+
+            // gather resistor updates
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = (ArcInst)it.next();
+                Double res = (Double)segmentedNets.arcRes.get(ai);
+                Variable var = ai.getVar(ATTR_R);
+               
+                resOnArcs.add(ai);
+                valsOnArcs.add(res);
+            }
+        }
+        new BackAnnotateJob(cellsToClear, capsOnPorts, valsOnPorts, resOnArcs, valsOnArcs);
     }
 
-    public static class BackAnnotateJob extends Job {
-        private List<SegmentedNets> parasiticInfo;             // list of segmentedNets
+    private static class BackAnnotateJob extends Job
+    {
+    	private Set<Cell> cellsToClear;
+    	private List<PortInst> capsOnPorts;
+    	private List<String> valsOnPorts;
+    	private List<ArcInst> resOnArcs;
+    	private List<Double> valsOnArcs;
 
-    	public BackAnnotateJob(List<SegmentedNets> parasiticInfo) {
+        private BackAnnotateJob(Set<Cell> cellsToClear, List<PortInst> capsOnPorts, List<String> valsOnPorts,
+        	List<ArcInst> resOnArcs, List<Double> valsOnArcs)
+    	{
             super("Spice Layout Back Annotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.parasiticInfo = parasiticInfo;
+            this.capsOnPorts = capsOnPorts;
+            this.valsOnPorts = valsOnPorts;
+            this.resOnArcs = resOnArcs;
+            this.valsOnArcs = valsOnArcs;
+            this.cellsToClear = cellsToClear;
+            startJob();
         }
-        public boolean doIt() throws JobException {
+
+        public boolean doIt() throws JobException
+        {
             TextDescriptor ctd = TextDescriptor.getPortInstTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             TextDescriptor rtd = TextDescriptor.getArcTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-            for (Iterator<SegmentedNets> itx = parasiticInfo.iterator(); itx.hasNext(); ) {
-                SegmentedNets segmentedNets = (SegmentedNets)itx.next();
-                Cell cell = segmentedNets.cell;
-                if (cell.getView() != View.LAYOUT) continue;
-                int capCount = 0;
-                int resCount = 0;
+            int capCount = 0;
+            int resCount = 0;
 
+            // clear caps on layout
+            for(Cell cell : cellsToClear)
+            {
                 // delete all C's already on layout
-                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+                {
                     NodeInst ni = (NodeInst)it.next();
-                    for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                    for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
+                    {
                         PortInst pi = (PortInst)pit.next();
                         Variable var = pi.getVar(ATTR_C);
                         if (var != null) pi.delVar(var.getKey());
                     }
                 }
-                // add new C's
-                for (Iterator<SegmentedNets.NetInfo> it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); ) {
-                    SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
-                    PortInst pi = (PortInst)info.joinedPorts.iterator().next();
-                    if (info.cap > cell.getTechnology().getMinCapacitance()) {
-                        pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF", ctd);
-//                        Variable var = pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF");
-//                        if (var != null) {
-//                            var.setDisplay(true);
-//                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//                            capCount++;
-//                        }
-                    }
-                }
-                // write resistors
-                for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-                    ArcInst ai = (ArcInst)it.next();
-                    Double res = (Double)segmentedNets.arcRes.get(ai);
-                    Variable var = ai.getVar(ATTR_R);
-                    // delete R if no new one
-                    if (res == null && var != null) {
-                        ai.delVar(var.getKey());
-                    }
-                    // change R if new one
-                    if (res != null) {
-                        ai.newVar(ATTR_R, res, rtd);
-//                        var = ai.newVar(ATTR_R, res);
-//                        if (var != null) {
-//                            var.setDisplay(true);
-//                            var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//                            resCount++;
-//                        }
-                    }
-                }
-                System.out.println("Back-annotated "+resCount+" R's and "+capCount+" C's in cell "+cell.describe(false));
             }
+
+            // add new C's
+            for(int i=0; i<capsOnPorts.size(); i++)
+            {
+            	PortInst pi = capsOnPorts.get(i);
+            	String str = valsOnPorts.get(i);
+                pi.newVar(ATTR_C, str, ctd);
+                resCount++;
+            }
+
+            // add new R's
+            for(int i=0; i<resOnArcs.size(); i++)
+            {
+            	ArcInst ai = resOnArcs.get(i);
+            	Double res = valsOnArcs.get(i);
+
+                // delete R if no new one
+                Variable var = ai.getVar(ATTR_R);
+                if (res == null && var != null)
+                    ai.delVar(ATTR_R);
+
+                // change R if new one
+                if (res != null)
+                {
+                    ai.newVar(ATTR_R, res, rtd);
+                    resCount++;
+                }
+            }
+            System.out.println("Back-annotated "+resCount+" Resistors and "+capCount+" Capacitors");
             return true;
         }
     }
