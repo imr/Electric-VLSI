@@ -129,7 +129,7 @@ public final class HierarchyEnumerator {
      */
     private static class CellShorts {
         /** The netlist of the Cell */
-        private Netlist netlist;
+//        private Netlist netlist;
         /** Number of new nets connected to exports and globals. */
         int totalIds;
         /** Map from old net indices to new nets.
@@ -142,7 +142,7 @@ public final class HierarchyEnumerator {
         int[] externalIds;
         
         private CellShorts(Netlist netlist) {
-            this.netlist = netlist;
+//            this.netlist = netlist;
             int numNets = netlist.getNumNetworks();
             net2id = new int[numNets];
             for (int i = 0; i < numNets; i++) net2id[i] = i;
