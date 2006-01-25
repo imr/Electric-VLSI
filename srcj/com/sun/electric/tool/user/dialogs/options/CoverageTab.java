@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.extract.LayerCoverage;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
@@ -87,7 +87,7 @@ public class CoverageTab extends PreferencePanel
 		{
 			Technology tech = (Technology)tIt.next();
 			technologySelection.addItem(tech.getTechName());
-	        double val = LayerCoverage.getWidth(tech);
+	        double val = LayerCoverageTool.getWidth(tech);
 
 			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
@@ -125,10 +125,10 @@ public class CoverageTab extends PreferencePanel
             layerListModel.addElement(getLineString(layer, val.doubleValue()));
 		}
 		layerJList.setSelectedIndex(0);
-		widthField.setText(Double.toString(LayerCoverage.getWidth(tech)));
-		heightField.setText(Double.toString(LayerCoverage.getHeight(tech)));
-		deltaXField.setText(Double.toString(LayerCoverage.getDeltaX(tech)));
-		deltaYField.setText(Double.toString(LayerCoverage.getDeltaY(tech)));
+		widthField.setText(Double.toString(LayerCoverageTool.getWidth(tech)));
+		heightField.setText(Double.toString(LayerCoverageTool.getHeight(tech)));
+		deltaXField.setText(Double.toString(LayerCoverageTool.getDeltaX(tech)));
+		deltaYField.setText(Double.toString(LayerCoverageTool.getDeltaY(tech)));
 		layerDataChanging = false;
 
 		layerValueChanged(false);
@@ -233,13 +233,13 @@ public class CoverageTab extends PreferencePanel
 		if (tech != null)
 		{
 			double val = TextUtils.atof(widthField.getText());
-	        if (val != LayerCoverage.getWidth(tech)) LayerCoverage.setWidth(val, tech);
+	        if (val != LayerCoverageTool.getWidth(tech)) LayerCoverageTool.setWidth(val, tech);
 			val = TextUtils.atof(heightField.getText());
-	        if (val != LayerCoverage.getHeight(tech)) LayerCoverage.setHeight(val, tech);
+	        if (val != LayerCoverageTool.getHeight(tech)) LayerCoverageTool.setHeight(val, tech);
 			val = TextUtils.atof(deltaXField.getText());
-	        if (val != LayerCoverage.getDeltaX(tech)) LayerCoverage.setDeltaX(val, tech);
+	        if (val != LayerCoverageTool.getDeltaX(tech)) LayerCoverageTool.setDeltaX(val, tech);
 			val = TextUtils.atof(deltaYField.getText());
-	        if (val != LayerCoverage.getDeltaY(tech)) LayerCoverage.setDeltaY(val, tech);
+	        if (val != LayerCoverageTool.getDeltaY(tech)) LayerCoverageTool.setDeltaY(val, tech);
 		}
 
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )

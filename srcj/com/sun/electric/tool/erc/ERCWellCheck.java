@@ -43,7 +43,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Shape;
 
@@ -214,24 +213,14 @@ public class ERCWellCheck
 			Layer layer = it.next();
 
 			// Not sure if null goes here
-			Collection<Object> set = topMerge.getObjects(layer, false, true);
+			Collection<PolyBase> set = topMerge.getObjects(layer, false, true);
 
 //		    if (Job.getDebug())
 //                System.out.println("Layer " + layer.getName() + " " + set.size());
 
-			for(Object obj : set)
+			for(PolyBase poly : set)
 			{
 				WellArea wa = new WellArea();
-				PolyBase poly = null;
-
-                if (mode == GeometryHandler.GHMode.ALGO_QTREE)
-                {
-                    PolyQTree.PolyNode pn = (PolyQTree.PolyNode)obj;
-                    poly = new PolyBase(pn.getPoints(true));
-
-                } else {
-                    poly = (PolyBase)obj;
-                }
 
 				wa.poly = poly;
 				wa.poly.setLayer(layer);
@@ -556,7 +545,7 @@ public class ERCWellCheck
 			if (thisMerge == null)
 			{
                 thisMerge = GeometryHandler.createGeometryHandler(check.mode,
-                        ercLayers.size(), cell.getBounds());
+                        ercLayers.size());
 				check.cellMerges.put(cell, thisMerge);
 			}
 
@@ -576,8 +565,6 @@ public class ERCWellCheck
 
 	        if (!done)
 	        {
-                boolean qTreeAlgo = check.mode == GeometryHandler.GHMode.ALGO_QTREE;
-
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();
@@ -593,9 +580,7 @@ public class ERCWellCheck
 						// Only interested in well/select
 						Shape newElem = poly;
 
-                        if (qTreeAlgo)
-                            newElem = new PolyQTree.PolyNode(poly);
-						thisMerge.add(layer, newElem, qTreeAlgo);
+						thisMerge.add(layer, newElem);
 					}
 				}
 
@@ -639,7 +624,6 @@ public class ERCWellCheck
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
-                boolean qTreeAlgo = check.mode == GeometryHandler.GHMode.ALGO_QTREE;
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
 				{
@@ -659,9 +643,7 @@ public class ERCWellCheck
 						poly.transform(trans);
 						Shape newElem = poly;
 
-						if (qTreeAlgo)
-                            newElem = new PolyQTree.PolyNode(poly);
-						thisMerge.add(layer, newElem, qTreeAlgo);
+						thisMerge.add(layer, newElem);
 					}
 				}
 	        }

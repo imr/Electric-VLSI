@@ -200,7 +200,10 @@ public class NetworkTool extends Listener
         int ncell = 0;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
+            // Handling clipboard case (one type of hidden libraries)
+            if (lib.isHidden()) continue;
+
             for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
             {
                 Cell cell = (Cell)cit.next();

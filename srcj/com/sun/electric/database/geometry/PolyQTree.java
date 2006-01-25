@@ -84,6 +84,7 @@ public class PolyQTree extends GeometryHandler
 	 */
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
+        new Error("This class is being decomissioned");
 		Set<PolyNode> objSet = new HashSet<PolyNode>();
 		PolyQNode root = (PolyQNode)layers.get(layer);
 

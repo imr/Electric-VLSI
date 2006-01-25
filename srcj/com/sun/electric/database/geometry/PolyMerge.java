@@ -72,9 +72,8 @@ public class PolyMerge
 	 * Method to add a PolyBase to the merged collection.
 	 * @param key the layer that this PolyBase sits on.
 	 * @param value the PolyBase to merge.
-	 * @param fasterAlgorithm
 	 */
-	public void add(Layer key, Object value, boolean fasterAlgorithm)
+	public void add(Layer key, Object value)
 	{
 		Layer layer = key;
 		PolyBase poly = (PolyBase)value;
@@ -358,7 +357,7 @@ public class PolyMerge
 		return area.contains(pt);
 	}
 
-	public Collection getObjects(Object layer, boolean modified, boolean simple)
+	public Collection<PolyBase> getObjects(Object layer, boolean modified, boolean simple)
 	{
 		// Since simple is used, correct detection of loops must be guaranteed
 		// outside.

@@ -69,8 +69,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
-import com.sun.electric.tool.extract.LayerCoverage;
-import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
@@ -117,7 +116,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -161,11 +159,14 @@ public class ToolMenu {
                 DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP);
             }});
         drcSubMenu.addMenuItem("Check Area _Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.GHMode.ALGO_SWEEP, true);} });
+            new ActionListener() { public void actionPerformed(ActionEvent e)
+            {
+                LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true);
+            } });
 
         drcSubMenu.addMenuItem("_List Layer Coverage on Cell", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE,
-                        LayerCoverage.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
+                        LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
 		drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Import _Assura DRC Errors for Current Cell...", null,
@@ -477,7 +478,7 @@ public class ToolMenu {
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE,
-                    LayerCoverage.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
+                    LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("_Pad Frame Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
@@ -589,59 +590,10 @@ public class ToolMenu {
     }
 
     /**
-     * Method to kick area coverage per layer in a cell. It has to be public due to regressions.
-     * @param cell
-     * @param mode
-     * @param startJob to determine if job has to run in a separate thread
-     * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
-     */
-    public static boolean layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob)
-    {
-        Cell curCell = cell;
-
-        if (curCell == null ) curCell = WindowFrame.needCurCell();
-        if (curCell == null) return false;
-	    Highlighter highlighter = null;
-        
-        if (!Job.BATCHMODE)
-        {
-            EditWindow wnd = EditWindow.needCurrent();
-            if ((wnd != null) && (wnd.getCell() == curCell))
-                highlighter = wnd.getHighlighter();
-        }
-
-        double width = LayerCoverage.getWidth(curCell.getTechnology());
-        double height = LayerCoverage.getHeight(curCell.getTechnology());
-        double deltaX = LayerCoverage.getDeltaX(curCell.getTechnology());
-        double deltaY = LayerCoverage.getDeltaY(curCell.getTechnology());
-
-        // Reset values to cell bounding box if area is bigger than the actual cell
-        Rectangle2D bbox = curCell.getBounds();
-        if (width > bbox.getWidth()) width = bbox.getWidth();
-        if (height > bbox.getHeight()) height = bbox.getHeight();
-        LayerCoverage.AreaCoverageJob job = new LayerCoverage.AreaCoverageJob(curCell, highlighter, mode, width, height,
-                deltaX, deltaY);
-
-        // No regression
-        if (startJob)
-            job.startJob();
-        else
-        {
-        	try
-        	{
-        		job.doIt();
-        	} catch (JobException e)
-        	{
-        	}
-        }
-        return (job.isOK());
-    }
-
-    /**
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, LayerCoverage.LCMode func, GeometryHandler.GHMode mode)
+    public static void layerCoverageCommand(Job.Type jobType, LayerCoverageTool.LCMode func, GeometryHandler.GHMode mode)
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
@@ -649,8 +601,7 @@ public class ToolMenu {
 	    Highlighter highlighter = null;
 	    if ((wnd != null) && (wnd.getCell() == curCell))
 		    highlighter = wnd.getHighlighter();
-        Job job = new LayerCoverageJob(null, jobType, curCell, func, mode, highlighter, null, null);
-        job.startJob();
+        LayerCoverageTool.layerCoverageCommand(jobType, func, mode, curCell, highlighter);
     }
 
     private static class BackAnnotateJob extends Job {
@@ -718,7 +669,7 @@ public class ToolMenu {
                 // get wire length
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(layNet);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(netcell, nets,
+                LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(netcell, nets,
                         false, GeometryHandler.GHMode.ALGO_SWEEP);
                 double length = geoms.getTotalWireLength();
 
@@ -1110,7 +1061,7 @@ public class ToolMenu {
             return;
         }
 	    else
-            LayerCoverageJob.listGeometryOnNetworks(cell, nets, true, mode);
+            LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode);
     }
 
     public static void listGeomsAllNetworksCommand() {
@@ -1141,8 +1092,8 @@ public class ToolMenu {
             for (Network net : networks) {
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(net);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets,
-                        false, GeometryHandler.GHMode.ALGO_QTREE);
+                LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(cell, nets,
+                        false, GeometryHandler.GHMode.ALGO_SWEEP);
                 if (geoms.getTotalWireLength() == 0) continue;
                 System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
             }
@@ -1389,7 +1340,6 @@ public class ToolMenu {
 	 * Generates Electric layout;
 	 * Displays the resulting layout.
 	 * @param cell the cell to compile.
-	 * @param completion runnable to invoke when the compilation has finished.
 	 */
 	public static void doSiliconCompilation(Cell cell)
 	{

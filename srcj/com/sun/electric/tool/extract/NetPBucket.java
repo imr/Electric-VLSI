@@ -24,7 +24,6 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -46,12 +45,12 @@ public class NetPBucket implements ExtractedPBucket
 
     private String net;
 
-    public NetPBucket(Cell cell, String net)
+    public NetPBucket(String net)
     {
         this.net = net;
         // Only 1 layer should be available per network
-        capMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1, cell.getBounds());
-        resGeom = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1, cell.getBounds());
+        capMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+        resGeom = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
         resNameMap = new HashMap<Layer,List<String>>(1);
         resSubGeom = new HashMap<Layer,List<Poly>>(1); // contact geometries that will be substracted
     }
@@ -66,7 +65,7 @@ public class NetPBucket implements ExtractedPBucket
     public void modifyResistance(Layer layer, Poly poly, String[] subNets, boolean add)
     {
         if (add)
-            resGeom.add(layer, poly, false);
+            resGeom.add(layer, poly);
         else
         {
             List<Poly> list = (List<Poly>)resSubGeom.get(layer);
@@ -101,7 +100,7 @@ public class NetPBucket implements ExtractedPBucket
      */
     public void addCapacitance(Layer layer, Poly poly)
     {
-        capMerge.add(layer, poly, true);
+        capMerge.add(layer, poly);
     }
 
     /**
@@ -119,15 +118,15 @@ public class NetPBucket implements ExtractedPBucket
         for (Iterator<Layer> it = resGeom.getKeyIterator(); it.hasNext();)
         {
             Layer layer = (Layer)it.next();
-            Collection<Object> c = resGeom.getObjects(layer, false, true);
+            Collection<PolyBase> c = resGeom.getObjects(layer, false, true);
             List<String> nameList = (List<String>)resNameMap.get(layer);
             if (nameList == null || nameList.size() != 2)
                 continue;
             double value = 0;
-            for (Iterator<Object> i = c.iterator(); i.hasNext(); )
+            for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
             {
-                PolyNodeMerge node = (PolyNodeMerge)i.next();
-                PolyBase poly = node.getPolygon();
+//                PolyNodeMerge node = (PolyNodeMerge)i.next();
+                PolyBase poly = i.next(); //node.getPolygon();
                 Rectangle2D rect = ((PolyBase)poly).getBounds2D();
                 double w = rect.getWidth();
                 double h = rect.getHeight();
@@ -169,13 +168,13 @@ public class NetPBucket implements ExtractedPBucket
         {
             Layer layer = (Layer)it.next();
             if (layer.isDiffusionLayer()) continue;      // diffusion layers included in transistors
-            Collection<Object> c = capMerge.getObjects(layer, false, true);
+            Collection<PolyBase> c = capMerge.getObjects(layer, false, true);
             double area = 0, perim = 0;
 
-            for (Iterator<Object> i = c.iterator(); i.hasNext(); )
+            for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
             {
-                PolyNodeMerge node = (PolyNodeMerge)i.next();
-                PolyBase poly = node.getPolygon();
+//                PolyNodeMerge node = (PolyNodeMerge)i.next();
+                PolyBase poly = i.next(); // node.getPolygon();
                 area += poly.getArea();
                 perim += poly.getPerimeter();
             }
@@ -212,12 +211,12 @@ public class NetPBucket implements ExtractedPBucket
                {
                     Layer layer = (Layer)it.next();
                     if (!layer.isDiffusionLayer()) continue;
-                    Collection<Object> c = capMerge.getObjects(layer, false, true);
+                    Collection<PolyBase> c = capMerge.getObjects(layer, false, true);
 
-                    for (Iterator<Object> i = c.iterator(); i.hasNext(); )
+                    for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
                     {
-                        PolyNodeMerge node = (PolyNodeMerge)i.next();
-                        PolyBase poly = node.getPolygon();
+//                        PolyNodeMerge node = (PolyNodeMerge)i.next();
+                        PolyBase poly = i.next(); // node.getPolygon();
                         area += poly.getArea();
                         perim += poly.getPerimeter();
                     }

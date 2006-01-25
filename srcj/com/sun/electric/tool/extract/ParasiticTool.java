@@ -163,7 +163,7 @@ public class ParasiticTool extends Listener{
             if (parasiticNet == null)
             {
                 String name = info.getUniqueNetNameProxy(net, "/").toString(numRemoveParents);
-                parasiticNet = new NetPBucket(info.getCell(), name);
+                parasiticNet = new NetPBucket(name);
                 netMap.put(net, parasiticNet);
             }
             return parasiticNet;

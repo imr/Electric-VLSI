@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/25/06, GVG) NetworkTool.redoNetworkNumbering() skips Clipboard (hidden library) to avoid complains about unconnected pin
+(Bug #793).
+
+IMP: (1/25/06, GVG) LayerCoverage tool ready for the new client/server structure.
+
+IMP: (1/25/06, GVG New MinArea changes that stop checking if minimums are reached. Decomissioning ALGO_QTREE structure.
+
 IMP: (1/23/06, GVG) DRC, ParasiticTools, FillGenerator, GateRegression, GateLayoutGenerator ready for new client/server structure. 
 ErrorLogger is serializable.
 

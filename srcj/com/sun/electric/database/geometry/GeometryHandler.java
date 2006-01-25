@@ -27,7 +27,6 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.*;
 import java.util.*;
@@ -42,7 +41,6 @@ public abstract class GeometryHandler {
     public enum GHMode // GH GeometryHandler mode
     {
 	    ALGO_MERGE,   // using merge structure
-	    ALGO_QTREE,  // using qtree structure
 	    ALGO_SWEEP; // using sweep structure
     }
     public static final ShapeSort shapeSort = new ShapeSort();
@@ -51,14 +49,12 @@ public abstract class GeometryHandler {
     /**
      * Method to create appropiate GeometryHandler depending on the mode.
      */
-    public static GeometryHandler createGeometryHandler(GHMode mode, int initialSize, Rectangle2D root)
+    public static GeometryHandler createGeometryHandler(GHMode mode, int initialSize)
     {
         switch (mode)
         {
             case ALGO_MERGE:
                 return new PolyMerge();
-            case ALGO_QTREE:
-                return new PolyQTree(root);
             case ALGO_SWEEP:
                 if (initialSize > 0)
                     return new PolySweepMerge(initialSize);
@@ -83,7 +79,7 @@ public abstract class GeometryHandler {
     }
 
     // To insert new element into handler
-	public void add(Layer key, Object value, boolean fasterAlgorithm) {;}
+	public void add(Layer key, Object value) {;}
 
 	// To add an entire GeometryHandler like collections
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans) {;}
@@ -139,7 +135,7 @@ public abstract class GeometryHandler {
 	 * @param modified to avoid retrieving original polygons
 	 * @param simple to obtain simple polygons
 	 */
-	public Collection<Object> getObjects(Object layer, boolean modified, boolean simple)
+	public Collection<PolyBase> getObjects(Object layer, boolean modified, boolean simple)
     {
         System.out.println("Error: getObjects not implemented for GeometryHandler subclass " + this.getClass().getName());
         return null;

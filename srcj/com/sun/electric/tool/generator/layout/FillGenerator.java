@@ -43,7 +43,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -1663,7 +1663,7 @@ public class FillGenerator implements Serializable {
                 // Only one connection per this type of ports?
 //                assert(ni.getNumConnections() == 1);
                 Cell exportCell = (Cell)p.getNodeInst().getProto();
-                Rectangle2D rect = LayerCoverageJob.getGeometryOnNetwork(exportCell, ni, ex.getOriginalPort(),
+                Rectangle2D rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
                         Tech.m2pin.getLayers()[0].getLayer().getNonPseudoLayer());
 
                 // Transformation of the cell instance containing this port
@@ -2004,7 +2004,7 @@ public class FillGenerator implements Serializable {
             // Contact area will contain the remaining are to check
             double height = contactArea.getHeight();
             NodeInst added = null;
-            GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1, null);
+            GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
             Netlist fillNetlist = container.fillCell.acquireUserNetlist();
 
             for (Iterator<Geometric> it = container.fillCell.searchIterator(contactArea); it.hasNext(); )
@@ -2043,7 +2043,7 @@ public class FillGenerator implements Serializable {
                     System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
                     continue;
                 }
-                handler.add(ai.getProto().getLayers()[0].getLayer(), newElem, true);
+                handler.add(ai.getProto().getLayers()[0].getLayer(), newElem);
             }
             handler.postProcess(false);
 

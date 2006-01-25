@@ -29,7 +29,6 @@ import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -156,7 +155,6 @@ public class Quick
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to caching current extra bits
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
-//    private Foundry.Type techMode = Foundry.Type.NONE;       /** To control different rules for ST and TSMC technologies */
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
 	public Quick(DRC.CheckDRCLayoutJob job, GeometryHandler.GHMode mode)
@@ -224,7 +222,7 @@ public class Quick
     public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                        Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
     {
-        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_QTREE);
+        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_SWEEP);
     }
 
 	/**
@@ -959,7 +957,7 @@ public class Quick
 			if (!(oNi.getProto() instanceof Cell)) continue;
 
 			// see if this configuration of instances has already been done
-			if (checkInteraction(ni, null, null, oNi, null, null)) continue;
+			if (checkInteraction(ni, null, oNi, null, null)) continue;
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
@@ -1013,7 +1011,7 @@ public class Quick
 				if (np instanceof Cell)
 				{
                     // see if this configuration of instances has already been done
-                    if (checkInteraction(ni, thisNi, upTrans, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
+                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
                     // You can't discard by interaction becuase two cells could be visited many times
                     // during this type of checking
 
@@ -2049,7 +2047,7 @@ public class Quick
 	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
 	 * return TRUE.  If not found, add to the list and return FALSE.
 	 */
-	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, AffineTransform n1UpTrans,
+	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent,
                                      NodeInst ni2, NodeInst n2Parent, NodeInst triggerNi)
 	{
         if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
@@ -2083,15 +2081,9 @@ public class Quick
 		// get essential information about their interaction
 		dii.cell1 = (Cell)ni1.getProto();
 		dii.or1 = ni1.getOrient();
-// 		dii.rot1 = ni1.getAngle();
-// 		dii.mirrorX1 = ni1.isMirroredAboutXAxis();
-// 		dii.mirrorY1 = ni1.isMirroredAboutYAxis();
 
 		dii.cell2 = (Cell)ni2.getProto();
 		dii.or2 = ni2.getOrient();
-// 		dii.rot2 = ni2.getAngle();
-// 		dii.mirrorX2 = ni2.isMirroredAboutXAxis();
-// 		dii.mirrorY2 = ni2.isMirroredAboutYAxis();
 
         // This has to be calculated before the swap
 		dii.dx = ni2.getAnchorCenterX() - ni1.getAnchorCenterX();
@@ -2489,31 +2481,30 @@ public class Quick
 		return false;
 	}
 
-	private int checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer)
+	private int checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer, boolean addError,
+                                  HashMap<Layer, Layer> minAreaLayerMapDone, HashMap<Layer, Layer> enclosedAreaLayerMapDone)
 	{
 		int errorFound = 0;
-		DRCTemplate minAreaRule = (DRCTemplate)minAreaLayerMap.get(layer);
-		DRCTemplate encloseAreaRule = (DRCTemplate)enclosedAreaLayerMap.get(layer);
-        DRCTemplate slotSizeRule = (DRCTemplate)slotSizeLayerMap.get(layer);
+		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
+		DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
+        DRCTemplate slotSizeRule = slotSizeLayerMap.get(layer);
 
 		// Layer doesn't have min area nor slot size
 		if (minAreaRule == null && encloseAreaRule == null && slotSizeRule == null) return 0;
 
-		Collection set = merge.getObjects(layer, false, true);
+		Collection<PolyBase> set = merge.getObjects(layer, false, true);
 
         if (set == null) return 0; // layer is not present in this cell
 
-		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+        boolean minAreaDone = true;
+        boolean enclosedAreaDone = true;
+
+		for(Iterator<PolyBase> pIt = set.iterator(); pIt.hasNext(); )
 		{
-            Object obj = pIt.next();
+            PolyBase obj = pIt.next();
 			if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
 
-			List list = null;
-
-            if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
-                list = ((PolyQTree.PolyNode)obj).getSortedLoops();
-            else
-                list = ((PolyBase)obj).getSortedLoops();
+			List<PolyBase> list = obj.getSortedLoops();
 
 			// Order depends on area comparison done. First element is the smallest.
 			// and depending on # polygons it could be minArea or encloseArea
@@ -2523,28 +2514,18 @@ public class Quick
 			// polyArray.length = Maximum number of distintic loops
 			for (int i = 0; i < list.size(); i++)
 			{
-                Object listObj = list.get(i);
-				double area = 0;
-
-                if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
-                    area = ((PolyQTree.PolyNode)listObj).getArea();
-                else
-                    area = ((PolyBase)listObj).getArea();
+                PolyBase listObj = list.get(i);
+				double area = ((PolyBase)listObj).getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
-                PolyBase simplePn = ((mergeMode == GeometryHandler.GHMode.ALGO_QTREE))
-                        ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
-                        : (PolyBase)listObj;
+                PolyBase simplePn = listObj;
 
                 // Check slot size when area is checked
                 if (minRule == minAreaRule && slotSizeRule != null)
                 {
-                    double length = 0;
-                    if (mergeMode == GeometryHandler.GHMode.ALGO_QTREE)
-                        length = ((PolyQTree.PolyNode)listObj).getMaxLength();
-                    else
-                        length = ((PolyBase)listObj).getMaxLength();
+                    double length = listObj.getMaxLength();
 
                     if (!DBMath.isGreaterThan(length, slotSizeRule.value1)) continue;
+                    if (addError)
                     reportError(DRCErrorType.SLOTSIZEERROR, null, cell, slotSizeRule.value1, length, slotSizeRule.ruleName,
 						simplePn, null /*ni*/, layer, null, null, null);
 				    errorFound++;
@@ -2557,11 +2538,17 @@ public class Quick
                 
 				errorFound++;
 				DRCErrorType errorType = (minRule == minAreaRule) ? DRCErrorType.MINAREAERROR : DRCErrorType.ENCLOSEDAREAERROR;
-
+                if (errorType == DRCErrorType.MINAREAERROR) minAreaDone = false;
+                else if (errorType == DRCErrorType.ENCLOSEDAREAERROR) enclosedAreaDone = false;
+                if (addError)
 				reportError(errorType, null, cell, minRule.value1, area, minRule.ruleName,
 						simplePn, null /*ni*/, layer, null, null, null);
 			}
 		}
+        if (minAreaDone)
+            minAreaLayerMapDone.put(layer, layer);
+        if (enclosedAreaDone)
+            enclosedAreaLayerMapDone.put(layer, layer);
 		return errorFound;
 
 	}
@@ -2583,10 +2570,9 @@ public class Quick
 		// Select/well regions
         HashMap<Cell,GeometryHandler> selectMergeMap = new HashMap<Cell,GeometryHandler>();
 
-			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
-            GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
+        CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+        GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rules
         for(Iterator layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
@@ -2598,7 +2584,7 @@ public class Quick
 			// Job aborted
 			if (job != null && job.checkAbort()) return 0;
 
-            errorFound += checkMinAreaLayer(geom, cell, layer);
+            errorFound += checkMinAreaLayer(geom, cell, layer, true, null, null);
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
@@ -2617,7 +2603,7 @@ public class Quick
 		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
+			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
 		}
 
 		return errorFound;
@@ -2638,34 +2624,44 @@ public class Quick
 			return 0;
 
 		// Select/well regions
-		GeometryHandler	selectMerge = GeometryHandler.createGeometryHandler(mergeMode, 0, cell.getBounds()); //new PolyQTree(cell.getBounds());
+		GeometryHandler	selectMerge = GeometryHandler.createGeometryHandler(mergeMode, 0); //new PolyQTree(cell.getBounds());
 		HashMap<NodeInst,NodeInst> notExportedNodes = new HashMap<NodeInst,NodeInst>();
 		HashMap<NodeInst,NodeInst> checkedNodes = new HashMap<NodeInst,NodeInst>();
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
-		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
-		{
-			Network net = (Network)netIt.next();
-			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
+        QuickAreaEnumerator quickArea1 = new QuickAreaEnumerator(cp.netlist, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
-            quickArea.mainMerge.postProcess(true);
+        quickArea1.setPreProcessFlag(false);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea1);
+//            quickArea.mainMerge.postProcess(true);
 
-			// Job aborted
-			if (job != null && job.checkAbort()) return 0;
-
-			for(Iterator<Layer> it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				errorFound += checkMinAreaLayer(quickArea.mainMerge, cell, layer);
-			}
-		}
+        // Job aborted
+        if (job != null && job.checkAbort()) return 0;
+//		for(Iterator<Network> netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
+//		{
+//			Network net = netIt.next();
+//			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(cp.netlist, net, selectMerge, notExportedNodes, checkedNodes,
+//                    mergeMode);
+//            quickArea.setPreProcessFlag(true);
+//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+//            quickArea.setPreProcessFlag(false);
+//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+////            quickArea.mainMerge.postProcess(true);
+//
+//			// Job aborted
+//			if (job != null && job.checkAbort()) return 0;
+//
+////			for(Iterator<Layer> it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
+////			{
+////				Layer layer = it.next();
+////				errorFound += checkMinAreaLayer(quickArea.mainMerge, cell, layer, true,
+////                        quickArea.minAreaLayerMapDone, quickArea.enclosedAreaLayerMapDone);
+////			}
+//		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
 		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, mergeMode);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 //		{
@@ -2679,7 +2675,7 @@ public class Quick
 		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
+			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
 		}
 
 		return errorFound;
@@ -4362,33 +4358,124 @@ public class Quick
 	 *  QuickAreaEnumerator class
 	 **************************************************************************************************************/
 	// Extra functions to check area
-	private class
-            QuickAreaEnumerator extends HierarchyEnumerator.Visitor
+	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-		private Network jNet;
-		private GeometryHandler mainMerge;
 		private GeometryHandler otherTypeMerge;
 		private Layer polyLayer;
 		private HashMap<NodeInst,NodeInst> notExportedNodes;
 		private HashMap<NodeInst,NodeInst> checkedNodes;
         private GeometryHandler.GHMode mode; // geometrical merge algorithm
+        private boolean preProcess = false;
+        private boolean doneAll = false;
+        private List<QuickAreaBucket> buckets = new ArrayList<QuickAreaBucket>();
 
-		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
+        private class QuickAreaBucket
+        {
+            boolean merged = false;
+            GeometryHandler mainMerge;
+            Network jNet;
+            HashMap<Layer,Layer> minAreaLayerMapDone = new HashMap<Layer,Layer>();
+            HashMap<Layer,Layer> enclosedAreaLayerMapDone = new HashMap<Layer,Layer>();
+
+            QuickAreaBucket(Network net)
+            {
+                jNet = net;
+                for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
+                for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
+            }
+
+            /**
+             * Method to check whether the layer must be checked or not. It might be done by this layer on that network
+             * @param layer
+             * @return
+             */
+            private boolean skipLayer(Layer layer)
+            {
+                if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+                    return true;
+                if (preProcess)
+                {
+                    minAreaLayerMapDone.put(layer, null);
+                    enclosedAreaLayerMapDone.put(layer, null);
+                    return true;
+                }
+                else
+                {
+                    if (minAreaLayerMapDone.get(layer) != null && enclosedAreaLayerMapDone.get(layer) != null)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+		public QuickAreaEnumerator(Netlist netlist, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
 		                           HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
 		{
-			this.jNet = jNet;
+//			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
             this.mode = mode;
+
+            for(Iterator<Network> netIt = netlist.getNetworks(); netIt.hasNext(); )
+            {
+                Network net = netIt.next();
+                buckets.add(new QuickAreaBucket(net));
+            }
+//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
+//            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
+
+        public void setPreProcessFlag(boolean f) { preProcess = f; }
 
 		public QuickAreaEnumerator(HashMap<NodeInst,NodeInst> notExportedNodes, HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
 		{
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
             this.mode = mode;
+//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
+//            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
+
+        /**
+         * Method to check if all layers have been checked and are OK with the rule for a particular
+         * network. This is under the assumption that connectivity gives you all the nodes connected so
+         * there is no point of checking more once the minimum has been reached.
+         * @return
+         */
+        private boolean areAllLayersDone()
+        {
+            if (!doneAll)
+            {
+                boolean done = true;
+                for (QuickAreaBucket bucket : buckets)
+                {
+                    for (Layer layer : bucket.minAreaLayerMapDone.keySet())
+                    {
+                        if (bucket.minAreaLayerMapDone.get(layer) == null) // not done
+                        {
+                            done = false;
+                            break;
+                        }
+                    }
+                    if (done)
+                    {
+                        for (Layer layer : bucket.enclosedAreaLayerMapDone.keySet())
+                        {
+                            if (bucket.enclosedAreaLayerMapDone.get(layer) == null) // not done
+                            {
+                                done = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!done) break; // not sure what would be faster
+                }
+                doneAll = done;
+            }
+            return doneAll;
+        }
+
 
 		/**
 		 */
@@ -4396,37 +4483,51 @@ public class Quick
 		{
 			if (job != null && job.checkAbort()) return false;
 
-			if (mainMerge == null)
+            if (!preProcess && (doneAll || areAllLayersDone())) return false;
+            // Create them only on top cell
+            if (info.getCell() == topCell)
             {
-				//mainMerge = new PolyQTree(info.getCell().getBounds());
-                mainMerge = GeometryHandler.createGeometryHandler(mode, info.getCell().getTechnology().getNumLayers(),
-                        info.getCell().getBounds());
+                for (QuickAreaBucket bucket : buckets)
+                {
+                    bucket.mainMerge = GeometryHandler.createGeometryHandler(mode, info.getCell().getTechnology().getNumLayers());
+                }
             }
+
             AffineTransform rTrans = info.getTransformToRoot();
 
 			// Check Arcs too if network is not null
-			if (jNet != null)
+			if (buckets.size() > 0)
 			{
-				for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+                List<QuickAreaBucket> onlyTheseBuckets = new ArrayList<QuickAreaBucket>();
+				for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 				{
-					ArcInst ai = (ArcInst)it.next();
+					ArcInst ai = it.next();
 					Technology tech = ai.getProto().getTechnology();
 					Network aNet = info.getNetlist().getNetwork(ai, 0);
-					boolean found = false;
 
-					// aNet is null if ArcProto is Artwork
-					if (aNet != null)
-					{
-						for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
-						{
-							Export exp = (Export)arcIt.next();
-							Network net = info.getNetlist().getNetwork(exp, 0);
-                            found = HierarchyEnumerator.searchNetworkInParent(net, info, jNet);
-						}
-					}
+                    // Only check those network buckets that are found as exports
+                    onlyTheseBuckets.clear();
+                    for (QuickAreaBucket bucket : buckets)
+                    {
+					    boolean found = false;
+                        // aNet is null if ArcProto is Artwork
+                        if (aNet != null)
+                        {
+                            for (Iterator<Export> arcIt = aNet.getExports(); !found && arcIt.hasNext();)
+                            {
+                                Export exp = arcIt.next();
+                                Network net = info.getNetlist().getNetwork(exp, 0);
+                                found = HierarchyEnumerator.searchNetworkInParent(net, info, bucket.jNet);
+                            }
+                        }
 
-					if (!found && aNet != jNet)
-						continue; // no same net
+                        if (!found && aNet != bucket.jNet)
+                            continue; // no same net
+                        onlyTheseBuckets.add(bucket);
+                    }
+
+                    if (onlyTheseBuckets.size() == 0)
+                        continue;
 
 					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 					int tot = arcInstPolyList.length;
@@ -4435,10 +4536,6 @@ public class Quick
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 
-						// No area associated
-						if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
-							continue;
-
 						// it has to take into account poly and transistor poly as one layer
 						if (layer.getFunction().isPoly())
 						{
@@ -4446,9 +4543,18 @@ public class Quick
 								polyLayer = layer;
 							layer = polyLayer;
 						}
-						poly.transform(rTrans);
 
-                        addElement(poly, layer, false);
+                        for (QuickAreaBucket bucket : onlyTheseBuckets)
+                        {
+                            // No area associated or already done
+                            if (bucket.skipLayer(layer))
+                                continue;
+
+                            // only here when is really merging
+                            assert(!preProcess);
+                            poly.transform(rTrans);
+                            addElement(bucket, poly, layer, false);
+                        }
 					}
 				}
 			}
@@ -4459,7 +4565,26 @@ public class Quick
 		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
-            ;
+            if (preProcess || doneAll) return;
+            boolean isTopCell = info.getCell() == topCell;
+
+            if (!isTopCell) return;
+
+            for (QuickAreaBucket bucket : buckets)
+            {
+                if (!isTopCell && bucket.merged)
+                    continue;
+                bucket.mainMerge.postProcess(true);
+                bucket.merged = true;
+                for(Iterator<Layer> it = bucket.mainMerge.getKeyIterator(); it.hasNext(); )
+                {
+                    Layer layer = it.next();
+                    checkMinAreaLayer(bucket.mainMerge, info.getCell(), layer, isTopCell, bucket.minAreaLayerMapDone,
+                            bucket.enclosedAreaLayerMapDone);
+                    if (areAllLayersDone())
+                        return; // done
+                }
+            }
         }
 
 		/**
@@ -4467,6 +4592,8 @@ public class Quick
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			if (job != null && job.checkAbort()) return false;
+
+            if (doneAll) return false; // done!
 
 			Cell cell = info.getCell();
 			NodeInst ni = no.getNodeInst();
@@ -4480,10 +4607,10 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
-			boolean found = false;
 			boolean forceChecking = false;
+            List<QuickAreaBucket> onlyTheseBuckets = new ArrayList<QuickAreaBucket>();
 
-			if (jNet != null)
+			if (buckets.size() > 0) //jNet != null)
 			{
 				boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
 				if (np instanceof PrimitiveNode)
@@ -4494,39 +4621,54 @@ public class Quick
 
 				boolean notExported = false;
 				Network thisNet = null;
-				for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
-				{
-					PortInst pi = (PortInst)pIt.next();
-					PortProto pp = pi.getPortProto();
-					boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
-					thisNet = info.getNetlist().getNetwork(pi);
-					//found = searchNetworkInParent(thisNet, info);
-                    found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, jNet);
-					if (!isExported) notExported = true;
-				}
-				// Substrate layers are special so we must check node regardless network
-				notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
-				if (!found && !forceChecking)
-				{
-					if (notExportedNodes != null && notExported)
-					{
-						//addNodeInst(ni, pNp, forceChecking, null, trans, nonExportedMerge, nonExportedMerge);
-						notExportedNodes.put(ni, ni);
-					}
-					//else
-						return (false);
-				}
+
+                for (QuickAreaBucket bucket : buckets)
+                {
+                    boolean found = false;
+
+                    for(Iterator<PortInst> pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
+                    {
+                        PortInst pi = pIt.next();
+                        PortProto pp = pi.getPortProto();
+                        boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
+                        thisNet = info.getNetlist().getNetwork(pi);
+                        {
+                            found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, bucket.jNet);
+                            if (found) break;
+                        }
+                        if (!isExported) notExported = true;
+                    }
+                    // Substrate layers are special so we must check node regardless network
+                    notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
+                    if (!found && !forceChecking)
+                    {
+                        if (notExportedNodes != null && notExported)
+                        {
+                            //addNodeInst(ni, pNp, forceChecking, null, trans, nonExportedMerge, nonExportedMerge);
+                            notExportedNodes.put(ni, ni);
+                        }
+                        //else
+                        continue;
+//                            return (false);
+                    }
+                    onlyTheseBuckets.add(bucket);
+                }
 				// Removing node if it was found included in a network
 				notExportedNodes.remove(ni);
 				checkedNodes.put(ni, ni);
 			}
 			else
 			{
+                new Error("Not implemented");
+                assert(false); // not re-implemented
 				if (!notExportedNodes.containsKey(ni))
 					return (false); // not to consider
 				if (checkedNodes.containsKey(ni))
 					return (false);
 			}
+
+            if (onlyTheseBuckets.size() == 0)
+                return false;
 
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
@@ -4538,24 +4680,6 @@ public class Quick
 				Poly poly = nodeInstPolyList[i];
 				Layer layer = poly.getLayer();
 
-				// No area rule associated
-				if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
-					continue;
-
-				// make sure this layer connects electrically to the desired port
-				// but only when checking networks, no nonExported.
-				if (jNet != null)
-				{
-					PortProto pp = poly.getPort();
-					found = forceChecking && layer.getFunction().isSubstrate();
-                    if (!found && pp != null)
-					{
-						Network net = info.getNetlist().getNetwork(ni, pp, 0);
-						found = HierarchyEnumerator.searchNetworkInParent(net, info, jNet);
-					}
-					//	if (!forceChecking && !found) continue;
-					if (!found) continue;
-				}
 				// it has to take into account poly and transistor poly as one layer
 				if (layer.getFunction().isPoly())
 				{
@@ -4563,26 +4687,48 @@ public class Quick
 						polyLayer = layer;
 					layer = polyLayer;
 				}
-				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
-				poly.transform(trans);
-                addElement(poly, layer, true);
+
+                for (QuickAreaBucket bucket : onlyTheseBuckets)
+                {
+                    // No area associated or already done
+                    if (bucket.skipLayer(layer))
+                        continue;
+
+                    // make sure this layer connects electrically to the desired port
+                    // but only when checking networks, no nonExported.
+                    if (bucket.jNet != null)
+                    {
+                        PortProto pp = poly.getPort();
+                        boolean found = forceChecking && layer.getFunction().isSubstrate();
+                        if (!found && pp != null)
+                        {
+                            Network net = info.getNetlist().getNetwork(ni, pp, 0);
+                            found = HierarchyEnumerator.searchNetworkInParent(net, info, bucket.jNet);
+                        }
+                        //	if (!forceChecking && !found) continue;
+                        if (!found) continue;
+                    }
+                    assert(!preProcess);
+                    poly.roundPoints(); // Trying to avoid mismatches while joining areas.
+                    poly.transform(trans);
+                    addElement(bucket, poly, layer, true);
+                }
 			}
 
             return true;
 		}
 
-        private void addElement(Poly poly, Layer layer, boolean isNode)
+        private void addElement(QuickAreaBucket bucket, Poly poly, Layer layer, boolean isNode)
         {
-            Shape obj = null;
-            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
-                obj = new PolyQTree.PolyNode(poly.getBounds2D());
-            else
-                obj = poly;
+            Shape obj = poly;
             // otherTypeMerge is null if nonExported nodes are analyzed
             if ((isNode && otherTypeMerge == null) || layer.getFunction().isMetal() || layer.getFunction().isPoly())
-                mainMerge.add(layer, obj, false);
+            {
+                bucket.merged = false;
+                bucket.mainMerge.add(layer, obj);
+            }
             else
-                otherTypeMerge.add(layer, obj, false);
+                otherTypeMerge.add(layer, obj);
         }
     }
 
@@ -4622,8 +4768,8 @@ public class Quick
 
             if (thisMerge == null)
             {
-                thisMerge = GeometryHandler.createGeometryHandler(mode, cell.getTechnology().getNumLayers(), cell.getBounds());
-                thisOtherMerge = GeometryHandler.createGeometryHandler(mode, 4, cell.getBounds());
+                thisMerge = GeometryHandler.createGeometryHandler(mode, cell.getTechnology().getNumLayers());
+                thisOtherMerge = GeometryHandler.createGeometryHandler(mode, 4);
                 mainMergeMap.put(cell, thisMerge);
                 otherTypeMergeMap.put(cell, thisOtherMerge);
                 firstTime = true;
@@ -4761,16 +4907,12 @@ public class Quick
         private void addElement(GeometryHandler mainMerge, GeometryHandler otherTypeMerge, Poly poly,
                                 Layer layer, boolean isNode)
         {
-            Shape obj = null;
-            if (mode == GeometryHandler.GHMode.ALGO_QTREE)
-                obj = new PolyQTree.PolyNode(poly.getBounds2D());
-            else
-                obj = poly;
+            Shape obj = poly;
             // otherTypeMerge is null if nonExported nodes are analyzed
             if ((isNode && otherTypeMerge == null) || layer.getFunction().isMetal() || layer.getFunction().isPoly())
-                mainMerge.add(layer, obj, false);
+                mainMerge.add(layer, obj);
             else
-                otherTypeMerge.add(layer, obj, false);
+                otherTypeMerge.add(layer, obj);
         }
     }
 }

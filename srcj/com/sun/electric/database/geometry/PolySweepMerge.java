@@ -82,7 +82,7 @@ public class PolySweepMerge extends GeometryHandler
     }
 
     // To insert new element into handler
-	public void add(Layer key, Object element, boolean fasterAlgorithm)
+	public void add(Layer key, Object element)
     {
         PolySweepContainer container = (PolySweepContainer)layers.get(key);
 
@@ -406,7 +406,7 @@ public class PolySweepMerge extends GeometryHandler
 	 * @param modified to avoid retrieving original polygons
 	 * @param simple to obtain simple polygons
 	 */
-	public Collection getObjects(Object layer, boolean modified, boolean simple)
+	public Collection<PolyBase> getObjects(Object layer, boolean modified, boolean simple)
     {
         PolySweepContainer container = (PolySweepContainer)layers.get(layer);
 

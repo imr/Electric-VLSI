@@ -133,7 +133,7 @@ public class DRC extends Listener
 		Cell cell = geom.getParent();
 		synchronized (cellsToCheck)
 		{
-			HashSet<Geometric> cellSet = (HashSet<Geometric>)cellsToCheck.get(cell);
+			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
 			if (cellSet == null)
 			{
 				cellSet = new HashSet<Geometric>();
@@ -149,7 +149,7 @@ public class DRC extends Listener
 		Cell cell = geom.getParent();
 		synchronized (cellsToCheck)
 		{
-			HashSet cellSet = (HashSet)cellsToCheck.get(cell);
+			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
 			if (cellSet != null) cellSet.remove(geom);
 		}
 	}
@@ -168,11 +168,11 @@ public class DRC extends Listener
 		synchronized (cellsToCheck)
 		{
 			if (cellToCheck != null)
-				cellSet = (HashSet<Geometric>)cellsToCheck.get(cellToCheck);
+				cellSet = cellsToCheck.get(cellToCheck);
 			if (cellSet == null && cellsToCheck.size() > 0)
 			{
-				cellToCheck = (Cell)cellsToCheck.keySet().iterator().next();
-				cellSet = (HashSet<Geometric>)cellsToCheck.get(cellToCheck);
+				cellToCheck = cellsToCheck.keySet().iterator().next();
+				cellSet = cellsToCheck.get(cellToCheck);
 			}
 			if (cellSet != null)
 				cellsToCheck.remove(cellToCheck);
@@ -182,17 +182,25 @@ public class DRC extends Listener
 
 		// don't check if cell not in database anymore
 		if (!cellToCheck.isLinked()) return;
-		// Handling clipboard case (one type of hidden libraries
+		// Handling clipboard case (one type of hidden libraries)
 		if (cellToCheck.getLibrary().isHidden()) return;
 
+        if (!cellToCheck.getTechnology().isScaleRelevant())
+        {
+            if (Job.LOCALDEBUGFLAG)
+                System.out.println("Incremental for '" + cellToCheck.getTechnology() +
+                    "' not implemented");
+            return;
+        }
 		// if there is a cell to check, do it
 		if (cellSet != null)
 		{
 			Geometric [] objectsToCheck = new Geometric[cellSet.size()];
 			int i = 0;
-			for(Geometric geom : cellSet)
+            for(Geometric geom : cellSet)
 				objectsToCheck[i++] = geom;
-			new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
+//            if (cellToCheck.getTechnology().isScaleRelevant())
+			    new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
 		}
 	}
 
@@ -287,7 +295,7 @@ public class DRC extends Listener
 		} else
 		{
 			// hierarchical check of layout
-            if (mode == null) mode = GeometryHandler.GHMode.ALGO_QTREE;
+            if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
 			new CheckLayoutHierarchically(cell, bounds, mode);
 		}
     }
@@ -417,10 +425,10 @@ public class DRC extends Listener
             {
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
             {
-                Library lib = it.next();
+                Library lib = (Library)it.next();
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                 {
-                    Cell cell = cIt.next();
+                    Cell cell = (Cell)cIt.next();
                     cleanDRCDateAndBits(cell);
                 }
             }
@@ -946,8 +954,9 @@ public class DRC extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			for(Cell cell : goodDRCDate.keySet())
+			for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
+				Cell cell = it.next();
 				Date now = goodDRCDate.get(cell);
                 if (!cell.isLinked())
                     System.out.println("Cell '" + cell + "' is invalid to update DRC date");
@@ -955,8 +964,9 @@ public class DRC extends Listener
 				    setLastDRCDateAndBits(cell, now, activeBits);
 			}
 
-			for(Cell cell : cleanDRCDate.keySet())
+			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
 			{
+				Cell cell = it.next();
                 if (!cell.isLinked())
                     System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
                 else
