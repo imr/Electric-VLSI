@@ -31,7 +31,7 @@ import java.util.logging.Level;
  * Thread for execution Jobs in Electric.
  */
 abstract class EThread extends Thread {
-    Job job;
+    EJob ejob;
     
     private volatile boolean canChanging;
     private volatile boolean canComputeBounds;
@@ -69,13 +69,13 @@ abstract class EThread extends Thread {
     UserInterface getUserInterface() { return userInterface; }
 
     void print(String str) {
-        if (job != null && job.connection != null)
-            job.connection.addMessage(str);
+        if (ejob != null && ejob.connection != null)
+            ejob.connection.addMessage(str);
     }
     
     void setCanChanging(boolean value) { canChanging = value; }
     void setCanComputeBounds(boolean value) { canComputeBounds = value; }
     void setCanComputeNetlist(boolean value) { canComputeNetlist = value; }
     void setUserInterface(UserInterface userInterface) { this.userInterface = userInterface; }
-    void setJob(Job job) { this.job = job; }
+    void setJob(EJob ejob) { this.ejob = ejob; }
 }

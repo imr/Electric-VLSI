@@ -319,8 +319,6 @@ public class Tool implements Comparable
 		Variable.Key key;
 		Object newVal;
 
-    	public SetVarJob() {}
-
 		protected SetVarJob(Tool tool, ElectricObject obj, Variable.Key key, Object newVal)
 		{
 			super("Add Variable", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);

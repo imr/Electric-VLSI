@@ -260,8 +260,6 @@ public class EvalJavaBsh
         String script;
 //        EvalJavaBsh evaluator;
 
-        public runScriptJob() {}
-
         protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;

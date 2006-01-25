@@ -1541,8 +1541,6 @@ public class DebugMenus
         private static class CountJob extends Job {
             private final Object mutex;
 
-            public CountJob() { mutex = null; }
-
             private CountJob(Object mutex) {
                 super("CountJob", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
                 this.mutex = mutex;

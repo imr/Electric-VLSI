@@ -33,6 +33,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Class for maintaining Connection on Server side.
@@ -42,19 +43,18 @@ public class ServerConnection extends Thread {
     private static final int STACK_SIZE = 20*1024;
     final int connectionId;
     private final Socket socket;
+    SnapshotWriter writer;
     final ConnectionReader reader;
-    private Snapshot currentSnapshot;
-    private volatile Snapshot newSnapshot;
+    private Snapshot currentSnapshot = new Snapshot();
+    private Snapshot initialSnapshot;
     volatile String jobName;
-    private volatile byte[] result;
-    private final ArrayList<Object> writeQueue = new ArrayList<Object>();
-    private final ArrayList<EJob> receivedJobs = new ArrayList<EJob>();
+    private final LinkedBlockingQueue<Object> writeQueue = new LinkedBlockingQueue<Object>();
     
-    ServerConnection(int connectionId, Socket socket) {
+    ServerConnection(int connectionId, Socket socket, Snapshot initialSnapshot) {
         super(null, null, "ServerConnection-" + connectionId, STACK_SIZE);
         this.connectionId = connectionId;
         this.socket = socket;
-        newSnapshot = currentSnapshot = new Snapshot();
+        this.initialSnapshot = initialSnapshot;
         reader = new ConnectionReader(this);
     }
     
@@ -63,60 +63,28 @@ public class ServerConnection extends Thread {
         reader.start();
     }
     
-    synchronized void updateSnapshot(Snapshot newSnapshot) {
-        if (writeQueue.isEmpty())
-            notify();
+    void updateSnapshot(Snapshot newSnapshot) {
         writeQueue.add(newSnapshot);
     }
     
-    synchronized void sendTerminateJob(int jobId, byte[] result) {
-        if (writeQueue.isEmpty())
-            notify();
-        writeQueue.add(new Integer(jobId));
-        writeQueue.add(result);
+    void sendTerminateJob(EJob ejob) {
+        writeQueue.add(new Integer(ejob.jobId));
+        writeQueue.add(ejob.serializedResult);
     }
     
-    synchronized void addMessage(String str) {
-        if (writeQueue.isEmpty())
-            notify();
+    void addMessage(String str) {
         writeQueue.add(str);
-        
-    }
-    
-    synchronized EJob peekJob() {
-        return receivedJobs.isEmpty() ? null : receivedJobs.get(0);
-    }
-    
-    synchronized void addJob(EJob ejob) {
-        if (receivedJobs.isEmpty()) {
-            synchronized (Job.databaseChangesMutex) {
-                Job.databaseChangesMutex.notify();
-            }
-        }
-        receivedJobs.add(ejob);
-    }
-
-    synchronized EJob getJob() {
-        if (receivedJobs.isEmpty()) return null;
-        return receivedJobs.remove(0);
     }
     
     public void run() {
         try {
-            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            writeSnapshot(initialSnapshot);
+            initialSnapshot = null;
             for (;;) {
-                Object o;
-                synchronized (this) {
-                    while (writeQueue.isEmpty())
-                        wait();
-                    o = writeQueue.remove(0);
-                }
+                Object o = writeQueue.take();
                 if (o instanceof Snapshot) {
-                    Snapshot newSnapshot = (Snapshot)o;
-                    writer.out.writeByte(1);
-                    newSnapshot.writeDiffs(writer, currentSnapshot);
-                    writer.out.flush();
-                    currentSnapshot = newSnapshot;
+                    writeSnapshot((Snapshot)o);
                 } else if (o instanceof Integer) {
                     int jobId  = ((Integer)o).intValue();
                     writer.out.writeByte(2);
@@ -140,6 +108,13 @@ public class ServerConnection extends Thread {
         }
     }
     
+    private void writeSnapshot(Snapshot newSnapshot) throws IOException {
+        writer.out.writeByte(1);
+        newSnapshot.writeDiffs(writer, currentSnapshot);
+        writer.out.flush();
+        currentSnapshot = newSnapshot;
+    }
+    
     private static class ConnectionReader extends Thread {
         private final static int STACK_SIZE = 1024;
         private final ServerConnection connection;
@@ -159,7 +134,7 @@ public class ServerConnection extends Thread {
                     int len = in.readInt();
                     byte[] bytes = new byte[len];
                     in.readFully(bytes);
-                    connection.addJob(new EJob(connection, jobId, jobType, jobName, bytes));
+                    Job.jobManager.addJob(new EJob(connection, jobId, jobType, jobName, bytes), false);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

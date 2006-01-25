@@ -24,20 +24,24 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job.Type;
+import java.awt.geom.Point2D;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
  * Class to track Job serializing and execution.
  */
-public class EJob {
+class EJob {
     
     enum State {
         CLIENT_WAITING,
@@ -51,13 +55,16 @@ public class EJob {
     
     ServerConnection connection;
     int jobId;
-    /** type of job (change or examine) */      final Job.Type jobType;
-    final String jobName;
+    /** type of job (change or examine) */      final Type jobType;
+    /** name of job */                          final String jobName;
     State state;
     byte[] serializedJob;
     byte[] serializedResult;
     Job serverJob;
     Job clientJob;
+    /** list of saved Highlights */             List<Object> savedHighlights;
+    /** saved Highlight offset */               Point2D savedHighlightsOffset;
+    /** Fields changed on server side. */       ArrayList<Field> changedFields;
     
     /** Creates a new instance of EJob */
     EJob(ServerConnection connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
@@ -69,13 +76,17 @@ public class EJob {
         serializedJob = bytes;
     }
     
-    EJob(Job job) {
-        jobType = job.jobType;
-        jobName = job.jobName;
+    EJob(Job job, Job.Type jobType, String jobName) {
+        this.jobType = jobType;
+        this.jobName = jobName;
         state = State.CLIENT_WAITING;
         serverJob = clientJob = job;
-        job.ejob = this;
+        savedHighlights = new ArrayList<Object>();
+        if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
+            saveHighlights();
     }
+    
+    Job getJob() { return clientJob != null ? clientJob : serverJob; }
     
     boolean isChanging() {
         return jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO;
@@ -99,10 +110,6 @@ public class EJob {
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedJob));
             Job job = (Job)in.readObject();
             in.close();
-            if (job.jobType != jobType)
-                throw new InvalidObjectException("jobType");
-            if (!job.jobName.equals(jobName))
-                throw new InvalidObjectException("jobName");
             job.ejob = this;
             serverJob = job;
             return null;
@@ -116,8 +123,8 @@ public class EJob {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new EObjectOutputStream(byteStream);
             out.writeObject(null); // No exception
-            out.writeInt(serverJob.changedFields.size());
-            for (Field f: serverJob.changedFields) {
+            out.writeInt(changedFields.size());
+            for (Field f: changedFields) {
                 Object value = f.get(serverJob);
                 out.writeUTF(f.getName());
                 out.writeObject(value);
@@ -208,6 +215,16 @@ public class EJob {
         return true;
     }
 
-    
+    /** Save current Highlights */
+    private void saveHighlights() {
+        savedHighlights.clear();
 
+        // for now, just save highlights in current window
+        UserInterface ui = Job.getUserInterface();
+        EditWindow_ wnd = ui.getCurrentEditWindow_();
+        if (wnd == null) return;
+
+        savedHighlights = wnd.saveHighlightList();
+        savedHighlightsOffset = wnd.getHighlightOffset();
+    }
 }

@@ -36,7 +36,7 @@ public class JobTree {
     /** Build Job explorer tree */
     public static synchronized DefaultMutableTreeNode getExplorerTree() {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-        for (Iterator<Job> it = Job.getDatabaseThreadJobs(); it.hasNext();) {
+        for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
             Job j = (Job)it.next();
             if (j.getDisplay()) {
                 DefaultMutableTreeNode node = new DefaultMutableTreeNode(new JobTreeNode(j));

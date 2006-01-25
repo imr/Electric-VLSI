@@ -39,8 +39,6 @@ import java.net.DatagramPacket;
 public class J3DClientApp extends Job
 {
 
-	public J3DClientApp() {}
-
     /** dialog box which owns this job */   private J3DViewDialog dialog;
     /** hostname to connect to */           private String hostname;
 

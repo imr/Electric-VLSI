@@ -225,7 +225,6 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
-        Job.initJobManager();
 		InitDatabase job = new InitDatabase(argsList, sw);
 		if (osXRegisterMethod != null)
 		{
@@ -238,8 +237,7 @@ public final class Main
 				System.out.println("Error initializing Mac OS/X interface");
 			}
 		}
-//        MacOSXInterface.setInitJob(job);
-        job.startJob();
+        Job.initJobManager(job);
 	}
 
     private static class UserInterfaceDummy implements UserInterface
@@ -530,8 +528,6 @@ public final class Main
 		List<String> argsList;
         String beanShellScript;
 		transient SplashWindow sw;
-
-		public InitDatabase() {}
 
 		protected InitDatabase(List<String> argsList, SplashWindow sw)
 		{
