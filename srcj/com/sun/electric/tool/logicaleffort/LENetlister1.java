@@ -146,10 +146,7 @@ public class LENetlister1 extends LENetlister {
         return success;
     }
 
-    /**
-     * Updates the size of all Logical Effort gates
-     */
-    public void updateSizes() {
+    public void getSizes(List<Float> sizes, List<String> varNames, List<NodeInst> nodes, List<VarContext> contexts) {
         // iterator over all LEGATEs
         Set<Map.Entry<String,Instance>> allEntries = allInstances.entrySet();
         for (Iterator<Map.Entry<String,Instance>> it = allEntries.iterator(); it.hasNext();) {
@@ -164,19 +161,12 @@ public class LENetlister1 extends LENetlister {
 
             String varName = "LEDRIVE_" + inst.getName();
             //no.newVar(varName, new Float(inst.getLeX()));
-            topLevelCell.newVar(varName, new Float(inst.getLeX()));
-
-            if (inst.getLeX() < 1.0f) {
-                String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";
-                System.out.println(msg);
-                if (ni != null) {
-                    ErrorLogger.MessageLog log = errorLogger.logWarning(msg, ni.getParent(), 2);
-                    log.addGeom(ni, true, ni.getParent(), inst.getContext());
-                }
-            }
+            //topLevelCell.newVar(varName, new Float(inst.getLeX()));
+            sizes.add(new Float(inst.getLeX()));
+            varNames.add(varName);
+            nodes.add(ni);
+            contexts.add(inst.getContext());
         }
-        printStatistics();
-        done();
     }
 
     public void done() {
@@ -185,6 +175,8 @@ public class LENetlister1 extends LENetlister {
     }
 
     public ErrorLogger getErrorLogger() { return errorLogger; }
+
+    public void nullErrorLogger() { errorLogger = null; }
 
     public NetlisterConstants getConstants() { return constants; }
 

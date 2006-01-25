@@ -42,11 +42,11 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.simulation.Simulation;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -384,10 +384,9 @@ public class LETool extends Listener {
      * Optimizes a Cell containing logical effort gates for equal gate delays.
      * @param cell the cell to be sized
      * @param context varcontext of the cell
-     * @param wnd the edit window holding the cell
      */
-    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow_ wnd, boolean newAlg) {
-        AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, wnd, newAlg);
+    public void optimizeEqualGateDelays(Cell cell, VarContext context, boolean newAlg) {
+        AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, newAlg);
         acjob.startJob(true, false);
     }
     
@@ -400,18 +399,16 @@ public class LETool extends Listener {
         /** progress */                         private String progress;
         /** cell to analyze */                  private Cell cell;
         /** var context */                      private VarContext context;
-        /** EditWindow_ */                       private EditWindow_ wnd;
         /** algorithm type */                   private LESizer.Alg algorithm;
         /** netlist */                          private LENetlister netlister;
         private boolean newAlg;
 
-        public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow_ wnd, boolean newAlg) {
+        public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, boolean newAlg) {
             super("Analyze "+cell, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
             this.cell = cell;
             this.context = context;
-            this.wnd = wnd;
             this.newAlg = newAlg;
         }
         
@@ -468,7 +465,31 @@ public class LETool extends Listener {
 
             if (success2) {
                 System.out.println("Sizing finished, updating sizes...");
-                UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
+                netlister.printStatistics();
+                List<Float> sizes = new ArrayList<Float>();
+                List<String> varNames = new ArrayList<String>();
+                List<NodeInst> nodes = new ArrayList<NodeInst>();
+                List<VarContext> contexts = new ArrayList<VarContext>();
+                netlister.getSizes(sizes, varNames, nodes, contexts);
+
+                // check for small sizes
+                for (int i=0; i<sizes.size(); i++) {
+                    float f = sizes.get(i).floatValue();
+                    NodeInst ni = nodes.get(i);
+                    VarContext context = contexts.get(i);
+
+                    if (f < 1.0f) {
+                        String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(f, 3)+" less than 1";
+                        System.out.println(msg);
+                        if (ni != null) {
+                            ErrorLogger.MessageLog log = netlister.getErrorLogger().logWarning(msg, ni.getParent(), 2);
+                            log.addGeom(ni, true, ni.getParent(), context);
+                        }
+                    }
+                }
+                new UpdateSizes(sizes, varNames, cell);
+                netlister.getErrorLogger().termLogging(true);
+                netlister.nullErrorLogger();
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
                 netlister.done();
@@ -510,21 +531,33 @@ public class LETool extends Listener {
 
     private static class UpdateSizes extends Job {
 
-        private LENetlister netlister;
-        private EditWindow_ wnd;
+        private List<Float> sizes;
+        private List<String> varNames;
+        private Cell cell;
 
-        private UpdateSizes(LENetlister netlister, Cell cell, EditWindow_ wnd) {
+        private UpdateSizes(List<Float> sizes, List<String> varNames, Cell cell) {
             super("Update LE Sizes", tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
-            this.netlister = netlister;
-            this.wnd = wnd;
+            this.sizes = sizes;
+            this.varNames = varNames;
+            this.cell = cell;
             startJob();
         }
 
         public boolean doIt() throws JobException {
-            netlister.updateSizes();
-            if (wnd != null) wnd.repaintContents(null, false);
+            for (int i=0; i<sizes.size(); i++) {
+                Float f = sizes.get(i);
+                String varName = varNames.get(i);
+                cell.newVar(varName, f);
+            }
+
             System.out.println("Sizes updated. Sizing Finished.");
+            fieldVariableChanged("cell");
             return true;
+        }
+
+        public void terminateOK() {
+            EditWindow wnd = EditWindow.findWindow(cell);
+            if (wnd != null) wnd.repaintContents(null, false);
         }
     }
 

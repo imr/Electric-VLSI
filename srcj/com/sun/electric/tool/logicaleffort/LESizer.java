@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,7 +63,7 @@ public class LESizer {
     /** error logger */                             private ErrorLogger errorLogger;
 
     /** Alg is a typesafe enum class that describes the algorithm to be used */
-    public static class Alg {
+    public static class Alg implements Serializable {
         private final String name;
         private Alg(String name) { this.name = name; }
         public String toString() { return name; }

@@ -190,6 +190,30 @@ public class LENetlister2 extends LENetlister {
     /**
      * Updates the size of all Logical Effort gates
      */
+    public void getSizes(List<Float> sizes, List<String> varNames,
+                         List<NodeInst> nodes, List<VarContext> contexts) {
+        // iterator over all LEGATEs
+        for (Iterator<LENodable> cit = getSizeableNodables(); cit.hasNext(); ) {
+            LENodable leno = (LENodable)cit.next();
+            Nodable no = leno.getNodable();
+            NodeInst ni = no.getNodeInst();
+            if (ni != null) no = ni;
+
+            // ignore it if not a sizeable gate
+            if (!leno.isLeGate()) continue;
+            String varName = "LEDRIVE_" + leno.getName();
+            //no.newVar(varName, new Float(leno.leX));
+            //topLevelCell.newVar(varName, new Float(leno.leX));
+            sizes.add(new Float(leno.leX));
+            varNames.add(varName);
+            nodes.add(ni);
+            contexts.add(leno.context);
+        }
+    }
+
+    /**
+     * Updates the size of all Logical Effort gates
+     */
     public void updateSizes() {
         // iterator over all LEGATEs
         for (Iterator<LENodable> cit = getSizeableNodables(); cit.hasNext(); ) {
@@ -214,7 +238,6 @@ public class LENetlister2 extends LENetlister {
             }
         }
 
-        printStatistics();
         done();
     }
 
@@ -224,6 +247,8 @@ public class LENetlister2 extends LENetlister {
     }
 
     public ErrorLogger getErrorLogger() { return errorLogger; }
+
+    public void nullErrorLogger() { errorLogger = null; }
 
     public NetlisterConstants getConstants() { return constants; }
 

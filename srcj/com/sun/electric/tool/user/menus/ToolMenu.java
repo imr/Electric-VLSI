@@ -547,7 +547,7 @@ public class ToolMenu {
             System.out.println("No current cell");
             return;
         }
-		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit, newAlg);
+		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), newAlg);
 	}
 
 	/** Print Logical Effort info for highlighted nodes */

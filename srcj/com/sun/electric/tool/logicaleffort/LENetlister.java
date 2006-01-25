@@ -39,6 +39,8 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.List;
+import java.io.Serializable;
 
 import javax.swing.SwingUtilities;
 
@@ -63,7 +65,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
     public static final Variable.Key ATTR_L = Variable.newKey("ATTR_L");
     public static final Variable.Key ATTR_LEWIRECAP = Variable.newKey("ATTR_LEWIRECAP");
 
-    public static class NetlisterConstants {
+    public static class NetlisterConstants implements Serializable {
         /** global step-up */                       public final float su;
         /** wire to gate cap ratio */               public final float wireRatio;
         /** convergence criteron */                 public final float epsilon;
@@ -121,14 +123,19 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
      */
     public abstract boolean size(LESizer.Alg algorithm);
 
-    /** Call to update and save sizes */
-    public abstract void updateSizes();
-
     /** Get the error logger */
     public abstract ErrorLogger getErrorLogger();
+    /** Destroy the error logger */
+    public abstract void nullErrorLogger();
 
     /** Get the settings used for sizing */
     public abstract NetlisterConstants getConstants();
+
+    /** Get the sizes and associated variable names to store on the top level cell */
+    public abstract void getSizes(List<Float> sizes, List<String> varNames,
+                                  List<NodeInst> nodes, List<VarContext> contexts);
+
+    public abstract void printStatistics();
 
     // ---------------------------- statistics ---------------------------------
 
@@ -198,12 +205,12 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (current.gateCap != local.gateCap) System.out.println("gateCap:\t"+current.gateCap+" vs "+local.gateCap);
             if (current.alpha != local.alpha) System.out.println("alpha:\t"+current.alpha+" vs "+local.alpha);
             if (current.keeperRatio != local.keeperRatio) System.out.println("keeperRatio:\t"+current.keeperRatio+" vs "+local.keeperRatio);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
+            //SwingUtilities.invokeLater(new Runnable() {
+            //    public void run() {
                 	Job.getUserInterface().showErrorMessage("Conflicting global parameter settings were found, " +
                             "please see message window for details", "Settings Conflict Found!!");
-                }
-            });
+            //    }
+            //});
             return true;
         }
         return false;
