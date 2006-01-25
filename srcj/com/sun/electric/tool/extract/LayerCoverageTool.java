@@ -419,7 +419,7 @@ public class LayerCoverageTool extends Listener
                     }
                     break;
                 default:
-                    System.out.println("Error in LayerCoverageJob: function not implemented");
+                    System.out.println("Error in LayerCoverage: function not implemented");
             }
             return true;
         }
