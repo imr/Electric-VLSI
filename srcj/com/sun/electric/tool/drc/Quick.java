@@ -4568,7 +4568,7 @@ public class Quick
             if (preProcess || doneAll) return;
             boolean isTopCell = info.getCell() == topCell;
 
-            if (!isTopCell) return;
+//            if (!isTopCell) return;     Case 5 too slow!. Case 4 is good for now
 
             for (QuickAreaBucket bucket : buckets)
             {
