@@ -31,6 +31,7 @@ import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -71,12 +72,19 @@ public class PolyMerge
 	/**
 	 * Method to add a PolyBase to the merged collection.
 	 * @param key the layer that this PolyBase sits on.
-	 * @param value the PolyBase to merge.
+	 * @param value the PolyBase to merge. If value is only Shape type
+     * then it would take the bounding box. This might not be precise enough!.
 	 */
 	public void add(Layer key, Object value)
 	{
 		Layer layer = key;
-		PolyBase poly = (PolyBase)value;
+        PolyBase poly = null;
+        if (value instanceof PolyBase)
+		    poly = (PolyBase)value;
+        else if (value instanceof Shape)
+            poly = new PolyBase(((Shape)value).getBounds2D());
+        else
+            return;
 		addPolygon(layer, poly);
 	}
 	/**
