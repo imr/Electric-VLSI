@@ -25,6 +25,7 @@
 package com.sun.electric.database.network;
 
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -229,8 +231,7 @@ class NetCell
 			if (ni.getNameKey().isBus()) {
 				String msg = "Network: Layout " + cell + " has arrayed " + ni;
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
-                log.addGeom(ni, true, cell, null);
+                NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNodes);
             }
             ErrorLogger.MessageLog log = null;
             NodeProto np = ni.getProto();
@@ -254,11 +255,11 @@ class NetCell
             String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
                     " " + np.describe(true) + " nodes";
             System.out.println(msg);
-            ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
+            List<Geometric> niList = new ArrayList<Geometric>();
             for (int i = 0, numNodes = nodesOfType.size(); i < numNodes; i++) {
-                NodeInst ni = (NodeInst)nodesOfType.get(i);
-                log.addGeom(ni, true, cell, null);
+                niList.add(nodesOfType.get(i));
             }
+            NetworkTool.errorLogger.logError(msg, niList, null, cell, NetworkTool.errorSortNodes);
         }
 	}
 
@@ -437,8 +438,7 @@ class NetCell
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
-                        ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
-                        log.addPoly(pi.getPoly(), true, cell);
+                        NetworkTool.errorLogger.logError(msg, pi.getPoly(), cell, NetworkTool.errorSortNodes);
                     }
 					continue;
 				}
@@ -465,11 +465,11 @@ class NetCell
                 ArrayList<NodeInst> pinsOfType = (ArrayList<NodeInst>)unconnectedPins.get(np);
                 String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);
+                List<Geometric> geomList = new ArrayList<Geometric>();
                 for (int i = 0, numPins = pinsOfType.size(); i < numPins; i++) {
-                    NodeInst ni = (NodeInst)pinsOfType.get(i);
-                    log.addGeom(ni, true, cell, null);
+                    geomList.add(pinsOfType.get(i));
                 }
+                NetworkTool.errorLogger.logWarning(msg, geomList, null, null, null, null, cell, NetworkTool.errorSortNodes);
             }
         }
 		// showDrawns();
@@ -528,8 +528,7 @@ class NetCell
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
-                log.addGeom(ai, true, cell, null);
+                NetworkTool.errorLogger.logError(msg, ai, cell, null, NetworkTool.errorSortNetworks);
             }
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
@@ -657,20 +656,24 @@ class NetCell
 			if (netNamesToNet[nn.index] == network) return;
 			String msg = "Network: Layout " + cell + " has nets with same name " + name;
             System.out.println(msg);
-            ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
             // because this should be an infrequent event that the user will fix, let's
             // put all the work here
             int numPorts = cell.getNumPorts();
+            List<Export> ppList = new ArrayList<Export>();
             for (int i = 0; i < numPorts; i++) {
                 Export e = (Export)cell.getPort(i);
-                if (e.getName().equals(name.toString())) log.addExport(e, true, cell, null);
+                if (e.getName().equals(name.toString()))
+                	ppList.add((Export)cell.getPort(i));
             }
             int numArcs = cell.getNumArcs();
+            List<Geometric> aiList = new ArrayList<Geometric>();
             for (int i = 0; i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
-                if (ai.getName().equals(name.toString())) log.addGeom(ai, true, cell, null);
+                if (ai.getName().equals(name.toString()))
+                	aiList.add(ai);
             }
+            NetworkTool.errorLogger.logError(msg, aiList, ppList, cell, NetworkTool.errorSortNetworks);
         }
 		else
 			netNamesToNet[nn.index] = network;

@@ -897,8 +897,7 @@ public abstract class LibraryFiles extends Input
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {
-            ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+proto.getName(), parent, 1);
-            error.addGeom(ni, true, parent, null);
+            Input.errorLogger.logError("Instance of dummy cell "+proto.getName(), ni, parent, null, 1);
         }
     }
 
@@ -1070,11 +1069,11 @@ public abstract class LibraryFiles extends Input
 	 * @param message message string.
 	 * @return MessageLog object for attaching further geometry details.
 	 */
-	ErrorLogger.MessageLog logError(String message)
+	void logError(String message)
 	{
 		errorCount++;
 		System.out.println(message);
-		return errorLogger.logError(message, null, -1);
+		errorLogger.logError(message, -1);
 	}
 
 	/**
@@ -1082,10 +1081,10 @@ public abstract class LibraryFiles extends Input
 	 * @param message message string.
 	 * @return MessageLog object for attaching further geometry details.
 	 */
-	ErrorLogger.MessageLog logWarning(String message)
+	void logWarning(String message)
 	{
 		System.out.println(message);
-		return errorLogger.logWarning(message, null, -1);
+		errorLogger.logWarning(message, null, -1);
 	}
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************

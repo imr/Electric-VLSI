@@ -3,6 +3,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -11,11 +12,7 @@ import java.io.PrintStream;
 import java.awt.geom.Point2D;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Dec 9, 2005
- * Time: 10:32:03 PM
- * To change this template use File | Settings | File Templates.
+ * Class to define Highlighted errors.
  */
 public abstract class ErrorHighlight {
     Cell        cell;
@@ -62,16 +59,15 @@ class ErrorHighExport extends ErrorHighlight {
 
 class ErrorHighLine extends ErrorHighlight {
 
-    Point2D p1, p2, center;
+	EPoint p1, p2;
     boolean thickLine;
 
-    public ErrorHighLine(Cell c, Point2D x1, Point2D x2, Point2D cen, boolean thick)
+    public ErrorHighLine(Cell c, EPoint x1, EPoint x2, boolean thick)
     {
         super(c, null);
         thickLine = thick;
         p1 = x1;
         p2 = x2;
-        center = cen;
     }
 
     void xmlDescription(PrintStream msg)
@@ -79,22 +75,21 @@ class ErrorHighLine extends ErrorHighlight {
         msg.append("\t\t<"+((thickLine)?"ERRORTYPETHICKLINE ":"ERRORTYPELINE "));
         msg.append("p1=\"(" + p1.getX() + "," + p1.getY() + ")\" ");
         msg.append("p2=\"(" + p2.getX() + "," + p2.getY() + ")\" ");
-        msg.append("center=\"(" + center.getX() + "," + center.getY() + ")\" ");
         msg.append("cellName=\"" + cell.describe(false) + "\"");
         msg.append(" />\n");
     }
 
     void addToHighlighter(Highlighter h)
     {
-        if (thickLine) h.addThickLine(p1, p2, center, cell);
+        if (thickLine) h.addThickLine(p1, p2, cell);
         else h.addLine(p1, p2, cell);
     }
 }
 
 class ErrorHighPoint extends ErrorHighlight {
-    Point2D point;
+	EPoint point;
 
-    ErrorHighPoint(Cell c, Point2D p)
+    ErrorHighPoint(Cell c, EPoint p)
     {
         super(c, null);
         this.point = p;

@@ -482,8 +482,7 @@ public class LETool extends Listener {
                         String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(f, 3)+" less than 1";
                         System.out.println(msg);
                         if (ni != null) {
-                            ErrorLogger.MessageLog log = netlister.getErrorLogger().logWarning(msg, ni.getParent(), 2);
-                            log.addGeom(ni, true, ni.getParent(), context);
+                            netlister.getErrorLogger().logWarning(msg, ni, ni.getParent(), context, 2);
                         }
                     }
                 }

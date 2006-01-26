@@ -10,11 +10,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Dec 5, 2005
- * Time: 10:14:50 PM
- * To change this template use File | Settings | File Templates.
+ * Class defines Job information in the explorer tree.
  */
 public class JobTree {
 

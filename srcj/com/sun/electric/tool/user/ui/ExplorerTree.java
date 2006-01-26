@@ -893,23 +893,24 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 					return;
 				}
+				Object nodeObj = tree.currentSelectedObjects[0];
 
-				if (tree.currentSelectedObjects[0] instanceof CellAndCount)
+				if (nodeObj instanceof CellAndCount)
 				{
-					CellAndCount cc = (CellAndCount)tree.currentSelectedObjects[0];
+					CellAndCount cc = (CellAndCount)nodeObj;
 					wf.setCellWindow(cc.getCell());
 					return;
 				}
 
-				if (tree.currentSelectedObjects[0] instanceof Cell)
+				if (nodeObj instanceof Cell)
 				{
-					Cell cell = (Cell)tree.currentSelectedObjects[0];
+					Cell cell = (Cell)nodeObj;
 					wf.setCellWindow(cell);
 					return;
 				}
-				if (tree.currentSelectedObjects[0] instanceof MultiPageCell)
+				if (nodeObj instanceof MultiPageCell)
 				{
-					MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObjects[0];
+					MultiPageCell mpc = (MultiPageCell)nodeObj;
 					Cell cell = mpc.cell;
 					wf.setCellWindow(cell);
 					if (wf.getContent() instanceof EditWindow)
@@ -920,8 +921,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (tree.currentSelectedObjects[0] instanceof Library || tree.currentSelectedObjects[0] instanceof Cell.CellGroup ||
-					tree.currentSelectedObjects[0] instanceof String)
+				if (nodeObj instanceof Library || nodeObj instanceof Cell.CellGroup ||
+					nodeObj instanceof String || nodeObj instanceof ErrorLoggerTree.ErrorLoggerTreeNode)
 				{
 					for(int i=0; i<currentPaths.length; i++)
 					{
@@ -931,25 +932,25 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (tree.currentSelectedObjects[0] instanceof Job)
+				if (nodeObj instanceof Job)
 				{
-					Job job = (Job)tree.currentSelectedObjects[0];
+					Job job = (Job)nodeObj;
 					System.out.println(job.getInfo());
 					return;
 				}
 
-				if (tree.currentSelectedObjects[0] instanceof ErrorLogger.MessageLog)
+				if (nodeObj instanceof ErrorLogger.MessageLog)
 				{
-					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)tree.currentSelectedObjects[0];
+					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeObj;
 					String msg = Job.getUserInterface().reportLog(el,true, null);
 					System.out.println(msg);
 					return;
 				}
 
 				// dragging: remember original object
-				if (tree.currentSelectedObjects[0] instanceof Cell)
+				if (nodeObj instanceof Cell)
 				{
-					Cell cell = (Cell)tree.currentSelectedObjects[0];
+					Cell cell = (Cell)nodeObj;
 					if (cell.getNewestVersion() == cell)
 					{
 						originalCell = cell;
@@ -1103,7 +1104,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				return;
 			}
 
-			// TODO finish up
 			if (selectedObject instanceof Signal)
 			{
 				JPopupMenu menu = new JPopupMenu("Signals");

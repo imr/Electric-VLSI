@@ -8,11 +8,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Sep 25, 2005
- * Time: 4:20:27 PM
- * To change this template use File | Settings | File Templates.
+ * Class handles text sent to the Messages window.
  */
 public class MessagesStream
 extends OutputStream

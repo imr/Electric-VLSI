@@ -232,8 +232,7 @@ public class LENetlister2 extends LENetlister {
                 String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
-                    ErrorLogger.MessageLog log = errorLogger.logWarning(msg, ni.getParent(), 2);
-                    log.addGeom(ni, true, ni.getParent(), leno.context);
+                    errorLogger.logWarning(msg, ni, ni.getParent(), leno.context, 2);
                 }
             }
         }
@@ -638,8 +637,7 @@ public class LENetlister2 extends LENetlister {
             if (exp != null && lePortError.get(exp) == null) {
                 String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in "+cell;
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = errorLogger.logWarning(msg, cell, 0);
-                log.addExport(exp, true, cell, info.getContext().push(ni));
+                errorLogger.logWarning(msg, exp, cell, info.getContext().push(ni), 0);
                 lePortError.put(exp, exp);
             }
         }

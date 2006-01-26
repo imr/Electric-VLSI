@@ -64,7 +64,7 @@ public class GEM extends Technology
 	{
 		super("gem");
 		setTechDesc("Temporal Specification Facility (from Lansky)");
-		setFactoryScale(1000, true);   // in nanometers: really 1 microns
+		setFactoryScale(1000, false);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNonStandard();

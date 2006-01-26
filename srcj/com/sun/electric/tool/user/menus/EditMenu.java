@@ -594,48 +594,13 @@ public class EditMenu {
 			int exportCount = counts[2];
 			int textCount = counts[3];
 			int graphicsCount = counts[4];
-//			for(Highlight2 h : wnd.getHighlighter().getHighlights())
-//			{
-//				ElectricObject eobj = h.getElectricObject();
-//				if (h.isHighlightEOBJ())
-//				{
-//					if (eobj instanceof NodeInst || eobj instanceof PortInst)
-//					{
-//						nodeCount++;
-//						if (eobj instanceof NodeInst) theNode = (NodeInst)eobj; else
-//							theNode = ((PortInst)eobj).getNodeInst();
-//					} else if (eobj instanceof ArcInst)
-//					{
-//						arcCount++;
-//					}
-//				} else if (h.getType() == Highlight.Type.TEXT)
-//				{
-//					if (eobj instanceof Export)
-//					{
-//                        if (h.getVar() != null)
-//                            textCount++;
-//                        else
-//                            exportCount++;
-//                    } else
-//                    {
-//                    	if (eobj instanceof NodeInst) theNode = (NodeInst)eobj;
-//						textCount++;
-//                    }
-//				} else if (h.getType() == Highlight.Type.BBOX)
-//				{
-//					graphicsCount++;
-//				} else if (h.getType() == Highlight.Type.LINE)
-//				{
-//					graphicsCount++;
-//				}
-//			}
 
 			// special dialogs for double-clicking on known nodes
 			if (doubleClick)
 			{
 				// if double-clicked on a technology editing object, modify it
 				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-					(nodeCount == 1 ^  textCount == 1) && theNode != null)
+					(nodeCount == 1 ^ textCount == 1) && theNode != null)
 				{
 					int opt = Manipulate.getOptionOnNode(theNode);
 					if (opt >= 0)

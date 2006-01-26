@@ -3089,8 +3089,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list)) {
             if (errorLogger != null) {
                 String msg = "Prototype of node " + getName() + " is unused";
-                ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-                error.addGeom(this, true, parent, null);
+                errorLogger.logError(msg, this, parent, null, 1);
             }
             if (list != null) // doesn't do anything when checkAndRepair is called during reading
             {
@@ -3118,8 +3117,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 String msg = parent + ", " + this + " has unexpected outline";
                 System.out.println(msg);
                 if (errorLogger != null) {
-                    ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-                    error.addGeom(this, true, parent, null);
+                    errorLogger.logError(msg, this, parent, null, 1);
                 }
                 if (repair)
                     delVar(TRACE);
@@ -3137,8 +3135,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			System.out.println(sizeMsg);
 			if (errorLogger != null)
 			{
-				ErrorLogger.MessageLog error = errorLogger.logWarning(sizeMsg, parent, 1);
-				error.addGeom(this, true, parent, null);
+				errorLogger.logWarning(sizeMsg, this, parent, null, 1);
 			}
 			if (repair)
 			{

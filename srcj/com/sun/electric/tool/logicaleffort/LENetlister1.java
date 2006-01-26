@@ -339,8 +339,8 @@ public class LENetlister1 extends LENetlister {
             var = ni.getVar(Schematics.ATTR_WIDTH);
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
-                ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
-                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
+                errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(),
+                	ni.getNodeInst(), info.getCell(), info.getContext(), 0);
                 return false;
             }
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
@@ -354,8 +354,7 @@ public class LENetlister1 extends LENetlister {
             var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
             if (var == null) {
                 System.out.println("Error: capacitor "+ni+" has no capacitance in Cell "+ni.getParent());
-                //ErrorLogger.ErrorLog log = errorLogger.logError("Error: capacitor "+no+" has no capacitance in Cell "+info.getCell(), info.getCell(), 0);
-                //log.addGeom(ni.getNodeInst(), true, no.getParent(), context);
+                //errorLogger.logError("Error: capacitor "+no+" has no capacitance in Cell "+info.getCell(), ni.getNodeInst(), true, no.getParent(), context, 0);
                 return false;
             }
             float cap = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
@@ -393,8 +392,8 @@ public class LENetlister1 extends LENetlister {
                 var = ni.getVar(Schematics.ATTR_LENGTH);
                 if (var == null) {
                     System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
-                    ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
-                    log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
+                    errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(),
+                    	ni.getNodeInst(), info.getCell(), info.getContext(), 0);
                 }
                 float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
                 // not exactly correct because assumes all cap is area cap, which it isn't
@@ -483,8 +482,7 @@ public class LENetlister1 extends LENetlister {
             if (exp != null && lePortError.get(exp) == null) {
                 String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in "+cell;
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = errorLogger.logWarning(msg, cell, 0);
-                log.addExport(exp, true, cell, info.getContext().push(ni));
+                errorLogger.logWarning(msg, exp, cell, info.getContext().push(ni), 0);
                 lePortError.put(exp, exp);
             }
         }

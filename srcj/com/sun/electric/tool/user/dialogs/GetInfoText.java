@@ -574,8 +574,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				if (textArray.length > 0)
 				{
 					// generate job to change text
-		            boolean isName = cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME;
-					new ChangeText(cti.owner, cti.varKey, textArray, isName);
+					new ChangeText(cti.owner, cti.varKey, textArray);
 				}
 			}
 		}
@@ -614,45 +613,38 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private ElectricObject owner;
 		private Variable.Key key;
 		private String[] newText;
-		private boolean isName;
 
-		private ChangeText(ElectricObject owner, Variable.Key key, String[] newText, boolean isName) {
+		private ChangeText(ElectricObject owner, Variable.Key key, String[] newText) {
             super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
             this.key = key;
             this.newText = newText;
-            this.isName = isName;
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-            if (key != null)
-            {
-                Variable newVar = null;
-                if (newText.length > 1)
-                {
-                    newVar = owner.updateVar(key, newText);
-                } else
-                {
-                    // change variable
-                    newVar = owner.updateVar(key, newText[0]);
-                }
-//                if (newVar != null)
-//					cti.shownText.setVar(newVar);
-            } else
-            {
-                if (owner instanceof NodeInst) {
-                    if (isName)
-                        ((NodeInst)owner).setName(newText[0]);
-                } else if (owner instanceof ArcInst) {
-                    if (isName)
-                        ((ArcInst)owner).setName(newText[0]);
-                } else if (owner instanceof Export)
-                {
-                	Export pp = (Export)owner;
-					pp.rename(newText[0]);
-                }
+            if (key == null) return false;
+        	if (key == Export.EXPORT_NAME)
+        	{
+            	Export pp = (Export)owner;
+				pp.rename(newText[0]);
+        	} else if (key == NodeInst.NODE_NAME)
+        	{
+                ((NodeInst)owner).setName(newText[0]);
+        	} else if (key == ArcInst.ARC_NAME)
+        	{
+                ((ArcInst)owner).setName(newText[0]);
+        	} else
+        	{
+	            if (newText.length > 1)
+	            {
+	                owner.updateVar(key, newText);
+	            } else
+	            {
+	                // change variable
+	                owner.updateVar(key, newText[0]);
+	            }
             }
             return true;
         }
@@ -918,8 +910,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
             if (textArray.length > 0) {
                 // generate job to change text
-	            boolean isName = cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME;
-                new ChangeText(cti.owner, cti.varKey, textArray, isName);
+                new ChangeText(cti.owner, cti.varKey, textArray);
 				cti.initialText = currentText;
             }
         }

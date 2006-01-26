@@ -50,7 +50,7 @@ public class EFIDO extends Technology
 	{
 		super("efido");
 		setTechDesc("Digital Filters");
-		setFactoryScale(10000, true);   // in nanometers: really 10 microns
+		setFactoryScale(10000, false);   // in nanometers: really 10 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setFactoryTransparentLayers(new Color []

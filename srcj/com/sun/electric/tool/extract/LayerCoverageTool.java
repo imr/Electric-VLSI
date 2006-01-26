@@ -861,9 +861,8 @@ public class LayerCoverageTool extends Listener
                 if (percentage < minV)
                 {
                     String msg = "Error area coverage " + layer.getName() + " min value = " + minV + " actual value = " + percentage;
-                    ErrorLogger.MessageLog err = errorLogger.logError(msg, cell, layer.getIndex());
                     PolyBase poly = new PolyBase(bbox);
-                    err.addPoly(poly, true, cell);
+                    errorLogger.logError(msg, poly, cell, layer.getIndex());
                     foundError = true;
                 }
             }

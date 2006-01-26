@@ -281,8 +281,7 @@ public class ERCWellCheck
 			{
 				if (contactAction == 0)
 				{
-					ErrorLogger.MessageLog err = errorLogger.logError(noContactError, cell, 0);
-					err.addPoly(wa.poly, true, cell);
+					errorLogger.logError(noContactError, wa.poly, cell, 0);
 				}
 			}
 		}
@@ -295,8 +294,7 @@ public class ERCWellCheck
 			{
 				String errorMsg = "N-Well contact is floating";
 				if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contact is floating";
-				ErrorLogger.MessageLog err = errorLogger.logError(errorMsg, cell, 0);
-				err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
+				errorLogger.logError(errorMsg, new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 				continue;
 			}
 			if (!wc.onProperRail)
@@ -305,15 +303,13 @@ public class ERCWellCheck
 				{
 					if (ERC.isMustConnectPWellToGround())
 					{
-						ErrorLogger.MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
-						err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
+						errorLogger.logError("P-Well contact not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				} else
 				{
 					if (ERC.isMustConnectNWellToPower())
 					{
-						ErrorLogger.MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
-						err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
+						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				}
 			}
@@ -412,11 +408,12 @@ public class ERCWellCheck
 						int layertype = getWellLayerType(waLayer);
 						if (layertype == ERCPSEUDO) continue;
 
-						ErrorLogger.MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
-								+ TextUtils.formatDouble(dist, 1) + ", should be "
-								+ TextUtils.formatDouble(rule.value1, 1) + ")", cell, 0);
-						err.addPoly(wa.poly, true, cell);
-						err.addPoly(oWa.poly, true, cell);
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(wa.poly);
+						polyList.add(oWa.poly);
+						errorLogger.logError(waLayer.getName() + " areas too close (are "
+							+ TextUtils.formatDouble(dist, 1) + ", should be "
+							+ TextUtils.formatDouble(rule.value1, 1) + ")", null, null, null, null, polyList, cell, 0);
 					}
 				}
 			}

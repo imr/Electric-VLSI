@@ -16,11 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Dec 2, 2005
- * Time: 11:13:30 PM
- * To change this template use File | Settings | File Templates.
+ * Class to define a collection of highlighted errors in the Explorer tree.
  */
 // ----------------------------- Explorer Tree Stuff ---------------------------
 

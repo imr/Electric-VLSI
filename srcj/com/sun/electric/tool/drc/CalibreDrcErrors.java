@@ -1,5 +1,6 @@
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -309,20 +310,23 @@ public class CalibreDrcErrors {
             for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
                 DrcError drcError = (DrcError)it2.next();
                 Cell cell = drcError.cell;
-                ErrorLogger.MessageLog log = logger.logError(y+". "+cell.getName()+": "+ruleDesc,
-                        cell, sortKey);
+                List<EPoint> lineList = new ArrayList<EPoint>();
+                List<PolyBase> polyList = new ArrayList<PolyBase>();
                 for (Iterator<Shape> it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
                     Shape shape = (Shape)it3.next();
                     if (shape instanceof Line2D) {
                         Line2D line = (Line2D)shape;
-                        log.addLine(line.getX1(), line.getY1(), line.getX2(), line.getY2(), cell, null, false);
+                        lineList.add(new EPoint(line.getX1(), line.getY1()));
+                        lineList.add(new EPoint(line.getX2(), line.getY2()));
                     } else if (shape instanceof PolyBase) {
                         PolyBase poly = (PolyBase)shape;
-                        log.addPoly(poly, false, cell);
+                        polyList.add(poly);
                     } else {
                         System.out.println("Unsupported drc error shape "+shape);
                     }
                 }
+                logger.logError(y+". "+cell.getName()+": "+ruleDesc,
+                        null, null, lineList, null, polyList, cell, sortKey);
                 y++;
                 count++;
             }

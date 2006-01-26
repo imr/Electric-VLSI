@@ -1676,21 +1676,24 @@ public class FillGenerator implements Serializable {
                 NodeInst added = addAllPossibleContacts(container, p, rect, fillTransOut);
                 if (added != null)
                 {
-                    ErrorLogger.MessageLog l = log.logWarning(p.describe(false) + " connected", topCell, 0);
-                    l.addPoly(p.getPoly(), true, topCell);
+                	List<PolyBase> polyList = new ArrayList<PolyBase>();
+                	List<Export> eList = new ArrayList<Export>();
+                    polyList.add(p.getPoly());
                     if (p.getPortProto() instanceof Export)
-                        l.addExport((Export)p.getPortProto(), true, topCell, null);
+                        eList.add((Export)p.getPortProto());
+                    log.logWarning(p.describe(false) + " connected", null, eList, null, null, polyList, topCell, 0);
 //                    l.addGeom(added, true, fillCell, null);
 //                    globalWidth = added.getBounds().getWidth(); // assuming all contacts have the same width;
                     continue;
                 }
                 else
                 {
-
-                    ErrorLogger.MessageLog l = log.logError(p.describe(false) + " not connected", topCell, 0);
-                    l.addPoly(p.getPoly(), true, topCell);
+                	List<PolyBase> polyList = new ArrayList<PolyBase>();
+                	List<Export> eList = new ArrayList<Export>();
+                    polyList.add(p.getPoly());
                     if (p.getPortProto() instanceof Export)
-                        l.addExport((Export)p.getPortProto(), true, topCell, null);
+                        eList.add((Export)p.getPortProto());
+                    log.logError(p.describe(false) + " not connected", null, eList, null, null, polyList, topCell, 0);
                 }
 
 //                // Transformation of the cell instance containing this port

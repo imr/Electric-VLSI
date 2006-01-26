@@ -873,7 +873,7 @@ public class ELIB extends LibraryFiles
 					if (readArcInst(arcIndex))
 					{
 						System.out.println("Error reading arc");
-						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
+						Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
 						return true;
 					}
 					arcIndex++;
@@ -882,7 +882,7 @@ public class ELIB extends LibraryFiles
 					if (readNodeInst(nodeIndex, cellIndex))
 					{
 						System.out.println("Error reading node");
-						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading node index "+ nodeIndex, cell, 1);
+						Input.errorLogger.logError("Error reading node index "+ nodeIndex, cell, 1);
 						return true;
 					}
 					nodeIndex++;
@@ -895,7 +895,7 @@ public class ELIB extends LibraryFiles
 					if (readArcInst(arcIndex))
 					{
 						System.out.println("Error reading arc");
-						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
+						Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
 						return true;
 					}
 					arcIndex++;
@@ -1377,9 +1377,7 @@ public class ELIB extends LibraryFiles
             //PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
             //PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
             PortInst headPortInst = getArcEnd(ap, headNode, headname, headX, headY, cell);
-            ErrorLogger.MessageLog headPortError = getArcEndError;
             PortInst tailPortInst = getArcEnd(ap, tailNode, tailname, tailX, tailY, cell);
-            ErrorLogger.MessageLog tailPortError = getArcEndError;
 			if (headPortInst == null || tailPortInst == null)
 			{
 				System.out.println("Cannot create arc of type " + ap.getName() + " in cell " + cell.getName() +
@@ -1397,8 +1395,6 @@ public class ELIB extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-            if (headPortError != null) headPortError.addGeom(ai, true, cell, null);
-            if (tailPortError != null) tailPortError.addGeom(ai, true, cell, null);
             realizeVariables(ai, arcVariables[i]);
 		}
 	}
@@ -1437,13 +1433,10 @@ public class ELIB extends LibraryFiles
         }
         return scaledCell != null ? scaledCell : subCell;
     }
-
-    private ErrorLogger.MessageLog getArcEndError;
     
     // node is node we expect to have port 'portname' at location x,y.
     protected PortInst getArcEnd(ArcProto ap, NodeInst node, String portname, double x, double y, Cell cell)
     {
-        getArcEndError = null;
         PortInst pi = null;
         String whatHappenedToPort = "not found";
         String nodeName = "missing node";
@@ -1483,9 +1476,7 @@ public class ELIB extends LibraryFiles
                             String msg = cell+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
-                            getArcEndError = Input.errorLogger.logError(msg, cell, 0);
-//                            ErrorLogger.ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
-//                            error.addGeom(ai, true, cell, null);
+                            Input.errorLogger.logError(msg, cell, 0);
                             return pi;
                         }
                     }
@@ -1518,13 +1509,10 @@ public class ELIB extends LibraryFiles
         // create pin as new end point of arc
         String msg = cell+": Port '"+portname+"' on "+node+" "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
-        getArcEndError = Input.errorLogger.logError(msg, cell, 0);
-//        ErrorLogger.ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
-//        error.addGeom(ai, true, cell, null);
 
         PrimitiveNode pn = ap.findOverridablePinProto();
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(), pn.getDefHeight(), cell);
-        getArcEndError.addGeom(node, true, cell, null);
+        Input.errorLogger.logError(msg, node, cell, null, 0);
         return node.getOnlyPortInst();
     }
 

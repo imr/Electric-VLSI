@@ -14,10 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: root
- * Date: Sep 9, 2005
- * Time: 9:36:42 PM
  * Take care of Back-annotation after NCC has finished
  */
 public class NccBackAnnotate {

@@ -26,30 +26,39 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Class for logging errors.
@@ -58,14 +67,6 @@ import org.xml.sax.SAXParseException;
  * <p>MessageLog errorLog = errorLogger.logError(string msg, cell c, int k):
  * Create a new log with message 'msg', for cell 'c', with sortKey 'k'.
  * <p>Various methods for adding highlights to errorLog:
- * <pre>
- *   addGeom(Geometric g, boolean s, int l, NodeInst [] p)
- *                                          add geom "g" to error (show if "s" nonzero)
- *   addExport(Export p, boolean s)         add export "pp" to error
- *   addLine(x1, y1, x2, y2)                add line to error
- *   addPoly(POLYGON *p, thick, cell)       add polygon to error
- *   addPoint(x, y)                         add point to error
- * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
 public class ErrorLogger implements DatabaseChangeListener, Serializable
@@ -75,21 +76,23 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
         protected String message;
+        protected Cell   logCell;                // cell associated with log (not really used)
         protected int    sortKey;
+        protected List<ErrorHighlight> highlights;
         protected int    index;
-        protected Cell    logCell;                // cell associated with log (not really used)
-        protected List<ErrorHighlight>   highlights;
 
-        public MessageLog(String message, Cell cell, int sortKey) {
+        public MessageLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) {
             this.message = message;
-            this.sortKey = sortKey;
             this.logCell = cell;
+            this.sortKey = sortKey;
+            this.highlights = highlights;
             index = 0;
-            highlights = new ArrayList<ErrorHighlight>();
         }
 
         public String getMessageString() { return message; }
+
         public Iterator<ErrorHighlight> getHighlights() { return highlights.iterator(); }
+
         public int getSortKey() { return sortKey; }
 
         /**
@@ -99,10 +102,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
          * @return Returns a negative integer, zero, or a positive integer as the
          * first message has smaller than, equal to, or greater than the second lexicographically
          */
-/*5*/    public int compareTo(com.sun.electric.tool.user.ErrorLogger.MessageLog log1)
-//4*/    public int compareTo(Object o1)
+        public int compareTo(MessageLog log1)
         {
-//4*/	    MessageLog log1 = (MessageLog)o1;
             return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
         }
 
@@ -110,88 +111,18 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
          * Method to add "geom" to the error in "errorlist".  Also adds a
          * hierarchical traversal path "path" (which is "pathlen" long).
          */
-        public void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
+        private void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
         {
-            ErrorHighlight eh1 = new ErrorHighGeom(cell, context, geom, showit);
-            highlights.add(eh1);
-        }
-
-        /**
-         * Method to add "pp" to the error in "errorlist".
-         */
-        public void addExport(Export pp, boolean showit, Cell cell, VarContext context)
-        {
-            ErrorHighlight eh1 = new ErrorHighExport(cell, context, pp);
-            highlights.add(eh1);
+            highlights.add(new ErrorHighGeom(cell, context, geom, showit));
         }
 
         /**
          * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
          */
-        public ErrorHighlight addLine(double x1, double y1, double x2, double y2, Cell cell, Point2D center, boolean thick)
+        private void addLine(EPoint pt1, EPoint pt2, Cell cell, boolean thick)
         {
-            ErrorHighlight eh1 = new ErrorHighLine(cell, new Point2D.Double(x1, y1),
-                    new Point2D.Double(x2, y2), center, thick);
-            highlights.add(eh1);
-            return eh1;
+            highlights.add(new ErrorHighLine(cell, pt1, pt2, thick));
         }
-
-        /**
-         * Method to add polygon "poly" to the error in "errorlist".
-         */
-        public void addPoly(PolyBase poly, boolean thick, Cell cell)
-        {
-            Point2D [] points = poly.getPoints();
-            Point2D center = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-            for(int i=0; i<points.length; i++)
-            {
-                int prev = i-1;
-                if (i == 0) prev = points.length-1;
-                ErrorHighlight eh1 = new ErrorHighLine(cell, points[prev], points[i], center, thick);
-                highlights.add(eh1);
-            }
-        }
-
-        /**
-         * Method to add point (x,y) to the error in "errorlist".
-         */
-        public void addPoint(double x, double y, Cell cell)
-        {
-            ErrorHighlight eh1 = new ErrorHighPoint(cell, new Point2D.Double(x, y));
-            highlights.add(eh1);
-        }
-
-        /**
-         * Method to return the number of objects associated with error "e".  Only
-         * returns "geom" objects
-         */
-//        public int getNumGeoms()
-//        {
-//            int total = 0;
-//            for(ErrorLogger.ErrorHighlight eh : highlights)
-//            {
-//                if (eh.type == ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) total++;
-//            }
-//            return total;
-//        }
-
-        /**
-         * Method to return a specific object in a list of objects on this ErrorLog.
-         * Returns null at the end of the list.
-         */
-        /*
-        public ErrorHighlight getErrorGeom(int index)
-        {
-            int total = 0;
-            for(ErrorHighlight eh : highlights)
-            {
-                if (eh.type != ErrorLoggerType.ERRORTYPEGEOM) continue;
-                if (total == index) return eh;
-                total++;
-            }
-            return null;
-        }
-        */
 
         public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
         {
@@ -201,17 +132,15 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             for(ErrorHighlight eh : highlights)
             {
                 if (eh.containsObject(cell1, geo1))
-//                if (eh.type != ErrorLogger.ErrorLoggerType.ERRORTYPEGEOM) continue;
-//                if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
                     eh1found = true;
                 if (eh.containsObject(cell2, geo2))
-//                if (!eh2found && eh.cell == cell2 && eh.geom == geo2)
                     eh2found = true;
                 if (eh1found && eh2found)
                     return (true);
             }
             return (false);
         }
+
         /**
          * Method to describe error "elv".
          */
@@ -251,11 +180,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
     private static class ErrorLogOrder implements Comparator<MessageLog>
     {
-/*5*/   public int compare(MessageLog el1, MessageLog el2)
-//4*/   public int compare(Object o1, Object o2)
+    	public int compare(MessageLog el1, MessageLog el2)
         {
-//4*/       MessageLog el1 = (MessageLog)o1;
-//4*/       MessageLog el2 = (MessageLog)o2;
             int sortedKey = el1.sortKey - el2.sortKey;
             if (sortedKey == 0) // Identical, compare lexicographically
                 sortedKey = el1.compareTo(el2);
@@ -268,7 +194,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public static class WarningLog extends MessageLog
     {
-       private WarningLog(String message, Cell cell, int sortKey) {super(message, cell, sortKey);}
+       private WarningLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) { super(message, cell, sortKey, highlights); }
     }
 
     /** Current Logger */               private static ErrorLogger currentLogger;
@@ -344,7 +270,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      * with the given text "message" applying to cell "cell".
      * Returns a pointer to the message (0 on error) which can be used to add highlights.
      */
-    public synchronized MessageLog logError(String message, Cell cell, int sortKey)
+    private synchronized MessageLog logAnError(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
         if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
@@ -362,7 +288,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         }
 
         // create a new ErrorLog object
-        MessageLog el = new MessageLog(message, cell, sortKey);
+        MessageLog el = new MessageLog(message, cell, sortKey, highlights);
 
         // add the ErrorLog into the global list
         allErrors.add(el);
@@ -373,11 +299,176 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     }
 
     /**
-     * Factory method to create a warning message and log.
-     * with the given text "message" applying to cell "cell".
-     * Returns a pointer to the message which can be used to add highlights.
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param sortKey the sorting order of this message.
      */
-    public synchronized MessageLog logWarning(String message, Cell cell, int sortKey)
+    public synchronized void logError(String message, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	logAnError(message, null, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param geom the node or arc to display
+     * @param cell the cell in which this message applies.
+     * @param context the VarContext of the Cell.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        h.add(new ErrorHighGeom(cell, context, geom, true));
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param pp the Export to display
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, Export pp, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        h.add(new ErrorHighExport(cell, null, pp));
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param pt the point to display
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, EPoint pt, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        h.add(new ErrorHighPoint(cell, pt));
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param poly the polygon to display
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, PolyBase poly, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        Point2D [] points = poly.getPoints();
+        for(int i=0; i<points.length; i++)
+        {
+            int prev = i-1;
+            if (i == 0) prev = points.length-1;
+            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+            	new EPoint(points[i].getX(), points[i].getY()), false));
+        }
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param geomList a list of nodes or arcs to display (may be null).
+     * @param exportList a list of Exports to display (may be null).
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList,
+    	Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	if (geomList != null)
+    	{
+    		for(Geometric geom : geomList)
+    	        h.add(new ErrorHighGeom(cell, null, geom, true));
+    	}
+    	if (exportList != null)
+    	{
+    		for(Export e : exportList)
+                h.add(new ErrorHighExport(cell, null, e));
+    	}
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param geomList a list of nodes or arcs to display (may be null).
+     * @param exportList a list of Exports to display (may be null).
+     * @param lineList a list of lines (pairs of points) to display (may be null).
+     * @param pointList a list of points to display (may be null).
+     * @param polyList a list of polygons to display (may be null).
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList, List<EPoint> lineList, List<EPoint> pointList,
+    	List<PolyBase> polyList, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	if (geomList != null)
+    	{
+    		for(Geometric geom : geomList)
+                h.add(new ErrorHighGeom(cell, null, geom, true));
+    	}
+    	if (exportList != null)
+    	{
+    		for(Export e : exportList)
+                h.add(new ErrorHighExport(cell, null, e));
+    	}
+    	if (lineList != null)
+    	{
+    		for(int i=0; i<lineList.size(); i += 2)
+                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
+    	}
+    	if (pointList != null)
+    	{
+    		for(EPoint pt : pointList)
+                h.add(new ErrorHighPoint(cell, pt));
+    	}
+    	if (polyList != null)
+    	{
+    		for(PolyBase poly : polyList)
+    		{
+    	        Point2D [] points = poly.getPoints();
+    	        for(int i=0; i<points.length; i++)
+    	        {
+    	            int prev = i-1;
+    	            if (i == 0) prev = points.length-1;
+    	            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+    	            	new EPoint(points[i].getX(), points[i].getY()), false));
+    	        }
+    		}
+    	}
+    	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log a warning message.
+     * @param message the string to display.
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    private synchronized MessageLog logAWarning(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
         if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new warning");
@@ -395,7 +486,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         }
 
         // create a new ErrorLog object
-        WarningLog el = new WarningLog(message, cell, sortKey);
+        WarningLog el = new WarningLog(message, cell, sortKey, highlights);
 
         // store information about the error
         el.highlights = new ArrayList<ErrorHighlight>();
@@ -407,6 +498,102 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         return el;
     }
 
+    /**
+     * Factory method to log a warning message.
+     * @param message the string to display.
+     * @param geom a node or arc to display.
+     * @param cell the cell in which this message applies.
+     * @param context the VarContext of the Cell.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logWarning(String message, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	logAWarning(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log a warning message.
+     * @param message the string to display.
+     * @param geom a node or arc to display.
+     * @param cell the cell in which this message applies.
+     * @param context the VarContext of the Cell.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logWarning(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        h.add(new ErrorHighGeom(cell, context, geom, true));
+    	logAWarning(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log a warning message.
+     * @param message the string to display.
+     * @param pp an Exports to display.
+     * @param cell the cell in which this message applies.
+     * @param context the VarContext of the Cell.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logWarning(String message, Export pp, Cell cell, VarContext context, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+        h.add(new ErrorHighExport(cell, context, pp));
+    	logAWarning(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log a warning message.
+     * @param message the string to display.
+     * @param geomList a list of nodes or arcs to display (may be null).
+     * @param exportList a list of Exports to display (may be null).
+     * @param lineList a list of lines (pairs of points) to display (may be null).
+     * @param pointList a list of points to display (may be null).
+     * @param polyList a list of polygons to display (may be null).
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logWarning(String message, List<Geometric> geomList, List<Export> exportList, List<EPoint> lineList, List<EPoint> pointList,
+    	List<PolyBase> polyList, Cell cell, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	if (geomList != null)
+    	{
+    		for(Geometric geom : geomList)
+                h.add(new ErrorHighGeom(cell, null, geom, true));
+    	}
+    	if (exportList != null)
+    	{
+    		for(Export e : exportList)
+                h.add(new ErrorHighExport(cell, null, e));
+    	}
+    	if (lineList != null)
+    	{
+    		for(int i=0; i<lineList.size(); i += 2)
+                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
+    	}
+    	if (pointList != null)
+    	{
+    		for(EPoint pt : pointList)
+                h.add(new ErrorHighPoint(cell, pt));
+    	}
+    	if (polyList != null)
+    	{
+    		for(PolyBase poly : polyList)
+    		{
+    	        Point2D [] points = poly.getPoints();
+    	        for(int i=0; i<points.length; i++)
+    	        {
+    	            int prev = i-1;
+    	            if (i == 0) prev = points.length-1;
+    	            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+    	            	new EPoint(points[i].getX(), points[i].getY()), false));
+    	        }
+    		}
+    	}
+    	logAWarning(message, cell, sortKey, h);
+    }
+    
 	/**
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
@@ -806,7 +993,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         private class XMLHandler extends DefaultHandler
         {
             private ErrorLogger logger = null;
-            private MessageLog currentLog = null;
+            private Cell curCell;
+            private String message;
+        	private List<ErrorHighlight> highlights;
 
             XMLHandler()
             {
@@ -827,6 +1016,22 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 logger.termLogging(true);
             }
 
+            public void endElement (String uri, String localName, String qName)
+            {
+                boolean errorLogBody = qName.equals("MessageLog");
+                boolean warnLogBody = qName.equals("WarningLog");
+                if (errorLogBody)
+                {
+                    int sortLayer = curCell.hashCode();
+                    logger.logAnError(message, curCell, sortLayer, highlights);
+                }
+                else if (warnLogBody)
+                {
+                    int sortLayer = curCell.hashCode();
+                    logger.logAWarning(message, curCell, sortLayer, highlights);
+                }
+            }
+
             public void startElement (String uri, String localName, String qName, Attributes attributes)
             {
                 boolean loggerBody = qName.equals("ErrorLogger");
@@ -837,8 +1042,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
                 if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !thickTypeBody) return;
 
-                String message = "", cellName = null, geomName = null, viewName = null;
-                Point2D p1 = null, p2 = null, center = null;
+                String cellName = null, geomName = null, viewName = null;
+                message = "";
+                EPoint p1 = null, p2 = null;
 
                 for (int i = 0; i < attributes.getLength(); i++)
                 {
@@ -863,50 +1069,46 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                         String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
                         double y = Double.parseDouble(points[1]);
-                        p1 = new Point2D.Double(x, y);
+                        p1 = new EPoint(x, y);
                     }
                     else if (attributes.getQName(i).startsWith("p2"))
                     {
                         String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
                         double y = Double.parseDouble(points[1]);
-                        p2 = new Point2D.Double(x, y);
+                        p2 = new EPoint(x, y);
                     }
                     else if (attributes.getQName(i).startsWith("center"))
                     {
                         String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
                         double y = Double.parseDouble(points[1]);
-                        center = new Point2D.Double(x, y);
                     }
                     else
                         new Error("Invalid attribute in XMLParser");
                 }
                 View view = View.findView(viewName);
-                Cell cell = Library.findCellInLibraries(cellName, view);
+                curCell = Library.findCellInLibraries(cellName, view);
                 if (errorLogBody)
                 {
-                    int sortLayer = cell.hashCode();
-                    currentLog = logger.logError(message, cell, sortLayer);
+                    int sortLayer = curCell.hashCode();
+                	highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (warnLogBody)
                 {
-                    int sortLayer = cell.hashCode();
-                    currentLog = logger.logWarning(message, cell, sortLayer);
+                    int sortLayer = curCell.hashCode();
+                    highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (geoTypeBody)
                 {
-                    Geometric geom = cell.findNode(geomName);
+                    Geometric geom = curCell.findNode(geomName);
                     if (geom == null) // try arc instead
-                        geom = cell.findArc(geomName);
-                    currentLog.addGeom(geom, true, cell, null);
+                        geom = curCell.findArc(geomName);
+                    highlights.add(new ErrorHighGeom(curCell, null, geom, true));
                 }
                 else if (thickTypeBody)
                 {
-                    ErrorHighlight eh = currentLog.addLine(p1.getX(), p1.getY(), p2.getX(), p2.getY(), cell, center, true);
-//                    eh.type = ErrorLoggerType.valueOf(qName);
-//                    eh.cX = center.getX();
-//                    eh.cY = center.getY();
+                    highlights.add(new ErrorHighLine(curCell, p1, p2, true));
                 }
                 else
                     new Error("Invalid attribute in XMLParser");

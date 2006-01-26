@@ -355,16 +355,17 @@ public class ERCAntenna
 							// error
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
-							ErrorLogger.MessageLog err = errorLogger.logError(errMsg, cell, 0);
+							List<PolyBase> polyList = new ArrayList<PolyBase>();
 							for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = lIt.next();
 								List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
 								for(PolyBase merged : merges)
 								{
-									err.addPoly(merged, true, cell);
+									polyList.add(merged);
 								}
 							}
+							errorLogger.logError(errMsg, null, null, null, null, polyList, cell, 0);
 						}
 					}
 				}

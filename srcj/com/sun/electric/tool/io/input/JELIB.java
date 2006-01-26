@@ -31,6 +31,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -159,7 +160,7 @@ public class JELIB extends LibraryFiles
 			return false;
 		} catch (IOException e)
 		{
-			Input.errorLogger.logError("End of file reached while reading " + filePath, null, -1);
+			Input.errorLogger.logError("End of file reached while reading " + filePath, -1);
 			return true;
 		}
 	}
@@ -201,7 +202,7 @@ public class JELIB extends LibraryFiles
 				if (pieces.size() < numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cell declaration needs " + numPieces + " fields: " + line, null, -1);
+						", Cell declaration needs " + numPieces + " fields: " + line, -1);
 					continue;
 				}
 				String name = revision >= 1 ? unQuote((String)pieces.get(0)) : unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
@@ -209,7 +210,7 @@ public class JELIB extends LibraryFiles
 				if (newCell == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Unable to create cell " + name, null, -1);
+						", Unable to create cell " + name, -1);
 					continue;
 				}
 				Technology tech = Technology.findTechnology(unQuote((String)pieces.get(numPieces-4)));
@@ -269,7 +270,7 @@ public class JELIB extends LibraryFiles
 				if (pieces.size() != 2)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External library declaration needs 2 fields: " + line, null, -1);
+						", External library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
 				curExternalLibName = unQuote((String)pieces.get(0));
@@ -289,7 +290,7 @@ public class JELIB extends LibraryFiles
 // 				if (pieces.size() != numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External cell declaration needs 5 or 7 fields: " + line, null, -1);
+						", External cell declaration needs 5 or 7 fields: " + line, -1);
 //						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
@@ -316,7 +317,7 @@ public class JELIB extends LibraryFiles
 				if (pieces.size() != 3)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External export declaration needs 3 fields: " + line, null, -1);
+						", External export declaration needs 3 fields: " + line, -1);
 					continue;
 				}
 				String exportName = unQuote((String)pieces.get(0));
@@ -333,14 +334,14 @@ public class JELIB extends LibraryFiles
 				if (pieces.size() < 2)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Library declaration needs 2 fields: " + line, null, -1);
+						", Library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
 				version = Version.parseVersion((String)pieces.get(1));
 				if (version == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Badly formed version: " + pieces.get(1), null, -1);
+						", Badly formed version: " + pieces.get(1), -1);
 					continue;
 				}
 				for (revision = 0; revision < revisions.length; revision++)
@@ -374,7 +375,7 @@ public class JELIB extends LibraryFiles
 				if (tool == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cannot identify tool " + toolName, null, -1);
+						", Cannot identify tool " + toolName, -1);
 					continue;
 				}
 
@@ -399,7 +400,7 @@ public class JELIB extends LibraryFiles
 					if (view == null)
 					{
 						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-							", Cannot create view " + viewName, null, -1);
+							", Cannot create view " + viewName, -1);
 						continue;
 					}
 				}
@@ -418,7 +419,7 @@ public class JELIB extends LibraryFiles
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cannot identify technology " + techName, null, -1);
+						", Cannot identify technology " + techName, -1);
 					continue;
 				}
 				curPrim = null;
@@ -439,14 +440,14 @@ public class JELIB extends LibraryFiles
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Primitive node " + primName + " has no technology before it", null, -1);
+						", Primitive node " + primName + " has no technology before it", -1);
 					continue;
 				}
 				curPrim = findPrimitiveNode(curTech, primName);
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive node " + primName, null, -1);
+						", Cannot identify primitive node " + primName, -1);
 					continue;
 				}
 
@@ -463,7 +464,7 @@ public class JELIB extends LibraryFiles
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Primitive port " + primPortName + " has no primitive node before it", null, -1);
+						", Primitive port " + primPortName + " has no primitive node before it", -1);
 					continue;
 				}
 
@@ -472,7 +473,7 @@ public class JELIB extends LibraryFiles
 				if (pp == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive port " + primPortName, null, -1);
+						", Cannot identify primitive port " + primPortName, -1);
 					continue;
 				}
 
@@ -489,14 +490,14 @@ public class JELIB extends LibraryFiles
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Primitive arc " + arcName + " has no technology before it", null, -1);
+						", Primitive arc " + arcName + " has no technology before it", -1);
 					continue;
 				}
 				ArcProto ap = curTech.findArcProto(arcName);
 				if (ap == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive arc " + arcName, null, -1);
+						", Cannot identify primitive arc " + arcName, -1);
 					continue;
 				}
 
@@ -521,7 +522,7 @@ public class JELIB extends LibraryFiles
 					if (cell == null)
 					{
 						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-							", Cannot find cell " + cellName, null, -1);
+							", Cannot find cell " + cellName, -1);
 						break;
 					}
 					groupLine[i] = cell;
@@ -531,7 +532,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-				", Unrecognized line: " + line, null, -1);
+				", Unrecognized line: " + line, -1);
 		}
 
 		// collect the cells by common protoName and by "groupLines" relation
@@ -605,7 +606,7 @@ public class JELIB extends LibraryFiles
 				if (groupOfName != group)
 				{
 					Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
-						canonicName + "' that are not in the same group", null, -1);
+						canonicName + "' that are not in the same group", -1);
 
 					// Join groups with like-names cells
 // 					for (Iterator cit = group.getCells(); cit.hasNext(); )
@@ -968,9 +969,8 @@ public class JELIB extends LibraryFiles
 			Export pp = Export.newInstance(cell, exportName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch);
 			if (pp == null)
 			{
-				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create export " + exportName, cell, -1);
-				log.addGeom(pi.getNodeInst(), true, cell, null);
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					" (" + cell + ") cannot create export " + exportName, pi.getNodeInst(), cell, null, -1);
 				continue;
 			}
 
@@ -1105,10 +1105,11 @@ public class JELIB extends LibraryFiles
                     headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), wid, angle, flags);
 			if (ai == null)
 			{
-				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create arc " + protoName, cell, -1);
-                log.addGeom(headPI.getNodeInst(), true, cell, null);
-                log.addGeom(tailPI.getNodeInst(), true, cell, null);
+				List<Geometric> geomList = new ArrayList<Geometric>();
+				geomList.add(headPI.getNodeInst());
+				geomList.add(tailPI.getNodeInst());
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					" (" + cell + ") cannot create arc " + protoName, geomList, null, cell, -1);
 				continue;
 			}
 
@@ -1167,10 +1168,9 @@ public class JELIB extends LibraryFiles
 			if (!(poly.isInside(pos) || poly.polyDistance(pos.getX(), pos.getY()) < TINYDISTANCE))
 			{
 				NodeProto np = ni.getProto();
-				ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
 					" (" + cell + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in " +
-					pi + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", cell, -1);
-				log.addPoint(pos.getX(), pos.getY(), cell);
+					pi + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", new EPoint(pos.getX(), pos.getY()), cell, -1);
 				if (np instanceof Cell)
 					pi = null;
 			}
@@ -1191,9 +1191,8 @@ public class JELIB extends LibraryFiles
 					", Unable to create dummy node in " + cell + " (cannot create source node)", cell, -1);
 				return null;
 			}
-			ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in " + cell, cell, -1);
-            log.addGeom(portNI, true, cell, null);
+			Input.errorLogger.logError(fileName + ", line " + lineNumber +
+				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in " + cell, portNI, cell, null, -1);
 			return portNI.getOnlyPortInst();
 		}
 
@@ -1325,7 +1324,7 @@ public class JELIB extends LibraryFiles
 			if (openPos >= piece.length())
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Badly formed variable (no open parenthesis): " + piece, null, -1);
+					", Badly formed variable (no open parenthesis): " + piece, -1);
 				continue;
 			}
 			String varName = unQuote(piece.substring(0, openPos));
@@ -1334,7 +1333,7 @@ public class JELIB extends LibraryFiles
 			if (closePos < 0)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Badly formed variable (no close parenthesis): " + piece, null, -1);
+					", Badly formed variable (no close parenthesis): " + piece, -1);
 				continue;
 			}
 			String varBits = piece.substring(openPos+1, closePos);
@@ -1342,7 +1341,7 @@ public class JELIB extends LibraryFiles
 			if (objectPos >= piece.length())
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Variable type missing: " + piece, null, -1);
+					", Variable type missing: " + piece, -1);
 				continue;
 			}
 			char varType = piece.charAt(objectPos++);
@@ -1368,7 +1367,7 @@ public class JELIB extends LibraryFiles
 					break; // break from switch
 				default:
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Variable type invalid: " + piece, null, -1);
+						", Variable type invalid: " + piece, -1);
 					continue; // continue loop
 			}
 			Object obj = null;
@@ -1377,7 +1376,7 @@ public class JELIB extends LibraryFiles
 				if (varType != 'X')
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Variable value missing: " + piece, null, -1);
+						", Variable value missing: " + piece, -1);
 					continue;
 				}
 			} else
@@ -1419,13 +1418,13 @@ public class JELIB extends LibraryFiles
 					if (objectPos >= piece.length())
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Badly formed array (no closed bracket): " + piece, null, -1);
+							", Badly formed array (no closed bracket): " + piece, -1);
 						continue;
 					}
 					else if (objectPos < piece.length() - 1)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Badly formed array (extra characters after closed bracket): " + piece, null, -1);
+							", Badly formed array (extra characters after closed bracket): " + piece, -1);
 						continue;
 					}
 					int limit = objList.size();
@@ -1505,7 +1504,7 @@ public class JELIB extends LibraryFiles
 					if (j >= varBits.length())
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Incorrect display specification: " + varBits, null, -1);
+							", Incorrect display specification: " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1531,7 +1530,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad absolute size (semicolon missing): " + varBits, null, -1);
+							", Bad absolute size (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1543,7 +1542,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad relative size (semicolon missing): " + varBits, null, -1);
+							", Bad relative size (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1555,7 +1554,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad X offset (semicolon missing): " + varBits, null, -1);
+							", Bad X offset (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1567,7 +1566,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad Y offset (semicolon missing): " + varBits, null, -1);
+							", Bad Y offset (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1588,7 +1587,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad font (semicolon missing): " + varBits, null, -1);
+							", Bad font (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1602,7 +1601,7 @@ public class JELIB extends LibraryFiles
 					if (semiPos < 0)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad color (semicolon missing): " + varBits, null, -1);
+							", Bad color (semicolon missing): " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1637,7 +1636,7 @@ public class JELIB extends LibraryFiles
 					if (j >= varBits.length())
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad language specification: " + varBits, null, -1);
+							", Bad language specification: " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1645,7 +1644,7 @@ public class JELIB extends LibraryFiles
 					if (!onVar)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Illegal use of language specification: " + varBits, null, -1);
+							", Illegal use of language specification: " + varBits, -1);
 						error = true;
 						break;
 					}
@@ -1654,7 +1653,7 @@ public class JELIB extends LibraryFiles
 					if (codeLetter == 'T') mtd.setCode(TextDescriptor.Code.TCL); else
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Unknown language specification: " + varBits, null, -1);
+							", Unknown language specification: " + varBits, -1);
                         error = true;
 					}
 					break;
@@ -1663,7 +1662,7 @@ public class JELIB extends LibraryFiles
 					if (j >= varBits.length())
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Bad units specification: " + varBits, null, -1);
+							", Bad units specification: " + varBits, -1);
                         error = true;
 						break;
 					}
@@ -1677,7 +1676,7 @@ public class JELIB extends LibraryFiles
 					if (unitsLetter == 'T') mtd.setUnit(TextDescriptor.Unit.TIME); else
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
-							", Unknown units specification: " + varBits, null, -1);
+							", Unknown units specification: " + varBits, -1);
                         error = true;
 					}
 					break;
@@ -1720,7 +1719,7 @@ public class JELIB extends LibraryFiles
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Cell (missing colon): " + piece, null, -1);
+						", Badly formed Cell (missing colon): " + piece, -1);
 					break;
 				}
 				libName = piece.substring(0, colonPos);
@@ -1728,7 +1727,7 @@ public class JELIB extends LibraryFiles
 				if (lib == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, null, -1);
+						", Unknown library: " + libName, -1);
 					break;
 				}
 				cellName = piece.substring(colonPos+1);
@@ -1737,7 +1736,7 @@ public class JELIB extends LibraryFiles
 				cell = lib.findNodeProto(cellName);
 				if (cell == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, null, -1);
+						", Unknown Cell: " + piece, -1);
                     break;
                 }
 				return cell.getId();
@@ -1748,7 +1747,7 @@ public class JELIB extends LibraryFiles
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing library colon): " + piece, null, -1);
+						", Badly formed Export (missing library colon): " + piece, -1);
 					break;
 				}
 				libName = piece.substring(0, colonPos);
@@ -1756,14 +1755,14 @@ public class JELIB extends LibraryFiles
 				if (lib == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, null, -1);
+						", Unknown library: " + libName, -1);
 					break;
 				}
 				secondColonPos = piece.indexOf(':', colonPos+1);
 				if (secondColonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing cell colon): " + piece, null, -1);
+						", Badly formed Export (missing cell colon): " + piece, -1);
 					break;
 				}
 				cellName = piece.substring(colonPos+1, secondColonPos);
@@ -1771,7 +1770,7 @@ public class JELIB extends LibraryFiles
 				if (cell == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, null, -1);
+						", Unknown Cell: " + piece, -1);
 					break;
 				}
 				String exportName = piece.substring(secondColonPos+1);
@@ -1780,7 +1779,7 @@ public class JELIB extends LibraryFiles
 				Export pp = cell.findExport(exportName);
 				if (pp == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Export: " + piece, null, -1);
+						", Unknown Export: " + piece, -1);
                     break;
                 }
 				return pp;
@@ -1799,7 +1798,7 @@ public class JELIB extends LibraryFiles
 				lib = Library.findLibrary(libName);
 				if (lib == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Library: " + piece, null, -1);
+						", Unknown Library: " + piece, -1);
                     break;
                 }
 				return lib;
@@ -1810,14 +1809,14 @@ public class JELIB extends LibraryFiles
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Tool: " + piece, null, -1);
+						", Unknown Tool: " + piece, -1);
 				return tool;
 			case 'P':		// PrimitiveNode
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed PrimitiveNode (missing colon): " + piece, null, -1);
+						", Badly formed PrimitiveNode (missing colon): " + piece, -1);
 					break;
 				}
 				String techName = piece.substring(0, colonPos);
@@ -1825,7 +1824,7 @@ public class JELIB extends LibraryFiles
 				if (tech == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown technology: " + techName, null, -1);
+						", Unknown technology: " + techName, -1);
 					break;
 				}
 				String nodeName = piece.substring(colonPos+1);
@@ -1834,14 +1833,14 @@ public class JELIB extends LibraryFiles
 				PrimitiveNode np = findPrimitiveNode(tech, nodeName);
 				if (np == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown PrimitiveNode: " + piece, null, -1);
+						", Unknown PrimitiveNode: " + piece, -1);
 				return np;
 			case 'R':		// ArcProto
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed ArcProto (missing colon): " + piece, null, -1);
+						", Badly formed ArcProto (missing colon): " + piece, -1);
 					break;
 				}
 				techName = piece.substring(0, colonPos);
@@ -1849,7 +1848,7 @@ public class JELIB extends LibraryFiles
 				if (tech == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown technology: " + techName, null, -1);
+						", Unknown technology: " + techName, -1);
 					break;
 				}
 				String arcName = piece.substring(colonPos+1);
@@ -1858,14 +1857,14 @@ public class JELIB extends LibraryFiles
 				ArcProto ap = tech.findArcProto(arcName);
 				if (ap == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown ArcProto: " + piece, null, -1);
+						", Unknown ArcProto: " + piece, -1);
 				return ap;
 			case 'S':		// String
 				if (revision >= 1) return piece;
 				if (piece.charAt(0) != '"')
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed string variable (missing open quote): " + piece, null, -1);
+						", Badly formed string variable (missing open quote): " + piece, -1);
 					break;
 				}
 				StringBuffer sb = new StringBuffer();
@@ -1895,7 +1894,7 @@ public class JELIB extends LibraryFiles
 				tech = Technology.findTechnology(techName);
 				if (tech == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Technology: " + piece, null, -1);
+						", Unknown Technology: " + piece, -1);
 				return tech;
 			case 'V':		// Point2D
 				double x = TextUtils.atof(piece);
@@ -1903,7 +1902,7 @@ public class JELIB extends LibraryFiles
 				if (slashPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Point2D variable (missing slash): " + piece, null, -1);
+						", Badly formed Point2D variable (missing slash): " + piece, -1);
 					break;
 				}
 				double y = TextUtils.atof(piece.substring(slashPos+1));

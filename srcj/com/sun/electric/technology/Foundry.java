@@ -3,13 +3,6 @@ package com.sun.electric.technology;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Jan 11, 2006
- * Time: 10:05:40 AM
- * To change this template use File | Settings | File Templates.
- */
-/**
  * This is supposed to better encapsulate a particular foundry
  * associated to a technology plus the valid DRC rules.
  */

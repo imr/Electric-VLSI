@@ -6,11 +6,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gg151869
- * Date: Jul 25, 2005
- * Time: 5:43:34 PM
- * To change this template use File | Settings | File Templates.
+ * Class defines NodeInsts that are icons.
  */
 public class IconNodeInst extends NodeInst
 {

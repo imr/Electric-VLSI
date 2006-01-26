@@ -213,9 +213,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addObject(Object obj, Cell cell)
 	{
         Highlight2 h1 = new HighlightObject(cell, obj);
-//		Highlight h = new Highlight(type, null, cell);
-//		h.setObject(obj);
-
         addHighlight(h1);
 		return h1;
 	}
@@ -230,10 +227,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addLine(Point2D start, Point2D end, Cell cell)
 	{
         Highlight2 h1 = new HighlightLine(cell, start, end, null, false);
-//		Highlight h = new Highlight(Highlight.Type.LINE, null, cell);
-//		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
-//		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
-
         addHighlight(h1);
 		return h1;
 	}
@@ -245,14 +238,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
+	public Highlight2 addThickLine(Point2D start, Point2D end, Cell cell)
 	{
-        Highlight2 h1 = new HighlightLine(cell, start, end, center, true);
-//		Highlight h = new Highlight(Highlight.Type.THICKLINE, null, cell);
-//		h.setLineStart(new Point2D.Double(start.getX(), start.getY()));
-//		h.setLineEnd(new Point2D.Double(end.getX(), end.getY()));
-//		h.setCenter(new Point2D.Double(center.getX(), center.getY()));
-
+        Highlight2 h1 = new HighlightLine(cell, start, end, null, true);
         addHighlight(h1);
 		return h1;
 	}
@@ -735,7 +723,7 @@ public class Highlighter implements DatabaseChangeListener {
 			{
                 HighlightLine hh = (HighlightLine)h;
                 if (hh.thickLine)
-                    addThickLine(hh.start, hh.end, hh.center, cell);
+                    addThickLine(hh.start, hh.end, cell);
                 else
 				    addLine(hh.start, hh.end, cell);
 			} else if (h instanceof HighlightMessage) //type == Highlight.Type.MESSAGE)

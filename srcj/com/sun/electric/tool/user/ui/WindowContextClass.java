@@ -9,14 +9,6 @@ import com.sun.electric.database.variable.VarContext;
 import javax.swing.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Sep 22, 2005
- * Time: 10:25:08 PM
- * To change this template use File | Settings | File Templates.
- */
-
-/**
  * This class defines the right-side of a windowframe (the contents, as opposed to the explorer tree).
  */
 public abstract class WindowContextClass extends JPanel

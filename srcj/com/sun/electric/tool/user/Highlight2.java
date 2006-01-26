@@ -36,11 +36,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Dec 10, 2005
- * Time: 11:38:48 PM
- * To change this template use File | Settings | File Templates.
+ * Super class for all types of highlighting.
  */
 public abstract class Highlight2 implements Cloneable{
 
@@ -253,17 +249,8 @@ public abstract class Highlight2 implements Cloneable{
                 }
             } else if (h.isHighlightText())
             {
-                if (eobj instanceof Export)
-                {
-                    if (h.getVarKey() != null)
-                        counts[3]++;
-                    else
-                        counts[2]++;
-                } else
-                {
-                    if (eobj instanceof NodeInst) theNode = (NodeInst)eobj;
+            	if (h.getVarKey() == Export.EXPORT_NAME) counts[2]++; else
                     counts[3]++;
-                }
             } else if (h instanceof HighlightArea)
             {
                 counts[4]++;

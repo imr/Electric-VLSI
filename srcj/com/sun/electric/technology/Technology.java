@@ -3188,6 +3188,7 @@ public class Technology implements Comparable<Technology>
 	 * The technology's scale is for manufacturing output, which must convert
 	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @param factory the factory scale between this technology and the real units.
+	 * @param scaleRelevant true if this is a layout technology, and the scale factor has meaning.
 	 */
 	protected void setFactoryScale(double factory, boolean scaleRelevant)
 	{

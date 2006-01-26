@@ -1504,8 +1504,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             if (errorLogger != null)
             {
                 String msg = "Prototype of arc " + getName() + " is unused";
-                ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-				error.addGeom(this, true, parent, null);
+                errorLogger.logError(msg, this, parent, null, 1);
             }
             if (repair) list.add(this);
             // This counts as 1 error, ignoring other errors
@@ -1523,9 +1522,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
-				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-				error.addGeom(this, true, parent, null);
-				error.addGeom(headPortInst.getNodeInst(), true, parent, null);
+				List<Geometric> geomList = new ArrayList<Geometric>();
+				geomList.add(this);
+				geomList.add(headPortInst.getNodeInst());
+				errorLogger.logError(msg, geomList, null, parent, 1);
 			}
 			if (repair)
 			{
@@ -1544,9 +1544,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
-				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-				error.addGeom(this, true, parent, null);
-				error.addGeom(tailPortInst.getNodeInst(), true, parent, null);
+				List<Geometric> geomList = new ArrayList<Geometric>();
+				geomList.add(this);
+				geomList.add(tailPortInst.getNodeInst());
+				errorLogger.logError(msg, geomList, null, parent, 1);
 			}
 			if (repair)
 			{

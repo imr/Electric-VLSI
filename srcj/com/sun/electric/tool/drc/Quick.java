@@ -4047,8 +4047,8 @@ public class Quick
         if (layersInterNodes != null && old != null && job != null)
         {
 	        errorLogger.logWarning("Switching from '" + old.getTechName() +
-	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in " +
-	                job.cell, null, -1);
+	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in ",
+	                job.cell, -1);
         }
 
 		layersInterNodes = new HashMap<PrimitiveNode, boolean[]>();
@@ -4343,15 +4343,14 @@ public class Quick
 		if (rule != null && rule.length() > 0) errorMessage.append(" [rule '" + rule + "']");
 		errorMessage.append(DRCexclusionMsg);
 
-		ErrorLogger.MessageLog err = (onlyWarning) ?
-		        errorLogger.logWarning(errorMessage.toString(), cell, sortLayer) :
-		        errorLogger.logError(errorMessage.toString(), cell, sortLayer);
-
-		boolean showGeom = true;
-		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true, cell); }
-		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true, cell); }
-		if (geom1 != null) err.addGeom(geom1, showGeom, cell, null);
-		if (geom2 != null) err.addGeom(geom2, showGeom, cell, null);
+		List<Geometric> geomList = new ArrayList<Geometric>();
+		List<PolyBase> polyList = new ArrayList<PolyBase>();
+		if (poly1 != null) polyList.add(poly1); else
+			if (geom1 != null) geomList.add(geom1);
+		if (poly2 != null) polyList.add(poly2); else
+			if (geom2 != null) geomList.add(geom2);
+		if (onlyWarning) errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer); else
+		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer);
 	}
 
 	/**************************************************************************************************************

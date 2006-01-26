@@ -414,16 +414,13 @@ public class CIF extends Geometry
 			{
 				layerName = layer.getName();
 			}
-			if (badPoints)
+			if (geom != null)
 			{
-				err = errorLogger.logError("Resolution less than CIF allows on layer " + layerName, cell, layer.getIndex());
+				errorLogger.logError("Resolution less than CIF allows on layer " + layerName, geom, cell, null, layer.getIndex());
+			} else
+			{
+				errorLogger.logError("Resolution less than CIF allows on layer " + layerName, poly, cell, layer.getIndex());
 			}
-//          else
-//			{
-//				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layerName, cell, layer.getIndex());
-//			}
-			if (geom != null) err.addGeom(geom, true, cell, VarContext.globalContext); else
-				err.addPoly(poly, false, cell);
 		}
 		return error;
 	}

@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -148,14 +149,14 @@ public class AssuraDrcErrors {
                         double y2 = Double.parseDouble(strings[last]) / scale * 1000;
                         Rectangle2D rect = new Rectangle2D.Double(x1, y1, x2-x1, y2-y1);
                         error = new DrcError(cell, rect);
-                        ErrorLogger.MessageLog log = logger.logError(num+". "+cell.getName()+": "+rule.desc, cell, rule.number);
-                        log.addLine(x1, y1, x2, y1, cell, null, false);
-                        log.addLine(x1, y1, x1, y2, cell, null, false);
-                        log.addLine(x2, y2, x2, y1, cell, null, false);
-                        log.addLine(x2, y2, x1, y2, cell, null, false);
-
-                        log.addLine(x1, y1, x2, y2, cell, null, false);
-                        log.addLine(x1, y2, x2, y1, cell, null, false);
+                        List<EPoint> ptList = new ArrayList<EPoint>();
+                        ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x2, y1));
+                        ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x1, y2));
+                        ptList.add(new EPoint(x2, y2));   ptList.add(new EPoint(x2, y1));
+                        ptList.add(new EPoint(x2, y2));   ptList.add(new EPoint(x1, y2));
+                        ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x2, y2));
+                        ptList.add(new EPoint(x1, y2));   ptList.add(new EPoint(x2, y1));
+                        logger.logError(num+". "+cell.getName()+": "+rule.desc, null, null, ptList, null, null, cell, rule.number);
                         count++;
                         num++;
                     }

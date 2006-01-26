@@ -129,8 +129,7 @@ public class LESizer2 {
                                 System.out.println(msg);
                                 NodeInst ni = leno.getNodable().getNodeInst();
                                 if (ni != null) {
-                                    ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 0);
-                                    log.addGeom(ni, true, ni.getParent(), leno.context);
+                                    errorLogger.logError(msg, ni, ni.getParent(), leno.context, 0);
                                 }
                             }
                         }
@@ -199,8 +198,7 @@ public class LESizer2 {
                         System.out.println(msg);
                         NodeInst ni = leno.getNodable().getNodeInst();
                         if (ni != null) {
-                            ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 0);
-                            log.addGeom(ni, true, ni.getParent(), leno.context);
+                            errorLogger.logError(msg, ni, ni.getParent(), leno.context, 0);
                         }
                     }
 
@@ -238,8 +236,7 @@ public class LESizer2 {
                         System.out.println(msg);
                         NodeInst ni = leno.getNodable().getNodeInst();
                         if (ni != null) {
-                            ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 1);
-                            log.addGeom(ni, true, ni.getParent(), leno.context);
+                            errorLogger.logError(msg, ni, ni.getParent(), leno.context, 1);
                         }
                     }
                     // ignore if no loads, on all iterations
