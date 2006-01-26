@@ -122,16 +122,6 @@ public class DebugMenus
 			russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) {
                     new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology(), Tech.Type.TSMC90); } });
-        russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.generator.layout.IvanFlat();
-            }
-        });
-        russMenu.addMenuItem("layout flat", null, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.generator.layout.LayFlat();
-            }
-        });
         russMenu.addMenuItem("Random Test", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.Test();

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/25/06, RK) Remove obsolete code
+
 IMP: (1/25/06, SMR) Converted all usage of ErrorLogger to use single calls
      (instead of creating a log and then making extra calls to add geometric, export, etc.)
      This is necessary in order to make ErrorLogs immutable.
