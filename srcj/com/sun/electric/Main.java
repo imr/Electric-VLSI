@@ -143,7 +143,7 @@ public final class Main
 	        System.out.println("\t-version: version information");
 	        System.out.println("\t-v: brief version information");
 	        System.out.println("\t-debug: debug mode. Extra information is available");
-            System.out.println("\t-NOTHREADING: turn off Job threading.");
+            System.out.println("\t-threads <numThreads>: recommended size of thread pool for Job execution.");
 	        System.out.println("\t-batch: running in batch mode.");
 	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
             System.out.println("\t-server: dump trace of snapshots");
@@ -158,7 +158,15 @@ public final class Main
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
 		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
         if (hasCommandLineOption(argsList, "-gilda")) Job.LOCALDEBUGFLAG = true;
-        if (hasCommandLineOption(argsList, "-NOTHREADING")) Job.NOTHREADING = true;
+        String numThreadsString = getCommandLineOption(argsList, "-threads");
+        int numThreads = 0 ;
+        if (numThreadsString != null) {
+            numThreads = TextUtils.atoi(numThreadsString);
+            if (numThreads <= 0) {
+                System.out.println("Invalid option -threads " + numThreadsString);
+            }
+        }
+        
 		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Job.Mode.FULL_SCREEN)
@@ -237,7 +245,7 @@ public final class Main
 				System.out.println("Error initializing Mac OS/X interface");
 			}
 		}
-        Job.initJobManager(job);
+        Job.initJobManager(numThreads, job);
 	}
 
     private static class UserInterfaceDummy implements UserInterface

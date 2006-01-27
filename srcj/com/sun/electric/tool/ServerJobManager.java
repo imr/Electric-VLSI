@@ -57,18 +57,14 @@ import javax.swing.SwingUtilities;
  */
 class ServerJobManager extends JobManager implements Observer, Runnable {
     private static final String CLASS_NAME = Job.class.getName();
+    private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
     
     private final ServerSocket serverSocket;
     private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
     private final UserInterface redirectInterface = new UserInterfaceRedirect();
-    private final int numThreads = 1;
-    {
-        Job.logger.logp(Level.FINE, CLASS_NAME, "init", "starting threads");
-        for (int i = 0; i < numThreads; i++)
-            new DatabaseChangesThread(i);
-    }
+    private final int numThreads;
     private boolean runningChangeJob;
     private boolean jobTreeChanged;
 
@@ -76,11 +72,13 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private Snapshot currentSnapshot = new Snapshot();
     
     /** Creates a new instance of JobPool */
-    ServerJobManager() {
+    ServerJobManager(int recommendedNumThreads) {
+        numThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
     }
     
-    ServerJobManager(int socketPort) {
+    ServerJobManager(int recommendedNumThreads, int socketPort) {
+        numThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(socketPort);
@@ -89,6 +87,16 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
             System.out.println("ServerSocket mode failure: " + e.getMessage());
         }
         this.serverSocket = serverSocket;
+    }
+    
+    private int initThreads(int recommendedNumThreads) {
+        int numThreads = DEFAULT_NUM_THREADS;
+        if (recommendedNumThreads > 0)
+            numThreads = recommendedNumThreads;
+        Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "starting threads");
+        for (int i = 0; i < numThreads; i++)
+            new DatabaseChangesThread(i);
+        return numThreads;
     }
     
    /** Add job to list of jobs */

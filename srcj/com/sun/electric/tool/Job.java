@@ -169,15 +169,15 @@ public abstract class Job implements Serializable {
         currentUI = userInterface;
     }
    
-    public static void initJobManager(Job initDatabaseJob) {
+    public static void initJobManager(int numThreads, Job initDatabaseJob) {
         switch (threadMode) {
             case FULL_SCREEN:
             case BATCH:
-                jobManager = new ServerJobManager();
+                jobManager = new ServerJobManager(numThreads);
                 initDatabaseJob.startJob();
                 break;
             case SERVER:
-                jobManager = new ServerJobManager(socketPort);
+                jobManager = new ServerJobManager(numThreads, socketPort);
                 initDatabaseJob.startJob();
                 break;
             case CLIENT:

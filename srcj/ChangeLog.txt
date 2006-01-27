@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/26/06, DN) Command-line key "-threads <recommendedNumThreads>" specifies
+     recommended number of threads executing Jobs.
+     "-threads 1" is convinient for debugging without thread swapping.
+
 BUG: (1/26/06, DN) Highlight exception using wiring tool (Bug #798)
 FIX: In "Job.fieldVariableChanged" search for superclass fields too.
 
