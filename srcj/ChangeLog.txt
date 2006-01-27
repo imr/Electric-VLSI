@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (1/27/06, SMR) Modeless dialogs don't update properly.
+FIX: Made HighlightListeners a static list, independent of windows.
+
+BUG: (1/27/06, SMR) Escape key doesn't abort component menu placement (Bug #800).
+FIX: In PaletteFrame.PlaceNodeListener.placeInstance(), added "wnd.requestFocus();"
+
 IMP: (1/26/06, DN) Command-line key "-threads <recommendedNumThreads>" specifies
      recommended number of threads executing Jobs.
      "-threads 1" is convinient for debugging without thread swapping.

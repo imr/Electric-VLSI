@@ -244,6 +244,8 @@ public class PixelDrawing
     /** the scale of the EditWindow */                      private double scale;
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
+	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
+    
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
@@ -310,6 +312,7 @@ public class PixelDrawing
 	{
 		this.wnd = wnd;
 		this.sz = wnd.getScreenSize();
+		nowPrinting = 0;
         initOrigin();
 
 		// allocate pointer to the opaque image
@@ -361,7 +364,13 @@ public class PixelDrawing
         this.originY = sz.height/2 + offset.getY()*scale;
     }
 
-	/**
+    /**
+     * Method to set the printing mode used for all drawing.
+     * @param mode the printing mode:  0=color display (default), 1=color printing, 2=B&W printing.
+     */
+    public void setPrintingMode(int mode) { nowPrinting = mode; }
+
+    /**
 	 * Method to override the background color.
 	 * Must be called before "drawImage()".
 	 * This is used by printing, which forces the background to be white.
@@ -1311,7 +1320,7 @@ public class PixelDrawing
 			EGraphics graphics = layer.getGraphics();
 			if (graphics != null)
 			{
-				if (graphics.isPatternedOnDisplay())
+				if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
 				{
 					int [] pattern = graphics.getPattern();
 					if (pattern != null)
@@ -1790,7 +1799,7 @@ public class PixelDrawing
 				if (layerBitMap == null)
 				{
 					// see if it is patterned
-					if (graphics.isPatternedOnDisplay())
+					if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
 					{
 						Layer layer = poly.getLayer();
 						PatternedOpaqueLayer pol = (PatternedOpaqueLayer)patternedOpaqueLayers.get(layer);
@@ -1968,6 +1977,7 @@ public class PixelDrawing
 
 	int getTheColor(EGraphics desc, boolean dimmed)
 	{
+		if (nowPrinting == 2) return 0;
 		int col = desc.getColor().getRGB() & 0xFFFFFF;
 		if (highlightingLayers)
 		{
@@ -2094,7 +2104,7 @@ public class PixelDrawing
 		if (desc != null)
 		{
 			col = getTheColor(desc, dimmed);
-			if (desc.isPatternedOnDisplay())
+			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
 
@@ -2713,7 +2723,7 @@ public class PixelDrawing
 		if (desc != null)
 		{
 			col = getTheColor(desc, dimmed);
-			if (desc.isPatternedOnDisplay())
+			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
 
@@ -3781,7 +3791,7 @@ public class PixelDrawing
 		if (desc != null)
 		{
 			col = getTheColor(desc, dimmed);
-			if (desc.isPatternedOnDisplay())
+			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
 			{
 				pattern = desc.getPattern();
 				if (desc.getOutlined() != EGraphics.Outline.NOPAT)
