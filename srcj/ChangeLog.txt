@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (1/27/06, SMR) Inherited attributes are placed badly (Bug #788).
+FIX: In CircuitChangeJobs.updateInheritedVar(), place from the icon position.
+
 BUG: (1/27/06, SMR) Printing looks bad (Bug #785).
 FIX: Redid printing interface, now chooses better colors.
 

@@ -2853,66 +2853,6 @@ public class CircuitChangeJobs
 			// set the attribute
             TextDescriptor td = TextDescriptor.getPortInstTextDescriptor().withDisplay(false);
 			pi.newVar(attrKey, inheritAddress(pp, var), td);
-//			newVar = pi.newVar(attrKey, inheritAddress(pp, var));
-//			if (newVar != null)
-//			{
-//				double lambda = 1;
-//				MutableTextDescriptor descript = new MutableTextDescriptor();
-//                // setTextDescriptor will set display and code bits also. Is it necessary here ???
-//                descript.setDisplay(false);
-//				var.setTextDescriptor(descript);
-//				double dX = descript.getXOff();
-//				double dY = descript.getYOff();
-//
-//				saverot = pp->subnodeinst->rotation;
-//				savetrn = pp->subnodeinst->transpose;
-//				pp->subnodeinst->rotation = pp->subnodeinst->transpose = 0;
-//				portposition(pp->subnodeinst, pp->subportproto, &x, &y);
-//				pp->subnodeinst->rotation = saverot;
-//				pp->subnodeinst->transpose = savetrn;
-//				x += dX;   y += dY;
-//				makerot(pp->subnodeinst, trans);
-//				xform(x, y, &x, &y, trans);
-//				maketrans(ni, trans);
-//				xform(x, y, &x, &y, trans);
-//				makerot(ni, trans);
-//				xform(x, y, &x, &y, trans);
-//				x = x - (ni->lowx + ni->highx) / 2;
-//				y = y - (ni->lowy + ni->highy) / 2;
-//				switch (TDGETPOS(descript))
-//				{
-//					case VTPOSCENT:      style = TEXTCENT;      break;
-//					case VTPOSBOXED:     style = TEXTBOX;       break;
-//					case VTPOSUP:        style = TEXTBOT;       break;
-//					case VTPOSDOWN:      style = TEXTTOP;       break;
-//					case VTPOSLEFT:      style = TEXTRIGHT;     break;
-//					case VTPOSRIGHT:     style = TEXTLEFT;      break;
-//					case VTPOSUPLEFT:    style = TEXTBOTRIGHT;  break;
-//					case VTPOSUPRIGHT:   style = TEXTBOTLEFT;   break;
-//					case VTPOSDOWNLEFT:  style = TEXTTOPRIGHT;  break;
-//					case VTPOSDOWNRIGHT: style = TEXTTOPLEFT;   break;
-//				}
-//				makerot(pp->subnodeinst, trans);
-//				style = rotatelabel(style, TDGETROTATION(descript), trans);
-//				switch (style)
-//				{
-//					case TEXTCENT:     TDSETPOS(descript, VTPOSCENT);      break;
-//					case TEXTBOX:      TDSETPOS(descript, VTPOSBOXED);     break;
-//					case TEXTBOT:      TDSETPOS(descript, VTPOSUP);        break;
-//					case TEXTTOP:      TDSETPOS(descript, VTPOSDOWN);      break;
-//					case TEXTRIGHT:    TDSETPOS(descript, VTPOSLEFT);      break;
-//					case TEXTLEFT:     TDSETPOS(descript, VTPOSRIGHT);     break;
-//					case TEXTBOTRIGHT: TDSETPOS(descript, VTPOSUPLEFT);    break;
-//					case TEXTBOTLEFT:  TDSETPOS(descript, VTPOSUPRIGHT);   break;
-//					case TEXTTOPRIGHT: TDSETPOS(descript, VTPOSDOWNLEFT);  break;
-//					case TEXTTOPLEFT:  TDSETPOS(descript, VTPOSDOWNRIGHT); break;
-//				}
-//				x = x * 4 / lambda;
-//				y = y * 4 / lambda;
-//				TDSETOFF(descript, x, y);
-//				TDSETINHERIT(descript, 0);
-//				TDCOPY(newVar->textdescript, descript);
-//			}
 		}
 	}
 
@@ -2934,7 +2874,6 @@ public class CircuitChangeJobs
 				if (!newVar.isDisplay())
 				{
                     ni.addVar(newVar.withDisplay(true));
-//					newVar.setDisplay(true);
 				}
 			} else
 			{
@@ -2944,7 +2883,6 @@ public class CircuitChangeJobs
 					if (var.describe(-1).equals(newVar.describe(-1)))
 					{
                         ni.addVar(newVar.withDisplay(false));
-//						newVar.setDisplay(false);
 					}
 				}
 			}
@@ -2954,8 +2892,8 @@ public class CircuitChangeJobs
         }
     }
 
-    private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon) {
-
+    private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon)
+    {
         if (nivar == null) return;
 
         // determine offset of the attribute on the instance
@@ -2963,21 +2901,18 @@ public class CircuitChangeJobs
         Variable var = posVar;
         if (icon != null) {
             Variable iconVar = icon.getVar(nivar.getKey());
-            if (iconVar != null) posVar = var;
+            if (iconVar != null) posVar = iconVar;
         }
 
 		double xc = posVar.getXOff();
 		if (posVar == var) xc -= np.getBounds().getCenterX();
 		double yc = posVar.getYOff();
 		if (posVar == var) yc -= np.getBounds().getCenterY();
-
         MutableTextDescriptor mtd = new MutableTextDescriptor(nivar.getTextDescriptor());
         mtd.setDisplay(posVar.isDisplay());
         mtd.setInherit(false);
         mtd.setOff(xc, yc);
-//        mtd.setParam(posVar.isParam());
-        if (posVar.getTextDescriptor().isParam())
-//        if (posVar.isParam())
+        if (var.getTextDescriptor().isParam())
         {
             mtd.setInterior(false);
             mtd.setDispPart(posVar.getDispPart());
@@ -2987,8 +2922,6 @@ public class CircuitChangeJobs
             mtd.setItalic(posVar.isItalic());
             mtd.setUnderline(posVar.isUnderline());
             mtd.setFace(posVar.getFace());
-            //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
-            //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
             TextDescriptor.Size s = posVar.getSize();
 			if (s.isAbsolute())
 				mtd.setAbsSize((int)s.getSize());
@@ -2998,63 +2931,6 @@ public class CircuitChangeJobs
         mtd.setCode(posVar.getCode());
         ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
 	}
-
-//    public static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon) {
-//
-//        if (nivar == null) return;
-//
-//        // determine offset of the attribute on the instance
-//        Variable posVar = np.getVar(nivar.getKey());
-//        Variable var = posVar;
-//        if (icon != null)
-//        {
-//            for(Iterator<Variable> it = icon.getVariables(); it.hasNext(); )
-//            {
-//                Variable ivar = it.next();
-//                if (ivar.getKey().equals(nivar.getKey()))
-//                {
-//                    posVar = ivar;
-//                    break;
-//                }
-//            }
-//        }
-//
-//		double xc = posVar.getXOff();
-//		if (posVar == var) xc -= np.getBounds().getCenterX();
-//		double yc = posVar.getYOff();
-//		if (posVar == var) yc -= np.getBounds().getCenterY();
-//
-////        if (oldDescript.isInterior())
-////        {
-////            nivar.clearDisplay();
-////        } else
-////        {
-////            nivar.setDisplay();
-////        }
-//        nivar.setDisplay(posVar.isDisplay());
-//        nivar.setInherit(false);
-//        nivar.setOff(xc, yc);
-//        nivar.setParam(posVar.isParam());
-//        if (posVar.isParam())
-//        {
-//            nivar.setInterior(false);
-//            nivar.setDispPart(posVar.getDispPart());
-//            nivar.setPos(posVar.getPos());
-//            nivar.setRotation(posVar.getRotation());
-//            nivar.setBold(posVar.isBold());
-//            nivar.setItalic(posVar.isItalic());
-//            nivar.setUnderline(posVar.isUnderline());
-//            nivar.setFace(posVar.getFace());
-//            //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
-//            //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//            TextDescriptor.Size s = posVar.getSize();
-//			if (s.isAbsolute())
-//				nivar.setAbsSize((int)s.getSize());
-//			else
-//				nivar.setRelSize(s.getSize());
-//        }
-//        nivar.setCode(posVar.getCode());
-//	}
 
 	/**
 	 * Helper method to determine the proper value of an inherited Variable.
