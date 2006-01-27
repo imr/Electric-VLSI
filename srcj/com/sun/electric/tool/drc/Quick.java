@@ -172,10 +172,6 @@ public class Quick
 		/** the two cell instances being compared */	Cell cell1, cell2;
         /** orientation of cell instance 1 */           Orientation or1;
         /** orientation of cell instance 2 */           Orientation or2;
-//		/** rotation of cell instance 1 */				int rot1;
-//		/** mirroring of cell instance 1 */				boolean mirrorX1, mirrorY1;
-//		/** rotation of cell instance 2 */				int rot2;
-//		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
 		/** distance from instance 1 to instance 2 */	double dx, dy;
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	};
@@ -2527,7 +2523,7 @@ public class Quick
                     if (!DBMath.isGreaterThan(length, slotSizeRule.value1)) continue;
                     if (addError)
                     reportError(DRCErrorType.SLOTSIZEERROR, null, cell, slotSizeRule.value1, length, slotSizeRule.ruleName,
-						simplePn, null /*ni*/, layer, null, null, null);
+						simplePn, null, layer, null, null, null);
 				    errorFound++;
                 }
 
@@ -2542,7 +2538,7 @@ public class Quick
                 else if (errorType == DRCErrorType.ENCLOSEDAREAERROR) enclosedAreaDone = false;
                 if (addError)
 				reportError(errorType, null, cell, minRule.value1, area, minRule.ruleName,
-						simplePn, null /*ni*/, layer, null, null, null);
+						simplePn, null, layer, null, null, null);
 			}
 		}
         if (minAreaDone)
@@ -2552,6 +2548,7 @@ public class Quick
 		return errorFound;
 
 	}
+                                    private static int count = 0;
 
     /**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
@@ -4368,6 +4365,17 @@ public class Quick
         private boolean doneAll = false;
         private List<QuickAreaBucket> buckets = new ArrayList<QuickAreaBucket>();
 
+        /**
+         * Case 2 & Case 3: original checking of hierarchy per network
+         * Case 2: MapDone contains all layers with rules regardless if they are present in the layout
+         * Case 3: Attempt to collect all layers in cells (preprocess) before running the final checking -> very slow
+         * Case 4 and Case 5: Only 1 hierarchy down containing buckets. MapDone contains all layers with rules
+         * regardless if they are present in the layout (same as Case2). They use more memory than Case2&Case3
+         * Case 4: Checking (QuickAreaBucket bucket : buckets) in exitCell in all cells -> best result?
+         * Case 5: Checking (QuickAreaBucket bucket : buckets) in exitCell only on Top Cell -> too slow
+         * Case 6: Skip if addElement() adds element bigger than minArea -> doesn't work because I skip disconnected
+         * areas in a given network
+         */
         private class QuickAreaBucket
         {
             boolean merged = false;
@@ -4390,7 +4398,10 @@ public class Quick
              */
             private boolean skipLayer(Layer layer)
             {
-                if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+                boolean noMinArea = minAreaLayerMap.get(layer) == null;
+                boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null;
+
+                if (noMinArea && noMinEnc)
                     return true;
                 if (preProcess)
                 {
@@ -4400,12 +4411,43 @@ public class Quick
                 }
                 else
                 {
-                    if (minAreaLayerMapDone.get(layer) != null && enclosedAreaLayerMapDone.get(layer) != null)
+                    // Done means either doesn't have rule or it is reached.
+                    boolean minADone = (noMinArea || (!noMinArea && minAreaLayerMapDone.get(layer) != null));
+                    boolean minEDone = (noMinEnc || (!noMinEnc && enclosedAreaLayerMapDone.get(layer) != null));
+                    if (minADone && minEDone)
                         return true;
                 }
                 return false;
             }
         }
+
+        class QuickAreaCellInfo extends HierarchyEnumerator.CellInfo
+        {
+            List<QuickAreaBucket> theseBuckets = null;
+
+            List<QuickAreaBucket> getValidNetworks()
+            {
+                if (theseBuckets == null)
+                {
+                    theseBuckets = new ArrayList<QuickAreaBucket>();
+
+                    for (QuickAreaBucket bucket : buckets)
+                    {
+                        boolean found = false;
+                        for (Iterator<Network> it = getNetlist().getNetworks(); it.hasNext(); )
+                        {
+                            Network net = it.next();
+                            found = HierarchyEnumerator.searchNetworkInParent(net, this, bucket.jNet);
+                            if (found) break;
+                        }
+                        if (found) theseBuckets.add(bucket);
+                    }
+                }
+                return theseBuckets;
+            }
+        }
+
+        public HierarchyEnumerator.CellInfo newCellInfo() { return new QuickAreaCellInfo(); }
 
 		public QuickAreaEnumerator(Netlist netlist, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
 		                           HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
@@ -4421,7 +4463,7 @@ public class Quick
                 Network net = netIt.next();
                 buckets.add(new QuickAreaBucket(net));
             }
-//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
+//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);    // case 2
 //            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
 
@@ -4432,7 +4474,7 @@ public class Quick
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
             this.mode = mode;
-//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
+//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);     // case 2
 //            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
 
@@ -4475,7 +4517,6 @@ public class Quick
             return doneAll;
         }
 
-
 		/**
 		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -4493,11 +4534,17 @@ public class Quick
             }
 
             AffineTransform rTrans = info.getTransformToRoot();
+            QuickAreaCellInfo areaInfo = (QuickAreaCellInfo)info;
+            List<QuickAreaBucket> theseBuckets = areaInfo.getValidNetworks();
+
+            if (theseBuckets.size() == 0)
+                System.out.println("Should this be empty?");
 
 			// Check Arcs too if network is not null
-			if (buckets.size() > 0)
+			if (theseBuckets.size() > 0)
 			{
                 List<QuickAreaBucket> onlyTheseBuckets = new ArrayList<QuickAreaBucket>();
+
 				for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();
@@ -4506,7 +4553,8 @@ public class Quick
 
                     // Only check those network buckets that are found as exports
                     onlyTheseBuckets.clear();
-                    for (QuickAreaBucket bucket : buckets)
+//                    for (QuickAreaBucket bucket : buckets)
+                    for (QuickAreaBucket bucket : theseBuckets)
                     {
 					    boolean found = false;
                         // aNet is null if ArcProto is Artwork
@@ -4525,8 +4573,15 @@ public class Quick
                         onlyTheseBuckets.add(bucket);
                     }
 
+//                    if (!theseBuckets.containsAll(onlyTheseBuckets))
+//                            System.out.println("Error here?");
+
                     if (onlyTheseBuckets.size() == 0)
+                    {
+                        // These nets should be checked locally to this particular cell!!
+//                        System.out.println(ai.getName() + " not found in " + ai.getProto().getName() + " " + info.getCell().getName());
                         continue;
+                    }
 
 					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 					int tot = arcInstPolyList.length;
@@ -4578,6 +4633,7 @@ public class Quick
                 for(Iterator<Layer> it = bucket.mainMerge.getKeyIterator(); it.hasNext(); )
                 {
                     Layer layer = it.next();
+                    if (bucket.skipLayer(layer)) continue; // done!
                     checkMinAreaLayer(bucket.mainMerge, info.getCell(), layer, isTopCell, bucket.minAreaLayerMapDone,
                             bucket.enclosedAreaLayerMapDone);
                     if (areAllLayersDone())
@@ -4608,8 +4664,13 @@ public class Quick
 			PrimitiveNode pNp = (PrimitiveNode)np;
 			boolean forceChecking = false;
             List<QuickAreaBucket> onlyTheseBuckets = new ArrayList<QuickAreaBucket>();
+            QuickAreaCellInfo areaInfo = (QuickAreaCellInfo)info;
+            List<QuickAreaBucket> theseBuckets = areaInfo.getValidNetworks();
 
-			if (buckets.size() > 0) //jNet != null)
+            if (theseBuckets.size() == 0)
+                System.out.println("when?");
+
+			if (theseBuckets.size() > 0) //jNet != null)
 			{
 				boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
 				if (np instanceof PrimitiveNode)
@@ -4621,7 +4682,7 @@ public class Quick
 				boolean notExported = false;
 				Network thisNet = null;
 
-                for (QuickAreaBucket bucket : buckets)
+//                for (QuickAreaBucket bucket : buckets)
                 {
                     boolean found = false;
 
@@ -4631,10 +4692,18 @@ public class Quick
                         PortProto pp = pi.getPortProto();
                         boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
                         thisNet = info.getNetlist().getNetwork(pi);
+                        QuickAreaBucket thisBucket = null;
+//                        for (QuickAreaBucket bucket : buckets)
+                        for (QuickAreaBucket bucket : theseBuckets)
                         {
                             found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, bucket.jNet);
-                            if (found) break;
+                            if (found)
+                            {
+                                thisBucket = bucket;
+                                break;
+                            }
                         }
+                        if (thisBucket != null) onlyTheseBuckets.add(thisBucket);
                         if (!isExported) notExported = true;
                     }
                     // Substrate layers are special so we must check node regardless network
@@ -4647,10 +4716,9 @@ public class Quick
                             notExportedNodes.put(ni, ni);
                         }
                         //else
-                        continue;
-//                            return (false);
+//                        continue;
+                            return (false);
                     }
-                    onlyTheseBuckets.add(bucket);
                 }
 				// Removing node if it was found included in a network
 				notExportedNodes.remove(ni);
@@ -4666,8 +4734,15 @@ public class Quick
 					return (false);
 			}
 
+//            if (!theseBuckets.containsAll(onlyTheseBuckets))
+//                System.out.println("SHould it happen?");
+
             if (onlyTheseBuckets.size() == 0)
+            {
+                //These are candidates for extra checking internally!
+//                System.out.println(ni.getName() + " not found NODE in " + " " + ni.getProto().getName() + " " + info.getCell().getName());
                 return false;
+            }
 
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
@@ -4724,7 +4799,16 @@ public class Quick
             if ((isNode && otherTypeMerge == null) || layer.getFunction().isMetal() || layer.getFunction().isPoly())
             {
                 bucket.merged = false;
-                bucket.mainMerge.add(layer, obj);
+//                assert(bucket.minAreaLayerMapDone.get(layer) == null); // otherwise bucket.skipLayer should have detected
+//                // Case 6
+//                double area = poly.getArea();
+//                DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
+//                if (!DBMath.isGreaterThan(minAreaRule.value1, area))
+//                {
+//                    bucket.minAreaLayerMapDone.put(layer, layer);
+//                }
+//                else
+                    bucket.mainMerge.add(layer, obj);
             }
             else
                 otherTypeMerge.add(layer, obj);

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/27/06, GVG) More improvements in MinArea algorithms.
+
 BUG: (1/27/06, SMR) Inherited attributes are placed badly (Bug #788).
 FIX: In CircuitChangeJobs.updateInheritedVar(), place from the icon position.
 
