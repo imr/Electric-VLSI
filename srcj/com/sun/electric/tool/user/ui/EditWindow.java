@@ -272,6 +272,7 @@ public class EditWindow extends JPanel
 			// make a highlighter for this window
 			installHighlighters();
 			Undo.addDatabaseChangeListener(this);
+			Highlighter.addHighlightListener(this);
 			setCell(cell, VarContext.globalContext);
 		}
 	}
@@ -303,9 +304,6 @@ public class EditWindow extends JPanel
 	        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
 			rulerHighlighter = new Highlighter(Highlighter.RULER_HIGHLIGHTER, wf);
 		}
-
-		// install highlighters
-//		rulerHighlighter.addHighlightListener(this);
 
         // add listeners --> BE SURE to remove listeners in finished()
 		addKeyListener(this);
@@ -1058,6 +1056,7 @@ public class EditWindow extends JPanel
 		// remove myself from listener list
 		uninstallHighlighters();
         Undo.removeDatabaseChangeListener(this);
+		Highlighter.removeHighlightListener(this);
 	}
 
 	// ************************************* SCROLLING *************************************

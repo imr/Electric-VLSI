@@ -48,10 +48,16 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
-import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -121,7 +127,7 @@ import javax.vecmath.Vector3f;
  */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener, Observer
+        Observer
 {
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
@@ -244,7 +250,6 @@ public class View3DWindow extends JPanel
         this.maxNumNodes = J3DUtils.get3DMaxNumNodes();
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
-        Highlighter.addHighlightListener(this);
 
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
@@ -526,8 +531,6 @@ public class View3DWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
-
-		Highlighter.removeHighlightListener(this);
 	}
 
 	public void bottomScrollChanged(int e) {}
@@ -1286,11 +1289,11 @@ public class View3DWindow extends JPanel
 	public void keyTyped(KeyEvent evt) {
 		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
-    public void highlightChanged(Highlighter which) {
-        repaint();
-    }
+//    public void highlightChanged(Highlighter which) {
+//        repaint();
+//    }
 
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+//    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
 
 	public Point getLastMousePosition()
 	{

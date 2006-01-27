@@ -232,6 +232,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
+		Highlighter.addHighlightListener(waveHighlighter);
+
 		// the total panel in the waveform window
 		overall = new OnePanel(null, this);
 		overall.setLayout(new GridBagLayout());
@@ -1472,13 +1474,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return the highlighter
 	 */
 	public Highlighter getHighlighter() { return highlighter; }
-
-	/**
-	 * Method to return the static HighlightListener to use for all waveform windows.
-	 * @return the static HighlightListener to use for all waveform windows.
-	 */
-	public static HighlightListener getStaticHighlightListener() { return waveHighlighter; }
-
 
 	// ************************************* THE EXPLORER TREE *************************************
 
