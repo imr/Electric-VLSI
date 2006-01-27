@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.EJob.State;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -159,7 +160,6 @@ public abstract class Job implements Serializable {
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
-    /** progress */                             private String progress = null;
     
     transient EJob ejob;
 
@@ -212,7 +212,7 @@ public abstract class Job implements Serializable {
         this.display = true;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
-        started = finished = aborted = scheduledToAbort = false;
+//        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
 	}
 	
@@ -265,15 +265,7 @@ public abstract class Job implements Serializable {
      * Method to remember that a field variable of the Job has been changed by the doIt() method.
      * @param variableName the name of the variable that changed.
      */
-    protected void fieldVariableChanged(String variableName) {
-        try {
-            Field fld = getClass().getDeclaredField(variableName);
-            fld.setAccessible(true);
-            ejob.changedFields.add(fld);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace(System.out);
-        }
-    }
+    protected void fieldVariableChanged(String variableName) { ejob.fieldVariableChanged(variableName); }
 
 	//--------------------------ABSTRACT METHODS--------------------------
     
@@ -335,11 +327,10 @@ public abstract class Job implements Serializable {
 //    }
 
     protected synchronized void setProgress(String progress) {
-        this.progress = progress;
-        Job.getUserInterface().wantToRedoJobTree();
+        jobManager.setProgress(ejob, progress);
     }        
     
-    private synchronized String getProgress() { return progress; }
+    private synchronized String getProgress() { return ejob.progress; }
 
     /** Return run status */
     public boolean isFinished() { return finished; }
@@ -348,16 +339,17 @@ public abstract class Job implements Serializable {
      * abort when/where applicable
      */
     public synchronized void abort() {
+        if (ejob.jobType != Job.Type.EXAMINE) return;
         if (aborted) { 
             System.out.println("Job already aborted: "+getStatus());
             return;
         }
         scheduledToAbort = true;
-        Job.getUserInterface().wantToRedoJobTree();
+//        Job.getUserInterface().wantToRedoJobTree();
     }
 
 	/** Confirmation that thread is aborted */
-    protected synchronized void setAborted() { aborted = true; Job.getUserInterface().wantToRedoJobTree(); }
+    protected synchronized void setAborted() { aborted = true; /*Job.getUserInterface().wantToRedoJobTree();*/ }
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /**
@@ -382,6 +374,7 @@ public abstract class Job implements Serializable {
 	 */
 	public boolean checkAbort()
 	{
+        if (ejob.jobType != Job.Type.EXAMINE) return false;
 		if (getAborted()) return (true);
 		boolean scheduledAbort = getScheduledToAbort();
 		if (scheduledAbort)
@@ -398,6 +391,17 @@ public abstract class Job implements Serializable {
     
     /** get status */
     public String getStatus() {
+        switch (ejob.state) {
+//            case CLIENT_WAITING: return "cwaiting";
+            case WAITING:
+                return "waiting";
+            case RUNNING:
+                return getProgress() == null ? "running" : getProgress();
+            case SERVER_DONE:
+                return getProgress() == null ? "done" : getProgress();
+            case CLIENT_DONE:
+                return "cdone";
+        }
 		if (!started) return "waiting";
         if (aborted) return "aborted";
         if (finished) return "done";

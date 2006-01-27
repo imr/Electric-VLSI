@@ -273,13 +273,8 @@ public final class Main
 		public EditWindow_ displayCell(Cell cell) { return null; }
 
 		public void wantToRedoErrorTree() { ; }
-        public void wantToRedoJobTree() { ; }
 
         public void termLogging(final ErrorLogger logger, boolean explain) {;}
-
-        /* Job related **/
-        public void invokeLaterBusyCursor(final boolean state){;}
-        public void setBusyCursor(boolean state) {;}
 
         /**
          * Method to return the error message associated with the current error.

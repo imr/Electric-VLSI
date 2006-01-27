@@ -124,6 +124,7 @@ class ClientJobManager extends JobManager {
                     case 2:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
                         Integer jobId = Integer.valueOf(reader.in.readInt());
+                        EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
                         int len = reader.in.readInt();
                         byte[] bytes = new byte[len];
                         reader.in.readFully(bytes);
@@ -158,10 +159,11 @@ class ClientJobManager extends JobManager {
         else
             waitingJobs.add(ejob);
         if (ejob.getJob().getDisplay()) {
-            Job.getUserInterface().wantToRedoJobTree();
+            WindowFrame.wantToRedoJobTree();
         }
         SwingUtilities.invokeLater(clientInvoke);
-        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
+//        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
+        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
         return;
     }
     
@@ -186,8 +188,12 @@ class ClientJobManager extends JobManager {
         }
         //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
         if (j.getDisplay()) {
-            Job.getUserInterface().wantToRedoJobTree();
+            WindowFrame.wantToRedoJobTree();
         }
+    }
+    
+    void setProgress(EJob ejob, String progress) {
+        ejob.progress = progress;
     }
     
     private boolean isChangeJobQueuedOrRunning() { // synchronization !!!
@@ -322,7 +328,7 @@ class ClientJobManager extends JobManager {
                         // delete
                         if (job.deleteWhenDone) {
                             startedJobs.remove(job);
-                            Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
+                            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
                         }
                         logger.logp(Level.FINER, CLASS_NAME, "run", "result end {0}", ejob.jobName);
                     } else {

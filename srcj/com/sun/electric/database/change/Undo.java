@@ -53,6 +53,7 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -123,22 +124,12 @@ public class Undo
 
 		/**
 		 * Method to broadcast a change to all tools that are on.
-		 * @param firstchange true if this is the first change of a batch, so that a "startbatch" change must also be broadcast.
 		 * @param undoRedo true if this is an undo/redo batch.
 		 */
-		private void broadcast(boolean firstchange, boolean undoRedo)
+		private void broadcast(boolean undoRedo)
 		{
 			// start the batch if this is the first change
 			broadcasting = type;
-			if (firstchange)
-			{
-				// broadcast a start-batch on the first change
-				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.startBatch(listener, undoRedo);
-				}
-			}
 			if (type == Type.NODEINSTNEW || type == Type.ARCINSTNEW || type == Type.EXPORTNEW ||
 				type == Type.CELLNEW/* || type == Type.LIBRARYNEW*/)
 			{
@@ -564,7 +555,7 @@ public class Undo
 	 */
 	public static class ChangeBatch
 	{
-		private List<Change> changes;
+		private ArrayList<Change> changes;
 		private int batchNumber;
 //		private boolean done;
 		private Tool tool;
@@ -604,6 +595,20 @@ public class Undo
 		 */
 		public int getNumChanges() { return changes.size(); }
 
+        public void reverse(boolean backwards) {
+            if (changes.isEmpty()) return;
+            broadcastStart(true);
+            
+            Collections.reverse(changes);
+            for(Change ch: changes) {
+                // reverse the change
+                ch.reverse(backwards);
+                // now broadcast this change
+                ch.broadcast(true);
+            }
+            
+        }
+        
 		private void describe(String title)
 		{
 			// display the change batches
@@ -764,22 +769,6 @@ public class Undo
 		changeListeners.remove(l);
 	}
 
-// 	/** Fire a change event to all database change listeners */
-// 	private static synchronized void fireChangeEvent(Change change)
-// 	{
-// 		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
-// 		{
-// 			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-// 			if (l.isGUIListener())
-// 			{
-// 				//SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
-// 				// do nothing: if it's delayed by invoke later, it may as well come from
-// 				// databaseEndChangeBatch
-// 			} else
-// 				l.databaseChanged(change);
-// 		}
-// 	}
-
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch, boolean undo)
 	{
         if (undo) {
@@ -876,13 +865,21 @@ public class Undo
      * @param e DatabaseChangeEvent.
      */
     public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
-        for (Iterator<DatabaseChangeListener> it = changeListeners.iterator(); it.hasNext(); ) {
-            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+        Object[] listenersCopy = changeListeners.toArray();
+        for (Object o: listenersCopy) {
+            DatabaseChangeListener l = (DatabaseChangeListener)o;
             l.databaseChanged(e);
         }
-        
     }
    
+    private static void broadcastStart(boolean undoRedo) {
+        // broadcast a start-batch on the first change
+        for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+            Listener listener = (Listener)it.next();
+            listener.startBatch(listener, undoRedo);
+        }
+    }
+    
 	/**
 	 * Method to record and broadcast a change.
 	 * <P>
@@ -952,9 +949,10 @@ public class Undo
 		if (!recordChange()) return;
 		Change ch = newChange(ni, Type.NODEINSTMOD, oD);
 		if (ch == null) return;
-//		ni.setChange(ch);
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
         Constraints.getCurrent().modifyNodeInst(ni, oD);
 	}
 
@@ -968,9 +966,10 @@ public class Undo
 		if (!recordChange()) return;
 		Change ch = newChange(ai, Type.ARCINSTMOD, oD);
 		if (ch == null) return;
-//		ai.setChange(ch);
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
         Constraints.getCurrent().modifyArcInst(ai, oD);
 	}
 
@@ -985,10 +984,10 @@ public class Undo
 		if (!recordChange()) return;
 		Change ch = newChange(pp, Type.EXPORTMOD, oD);
 		if (ch == null) return;
-//		pp.setChange(ch);
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 		Constraints.getCurrent().modifyExport(pp, oD);
 	}
 
@@ -1003,8 +1002,9 @@ public class Undo
 		Change ch = newChange(cell, Type.CELLGROUPMOD, oldGroup);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <=1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 	}
 
 	/**
@@ -1017,7 +1017,6 @@ public class Undo
 //		if (!recordChange() && !(obj instanceof Library)) return;
 		if (!recordChange()) return;
 		Cell cell = obj.whichCell();
-//		if (cell != null) cell.checkInvariants();
 		Type type = null;
 		if (obj instanceof Cell) type = Type.CELLNEW;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
@@ -1027,8 +1026,9 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 		Constraints.getCurrent().newObject(obj);
 	}
 
@@ -1053,8 +1053,9 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 		Constraints.getCurrent().killObject(obj);
 	}
 
@@ -1070,8 +1071,9 @@ public class Undo
 		Change ch = newChange(obj, type, oldName);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
@@ -1088,8 +1090,9 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 	}
 
     /*
@@ -1104,8 +1107,9 @@ public class Undo
 		Change ch = newChange(obj, type, oldImmutable);
 		if (ch == null) return;
 
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
 		Constraints.getCurrent().modifyVariables(obj, oldImmutable);
 	}
 
@@ -1201,19 +1205,7 @@ public class Undo
 		batch.preUndoHighlightsOffset = offset;
 
 		// look through the changes in this batch
-		boolean firstChange = true;
-		int batchSize = batch.changes.size();
-		for(int i = batchSize-1; i >= 0; i--)
-		{
-			Change ch = (Change)batch.changes.get(i);
-
-			// reverse the change
-			ch.reverse(true);
-
-			// now broadcast this change
-			ch.broadcast(firstChange, true);
-			firstChange = false;
-		}
+        batch.reverse(true);
 
 		// Put message in Message Window
 		System.out.println("Undoing: " + batch.activity);
@@ -1265,22 +1257,9 @@ public class Undo
 		if (undoneList.size() == 0) setRedoEnabled(false);
 		setUndoEnabled(true);
 
-		// look through the changes in this batch
-		boolean firstChange = true;
-		int batchSize = batch.changes.size();
-		for(int i = 0; i<batchSize; i++)
-		{
-			Change ch = (Change)batch.changes.get(i);
-
-			// reverse the change
-			ch.reverse(false);
-
-			// now broadcast this change
-			ch.broadcast(firstChange, true);
-			firstChange = false;
-		}
-
-		// Put message in Message Window
+        batch.reverse(false);
+        
+        // Put message in Message Window
 		System.out.println("Redoing: " + batch.activity);
 //        batch.describe("Redo");
 

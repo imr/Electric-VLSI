@@ -44,20 +44,22 @@ import java.util.logging.Level;
 class EJob {
     
     enum State {
-        CLIENT_WAITING,
-        WAITING,
-        RUNNING,
-        ABORTING,
-        ABORTED,
-        SERVER_DONE,
-        DONE;
+        /** waiting on client */                CLIENT_WAITING,
+        /** waiting on server */                WAITING,
+        /** running on server */                RUNNING,
+        /** done on server */                   SERVER_DONE,
+        /** done on client */                   CLIENT_DONE;
     };
+    
+    /*private*/ final static String WAITING_NOW = "waiting now";
+    /*private*/ final static String ABORTING = "aborting";
     
     ServerConnection connection;
     int jobId;
     /** type of job (change or examine) */      final Type jobType;
     /** name of job */                          final String jobName;
     State state;
+    /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
     byte[] serializedResult;
     Job serverJob;
@@ -88,8 +90,8 @@ class EJob {
     
     Job getJob() { return clientJob != null ? clientJob : serverJob; }
     
-    boolean isChanging() {
-        return jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO;
+    boolean isExamine() {
+        return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
     }   
     
     Throwable serialize() {
@@ -161,7 +163,7 @@ class EJob {
             for (int i = 0; i < numFields; i++) {
                 String fieldName = in.readUTF();
                 Object value = in.readObject();
-                Field f = jobClass.getDeclaredField(fieldName);
+                Field f = findField(fieldName);
                 f.setAccessible(true);
                 f.set(clientJob, value);
             }
@@ -173,46 +175,27 @@ class EJob {
         }
     }
     
-    public boolean getDisplay() { return true; }
-    
-    /** get status */
-    public String getStatus() {
-        switch (state) {
-            case CLIENT_WAITING: return "cwaiting";
-            case WAITING: return "waiting";
-            case RUNNING: return "running";
-            case ABORTING: return "aborting";
-            case ABORTED: return "aborted";
-            case SERVER_DONE: return "done";
-            case DONE: return "cdone";
-            default: return "unknown";
-        }
-//        if (getProgress() == null) return "running";
-//        return getProgress();
+    /**
+     * Method to remember that a field variable of the Job has been changed by the doIt() method.
+     * @param fieldName the name of the variable that changed.
+     */
+    protected void fieldVariableChanged(String fieldName) {
+        Field fld = findField(fieldName);
+        fld.setAccessible(true);
+        changedFields.add(fld);
     }
     
-    public String toString() { return jobName+" ("+getStatus()+")"; }
-    
-    public String getInfo() { return toString(); }
-    public void abort() {
-        if (state == State.ABORTED) { 
-            System.out.println("Job already aborted: "+getStatus());
-            return;
+    private Field findField(String fieldName) {
+        Class jobClass = getJob().getClass();
+        Field fld = null;
+        while (jobClass != Job.class) {
+            try {
+                return jobClass.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                jobClass = jobClass.getSuperclass();
+            }
         }
-        if (state == State.CLIENT_WAITING || state == State.WAITING || state == State.RUNNING) {
-            state = State.ABORTING;
-            Job.getUserInterface().wantToRedoJobTree();
-        }
-    }
-    
-    /** Remove job from Job list if it is done */
-    public boolean remove() {
-        if (state != State.ABORTED && state != State.SERVER_DONE && state != State.DONE) {
-            //System.out.println("Cannot delete running jobs.  Wait till finished or abort");
-            return false;
-        }
-//        removeJob(this);
-        return true;
+        return null;
     }
 
     /** Save current Highlights */
@@ -226,5 +209,13 @@ class EJob {
 
         savedHighlights = wnd.saveHighlightList();
         savedHighlightsOffset = wnd.getHighlightOffset();
+    }
+
+    Event newEvent() { return new Event(state); }
+    
+    class Event {
+        State newState;
+        Event(State newState) { this.newState = newState; }
+        EJob getEJob() { return EJob.this; }
     }
 }

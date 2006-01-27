@@ -31,9 +31,12 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.EJob.State;
+import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.Point2D;
 
 import java.io.IOException;
@@ -45,24 +48,32 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
+import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 /**
  *
  */
-class ServerJobManager extends JobManager implements Observer {
-    private final ReentrantLock lock = new ReentrantLock();
+class ServerJobManager extends JobManager implements Observer, Runnable {
+    private static final String CLASS_NAME = Job.class.getName();
+    /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
     
     private final ServerSocket serverSocket;
+    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
-    /** mutex for database synchronization. */  private final Object databaseChangesMutex = new Object();
-	/** database changes thread */              private final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
-    /** number of examine jobs */               private int numExamine = 0;
+    private final UserInterface redirectInterface = new UserInterfaceRedirect();
+    private final int numThreads = 1;
+    {
+        Job.logger.logp(Level.FINE, CLASS_NAME, "init", "starting threads");
+        for (int i = 0; i < numThreads; i++)
+            new DatabaseChangesThread(i);
+    }
+    private boolean runningChangeJob;
+    private boolean jobTreeChanged;
 
     
     private Snapshot currentSnapshot = new Snapshot();
-    /** True if preferences are accessible. */  private static boolean preferencesAccessible = true;
     
     /** Creates a new instance of JobPool */
     ServerJobManager() {
@@ -82,53 +93,58 @@ class ServerJobManager extends JobManager implements Observer {
     
    /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
-        synchronized (databaseChangesMutex) {
-            if (waitingJobs.isEmpty())
-                databaseChangesMutex.notify();
-            if (onMySnapshot)
-                waitingJobs.add(0, ejob);
-            else
-                waitingJobs.add(ejob);
-            if (!Job.BATCHMODE && ejob.jobType == Job.Type.CHANGE) {
-                Job.getUserInterface().invokeLaterBusyCursor(true);
-            }
-            if (ejob.getJob() != null && ejob.getJob().getDisplay()) {
-                Job.getUserInterface().wantToRedoJobTree();
-            }
+        lock();
+        try {
+//            if (waitingJobs.isEmpty())
+//                databaseChangesMutex.signal();
+            setEJobState(ejob, EJob.State.WAITING, onMySnapshot ? EJob.WAITING_NOW : "waiting");
+        } finally {
+            unlock();
         }
     }
     
     /** Remove job from list of jobs */
     void removeJob(Job j) {
-        synchronized (databaseChangesMutex) {
-            if (j.started) {
-                for (Iterator<EJob> it = startedJobs.iterator(); it.hasNext(); ) {
-                    EJob ejob = it.next();
-                    if (ejob.getJob() == j) {
-                        it.remove();
-                    }
-                }
-            } else {
-                if (!waitingJobs.isEmpty() && waitingJobs.get(0).getJob() == j)
-                    databaseChangesMutex.notify();
-                for (Iterator<EJob> it = waitingJobs.iterator(); it.hasNext(); ) {
-                    EJob ejob = it.next();
-                    if (ejob.getJob() == j) {
-                        it.remove();
-                    }
-                }
+        EJob ejob = j.ejob;
+        lock();
+        try {
+            switch (j.ejob.state) {
+                case WAITING:
+                    setEJobState(ejob, EJob.State.SERVER_DONE, null);
+                case SERVER_DONE:
+                    setEJobState(ejob, EJob.State.CLIENT_DONE, null);
+                case CLIENT_DONE:
+                    finishedJobs.remove(j.ejob);
+                    if (Job.threadMode != Job.Mode.BATCH && !jobTreeChanged)
+                        SwingUtilities.invokeLater(this);
+                    jobTreeChanged = true;
+                    break;
             }
-            //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
-            if (j.getDisplay()) {
-                Job.getUserInterface().wantToRedoJobTree();
-            }
+        } finally {
+            unlock();
+        }
+    }
+    
+    void setProgress(EJob ejob, String progress) {
+        lock();
+        try {
+            if (ejob.state == EJob.State.RUNNING)
+                setEJobState(ejob, EJob.State.RUNNING, progress);
+        } finally {
+            unlock();
         }
     }
     
     /** get all jobs iterator */
     Iterator<Job> getAllJobs() {
-        synchronized (databaseChangesMutex) {
+        lock();
+        try {
             ArrayList<Job> jobsList = new ArrayList<Job>();
+            for (EJob ejob: finishedJobs) {
+                Job job = ejob.getJob();
+                if (job != null)
+                    jobsList.add(job);
+            }
             for (EJob ejob: startedJobs) {
                 Job job = ejob.getJob();
                 if (job != null)
@@ -140,6 +156,8 @@ class ServerJobManager extends JobManager implements Observer {
                     jobsList.add(job);
             }
             return jobsList.iterator();
+        } finally {
+            unlock();
         }
     }
     
@@ -153,7 +171,7 @@ class ServerJobManager extends JobManager implements Observer {
      * @param   arg   an argument passed to the <code>notifyObservers</code>
      *                 method.
      */
-    public synchronized void update(Observable o, Object arg) {
+    public void update(Observable o, Object arg) {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
             ((EThread)currentThread).print((String)arg);
@@ -179,14 +197,15 @@ class ServerJobManager extends JobManager implements Observer {
 //            ActivityLogger.logJobStarted(jobName, jobType, cell, savedHighlights, savedHighlightsOffset);
         Throwable jobException = null;
 		try {
-            if (ejob.jobType != Job.Type.EXAMINE) {
+            if (!ejob.isExamine()) {
                 thread.setCanChanging(true);
+                thread.setCanComputeBounds(true);
+                thread.setCanComputeNetlist(true);
                 thread.setJob(ejob);
+                thread.setUserInterface(redirectInterface);
             }
 			if (ejob.jobType == Job.Type.CHANGE)	{
                 Undo.startChanges(job.tool, ejob.jobName, ejob.savedHighlights, ejob.savedHighlightsOffset);
-                if (!job.getClass().getName().endsWith("InitDatabase"))
-                    preferencesAccessible = false;
             }
             try {
                 if (!serverJob.doIt())
@@ -195,7 +214,6 @@ class ServerJobManager extends JobManager implements Observer {
                 jobException = e;
             }
 			if (ejob.jobType == Job.Type.CHANGE)	{
-                preferencesAccessible = true;
                 Undo.endChanges();
             }
 		} catch (Throwable e) {
@@ -204,12 +222,12 @@ class ServerJobManager extends JobManager implements Observer {
             ActivityLogger.logException(e);
             if (e instanceof Error) throw (Error)e;
 		} finally {
-			if (ejob.jobType == Job.Type.EXAMINE)
-			{
-				endExamine(serverJob);
-			} else {
+			if (!ejob.isExamine()) {
 				thread.setCanChanging(false);
+                thread.setCanComputeBounds(false);
+                thread.setCanComputeNetlist(false);
                 thread.setJob(null);
+                thread.setUserInterface(Job.currentUI);
                 if (Job.threadMode == Job.Mode.SERVER)
                     updateSnapshot();
 			}
@@ -218,39 +236,65 @@ class ServerJobManager extends JobManager implements Observer {
             ejob.serializeResult();
         else
             ejob.serializeExceptionResult(jobException);
-        if (ejob.connection != null) {
-            assert Job.threadMode == Job.Mode.SERVER;
-            ejob.connection.sendTerminateJob(ejob);
-        } else {
-            SwingUtilities.invokeLater(new JobTerminateRun(ejob));
+        lock();
+        try {
+            setEJobState(ejob, EJob.State.SERVER_DONE, "done");
+        } finally {
+            unlock();
         }
     }
 
-    private EJob selectConnection() {
-        synchronized (databaseChangesMutex) {
+    private EJob selectDoIt() {
+        lock();
+        try {
             for (;;) {
                 // Search for examine
-                if (!waitingJobs.isEmpty()) {
+                if (canRun()) {
                     EJob ejob = waitingJobs.get(0);
-                    Job job = ejob.getJob();
-                    if (ejob.jobType == Job.Type.EXAMINE || job != null && (job.scheduledToAbort || job.aborted))
-                        return waitingJobs.remove(0);
-                }
-                if (numExamine == 0) {
-                    if (!waitingJobs.isEmpty())
-                        return waitingJobs.remove(0);
-//                    if (threadMode == Mode.SERVER && serverJobManager != null) {
-//                        for (ServerConnection conn: serverJobManager.serverConnections) {
-//                            if (conn.peekJob() != null)
-//                                return conn.getJob();
-//                        }
-//                    }
+                    setEJobState(ejob, EJob.State.RUNNING, "running");
+                    return ejob;
                 }
                 try {
-                    databaseChangesMutex.wait();
+                    Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
+                    databaseChangesMutex.await();
+                    Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");
                 } catch (InterruptedException e) {}
             }
+        } finally {
+            unlock();
         }
+    }
+    
+    private EJob selectTerminateIt() {
+        lock();
+        try {
+            for (int i = 0; i < finishedJobs.size(); i++) {
+                EJob ejob = finishedJobs.get(i);
+                if (ejob.state == EJob.State.CLIENT_DONE) continue;
+//                finishedJobs.remove(i);
+                return ejob;
+            }
+        } finally {
+            unlock();
+        }
+        return null;
+    }
+    
+    private boolean jobTreeChanged() {
+        lock();
+        try {
+            boolean b = this.jobTreeChanged;
+            this.jobTreeChanged = false;
+            return b;
+        } finally {
+            unlock();
+        }
+    }
+    
+    private boolean canRun() {
+        if (waitingJobs.isEmpty()) return false;
+        EJob ejob = waitingJobs.get(0);
+        return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine() && startedJobs.size() < numThreads;
     }
     
     private void updateSnapshot() {
@@ -267,17 +311,71 @@ class ServerJobManager extends JobManager implements Observer {
         }
     }
     
-     private void endExamine(Job j) {
-        synchronized (databaseChangesMutex) {
-            numExamine--;
-            //System.out.println("EndExamine Job "+j+", numExamine now="+numExamine+", allJobs="+allJobs.size());
-            if (numExamine == 0)
-                databaseChangesMutex.notify();
+    private void setEJobState(EJob ejob, EJob.State newState, String info) {
+        Job.logger.logp(Level.FINE, CLASS_NAME, "setEjobState", newState + " "+ ejob.jobName);
+        EJob.State oldState = ejob.state;
+        switch (newState) {
+            case WAITING:
+                if (info.equals(EJob.WAITING_NOW))
+                    waitingJobs.add(0, ejob);
+                else
+                    waitingJobs.add(ejob);
+                if (startedJobs.isEmpty())
+                    databaseChangesMutex.signal();
+                break;
+            case RUNNING:
+                if (oldState == EJob.State.WAITING) {
+                    EJob ej = waitingJobs.remove(0);
+                    assert ej == ejob;
+                    if (ejob.isExamine()) {
+                        assert !runningChangeJob;
+                        if (canRun())
+                            databaseChangesMutex.signal();
+                    } else {
+                        assert startedJobs.isEmpty();
+                        assert !runningChangeJob;
+                        runningChangeJob = true;
+                    }
+                    startedJobs.add(ejob);
+                } else {
+                    assert oldState == EJob.State.RUNNING;
+                    ejob.progress = info;
+                    if (info.equals(EJob.ABORTING))
+                        ejob.serverJob.scheduledToAbort = true;
+                }
+               break;
+            case SERVER_DONE:
+                boolean removed;
+                if (oldState == EJob.State.WAITING) {
+                    removed = waitingJobs.remove(ejob);
+                } else {
+                    assert oldState == EJob.State.RUNNING;
+                    removed = startedJobs.remove(ejob);
+                    if (startedJobs.isEmpty())
+                        runningChangeJob = false;
+                }
+                assert removed;
+                if (Job.threadMode != Job.Mode.BATCH && ejob.connection == null)
+                    finishedJobs.add(ejob);
+                break;
+            case CLIENT_DONE:
+                assert oldState == EJob.State.SERVER_DONE;
+                if (ejob.clientJob.deleteWhenDone)
+                    finishedJobs.remove(ejob);
         }
+        ejob.state = newState;
+        EJob.Event event = ejob.newEvent();
+        for (ServerConnection conn: serverConnections)
+            conn.sendEJobEvent(event);
+        if (Job.threadMode != Job.Mode.BATCH && !jobTreeChanged)
+            SwingUtilities.invokeLater(this);
+        jobTreeChanged = true;
+        Job.logger.exiting(CLASS_NAME, "setJobState");
     }
     
     private boolean isChangeJobQueuedOrRunning() {
-        synchronized (databaseChangesMutex) {
+        lock();
+        try {
             for (EJob ejob: startedJobs) {
                 Job job = ejob.getJob();
                 if (job != null && job.finished) continue;
@@ -287,11 +385,10 @@ class ServerJobManager extends JobManager implements Observer {
                 if (ejob.jobType == Job.Type.CHANGE) return true;
             }
             return false;
+        } finally {
+            unlock();
         }
     }
-    
-    private void lock() { lock.lock(); }
-    private void unlock() { lock.unlock(); }
     
     public void runLoop() {
         if (serverSocket == null) return;
@@ -301,12 +398,12 @@ class ServerJobManager extends JobManager implements Observer {
             for (;;) {
                 Socket socket = serverSocket.accept();
                 ServerConnection conn;
-                lock.lock();
+                lock();
                 try {
                     conn = new ServerConnection(serverConnections.size(), socket, currentSnapshot);
                     serverConnections.add(conn);
                 } finally {
-                    lock.unlock();
+                    unlock();
                 }
                 System.out.println("Accepted connection " + conn.connectionId);
                 conn.start();
@@ -316,95 +413,70 @@ class ServerJobManager extends JobManager implements Observer {
         }
     }
     
+    /**
+     * This method is executed in Swing thread.
+     */
+    public void run() {
+        assert Job.threadMode != Job.Mode.BATCH;
+        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "ENTER");
+        while (jobTreeChanged()) {
+            for (;;) {
+                EJob ejob = selectTerminateIt();
+                if (ejob == null) break;
+                
+                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
+                Job.runTerminate(ejob);
+                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
+                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
+            }
+            Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
+            WindowFrame.wantToRedoJobTree();
+            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
+        }
+        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
+    }
+    
 	/**
 	 * Thread which execute all database change Jobs.
 	 */
 	class DatabaseChangesThread extends EThread
 	{
+        private final String CLASS_NAME = getClass().getName();
+        
         // Job Management
-		DatabaseChangesThread() {
-			super("Database");
-            setUserInterface(new ServerJobManager.UserInterfaceRedirect());
+		DatabaseChangesThread(int id) {
+			super("EThread-" + id);
+            setUserInterface(Job.currentUI);
+            Job.logger.logp(Level.FINER, CLASS_NAME, "constructor", getName());
 			start();
 		}
 
         public void run() {
-            setCanComputeBounds(true);
-            setCanComputeNetlist(true);
+            Job.logger.entering(CLASS_NAME, "run", getName());
             for (;;) {
-                Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
-                EJob ejob = selectConnection();
+                EJob ejob = selectDoIt();
+                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
                 ServerConnection connection = ejob.connection;
                 if (connection != null) {
                     Throwable e = ejob.deserialize();
                     if (e != null) {
                         ejob.serializeExceptionResult(e);
                         e.printStackTrace();
-                        ejob.connection.sendTerminateJob(ejob);
+                        lock();
+                        try {
+                            setEJobState(ejob, EJob.State.SERVER_DONE, "failed");
+                        } finally {
+                            unlock();
+                        }
                         continue;
                     }
-                } else {
-                    if (ejob.clientJob.scheduledToAbort || ejob.clientJob.aborted)
-                        continue;
                 }
-                Job job = ejob.serverJob;
-                if (ejob.jobType == Job.Type.EXAMINE) {
-                    synchronized (databaseChangesMutex) {
-                        job.started = true;
-                        startedJobs.add(ejob);
-                        numExamine++;
-                    }
-                    //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
-                    Thread t = new ExamineThread(ejob);
-                    t.start();
-                } else { 
-                    synchronized (databaseChangesMutex) {
-                        assert numExamine == 0;
-                        job.started = true;
-                        startedJobs.add(ejob);
-                    }
-                    runJob(this, ejob);
-                }
+                runJob(this, ejob);
+                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", ejob.jobName);
             }
         }
 	}
 
-    private class ExamineThread extends EThread {
-        private EJob ejob;
-        
-        ExamineThread(EJob ejob) {
-            super(ejob.jobName);
-            setUserInterface(Job.currentUI);
-            assert ejob.jobType == Job.Type.EXAMINE;
-            this.ejob = ejob;
-        }
-        
-        public void run() {
-//            System.out.println("Started ExamineThread " + this);
-            runJob(this, ejob);
-        }
-    }
-    
-    private class JobTerminateRun implements Runnable {
-        private EJob ejob;
-        
-        JobTerminateRun(EJob ejob) {
-            this.ejob = ejob;
-        }
-        
-        public void run() {
-            Job.runTerminate(ejob);
-            Job job = ejob.clientJob;
-            
-            // delete
-            if (job.deleteWhenDone) {
-                removeJob(job);
-                Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning());
-            }
-            
-        }
-    }
-    
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
 		public EditWindow_ getCurrentEditWindow_() {
@@ -456,23 +528,10 @@ class ServerJobManager extends JobManager implements Observer {
 //            System.out.println("UserInterface.wantToRedoErrorTree was called from DatabaseChangesThread");
             Job.currentUI.wantToRedoErrorTree();
         }
-        public void wantToRedoJobTree() {
-//            System.out.println("UserInterface.wantToRedoJobTree was called from DatabaseChangesThread");
-            Job.currentUI.wantToRedoJobTree();
-        }
 
         public void termLogging(final ErrorLogger logger, boolean explain) {
             System.out.println("UserInterface.termLogging was called from DatabaseChangesThread");
             Job.currentUI.termLogging(logger, explain);
-        }
-
-        /* Job related **/
-        public void invokeLaterBusyCursor(final boolean state){
-//            System.out.println("UserInterface.invokeLaterBusyCursor was called from DatabaseChangesThread");
-            Job.currentUI.invokeLaterBusyCursor(state);
-        }
-        public void setBusyCursor(boolean state) {
-            System.out.println("UserInterface.setBusyCursor was called from DatabaseChangesThread");
         }
 
         /**

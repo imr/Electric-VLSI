@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (1/26/06, DN) Highlight exception using wiring tool (Bug #798)
+FIX: In "Job.fieldVariableChanged" search for superclass fields too.
+
 IMP: (1/25/06, RK) Remove obsolete code
 
 IMP: (1/25/06, SMR) Converted all usage of ErrorLogger to use single calls

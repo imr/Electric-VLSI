@@ -67,13 +67,36 @@ public class ServerConnection extends Thread {
         writeQueue.add(newSnapshot);
     }
     
-    void sendTerminateJob(EJob ejob) {
-        writeQueue.add(new Integer(ejob.jobId));
-        writeQueue.add(ejob.serializedResult);
+    void sendEJobEvent(EJob.Event event) {
+        writeQueue.add(event);
     }
     
     void addMessage(String str) {
         writeQueue.add(str);
+    }
+    
+    private void writeSnapshot(Snapshot newSnapshot) throws IOException {
+        writer.out.writeByte(1);
+        newSnapshot.writeDiffs(writer, currentSnapshot);
+        writer.out.flush();
+        currentSnapshot = newSnapshot;
+    }
+    
+    private void writeEJobEvent(EJob.Event event) throws IOException {
+        EJob ejob = event.getEJob();
+        switch (event.newState) {
+            case SERVER_DONE:
+                if (ejob.connection == this) {
+                    writer.out.writeByte(2);
+                    writer.out.writeInt(ejob.jobId);
+                    writer.out.writeUTF(event.newState.toString());
+                    writer.out.writeInt(ejob.serializedResult.length);
+                    writer.out.write(ejob.serializedResult);
+                    writer.out.flush();
+                }
+                break;
+        }
+        
     }
     
     public void run() {
@@ -85,15 +108,8 @@ public class ServerConnection extends Thread {
                 Object o = writeQueue.take();
                 if (o instanceof Snapshot) {
                     writeSnapshot((Snapshot)o);
-                } else if (o instanceof Integer) {
-                    int jobId  = ((Integer)o).intValue();
-                    writer.out.writeByte(2);
-                    writer.out.writeInt(jobId);
-                } else if (o instanceof byte[]) {
-                    byte[] result = (byte[])o;
-                    writer.out.writeInt(result.length);
-                    writer.out.write(result);
-                    writer.out.flush();
+                } else if (o instanceof EJob.Event) {
+                    writeEJobEvent((EJob.Event)o);
                 } else if (o instanceof String) {
                     String str = (String)o;
                     writer.out.writeByte(3);
@@ -106,13 +122,6 @@ public class ServerConnection extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace(System.out);
         }
-    }
-    
-    private void writeSnapshot(Snapshot newSnapshot) throws IOException {
-        writer.out.writeByte(1);
-        newSnapshot.writeDiffs(writer, currentSnapshot);
-        writer.out.flush();
-        currentSnapshot = newSnapshot;
     }
     
     private static class ConnectionReader extends Thread {

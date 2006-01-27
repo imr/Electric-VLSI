@@ -25,18 +25,26 @@ package com.sun.electric.tool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
  */
 abstract class JobManager {
+    private final ReentrantLock lock = new ReentrantLock();
     /** started jobs */ final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
     /** waiting jobs */ final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
+    
+    void lock() { lock.lock(); }
+    void unlock() { lock.unlock(); }
+    Condition newCondition() { return lock.newCondition(); }
     
     abstract void runLoop();
     abstract void addJob(EJob ejob, boolean onMySnapshot);
     /** Remove job from list of jobs */
     abstract void removeJob(Job j);
+    abstract void setProgress(EJob ejob, String progress);
     abstract Iterator<Job> getAllJobs();
 }
     

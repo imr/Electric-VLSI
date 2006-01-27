@@ -93,14 +93,9 @@ public interface UserInterface
 
     // Related to ExplorerTree
     public void wantToRedoErrorTree();
-    public void wantToRedoJobTree();
 
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain);
-
-    // Job related
-    public void invokeLaterBusyCursor(boolean state);
-    public void setBusyCursor(boolean state);
 
     /**
      * Method to return the error message associated with the current error.

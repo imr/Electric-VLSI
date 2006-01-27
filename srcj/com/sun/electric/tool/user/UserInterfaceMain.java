@@ -83,7 +83,6 @@ public class UserInterfaceMain implements UserInterface
 
     /** Related to ExplorerTree */
     public void wantToRedoErrorTree() { WindowFrame.wantToRedoErrorTree(); }
-    public void wantToRedoJobTree() { WindowFrame.wantToRedoJobTree(); }
 
 	public EditWindow_ displayCell(Cell cell)
 	{
@@ -224,16 +223,6 @@ public class UserInterfaceMain implements UserInterface
 
         // return the error message
         return log.getMessageString();
-    }
-
-    /* Job related **/
-    public void invokeLaterBusyCursor(final boolean state)
-    {
-        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(state); }});
-    }
-    public void setBusyCursor(boolean state)
-    {
-        TopLevel.setBusyCursor(state);
     }
 
     /**
