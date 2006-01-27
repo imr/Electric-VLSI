@@ -84,11 +84,12 @@ public class Highlighter implements DatabaseChangeListener {
     /** the highlighted objects. */								private List<Highlight2> highlightList;
     /** the stack of highlights. */								private List<List<Highlight2>> highlightStack;
     /** true if highlights have changed recently */             private boolean changed;
-    /** List of HighlightListeners */                           private List<HighlightListener> highlightListeners;
     /** last object selected before last clear() */             private Highlight2 lastHighlightListEndObj;
     /** what was the last level of "showNetwork" */             private int showNetworkLevel;
 	/** the type of highlighter */                              private int type;
 	/** the WindowFrame associated with the highlighter */      private WindowFrame wf;
+
+    /** List of HighlightListeners */                           private static Set<HighlightListener> highlightListeners = new HashSet<HighlightListener>();
 
     /** the selection highlighter type */       public static final int SELECT_HIGHLIGHTER = 0;
     /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
@@ -104,7 +105,6 @@ public class Highlighter implements DatabaseChangeListener {
         highOffX = highOffY = 0;
         highlightList = new ArrayList<Highlight2>();
         highlightStack = new ArrayList<List<Highlight2>>();
-        highlightListeners = new ArrayList<HighlightListener>();
         changed = false;
         Undo.addDatabaseChangeListener(this);
         if (currentHighlighter == null) currentHighlighter = this;
@@ -613,12 +613,12 @@ public class Highlighter implements DatabaseChangeListener {
 	public WindowFrame getWindowFrame() { return wf; }
 
     /** Add a Highlight listener */
-    public synchronized void addHighlightListener(HighlightListener l) {
+    public static synchronized void addHighlightListener(HighlightListener l) {
         highlightListeners.add(l);
     }
 
     /** Remove a Highlight listener */
-    public synchronized void removeHighlightListener(HighlightListener l) {
+    public static synchronized void removeHighlightListener(HighlightListener l) {
         highlightListeners.remove(l);
     }
 
@@ -628,8 +628,7 @@ public class Highlighter implements DatabaseChangeListener {
         synchronized(this) {
             listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
         }
-        for (Iterator<HighlightListener> it = listenersCopy.iterator(); it.hasNext(); ) {
-            HighlightListener l = (HighlightListener)it.next();
+        for (HighlightListener l : listenersCopy) {
             l.highlightChanged(this);
         }
         synchronized(this) {
@@ -643,8 +642,7 @@ public class Highlighter implements DatabaseChangeListener {
         synchronized(this) {
             listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
         }
-        for (Iterator<HighlightListener> it = listenersCopy.iterator(); it.hasNext(); ) {
-            HighlightListener l = (HighlightListener)it.next();
+        for (HighlightListener l : listenersCopy) {
             l.highlighterLostFocus(highlighterGainedFocus);
         }
     }

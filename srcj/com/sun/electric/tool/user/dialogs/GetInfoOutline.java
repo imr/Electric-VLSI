@@ -39,10 +39,12 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
@@ -58,23 +60,32 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	private JList list;
 	private DefaultListModel model;
 	private boolean changingCoordinates = false;
-    private EditWindow wnd;
+	private static GetInfoOutline theDialog;
 
 	public static void showOutlinePropertiesDialog()
 	{
-		GetInfoOutline dialog = new GetInfoOutline(TopLevel.getCurrentJFrame());
-		dialog.loadDialog();
-		dialog.setVisible(true);
+        if (theDialog == null) {
+            if (TopLevel.isMDIMode()) {
+                JFrame jf = TopLevel.getCurrentJFrame();
+                theDialog = new GetInfoOutline(jf);
+            } else {
+                theDialog = new GetInfoOutline(null);
+            }
+        }
+        theDialog.loadDialog();
+        if (!theDialog.isVisible()) theDialog.pack();
+		theDialog.setVisible(true);
 	}
 
 	/** Creates new form GetInfoOutline */
-	public GetInfoOutline(java.awt.Frame parent)
+	public GetInfoOutline(Frame parent)
 	{
 		super(parent, false);
 		initComponents();
         getRootPane().setDefaultButton(apply);
 
         Undo.addDatabaseChangeListener(this);
+        Highlighter.addHighlightListener(this);
 
         // make a list of vertices
 		model = new DefaultListModel();
@@ -94,12 +105,6 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	{
         // update current window
         EditWindow curWnd = EditWindow.getCurrent();
-        if (wnd != curWnd && curWnd != null)
-        {
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
 
         // presume a dead dialog
 		apply.setEnabled(false);
@@ -196,7 +201,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	 */
 	private static class OutlineDocumentListener implements DocumentListener
 	{
-		GetInfoOutline dialog;
+		private GetInfoOutline dialog;
 
 		OutlineDocumentListener(GetInfoOutline dialog) { this.dialog = dialog; }
 
@@ -467,7 +472,6 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-		dispose();
 	}//GEN-LAST:event_closeDialog
 
 	/**

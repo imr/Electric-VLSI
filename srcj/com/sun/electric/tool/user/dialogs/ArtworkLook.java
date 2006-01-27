@@ -54,7 +54,6 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	private ColorPatternPanel.Info li;
 	private List<Geometric> artworkObjects;
 	private ColorPatternPanel colorPatternPanel;
-	private EditWindow wnd;
 	private static ArtworkLook dialog;
 
 	/**
@@ -72,7 +71,9 @@ public class ArtworkLook extends EDialog implements HighlightListener
 
 		// show the dialog
 		if (dialog == null)
+		{
 			dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artObjects);
+		}
 	}
 
 	private static List<Geometric> findSelectedArt()
@@ -126,6 +127,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 
 		showArtworkObjects(artObjects);
 		finishInitialization();
+		Highlighter.addHighlightListener(this);
 		setVisible(true);
 	}
 
@@ -134,14 +136,6 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	private void showArtworkObjects(List<Geometric> artObjects)
 	{
 		artworkObjects = artObjects;
-        EditWindow curWnd = EditWindow.getCurrent();
-        if (curWnd != null && wnd != curWnd)
-		{
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
-
 		if (artworkObjects.size() == 0) li = null; else
 		{
 			EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
@@ -349,6 +343,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
+		Highlighter.removeHighlightListener(this);
 		dispose();
 		dialog = null;
 	}//GEN-LAST:event_closeDialog

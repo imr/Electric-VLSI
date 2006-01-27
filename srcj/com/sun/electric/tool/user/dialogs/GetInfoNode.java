@@ -117,14 +117,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         if (!theDialog.isVisible())
             theDialog.pack();
-//        theDialog.toFront();
-//        theDialog.isActive();
-
-//        theDialog.s
-//        KeyboardFocusManager.getCurrentKeyboardFocusManager().setMostRecentFocusOwner(theDialog, null);
 		theDialog.setVisible(true);
-
-//        theDialog.dispatchEvent(new WindowEvent(theDialog, WindowEvent.WINDOW_ACTIVATED));
 	}
 
     /**
@@ -197,6 +190,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getRootPane().setDefaultButton(ok);
 
         Undo.addDatabaseChangeListener(this);
+        Highlighter.addHighlightListener(this);
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);
         int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
@@ -241,11 +235,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	{
         // update current window
         EditWindow curWnd = EditWindow.getCurrent();
-        if ((wnd != curWnd) && (curWnd != null)) {
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
+        if (curWnd != null) wnd = curWnd;
+
 		// must have a single node selected
 		NodeInst ni = null;
 		PortProto pp = null;
@@ -1619,9 +1610,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	private void seeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeActionPerformed
 	{//GEN-HEADEREND:event_seeActionPerformed
-		if (!theDialog.ports.isSelected()) return;
-		int currentIndex = theDialog.list.getSelectedIndex();
-		ArcInst ai = (ArcInst)theDialog.portObjects.get(currentIndex);
+		if (!ports.isSelected()) return;
+		int currentIndex = list.getSelectedIndex();
+		ArcInst ai = (ArcInst)portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;
         if (wnd != null) {
@@ -1635,12 +1626,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
-		theDialog.showProperList();
+		showProperList();
 	}//GEN-LAST:event_attributesActionPerformed
 
 	private void portsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_portsActionPerformed
 	{//GEN-HEADEREND:event_portsActionPerformed
-		theDialog.showProperList();
+		showProperList();
 	}//GEN-LAST:event_portsActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
@@ -1702,10 +1693,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
         if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
 		setVisible(false);
-		//theDialog = null;
-        //Highlight.removeHighlightListener(this);
-        //Undo.removeDatabaseChangeListener(this);
-		//dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

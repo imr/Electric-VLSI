@@ -28,6 +28,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.FindText;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.Set;
 
@@ -100,13 +101,21 @@ public interface WindowContent
 	public abstract void setWindowTitle();
 
 	/**
+	 * Method to intialize for printing.
+	 * @param pageWid the width of the print page in pixels.
+	 * @param pageHei the height of the print page in pixels.
+	 * @param oldSize the original size of the window being printed.
+	 */
+	public abstract void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize);
+
+	/**
 	 * Method to print window using offscreen canvas
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public abstract BufferedImage getOffScreenImage(ElectricPrinter ep); // For printing and export purposes
+	public abstract BufferedImage getPrintImage(ElectricPrinter ep);
 
-    /**
+	/**
      * Saving method should be done in display thread (valid at least for 3D)
      * to guarantee correct rasting.
      * @param ep

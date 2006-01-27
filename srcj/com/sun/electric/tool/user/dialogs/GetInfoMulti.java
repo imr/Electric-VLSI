@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -234,7 +235,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
     }
 
 	/** Creates new form Multi-Object Get Info */
-	private GetInfoMulti(java.awt.Frame parent, boolean modal)
+	private GetInfoMulti(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		highlightList = new ArrayList<Highlight2>();
@@ -242,6 +243,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         getRootPane().setDefaultButton(ok);
 
         Undo.addDatabaseChangeListener(this);
+        Highlighter.addHighlightListener(this);
 
 		// make the list of selected objects
 		listModel = new DefaultListModel();
@@ -265,11 +267,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	{
        // update current window
         EditWindow curWnd = EditWindow.getCurrent();
-        if ((wnd != curWnd) && (curWnd != null)) {
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
+        if (curWnd != null) wnd = curWnd;
 
 		// copy the selected objects to a private list and sort it
 		highlightList.clear();
@@ -1328,9 +1326,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 		// clear the list of highlights so that this dialog doesn't trap memory
 		highlightList.clear();
-//		theDialog = null;
-//		if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-//		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

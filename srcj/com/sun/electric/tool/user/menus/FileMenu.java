@@ -978,7 +978,7 @@ public class FileMenu {
             pageFormat = pj.validatePage(pageFormat);
 		 }
 
- 		ElectricPrinter ep = new ElectricPrinter(context, pageFormat);
+ 		ElectricPrinter ep = new ElectricPrinter(context, pageFormat, pj);
 		pj.setPrintable(ep, pageFormat);
 		return (ep);
 	}
@@ -1031,21 +1031,17 @@ public class FileMenu {
 			currentManager.setDoubleBufferingEnabled(false);
 
 			// resize the window if this is a WaveformWindow
-			Dimension oldSize = null;
-			if (wf.getContent() instanceof WaveformWindow)
-			{
-				int iw = (int)pageFormat.getImageableWidth();
-				int ih = (int)pageFormat.getImageableHeight();
-				oldSize = overall.getSize();
-				overall.setSize(iw, ih);
-				overall.validate();
-				overall.repaint();
-			}
+			Dimension oldSize = overall.getSize();
+			int oldBackgroundColor = User.getColorBackground();
+			int iw = (int)pageFormat.getImageableWidth() * ep.getDesiredDPI() / 72;
+			int ih = (int)pageFormat.getImageableHeight() * ep.getDesiredDPI() / 72;
+			wf.getContent().initializePrinting(ep, iw, ih, oldSize);
+			ep.setOldSize(oldSize);
 
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
  				IOTool.setPrinterName(printerToUse.getName());
-			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize, aset));
+			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize, oldBackgroundColor, aset));
         }
     }
 
@@ -1054,13 +1050,15 @@ public class FileMenu {
 		private WindowFrame wf;
 		private PrinterJob pj;
 		private Dimension oldSize;
+		private int oldBackgroundColor;
 		private PrintRequestAttributeSet aset;
 
-		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize, PrintRequestAttributeSet aset)
+		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize, int oldBackgroundColor, PrintRequestAttributeSet aset)
 		{
 			this.wf = wf;
 			this.pj = pj;
 			this.oldSize = oldSize;
+			this.oldBackgroundColor = oldBackgroundColor;
 			this.aset = aset;
 		}
 
@@ -1079,6 +1077,8 @@ public class FileMenu {
 
 			if (oldSize != null)
 			{
+//				wf.getContent().setPrintingMode(false);
+				User.setColorBackground(oldBackgroundColor);
 				overall.setSize(oldSize);
 				overall.validate();
 			}

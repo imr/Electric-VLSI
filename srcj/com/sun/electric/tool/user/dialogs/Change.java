@@ -186,6 +186,7 @@ public class Change extends EDialog implements HighlightListener
 			case CHANGE_EVERYWHERE: changeEverywhere.setSelected(true);   break;
 		}
 		finishInitialization();
+		Highlighter.addHighlightListener(this);
 	}
 
 	/**
@@ -247,12 +248,7 @@ public class Change extends EDialog implements HighlightListener
 	{
 		// update current window
 		EditWindow curWnd = EditWindow.getCurrent();
-		if (wnd != curWnd && curWnd != null)
-		{
-			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-			curWnd.getHighlighter().addHighlightListener(this);
-			wnd = curWnd;
-		}
+		if (curWnd != null) wnd = curWnd;
 
 		// find out what is going to be changed
 		geomsToChange = new ArrayList<Geometric>();
@@ -1373,6 +1369,7 @@ public class Change extends EDialog implements HighlightListener
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+		Highlighter.removeHighlightListener(this);
 		setVisible(false);
 		dispose();
 		theDialog = null;		

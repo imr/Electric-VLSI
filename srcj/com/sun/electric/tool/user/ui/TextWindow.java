@@ -40,8 +40,10 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
@@ -743,7 +745,7 @@ public class TextWindow
 
     /**
      * Method to export directly PNG file
-     * @param ep
+	 * @param ep printable object.
      * @param filePath
      */
     public void writeImage(ElectricPrinter ep, String filePath)
@@ -752,13 +754,32 @@ public class TextWindow
     }
 
 	/**
-	 * Method to print window using offscreen canvas
-	 * @param ep Image observer plus printable object
+	 * Method to intialize for printing.
+	 * @param ep printable object.
+	 * @param pageWid the width of the print page in pixels.
+	 * @param pageHei the height of the print page in pixels.
+	 * @param oldSize the original size of the window being printed.
+	 */
+	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	{
+		overall.setSize(pageWid, pageHei);
+		overall.validate();
+		overall.repaint();
+	}
+
+	/**
+	 * Method to print window using offscreen canvas.
+	 * @param ep printable object.
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public BufferedImage getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{
-		return null;
+		Graphics2D g2d = (Graphics2D)ep.getGraphics();
+		if (g2d != null)
+		{
+			textArea.paint(g2d);
+		}
+		return (BufferedImage)overall.createImage(1, 1);
 	}
 
 	/**

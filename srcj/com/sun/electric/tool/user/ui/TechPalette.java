@@ -955,7 +955,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 int yPos = (entrySize+1) * i;
                 g.drawLine(0, yPos, menuX*(entrySize+1), yPos);
             }
-            wnd.finished();
+//            wnd.finished();
             synchronized(palette) {
                 palette.paletteImage = image;
                 palette.paletteImageStale = false;

@@ -37,12 +37,16 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Component;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -83,7 +87,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private TextInfoPanel textPanel;
 
     private VariableCellRenderer cellRenderer;
-    private EditWindow wnd;
     private boolean loading = false;
 
     /**
@@ -162,14 +165,13 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Creates new form Attributes.
      */
-    private Attributes(java.awt.Frame parent, boolean modal)
+    private Attributes(Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
-//        setLocation(100, 50);
 
-        wnd = null;
         Undo.addDatabaseChangeListener(this);
+        Highlighter.addHighlightListener(this);
 
         // make the list
         listModel = new DefaultListModel();
@@ -319,21 +321,14 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	        currentButton = currentCell;
 	
 	        // update current window
-	        EditWindow curWnd = EditWindow.getCurrent();
-	        if ((wnd != curWnd) && (curWnd != null)) {
-	            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-	            curWnd.getHighlighter().addHighlightListener(this);
-	            wnd = curWnd;
-	        }
-	
+	        EditWindow curWnd = EditWindow.getCurrent();	
 	        selectedCell = WindowFrame.needCurCell();   selectedObject = selectedCell;
 	        if (curWnd == null) selectedCell = null;
-	
 	        if (selectedCell != null)
 	        {
-	            if (wnd.getHighlighter().getNumHighlights() == 1)
+	            if (curWnd.getHighlighter().getNumHighlights() == 1)
 	            {
-	                Highlight2 high = wnd.getHighlighter().getHighlights().iterator().next();
+	                Highlight2 high = curWnd.getHighlighter().getHighlights().iterator().next();
 	                ElectricObject eobj = high.getElectricObject();
 	                if (high.isHighlightEOBJ())
 	                {

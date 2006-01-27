@@ -40,6 +40,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -74,7 +75,7 @@ public class PaletteFrame implements MouseListener
 	/** the technology palette */						private TechPalette techPalette;
 	/** the popup that selects technologies. */			private JComboBox techSelector;
 
-	// constructor, never called
+	// constructor
 	private PaletteFrame() {}
 
 	/**
@@ -299,6 +300,7 @@ public class PaletteFrame implements MouseListener
 
 			// zoom the window to fit the placed node (if appropriate)
 			EditWindow wnd = EditWindow.getCurrent();
+			wnd.requestFocus();
 			if (wnd != null)
 				wnd.zoomWindowToFitCellInstance(np);
 
@@ -334,17 +336,12 @@ public class PaletteFrame implements MouseListener
 		private PlaceNodeListener(Object toDraw, EventListener oldListener, Cursor oldCursor,
                                  PlaceNodeEventListener palette)
 		{
-			//this.window = window;
 			this.toDraw = toDraw;
 			this.oldListener = oldListener;
 			this.oldCursor = oldCursor;
 			this.textNode = null;
 			this.makePort = false;
             this.palette = palette;
-
-            //if (window != null) {
-                //window.addKeyListener(this);
-            //}
 		}
 
 		public void makePortWhenCreated(boolean m) { makePort = m; }

@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -168,12 +169,13 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 //     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Arc Get-Info */
-	private GetInfoArc(java.awt.Frame parent, boolean modal)
+	private GetInfoArc(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 		Undo.addDatabaseChangeListener(this);
+		Highlighter.addHighlightListener(this);
 
 		bigger = prefs.getBoolean("GetInfoArc-bigger", false);
 		int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
@@ -234,11 +236,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{
 		// update current window
 		EditWindow curWnd = EditWindow.getCurrent();
-		if ((wnd != curWnd) && (curWnd != null)) {
-			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-			curWnd.getHighlighter().addHighlightListener(this);
-			wnd = curWnd;
-		}
+		if (curWnd != null) wnd = curWnd;
 		if (wnd == null)
 		{
 			disableDialog();
@@ -1131,9 +1129,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{
         prefs.putBoolean("GetInfoArc-bigger", bigger);
 		setVisible(false);
-		//theDialog = null;
-        //Highlight.removeHighlightListener(this);
-		//dispose();
 	}//GEN-LAST:event_closeDialog
 
 	private static class ChangeArc extends Job

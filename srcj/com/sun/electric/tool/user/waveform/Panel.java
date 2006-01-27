@@ -1288,7 +1288,11 @@ public class Panel extends JPanel
         int sigIndex = 0;
 		for(WaveSignal ws : sigs)
 		{
-			if (g != null) g.setColor(ws.getColor());
+			if (g != null)
+			{
+				if (waveWindow.getPrintingMode() == 2) g.setColor(Color.BLACK); else
+					g.setColor(ws.getColor());
+			}
 
 			if (forPs != null)
 			{
@@ -1470,12 +1474,15 @@ public class Panel extends JPanel
 					int x = convertXDataToScreen(xValue);
 					if (Simulation.isWaveformDisplayMultiState() && g != null)
 					{
-						switch (ds.getState(i) & Stimuli.STRENGTH)
+						if (waveWindow.getPrintingMode() == 2) g.setColor(Color.BLACK); else
 						{
-							case Stimuli.OFF_STRENGTH:  g.setColor(waveWindow.getOffStrengthColor());    break;
-							case Stimuli.NODE_STRENGTH: g.setColor(waveWindow.getNodeStrengthColor());   break;
-							case Stimuli.GATE_STRENGTH: g.setColor(waveWindow.getGateStrengthColor());   break;
-							case Stimuli.VDD_STRENGTH:  g.setColor(waveWindow.getPowerStrengthColor());  break;
+							switch (ds.getState(i) & Stimuli.STRENGTH)
+							{
+								case Stimuli.OFF_STRENGTH:  g.setColor(waveWindow.getOffStrengthColor());    break;
+								case Stimuli.NODE_STRENGTH: g.setColor(waveWindow.getNodeStrengthColor());   break;
+								case Stimuli.GATE_STRENGTH: g.setColor(waveWindow.getGateStrengthColor());   break;
+								case Stimuli.VDD_STRENGTH:  g.setColor(waveWindow.getPowerStrengthColor());  break;
+							}
 						}
 					}
 					int state = ds.getState(i) & Stimuli.LOGIC;

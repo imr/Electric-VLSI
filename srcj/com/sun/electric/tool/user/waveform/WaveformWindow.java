@@ -92,6 +92,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
@@ -112,6 +113,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.print.attribute.standard.ColorSupported;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -170,6 +172,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** a listener for redraw requests */					private WaveComponentListener wcl;
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
+	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
 
 	/** default height of a digital panel */				private static int panelSizeDigital = 25;
 	/** default height of an analog panel */				private static int panelSizeAnalog  = 75;
@@ -214,6 +217,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		wavePanels = new ArrayList<Panel>();
 		xAxisLocked = true;
 		linePointMode = 0;
+		nowPrinting = 0;
 		showGrid = false;
 		xAxisSignalAll = null;
 		mainHorizRulerPanelLogarithmic = false;
@@ -683,34 +687,82 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void replaceAllText(String replace) {}
 
 	/**
-	 * Method to export directly PNG file
-	 * @param ep
+	 * Method to export directly PNG file.
+	 * @param ep printable object.
 	 * @param filePath
 	 */
 	public void writeImage(ElectricPrinter ep, String filePath)
 	{
-		BufferedImage img = getOffScreenImage(ep);
+		BufferedImage img = getPrintImage(ep);
 		PNG.writeImage(img, filePath);
 	}
 
+	private int oldBackground, oldForeground, oldStimuli;
+
 	/**
-	 * Method to print window using offscreen canvas
-	 * @param ep Image observer plus printable object
+	 * Method to intialize for printing.
+	 * @param ep printable object.
+	 * @param pageWid the width of the print page in pixels.
+	 * @param pageHei the height of the print page in pixels.
+	 * @param oldSize the original size of the window being printed.
+	 */
+	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	{
+		oldForeground = User.getColorWaveformForeground();
+		oldBackground = User.getColorWaveformBackground();
+		User.setColorWaveformForeground(0);
+		User.setColorWaveformBackground(0xFFFFFF);
+
+		PrinterJob pj = ep.getPrintJob();
+		ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
+		nowPrinting = 1;
+		if (cs.getValue() == 0) nowPrinting = 2;
+
+		double scaleX = (double)pageWid / (double)oldSize.width;
+		double scaleY = (double)pageHei / (double)oldSize.height;
+		double scale = Math.min(scaleX, scaleY);
+		pageWid = (int)(oldSize.width * scale);
+		pageHei = (int)(oldSize.height * scale);
+		overall.setSize(pageWid, pageHei);
+		overall.validate();
+		redrawAllPanels();
+		overall.repaint();
+	}
+
+	/**
+	 * Method to print window using offscreen canvas.
+	 * @param ep printable object.
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public BufferedImage getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{
+		BufferedImage bImage = ep.getBufferedImage();
+		Dimension sz = getPanel().getSize();
+		if (bImage == null)
+		{
+			bImage = (BufferedImage)(overall.createImage(sz.width, sz.height));
+			ep.setBufferedImage(bImage);
+		}
+
+		Dimension szOld = ep.getOldSize();
+		double scaleX = (double)sz.width / (double)szOld.width;
+		double scaleY = (double)sz.height / (double)szOld.height;
+		double gSX = (double)szOld.width / (double)szOld.height;
+		double gSY = gSX * scaleY / scaleX;
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
-		JPanel printArea = wf.getContent().getPanel();
-		int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
-		int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
-		BufferedImage bImage = (BufferedImage)(printArea.createImage(iw,ih));
-
 		if (g2d == null)
+		{
 			g2d = bImage.createGraphics();
+		}
 		g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
-		printArea.paint(g2d);
+		g2d.scale(72.0 / ep.getDesiredDPI() / gSX, 72.0 / ep.getDesiredDPI() / gSY);
 
+		overall.paint(g2d);
+//		if (mainHorizRulerPanel != null) 
+//			mainHorizRulerPanel.paint(g2d);
+		User.setColorWaveformForeground(oldForeground);
+		User.setColorWaveformBackground(oldBackground);
+		nowPrinting = 0;
 		return bImage;
 	}
 
@@ -953,6 +1005,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public Iterator<Panel> getPanels() { return wavePanels.iterator(); }
 
 	/**
+	 * Method to return the current printing mode.
+	 * @return 0: color display (default), 1: color printing, 2: B&W printing
+	 */
+	public int getPrintingMode() { return nowPrinting; }
+
+	/**
 	 * Method to return a Panel, given its number.
 	 * @param panelNumber the number of the desired Panel.
 	 * @return the Panel with that number (null if not found).
@@ -1009,6 +1067,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void redrawAllPanels()
 	{
+		if (mainHorizRulerPanel != null) 
+			mainHorizRulerPanel.repaint();
 		left.repaint();
 		right.repaint();
 		for(Panel wp : wavePanels)

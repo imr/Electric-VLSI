@@ -55,7 +55,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
@@ -101,6 +106,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.print.PrinterJob;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -111,6 +117,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.print.attribute.standard.ColorSupported;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -259,17 +266,14 @@ public class EditWindow extends JPanel
 		DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, editWindowDropTarget, true);
 
 		//setAutoscrolls(true);
-        // add listeners --> BE SURE to remove listeners in finished()
-		addKeyListener(this);
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addMouseWheelListener(this);
 
-		// make a highlighter for this window
-		installHighlighters();
-
-		Undo.addDatabaseChangeListener(this);
-		if (wf != null) setCell(cell, VarContext.globalContext);
+		if (wf != null)
+		{
+			// make a highlighter for this window
+			installHighlighters();
+			Undo.addDatabaseChangeListener(this);
+			setCell(cell, VarContext.globalContext);
+		}
 	}
 
     private void installHighlighters()
@@ -301,18 +305,21 @@ public class EditWindow extends JPanel
 		}
 
 		// install highlighters
-        highlighter.addHighlightListener(this);
-        highlighter.addHighlightListener(WaveformWindow.getStaticHighlightListener());
-        mouseOverHighlighter.addHighlightListener(this);
 //		rulerHighlighter.addHighlightListener(this);
+
+        // add listeners --> BE SURE to remove listeners in finished()
+		addKeyListener(this);
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		addMouseWheelListener(this);
    }
 
     private void uninstallHighlighters()
     {
-    	// uninstall highlighters
-        highlighter.removeHighlightListener(this);
-		highlighter.removeHighlightListener(WaveformWindow.getStaticHighlightListener());
-        mouseOverHighlighter.removeHighlightListener(this);
+		removeKeyListener(this);
+		removeMouseListener(this);
+		removeMouseMotionListener(this);
+		removeMouseWheelListener(this);
 
         // see if the highlighters are used elsewhere
         boolean used = false;
@@ -1049,10 +1056,6 @@ public class EditWindow extends JPanel
 		//offscreen = null;                   // need to clear this ref, because it points to this
 
 		// remove myself from listener list
-		removeKeyListener(this);
-		removeMouseListener(this);
-		removeMouseMotionListener(this);
-		removeMouseWheelListener(this);
 		uninstallHighlighters();
         Undo.removeDatabaseChangeListener(this);
 	}
@@ -3744,38 +3747,68 @@ public class EditWindow extends JPanel
 
 
     /**
-     * Method to export directly PNG file
-     * @param ep
+     * Method to export directly PNG file.
+	 * @param ep printable object.
      * @param filePath
      */
     public void writeImage(ElectricPrinter ep, String filePath)
     {
-        BufferedImage img = getOffScreenImage(ep);
+        BufferedImage img = getPrintImage(ep);
         PNG.writeImage(img, filePath);
     }
 
 	/**
-	 * Method to print window using offscreen canvas
-	 * @param ep Image observer plus printable object
+	 * Method to intialize for printing.
+	 * @param ep printable object.
+	 * @param pageWid the width of the print page in pixels.
+	 * @param pageHei the height of the print page in pixels.
+	 * @param oldSize the original size of the window being printed.
+	 */
+	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	{
+		overall.setSize(pageWid, pageHei);
+		overall.validate();
+		overall.repaint();
+	}
+
+	/**
+	 * Method to print window using offscreen canvas.
+	 * @param ep printable object.
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public BufferedImage getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{
 		if (getCell() == null) return null;
 	
 		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{
+			// change window size
 			EditWindow w = EditWindow.CreateElectricDoc(null, null, null);
 			int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
 			int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
 			w.setScreenSize(new Dimension(iw, ih));
 			w.setCell(getCell(), getVarContext());
 			PixelDrawing offscreen = w.getOffscreen();
+
+			// prepare for printing
+			PrinterJob pj = ep.getPrintJob();
+			ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
+			int printMode = 1;
+			if (cs.getValue() == 0) printMode = 2;
+			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
+			int oldBackgroundColor = User.getColorBackground();
+			User.setColorBackground(0xFFFFFF);
+
+			// draw int
 			offscreen.drawImage(false, null);
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
+
+			// restore display state
+			offscreen.setPrintingMode(0);
+			User.setColorBackground(oldBackgroundColor);
 		}
 
 		// copy the image to the page if graphics is not null
@@ -3785,7 +3818,8 @@ public class EditWindow extends JPanel
 			int ix = (int)ep.getPageFormat().getImageableX() * ep.getDesiredDPI() / 72;
 			int iy = (int)ep.getPageFormat().getImageableY() * ep.getDesiredDPI() / 72;
 
-			g2d.scale(72.0 / ep.getDesiredDPI(), 72.0 / ep.getDesiredDPI());
+			// NOTE: Not using "72" as above, but "75"!!!
+			g2d.scale(75.0 / ep.getDesiredDPI(), 75.0 / ep.getDesiredDPI());
 			g2d.drawImage(img, ix, iy, null);
 		}
 		return img;

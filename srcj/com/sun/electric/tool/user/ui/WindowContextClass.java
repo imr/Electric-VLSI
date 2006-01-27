@@ -24,7 +24,7 @@ public abstract class WindowContextClass extends JPanel
         this.wf = wf;
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
-        highlighter.addHighlightListener(this);
+        Highlighter.addHighlightListener(this);
     }
 
 

@@ -76,7 +76,6 @@ import javax.swing.border.EmptyBorder;
  */
 public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
 	private static GetInfoText theDialog = null;
-    private EditWindow wnd;
     private CachedTextInfo cti;
 
 	/**
@@ -198,6 +197,21 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
     }
 
     /**
+     * Creates new form Text Get-Info
+     */
+	private GetInfoText(java.awt.Frame parent, boolean modal) {
+        super(parent, modal);
+        initComponents();
+        getRootPane().setDefaultButton(ok);
+
+        Undo.addDatabaseChangeListener(this);
+        Highlighter.addHighlightListener(this);
+
+        loadTextInfo();
+		finishInitialization();
+    }
+
+    /**
      * Reloads the dialog when Highlights change
      */
     public void highlightChanged(Highlighter which)
@@ -250,19 +264,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 //     public boolean isGUIListener() { return true; }
 
     private void loadTextInfo() {
-		// update current window
-		EditWindow curWnd = EditWindow.getCurrent();
-		if ((wnd != curWnd) && (curWnd != null)) {
-			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-			curWnd.getHighlighter().addHighlightListener(this);
-			wnd = curWnd;
- 		}
-
         // must have a single text selected
         Highlight2 textHighlight = null;
+		EditWindow curWnd = EditWindow.getCurrent();
         int textCount = 0;
-        if (wnd != null) {
-            for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
+        if (curWnd != null) {
+            for (Highlight2 h : curWnd.getHighlighter().getHighlights()) {
                 if (!h.isHighlightText()) continue;
                 // ignore export text
                 if (h.getVarKey() == Export.EXPORT_NAME) continue;
@@ -349,20 +356,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			theText.setEnabled(false);
 			multiLine.setEnabled(false);
 		}
-    }
-
-    /**
-     * Creates new form Text Get-Info
-     */
-	private GetInfoText(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
-        initComponents();
-        getRootPane().setDefaultButton(ok);
-
-        Undo.addDatabaseChangeListener(this);
-
-        loadTextInfo();
-		finishInitialization();
     }
 
 	protected void escapePressed() { cancelActionPerformed(null); }

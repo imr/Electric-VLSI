@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.geom.Point2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -53,7 +54,6 @@ public class SavedViews extends EDialog implements HighlightListener
 	private static SavedViews theDialog = null;
 	private JList viewList;
 	private DefaultListModel viewListModel;
-    private EditWindow wnd;
 
 	public static void showSavedViewsDialog()
 	{
@@ -68,10 +68,12 @@ public class SavedViews extends EDialog implements HighlightListener
 	}
 
 	/** Creates new form Saved Views */
-	private SavedViews(java.awt.Frame parent, boolean modal)
+	private SavedViews(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
+
+		Highlighter.addHighlightListener(this);
 
 		// build the change list
 		viewListModel = new DefaultListModel();
@@ -95,17 +97,10 @@ public class SavedViews extends EDialog implements HighlightListener
 	private void loadInfo()
 	{
 		// update current window
-		EditWindow curWnd = EditWindow.getCurrent();
-		if (wnd != curWnd && curWnd != null)
-		{
-			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-			curWnd.getHighlighter().addHighlightListener(this);
-			wnd = curWnd;
-		}
-
 		viewListModel.clear();
-		if (wnd == null) return;
-		Cell cell = wnd.getCell();
+		EditWindow curWnd = EditWindow.getCurrent();
+		if (curWnd == null) return;
+		Cell cell = curWnd.getCell();
 		if (cell == null) return;
 
 		boolean found = false;
@@ -337,6 +332,7 @@ public class SavedViews extends EDialog implements HighlightListener
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+		Highlighter.removeHighlightListener(this);
 		setVisible(false);
 		dispose();
 		theDialog = null;		

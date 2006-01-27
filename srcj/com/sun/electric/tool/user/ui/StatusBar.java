@@ -27,7 +27,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
@@ -37,15 +36,21 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Highlight2;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 
 
@@ -99,7 +104,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         if (TopLevel.isMDIMode()) {
             // do nothing
         } else if (frame.getContent().getHighlighter() != null) {
-            frame.getContent().getHighlighter().addHighlightListener(this);
+            Highlighter.addHighlightListener(this);
         }
         Undo.addDatabaseChangeListener(this);
 	}
@@ -450,7 +455,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      */
     public void finished() {
         if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
-            frame.getContent().getHighlighter().removeHighlightListener(this);
+            Highlighter.removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
     }
 

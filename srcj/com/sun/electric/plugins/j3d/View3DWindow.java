@@ -51,6 +51,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -63,6 +64,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Point;
@@ -242,7 +244,7 @@ public class View3DWindow extends JPanel
         this.maxNumNodes = J3DUtils.get3DMaxNumNodes();
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
-        highlighter.addHighlightListener(this);
+        Highlighter.addHighlightListener(this);
 
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
@@ -524,6 +526,8 @@ public class View3DWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
+
+		Highlighter.removeHighlightListener(this);
 	}
 
 	public void bottomScrollChanged(int e) {}
@@ -1025,11 +1029,20 @@ public class View3DWindow extends JPanel
     }
 
 	/**
-	 * Method to print window using offscreen canvas
-	 * @param ep Image observer plus printable object
+	 * Method to intialize for printing.
+	 * @param ep printable object.
+	 * @param pageWid the width of the print page in pixels.
+	 * @param pageHei the height of the print page in pixels.
+	 * @param oldSize the original size of the window being printed.
+	 */
+	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize) {}
+
+	/**
+	 * Method to print window using offscreen canvas.
+	 * @param ep printable object.
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public BufferedImage getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getPrintImage(ElectricPrinter ep)
     {
 		BufferedImage bImage = ep.getBufferedImage();
         //int OFF_SCREEN_SCALE = 3;

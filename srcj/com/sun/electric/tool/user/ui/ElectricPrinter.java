@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.io.IOTool;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -33,6 +34,7 @@ import java.awt.image.ImageObserver;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 
 /**
  * Class to define a printer interface.
@@ -40,22 +42,28 @@ import java.awt.print.PrinterException;
 public class ElectricPrinter implements Printable, ImageObserver
 {
 	private WindowContent context;
+	private PageFormat pageFormat;
+	private PrinterJob printJob;
 	private BufferedImage img = null;
 	private Graphics graphics;
-	private PageFormat pageFormat;
+	private Dimension oldSize;
 	private int desiredDPI = IOTool.getPrintResolution();
 
-	public ElectricPrinter(WindowContent context, PageFormat pageFormat)
+	public ElectricPrinter(WindowContent context, PageFormat pageFormat, PrinterJob printJob)
 	{
 		this.context = context;
 		this.pageFormat = pageFormat;
+		this.printJob = printJob;
 	}
 
-	public BufferedImage getBufferedImage() {return img;}
-	public void setBufferedImage(BufferedImage img) {this.img = img;}
-	public Graphics getGraphics() {return graphics;}
-	public PageFormat getPageFormat() {return pageFormat;}
-	public int getDesiredDPI() {return desiredDPI;}
+	public BufferedImage getBufferedImage() { return img; }
+	public void setBufferedImage(BufferedImage img) { this.img = img; }
+	public Graphics getGraphics() { return graphics; }
+	public PageFormat getPageFormat() { return pageFormat; }
+	public PrinterJob getPrintJob() { return printJob; }
+	public int getDesiredDPI() { return desiredDPI; }
+	public void setOldSize(Dimension oldSize) { this.oldSize = oldSize; }
+	public Dimension getOldSize() { return oldSize; }
 
 	public int print(Graphics g, PageFormat pf, int page)
 		throws PrinterException
@@ -64,7 +72,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 
 		graphics = g;
 		pageFormat = pf;
-		BufferedImage img = context.getOffScreenImage(this);
+		BufferedImage img = context.getPrintImage(this);
 		return ((img != null) ? Printable.PAGE_EXISTS : Printable.NO_SUCH_PAGE);
 	}
 
