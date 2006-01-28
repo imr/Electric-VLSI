@@ -927,6 +927,9 @@ public class ClickZoomWireListener
 	    // to detect connection with other WindowContents.
 	    if (e.getSource() instanceof EditWindow)
 	    {
+            EditWindow wnd = (EditWindow)e.getSource();
+            Highlighter highlighter = wnd.getHighlighter();
+            wnd.getWindowFrame().getFrame().getStatusBar().highlightChanged(highlighter);
 	        WindowFrame.show3DHighlight();
 	    }
     }
