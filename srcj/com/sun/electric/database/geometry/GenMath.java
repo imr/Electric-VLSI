@@ -92,9 +92,8 @@ public class GenMath
 	public static void addToBag(Map<Object,MutableInteger> bag,
 						 Map<Object,MutableInteger> otherBag)
 	{
-		for (Iterator<Map.Entry<Object,MutableInteger>> it = otherBag.entrySet().iterator(); it.hasNext(); )
+		for (Map.Entry<Object,MutableInteger> e : otherBag.entrySet())
 		{
-			Map.Entry<Object,MutableInteger> e = (Map.Entry<Object,MutableInteger>)it.next();
 			MutableInteger count = (MutableInteger)e.getValue();
 			addToBag(bag, e.getKey(), count.intValue());
 		}
@@ -109,7 +108,7 @@ public class GenMath
      */
 	public static void addToBag(Map<Object,MutableInteger> bag, Object key, int c)
 	{
-		MutableInteger count = (MutableInteger)bag.get(key);
+		MutableInteger count = bag.get(key);
 		if (count == null)
 		{
 			count = new MutableInteger(0);
@@ -126,7 +125,7 @@ public class GenMath
 	 */
 	public static int countInBag(Map<Object,MutableInteger> bag, Object key)
 	{
-		MutableInteger count = (MutableInteger)bag.get(key);
+		MutableInteger count = bag.get(key);
 		return count != null ? count.intValue() : 0;
 	}
 

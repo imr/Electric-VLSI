@@ -211,7 +211,7 @@ public class CircuitChanges
 //		int [] dRot = new int[total];
 		for(int i=0; i<total; i++)
 		{
-			nis[i] = (NodeInst)nodes.get(i);
+			nis[i] = nodes.get(i);
 //			dSX[i] = dSY[i] = 0;
 //			dRot[i] = 0;
 		}

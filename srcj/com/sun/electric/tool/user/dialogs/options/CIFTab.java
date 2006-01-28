@@ -89,11 +89,11 @@ public class CIFTab extends PreferencePanel
 		cifLayerInfo = new HashMap<Layer,String>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
 			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				String str = layer.getName();
 				String cifLayer = layer.getCIFLayer();
 				if (cifLayer == null) cifLayer = "";
@@ -118,8 +118,8 @@ public class CIFTab extends PreferencePanel
 		cifLayersModel.clear();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
-			String str = (String)cifLayerInfo.get(layer);
+			Layer layer = it.next();
+			String str = cifLayerInfo.get(layer);
 			cifLayersModel.addElement(str);
 		}
 		cifLayersList.setSelectedIndex(0);
@@ -206,11 +206,11 @@ public class CIFTab extends PreferencePanel
 	{
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
-				String str = (String)cifLayerInfo.get(layer);
+				Layer layer = lIt.next();
+				String str = cifLayerInfo.get(layer);
 
 				String currentCIFNumbers = cifGetLayerName(str);
 				if (currentCIFNumbers.equalsIgnoreCase(layer.getCIFLayer())) continue;

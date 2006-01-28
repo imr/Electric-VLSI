@@ -91,7 +91,7 @@ public class ArchSimOut extends Simulate
 			if (time > greatestTime) greatestTime = time;
 			String signalName = line.substring(firstColon+1, secondColon);
 			int value = TextUtils.atoi(line.substring(secondColon+1));
-			List<Point> values = (List<Point>)symbolTable.get(signalName);
+			List<Point> values = symbolTable.get(signalName);
 			if (values == null)
 			{
 				values = new ArrayList<Point>();
@@ -107,7 +107,7 @@ public class ArchSimOut extends Simulate
 		sd.setCell(cell);
 		for(String signalName : symbolTable.keySet())
 		{
-			List<Point> values = (List<Point>)symbolTable.get(signalName);
+			List<Point> values = symbolTable.get(signalName);
 
 			int numStimuli = values.size();
 			DigitalSignal sig = new DigitalSignal(an);

@@ -73,7 +73,7 @@ public class Gallery {
 
 	void printCells(ArrayList<Cell> facets) {
 		for (int i=0; i<facets.size(); i++) {
-			Cell p = (Cell) facets.get(i);
+			Cell p = facets.get(i);
 			System.out.println(p.getName());
 		}
 	}
@@ -81,7 +81,7 @@ public class Gallery {
 	ArrayList<NodeInst> addOneInstOfEveryCell(ArrayList<Cell> cells, Cell gallery) {
 		ArrayList<NodeInst> insts = new ArrayList<NodeInst>();
 		for (int i=0; i<cells.size(); i++) {
-			Cell c = (Cell) cells.get(i);
+			Cell c = cells.get(i);
 			NodeInst ni = LayoutLib.newNodeInst(c, 0, 0, 0,
 			                                    0, 0, gallery);
 			insts.add(ni);
@@ -118,7 +118,7 @@ public class Gallery {
 		double curLeftX = 0;
 		//System.out.println("Row at: "+y);
 		for (int i=0; i<row.size(); i++) {
-			NodeInst ni = (NodeInst) row.get(i);
+			NodeInst ni = row.get(i);
 			double x = LayoutLib.getBounds(ni).getMinX();
 			double y = LayoutLib.getPosition(ni).getY();
 //			System.out.println("Instance initial bounding box: "+r);

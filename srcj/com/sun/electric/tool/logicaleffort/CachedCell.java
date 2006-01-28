@@ -77,10 +77,10 @@ public class CachedCell {
 
     protected boolean isContainsSizableGates() { return containsSizableGates; }
 
-    protected LENodable getLENodable(Nodable no) { return (LENodable)lenodables.get(no); }
+    protected LENodable getLENodable(Nodable no) { return lenodables.get(no); }
     protected Iterator getLENodables() { return lenodables.values().iterator(); }
 
-    protected CellNodable getCellNodable(Nodable no) { return (CellNodable)cellnodables.get(no); }
+    protected CellNodable getCellNodable(Nodable no) { return cellnodables.get(no); }
     protected Iterator getCellNodables() { return cellnodables.values().iterator(); }
 
     protected Map<Network,LENetwork> getLocalNetworks() { return localNetworks; }
@@ -98,7 +98,7 @@ public class CachedCell {
         for (Iterator<LEPin> it = leno.getPins().iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             Network jnet = pin.getNetwork();
-            LENetwork net = (LENetwork)localNetworks.get(jnet);
+            LENetwork net = localNetworks.get(jnet);
  /*           if (net == null) {
                 net = new LENetwork(jnet.describe());
                 localNetworks.put(jnet, net);
@@ -152,7 +152,7 @@ public class CachedCell {
             LENetwork subLENet = (LENetwork)entry.getValue();
             Network localJNet = subCellInfo.getNetworkInParent(subJNet);
             if (localJNet == null) continue;
-            LENetwork net = (LENetwork)localNetworks.get(localJNet);
+            LENetwork net = localNetworks.get(localJNet);
             if (net == null) {
                 net = new LENetwork(localJNet.describe(false));
                 localNetworks.put(localJNet, net);
@@ -248,7 +248,7 @@ public class CachedCell {
                 Map.Entry<Network,LENetwork> netentry = (Map.Entry<Network,LENetwork>)nit.next();
                 Network jnet = (Network)netentry.getKey();
                 LENetwork origNet = (LENetwork)netentry.getValue();
-                LENetwork copyNet = (LENetwork)cenoCopy.subCell.localNetworks.get(jnet);
+                LENetwork copyNet = cenoCopy.subCell.localNetworks.get(jnet);
                 origSubNetsToCopySubNets.put(origNet, copyNet);
             }
         }
@@ -262,7 +262,7 @@ public class CachedCell {
             for (Iterator<LENetwork> nit = net.getSubNets(); nit.hasNext(); ) {
                 LENetwork subnet = (LENetwork)nit.next();
                 // find copy of subnet in cellnodables copy
-                LENetwork copySubNet = (LENetwork)origSubNetsToCopySubNets.get(subnet);
+                LENetwork copySubNet = origSubNetsToCopySubNets.get(subnet);
                 netCopy.add(copySubNet);
             }
             if (copy.localNetworks.containsKey(jnet))

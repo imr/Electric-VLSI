@@ -206,7 +206,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			// not set: see if it is obvious
 			for (Iterator<Cell> it = getCells(); it.hasNext();)
 			{
-				Cell c = (Cell) it.next();
+				Cell c = it.next();
 				if (c.isSchematic())
 				{
                     // it is the latest version
@@ -259,7 +259,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			Cell onlyCell = null;
 			for(Iterator<Cell> it = getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				if (onlyCell == null) onlyCell = cell.getNewestVersion(); else
 				{
 					if (cell.getNewestVersion() != onlyCell)
@@ -276,23 +276,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			int widestName = 0;
 			for(Iterator<Cell> it = getCells(); it.hasNext(); )
 			{
-				Cell cell = (Cell)it.next();
+				Cell cell = it.next();
 				String cellName = cell.getName();
 				if (cellName.length() > widestName) widestName = cellName.length();
 				groupNames.add(cellName);
 			}
 
 			// if there is only 1 base name, use it
-			if (groupNames.size() == 1) return groupName = (String)groupNames.iterator().next();
+			if (groupNames.size() == 1) return groupName = groupNames.iterator().next();
 
 			// look for common root to the names
 			for(int i=widestName; i>widestName/2; i--)
 			{
 				String lastName = null;
 				boolean allSame = true;
-				for(Iterator<String> it = groupNames.iterator(); it.hasNext(); )
+				for(String oneName : groupNames)
 				{
-					String oneName = (String)it.next();
 					if (lastName != null)
 					{
 						if (oneName.length() < i || lastName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
@@ -304,9 +303,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 
 			// just list all of the different base names
-			for(Iterator<String> it = groupNames.iterator(); it.hasNext(); )
+			for(String oneName : groupNames)
 			{
-				String oneName = (String)it.next();
 				if (groupName == null) groupName = oneName; else
 					groupName += "," + oneName;
 			}
@@ -320,9 +318,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		void check()
 		{
 			Library lib = null;
-			for (Iterator<Cell> it = cells.iterator(); it.hasNext(); )
+			for (Cell cell : cells)
 			{
-				Cell cell = (Cell)it.next();
 				if (lib == null) lib = cell.lib;
 				assert lib.contains(cell);
 				assert cell.cellGroup == this;
@@ -515,7 +512,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
 //		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 //		{
-//			NodeInst ni = (NodeInst)it.next();
+//			NodeInst ni = it.next();
 //			nodePrototypes.put(ni, ni.getProto());
 //		}
 
@@ -525,7 +522,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			// scan all subcells to see if they are found in the new library
 			for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getProto() instanceof PrimitiveNode) continue;
 				Cell niProto = (Cell)ni.getProto();
 
@@ -544,7 +541,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				Cell lnt = null;
 				for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
 				{
-					lnt = (Cell)cIt.next();
+					lnt = cIt.next();
 					if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
 						lnt.getView() == niProto.getView()) break;
 					lnt = null;
@@ -555,7 +552,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				boolean validPorts = true;
 				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)pIt.next();
+					PortInst pi = pIt.next();
 					PortProto pp = pi.getPortProto();
 					PortProto ppt = lnt.findPortProto(pp.getName());
 					if (ppt != null)
@@ -607,8 +604,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
 			// create the new nodeinst
-			NodeInst ni = (NodeInst)it.next();
-			NodeProto lnt = (NodeProto)nodePrototypes.get(ni);
+			NodeInst ni = it.next();
+			NodeProto lnt = nodePrototypes.get(ni);
 			if (lnt == null) lnt = ni.getProto();
 			double scaleX = ni.getXSize();   //if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   //if (ni.isYMirrored()) scaleY = -scaleY;
@@ -628,8 +625,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// now copy the variables on the nodes
 		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
-			NodeInst toNi = (NodeInst)newNodes.get(ni);
+			NodeInst ni = it.next();
+			NodeInst toNi = newNodes.get(ni);
 			toNi.copyVarsFrom(ni);
 
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
@@ -648,14 +645,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// copy arcs
 		for(Iterator<ArcInst> it = fromCell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 
 			// find the nodeinst and portinst connections for this arcinst
 			PortInst [] opi = new PortInst[2];
 			for(int i=0; i<2; i++)
 			{
 				opi[i] = null;
-				NodeInst ono = (NodeInst)newNodes.get(ai.getPortInst(i).getNodeInst());
+				NodeInst ono = newNodes.get(ai.getPortInst(i).getNodeInst());
 				PortProto pp = ai.getPortInst(i).getPortProto();
 				if (ono.getProto() instanceof PrimitiveNode)
 				{
@@ -685,10 +682,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// copy the Exports
 		for(Iterator<Export> it = fromCell.getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 
 			// match sub-portproto in old nodeinst to sub-portproto in new one
-			NodeInst ni = (NodeInst)newNodes.get(pp.getOriginalPort().getNodeInst());
+			NodeInst ni = newNodes.get(pp.getOriginalPort().getNodeInst());
 			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getName());
 			if (pi == null)
 			{
@@ -871,7 +868,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		boolean conflict = version <= 0;
 		for (Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell c = (Cell)it.next();
+			Cell c = it.next();
 			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
 			{
 				if (c.getVersion() == getVersion()) conflict = true;
@@ -890,7 +887,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// determine the cell group
 		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
 		{
-			Cell c = (Cell)it.next();
+			Cell c = it.next();
 			if (c.getName().equals(getName()))
 				cellGroup = c.cellGroup;
 		}
@@ -1366,7 +1363,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (boundsDirty == BOUNDS_CORRECT) {
             boundsDirty = boundsLevel;
             for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
-                CellUsage u = (CellUsage)it.next();
+                CellUsage u = it.next();
                 u.getParent().setDirty(BOUNDS_CORRECT_SUB);
             }
         } else if (boundsDirty < boundsLevel)
@@ -1394,7 +1391,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (boundsDirty == BOUNDS_CORRECT_SUB) {
             boundsDirty = BOUNDS_CORRECT;
             for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
-                CellUsage u = (CellUsage)it.next();
+                CellUsage u = it.next();
                 u.getProto().getBounds();
             }
             // boundsDirty could be changes by subcell's getBounds.
@@ -1408,7 +1405,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         cellLowX = cellHighX = cellLowY = cellHighY = 0;
         
         for(int i = 0; i < nodes.size(); i++ ) {
-            NodeInst ni = (NodeInst) nodes.get(i);
+            NodeInst ni = nodes.get(i);
             NodeProto np = ni.getProto();
             
             // special case: do not include "cell center" primitives from Generic
@@ -1418,7 +1415,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (np == Generic.tech.invisiblePinNode) {
                 boolean found = false;
                 for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
-                    Variable var = (Variable)it.next();
+                    Variable var = it.next();
                     if (var.isDisplay()) {
                         TextDescriptor td = var.getTextDescriptor();
                         if (td.isInterior() || td.isInherit()) { found = true;   break; }
@@ -1444,7 +1441,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
         }
         for(int i = 0; i < arcs.size(); i++ ) {
-            ArcInst ai = (ArcInst) arcs.get(i);
+            ArcInst ai = arcs.get(i);
             Rectangle2D bounds = ai.getBounds();
             double lowx = bounds.getMinX();
             double highx = bounds.getMaxX();
@@ -1463,7 +1460,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 width != cellBounds.getWidth() || height != cellBounds.getHeight()) {
             cellBounds = new ERectangle(cellLowX, cellLowY, width, height);
             for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 // Fake modify to recalcualte bounds and RTTree
 				ni.lowLevelModify(ni.getD());
             }
@@ -1503,7 +1500,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		for (int i = 0; i < essenBounds.size(); i++)
 		{
-			NodeInst ni = (NodeInst) essenBounds.get(i);
+			NodeInst ni = essenBounds.get(i);
 			minX = Math.min(minX, ni.getTrueCenterX());
 			maxX = Math.max(maxX, ni.getTrueCenterX());
 			minY = Math.min(minY, ni.getTrueCenterY());
@@ -1532,7 +1529,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// must adjust all nodes by (dx,dy)
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
@@ -1540,7 +1537,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 
 			// move NodeInst "ni" by (dx,dy)
 			ai.modify(0, -cX, -cY, -cX, -cY);
@@ -1549,7 +1546,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// adjust all instances of this cell
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Undo.redrawObject(ni);
             AffineTransform trans = ni.getOrient().pureRotate();
 //			AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
@@ -1562,7 +1559,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //		// adjust all windows showing this cell
 //		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //		{
-//			WindowFrame wf = (WindowFrame)it.next();
+//			WindowFrame wf = it.next();
 //			WindowContent content = wf.getContent();
 //			if (!(content instanceof EditWindow_)) continue;
 //			Cell cell = content.getCell();
@@ -1582,7 +1579,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode) return true;
 		}
 		return false;
@@ -1670,8 +1667,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 			for(int i=0; i<lineFromEnd.size(); i++)
 			{
-				Point2D from = (Point2D)lineFromEnd.get(i);
-				Point2D to = (Point2D)lineToEnd.get(i);
+				Point2D from = lineFromEnd.get(i);
+				Point2D to = lineToEnd.get(i);
 				if (offY != 0)
 				{
 					from = new Point2D.Double(from.getX(), from.getY() + offY);
@@ -1681,14 +1678,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 			for(int i=0; i<textPoint.size(); i++)
 			{
-				Point2D at = (Point2D)textPoint.get(i);
+				Point2D at = textPoint.get(i);
 				if (offY != 0)
 					at = new Point2D.Double(at.getX(), at.getY() + offY);
-				double size = ((Double)textSize.get(i)).doubleValue();
-				Point2D box = (Point2D)textBox.get(i);
+				double size = textSize.get(i).doubleValue();
+				Point2D box = textBox.get(i);
 				double width = box.getX();
 				double height = box.getY();
-				String msg = (String)textMessage.get(i);
+				String msg = textMessage.get(i);
 				showFrameText(at, size, width, height, msg);
 			}
 		}
@@ -1972,7 +1969,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public final NodeInst getNode(int nodeIndex)
 	{
-		return (NodeInst)nodes.get(nodeIndex);
+		return nodes.get(nodeIndex);
 	}
 
 	/**
@@ -2052,11 +2049,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public NodeInst findNode(String name)
 	{
 		int nodeIndex = searchNode(name, 0);
-		if (nodeIndex >= 0) return (NodeInst)nodes.get(nodeIndex);
+		if (nodeIndex >= 0) return nodes.get(nodeIndex);
 		nodeIndex = - nodeIndex - 1;
 		if (nodeIndex < nodes.size())
 		{
-			NodeInst ni = (NodeInst)nodes.get(nodeIndex);
+			NodeInst ni = nodes.get(nodeIndex);
 			if (ni.getName().equals(name)) return ni;
 		}
 		return null;
@@ -2139,7 +2136,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		nodes.add(nodeIndex, ni);
 		for (; nodeIndex < nodes.size(); nodeIndex++)
 		{
-			NodeInst n = (NodeInst)nodes.get(nodeIndex);
+			NodeInst n = nodes.get(nodeIndex);
 			n.setNodeIndex(nodeIndex);
 		}
         addTempName(ni);
@@ -2241,7 +2238,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		assert removedNi == ni;
 		for (int i = nodeIndex; i < nodes.size(); i++)
 		{
-			NodeInst n = (NodeInst)nodes.get(i);
+			NodeInst n = nodes.get(i);
 			n.setNodeIndex(i);
 		}
 		ni.setNodeIndex(-1);
@@ -2271,7 +2268,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int high = nodes.size()-1;
         int pick = high; // initially try the last postition
 		while (low <= high) {
-			NodeInst ni = (NodeInst)nodes.get(pick);
+			NodeInst ni = nodes.get(pick);
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), name);
 			if (cmp == 0) cmp = ni.getD().nodeId - nodeId;
 
@@ -2340,7 +2337,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public final ArcInst getArc(int arcIndex)
 	{
-		return (ArcInst)arcs.get(arcIndex);
+		return arcs.get(arcIndex);
 	}
 
 	/**
@@ -2361,11 +2358,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public ArcInst findArc(String name)
 	{
 		int arcIndex = searchArc(name, 0);
-		if (arcIndex >= 0) return (ArcInst)arcs.get(arcIndex);
+		if (arcIndex >= 0) return arcs.get(arcIndex);
 		arcIndex = - arcIndex - 1;
 		if (arcIndex < arcs.size())
 		{
-			ArcInst ai = (ArcInst)arcs.get(arcIndex);
+			ArcInst ai = arcs.get(arcIndex);
 			if (ai.getName().equals(name)) return ai;
 		}
 		return null;
@@ -2384,7 +2381,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		arcs.add(arcIndex, ai);
 		for (; arcIndex < arcs.size(); arcIndex++)
 		{
-			ArcInst a = (ArcInst)arcs.get(arcIndex);
+			ArcInst a = arcs.get(arcIndex);
 			a.setArcIndex(arcIndex);
 		}
         int arcId = ai.getD().arcId;
@@ -2436,7 +2433,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		assert removedAi == ai;
 		for (int i = arcIndex; i < arcs.size(); i++)
 		{
-			ArcInst a = (ArcInst)arcs.get(i);
+			ArcInst a = arcs.get(i);
 			a.setArcIndex(i);
 		}
 		ai.setArcIndex(-1);
@@ -2467,7 +2464,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		while (low <= high) {
 			int mid = (low + high) >> 1;
-			ArcInst ai = (ArcInst)arcs.get(mid);
+			ArcInst ai = arcs.get(mid);
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
 			if (cmp == 0) cmp = ai.getD().arcId - arcId;
 
@@ -2554,7 +2551,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (int i = portIndex + 1; i < exports.length; i++) pattern[i] = i - 1;
         updatePortInsts(pattern);
 //        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
-//            NodeInst ni = (NodeInst)it.next();
+//            NodeInst ni = it.next();
 //            ni.addPortInst(export);
 //            assert ni.getNumPortInsts() == exports.length;
 //        }
@@ -2590,7 +2587,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         updatePortInsts(pattern);
 //		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
 //		{
-//			NodeInst ni = (NodeInst)it.next();
+//			NodeInst ni = it.next();
 //			ni.removePortInst(export);
 //		}
 	}
@@ -2653,7 +2650,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // move connections for every instance of this Cell.
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			ni.moveConnections(export);
 		}
 	}
@@ -2667,7 +2664,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     public void updatePortInsts(int[] pattern) {
 		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			ni.updatePortInsts(pattern);
 		}
     }
@@ -3021,7 +3018,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
         // get all parameters on this object
         for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = (Variable)it.next();
+            Variable v = it.next();
             if (!v.getTextDescriptor().isParam()) continue;
             keysToVars.put(v.getKey(), v);
         }
@@ -3072,22 +3069,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		Rectangle2D bounds = null;
 		for(Iterator<NodeInst> it = this.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			bounds = accumulateTextBoundsOnObject(ni, bounds, wnd);
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 				bounds = accumulateTextBoundsOnObject(pi, bounds, wnd);
 			}
 		}
 		for(Iterator<ArcInst> it = this.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			bounds = accumulateTextBoundsOnObject(ai, bounds, wnd);
 		}
 		for(Iterator<Export> it = this.getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 			bounds = accumulateTextBoundsOnObject(pp, bounds, wnd);
 		}
 		bounds = accumulateTextBoundsOnObject(this, bounds, wnd);
@@ -3125,7 +3122,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		{
 			for(Iterator<PortProto> it = getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
+				PortProto pp = it.next();
 				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
 				{
 					String restOfName = pp.getName().substring(len);
@@ -3140,7 +3137,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		{
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
 				{
 					String restOfName = ni.getName().substring(len);
@@ -3155,7 +3152,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		{
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
 				{
 					String restOfName = ai.getName().substring(len);
@@ -3210,7 +3207,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (exclude == ni) continue;
 				Name nodeName = ni.getNameKey();
 				if (nameString == nodeName.canonicString()) return false;
@@ -3227,7 +3224,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				if (exclude == ai) continue;
 				Name arcName = ai.getNameKey();
 				if (nameString == arcName.canonicString()) return false;
@@ -3326,7 +3323,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
     public static Cell inCurrentThread(CellId cellId) {
         try {
-            return (Cell)linkedCells.get(cellId.cellIndex);
+            return linkedCells.get(cellId.cellIndex);
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
@@ -3413,7 +3410,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                     ni = null;
                     return;
                 }
-                CellUsage u = (CellUsage)uit.next();
+                CellUsage u = uit.next();
                 cell = u.getParent();
                 if (cell == null) continue;
                 i = 0;
@@ -3488,7 +3485,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         Cell iconView = iconView();
 
         for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             NodeProto np = ni.getProto();
             if (np instanceof Cell) {
                 Cell c = (Cell)np;
@@ -3512,7 +3509,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //		Cell lastParent = null;
 //		for(Iterator<NodeInst> it = child.getInstancesOf(); it.hasNext(); )
 //		{
-//			NodeInst ni = (NodeInst)it.next();
+//			NodeInst ni = it.next();
 //
 //			// if two instances in a row have same parent, skip this one
 //			if (ni.getParent() == lastParent) continue;
@@ -3529,7 +3526,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //			lastParent = null;
 //			for(Iterator<NodeInst> it = np.getInstancesOf(); it.hasNext(); )
 //			{
-//				NodeInst ni = (NodeInst)it.next();
+//				NodeInst ni = it.next();
 //
 //				// if two instances in a row have same parent, skip this one
 //				if (ni.getParent() == lastParent) continue;
@@ -3564,7 +3561,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		String parents = null;
 		for(Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); )
 		{
-			CellUsage u = (CellUsage)it.next();
+			CellUsage u = it.next();
 			Cell parent = u.getParent();
 			if (parents == null) parents = parent.describe(true); else
 				parents += ", " + parent.describe(true);
@@ -3609,7 +3606,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		synchronized (lib.cells) {
 			for (Iterator<Cell> it = getVersionsTail(); it.hasNext(); )
 			{
-				Cell c = (Cell)it.next();
+				Cell c = it.next();
 				if (!c.getName().equals(protoName) || c.getView() != view) break;
 				count++;
 			}
@@ -3629,7 +3626,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		synchronized (lib.cells) {
 			for (Iterator<Cell> it = getVersionsTail(); it.hasNext(); )
 			{
-				Cell c = (Cell)it.next();
+				Cell c = it.next();
 				if (!c.getName().equals(protoName) || c.getView() != view) break;
 				versions.add(c);
 			}
@@ -3647,7 +3644,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			Iterator<Cell> it = getVersionsTail();
 			if (it.hasNext())
 			{
-				Cell c = (Cell)it.next();
+				Cell c = it.next();
 				if (c.getName().equals(getName()) && c.getView() == getView()) return c;
 			}
 		}
@@ -3728,7 +3725,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		String protoName = getName();
 		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			if (!cell.getName().equals(protoName)) break;
 			cell.cellGroup.remove(cell);
 			cellGroup.add(cell);
@@ -3818,21 +3815,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// first check to see if there is a schematics link
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.isSchematic()) return cellInGroup;
 		}
 
 		// now check to see if there is any layout link
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
 		}
 
 		// finally check to see if there is any "unknown" link
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
 		}
 
@@ -3853,7 +3850,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// now look for views
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.isIcon()) return cellInGroup;
 		}
 
@@ -3871,7 +3868,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// look for views
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell cellInGroup = (Cell)it.next();
+			Cell cellInGroup = it.next();
 			if (cellInGroup.getView() == view) {
                 // get latest version
                 return cellInGroup.getNewestVersion();
@@ -3960,7 +3957,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
@@ -4161,7 +4158,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ActivityLogger.logException(e);
         }
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (!(ni.getProto() instanceof Cell)) continue;
             boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
             if (cellPrefs != null) {
@@ -4191,7 +4188,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (Job.getDebug()) System.err.println("Save expanded status of " + this);
         int num = 0, expanded = 0, diff = 0;
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (!(ni.getProto() instanceof Cell)) continue;
             num++;
             if (ni.isExpanded()) expanded++;
@@ -4222,7 +4219,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             cellPrefs.clear();
             cellPrefs.put("CELL", cellName);
             for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 if (!(ni.getProto() instanceof Cell)) continue;
                 boolean defaultExpanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
                 if (ni.isExpanded() != defaultExpanded) {
@@ -4282,12 +4279,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
             errorCount += ai.checkAndRepair(repair, list, errorLogger);
 		}
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			errorCount += ni.checkAndRepair(repair, list, errorLogger);
 		}
         if (repair && list.size() > 0)
@@ -4338,7 +4335,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		ArcInst prevAi = null;
 		for(int i = 0; i < arcs.size(); i++)
 		{
-			ArcInst ai = (ArcInst)arcs.get(i);
+			ArcInst ai = arcs.get(i);
 			assert ai.getParent() == this;
             assert chronArcs.get(ai.getD().arcId) == ai;
 			assert ai.getArcIndex() == i;
@@ -4362,7 +4359,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int[] usages = new int[cellId.numUsagesIn()];
 		for(int i = 0; i < nodes.size(); i++)
 		{
-			NodeInst ni = (NodeInst)nodes.get(i);
+			NodeInst ni = nodes.get(i);
 			assert ni.getParent() == this;
             assert chronNodes.get(ni.getD().nodeId) == ni;
 			assert ni.getNodeIndex() == i;
@@ -4380,7 +4377,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			ni.check();
 //			for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 //			{
-//				Connection con = (Connection)pIt.next();
+//				Connection con = pIt.next();
 //                ArcInst ai = con.getArc();
 //                assert ai.getParent() == this && ai.isLinked();
 //			}
@@ -4579,11 +4576,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); )
         {
             boolean found = false;
-            NodeInst node = (NodeInst)it .next();
+            NodeInst node = it.next();
 
             for (Iterator<NodeInst> i = toCompare.getNodes(); i.hasNext();)
             {
-                NodeInst n = (NodeInst)i .next();
+                NodeInst n = i.next();
 
                 if (noCheckAgain.contains(n)) continue;
 
@@ -4618,11 +4615,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Iterator<ArcInst> it = getArcs(); it.hasNext(); )
         {
             boolean found = false;
-            ArcInst arc = (ArcInst)it.next();
+            ArcInst arc = it.next();
 
             for (Iterator<ArcInst> i = toCompare.getArcs(); i.hasNext();)
             {
-                ArcInst a = (ArcInst)i.next();
+                ArcInst a = i.next();
 
                 if (noCheckAgain.contains(a)) continue;
 
@@ -4654,11 +4651,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Iterator<Export> it = getExports(); it.hasNext(); )
         {
             boolean found = false;
-            Export port = (Export)it.next();
+            Export port = it.next();
 
             for (Iterator<Export> i = toCompare.getExports(); i.hasNext();)
             {
-                Export p = (Export)i.next();
+                Export p = i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 
@@ -4689,12 +4686,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         noCheckAgain.clear();
         for (Iterator<Variable> it = getVariables(); it.hasNext(); )
         {
-            Variable var = (Variable)it.next();
+            Variable var = it.next();
             boolean found = false;
 
             for (Iterator<Variable> i = toCompare.getVariables(); i.hasNext();)
             {
-                Variable v = (Variable)i.next();
+                Variable v = i.next();
 
                 if (noCheckAgain.contains(v)) continue;
 
@@ -4748,7 +4745,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		for (int i = 0; i < nodes.size(); i++)
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeInst ni = nodes.get(i);
 			NodeProto nProto = ni.getProto();
 			if (nProto instanceof Cell)
 			{
@@ -4763,7 +4760,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
         for (int i = 0; i < arcs.size(); i++)
         {
-            ArcInst ai = (ArcInst)arcs.get(i);
+            ArcInst ai = arcs.get(i);
             ArcProto ap = ai.getProto();
             ap.getZValues(array);
         }
@@ -4788,7 +4785,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		for (int i = 0; i < nodes.size(); i++)
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeInst ni = nodes.get(i);
 			NodeProto nProto = ni.getProto();
 			if (nProto instanceof Cell)
 			{

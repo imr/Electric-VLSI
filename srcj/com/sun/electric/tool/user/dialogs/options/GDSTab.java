@@ -135,7 +135,7 @@ public class GDSTab extends PreferencePanel
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			String str = (String)layerMap.get(layer);
+			String str = layerMap.get(layer);
 			gdsLayersModel.addElement(str);
 		}
 		gdsLayersList.setSelectedIndex(0);
@@ -282,7 +282,7 @@ public class GDSTab extends PreferencePanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-				String str = (String)layerMap.get(layer);
+				String str = layerMap.get(layer);
 				GDSLayers numbers = gdsGetNumbers(str);
 				if (numbers == null) continue;
 

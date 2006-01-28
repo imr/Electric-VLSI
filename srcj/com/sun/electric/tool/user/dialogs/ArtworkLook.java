@@ -138,7 +138,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		artworkObjects = artObjects;
 		if (artworkObjects.size() == 0) li = null; else
 		{
-			EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
+			EGraphics graphics = Artwork.makeGraphics(artworkObjects.get(0));
 			if (graphics == null)
 			{
 				graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,

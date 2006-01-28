@@ -356,9 +356,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         int curIndex = -1;
         int i = 1;
 
-        /*for (Library lib: Library.getVisibleLibraries()) {*/
-        for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); ) {
-			Library lib = (Library)it.next();
+        for (Library lib : Library.getVisibleLibraries()) {
             libraryComboBox.addItem(lib.getName());
             if (lib.getName().equals(lastSelectedLib))
                 curIndex = i;               // see if this is the last selected lib
@@ -376,8 +374,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         i = 1;
 
         List<View> viewList = View.getOrderedViews();
-        for (Iterator<View> it = viewList.iterator(); it.hasNext(); ) {
-            View view = (View)it.next();
+        for (View view : viewList) {
             viewComboBox.addItem(view.getFullName());
             if (view.getFullName().equals(lastSelectedView))
                 curIndex = i;               // see if this is the last selected view
@@ -574,8 +571,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             boolean newWindow = editInNewWindow.isSelected();
 
             List<Cell> cells = getSelectedCells();
-            for (Iterator<Cell> it = cells.iterator(); it.hasNext(); ) {
-                Cell cell = (Cell)it.next();
+            for (Cell cell : cells) {
                 WindowFrame wf = WindowFrame.getCurrentWindowFrame();
                 if (!newWindow && wf == null) newWindow = true;
                 if (newWindow)
@@ -596,18 +592,17 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
             List<Cell> cells = getSelectedCells();
             String lastDeleted = null;
-            for (Iterator<Cell> it = cells.iterator(); it.hasNext(); ) {
-                Cell cell = (Cell)it.next();
+            for (Cell cell : cells) {
                 if (CircuitChanges.deleteCell(cell, confirmDelete, false)) {
                     lastDeleted = cell.noLibDescribe();
                 }
             }
             if (lastDeleted != null) {
                 for (Iterator<String> it = cellListNames.iterator(); it.hasNext(); ) {
-                    String name = (String)it.next();
+                    String name = it.next();
                     if (name.equals(lastDeleted)) {
                         if (it.hasNext())
-                            lastSelectedCell = (String)it.next();
+                            lastSelectedCell = it.next();
                         break;
                     }
                 }
@@ -682,7 +677,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         // get view if specified (all if not)
         View view = null;
         for (Iterator<View> it = View.getViews(); it.hasNext(); ) {
-            View v = (View)it.next();
+            View v = it.next();
             if (v.getFullName().equals(viewName)) {
                 view = v;
                 break;
@@ -709,9 +704,9 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         if (lib == null) {
             // do all libraries
             for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                Library library = (Library)it.next();
+                Library library = it.next();
                 for (Iterator<Cell> it2 = library.getCells(); it2.hasNext(); ) {
-                    Cell c = (Cell)it2.next();
+                    Cell c = it2.next();
                     if (view != null) {
                         if (view != c.getView()) continue;     // skip if not filtered view
                     }
@@ -725,7 +720,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         } else {
             // just do selected library
             for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                Cell c = (Cell)it.next();
+                Cell c = it.next();
                 if (view != null) {
                     if (view != c.getView()) continue;     // skip if not filtered view
                 }
@@ -739,8 +734,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         Collections.sort(cellList);      // sort list by name
 
         cellListNames = new ArrayList<String>();
-        for (Iterator<Cell> it = cellList.iterator(); it.hasNext(); ) {
-            Cell c = (Cell)it.next();
+        for (Cell c : cellList) {
             cellListNames.add(c.noLibDescribe());
         }
 
@@ -757,7 +751,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         if (lastSelectedCell != null) {
             int i;
             for (i=0; i<cellListNames.size(); i++) {
-                String name = (String)cellListNames.get(i);
+                String name = cellListNames.get(i);
                 if (name.equals(lastSelectedCell)) {
                     jList1.setSelectedIndex(i);
                     break;
@@ -773,7 +767,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             if (cell != null) {
                 String findname = cell.noLibDescribe();
                 for (int i=0; i<cellListNames.size(); i++) {
-                    String name = (String)cellListNames.get(i);
+                    String name = cellListNames.get(i);
                     if (name.equals(findname)) {
                         jList1.setSelectedIndex(i);
                         lastSelectedCell = findname;
@@ -792,7 +786,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     public Cell getSelectedCell() {
 		if (cancelled) return null;
         int i = jList1.getSelectedIndex();
-		return (i == -1)? null : (Cell)cellList.get(i);
+		return (i == -1)? null : cellList.get(i);
     }
 
     /**
@@ -804,7 +798,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         ArrayList<Cell> list = new ArrayList<Cell>();
         for (int i=0; i<is.length; i++) {
             int celli = is[i];
-            Cell cell = (Cell)cellList.get(celli);
+            Cell cell = cellList.get(celli);
             if (cell == null) continue;
             list.add(cell);
         }

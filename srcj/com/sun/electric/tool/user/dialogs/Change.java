@@ -219,7 +219,7 @@ public class Change extends EDialog implements HighlightListener
 		if (src == changeInCell) whatToChange = CHANGE_CELL; else
 		if (src == changeInLibrary) whatToChange = CHANGE_LIBRARY; else
 		if (src == changeEverywhere) whatToChange = CHANGE_EVERYWHERE;
-        Geometric geomToChange = (Geometric)geomsToChange.get(0);
+        Geometric geomToChange = geomsToChange.get(0);
 		if (whatToChange == CHANGE_EVERYWHERE)
 		{
 			if (geomToChange instanceof ArcInst)
@@ -283,7 +283,7 @@ public class Change extends EDialog implements HighlightListener
 		changeInCell.setEnabled(true);
 		changeInLibrary.setEnabled(true);
 		changeEverywhere.setEnabled(true);
-		Geometric geomToChange = (Geometric)geomsToChange.get(0);
+		Geometric geomToChange = geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			librariesPopup.setEnabled(true);
@@ -329,7 +329,7 @@ public class Change extends EDialog implements HighlightListener
 		changeNodeProtoList.clear();
 		if (geomsToChange.size() == 0) return;
 		Technology curTech = Technology.getCurrent();
-        Geometric geomToChange = (Geometric)geomsToChange.get(0);
+        Geometric geomToChange = geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)geomToChange;
@@ -462,11 +462,11 @@ public class Change extends EDialog implements HighlightListener
 	{
 		NodeProto np = null;
 		ArcProto ap = null;
-		Geometric geomToChange = (Geometric)geomsToChange.get(0);
+		Geometric geomToChange = geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			int index = changeList.getSelectedIndex();
-	        np = (NodeProto)changeNodeProtoList.get(index);
+	        np = changeNodeProtoList.get(index);
 		} else
 		{
 	        String line = (String)changeList.getSelectedValue();
@@ -1006,7 +1006,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni0 = ai.getHeadPortInst().getNodeInst();
 				PortInst pi0 = null;
-				NodeInst newNi0 = (NodeInst)newNodes.get(ni0);
+				NodeInst newNi0 = newNodes.get(ni0);
 				if (newNi0 != null)
 				{
 					ni0 = newNi0;
@@ -1019,7 +1019,7 @@ public class Change extends EDialog implements HighlightListener
 				}
 				NodeInst ni1 = ai.getTailPortInst().getNodeInst();
 				PortInst pi1 = null;
-				NodeInst newNi1 = (NodeInst)newNodes.get(ni1);
+				NodeInst newNi1 = newNodes.get(ni1);
 				if (newNi1 != null)
 				{
 					ni1 = newNi1;

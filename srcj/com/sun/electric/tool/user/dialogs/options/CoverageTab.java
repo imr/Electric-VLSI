@@ -120,7 +120,7 @@ public class CoverageTab extends PreferencePanel
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			GenMath.MutableDouble val = (GenMath.MutableDouble)layerAreaMap.get(layer);
+			GenMath.MutableDouble val = layerAreaMap.get(layer);
 			if (val == null) continue;
             layerListModel.addElement(getLineString(layer, val.doubleValue()));
 		}

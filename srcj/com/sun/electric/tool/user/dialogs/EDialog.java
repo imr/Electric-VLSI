@@ -70,7 +70,7 @@ public class EDialog extends JDialog
 		if (Job.BATCHMODE) return;
 
 		thisClass = this.getClass();
-		Point pt = (Point)locations.get(thisClass);
+		Point pt = locations.get(thisClass);
 		if (pt == null)
 		{
 			pt = User.getDefaultWindowPos();
@@ -101,7 +101,7 @@ public class EDialog extends JDialog
 	 */
 	protected void finishInitialization()
 	{
-		Point sz = (Point)sizes.get(thisClass);
+		Point sz = sizes.get(thisClass);
 		if (sz != null)
 		{
 			this.setSize(sz.x, sz.y);
@@ -208,7 +208,7 @@ public class EDialog extends JDialog
 
         public synchronized void windowGainedFocus(WindowEvent e) {
             for (int i=0; i<dialogs.size(); i++) {
-                EDialog dialog = (EDialog)dialogs.get(i);
+                EDialog dialog = dialogs.get(i);
                 // this seems to be causing problems on windows platforms
                 //dialog.toFront();
             }

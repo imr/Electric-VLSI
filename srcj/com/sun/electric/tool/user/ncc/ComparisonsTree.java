@@ -170,9 +170,9 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 mismEqRecs = new EquivRecord[size];
                 int i = 0;
                 for (Iterator<EquivRecord> it=lpRes.getBadPartEquivRecs(); it.hasNext();)
-                    mismEqRecs[i++] = (EquivRecord)it.next();
+                    mismEqRecs[i++] = it.next();
                 for (Iterator<EquivRecord> it=lpRes.getBadWireEquivRecs(); it.hasNext();)
-                    mismEqRecs[i++] = (EquivRecord)it.next();                
+                    mismEqRecs[i++] = it.next();                
             } else if (isHashChecked) {  // hashcode parts/wires entries
                 mismEqRecs = cm.getHashMismatchedEquivRecords();
             }
@@ -326,7 +326,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (! isHashChecked) {  // don't process reasons for hash code classes
                 it = reasons.iterator();
                 if (it.hasNext()) {
-                    reas = (String)it.next();
+                    reas = it.next();
                     // fetch part type if it's available
                     int ind = reas.indexOf("type is ");
                     if (ind >= 0) {
@@ -336,7 +336,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 } 
                 if (it.hasNext() || reas != null) {
                     if (reas == null) {
-                        reas = (String)it.next();
+                        reas = it.next();
                         nodeName.append(", ");
                     } else
                         nodeName.append(": ");
@@ -367,7 +367,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                                 new TreeNode(partTreeNode, reas, compNdx, i, TreeNode.PARTLEAF)));
                     while (it.hasNext())
                         eclass.add(new DefaultMutableTreeNode(
-                                   new TreeNode(partTreeNode, (String)it.next(), 
+                                   new TreeNode(partTreeNode, it.next(), 
                                                 compNdx, i, TreeNode.PARTLEAF)));
                 }
             }
@@ -590,10 +590,10 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (isHashPrinted) {
                 // for each of the two compared Cells
                 for (Iterator<Circuit> it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
-                    Circuit ckt = (Circuit) it.next();
+                    Circuit ckt = it.next();
                     Iterator<NetObject> it2=ckt.getNetObjs();
                     if (it2.hasNext()) {
-                        instDescr = ((NetObject) it2.next()).instanceDescription();
+                        instDescr = (it2.next()).instanceDescription();
                         descr[cell] = createFirstWireOverview(instDescr, it2.hasNext());
                     } else
                         descr[cell] = "{ }";
@@ -603,7 +603,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                     if (mism[cell].size() == 0) {
                         descr[cell] = "{ }";
                     } else if (mism[cell].size() > 0) {
-                        instDescr = ((NetObject)mism[cell].get(0)).instanceDescription();
+                        instDescr = mism[cell].get(0).instanceDescription();
                         descr[cell] =  createFirstWireOverview(instDescr, (mism[cell].size() > 1));
                     }
                 }

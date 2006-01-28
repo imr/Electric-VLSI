@@ -208,7 +208,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         public Object getValueAt(int rowIndex, int columnIndex) {
 
             // order: name, value
-            VarEntry ve = (VarEntry)vars.get(rowIndex);
+            VarEntry ve = vars.get(rowIndex);
 
             if (ve == null) return null;
 
@@ -251,7 +251,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /** Set a value */
         public void setValueAt(Object aValue, int row, int col) {
-            VarEntry ve = (VarEntry)vars.get(row);
+            VarEntry ve = vars.get(row);
             ElectricObject owner = ve.getOwner();
             if (ve == null) return;
             if (owner == null) return;
@@ -385,7 +385,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                         "Invalid Action", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            VarEntry srcVe = (VarEntry)vars.get(row);
+            VarEntry srcVe = vars.get(row);
 
             VarEntry ve = new VarEntry(srcVe.getOwner(), null);
             ve.var = null;

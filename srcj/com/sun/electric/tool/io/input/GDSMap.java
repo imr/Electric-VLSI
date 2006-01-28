@@ -155,8 +155,8 @@ public class GDSMap extends EDialog
 
 		// make a list of names
 		List<String> nameList = new ArrayList<String>();
-		for(Iterator<String> it = allNames.iterator(); it.hasNext(); )
-			nameList.add(it.next());
+		for(String name : allNames)
+			nameList.add(name);
 		Collections.sort(nameList, TextUtils.STRING_NUMBER_ORDER);
 
 		// show the list
@@ -164,9 +164,8 @@ public class GDSMap extends EDialog
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		int row = 1;
-		for(Iterator<String> it = nameList.iterator(); it.hasNext(); )
+		for(String name : nameList)
 		{
-			String name = (String)it.next();
 			JLabel lab = new JLabel(name);		
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0; gbc.gridy = row;
@@ -176,7 +175,7 @@ public class GDSMap extends EDialog
 			JComboBox comboBox = new JComboBox();
 			comboBox.addItem("<<IGNORE>>");
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-				comboBox.addItem(((Layer)lIt.next()).getName());
+				comboBox.addItem(lIt.next().getName());
 			String savedAssoc = getSavedAssoc(name);
 			if (savedAssoc.length() > 0) comboBox.setSelectedItem(savedAssoc);
 			gbc = new GridBagConstraints();
@@ -230,10 +229,9 @@ public class GDSMap extends EDialog
 
 	public void termDialog()
 	{
-		for(Iterator<String> it = assocCombos.keySet().iterator(); it.hasNext(); )
+		for(String name : assocCombos.keySet())
 		{
-			String name = (String)it.next();
-			JComboBox combo = (JComboBox)assocCombos.get(name);
+			JComboBox combo = assocCombos.get(name);
 			String layerName = "";
 			if (combo.getSelectedIndex() != 0)
 				layerName = (String)combo.getSelectedItem();
@@ -243,23 +241,21 @@ public class GDSMap extends EDialog
 		// wipe out all GDS layer associations
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			layer.setGDSLayer("");
 		}
 
 		// set the associations
-		for(Iterator<MapLine> it = drawingEntries.iterator(); it.hasNext(); )
+		for(MapLine ml : drawingEntries)
 		{
-			MapLine ml = (MapLine)it.next();
 			String layerName = (String)getSavedAssoc(ml.name);
 			if (layerName.length() == 0) continue;
 			Layer layer = tech.findLayer(layerName);
 			if (layer == null) continue;
 			String layerInfo = "" + ml.layer;
 			if (ml.type != 0) layerInfo += "/" + ml.type;
-			for(Iterator<MapLine> pIt = pinEntries.iterator(); pIt.hasNext(); )
+			for(MapLine pMl : pinEntries)
 			{
-				MapLine pMl = (MapLine)pIt.next();
 				if (pMl.name.equals(ml.name))
 				{
 					if (pMl.layer != -1)
@@ -292,7 +288,7 @@ public class GDSMap extends EDialog
 
 	private String getSavedAssoc(String mapName)
 	{
-		Pref pref = (Pref)savedAssocs.get(mapName);
+		Pref pref = savedAssocs.get(mapName);
 		if (pref == null)
 		{
 			pref = Pref.makeStringPref("GDSMappingFor" + mapName, IOTool.getIOTool().prefs, "");
@@ -303,7 +299,7 @@ public class GDSMap extends EDialog
 
 	private void setSavedAssoc(String mapName, String layerName)
 	{
-		Pref pref = (Pref)savedAssocs.get(mapName);
+		Pref pref = savedAssocs.get(mapName);
 		if (pref == null)
 		{
 			pref = Pref.makeStringPref("GDSMappingFor" + mapName, IOTool.getIOTool().prefs, "");

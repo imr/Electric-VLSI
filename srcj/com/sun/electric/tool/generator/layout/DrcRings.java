@@ -57,7 +57,7 @@ public class DrcRings {
 		
 		// place a DrcRing around each instance
 		for (int i=0; i<gates.size(); i++) {
-			NodeInst ni = (NodeInst) gates.get(i);
+			NodeInst ni = gates.get(i);
 			
 			// skip things user doesn't want ring around
 			if (filter.skip(ni)) continue;

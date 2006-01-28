@@ -65,10 +65,8 @@ public class ChangeCurrentLib extends EDialog
 		jScrollPane1.setViewportView(changeList);
 
 		changeListModel.clear();
-		/*for(Library lib: Library.getVisibleLibraries())	changeListModel.addElement(lib.getName());*/
-		for (Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for (Library lib : Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			changeListModel.addElement(lib.getName());
 		}
 		changeList.addMouseListener(new MouseAdapter()

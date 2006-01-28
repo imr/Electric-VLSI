@@ -119,40 +119,40 @@ public final class ExportChanges
 			// make associations among electrically equivalent exports
 			for(int j=0; j<num_found; j++)
 			{
-				int eqJ = ((ExportList)exports.get(j)).equiv;
-				int blJ = ((ExportList)exports.get(j)).busList;
+				int eqJ = exports.get(j).equiv;
+				int blJ = exports.get(j).busList;
 				if (eqJ != -1 || blJ != -1) continue;
-				Export ppJ = ((ExportList)exports.get(j)).pp;
+				Export ppJ = exports.get(j).pp;
 				for(int k=j+1; k<num_found; k++)
 				{
-					int eqK = ((ExportList)exports.get(k)).equiv;
-					int blK = ((ExportList)exports.get(k)).busList;
+					int eqK = exports.get(k).equiv;
+					int blK = exports.get(k).busList;
 					if (eqK != -1 || blK != -1) continue;
-					Export ppK = ((ExportList)exports.get(k)).pp;
+					Export ppK = exports.get(k).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
 					if (!netlist.sameNetwork(ppJ.getOriginalPort().getNodeInst(), ppJ.getOriginalPort().getPortProto(),
 						ppK.getOriginalPort().getNodeInst(), ppK.getOriginalPort().getPortProto())) continue;
-					((ExportList)exports.get(k)).equiv = j;
-					((ExportList)exports.get(j)).equiv = -2;
+					exports.get(k).equiv = j;
+					exports.get(j).equiv = -2;
 				}
 			}
 
 			// make associations among bussed exports
 			for(int j=0; j<num_found; j++)
 			{
-				int eqJ = ((ExportList)exports.get(j)).equiv;
-				int blJ = ((ExportList)exports.get(j)).busList;
+				int eqJ = exports.get(j).equiv;
+				int blJ = exports.get(j).busList;
 				if (eqJ != -1 || blJ != -1) continue;
-				Export ppJ = ((ExportList)exports.get(j)).pp;
+				Export ppJ = exports.get(j).pp;
 				String ptJ = ppJ.getName();
 				int sqPosJ = ptJ.indexOf('[');
 				if (sqPosJ < 0) continue;
 				for(int k=j+1; k<num_found; k++)
 				{
-					int eqK = ((ExportList)exports.get(k)).equiv;
-					int blK = ((ExportList)exports.get(k)).busList;
+					int eqK = exports.get(k).equiv;
+					int blK = exports.get(k).busList;
 					if (eqK != -1 || blK != -1) continue;
-					Export ppK = ((ExportList)exports.get(k)).pp;
+					Export ppK = exports.get(k).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
 
 					String ptK = ppK.getName();
@@ -160,8 +160,8 @@ public final class ExportChanges
 					if (sqPosJ != sqPosK) continue;
 					if (ptJ.substring(0, sqPosJ).equalsIgnoreCase(ptK.substring(0, sqPosK)))
 					{
-						((ExportList)exports.get(k)).busList = j;
-						((ExportList)exports.get(j)).busList = -2;
+						exports.get(k).busList = j;
+						exports.get(j).busList = -2;
 					}
 				}
 			}
@@ -172,7 +172,7 @@ public final class ExportChanges
 		HashSet<ArcProto> arcsSeen = new HashSet<ArcProto>();
 		for(int j=0; j<num_found; j++)
 		{
-			ExportList el = (ExportList)exports.get(j);
+			ExportList el = exports.get(j);
 			Export pp = el.pp;
 			if (el.equiv >= 0 || el.busList >= 0) continue;
 
@@ -192,7 +192,7 @@ public final class ExportChanges
 			int m = j+1;
 			for( ; m<num_found; m++)
 			{
-				if (((ExportList)exports.get(m)).equiv == j) break;
+				if (exports.get(m).equiv == j) break;
 			}
 			double lx = 0, hx = 0, ly = 0, hy = 0;
 			if (m < num_found)
@@ -201,9 +201,9 @@ public final class ExportChanges
 				infstr += activity + " exports ";
 				for(int k=j; k<num_found; k++)
 				{
-					if (j != k && ((ExportList)exports.get(k)).equiv != j) continue;
+					if (j != k && exports.get(k).equiv != j) continue;
 					if (j != k) infstr += ", ";
-					Export opp = ((ExportList)exports.get(k)).pp;
+					Export opp = exports.get(k).pp;
 					infstr += "'" + opp.getName() + "'";
 					Poly poly = opp.getOriginalPort().getPoly();
 					double x = poly.getCenterX();
@@ -229,7 +229,7 @@ public final class ExportChanges
 				m = j + 1;
 				for( ; m<num_found; m++)
 				{
-					if (((ExportList)exports.get(m)).busList == j) break;
+					if (exports.get(m).busList == j) break;
 				}
 				if (m < num_found)
 				{
@@ -237,9 +237,9 @@ public final class ExportChanges
 					int tot = 0;
 					for(int k=j; k<num_found; k++)
 					{
-						if (j != k && ((ExportList)exports.get(k)).busList != j) continue;
+						if (j != k && exports.get(k).busList != j) continue;
 						tot++;
-						Export opp = ((ExportList)exports.get(k)).pp;
+						Export opp = exports.get(k).pp;
 						Poly poly = opp.getOriginalPort().getPoly();
 						double x = poly.getCenterX();
 						double y = poly.getCenterY();
@@ -259,10 +259,10 @@ public final class ExportChanges
 					}
 
 					List<Export> sortedBusList = new ArrayList<Export>();
-					sortedBusList.add(((ExportList)exports.get(j)).pp);
+					sortedBusList.add(exports.get(j).pp);
 					for(int k=j+1; k<num_found; k++)
 					{
-						ExportList elK = (ExportList)exports.get(k);
+						ExportList elK = exports.get(k);
 						if (elK.busList == j) sortedBusList.add(elK.pp);
 					}
 
@@ -736,7 +736,7 @@ public final class ExportChanges
             Export refExport = null;
             if (originalExports != null)
             {
-				refExport = (Export)originalExports.get(pi);
+				refExport = originalExports.get(pi);
 	            if (refExport != null) protoName = refExport.getName();
             }
 

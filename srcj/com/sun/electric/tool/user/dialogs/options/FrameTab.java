@@ -74,10 +74,8 @@ public class FrameTab extends PreferencePanel
 
 		// cache text in each library
 		frameLibInfo = new HashMap<Library,LibraryFrameInfo>();
-		/*for(Library lib: Library.getVisibleLibraries())*/
-		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		for(Library lib : Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			LibraryFrameInfo lfi = new LibraryFrameInfo();
 			String company = "";
 			String designer = "";
@@ -117,7 +115,7 @@ public class FrameTab extends PreferencePanel
 	{
 		String libName = (String)frameLibrary.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
+		LibraryFrameInfo lfi = frameLibInfo.get(lib);
 		if (lfi == null) return;
 		frameInfoUpdating = true;
 		frameLibraryCompany.setText(lfi.companyName.getString());
@@ -131,7 +129,7 @@ public class FrameTab extends PreferencePanel
 		if (frameInfoUpdating) return;
 		String libName = (String)frameLibrary.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
+		LibraryFrameInfo lfi = frameLibInfo.get(lib);
 		if (lfi == null) return;
 		lfi.companyName.setString(frameLibraryCompany.getText());
 		lfi.designerName.setString(frameLibraryDesigner.getText());
@@ -170,10 +168,9 @@ public class FrameTab extends PreferencePanel
 			User.setFrameProjectName(currValue);
 
 		// save per-library title box info
-		for(Iterator<Library> it = frameLibInfo.keySet().iterator(); it.hasNext(); )
+		for(Library lib : frameLibInfo.keySet())
 		{
-			Library lib = (Library)it.next();
-			LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
+			LibraryFrameInfo lfi = frameLibInfo.get(lib);
 			if (lfi == null) continue;
 			if (!lfi.companyName.getString().equals(lfi.companyName.getFactoryValue()))
 				lib.newVar(User.FRAME_COMPANY_NAME, lfi.companyName.getString());

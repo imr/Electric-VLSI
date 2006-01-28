@@ -560,7 +560,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				textArray = new String[textList.size()];
 				for (int i=0; i<textList.size(); i++)
 				{
-					String str = (String)textList.get(i);
+					String str = textList.get(i);
 					textArray[i] = str;
 				}
 
@@ -897,7 +897,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
             textArray = new String[textList.size()];
             for (int i=0; i<textList.size(); i++) {
-                String str = (String)textList.get(i);
+                String str = textList.get(i);
                 textArray[i] = str;
             }
 

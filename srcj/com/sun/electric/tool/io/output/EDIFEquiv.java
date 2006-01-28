@@ -75,7 +75,7 @@ public class EDIFEquiv {
                 }
             }
         }
-        return (NodeEquivalence)equivsByNodeProto.get(getElectricKey(np, func, exportType));
+        return equivsByNodeProto.get(getElectricKey(np, func, exportType));
     }
 
 	/**
@@ -85,7 +85,7 @@ public class EDIFEquiv {
 	 */
 	public VariableEquivalence getElectricVariableEquivalence(String varName)
 	{
-		VariableEquivalence ve = (VariableEquivalence)exportByVariable.get(varName);
+		VariableEquivalence ve = exportByVariable.get(varName);
 		return ve;
 	}
 
@@ -96,7 +96,7 @@ public class EDIFEquiv {
 	 */
 	public VariableEquivalence getExternalVariableEquivalence(String varName)
 	{
-		VariableEquivalence ve = (VariableEquivalence)exportFromVariable.get(varName);
+		VariableEquivalence ve = exportFromVariable.get(varName);
 		return ve;
 	}
 
@@ -107,7 +107,7 @@ public class EDIFEquiv {
 	 */
 	public FigureGroupEquivalence getElectricFigureGroupEquivalence(String fgName)
 	{
-		FigureGroupEquivalence fge = (FigureGroupEquivalence)exportByFigureGroup.get(fgName);
+		FigureGroupEquivalence fge = exportByFigureGroup.get(fgName);
 		return fge;
 	}
 
@@ -118,7 +118,7 @@ public class EDIFEquiv {
 	 */
 	public FigureGroupEquivalence getExternalFigureGroupEquivalence(String fgName)
 	{
-		FigureGroupEquivalence fge = (FigureGroupEquivalence)exportFromFigureGroup.get(fgName);
+		FigureGroupEquivalence fge = exportFromFigureGroup.get(fgName);
 		return fge;
 	}
 
@@ -129,7 +129,7 @@ public class EDIFEquiv {
 	 */
 	public GlobalEquivalence getElectricGlobalEquivalence(String gName)
 	{
-		GlobalEquivalence ge = (GlobalEquivalence)exportByGlobal.get(gName);
+		GlobalEquivalence ge = exportByGlobal.get(gName);
 		return ge;
 	}
 
@@ -140,7 +140,7 @@ public class EDIFEquiv {
 	 */
 	public GlobalEquivalence getExternalGlobalEquivalence(String gName)
 	{
-		GlobalEquivalence ge = (GlobalEquivalence)exportFromGlobal.get(gName);
+		GlobalEquivalence ge = exportFromGlobal.get(gName);
 		return ge;
 	}
 
@@ -153,7 +153,7 @@ public class EDIFEquiv {
      */
     public NodeEquivalence getNodeEquivalence(String extLib, String extCell, String extView) {
         Object key = getExternalKey(extLib, extCell, extView);
-        return (NodeEquivalence)equivsByExternal.get(key);
+        return equivsByExternal.get(key);
     }
 
     /**
@@ -235,7 +235,7 @@ public class EDIFEquiv {
             return;
         }
         for (int i=0; i<elecPorts.size(); i++) {
-            PortEquivalence pe = new PortEquivalence((Port)elecPorts.get(i), (Port)extPorts.get(i));
+            PortEquivalence pe = new PortEquivalence(elecPorts.get(i), extPorts.get(i));
             portEquivs.add(pe);
         }
         NodeEquivalence equiv = new NodeEquivalence(np, func, exportType, extLib, extCell, extView, rot, portEquivs);

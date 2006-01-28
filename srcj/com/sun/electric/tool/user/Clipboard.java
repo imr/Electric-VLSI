@@ -749,11 +749,11 @@ public class Clipboard
 			for(ArcInst ai : theArcs)
 			{
 				PortInst oldHeadPi = ai.getHeadPortInst();
-				NodeInst headNi = (NodeInst)newNodes.get(oldHeadPi.getNodeInst());
+				NodeInst headNi = newNodes.get(oldHeadPi.getNodeInst());
 				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
 
 				PortInst oldTailPi = ai.getTailPortInst();
-				NodeInst tailNi = (NodeInst)newNodes.get(oldTailPi.getNodeInst());
+				NodeInst tailNi = newNodes.get(oldTailPi.getNodeInst());
 				PortInst tailPi = tailNi.findPortInstFromProto(oldTailPi.getPortProto());
 
 				String name = null;
@@ -762,7 +762,7 @@ public class Clipboard
 					name = ai.getName();
 					if (uniqueArcs)
 					{
-						String newName = (String)newArcNames.get(name);
+						String newName = newArcNames.get(name);
 						if (newName == null)
 						{
 							newName = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class);

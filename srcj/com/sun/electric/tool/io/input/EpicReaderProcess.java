@@ -186,7 +186,7 @@ class EpicReaderProcess {
                 int sigNum = atoi(split[2]);
                 while (signalsByEpicIndex.size() <= sigNum)
                     signalsByEpicIndex.add(null);
-                EpicReaderSignal s = (EpicReaderSignal)signalsByEpicIndex.get(sigNum);
+                EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
                 if (s == null) {
                     s = new EpicReaderSignal();
                     signalsByEpicIndex.set(sigNum, s);
@@ -367,7 +367,7 @@ class EpicReaderProcess {
      * @param value new value of signal.
      */
     private void putValue(int sigNum, int value) {
-        EpicReaderSignal s = (EpicReaderSignal)signalsByEpicIndex.get(sigNum);
+        EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
         if (s == null) {
             message("Signal " + sigNum + " not defined");
             return;

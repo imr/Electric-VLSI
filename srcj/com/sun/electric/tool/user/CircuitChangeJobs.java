@@ -530,7 +530,7 @@ public class CircuitChangeJobs
 					{
 						Connection con = aIt.next();
 						ArcInst ai = con.getArc();
-						Integer constr = (Integer)constraints.get(ai);
+						Integer constr = constraints.get(ai);
 						if (constr == null) continue;
 						if ((constr.intValue() & 1) != 0) ai.setRigid(true);
 						if ((constr.intValue() & 2) != 0) ai.setFixedAngle(true);
@@ -1612,7 +1612,7 @@ public class CircuitChangeJobs
             }
 			for(NodeInst ni : pinsToScale.keySet())
 			{
-				Point2D scale = (Point2D)pinsToScale.get(ni);
+				Point2D scale = pinsToScale.get(ni);
 				ni.resize(scale.getX(), scale.getY());
 //				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
 			}
@@ -1996,7 +1996,7 @@ public class CircuitChangeJobs
 			{
 				if (!(eobj instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)eobj;
-				Point2D pt = (Point2D)arcLocation.get(ai);
+				Point2D pt = arcLocation.get(ai);
 				if (pt.getX() != ai.getTrueCenterX() ||
 					pt.getY() != ai.getTrueCenterY()) continue;
 
@@ -2025,7 +2025,7 @@ public class CircuitChangeJobs
 						NodeInst ni;
 						if (k == 0) ni = ai.getHeadPortInst().getNodeInst(); else
 							ni = ai.getTailPortInst().getNodeInst();
-						Point2D nPt = (Point2D)nodeLocation.get(ni);
+						Point2D nPt = nodeLocation.get(ni);
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
@@ -2034,7 +2034,7 @@ public class CircuitChangeJobs
 							if (oEObj instanceof ArcInst)
 							{
 								ArcInst oai = (ArcInst)oEObj;
-								Point2D aPt = (Point2D)arcLocation.get(oai);
+								Point2D aPt = arcLocation.get(oai);
 								if (aPt.getX() != oai.getTrueCenterX() ||
 									aPt.getY() != oai.getTrueCenterY()) continue;
 								if (oai.headStillInPort(
@@ -2626,7 +2626,7 @@ public class CircuitChangeJobs
         private static HashMap<PrimitiveNode,List<Variable.Key>> posVarsMap = new HashMap<PrimitiveNode,List<Variable.Key>>();
 
         private static void add(String varName, PrimitiveNode pn) {
-            List<Variable.Key> varKeys = (List<Variable.Key>)posVarsMap.get(pn);
+            List<Variable.Key> varKeys = posVarsMap.get(pn);
             if (varKeys == null) {
                 varKeys = new ArrayList<Variable.Key>();
                 posVarsMap.put(pn, varKeys);
@@ -2660,7 +2660,7 @@ public class CircuitChangeJobs
          * @return an Iterator over the Variable Keys on the Primitive Node.
          */
         public Iterator<Variable.Key> getPossibleVarKeys(PrimitiveNode pn) {
-            List<Variable.Key> varKeys = (List<Variable.Key>)posVarsMap.get(pn);
+            List<Variable.Key> varKeys = posVarsMap.get(pn);
             if (varKeys == null)
                 varKeys = new ArrayList<Variable.Key>();
             return varKeys.iterator();
@@ -2673,7 +2673,7 @@ public class CircuitChangeJobs
          * @return true if a Variable key exists on the primitive node.
          */
         public static boolean validKey(Variable.Key key, PrimitiveNode pn) {
-            List varKeys = (List)posVarsMap.get(pn);
+            List varKeys = posVarsMap.get(pn);
             if (varKeys == null) return false;
             return varKeys.contains(key);
         }

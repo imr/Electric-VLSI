@@ -88,6 +88,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
+import java.awt.print.PageFormat;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1033,17 +1034,15 @@ public class View3DWindow extends JPanel
 
 	/**
 	 * Method to intialize for printing.
-	 * @param ep printable object.
-	 * @param pageWid the width of the print page in pixels.
-	 * @param pageHei the height of the print page in pixels.
-	 * @param oldSize the original size of the window being printed.
+	 * @param ep the ElectricPrinter object.
+	 * @param pageFormat information about the print job.
 	 */
-	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize) {}
+	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat) {}
 
 	/**
 	 * Method to print window using offscreen canvas.
 	 * @param ep printable object.
-	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 * @return the image to print (null on error).
 	 */
 	public BufferedImage getPrintImage(ElectricPrinter ep)
     {

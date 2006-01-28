@@ -185,21 +185,20 @@ public class CIF extends Geometry
 
 		// write all polys by Layer
 		Set<Layer> layers = cellGeom.polyMap.keySet();
-		for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
+		for (Layer layer : layers)
 		{
-			Layer layer = (Layer)it.next();
 			if (writeLayer(layer)) continue;
-			List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
-			for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
+			List<Object> polyList = cellGeom.polyMap.get(layer);
+			for (Object polyObj : polyList)
 			{
 				if (includeGeometric())
 				{
-					PolyWithGeom pg = (PolyWithGeom)polyIt.next();
+					PolyWithGeom pg = (PolyWithGeom)polyObj;
 					Poly poly = pg.poly;
 					writePoly(poly, cellGeom.cell, pg.geom);
 				} else
 				{
-					PolyBase poly = (PolyBase)polyIt.next();
+					PolyBase poly = (PolyBase)polyObj;
 					writePoly(poly, cellGeom.cell, null);
 				}
 			}
@@ -208,7 +207,7 @@ public class CIF extends Geometry
 		// write all instances
 		for (Iterator<NodeInst> noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)noIt.next();
+			NodeInst ni = noIt.next();
 			if (ni.getProto() instanceof Cell)
 				writeNodable(ni);
 		}
@@ -317,7 +316,7 @@ public class CIF extends Geometry
 		}
 
 		// write a call to the cell
-		int cellNum = ((Integer)cellNumbers.get(cell)).intValue();
+		int cellNum = cellNumbers.get(cell).intValue();
 		int rotx = (int)(DBMath.cos(ni.getAngle()) * 100);
 		int roty = (int)(DBMath.sin(ni.getAngle()) * 100);
 		String line = "C " + cellNum + " R " + rotx + " " + roty;

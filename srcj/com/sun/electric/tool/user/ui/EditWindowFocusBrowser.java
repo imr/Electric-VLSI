@@ -69,7 +69,7 @@ public class EditWindowFocusBrowser {
 		updateCurrentFocus();
 
         // go to previous focus
-		Focus focus = (Focus)savedFoci.get(previousFocus);
+		Focus focus = savedFoci.get(previousFocus);
 		restoreFocus(focus);
 		currentFocus = previousFocus;
         if (DEBUG) System.out.println("Went back, last saved focus is "+currentFocus+" out of "+savedFoci.size());
@@ -90,7 +90,7 @@ public class EditWindowFocusBrowser {
 		updateCurrentFocus();
 
         // go to next focus
-		Focus focus = (Focus)savedFoci.get(nextFocus);
+		Focus focus = savedFoci.get(nextFocus);
 		restoreFocus(focus);
 		currentFocus = nextFocus;
         if (DEBUG) System.out.println("Went forward, last saved focus is "+currentFocus+" out of "+savedFoci.size());

@@ -285,8 +285,7 @@ public class ClickZoomWireListener
                     // ignore anything that can't have a wire drawn to it
                     // (everything except nodes, ports, and arcs)
                     List<Highlight2> highlights = new ArrayList<Highlight2>();
-                    for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-                        Highlight2 h = it.next();
+                    for (Highlight2 h : highlighter.getHighlights()) {
                         if (h.isHighlightEOBJ()) {
                             ElectricObject eobj = h.getElectricObject();
                             if (eobj instanceof PortInst || eobj instanceof NodeInst || eobj instanceof ArcInst)
@@ -533,8 +532,7 @@ public class ClickZoomWireListener
 	                        EditWindow.gridAlign(dbMouse);
 	                        List<Highlight2> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, true, false, specialSelect, false,
 	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
-	                        for (Iterator<Highlight2> hs = underCursor.iterator(); hs.hasNext(); ) {
-	                            Highlight2 h = hs.next();
+	                        for (Highlight2 h : underCursor) {
 	                            ElectricObject eobj = h.getElectricObject();
 	                            if (eobj == wiringTarget) {
 	                                endObj = wiringTarget;
@@ -564,7 +562,7 @@ public class ClickZoomWireListener
 	                    text.add("Connect to:");
 	                    int num = 1;
 	                    for (int i=0; i<underCursor.size(); i++) {
-	                        Highlight h = (Highlight)underCursor.get(i);
+	                        Highlight h = underCursor.get(i);
 	                        ElectricObject obj = h.getElectricObject();
 	                        if (num == 10) {
 	                            text.add("...too many to display");
@@ -1035,7 +1033,7 @@ public class ClickZoomWireListener
 			if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
 				for (int i=0; i<wiringPopupCloudList.size(); i++) {
 					if (chr == (KeyEvent.VK_1 + i)) {
-						PortInst pi = (PortInst)wiringPopupCloudList.get(i);
+						PortInst pi = wiringPopupCloudList.get(i);
 						EditWindow.gridAlign(wiringLastDBMouse);
 						router.makeRoute(wnd, startObj, pi, wiringLastDBMouse);
 						wnd.clearShowPopupCloud();      // clear popup cloud
@@ -1218,7 +1216,7 @@ public class ClickZoomWireListener
         Technology tech = Technology.getCurrent();
         boolean found = false;
         for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
-            ap = (ArcProto)it.next();
+            ap = it.next();
             if (ap.isNotUsed()) continue;               // ignore arcs that aren't used
             switch(layerNumber) {
                 case 0: {
@@ -1271,8 +1269,7 @@ public class ClickZoomWireListener
     public JPopupMenu selectPopupMenu(List<Highlight2> objects) {
         JPopupMenu popup = new JPopupMenu("Choose One");
         JMenuItem m;
-        for (Iterator<Highlight2> it = objects.iterator(); it.hasNext(); ) {
-            Highlight2 obj = it.next();
+        for (Highlight2 obj : objects) {
             m = new JMenuItem(obj.toString()); m.addActionListener(this); popup.add(m);
         }
         //lastPopupMenu = "Select";

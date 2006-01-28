@@ -106,6 +106,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -267,10 +268,11 @@ public class EditWindow extends JPanel
 
 		//setAutoscrolls(true);
 
+		installHighlighters();
+
 		if (wf != null)
 		{
 			// make a highlighter for this window
-			installHighlighters();
 			Undo.addDatabaseChangeListener(this);
 			Highlighter.addHighlightListener(this);
 			setCell(cell, VarContext.globalContext);
@@ -1267,7 +1269,7 @@ public class EditWindow extends JPanel
 				}
 				if (redrawThese.size() > 0)
 				{
-					runningNow = (EditWindow)redrawThese.get(0);
+					runningNow = redrawThese.get(0);
 					redrawThese.remove(0);
                     logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "restart RenderJob");
 					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null, false);
@@ -2044,7 +2046,7 @@ public class EditWindow extends JPanel
 			currentFindPosition++;
 			if (currentFindPosition >= foundInCell.size()) currentFindPosition = 0;
 		}
-		currentStringInCell = (StringsInCell)foundInCell.get(currentFindPosition);
+		currentStringInCell = foundInCell.get(currentFindPosition);
 
 		highlighter.clear();
 
@@ -2200,7 +2202,7 @@ public class EditWindow extends JPanel
 			int total = 0;
 			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)
 			{
-				wnd.currentStringInCell = (StringsInCell)wnd.foundInCell.get(wnd.currentFindPosition);
+				wnd.currentStringInCell = wnd.foundInCell.get(wnd.currentFindPosition);
 				wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
 				total++;
 			}
@@ -2354,7 +2356,7 @@ public class EditWindow extends JPanel
         float x = (float)popupCloudPoint.getX() + 25;
         float y = (float)popupCloudPoint.getY() + 10 + yspacing;
         for (int i=0; i<popupCloudText.size(); i++) {
-            GlyphVector glyph = getFont().createGlyphVector(g.getFontRenderContext(), (String)popupCloudText.get(i));
+            GlyphVector glyph = getFont().createGlyphVector(g.getFontRenderContext(), popupCloudText.get(i));
             g.drawGlyphVector(glyph, x, y);
             y += glyph.getVisualBounds().getHeight() + yspacing;
         }
@@ -3009,7 +3011,7 @@ public class EditWindow extends JPanel
 		}
 		if (possibleNodables.size() > 1)
 		{
-			desiredNO = (Nodable)possibleNodables.get(0);
+			desiredNO = possibleNodables.get(0);
 
 			// see if there are any waveform windows
 			boolean promptUser = isArrayedContextMatter(desiredNO);
@@ -3173,7 +3175,7 @@ public class EditWindow extends JPanel
 		        		outofCell = new AffineTransform();
 		        		for(int i=0; i<inPlaceDepth; i++)
 		        		{
-		        			NodeInst ni = (NodeInst)inPlaceDescent.get(i);
+		        			NodeInst ni = inPlaceDescent.get(i);
 	        	    		outofCell.concatenate(ni.translateOut(ni.rotateOut()));
 	        	    		intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
 		        		}
@@ -3187,7 +3189,7 @@ public class EditWindow extends JPanel
 				// search history **before** calling setCell, otherwise we find
 				// the history record for the cell we just switched to
 				for (int i=cellHistory.size()-1; i>-1; i--) {
-					CellHistory history = (CellHistory)cellHistory.get(i);
+					CellHistory history = cellHistory.get(i);
 					if ((history.cell == parent) && (history.context.equals(context))) {
 						foundHistory = history;
 						break;
@@ -3435,7 +3437,7 @@ public class EditWindow extends JPanel
 
         if (cellHistoryLocation < 0) return;
 
-        CellHistory current = (CellHistory)cellHistory.get(cellHistoryLocation);
+        CellHistory current = cellHistory.get(cellHistoryLocation);
 
         current.offset = new Point2D.Double(offx, offy);
         current.scale = scale;
@@ -3472,7 +3474,7 @@ public class EditWindow extends JPanel
         }
 
         // get cell history to go to
-        CellHistory history = (CellHistory)cellHistory.get(location);
+        CellHistory history = cellHistory.get(location);
 
         // see if cell still valid part of database. If not, nullify entry
         if (history.cell == null || !history.cell.isLinked()) {
@@ -3758,13 +3760,16 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to intialize for printing.
-	 * @param ep printable object.
-	 * @param pageWid the width of the print page in pixels.
-	 * @param pageHei the height of the print page in pixels.
-	 * @param oldSize the original size of the window being printed.
+	 * @param ep the ElectricPrinter object.
+	 * @param pageFormat information about the print job.
 	 */
-	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
+		int scaleFactor = ep.getDesiredDPI() / 72;
+		if (scaleFactor > 2) scaleFactor = 2; else
+			if (scaleFactor <= 0) scaleFactor = 1;
+		int pageWid = (int)pageFormat.getImageableWidth() * scaleFactor;
+		int pageHei = (int)pageFormat.getImageableHeight() * scaleFactor;
 		overall.setSize(pageWid, pageHei);
 		overall.validate();
 		overall.repaint();
@@ -3773,19 +3778,23 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to print window using offscreen canvas.
 	 * @param ep printable object.
-	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 * @return the image to print (null on error).
 	 */
 	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{
 		if (getCell() == null) return null;
-	
+
+		int scaleFactor = ep.getDesiredDPI() / 72;
+		if (scaleFactor > 2) scaleFactor = 2; else
+			if (scaleFactor <= 0) scaleFactor = 1;
+
 		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{
 			// change window size
 			EditWindow w = EditWindow.CreateElectricDoc(null, null, null);
-			int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
-			int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
+			int iw = (int)ep.getPageFormat().getImageableWidth() * scaleFactor;
+			int ih = (int)ep.getPageFormat().getImageableHeight() * scaleFactor;
 			w.setScreenSize(new Dimension(iw, ih));
 			w.setCell(getCell(), getVarContext());
 			PixelDrawing offscreen = w.getOffscreen();
@@ -3814,11 +3823,9 @@ public class EditWindow extends JPanel
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
 		if (g2d != null)
 		{
-			int ix = (int)ep.getPageFormat().getImageableX() * ep.getDesiredDPI() / 72;
-			int iy = (int)ep.getPageFormat().getImageableY() * ep.getDesiredDPI() / 72;
-
-			// NOTE: Not using "72" as above, but "75"!!!
-			g2d.scale(75.0 / ep.getDesiredDPI(), 75.0 / ep.getDesiredDPI());
+			int ix = (int)ep.getPageFormat().getImageableX() * scaleFactor;
+			int iy = (int)ep.getPageFormat().getImageableY() * scaleFactor;
+			g2d.scale(1.0 / scaleFactor, 1.0 / scaleFactor);
 			g2d.drawImage(img, ix, iy, null);
 		}
 		return img;

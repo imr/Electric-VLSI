@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.dialogs.FindText;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.util.Set;
 
 import javax.swing.JPanel;
@@ -102,16 +103,15 @@ public interface WindowContent
 
 	/**
 	 * Method to intialize for printing.
-	 * @param pageWid the width of the print page in pixels.
-	 * @param pageHei the height of the print page in pixels.
-	 * @param oldSize the original size of the window being printed.
+	 * @param ep the ElectricPrinter object.
+	 * @param pageFormat information about the print job.
 	 */
-	public abstract void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize);
+	public abstract void initializePrinting(ElectricPrinter ep, PageFormat pageFormat);
 
 	/**
-	 * Method to print window using offscreen canvas
-	 * @param ep Image observer plus printable object
-	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 * Method to print window using offscreen canvas.
+	 * @param ep Image observer plus printable object.
+	 * @return the image to print (null on error).
 	 */
 	public abstract BufferedImage getPrintImage(ElectricPrinter ep);
 

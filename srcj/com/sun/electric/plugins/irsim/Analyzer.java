@@ -430,7 +430,7 @@ public class Analyzer extends Engine
 				"No Signals Selected");
 			return;
 		}
-		Signal sig = (Signal)signals.get(0);
+		Signal sig = signals.get(0);
 		String highsigname = sig.getFullName();
 		sig.clearControlPoints();
 
@@ -1730,7 +1730,7 @@ public class Analyzer extends Engine
 		}
 		for(int i = 0; i < sigsOnBus.size(); i++)
 		{
-			Sim.Node n = nodeMap.get((Signal)sigsOnBus.get(i));
+			Sim.Node n = nodeMap.get(sigsOnBus.get(i));
 			setIn(n, sv.parameters[1].charAt(i));
 		}
 	}
@@ -1945,7 +1945,7 @@ public class Analyzer extends Engine
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
-				nodeList[i] = nodeMap.get((Signal)sigsOnBus.get(i));
+				nodeList[i] = nodeMap.get(sigsOnBus.get(i));
 			}
 
 			int cnt = 0;
@@ -2023,7 +2023,7 @@ public class Analyzer extends Engine
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
-				nodeList[i] = nodeMap.get((Signal)sigsOnBus.get(i));
+				nodeList[i] = nodeMap.get(sigsOnBus.get(i));
 			}
 			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
 			name = sig.getSignalName();
@@ -2734,7 +2734,7 @@ public class Analyzer extends Engine
 				List<Signal> sigsOnBus = cs.sig.getBussedSignals();
 				for(int i=0; i<sigsOnBus.size(); i++)
 				{
-					Sim.Node n = nodeMap.get((Signal)sigsOnBus.get(i));
+					Sim.Node n = nodeMap.get(sigsOnBus.get(i));
 					setIn(n, v.charAt(i));
 				}
 			}

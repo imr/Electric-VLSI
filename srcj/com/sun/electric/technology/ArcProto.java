@@ -153,7 +153,7 @@ public class ArcProto implements Comparable<ArcProto>
 		 */
 		public static Function getMetal(int level)
 		{
-			Function func = (Function)metalLayers.get(new Integer(level));
+			Function func = metalLayers.get(new Integer(level));
 			return func;
 		}
 
@@ -164,7 +164,7 @@ public class ArcProto implements Comparable<ArcProto>
 		 */
 		public static Function getPoly(int level)
 		{
-			Function func = (Function)polyLayers.get(new Integer(level));
+			Function func = polyLayers.get(new Integer(level));
 			return func;
 		}
 
@@ -311,7 +311,7 @@ public class ArcProto implements Comparable<ArcProto>
 
 	private Pref getArcProtoWidthPref(double factory)
 	{
-		Pref pref = (Pref)defaultWidthPrefs.get(this);
+		Pref pref = defaultWidthPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
@@ -386,7 +386,7 @@ public class ArcProto implements Comparable<ArcProto>
     /*
 	private Pref getArcProtoAntennaPref()
 	{
-		Pref pref = (Pref)defaultAntennaRatioPrefs.get(this);
+		Pref pref = defaultAntennaRatioPrefs.get(this);
 		if (pref == null)
 		{
 			double factory = ERCAntenna.DEFPOLYRATIO;
@@ -414,7 +414,7 @@ public class ArcProto implements Comparable<ArcProto>
 
 	private Pref getArcProtoBitPref(String what, HashMap<ArcProto,Pref> map, boolean factory)
 	{
-		Pref pref = (Pref)map.get(this);
+		Pref pref = map.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeBooleanPref("Default" + what + "For" + protoName + "IN" + tech.getTechName(), User.getUserTool().prefs, factory);
@@ -716,7 +716,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public void setAngleIncrement(int angle)
 	{
-		Pref pref = (Pref)defaultAnglePrefs.get(this);
+		Pref pref = defaultAnglePrefs.get(this);
 		if (pref == null) return;
 		pref.setInt(angle);
 	}
@@ -731,7 +731,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public int getAngleIncrement()
 	{
-		Pref pref = (Pref)defaultAnglePrefs.get(this);
+		Pref pref = defaultAnglePrefs.get(this);
 		if (pref == null) return 90;
 		return pref.getInt();
 	}
@@ -740,7 +740,7 @@ public class ArcProto implements Comparable<ArcProto>
 
 	private Pref getArcPinPref()
 	{
-		Pref pref = (Pref)arcPinPrefs.get(this);
+		Pref pref = arcPinPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeStringPref("PinFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");

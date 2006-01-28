@@ -247,14 +247,14 @@ public class DXF extends Input
 		{
 			int len = headerID.size();
 			Integer [] headerIDs = new Integer[len];
-			for(int i=0; i<len; i++) headerIDs[i] = (Integer)headerID.get(i);
+			for(int i=0; i<len; i++) headerIDs[i] = headerID.get(i);
 			lib.newVar(DXF_HEADER_ID_KEY, headerIDs);
 		}
 		if (headerText.size() > 0)
 		{
 			int len = headerText.size();
 			String [] headerTexts = new String[len];
-			for(int i=0; i<len; i++) headerTexts[i] = (String)headerText.get(i);
+			for(int i=0; i<len; i++) headerTexts[i] = headerText.get(i);
 			lib.newVar(DXF_HEADER_TEXT_KEY, headerTexts);
 		}
 
@@ -973,8 +973,8 @@ public class DXF extends Input
 				{
 					int last = i - 1;
 					if (i == 0) last = count-1;
-					PolyPoint pp = (PolyPoint)polyPoints.get(i);
-					PolyPoint lastPp = (PolyPoint)polyPoints.get(last);
+					PolyPoint pp = polyPoints.get(i);
+					PolyPoint lastPp = polyPoints.get(last);
 					double x1 = lastPp.x;   double y1 = lastPp.y;
 					double x2 = pp.x;       double y2 = pp.y;
 					if (lastPp.bulge != 0.0)
@@ -1093,7 +1093,7 @@ public class DXF extends Input
 				double lY = 0, hY = 0;
 				for(int i=0; i<count; i++)
 				{
-					PolyPoint pp = (PolyPoint)polyPoints.get(i);
+					PolyPoint pp = polyPoints.get(i);
 					if (i == 0)
 					{
 						lX = hX = pp.x;
@@ -1119,7 +1119,7 @@ public class DXF extends Input
 				Point2D [] points = new Point2D[count];
 				for(int i=0; i<count; i++)
 				{
-					PolyPoint pp = (PolyPoint)polyPoints.get(i);
+					PolyPoint pp = polyPoints.get(i);
 					points[i] = new Point2D.Double(pp.x - cX, pp.y - cY);
 				}
 				ni.newVar(NodeInst.TRACE, points);

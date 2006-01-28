@@ -260,7 +260,7 @@ public class Compaction extends Listener
 				}
 				if (found != null)
 				{
-					Integer oIndex = (Integer)portIndices.get(found);
+					Integer oIndex = portIndices.get(found);
 					portIndices.put(pp, oIndex);
 				} else portIndices.put(pp, new Integer(flatIndex++));
 			}
@@ -278,7 +278,7 @@ public class Compaction extends Listener
 			// now check every object
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getProto() == Generic.tech.cellCenterNode ||
 					ni.getProto() == Generic.tech.essentialBoundsNode) continue;
 
@@ -739,9 +739,8 @@ public class Compaction extends Listener
 		 */
 		private void restoreSlidability(HashSet<ArcInst> clearedArcs)
 		{
-			for(Iterator<ArcInst> it = clearedArcs.iterator(); it.hasNext(); )
+			for(ArcInst ai : clearedArcs)
 			{
-				ArcInst ai = (ArcInst)it.next();
 				ai.setSlidable(true);
 			}
 		}
@@ -870,9 +869,8 @@ public class Compaction extends Listener
 			newLine.prevLine = null;
 			newLine.firstObject = null;
 			GeomObj lastObject = null;
-			for(Iterator<GeomObj> it = objectList.iterator(); it.hasNext(); )
+			for(GeomObj gO : objectList)
 			{
-				GeomObj gO = (GeomObj)it.next();
 				if (lastObject == null) newLine.firstObject = gO; else
 					lastObject.nextObject = gO;
 				lastObject = gO;
@@ -891,7 +889,7 @@ public class Compaction extends Listener
 			// if this is the first object, add it
 			if (thisObject.size() == 0)
 				thisObject.add(makeNodeInstObject(ni, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices));
-			GeomObj firstObject = (GeomObj)thisObject.get(0);
+			GeomObj firstObject = thisObject.get(0);
 			double stLow, stHigh;
 			if (curAxis == Axis.HORIZONTAL)
 			{
@@ -906,7 +904,7 @@ public class Compaction extends Listener
 			// for each arc on node, find node at other end and add to object
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				ArcInst ai = con.getArc();
 				NodeInst otherEnd = ai.getTailPortInst().getNodeInst();
 				if (otherEnd == ni) otherEnd = ai.getHeadPortInst().getNodeInst();
@@ -1036,13 +1034,13 @@ public class Compaction extends Listener
 				// include polygons from those nodes and arcs in the protection frame
 				for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 				{
-					NodeInst subNi = (NodeInst)it.next();
+					NodeInst subNi = it.next();
 					makeNodeInstObject(subNi, newObject, trans,
 						low1, high1, low2, high2, localArcIndices, localPortIndices);
 				}
 				for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 				{
-					ArcInst subAi = (ArcInst)it.next();
+					ArcInst subAi = it.next();
 					makeArcInstObject(subAi, newObject, trans,
 						low1, high1, low2, high2, localArcIndices);
 				}
@@ -1075,7 +1073,7 @@ public class Compaction extends Listener
 					int pIndex = -1;
 					if (poly.getPort() != null)
 					{
-						Integer i = (Integer)localPortIndices.get(poly.getPort());
+						Integer i = localPortIndices.get(poly.getPort());
 						if (i != null) pIndex = i.intValue();
 					}
 					addPolyToPolyList(poly, newObject, pIndex, tech);
@@ -1092,21 +1090,21 @@ public class Compaction extends Listener
 			// set network numbers from arcs
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				ArcInst ai = con.getArc();
 				PortProto pp = con.getPortInst().getPortProto();
 				if (localPortIndices.get(pp) != null) continue;
-				Integer aIndex = (Integer)arcIndices.get(ai);
+				Integer aIndex = arcIndices.get(ai);
 				localPortIndices.put(pp, aIndex);
 			}
 
 			// set network numbers from exports
 			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 			{
-				Export e = (Export)it.next();
+				Export e = it.next();
 				PortProto pp = e.getOriginalPort().getPortProto();
 				if (localPortIndices.get(pp) != null) continue;
-				Integer pIndex = (Integer)portIndices.get(e);
+				Integer pIndex = portIndices.get(e);
 				localPortIndices.put(pp, pIndex);
 			}
 
@@ -1114,7 +1112,7 @@ public class Compaction extends Listener
 			Netlist nl = ni.getParent().getUserNetlist();
 			for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
+				PortProto pp = it.next();
 				if (localPortIndices.get(pp) != null) continue;
 
 				// look for similar connected port
@@ -1122,11 +1120,11 @@ public class Compaction extends Listener
 				Network net = nl.getNetwork(ni, pp, 0);
 				for(Iterator<PortProto> oIt = ni.getProto().getPorts(); oIt.hasNext(); )
 				{
-					PortProto oPp = (PortProto)oIt.next();
+					PortProto oPp = oIt.next();
 					Network oNet = nl.getNetwork(ni, oPp, 0);
 					if (oNet == net)
 					{
-						Integer oIndex = (Integer)localPortIndices.get(oPp);
+						Integer oIndex = localPortIndices.get(oPp);
 						if (oIndex != null)
 						{
 							localPortIndices.put(pp, oIndex);
@@ -1199,7 +1197,7 @@ public class Compaction extends Listener
 
 				// add the polygon
 				int aIndex = -1;
-				Integer iv = (Integer)arcIndices.get(ai);
+				Integer iv = arcIndices.get(ai);
 				if (iv != null) aIndex = iv.intValue();
 				addPolyToPolyList(poly, newObject, aIndex, tech);
 			}
@@ -1233,7 +1231,7 @@ public class Compaction extends Listener
 			// copy network information from ports to arcs
 			for(Iterator<ArcInst> it = topCell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 
 				// ignore arcs that have already been numbered
 				if (arcIndices.get(ai) != null) continue;
@@ -1244,14 +1242,14 @@ public class Compaction extends Listener
 				for(Iterator<PortProto> pIt = topCell.getPorts(); pIt.hasNext(); )
 				{
 					Export pp = (Export)pIt.next();
-					Integer pIndex = (Integer)portIndices.get(pp);
+					Integer pIndex = portIndices.get(pp);
 					Network pNet = nl.getNetwork(pp, 0);
 					if (pNet == aNet)
 					{
 						// propagate port numbers into all connecting arcs
 						for(Iterator<ArcInst> aIt = topCell.getArcs(); aIt.hasNext(); )
 						{
-							ArcInst oAi = (ArcInst)aIt.next();
+							ArcInst oAi = aIt.next();
 							Network oANet = nl.getNetwork(oAi, 0);
 							if (oANet == aNet) arcIndices.put(oAi, pIndex);
 						}
@@ -1267,7 +1265,7 @@ public class Compaction extends Listener
 					Integer pIndex = new Integer(flatIndex++);
 					for(Iterator<ArcInst> aIt = topCell.getArcs(); aIt.hasNext(); )
 					{
-						ArcInst oAi = (ArcInst)aIt.next();
+						ArcInst oAi = aIt.next();
 						Network oANet = nl.getNetwork(oAi, 0);
 						if (oANet == aNet) arcIndices.put(oAi, pIndex);
 					}

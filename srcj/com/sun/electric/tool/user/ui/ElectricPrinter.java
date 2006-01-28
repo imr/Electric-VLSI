@@ -73,7 +73,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 		graphics = g;
 		pageFormat = pf;
 		BufferedImage img = context.getPrintImage(this);
-		return ((img != null) ? Printable.PAGE_EXISTS : Printable.NO_SUCH_PAGE);
+		return (img != null) ? Printable.PAGE_EXISTS : Printable.NO_SUCH_PAGE;
 	}
 
 	/** This function is required for 3D view */

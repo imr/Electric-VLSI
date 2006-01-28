@@ -206,7 +206,7 @@ public class Connectivity
 				if (ni.getProto() instanceof Cell)
 				{
 					Cell subCell = (Cell)ni.getProto();
-					Cell convertedCell = (Cell)convertedCells.get(subCell);
+					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
 						doExtract(subCell, recursive, false);
@@ -240,7 +240,7 @@ public class Connectivity
 			NodeProto copyType = null;
 			if (ni.getProto() instanceof Cell)
 			{
-				copyType = (NodeProto)convertedCells.get(ni.getProto());
+				copyType = convertedCells.get(ni.getProto());
 				if (copyType == null) copyType = ni.getProto();
 			} else
 			{
@@ -316,8 +316,8 @@ public class Connectivity
 		for(Iterator<ArcInst> aIt = oldCell.getArcs(); aIt.hasNext(); )
 		{
 			ArcInst ai = aIt.next();
-			NodeInst end1 = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
-			NodeInst end2 = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
+			NodeInst end1 = newNodes.get(ai.getHeadPortInst().getNodeInst());
+			NodeInst end2 = newNodes.get(ai.getTailPortInst().getNodeInst());
 			if (end1 == null || end2 == null) continue;
 			PortInst pi1 = end1.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
 			PortInst pi2 = end2.findPortInstFromProto(ai.getTailPortInst().getPortProto());
@@ -450,7 +450,7 @@ public class Connectivity
 			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
 			{
 				// make sure there is an arc that exists for the layer
-				ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+				ArcProto ap = arcsForLayer.get(layer);
 				if (ap == null) continue;
 
 				wireLayers.add(layer);
@@ -463,7 +463,7 @@ public class Connectivity
 			Layer.Function fun = layer.getFunction();
 
 			// figure out which arc proto to use for the layer
-			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+			ArcProto ap = arcsForLayer.get(layer);
 
 			// examine the geometry on the layer
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
@@ -518,7 +518,7 @@ public class Connectivity
 			Layer.Function fun = layer.getFunction();
 
 			// figure out which arc proto to use for the layer
-			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+			ArcProto ap = arcsForLayer.get(layer);
 
 			// examine the geometry on the layer
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
@@ -645,7 +645,7 @@ public class Connectivity
 	private PortInst makePort(NodeInst ni, Layer layer, Point2D pt)
 	{
 		Cell subCell = (Cell)ni.getProto();
-		GenMath.MutableInteger exportNumber = (GenMath.MutableInteger)exportNumbers.get(subCell);
+		GenMath.MutableInteger exportNumber = exportNumbers.get(subCell);
 		if (exportNumber == null) return null;
 		AffineTransform transIn = ni.rotateIn(ni.translateIn());
 		Point2D inside = new Point2D.Double();
@@ -909,7 +909,7 @@ public class Connectivity
 				{
 					while (polyList.size() > 0)
 					{
-						PolyBase poly = (PolyBase)polyList.get(0);
+						PolyBase poly = polyList.get(0);
 						double centerX = poly.getCenterX();
 						double centerY = poly.getCenterY();
 
@@ -968,7 +968,7 @@ public class Connectivity
 		// look at all of the cut/via pieces
 		for(int ind=0; ind < polyList.size(); ind++)
 		{
-			PolyBase poly = (PolyBase)polyList.get(ind);
+			PolyBase poly = polyList.get(ind);
 			double centerX = poly.getCenterX();
 			double centerY = poly.getCenterY();
 //System.out.println("Consider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
@@ -1020,7 +1020,7 @@ public class Connectivity
 					for(int o=0; o<polyList.size(); o++)
 					{
 						if (o == ind) continue;
-						PolyBase oPoly = (PolyBase)polyList.get(o);
+						PolyBase oPoly = polyList.get(o);
 						double x = oPoly.getCenterX();
 						double y = oPoly.getCenterY();
 						if (largest.contains(x, y))
@@ -1464,7 +1464,7 @@ public class Connectivity
 		// if just one line, it is simply an angled transistor
 		if (lines.size() == 1)
 		{
-			Centerline cl = (Centerline)lines.get(0);
+			Centerline cl = lines.get(0);
 			double polySize = cl.start.distance(cl.end);
 			double activeSize = cl.width;
 			double cX = (cl.start.getX() + cl.end.getX()) / 2;
@@ -1481,7 +1481,7 @@ public class Connectivity
 		{
 			cl.handled = false;
 		}
-		Centerline firstCL = (Centerline)lines.get(0);
+		Centerline firstCL = lines.get(0);
 		firstCL.handled = true;
 		points[0] = new EPoint(firstCL.start.getX(), firstCL.start.getY());
 		points[1] = new EPoint(firstCL.end.getX(), firstCL.end.getY());
@@ -1564,7 +1564,7 @@ public class Connectivity
 		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
-			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
 			for(PolyBase poly : polyList)
@@ -1948,7 +1948,7 @@ public class Connectivity
 		int numCenterlines = validCenterlines.size();
 		Centerline [] lines = new Centerline[numCenterlines];
 		for(int i=0; i<numCenterlines; i++)
-			lines[i] = (Centerline)validCenterlines.get(i);
+			lines[i] = validCenterlines.get(i);
 		for(int i=0; i<numCenterlines; i++)
 		{
 			Centerline cl = lines[i];
@@ -2045,9 +2045,8 @@ public class Connectivity
 		for(int i=0; i<numCenterlines; i++)
 			finalCenterlines.add(lines[i]);
 //System.out.println("  And final centerlines are:");
-//for(Iterator it = finalCenterlines.iterator(); it.hasNext(); )
+//for(Centerline cl : finalCenterlines)
 //{
-//	Centerline cl = it.next();
 //	System.out.println("    "+cl.width+" from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+")");
 //}
 		return finalCenterlines;
@@ -2287,7 +2286,7 @@ public class Connectivity
 		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
-			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+			ArcProto ap = arcsForLayer.get(layer);
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
 			for(PolyBase poly : polyList)
 			{
@@ -2448,7 +2447,7 @@ public class Connectivity
 		// convert gate to poly1
 		if (fun == Layer.Function.GATE)
 		{
-			Layer polyLayer = (Layer)layerForFunction.get(Layer.Function.POLY1);
+			Layer polyLayer = layerForFunction.get(Layer.Function.POLY1);
 			if (polyLayer != null) return polyLayer;
 		}
 
@@ -2457,7 +2456,7 @@ public class Connectivity
 			fun = Layer.Function.DIFF;
 
 		// ensure the first one for the given function
-		Layer properLayer = (Layer)layerForFunction.get(fun);
+		Layer properLayer = layerForFunction.get(fun);
 		if (properLayer != null) return properLayer;
 		return layer;
 

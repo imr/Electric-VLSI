@@ -486,7 +486,7 @@ public class ELIB extends Output
 		if (compatibleWith6)
 		{
 			// write cell index if creating version-6-compatible output
-			Integer cellIndex = (Integer)cellIndexMap.get(cell.getName());
+			Integer cellIndex = cellIndexMap.get(cell.getName());
 			writeBigInteger(cellIndex.intValue());
 		} else
 		{
@@ -643,7 +643,7 @@ public class ELIB extends Output
 			for(Connection con : sortedList)
 			{
 				ArcInst ai = con.getArc();
-				int i = ((Integer)objInfo.get(ai)).intValue() << 1;
+				int i = objInfo.get(ai).intValue() << 1;
 				if (con.getEndIndex() == ArcInst.HEADEND) i++;
 				writeBigInteger(i);
 
@@ -1076,7 +1076,7 @@ public class ELIB extends Output
 	{
 		int objIndex = -1;
 		if (obj != null)
-			objIndex = ((Integer)objInfo.get(obj)).intValue();
+			objIndex = objInfo.get(obj).intValue();
 		writeBigInteger(objIndex);
 	}
 
@@ -1088,7 +1088,7 @@ public class ELIB extends Output
 	private void writeVariableName(String name)
 		throws IOException
 	{
-		short varNameIndex = ((Short)nameSpace.get(name)).shortValue();
+		short varNameIndex = nameSpace.get(name).shortValue();
 		writeSmallInteger(varNameIndex);
 	}
 

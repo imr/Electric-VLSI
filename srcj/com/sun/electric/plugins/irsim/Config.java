@@ -246,9 +246,8 @@ public class Config
 		int n = (int)(Math.abs(length * 110133 + width) % RES_TAB_SIZE);
 		if (rTab[n] != null)
 		{
-			for(Iterator<Sim.Resists> it = rTab[n].iterator(); it.hasNext(); )
+			for(Sim.Resists rr : rTab[n])
 			{
-				Sim.Resists rr = (Sim.Resists)it.next();
 				if (rr.length == length && rr.width == width) return rr;
 			}
 		}

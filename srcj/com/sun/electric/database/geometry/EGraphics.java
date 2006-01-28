@@ -132,13 +132,13 @@ public class EGraphics extends Observable
 
 		public static Outline findOutline(int index)
 		{
-			Outline o = (Outline)outlineByIndex.get(new Integer(index));
+			Outline o = outlineByIndex.get(new Integer(index));
 			return o;
 		}
 
 		public static Outline findOutline(String name)
 		{
-			Outline o = (Outline)outlineByName.get(name);
+			Outline o = outlineByName.get(name);
 			return o;
 		}
 
@@ -413,28 +413,28 @@ public class EGraphics extends Observable
 		Technology tech = layer.getTechnology();
 		if (tech == null) return;
 
-		Pref usePatternDisplayPref = (Pref)usePatternDisplayMap.get(layer);
+		Pref usePatternDisplayPref = usePatternDisplayMap.get(layer);
 		displayPatterned = usePatternDisplayPref.getBoolean();
 
-		Pref usePatternPrinterPref = (Pref)usePatternPrinterMap.get(layer);
+		Pref usePatternPrinterPref = usePatternPrinterMap.get(layer);
 		printPatterned = usePatternPrinterPref.getBoolean();
 
-		Pref outlinePatternPref = (Pref)outlinePatternMap.get(layer);
+		Pref outlinePatternPref = outlinePatternMap.get(layer);
 		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
 
-		Pref transparentLayerPref = (Pref)transparentLayerMap.get(layer);
+		Pref transparentLayerPref = transparentLayerMap.get(layer);
 		transparentLayer = transparentLayerPref.getInt();
 
-		Pref opacityPref = (Pref)opacityMap.get(layer);
+		Pref opacityPref = opacityMap.get(layer);
 		opacity = opacityPref.getDouble();
 		
-		Pref colorPref = (Pref)colorMap.get(layer);
+		Pref colorPref = colorMap.get(layer);
 		int color = colorPref.getInt();
 		red = (color >> 16) & 0xFF;
 		green = (color >> 8) & 0xFF;
 		blue = color & 0xFF;
 
-		Pref patternPref = (Pref)patternMap.get(layer);
+		Pref patternPref = patternMap.get(layer);
 		String pat = patternPref.getString();
 		parsePatString(pat, pattern);
 	}
@@ -480,7 +480,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)usePatternDisplayMap.get(layer);
+			Pref pref = usePatternDisplayMap.get(layer);
 			if (pref != null) pref.setBoolean(p);
 		}
 	}
@@ -505,7 +505,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)usePatternPrinterMap.get(layer);
+			Pref pref = usePatternPrinterMap.get(layer);
 			if (pref != null) pref.setBoolean(p);
 		}
 	}
@@ -529,7 +529,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)outlinePatternMap.get(layer);
+			Pref pref = outlinePatternMap.get(layer);
 			if (pref != null) pref.setInt(o.index);
 		}
 	}
@@ -558,7 +558,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)transparentLayerMap.get(layer);
+			Pref pref = transparentLayerMap.get(layer);
 			if (pref != null) pref.setInt(transparentLayer);
 		}
 	}
@@ -581,7 +581,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)patternMap.get(layer);
+			Pref pref = patternMap.get(layer);
 			if (pref != null) pref.setString(makePatString(pattern));
 		}
 	}
@@ -604,7 +604,7 @@ public class EGraphics extends Observable
 
 		if (layer != null)
 		{
-			Pref pref = (Pref)opacityMap.get(layer);
+			Pref pref = opacityMap.get(layer);
 			if (pref != null) pref.setDouble(opacity);
 		}
 	}
@@ -640,7 +640,7 @@ public class EGraphics extends Observable
 		blue = color.getBlue();
 		if (layer != null)
 		{
-			Pref pref = (Pref)colorMap.get(layer);
+			Pref pref = colorMap.get(layer);
 			if (pref != null) pref.setInt((red << 16) | (green << 8) | blue);
 		}
         // update any color used in 3D view if available

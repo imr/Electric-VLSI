@@ -293,7 +293,7 @@ public class GetNetlist
 	private String parse(List<String> keywords)
 	{
 		if (keywords.size() == 0) return null;
-		String mainKeyword = (String)keywords.get(0);
+		String mainKeyword = keywords.get(0);
 
 		if (mainKeyword.equalsIgnoreCase("connect")) return connect(keywords);
 		if (mainKeyword.equalsIgnoreCase("create")) return create(keywords);
@@ -308,11 +308,11 @@ public class GetNetlist
 	private String create(List<String> keywords)
 	{
 		if (keywords.size() <= 1) return "No keyword for CREATE command";
-		String sPtr = (String)keywords.get(1);
+		String sPtr = keywords.get(1);
 		if (sPtr.equalsIgnoreCase("cell"))
 		{
 			if (keywords.size() <= 2) return "No name for CREATE CELL command";
-			sPtr = (String)keywords.get(2);
+			sPtr = keywords.get(2);
 
 			// check if cell already exists in cell list
 			for(SCCell cell = scCells; cell != null; cell = cell.next)
@@ -362,10 +362,10 @@ public class GetNetlist
 		if (sPtr.equalsIgnoreCase("instance"))
 		{
 			if (keywords.size() <= 2) return "No instance name for CREATE INSTANCE command";
-			String noden = (String)keywords.get(2);
+			String noden = keywords.get(2);
 
 			if (keywords.size() <= 3) return "No type name for CREATE INSTANCE command";
-			String nodep = (String)keywords.get(3);
+			String nodep = keywords.get(3);
 
 			// search for cell in cell list
 			SCCell cell = null;
@@ -497,8 +497,8 @@ public class GetNetlist
 		if (keywords.size() < 4) return "Not enough parameters for CONNECT command";
 
 		// search for the first node
-		String node0Name = (String)keywords.get(1);
-		String port0Name = (String)keywords.get(2);
+		String node0Name = keywords.get(1);
+		String port0Name = keywords.get(2);
 		SCNiTree ntpA = findNi(curSCCell, node0Name);
 		if (ntpA == null) return "Cannot find instance '" + node0Name + "'";
 		SCNiPort portA = findPp(ntpA, port0Name);
@@ -506,7 +506,7 @@ public class GetNetlist
 			return "Cannot find port '" + port0Name + "' on instance '" + node0Name + "'";
 
 		// search for the second node
-		String node1Name = (String)keywords.get(3);
+		String node1Name = keywords.get(3);
 		SCNiTree ntpB = findNi(curSCCell, node1Name);
 		if (ntpB == null) return "Cannot find instance '" + node1Name + "'";
 
@@ -515,7 +515,7 @@ public class GetNetlist
 		if (ntpB.type != SPECIALCELL)
 		{
 			if (keywords.size() < 5) return "Not enough parameters for CONNECT command";
-			String port1Name = (String)keywords.get(4);
+			String port1Name = keywords.get(4);
 			portB = findPp(ntpB, port1Name);
 			if (portB == null)
 				return "Cannot find port '" + port1Name + "' on instance '" + node1Name + "'";
@@ -591,26 +591,26 @@ public class GetNetlist
 
 		// search current cell for node
 		if (keywords.size() <= 1) return "No instance specified for EXPORT command";
-		String instName = (String)keywords.get(1);
+		String instName = keywords.get(1);
 		SCNiTree nPtr = findNi(curSCCell, instName);
 		if (nPtr == null) return "Cannot find instance '" + instName + "' for EXPORT command";
 
 		// search for port
 		if (keywords.size() <= 2) return "No port specified for EXPORT command";
-		String portName = (String)keywords.get(2);
+		String portName = keywords.get(2);
 		SCNiPort port = findPp(nPtr, portName);
 		if (port == null)
 			return "Cannot find port '" + portName + "' on instance '" + instName + "' for EXPORT command";
 
 		// check for export name
 		if (keywords.size() <= 3) return "No export name specified for EXPORT command";
-		String exportName = (String)keywords.get(3);
+		String exportName = keywords.get(3);
 
 		// check possible port type
 		int type = UNPORT;
 		if (keywords.size() >= 5)
 		{
-			String typeName = (String)keywords.get(4);
+			String typeName = keywords.get(4);
 			if (typeName.equalsIgnoreCase("input"))
 			{
 				type = INPORT;
@@ -673,44 +673,44 @@ public class GetNetlist
 	private String xSet(List<String> keywords)
 	{
 		if (keywords.size() <= 1) return "No option for SET command";
-		String whatToSet = (String)keywords.get(1);
+		String whatToSet = keywords.get(1);
 
 		if (whatToSet.equalsIgnoreCase("leaf-cell-numbers"))
 		{
-			String cellName = (String)keywords.get(2);
+			String cellName = keywords.get(2);
 			Cell leafCell = findLeafCell(cellName);
 			if (leafCell == null) return "Cannot find cell '" + cellName + "'";
 			SCCellNums cNums = getLeafCellNums(leafCell);
 			int numPar = 3;
 			while (numPar < keywords.size())
 			{
-				String parName = (String)keywords.get(numPar);
+				String parName = keywords.get(numPar);
 				if (parName.equalsIgnoreCase("top-active"))
 				{
 					numPar++;
 					if (numPar < keywords.size())
-						cNums.topActive = TextUtils.atoi((String)keywords.get(numPar++));
+						cNums.topActive = TextUtils.atoi(keywords.get(numPar++));
 					continue;
 				}
 				if (parName.equalsIgnoreCase("bottom-active"))
 				{
 					numPar++;
 					if (numPar < keywords.size())
-						cNums.bottomActive = TextUtils.atoi((String)keywords.get(numPar++));
+						cNums.bottomActive = TextUtils.atoi(keywords.get(numPar++));
 					continue;
 				}
 				if (parName.equalsIgnoreCase("left-active"))
 				{
 					numPar++;
 					if (numPar < keywords.size())
-						cNums.leftActive = TextUtils.atoi((String)keywords.get(numPar++));
+						cNums.leftActive = TextUtils.atoi(keywords.get(numPar++));
 					continue;
 				}
 				if (parName.equalsIgnoreCase("right-active"))
 				{
 					numPar++;
 					if (numPar < keywords.size())
-						cNums.rightActive = TextUtils.atoi((String)keywords.get(numPar++));
+						cNums.rightActive = TextUtils.atoi(keywords.get(numPar++));
 					continue;
 				}
 				return "Unknown option '" + parName + "' for SET LEAF-CELL-NUMBERS command";
@@ -725,13 +725,13 @@ public class GetNetlist
 			if (keywords.size() <= 4) return "Insufficent parameters for SET NODE-NAME command";
 
 			// search for instance
-			String instName = (String)keywords.get(2);
+			String instName = keywords.get(2);
 			SCNiTree instPtr = findNi(curSCCell, instName);
 			if (instPtr == null)
 				return "Cannot find instance '" + instName + "' in SET NODE-NAME command";
 
 			// search for port on instance
-			String portName = (String)keywords.get(3);
+			String portName = keywords.get(3);
 			SCNiPort iPort;
 			for (iPort = instPtr.ports; iPort != null; iPort = iPort.next)
 			{
@@ -750,14 +750,14 @@ public class GetNetlist
 
 			// set extracted node name if possible
 			if (iPort.extNode == null) return "Cannot find extracted node to set name in SET NODE-NAME command";
-			iPort.extNode.name = (String)keywords.get(4);
+			iPort.extNode.name = keywords.get(4);
 			return null;
 		}
 
 		if (whatToSet.equalsIgnoreCase("port-direction"))
 		{
-			String cellName = (String)keywords.get(2);
-			String portName = (String)keywords.get(3);
+			String cellName = keywords.get(2);
+			String portName = keywords.get(3);
 			SCCell cell;
 			for (cell = scCells; cell != null; cell = cell.next)
 			{
@@ -783,7 +783,7 @@ public class GetNetlist
 				bits = port.bits;
 			}
 			bits &= ~PORTDIRMASK;
-			String dir = (String)keywords.get(4);
+			String dir = keywords.get(4);
 			for(int i=0; i<dir.length(); i++)
 			{
 				char dirCh = dir.charAt(i);

@@ -254,7 +254,7 @@ public class CellChangeJobs
 			// find all top-level cells
 			if (top != null)
 			{
-				CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(top);
+				CellGraphNode cgn = cellGraphNodes.get(top);
 				cgn.depth = 0;
 			} else
 			{
@@ -263,7 +263,7 @@ public class CellChangeJobs
 					Cell cell = cIt.next();
 					if (cell.getNumUsagesIn() == 0)
 					{
-						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						CellGraphNode cgn = cellGraphNodes.get(cell);
 						cgn.depth = 0;
 					}
 				}
@@ -282,7 +282,7 @@ public class CellChangeJobs
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						CellGraphNode cgn = cellGraphNodes.get(cell);
 						if (cgn.depth == -1) continue;
 						for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 						{
@@ -293,7 +293,7 @@ public class CellChangeJobs
 							// ignore recursive references (showing icon in contents)
 							if (ni.isIconOfParent()) continue;
 
-							CellGraphNode subCgn = (CellGraphNode)cellGraphNodes.get(sub);
+							CellGraphNode subCgn = cellGraphNodes.get(sub);
 							if (subCgn.depth <= cgn.depth)
 							{
 								subCgn.depth = cgn.depth + 1;
@@ -302,7 +302,7 @@ public class CellChangeJobs
 							}
 							Cell trueCell = sub.contentsView();
 							if (trueCell == null) continue;
-							CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+							CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
 							if (trueCgn.depth <= cgn.depth)
 							{
 								trueCgn.depth = cgn.depth + 1;
@@ -319,7 +319,7 @@ public class CellChangeJobs
 					for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						CellGraphNode cgn = cellGraphNodes.get(cell);
 						if (cgn.depth >= 0) continue;
 						cgn.depth = 0;
 						more = true;
@@ -340,7 +340,7 @@ public class CellChangeJobs
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = cIt.next();
-					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					CellGraphNode cgn = cellGraphNodes.get(cell);
 
 					// ignore icon cells from the graph (merge with contents)
 					if (cgn.depth == -1) continue;
@@ -371,7 +371,7 @@ public class CellChangeJobs
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = cIt.next();
-					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					CellGraphNode cgn = cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 					if (xval[(int)cgn.y] < maxWidth)
 					{
@@ -392,7 +392,7 @@ public class CellChangeJobs
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = cIt.next();
-					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					CellGraphNode cgn = cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 					double x = cgn.x;   double y = cgn.y;
 					x = x * xScale;
@@ -411,14 +411,14 @@ public class CellChangeJobs
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						CellGraphNode cgn = cellGraphNodes.get(cell);
 						if (cgn.depth != -1) continue;
 
 						if (cell.getNumUsagesIn() != 0 && !cell.isIcon() &&
 							cell.getView() != View.LAYOUTSKEL) continue;
 						Cell trueCell = graphMainView(cell);
 						if (trueCell == null) continue;
-						CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+						CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
 						if (trueCgn.depth == -1) continue;
 		
 						cgn.pin = null;
@@ -454,7 +454,7 @@ public class CellChangeJobs
 				{
 					Cell cell = cIt.next();
 					if (cell == graphCell) continue;
-					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					CellGraphNode cgn = cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 
 					double x = cgn.x;   double y = cgn.y;
@@ -477,7 +477,7 @@ public class CellChangeJobs
 				{
 					Cell cell = cIt.next();
 					if (cell == graphCell) continue;
-					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					CellGraphNode cgn = cellGraphNodes.get(cell);
 					if (cgn.depth == -1) continue;
 					if (cgn.main == null) continue;
 
@@ -506,7 +506,7 @@ public class CellChangeJobs
 					// always use the contents cell, not the icon
 					Cell trueCell = cell.contentsView();
 					if (trueCell == null) trueCell = cell;
-					CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+					CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
 					if (trueCgn.depth == -1) continue;
 
 					clock++;
@@ -522,7 +522,7 @@ public class CellChangeJobs
 						Cell truesubnp = sub.contentsView();
 						if (truesubnp == null) truesubnp = sub;
 
-						CellGraphNode trueSubCgn = (CellGraphNode)cellGraphNodes.get(truesubnp);
+						CellGraphNode trueSubCgn = cellGraphNodes.get(truesubnp);
 						if (trueSubCgn.clock == clock) continue;
 						trueSubCgn.clock = clock;
 
@@ -649,8 +649,8 @@ public class CellChangeJobs
 				Geometric look = sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
-				NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
-				NodeInst niHead = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
+				NodeInst niTail = newNodes.get(ai.getTailPortInst().getNodeInst());
+				NodeInst niHead = newNodes.get(ai.getHeadPortInst().getNodeInst());
 				if (niTail == null || niHead == null) continue;
 				PortInst piTail = niTail.findPortInstFromProto(ai.getTailPortInst().getPortProto());
 				PortInst piHead = niHead.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
@@ -761,8 +761,8 @@ public class CellChangeJobs
 		for(ArcInst ai : arcs)
 		{
 			// ignore arcs connected to nodes that didn't get yanked
-			NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
-			NodeInst niHead = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
+			NodeInst niTail = newNodes.get(ai.getTailPortInst().getNodeInst());
+			NodeInst niHead = newNodes.get(ai.getHeadPortInst().getNodeInst());
 			if (niTail == null || niHead == null) continue;
 			PortInst piTail = niTail.findPortInstFromProto(ai.getTailPortInst().getPortProto());
 			PortInst piHead = niHead.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
@@ -818,7 +818,7 @@ public class CellChangeJobs
 				if (pis[i].getNodeInst() != topno) continue;
 				Export pp = (Export)pis[i].getPortProto();
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();
-				NodeInst newNi = (NodeInst)newNodes.get(subNi);
+				NodeInst newNi = newNodes.get(subNi);
 				if (newNi == null) continue;
 				pis[i] = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
 			}
@@ -838,7 +838,7 @@ public class CellChangeJobs
 		{
 			Export subPp = (Export)pp.getOriginalPort().getPortProto();
 			NodeInst subNi = subPp.getOriginalPort().getNodeInst();
-			NodeInst newNi = (NodeInst)newNodes.get(subNi);
+			NodeInst newNi = newNodes.get(subNi);
 			if (newNi == null) continue;
 			PortInst pi = newNi.findPortInstFromProto(subPp.getOriginalPort().getPortProto());
 			pp.move(pi);
@@ -852,7 +852,7 @@ public class CellChangeJobs
 			{
 				Export pp = it.next();
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();
-				NodeInst newNi = (NodeInst)newNodes.get(subNi);
+				NodeInst newNi = newNodes.get(subNi);
 				if (newNi == null) continue;
 				PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
 

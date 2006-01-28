@@ -79,7 +79,7 @@ public class ChangeCellGroup extends EDialog {
         cellGroups.clear();
         cellGroupsComboBox.removeAllItems();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell c = (Cell)it.next();
+            Cell c = it.next();
             Cell.CellGroup cg = c.getCellGroup();
             if (cg == null) continue;
             if (cg == cell.getCellGroup()) continue;
@@ -89,8 +89,7 @@ public class ChangeCellGroup extends EDialog {
         }
         // sort cell groups
         Collections.sort(cellGroups, new CellGroupComparator());
-        for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); ) {
-            Cell.CellGroup cg = (Cell.CellGroup)it.next();
+        for (Cell.CellGroup cg : cellGroups) {
             cellGroupsComboBox.addItem(cg.getName());
         }
     }

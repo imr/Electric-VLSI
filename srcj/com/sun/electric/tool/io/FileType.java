@@ -115,8 +115,8 @@ public class FileType implements Serializable {
 		libraryTypesExt = new String[exts.size()];
 		StringBuffer buf = new StringBuffer("(");
 		for (int i=0; i<exts.size(); i++) {
-			libraryTypesExt[i] = (String)exts.get(i);
-			buf.append((String)exts.get(i));
+			libraryTypesExt[i] = exts.get(i);
+			buf.append(exts.get(i));
 			buf.append(", ");
 		}
 		if (buf.length() > 2) buf.replace(buf.length()-2, buf.length(), ")");
@@ -197,8 +197,7 @@ public class FileType implements Serializable {
 	 * Get the Type for the specified filter
 	 */
 	public static FileType getType(FileFilter filter) {
-		for (Iterator<FileType> it = allTypes.iterator(); it.hasNext(); ) {
-			FileType type = (FileType)it.next();
+		for (FileType type : allTypes) {
 			if (type.ffs == filter) return type;
 		}
 		return null;
@@ -208,8 +207,7 @@ public class FileType implements Serializable {
 	 * Get the Type for the specified filter
 	 */
 	public static FileType getType(FilenameFilter filter) {
-		for (Iterator<FileType> it = allTypes.iterator(); it.hasNext(); ) {
-			FileType type = (FileType)it.next();
+		for (FileType type : allTypes) {
 			if (type.ffa == filter) return type;
 		}
 		return null;

@@ -249,7 +249,7 @@ public class GDS extends Input
 			this.angle = angle;
 			this.instantiated = false;
 
-			List<MakeInstance> instancesInCell = (List<MakeInstance>)allInstances.get(parent);
+			List<MakeInstance> instancesInCell = allInstances.get(parent);
 			if (instancesInCell == null)
 			{
 				instancesInCell = new ArrayList<MakeInstance>();
@@ -264,7 +264,7 @@ public class GDS extends Input
 
 		private static void makeCellInstances(Cell cell)
 		{
-			List<MakeInstance> instancesInCell = (List<MakeInstance>)allInstances.get(cell);
+			List<MakeInstance> instancesInCell = allInstances.get(cell);
 			if (instancesInCell == null) return;
 			for(MakeInstance mi : instancesInCell)
 			{
@@ -1233,7 +1233,7 @@ public class GDS extends Input
 		layerUsed = true;
 		layerIsPin = false;
 		Integer layerInt = new Integer(layerNum + (layerType<<16));
-		Layer layer = (Layer)layerNames.get(layerInt);
+		Layer layer = layerNames.get(layerInt);
 		if (layer == null)
 		{
 			if (IOTool.isGDSInIgnoresUnknownLayers())

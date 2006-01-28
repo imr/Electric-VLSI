@@ -131,7 +131,7 @@ public class EDIF extends Topology
 			// add to lists
 			Cell cell = ni.getParent();
 			if (rippersPerCell == null) rippersPerCell = new HashMap<Cell,List<BusRipper>>();
-			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(cell);
+			List<BusRipper> rippersInCell = rippersPerCell.get(cell);
 			if (rippersInCell == null)
 			{
 				rippersInCell = new ArrayList<BusRipper>();
@@ -143,7 +143,7 @@ public class EDIF extends Topology
 		public static BusRipper findBusRipper(NodeInst ni, Network net)
 		{
 			if (rippersPerCell == null) return null;
-			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(ni.getParent());
+			List<BusRipper> rippersInCell = rippersPerCell.get(ni.getParent());
 			if (rippersInCell == null) return null;
 			for(BusRipper br : rippersInCell)
 			{
@@ -156,7 +156,7 @@ public class EDIF extends Topology
 		{
 			List<BusRipper> ripperList = new ArrayList<BusRipper>();
 			if (rippersPerCell == null) return ripperList;
-			List<BusRipper> rippersInCell = (List<BusRipper>)rippersPerCell.get(cell);
+			List<BusRipper> rippersInCell = rippersPerCell.get(cell);
 			if (rippersInCell == null) return ripperList;
 			for(BusRipper br : rippersInCell)
 			{
@@ -425,7 +425,7 @@ public class EDIF extends Topology
     protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
     {
         Library lib = cell.getLibrary();
-        LibToWrite l = (LibToWrite)libsToWrite.get(lib);
+        LibToWrite l = libsToWrite.get(lib);
         if (l == null) {
             l = new LibToWrite(lib);
             libsToWrite.put(lib, l);
@@ -439,7 +439,7 @@ public class EDIF extends Topology
         // Note: if there are cross dependencies between libraries, there is no
         // way to write out valid EDIF without changing the cell organization of the libraries
         for (Library lib : libsToWriteOrder) {
-            LibToWrite l = (LibToWrite)libsToWrite.get(lib);
+            LibToWrite l = libsToWrite.get(lib);
             // here is where we write everything out, organized by library
             // write library header
             blockOpen("library");

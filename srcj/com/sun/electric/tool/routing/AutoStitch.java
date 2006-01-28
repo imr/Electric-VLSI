@@ -294,7 +294,7 @@ public class AutoStitch
 	            boolean first = true;
 	            for (ArcProto ap : arcCount.keySet()) {
 	                if (!first) buf.append("; ");
-	                Integer c = (Integer)arcCount.get(ap);
+	                Integer c = arcCount.get(ap);
 	                buf.append(c + " " + ap.describe() + " wires");
 	                first = false;
 	            }
@@ -321,7 +321,7 @@ public class AutoStitch
         // create the routes
         for (Route route : allRoutes)
         {
-            RouteElement re = (RouteElement)route.get(0);
+            RouteElement re = route.get(0);
             Cell c = re.getCell();
 
             // see if the route is unnecessary because of existing connections
@@ -542,7 +542,7 @@ public class AutoStitch
 		if (ni.getProto() instanceof Cell)
 		{
 			// complex node instance: look at all ports
-			Rectangle2D [] boundArray = (Rectangle2D [])nodeBounds.get(ni);
+			Rectangle2D [] boundArray = nodeBounds.get(ni);
 			int bbp = 0;
 			for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 			{
@@ -650,14 +650,14 @@ public class AutoStitch
 							// this polygon must be the smallest arc layer
 							if (!usePortPoly)
 							{
-								Layer oLayer = (Layer)arcLayers.get(ap);
+								Layer oLayer = arcLayers.get(ap);
 								if (!layer.getTechnology().sameLayer(oLayer, layer)) continue;
 							}
 
 							// pass it on to the next test
 							connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, arcLayers, stayInside, limitBound);
 							if (connected) {
-                                Integer c = (Integer)arcCount.get(ap);
+                                Integer c = arcCount.get(ap);
                                 if (c == null) c = new Integer(0);
                                 c = new Integer(c.intValue()+1);
                                 arcCount.put(ap, c);
@@ -786,14 +786,14 @@ public class AutoStitch
 						findSmallestLayer(ap, arcLayers);
 						if (!usePortPoly)
 						{
-							Layer oLayer = (Layer)arcLayers.get(ap);
+							Layer oLayer = arcLayers.get(ap);
 							if (!ap.getTechnology().sameLayer(oLayer, layer)) continue;
 						}
 
 						// pass it on to the next test
 						connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist, nodeBounds, arcLayers, stayInside, limitBound);
 						if (connected) {
-                            Integer c = (Integer)arcCount.get(ap);
+                            Integer c = arcCount.get(ap);
                             if (c == null) c = new Integer(0);
                             c = new Integer(c.intValue()+1);
                             arcCount.put(ap, c);
@@ -974,7 +974,7 @@ public class AutoStitch
 		if (oNi.getProto() instanceof Cell)
 		{
 			// complex cell: look at all exports
-			Rectangle2D [] boundArray = (Rectangle2D [])nodeBounds.get(oNi);
+			Rectangle2D [] boundArray = nodeBounds.get(oNi);
 			int bbp = 0;
 			Rectangle2D bounds = poly.getBounds2D();
 			for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
@@ -1051,7 +1051,7 @@ public class AutoStitch
 						{
 							Layer oLayer = oPoly.getLayer();
 							if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
-							Layer apLayer = (Layer)arcLayers.get(ap);
+							Layer apLayer = arcLayers.get(ap);
 							if (!oLayer.getTechnology().sameLayer(oLayer, apLayer)) continue;
 						}
 
@@ -1124,7 +1124,7 @@ public class AutoStitch
 					if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
 
 					// this must be the smallest layer on the arc
-					Layer apLayer = (Layer)arcLayers.get(ap);
+					Layer apLayer = arcLayers.get(ap);
 					if (!apLayer.getTechnology().sameLayer(apLayer, oLayer)) continue;
 
 					// do not stitch where there is already an electrical connection
@@ -1373,13 +1373,13 @@ public class AutoStitch
 		void add(Object o1, Object o2)
 		{
 			if (contains(o1, o2)) return;
-			HashSet<Object> other1 = (HashSet<Object>)first.get(o1);
+			HashSet<Object> other1 = first.get(o1);
 			if (other1 != null)
 			{
 				other1.add(o2);
 				return;
 			}
-			HashSet<Object> other2 = (HashSet<Object>)first.get(o2);
+			HashSet<Object> other2 = first.get(o2);
 			if (other2 != null)
 			{
 				other2.add(o1);
@@ -1392,9 +1392,9 @@ public class AutoStitch
 
 		boolean contains(Object o1, Object o2)
 		{
-			HashSet other1 = (HashSet)first.get(o1);
+			HashSet other1 = first.get(o1);
 			if (other1 != null && other1.contains(o2)) return true;
-			HashSet other2 = (HashSet)first.get(o2);
+			HashSet other2 = first.get(o2);
 			if (other2 != null && other2.contains(o1)) return true;
 			return false;
 		}

@@ -69,7 +69,7 @@ public class CompareLists {
 
 		List<CompareList> compareLists = new ArrayList<CompareList>();
 		for (Iterator<Cell> it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
-			Cell cell = (Cell) it.next();
+			Cell cell = it.next();
 			// RKao debug
 			//System.out.println("seed cell: "+cell.getName());
 			CompareList compareList = new CompareList(cell, use1, use2);

@@ -97,9 +97,8 @@ public class Command
 		if (par[0].equals("netlist"))
 		{
 			System.out.println("** NETWORK DESCRIPTION **");
-			for(Iterator<Model> pIt = als.primList.iterator(); pIt.hasNext(); )
+			for(Model primHead : als.primList)
 			{
-				ALS.Model primHead = (ALS.Model)pIt.next();
 				switch (primHead.type)
 				{
 					case 'F':
@@ -107,9 +106,8 @@ public class Command
 						infstr.append("FUNCTION: " + primHead.name + " (instance " +
 							(primHead.level == null ? "null" : primHead.level) + ") [");
 						boolean first = true;
-						for(Iterator<ALS.ALSExport> it = primHead.exList.iterator(); it.hasNext(); )
+						for(ALS.ALSExport exHead : primHead.exList)
 						{
-							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							if (first) first = false; else
 								infstr.append(", ");
 							infstr.append("N" + exHead.nodePtr.getIndex());
@@ -119,17 +117,15 @@ public class Command
 						infstr = new StringBuffer();
 						infstr.append("  Event Driving Inputs:");
 						ALS.Func funcHead = (ALS.Func)primHead.ptr;
-						for(Iterator<ALS.ALSExport> it = funcHead.inList.iterator(); it.hasNext(); )
+						for(ALS.ALSExport exHead : funcHead.inList)
 						{
-							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							infstr.append(" N" + exHead.nodePtr.getIndex());
 						}
 						System.out.println(infstr.toString());
 						infstr = new StringBuffer();
 						infstr.append("  Output Ports:");
-						for(Iterator<ALS.ALSExport> it = primHead.exList.iterator(); it.hasNext(); )
+						for(ALS.ALSExport exHead : primHead.exList)
 						{
-							ALS.ALSExport exHead = (ALS.ALSExport)it.next();
 							if (exHead.nodeName != null)
 								infstr.append(" N" + ((ALS.Stat)exHead.nodeName).nodePtr.getIndex());
 						}
@@ -175,9 +171,9 @@ public class Command
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("  Input: ");
 
-		for(Iterator<Object> it = rowHead.inList.iterator(); it.hasNext(); )
+		for(Object obj : rowHead.inList)
 		{
-			ALS.IO ioHead = (ALS.IO)it.next();
+			ALS.IO ioHead = (ALS.IO)obj;
 			if (flag) infstr.append("& ");
 			flag = true;
 
@@ -215,9 +211,9 @@ public class Command
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("  Output: ");
 
-		for(Iterator<Object> it = rowHead.outList.iterator(); it.hasNext(); )
+		for(Object obj : rowHead.outList)
 		{
-			ALS.IO ioHead = (ALS.IO)it.next();
+			ALS.IO ioHead = (ALS.IO)obj;
 			if (flag) infstr.append("& ");
 			flag = true;
 

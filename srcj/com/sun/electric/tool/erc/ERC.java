@@ -164,7 +164,7 @@ public class ERC extends Listener
     /**** ANTENNA Preferences ***/
 	private Pref getArcProtoAntennaPref(ArcProto ap)
 	{
-		Pref pref = (Pref)defaultAntennaRatioPrefs.get(ap);
+		Pref pref = defaultAntennaRatioPrefs.get(ap);
 		if (pref == null)
 		{
 			double factory = ERCAntenna.DEFPOLYRATIO;

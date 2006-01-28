@@ -183,7 +183,7 @@ public abstract class Geometry extends Output
         {
             for (int i=0; i<polys.length; i++)
             {
-                List<Object> list = (List<Object>)polyMap.get(polys[i].getLayer());
+                List<Object> list = polyMap.get(polys[i].getLayer());
                 if (list == null)
                 {
                     list = new ArrayList<Object>();
@@ -228,12 +228,12 @@ public abstract class Geometry extends Output
             cellGeom = new CellGeom(cell);
 			for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
-				Library lib = (Library)lIt.next();
+				Library lib = lIt.next();
 				if (lib.isHidden()) continue;
 				if (lib == cell.getLibrary()) continue;
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell oCell = (Cell)cIt.next();
+					Cell oCell = cIt.next();
 					if (cell.getView() != oCell.getView()) continue;
 					if (!cell.getName().equalsIgnoreCase(oCell.getName())) continue;
 					cellGeom.nonUniqueName = true;
@@ -251,7 +251,7 @@ public abstract class Geometry extends Output
             // add arcs to cellGeom
     		for (Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();)
 			{
-        		ArcInst ai = (ArcInst)it.next();
+        		ArcInst ai = it.next();
 				addArcInst(ai);
             }
             
@@ -260,19 +260,17 @@ public abstract class Geometry extends Output
 			{
 				PolyMerge pMerge = new PolyMerge();
 				Set<Layer> layers = cellGeom.polyMap.keySet();
-				for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
+				for (Layer layer : layers)
 				{
-					Layer layer = (Layer)it.next();
-					List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
-					for (Iterator<Object> polyIt = polyList.iterator(); polyIt.hasNext(); )
+					List<Object> polyList = cellGeom.polyMap.get(layer);
+					for (Object polyObj : polyList)
 					{
-						Poly poly = (Poly)polyIt.next();
+						Poly poly = (Poly)polyObj;
 						pMerge.addPolygon(layer, poly);
 					}
 				}
-				for (Iterator<Layer> it = layers.iterator(); it.hasNext();)
+				for (Layer layer : layers)
 				{
-					Layer layer = (Layer)it.next();
 					List polys = pMerge.getMergedPoints(layer, true);
 					cellGeom.polyMap.put(layer, polys);
 				}
@@ -336,7 +334,7 @@ public abstract class Geometry extends Output
         if (depth > maxDepth) maxDepth = depth;
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();)
         {
-            CellUsage u = (CellUsage)uit.next();
+            CellUsage u = uit.next();
             Cell subCell = u.getProto();
             if (subCell.isIcon()) continue;
             maxDepth = hierCellsRecurse(subCell, depth+1, maxDepth);

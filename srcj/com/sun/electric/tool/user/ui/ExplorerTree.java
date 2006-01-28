@@ -353,7 +353,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				subCell = subCell.contentsView();
 				if (subCell == null) continue;
 			}
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellCount.get(subCell);
+			DBMath.MutableInteger mi = cellCount.get(subCell);
 			if (mi == null)
 			{
 				mi = new DBMath.MutableInteger(0);
@@ -365,7 +365,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		// show what is there
 		for(Cell subCell : cellCount.keySet())
 		{
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellCount.get(subCell);
+			DBMath.MutableInteger mi = cellCount.get(subCell);
 			if (mi == null) continue;
 
 			CellAndCount cc = new CellAndCount(subCell, mi.intValue());
@@ -768,7 +768,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private IconGroup findIconGroup(View view)
 		{
-			IconGroup ig = (IconGroup)iconGroups.get(view);
+			IconGroup ig = iconGroups.get(view);
 			if (ig == null)
 			{
 				ig = new IconGroup();

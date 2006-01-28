@@ -604,7 +604,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         {
             for (int i = 0; i < allErrors.size(); i++)
             {
-                MessageLog el = (MessageLog)allErrors.get(i);
+                MessageLog el = allErrors.get(i);
 
                 if (el.findGeometries(geom1, cell, geom2, cell2))
                     return (true);
@@ -614,7 +614,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         {
             for (int i = 0; i < allWarnings.size(); i++)
             {
-                MessageLog el = (MessageLog)allWarnings.get(i);
+                MessageLog el = allWarnings.get(i);
 
                 if (el.findGeometries(geom1, cell, geom2, cell2))
                     return (true);
@@ -667,7 +667,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         synchronized(allLoggers) {
             allLoggers.remove(this);
             if (currentLogger == this) {
-                if (allLoggers.size() > 0) currentLogger = (ErrorLogger)allLoggers.get(0);
+                if (allLoggers.size() > 0) currentLogger = allLoggers.get(0);
                 else currentLogger = null;
             }
         }
@@ -874,12 +874,12 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         String extraMsg = null;
         if (logNumber < getNumErrors())
         {
-            el = (MessageLog)allErrors.get(logNumber);
+            el = allErrors.get(logNumber);
             extraMsg = " error " + (logNumber+1) + " of " + allErrors.size();
         }
         else
         {
-            el = (MessageLog)allWarnings.get(logNumber-allErrors.size());
+            el = allWarnings.get(logNumber-allErrors.size());
             extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
         }
         String message = Job.getUserInterface().reportLog(el, showHigh, gPair);

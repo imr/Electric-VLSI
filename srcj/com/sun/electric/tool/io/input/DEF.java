@@ -918,7 +918,7 @@ public class DEF extends LEFDEF
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
-						Double wid = (Double)widthsFromLEF.get(li.arc);
+						Double wid = widthsFromLEF.get(li.arc);
 						if (wid != null) width = wid.doubleValue();
 					}
 					ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
@@ -966,7 +966,7 @@ public class DEF extends LEFDEF
 				if (special) width = specialWidth; else
 				{
 					// get the width from the LEF file
-					Double wid = (Double)widthsFromLEF.get(li.arc);
+					Double wid = widthsFromLEF.get(li.arc);
 					if (wid != null) width = wid.doubleValue();
 				}
 				ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
@@ -1006,7 +1006,7 @@ public class DEF extends LEFDEF
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
-						Double wid = (Double)widthsFromLEF.get(li.arc);
+						Double wid = widthsFromLEF.get(li.arc);
 						if (wid != null) width = wid.doubleValue();
 					}
 					ArcInst ai = ArcInst.makeInstance(li.arc, width, pi, nextPi);

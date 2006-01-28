@@ -40,8 +40,8 @@ public class CompareList {
 	private boolean safeToCheckSizes;
 
 	private boolean hasSkipAnnotation(List<CellContext> cellCtxts) {
-		for (Iterator<CellContext> it=cellCtxts.iterator(); it.hasNext();) {
-			Cell c = ((CellContext) it.next()).cell;
+		for (CellContext cc : cellCtxts) {
+			Cell c = cc.cell;
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
 			String reason = ann.getSkipReason();
@@ -73,15 +73,15 @@ public class CompareList {
 		Set<Cell> cells = new HashSet<Cell>();
 		for (Iterator<CellContext> it=compareList.iterator(); 
 		     it.hasNext() && compareList.size()>2;) {
-			Cell c = ((CellContext)it.next()).cell;
+			Cell c = (it.next()).cell;
 			if (cells.contains(c))  it.remove();
 			else  cells.add(c);
 		}
 	}
 
 	private boolean safeToCompareSizes(List<CellContext> cellContexts, CellUsage use1, CellUsage use2) {
-		for (Iterator<CellContext> it=cellContexts.iterator(); it.hasNext();) {
-			Cell c = ((CellContext)it.next()).cell;
+		for (CellContext cc : cellContexts) {
+			Cell c = cc.cell;
 			if (c.isSchematic()) {
 				if (use1.cellIsUsed(c) && !use1.cellIsUsedOnce(c)) return false;
 				if (use2.cellIsUsed(c) && !use2.cellIsUsedOnce(c)) return false;
@@ -121,7 +121,7 @@ public class CompareList {
 		
 		// add all Cells that are actually used
 		for (Iterator<Cell> gi=group.getCells(); gi.hasNext();) {
-			Cell c = (Cell) gi.next();
+			Cell c = gi.next();
 			if (use1.cellIsUsed(c)) {used1=true; compareSet.add(use1.getCellContext(c));}
 			if (use2.cellIsUsed(c)) {used2=true; compareSet.add(use2.getCellContext(c));}
 
@@ -155,7 +155,7 @@ public class CompareList {
 	public void printCells() {
 		System.out.print("Compare List contains:=");
 		for (Iterator<CellContext> it=iterator(); it.hasNext();) {
-			CellContext cc = (CellContext) it.next();
+			CellContext cc = it.next();
 			System.out.print(" "+cc.cell.getName());
 		}
 		System.out.println();

@@ -112,7 +112,7 @@ public class ErrorLoggerTree {
                     if (currentSortKey != el.getSortKey()) {
                         // create new sub-tree node
                         currentSortKey = el.getSortKey();
-                        String groupName = (String)logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
+                        String groupName = logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
                         if (groupName != null) {
                             groupNode = new DefaultMutableTreeNode(groupName);
                             loggerNode.add(groupNode);

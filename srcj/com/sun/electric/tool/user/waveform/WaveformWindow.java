@@ -92,6 +92,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -703,12 +704,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/**
 	 * Method to intialize for printing.
-	 * @param ep printable object.
-	 * @param pageWid the width of the print page in pixels.
-	 * @param pageHei the height of the print page in pixels.
-	 * @param oldSize the original size of the window being printed.
+	 * @param ep the ElectricPrinter object.
+	 * @param pageFormat information about the print job.
 	 */
-	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
 		oldForeground = User.getColorWaveformForeground();
 		oldBackground = User.getColorWaveformBackground();
@@ -720,6 +719,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		nowPrinting = 1;
 		if (cs.getValue() == 0) nowPrinting = 2;
 
+		Dimension oldSize = ep.getOldSize();
+		int pageWid = (int)pageFormat.getImageableWidth() * ep.getDesiredDPI() / 72;
+		int pageHei = (int)pageFormat.getImageableHeight() * ep.getDesiredDPI() / 72;
 		double scaleX = (double)pageWid / (double)oldSize.width;
 		double scaleY = (double)pageHei / (double)oldSize.height;
 		double scale = Math.min(scaleX, scaleY);
@@ -734,7 +736,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Method to print window using offscreen canvas.
 	 * @param ep printable object.
-	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 * @return the image to print (null on error).
 	 */
 	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{

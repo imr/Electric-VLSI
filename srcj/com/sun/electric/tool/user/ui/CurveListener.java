@@ -78,7 +78,7 @@ public class CurveListener
 			System.out.println("Select just one arc to setting curvature");
 			return;
 		}
-		Geometric geom = (Geometric)geomList.get(0);
+		Geometric geom = geomList.get(0);
 		if (!(geom instanceof ArcInst))
 		{
 			System.out.println("Select an arc before setting curvature");
@@ -118,7 +118,7 @@ public class CurveListener
 			System.out.println("Select just one arc to remove curvature");
 			return;
 		}
-		Geometric geom = (Geometric)geomList.get(0);
+		Geometric geom = geomList.get(0);
 		if (!(geom instanceof ArcInst))
 		{
 			System.out.println("Select an arc before removing curvature");

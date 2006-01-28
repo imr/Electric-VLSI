@@ -790,14 +790,14 @@ public class ELIB extends LibraryFiles
 		{
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell == null || cell.getLibrary() != lib) continue;
-			String protoName = (String)protoNames.get(cell.getName());
+			String protoName = protoNames.get(cell.getName());
 			if (protoName == null)
 			{
 				protoName = cell.getName();
 				protoNames.put(protoName, protoName);
 			}
 			transitive.theseAreRelated(cell, protoName);
-			Cell otherCell = (Cell)nextInCellGroup.get(cell);
+			Cell otherCell = nextInCellGroup.get(cell);
 			if (otherCell != null && cell.getLibrary() == lib)
 				transitive.theseAreRelated(cell, otherCell);
 		}
@@ -2549,7 +2549,7 @@ public class ELIB extends LibraryFiles
 	 */
 	private View getView(int i)
 	{
-		View v = (View)viewMapping.get(new Integer(i));
+		View v = viewMapping.get(new Integer(i));
 		return v;
 	}
 

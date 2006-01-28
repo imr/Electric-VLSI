@@ -47,6 +47,7 @@ import java.awt.Graphics2D;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedInputStream;
@@ -755,13 +756,13 @@ public class TextWindow
 
 	/**
 	 * Method to intialize for printing.
-	 * @param ep printable object.
-	 * @param pageWid the width of the print page in pixels.
-	 * @param pageHei the height of the print page in pixels.
-	 * @param oldSize the original size of the window being printed.
+	 * @param ep the ElectricPrinter object.
+	 * @param pageFormat information about the print job.
 	 */
-	public void initializePrinting(ElectricPrinter ep, int pageWid, int pageHei, Dimension oldSize)
+	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
+		int pageWid = (int)pageFormat.getImageableWidth() * ep.getDesiredDPI() / 72;
+		int pageHei = (int)pageFormat.getImageableHeight() * ep.getDesiredDPI() / 72;
 		overall.setSize(pageWid, pageHei);
 		overall.validate();
 		overall.repaint();
@@ -770,7 +771,7 @@ public class TextWindow
 	/**
 	 * Method to print window using offscreen canvas.
 	 * @param ep printable object.
-	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 * @return the image to print (null on error).
 	 */
 	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{

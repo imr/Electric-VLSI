@@ -146,7 +146,7 @@ public class EvalJavaBsh
      * @return replaced expression
      */
     protected static String replace(String expr) {
-        String result = (String)replaceHash.get(expr);
+        String result = replaceHash.get(expr);
         if (result != null) return result;
         StringBuffer sb = new StringBuffer();
         Matcher atMat = atPat.matcher(expr);
@@ -192,7 +192,7 @@ public class EvalJavaBsh
         if (context == null) context = VarContext.globalContext;
         // check for infinite recursion
         for (int i=0; i<contextStack.size(); i++) {
-            VarContext vc = (VarContext)contextStack.get(i);
+            VarContext vc = contextStack.get(i);
             Object inf = infoStack.get(i);
             if ((vc == context) && (inf == info)) throw new VarContext.EvalException("JavaBeanShell Eval recursion error");
         }

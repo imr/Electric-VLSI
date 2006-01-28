@@ -469,7 +469,7 @@ public class ERCAntenna
 	
 			// look for an unspread antenna object and keep walking
 			if (firstSpreadAntennaObj.size() == 0) break;
-			AntennaObject ao = (AntennaObject)firstSpreadAntennaObj.get(0);
+			AntennaObject ao = firstSpreadAntennaObj.get(0);
 			firstSpreadAntennaObj.remove(0);
 	
 			ArcInst ai = (ArcInst)ao.geom;
@@ -519,7 +519,7 @@ public class ERCAntenna
 
 			// see if it is the desired layer
 			if (ai.getProto().getFunction().isDiffusion()) return ERCANTPATHACTIVE;
-			Layer aLayer = (Layer)arcProtoToLayer.get(ai.getProto());
+			Layer aLayer = arcProtoToLayer.get(ai.getProto());
 			if (aLayer == null) continue;
 			if (ai.getProto().getFunction().isMetal() != aLayer.getFunction().isMetal()) continue;
 			if (ai.getProto().getFunction().isPoly() != aLayer.getFunction().isPoly()) continue;
@@ -608,7 +608,7 @@ public class ERCAntenna
 	private double getAntennaRatio(Layer layer)
 	{
 		// find the ArcProto that corresponds to this layer
-		ArcProto ap = (ArcProto)layerToArcProto.get(layer);
+		ArcProto ap = layerToArcProto.get(layer);
 		if (ap == null) return 0;
 
 		// return its ratio

@@ -209,7 +209,7 @@ public class Analysis
 	 */
 	public void setCommonTime(int index, int sweep, double time)
 	{
-		double [] sct = (double [])sweepCommonTime.get(sweep);
+		double [] sct = sweepCommonTime.get(sweep);
 		sct[index] = time;
 		setBoundsDirty();
 	}
@@ -219,7 +219,7 @@ public class Analysis
 	 * @param sweep the sweep number.
 	 * @return the array of time entries for a sweep on this signal.
 	 */
-	public double [] getCommonTimeArray(int sweep) { return (double [])sweepCommonTime.get(sweep); }
+	public double [] getCommonTimeArray(int sweep) { return sweepCommonTime.get(sweep); }
 
 	/**
 	 * Method to add information about another sweep in this simulation data.
@@ -290,7 +290,7 @@ public class Analysis
 	public Signal findSignalForNetworkQuickly(String netName)
 	{
 		String lookupName = TextUtils.canonicString(netName);
-		Signal sSig = (Signal)signalNames.get(lookupName);
+		Signal sSig = signalNames.get(lookupName);
 		return sSig;
 	}
 

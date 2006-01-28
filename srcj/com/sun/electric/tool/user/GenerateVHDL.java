@@ -153,7 +153,7 @@ public class GenerateVHDL
 		HashMap<Connection,Integer> negatedConnections = new HashMap<Connection,Integer>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			for(int i=0; i<2; i++)
 			{
 				if (ai.isNegated(i)) negatedConnections.put(ai.getConnection(i), new Integer(instNum++));
@@ -168,7 +168,7 @@ public class GenerateVHDL
 		boolean gotInverters = false;
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.isIconOfParent()) continue;
 			AnalyzePrimitive ap = new AnalyzePrimitive(ni, negatedConnections);
 			String pt = ap.getPrimName();
@@ -273,7 +273,7 @@ public class GenerateVHDL
 		List<String> bodyStrings = new ArrayList<String>();
 		for(Iterator<Nodable> it = nl.getNodables(); it.hasNext(); )
 		{
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			// ignore component with no ports
 			if (no.getProto().getNumPorts() == 0) continue;
 
@@ -300,10 +300,9 @@ public class GenerateVHDL
 		}
 
 		// write pseudo-nodes for all negated arcs
-		for(Iterator<Connection> it = negatedConnections.keySet().iterator(); it.hasNext(); )
+		for(Connection con : negatedConnections.keySet())
 		{
-			Connection con = (Connection)it.next();
-			Integer index = (Integer)negatedConnections.get(con);
+			Integer index = negatedConnections.get(con);
 
 			StringBuffer invertStr = new StringBuffer();
 			invertStr.append("  PSEUDO_INVERT" + index.intValue() + ": inverter port map(");
@@ -324,9 +323,8 @@ public class GenerateVHDL
 		boolean first = false;
 		int lineLen = 0;
 		StringBuffer infstr = new StringBuffer();
-		for(Iterator<String> it = signalNames.iterator(); it.hasNext(); )
+		for(String signalName : signalNames)
 		{
-			String signalName = (String)it.next();
 			if (exportNames.contains(signalName)) continue;
 			if (!first)
 			{
@@ -357,8 +355,8 @@ public class GenerateVHDL
 		// write the body
 		vhdlStrings.add("");
 		vhdlStrings.add("begin");
-		for(Iterator<String> it = bodyStrings.iterator(); it.hasNext(); )
-			vhdlStrings.add((String)it.next());
+		for(String str : bodyStrings)
+			vhdlStrings.add(str);
 		vhdlStrings.add("end " + addString(cell.getName(), null) + "_BODY;");
 	}
 
@@ -372,7 +370,7 @@ public class GenerateVHDL
 		{
 			for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
+				PortProto pp = it.next();
 
 				// ignore the bias port of 4-port transistors
 				if (np == Schematics.tech.transistor4Node)
@@ -455,7 +453,7 @@ public class GenerateVHDL
 				{
 					for(Iterator<Connection> cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
 					{
-						Connection con = (Connection)cIt.next();
+						Connection con = cIt.next();
 						if (con.getPortInst().getPortProto() != pp) continue;
 						ArcInst ai = con.getArc();
 						ArcProto.Function fun = ai.getProto().getFunction();
@@ -466,7 +464,7 @@ public class GenerateVHDL
 							sigName = addString(net.describe(false), no.getParent());
 						if (con.isNegated())
 						{
-							Integer index = (Integer)negatedConnections.get(con);
+							Integer index = negatedConnections.get(con);
 							if (index != null) sigName = "PINV" + index.intValue();
 						}
 						signalNames.add(sigName);
@@ -480,7 +478,7 @@ public class GenerateVHDL
 				boolean portNamed = false;
 				for(Iterator<Connection> cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					PortProto otherPP = con.getPortInst().getPortProto();
 					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
 					if (otherPP == pp)
@@ -491,7 +489,7 @@ public class GenerateVHDL
 							if (first) infstr.append(", ");   first = true;
 							if (con.isNegated())
 							{
-								Integer index = (Integer)negatedConnections.get(con);
+								Integer index = negatedConnections.get(con);
 								if (index != null)
 								{
 									String sigName = "PINV" + index.intValue();
@@ -520,7 +518,7 @@ public class GenerateVHDL
 
 				for(Iterator<Export> eIt = no.getNodeInst().getExports(); eIt.hasNext(); )
 				{
-					Export e = (Export)eIt.next();
+					Export e = eIt.next();
 					PortProto otherPP = e.getOriginalPort().getPortProto();
 					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
 					if (otherPP == pp)
@@ -633,7 +631,7 @@ public class GenerateVHDL
 				special = BLOCKFLOPDS;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("clear"))
 					{
 						primName = "drff";
@@ -647,7 +645,7 @@ public class GenerateVHDL
 				special = BLOCKFLOPTS;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("clear"))
 					{
 						primName = "trff";
@@ -662,7 +660,7 @@ public class GenerateVHDL
 				special = BLOCKBUFFER;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
 					if (con.isNegated())
 					{
@@ -684,7 +682,7 @@ public class GenerateVHDL
 				Connection isNeg = null;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
 					if (con.isNegated()) isNeg = con;
@@ -708,7 +706,7 @@ public class GenerateVHDL
 				Connection isNeg = null;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
 					if (con.isNegated()) isNeg = con;
@@ -732,7 +730,7 @@ public class GenerateVHDL
 				Connection isNeg = null;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
 					if (con.isNegated()) isNeg = con;
@@ -754,7 +752,7 @@ public class GenerateVHDL
 				int inPort = 0;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 				}
 				primName += inPort;
@@ -770,7 +768,7 @@ public class GenerateVHDL
 				// if the node has an export with power/ground, make it that
 				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				{
-					Export e = (Export)it.next();
+					Export e = it.next();
 					if (e.isPower())
 					{
 						primName = "power";
@@ -829,7 +827,7 @@ public class GenerateVHDL
 		{
 			for(Iterator<NodeInst> it = environment.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				if (orig.equals(ni.getProto().getName()))
 				{
@@ -878,14 +876,14 @@ public class GenerateVHDL
 		HashSet<PortProto> flaggedPorts = new HashSet<PortProto>();
 		for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 		{
-			PortProto pp = (PortProto)it.next();
+			PortProto pp = it.next();
 			if (special == BLOCKMOSTRAN)
 			{
 				// ignore ports that are electrically connected to previous ones
 				boolean connected = false;
 				for(Iterator<PortProto> oIt = np.getPorts(); it.hasNext(); )
 				{
-					PortProto oPp = (PortProto)oIt.next();
+					PortProto oPp = oIt.next();
 					if (oPp == pp) break;
 					if (((PrimitivePort)oPp).getTopology() == ((PrimitivePort)pp).getTopology()) { connected = true;   break; }
 				}
@@ -919,7 +917,7 @@ public class GenerateVHDL
 		HashSet<Network> networksFound = new HashSet<Network>();
 		for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
 		{
-			PortProto pp = (PortProto)it.next();
+			PortProto pp = it.next();
 //	#ifdef IGNORE4PORTTRANSISTORS
 //			if (np == sch_transistor4prim)
 //			{
@@ -961,7 +959,7 @@ public class GenerateVHDL
 					int inst = 1;
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
-						Connection con = (Connection)cIt.next();
+						Connection con = cIt.next();
 						if (con.getPortInst().getPortProto() != pp) continue;
 						infstr.append(before);   before = ", ";
 						String exportName = addString(portName, cell) + (inst++);
@@ -998,7 +996,7 @@ public class GenerateVHDL
 	private static String getOneNetworkName(Network net)
 	{
 		Iterator<String> nIt = net.getNames();
-		if (nIt.hasNext()) return (String)nIt.next();
+		if (nIt.hasNext()) return nIt.next();
 		return net.describe(false);
 	}
 }

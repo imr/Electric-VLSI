@@ -1056,29 +1056,27 @@ class FillRouter {
 	}
 	private void connectPorts(List<PortInst> ports) {
 		for (Iterator<PortInst> it=ports.iterator(); it.hasNext(); ) {
-			PortInst first = (PortInst) it.next();
+			PortInst first = it.next();
 			double width = LayoutLib.widestWireWidth(first);
 			it.remove();
-			for (Iterator<PortInst> it2=ports.iterator(); it2.hasNext();) {
-				PortInst pi = (PortInst) it2.next();
+			for (PortInst pi : ports) {
 				ArcProto a = findCommonArc(first, pi);
 				if (a!=null)  LayoutLib.newArcInst(a, width, first, pi);
 			}
 		}
 	}
 	private FillRouter(ArrayList<PortInst> ports) {
-		for (Iterator<PortInst> it=ports.iterator(); it.hasNext();) {
-			PortInst pi = (PortInst) it.next();
+		for (PortInst pi : ports) {
 			String key = makeKey(pi);
-			List<PortInst> l = (List<PortInst>) portMap.get(key);
+			List<PortInst> l = portMap.get(key);
 			if (l==null) {
 				l = new LinkedList<PortInst>();
 				portMap.put(key, l);
 			}
 			l.add(pi);
 		}
-		for (Iterator<String> it=portMap.keySet().iterator(); it.hasNext();) {
-			connectPorts((List<PortInst>)portMap.get(it.next()));
+		for (String str : portMap.keySet()) {
+			connectPorts(portMap.get(str));
 		}
 	}
 	public static void connectCoincident(ArrayList<PortInst> ports) {
@@ -1132,9 +1130,9 @@ class TiledCell {
 		// get all the ports
 		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
-			NodeInst ni = (NodeInst) it.next();
+			NodeInst ni = it.next();
 			for (Iterator<PortInst> pIt=ni.getPortInsts(); pIt.hasNext();) {
-				PortInst pi = (PortInst) pIt.next();
+				PortInst pi = pIt.next();
 				ports.add(pi);
 			}
 		}
@@ -1157,7 +1155,7 @@ class TiledCell {
 		Rectangle2D bounds = ni.findEssentialBounds();
 		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (Iterator<PortInst> it=ni.getPortInsts(); it.hasNext();) {
-			PortInst pi = (PortInst) it.next();
+			PortInst pi = it.next();
 			Iterator conns = pi.getConnections();
 			if (!conns.hasNext() && orientation(bounds,pi)==orientation) {
 				ports.add(pi);
@@ -1168,8 +1166,7 @@ class TiledCell {
 	private void exportPortInsts(List<PortInst> ports, Cell tiled,
 								 StdCellParams stdCell) {
 		Collections.sort(ports, new OrderPortInstsByName());
-		for (Iterator<PortInst> it=ports.iterator(); it.hasNext();) {
-			PortInst pi = (PortInst) it.next();
+		for (PortInst pi : ports) {
 			PortProto pp = (PortProto) pi.getPortProto();
 			PortCharacteristic role = pp.getCharacteristic(); 
 			if (role==stdCell.getVddExportRole()) {

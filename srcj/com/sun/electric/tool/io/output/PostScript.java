@@ -117,14 +117,38 @@ public class PostScript extends Output
 	{
 		boolean error = false;
 		PostScript out = new PostScript(cell, override);
-		if (out.openTextOutputStream(filePath)) error = true;
-        else // write out the cell
+		if (out.openTextOutputStream(filePath)) error = true; else
         {
-            if (out.start())
-            {
-	            out.scanCircuit();
-	            out.done();
-            }
+			// write out the cell
+			if (cell.getView().isTextView())
+			{
+				// text cell
+				out.printWriter.println("Library: " + cell.getLibrary().getName() + "   Cell: " + cell.noLibDescribe());
+
+				if (User.isIncludeDateAndVersionInOutput())
+				{
+					out.printWriter.println("   Created: " + TextUtils.formatDate(cell.getCreationDate()) +
+						"   Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
+				}
+				out.printWriter.println("\n\n");
+
+				// print the text of the cell
+				Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
+				if (var != null)
+				{
+					String [] strings = (String [])var.getObject();
+					for(int i=0; i<strings.length; i++)
+						out.printWriter.println(strings[i]);
+				}
+			} else
+			{
+				// layout/schematics cell
+	            if (out.start())
+	            {
+		            out.scanCircuit();
+		            out.done();
+	            }
+			}
 
             if (out.closeTextOutputStream()) error = true;
         }

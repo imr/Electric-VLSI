@@ -753,7 +753,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 //		int index = list.getSelectedIndex();
 //		if (attributes.isSelected())
 //		{
-//			AttributesTable.AttValPair avp = (AttributesTable.AttValPair)allAttributes.get(index);
+//			AttributesTable.AttValPair avp = allAttributes.get(index);
 //			listEditLabel.setText("Attribute '" + avp.trueName + "'");
 //			initialListTextField = new String(avp.value);
 //			listEdit.setText(initialListTextField);
@@ -1612,7 +1612,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	{//GEN-HEADEREND:event_seeActionPerformed
 		if (!ports.isSelected()) return;
 		int currentIndex = list.getSelectedIndex();
-		ArcInst ai = (ArcInst)portObjects.get(currentIndex);
+		ArcInst ai = portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;
         if (wnd != null) {

@@ -397,7 +397,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         curEqRecNodesToDisplay.clear();
         int i = 0;
         for (Iterator<TreeNode> it=curEqRecNodes.iterator(); it.hasNext() && i<MAX_CONCUR_EQ_RECS;) {
-            TreeNode eqRecNode = (TreeNode)it.next();
+            TreeNode eqRecNode = it.next();
             if (curEqRecNodesToDisplay.contains(eqRecNode)) continue; // skip if already displayed
             curEqRecNodesToDisplay.add(eqRecNode);
             i++;
@@ -407,7 +407,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         i = 0;
         // fill pane with data row by row 
         for (Iterator<TreeNode> it=curEqRecNodesToDisplay.iterator(); it.hasNext(); i++) {
-            TreeNode eqRecNode = (TreeNode)it.next();
+            TreeNode eqRecNode = it.next();
             String partitionTitle = eqRecNode.getParent().getShortName() + " : "
                                   + eqRecNode.getShortName();
             rightSplPane.setPartitionTitle(i, partitionTitle);
@@ -455,7 +455,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                 html.append("<font COLOR=\"red\">");
                 for (int k=0; k<mism[ndx].size() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
                     String descr = cleanNetObjectName(
-                               ((NetObject) mism[ndx].get(k)).instanceDescription());
+                               (mism[ndx].get(k)).instanceDescription());
                     
                     html.append(href + (row*100000 + ndx*10000 + k) +"\">"+ descr + "</a>");
                     curCellText.append(descr);
@@ -477,7 +477,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                 html.append("<font COLOR=\"green\">");
                 for (int k=0; k<matched[ndx].size() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
                     String descr = cleanNetObjectName(
-                               ((NetObject) matched[ndx].get(k)).instanceDescription());
+                               (matched[ndx].get(k)).instanceDescription());
                     
                     html.append(href + (row*100000 + ndx*10000 + (mism[ndx].size()+k)) 
                                 + "\">"+ descr + "</a>");
@@ -528,13 +528,13 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             // fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
             html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
             
-            Circuit ckt = (Circuit) it2.next();
+            Circuit ckt = it2.next();
             int len = ckt.numNetObjs();
 
             Iterator<NetObject> it3=ckt.getNetObjs();
             for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
                 String descr = cleanNetObjectName(
-                           ((NetObject) it3.next()).instanceDescription());
+                           (it3.next()).instanceDescription());
                 
                 html.append(href + (row*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
                 curCellText.append(descr);
@@ -615,21 +615,21 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             Circuit ckt = null;
             for (Iterator<Circuit> it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
                 if (c == cellNdx) {
-                    ckt = (Circuit) it.next(); 
+                    ckt = it.next(); 
                     break;
                 }
             for (Iterator<NetObject> it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
                 if (k == line) {
-                    partOrWire = (NetObject)it.next();
+                    partOrWire = it.next();
                     break;
                 }
         } else { // in case of LP, get the NetObjeect from the array
             ArrayList<NetObject>[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
             ArrayList<NetObject>[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
             if (line >= mism[cellNdx].size()) 
-                partOrWire = (NetObject)matched[cellNdx].get(line - mism[cellNdx].size());
+                partOrWire = matched[cellNdx].get(line - mism[cellNdx].size());
             else
-                partOrWire = (NetObject)mism[cellNdx].get(line);
+                partOrWire = mism[cellNdx].get(line);
         }
         
         Cell cell = null;

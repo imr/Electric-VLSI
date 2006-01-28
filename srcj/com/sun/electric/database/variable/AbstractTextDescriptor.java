@@ -207,7 +207,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * @param index the Position number desired.
 		 * @return the Position at a given index.
 		 */
-		public static Position getPositionAt(int index) { return (Position)positions.get(index); }
+		public static Position getPositionAt(int index) { return positions.get(index); }
 
         /**
          * Get an iterator over all Positions
@@ -509,7 +509,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * @param index the Rotation number desired.
 		 * @return the Rotation at a given index.
 		 */
-		public static Rotation getRotationAt(int index) { return (Rotation)rotations.get(index); }
+		public static Rotation getRotationAt(int index) { return rotations.get(index); }
 
         /**
          * Get an iterator over all rotations
@@ -575,7 +575,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * @param index the Unit number desired.
 		 * @return the Unit at a given index.
 		 */
-        public static Unit getUnitAt(int index) { return (Unit)units.get(index); }
+        public static Unit getUnitAt(int index) { return units.get(index); }
 
         /**
          * Get an iterator over all units.
@@ -647,7 +647,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public static ActiveFont findActiveFont(String fontName)
 		{
-			ActiveFont af = (ActiveFont)fontMap.get(fontName);
+			ActiveFont af = fontMap.get(fontName);
             if (af != null) return af;
             if (indexCount >= VTMAXFACE)
             {
@@ -666,7 +666,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		{
 			if (index <= 0) return null;
 			if (index > fontList.size()) return null;
-			ActiveFont af = (ActiveFont)fontList.get(index-1);
+			ActiveFont af = fontList.get(index-1);
 			return af;
 		}
 

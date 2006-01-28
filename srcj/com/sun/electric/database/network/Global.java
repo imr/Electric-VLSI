@@ -268,7 +268,7 @@ public class Global
 		 */
 		private static Global.Set newSet(PortCharacteristic[] elemMap) {
 			fakeSet.elemMap = elemMap;
-			Global.Set set = (Global.Set) allSets.get(fakeSet);
+			Global.Set set = allSets.get(fakeSet);
 			fakeSet.elemMap = null;
 			if (set == null) {
 				set = new Global.Set(elemMap);

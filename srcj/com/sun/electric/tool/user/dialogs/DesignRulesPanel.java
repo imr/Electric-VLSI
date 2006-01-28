@@ -267,7 +267,7 @@ public class DesignRulesPanel extends JPanel
 		int curWid = drSpacingsList.getItemCount();
 		if (curWid >= 0 && curWid < wideSpacingRules.size())
 		{
-	        DRCTemplate wr = (DRCTemplate)wideSpacingRules.get(curWid);
+	        DRCTemplate wr = wideSpacingRules.get(curWid);
 			String widText = drWidths.getText().trim();
 			String lenText = drLengths.getText().trim();
 			if (widText.length() > 0 || lenText.length() > 0)
@@ -346,7 +346,7 @@ public class DesignRulesPanel extends JPanel
 		int index = drSpacingsList.getSelectedIndex();
 		if (index < 0 || index >= wideSpacingRules.size()) return;
 		designRulesUpdating = true;
-		DRCTemplate tmp = (DRCTemplate)wideSpacingRules.get(index);
+		DRCTemplate tmp = wideSpacingRules.get(index);
 		drWidths.setText("");
 		drLengths.setText("");
 		drSpacingsRule.setText("");
@@ -484,7 +484,7 @@ public class DesignRulesPanel extends JPanel
             // Not iterator otherwise the order is lost
 			for(int i = 0; i < spacingRules.size(); i++)
 			{
-				DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
+				DRCTemplate tmp = spacingRules.get(i);
 	            if (tmp.ruleType != DRCTemplate.DRCRuleType.UCONSPA) continue;
 				wideSpacingRules.add(tmp);
                 drSpacingsList.addItem("Rule " + wideSpacingRules.size());
@@ -500,7 +500,7 @@ public class DesignRulesPanel extends JPanel
             spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA);
             for (int i = 0; i < spacingRules.size(); i++)
             {
-                DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
+                DRCTemplate tmp = spacingRules.get(i);
                 if (tmp.ruleType == DRCTemplate.DRCRuleType.CONSPA)
                 {
                     drMultiConnected.setText( Double.toString(tmp.value1));
@@ -516,7 +516,7 @@ public class DesignRulesPanel extends JPanel
             spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE);
             for (int i = 0; i < spacingRules.size(); i++)
             {
-                DRCTemplate tmp = (DRCTemplate)spacingRules.get(i);
+                DRCTemplate tmp = spacingRules.get(i);
                 // Any is fine
                 drNormalEdge.setText(Double.toString(tmp.value1));
                 drNormalEdgeRule.setText(tmp.ruleName);

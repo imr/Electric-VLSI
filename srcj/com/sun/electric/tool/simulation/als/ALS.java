@@ -289,7 +289,7 @@ public class ALS extends Engine
 		 */
 		static UserProc getFunctionAddress(String s1)
 		{
-			UserProc ret = (UserProc)funcMap.get(s1);
+			UserProc ret = funcMap.get(s1);
 			if (ret == null)
 				System.out.println("ERROR: Unable to find user function " + s1 + " in library");
 			return ret;
@@ -1205,7 +1205,7 @@ public class ALS extends Engine
 			i = pos;
 		}
 		String [] parts = new String[fragments.size()];
-		for(int i=0; i<fragments.size(); i++) parts[i] = (String)fragments.get(i);
+		for(int i=0; i<fragments.size(); i++) parts[i] = fragments.get(i);
 		return parts;
 	}
 

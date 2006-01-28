@@ -238,7 +238,7 @@ public class CellProperties extends EDialog
      */
     private PerCellValues getPCV(Cell cell)
     {
-        PerCellValues pcv = (PerCellValues)origValues.get(cell);
+        PerCellValues pcv = origValues.get(cell);
         if (pcv == null)
         {
             pcv = new PerCellValues(cell);

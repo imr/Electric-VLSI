@@ -439,7 +439,7 @@ public class EDIF extends Input
 			if (token == null) break;
 
 			// locate the keyword, and execute the function
-			EDIFKEY key = (EDIFKEY)edifKeys.get(TextUtils.canonicString(token));
+			EDIFKEY key = edifKeys.get(TextUtils.canonicString(token));
 			if (key == null)
 			{
 				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown keyword <" + token + ">");
@@ -1204,14 +1204,14 @@ public class EDIF extends Input
 		if (curPoints.size() == 0) return;
 
 		// get the bounds of the poly
-		Point2D p0 = (Point2D)curPoints.get(0);
+		Point2D p0 = curPoints.get(0);
 		double lX = p0.getX();
 		double lY = p0.getY();
 		double hX = lX;
 		double hY = lY;
 		for(int i=1; i<curPoints.size(); i++)
 		{
-			Point2D point = (Point2D)curPoints.get(i);
+			Point2D point = curPoints.get(i);
 			if (lX > point.getX()) lX = point.getX();
 			if (hX < point.getX()) hX = point.getX();
 			if (lY > point.getY()) lY = point.getY();
@@ -1246,7 +1246,7 @@ public class EDIF extends Input
 			EPoint [] trace = new EPoint[curPoints.size()];
 			for(int i=0; i<curPoints.size(); i++)
 			{
-				Point2D point = (Point2D)curPoints.get(i);
+				Point2D point = curPoints.get(i);
 				trace[i] = new EPoint(point.getX() - cX, point.getY() - cY);
 			}
 
@@ -1291,9 +1291,9 @@ public class EDIF extends Input
 			{
 				double [] x = new double[3];
 				double [] y = new double[3];
-				Point2D p0 = (Point2D)curPoints.get(0);
-				Point2D p1 = (Point2D)curPoints.get(1);
-				Point2D p2 = (Point2D)curPoints.get(2);
+				Point2D p0 = curPoints.get(0);
+				Point2D p1 = curPoints.get(1);
+				Point2D p2 = curPoints.get(2);
 				x[0] = p0.getX();   y[0] = p0.getY();
 				x[1] = p1.getX();   y[1] = p1.getY();
 				x[2] = p2.getX();   y[2] = p2.getY();
@@ -1432,7 +1432,7 @@ public class EDIF extends Input
             }
 
 			// look for this cell name in the cell list
-			NameEntry nt = (NameEntry)cellTable.get(aName);
+			NameEntry nt = cellTable.get(aName);
 			if (nt != null)
 			{
 				aName = nt.replace;
@@ -1483,8 +1483,8 @@ public class EDIF extends Input
 		{
 			if (curPoints.size() == 2)
 			{
-				Point2D p0 = (Point2D)curPoints.get(0);
-				Point2D p1 = (Point2D)curPoints.get(1);
+				Point2D p0 = curPoints.get(0);
+				Point2D p1 = curPoints.get(1);
 				double lX = Math.min(p0.getX(), p1.getX());
 				double hX = Math.max(p0.getX(), p1.getX());
 				double lY = Math.min(p0.getY(), p1.getY());
@@ -1637,7 +1637,7 @@ public class EDIF extends Input
 				if (ePort != null)
 				{
 					// create a internal wire port using the pin-proto, and create the port and export
-					Point2D p0 = (Point2D)curPoints.get(0);
+					Point2D p0 = curPoints.get(0);
 					double xPos = p0.getX();
 					double yPos = p0.getY();
 //					Point2D size = getSizeAndMirror(cellRefProto);
@@ -1671,7 +1671,7 @@ public class EDIF extends Input
 			} else
 			{
 				// create the node instance
-				Point2D p0 = (Point2D)curPoints.get(0);
+				Point2D p0 = curPoints.get(0);
 				double xPos = p0.getX();
 				double yPos = p0.getY();
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
@@ -2493,8 +2493,8 @@ public class EDIF extends Input
 			if (curGeometryType == GBUS || isArray) np = Schematics.tech.busPinNode;
 			for(int i=0; i<curPoints.size()-1; i++)
 			{
-				Point2D fPoint = (Point2D)curPoints.get(i);
-				Point2D tPoint = (Point2D)curPoints.get(i+1);
+				Point2D fPoint = curPoints.get(i);
+				Point2D tPoint = curPoints.get(i+1);
 				double fX = fPoint.getX();   double fY = fPoint.getY();
 				double tX = tPoint.getX();   double tY = tPoint.getY();
 				if (curCellPage > 0)
@@ -2591,7 +2591,7 @@ public class EDIF extends Input
 							boolean tbus = false;
 							if (count < fList.size())
 							{
-								fPi = (PortInst)fList.get(count);
+								fPi = fList.get(count);
 
 								// check node for array variable
 								NodeInst ni = fPi.getNodeInst();
@@ -2604,7 +2604,7 @@ public class EDIF extends Input
 							}
 							if (count < tList.size())
 							{
-								tPi = (PortInst)tList.get(count);
+								tPi = tList.get(count);
 
 								// check node for array variable
 								NodeInst ni = tPi.getNodeInst();
@@ -3227,8 +3227,8 @@ public class EDIF extends Input
 			if (curPoints.size() == 2)
 			{
 				// create the node instance
-				Point2D p0 = (Point2D)curPoints.get(0);
-				Point2D p1 = (Point2D)curPoints.get(1);
+				Point2D p0 = curPoints.get(0);
+				Point2D p1 = curPoints.get(1);
 				double hX = p1.getX();
 				double lX = p0.getX();
 				if (p0.getX() > p1.getX())
@@ -3468,7 +3468,7 @@ public class EDIF extends Input
 					ArcInst ai = null;
 					NodeInst ni = null;
 					String key = propertyReference;
-					Point2D p0 = (Point2D)curPoints.get(0);
+					Point2D p0 = curPoints.get(0);
 					double xOff = 0, yOff = 0;
 					if (propertyReference.length() > 0 && curNode != null)
 					{
@@ -3673,7 +3673,7 @@ public class EDIF extends Input
 			int instCount = curPoints.size();
 			if (instCount > 0)
 			{
-				Point2D point = (Point2D)curPoints.get(0);
+				Point2D point = curPoints.get(0);
 				instPtX = point.getX();
 				instPtY = point.getY();
 			}
@@ -3804,7 +3804,7 @@ public class EDIF extends Input
 								if (saveTextPoints.size() != 0)
 								{
 									// now set the position, relative to the center of the current object
-									Point2D sP0 = (Point2D)saveTextPoints.get(0);
+									Point2D sP0 = saveTextPoints.get(0);
 									double xOff = sP0.getX() - ni.getTrueCenterX();
 									double yOff = sP0.getY() - ni.getTrueCenterY();
 

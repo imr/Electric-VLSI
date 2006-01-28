@@ -47,16 +47,15 @@ public class Circuit {
 	// ---------------------- public methods ------------------
 	public static Circuit please(List<NetObject> netObjs){
 		Circuit ckt = new Circuit();
-		for (Iterator<NetObject> it=netObjs.iterator(); it.hasNext();) {
-			ckt.adopt((NetObject)it.next());
+		for (NetObject n : netObjs) {
+			ckt.adopt(n);
 		}
 		return ckt;
 	}
 	/** Remove deleted NetObjects. Minimize storage used. */
 	public void putInFinalForm() {
 		Set<NetObject> goodObjs = new HashSet<NetObject>();
-		for (Iterator<NetObject> it=netObjs.iterator(); it.hasNext();) {
-			NetObject n = (NetObject) it.next();
+		for (NetObject n : netObjs) {
 			if (n.isDeleted()) continue;
 			error(goodObjs.contains(n), "duplicate NetObj in Circuit!???");
 			goodObjs.add(n);
@@ -72,7 +71,7 @@ public class Circuit {
 	public int numUndeletedNetObjs() {
 		int count = 0;
 		for (Iterator<NetObject> it=getNetObjs(); it.hasNext();) {
-			NetObject n = (NetObject) it.next();
+			NetObject n = it.next();
 			if (!n.isDeleted()) count++;
 		}
 		return count;
@@ -105,7 +104,7 @@ public class Circuit {
 	public HashMap<Integer,List<NetObject>> apply(Strategy js){
 		HashMap<Integer,List<NetObject>> codeToNetObjs = new HashMap<Integer,List<NetObject>>();
 		for (Iterator<NetObject> it=getNetObjs(); it.hasNext();) {
-			NetObject no= (NetObject)it.next();
+			NetObject no= it.next();
 			Integer code = js.doFor(no);
 			error(code==null, "null is no longer a legal code");
 			ArrayList<NetObject> ns = (ArrayList<NetObject>) codeToNetObjs.get(code);

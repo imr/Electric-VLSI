@@ -101,7 +101,7 @@ public class Bipolar extends Part {
 
 	public Set<PinType> getPinTypes() {return PIN_TYPE_SET;}
 	public PinType getPinTypeOfNthPin(int n) {
-		PinType[] pinTypeArray = (PinType[]) TYPE_TO_PINTYPE_ARRAY.get(type);
+		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(type);
 		return pinTypeArray[n];
 	}
 	

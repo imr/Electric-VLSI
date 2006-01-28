@@ -226,8 +226,8 @@ public class CrossLibCopy extends EDialog
 			if (leftPos >= leftCount) op = 2; else
 				if (rightPos >= rightCount) op = 1; else
 			{
-				Cell leftCell = (Cell)cellListLeft.get(leftPos);
-				Cell rightCell = (Cell)cellListRight.get(rightPos);
+				Cell leftCell = cellListLeft.get(leftPos);
+				Cell rightCell = cellListRight.get(rightPos);
                 int j = leftCell.getCellName().compareTo(rightCell.getCellName());
 				if (j < 0) op = 1; else
 					if (j > 0) op = 2; else
@@ -238,7 +238,7 @@ public class CrossLibCopy extends EDialog
 			Cell leftCell = null;
 			if (op == 1 || op == 3)
 			{
-				leftCell = (Cell)cellListLeft.get(leftPos++);
+				leftCell = cellListLeft.get(leftPos++);
 				leftName = leftCell.noLibDescribe();
 			}
 			modelLeft.addElement(leftName);
@@ -247,7 +247,7 @@ public class CrossLibCopy extends EDialog
 			Cell rightCell = null;
 			if (op == 2 || op == 3)
 			{
-				rightCell = (Cell)cellListRight.get(rightPos++);
+				rightCell = cellListRight.get(rightPos++);
 				rightName = rightCell.noLibDescribe();
 			}
 			modelRight.addElement(rightName);
@@ -658,7 +658,7 @@ public class CrossLibCopy extends EDialog
 		// the right popup of libraies changed
 		JComboBox cb = (JComboBox)evt.getSource();
 		int index = cb.getSelectedIndex();
-		curLibRight = (Library)libList.get(index);
+		curLibRight = libList.get(index);
 		showCells(false, false);
 	}//GEN-LAST:event_librariesRightActionPerformed
 
@@ -667,7 +667,7 @@ public class CrossLibCopy extends EDialog
 		// the left popup of libraies changed
 		JComboBox cb = (JComboBox)evt.getSource();
 		int index = cb.getSelectedIndex();
-		curLibLeft = (Library)libList.get(index);
+		curLibLeft = libList.get(index);
 		showCells(false, false);
 	}//GEN-LAST:event_librariesLeftActionPerformed
 

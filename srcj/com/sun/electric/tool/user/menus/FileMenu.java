@@ -782,7 +782,7 @@ public class FileMenu {
 		for(Iterator<Library> it = libsToSave.keySet().iterator(); it.hasNext(); )
 		{
 			Library lib = it.next();
-			type = (FileType)libsToSave.get(lib);
+			type = libsToSave.get(lib);
             if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType))
 			{
 				if (justSkip) continue;
@@ -1030,18 +1030,16 @@ public class FileMenu {
 			RepaintManager currentManager = RepaintManager.currentManager(overall);
 			currentManager.setDoubleBufferingEnabled(false);
 
-			// resize the window if this is a WaveformWindow
 			Dimension oldSize = overall.getSize();
-			int oldBackgroundColor = User.getColorBackground();
-			int iw = (int)pageFormat.getImageableWidth() * ep.getDesiredDPI() / 72;
-			int ih = (int)pageFormat.getImageableHeight() * ep.getDesiredDPI() / 72;
-			wf.getContent().initializePrinting(ep, iw, ih, oldSize);
 			ep.setOldSize(oldSize);
+
+			// initialize for content-specific printing
+			wf.getContent().initializePrinting(ep, pageFormat);
 
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
  				IOTool.setPrinterName(printerToUse.getName());
-			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize, oldBackgroundColor, aset));
+			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize, aset));
         }
     }
 
@@ -1050,15 +1048,13 @@ public class FileMenu {
 		private WindowFrame wf;
 		private PrinterJob pj;
 		private Dimension oldSize;
-		private int oldBackgroundColor;
 		private PrintRequestAttributeSet aset;
 
-		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize, int oldBackgroundColor, PrintRequestAttributeSet aset)
+		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize, PrintRequestAttributeSet aset)
 		{
 			this.wf = wf;
 			this.pj = pj;
 			this.oldSize = oldSize;
-			this.oldBackgroundColor = oldBackgroundColor;
 			this.aset = aset;
 		}
 
@@ -1077,8 +1073,6 @@ public class FileMenu {
 
 			if (oldSize != null)
 			{
-//				wf.getContent().setPrintingMode(false);
-				User.setColorBackground(oldBackgroundColor);
 				overall.setSize(oldSize);
 				overall.validate();
 			}

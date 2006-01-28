@@ -53,7 +53,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		if (ann==null) return;
 		Cell.CellGroup group = ann.getGroupToJoin();
 		if (group==null) return;
-		Set<CellContext> additions = (Set<CellContext>) groupToAdditions.get(group);
+		Set<CellContext> additions = groupToAdditions.get(group);
 		if (additions==null) {
 			additions = new HashSet<CellContext>();
 			groupToAdditions.put(group, additions);					
@@ -91,11 +91,11 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		Set<Cell> usedMoreThanOnce = new HashSet<Cell>();
 		// For each Cell in the design: c in reverse topological order
 		for (Iterator<Cell> it=cellsInReverseTopologicalOrder(); it.hasNext();) {
-			Cell c = (Cell) it.next();
+			Cell c = it.next();
 			Set<Cell> usedOnce = new HashSet<Cell>();
 			// For each child Cell of c: child 
 			for (Iterator<Nodable> ni=c.getNetlist(true).getNodables(); ni.hasNext();) {
-				NodeProto np = ((Nodable) ni.next()).getProto();
+				NodeProto np = ni.next().getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;
 				addUse(usedOnce, usedMoreThanOnce, child);
@@ -105,10 +105,10 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 				// for icons with no schematic.
 				if (!cellToUsedOnce.containsKey(child))  continue;
 
-				Set<Cell> childUsedOnce = (Set<Cell>) cellToUsedOnce.get(child);
+				Set<Cell> childUsedOnce = cellToUsedOnce.get(child);
 				// For each descendent of child instantiated exactly once by child
-				for (Iterator<Cell> ci=childUsedOnce.iterator(); ci.hasNext();) {
-					addUse(usedOnce, usedMoreThanOnce, (Cell) ci.next());
+				for (Cell ci : childUsedOnce) {
+					addUse(usedOnce, usedMoreThanOnce, ci);
 				}
 			}
 			cellToUsedOnce.put(c, usedOnce);
@@ -142,11 +142,11 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	}
 	public CellContext getCellContext(Cell cell) {
 		LayoutLib.error(!cellsInUse.containsKey(cell), "cell not found");
-		return (CellContext) cellsInUse.get(cell);
+		return cellsInUse.get(cell);
 	}
 	/** @return a Set of CellContexts to add to group */
 	public Set<CellContext> getGroupAdditions(Cell.CellGroup group) {
-		Set<CellContext> additions = (Set<CellContext>) groupToAdditions.get(group);
+		Set<CellContext> additions = groupToAdditions.get(group);
 		return additions!=null ? additions : new HashSet<CellContext>();
 	}
 	public Cell getRoot() {return root;}

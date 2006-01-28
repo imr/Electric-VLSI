@@ -190,9 +190,8 @@ public class ColorPatternPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
 		});
-		for(Iterator<Outline> it = Outline.getOutlines().iterator(); it.hasNext(); )
+		for(Outline o : Outline.getOutlines())
 		{
-			Outline o = (Outline)it.next();
 			outlinePattern.addItem(o.getSample());
 		}
 		outlinePattern.addActionListener(new ActionListener()
@@ -303,7 +302,7 @@ public class ColorPatternPanel extends JPanel
 
 				// draw an outline if requested
 				List<Outline> outlines = Outline.getOutlines();
-				Outline o = (Outline)outlines.get(dia.outlinePattern.getSelectedIndex());
+				Outline o = outlines.get(dia.outlinePattern.getSelectedIndex());
 				if (o != Outline.NOPAT)
 				{
 					g.setColor(curColor);
@@ -464,7 +463,7 @@ public class ColorPatternPanel extends JPanel
 		if (currentLI == null) return;
 		currentLI.useStippleDisplay = useStipplePatternDisplay.isSelected();
 		List<Outline> outlines = Outline.getOutlines();
-		currentLI.outlinePatternDisplay = (Outline)outlines.get(outlinePattern.getSelectedIndex());
+		currentLI.outlinePatternDisplay = outlines.get(outlinePattern.getSelectedIndex());
 		outlinePattern.setEnabled(currentLI.useStippleDisplay);
 		if (showPrinter)
 		{

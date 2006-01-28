@@ -206,7 +206,7 @@ public class ERCWellCheck
 
 		// make a list of well and substrate areas
 		int wellIndex = 0;
-        GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
+        GeometryHandler topMerge = cellMerges.get(cell);
 
 		for(Iterator<Layer> it = topMerge.getKeyIterator(); it.hasNext(); )
 		{
@@ -383,8 +383,8 @@ public class ERCWellCheck
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRCTemplate rule = (con)?
-							(DRCTemplate)rulesCon.get(waLayer):
-							(DRCTemplate)rulesNonCon.get(waLayer);
+							rulesCon.get(waLayer):
+							rulesNonCon.get(waLayer);
 					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
@@ -537,7 +537,7 @@ public class ERCWellCheck
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)(check.cellMerges.get(cell));
+	        GeometryHandler thisMerge = check.cellMerges.get(cell);
 
 			if (thisMerge == null)
 			{
@@ -556,7 +556,7 @@ public class ERCWellCheck
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(info.getCell());
+	        GeometryHandler thisMerge = check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
             boolean done = check.doneCells.get(cell) != null;
 
@@ -590,7 +590,7 @@ public class ERCWellCheck
                     NodeProto subNp = ni.getProto();
                     if (subNp instanceof PrimitiveNode) continue;
                     // get sub-merge information for the cell instance
-                    GeometryHandler subMerge = (GeometryHandler)check.cellMerges.get(subNp);
+                    GeometryHandler subMerge = check.cellMerges.get(subNp);
                     if (subMerge != null)
                     {
                         AffineTransform tTrans = ni.translateOut(ni.rotateOut());
@@ -613,7 +613,7 @@ public class ERCWellCheck
 
 			// merge everything
 	        Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(cell);
+	        GeometryHandler thisMerge = check.cellMerges.get(cell);
             AffineTransform trans = null;
             PrimitiveNode.Function fun = ni.getFunction();
 	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);

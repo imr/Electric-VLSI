@@ -54,7 +54,7 @@ public class GDSLayers
 	public Integer getFirstLayer()
 	{
 		if (normalLayers.size() == 0) return new Integer(0);
-		return (Integer)normalLayers.get(0);
+		return normalLayers.get(0);
 	}
 
 	public int getPinLayer() { return pinLayer; }

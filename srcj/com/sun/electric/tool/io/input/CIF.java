@@ -714,9 +714,9 @@ public class CIF extends Input
 		if (unknownLayerNames.size() > 0)
 		{
 			System.out.println("Error: these layers appear in the CIF file but are not assigned to Electric layers:");
-			for(Iterator<String> it = unknownLayerNames.iterator(); it.hasNext(); )
+			for(String str : unknownLayerNames)
 			{
-				System.out.println("    " + (String)it.next());
+				System.out.println("    " + str);
 			}
 		}
 
@@ -729,7 +729,7 @@ public class CIF extends Input
 
 	private BackCIFCell findBackCIFCell(int cIndex)
 	{
-		return (BackCIFCell)cifCellMap.get(new Integer(cIndex));
+		return cifCellMap.get(new Integer(cIndex));
 	}
 
 	private BackCIFCell makeBackCIFCell(int cIndex)
@@ -757,7 +757,7 @@ public class CIF extends Input
 		curTech = Technology.getCurrent();
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			String cifName = layer.getCIFLayer();
 			if (cifName != null && cifName.length() > 0)
 			{
@@ -1937,7 +1937,7 @@ public class CIF extends Input
 	{
 		statementsSince91 = true;
 		if (ignoreStatements) return;
-		currentLayer = (Layer)cifLayerNames.get(lName);
+		currentLayer = cifLayerNames.get(lName);
 		if (currentLayer == null)
 		{
 			unknownLayerNames.add(lName);
@@ -2450,7 +2450,7 @@ public class CIF extends Input
 	 */
 	private FrontSymbol lookupSymbol(int sym)
 	{
-		FrontSymbol val = (FrontSymbol)symbolTable.get(new Integer(sym));
+		FrontSymbol val = symbolTable.get(new Integer(sym));
 		if (val == null)
 		{
 			// create a new entry

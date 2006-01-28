@@ -203,7 +203,7 @@ public class GDS extends Geometry
                 System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
                 continue;
             }
-			List<Object> polyList = (List<Object>)cellGeom.polyMap.get(layer);
+			List<Object> polyList = cellGeom.polyMap.get(layer);
 			for (Object obj : polyList)
 			{
 				PolyBase poly = (PolyBase)obj;
@@ -330,9 +330,9 @@ public class GDS extends Geometry
 		// now the string
 		String str = pp.getName();
         if (remapNames) {
-            Set<String> nameSet = (Set<String>)nameRemapping.get(str);
+            Set<String> nameSet = nameRemapping.get(str);
             if (nameSet != null) {
-                str = (String)nameSet.iterator().next();
+                str = nameSet.iterator().next();
                 str = str + ":" + str;
                 //System.out.println("Remapping export "+pp.getName()+" to "+str);
             }
@@ -361,7 +361,7 @@ public class GDS extends Geometry
 	protected boolean selectLayer(Layer layer)
 	{
 		boolean validLayer = true;
-		GDSLayers numbers = (GDSLayers)layerNumbers.get(layer);
+		GDSLayers numbers = layerNumbers.get(layer);
 		if (numbers == null)
 		{
 			String layerName = layer.getGDSLayer();
@@ -436,7 +436,7 @@ public class GDS extends Geometry
 
 		// write a call to a cell
 		outputHeader(HDR_SREF, 0);
-		String name = (String)cellNames.get(subCell);
+		String name = cellNames.get(subCell);
 		outputName(HDR_SNAME, name, HDR_M_SNAME);
 		outputHeader(HDR_STRANS, transValue);
 		outputAngle(angle);
@@ -699,7 +699,7 @@ public class GDS extends Geometry
 		outputDate(cell.getCreationDate());
 		outputDate(cell.getRevisionDate());
 
-		String name = (String)cellNames.get(cell);
+		String name = cellNames.get(cell);
         if (name == null) {
             System.out.println("Warning, sub"+cell+" in hierarchy is not the same view" +
                     " as top level cell");

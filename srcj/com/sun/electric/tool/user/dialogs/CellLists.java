@@ -92,10 +92,8 @@ public class CellLists extends EDialog
         getRootPane().setDefaultButton(ok);
 
 		// make a popup of views
-		/*for(View v: View.getOrderedViews()) views.addItem(v.getFullName());*/
-		for (Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
+		for (View v : View.getOrderedViews())
 		{
-			View v = (View)it.next();
 			views.addItem(v.getFullName());
 		}
 
@@ -237,7 +235,7 @@ public class CellLists extends EDialog
 		cellsSeen.add(cell);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
@@ -270,12 +268,12 @@ public class CellLists extends EDialog
 			// now match the exports
 //			for(Iterator it = c1.getPorts(); it.hasNext(); )
 //			{
-//				PortProto pp1 = (PortProto)it.next();
+//				PortProto pp1 = it.next();
 //				pp1.clearBit(portFlagBit);
 //			}
 //			for(Iterator it = c2.getPorts(); it.hasNext(); )
 //			{
-//				PortProto pp2 = (PortProto)it.next();
+//				PortProto pp2 = it.next();
 //
 //				// locate center of this export
 //				ni = &dummyni;
@@ -326,19 +324,19 @@ public class CellLists extends EDialog
 		// first zero the count of each nodeproto
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)nIt.next();
+				PrimitiveNode np = nIt.next();
 				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> nIt = lib.getCells(); nIt.hasNext(); )
 			{
-				Cell np = (Cell)nIt.next();
+				Cell np = nIt.next();
 				nodeCount.put(np, new GenMath.MutableInteger(0));
 			}
 		}
@@ -351,11 +349,11 @@ public class CellLists extends EDialog
 		Technology printtech = null;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology curtech = (Technology)it.next();
+			Technology curtech = it.next();
 			for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)nIt.next();
-				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
+				PrimitiveNode np = nIt.next();
+				GenMath.MutableInteger count = nodeCount.get(np);
 				if (count.intValue() == 0) continue;
 				if (curtech != printtech)
 				{
@@ -367,12 +365,12 @@ public class CellLists extends EDialog
 		}
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			Library printlib = null;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
-				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				Cell cell = cIt.next();
+				GenMath.MutableInteger count = nodeCount.get(cell);
 				if (count.intValue() == 0) continue;
 				if (lib != printlib)
 				{
@@ -392,9 +390,9 @@ public class CellLists extends EDialog
 	{
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
+			GenMath.MutableInteger count = nodeCount.get(np);
 			if (count != null) count.increment();
 
 			if (!(np instanceof Cell)) continue;
@@ -421,10 +419,10 @@ public class CellLists extends EDialog
 		// set counters on every cell in every library
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				nodeCount.put(cell, new GenMath.MutableInteger(0));
 			}
 		}
@@ -432,10 +430,10 @@ public class CellLists extends EDialog
 		// count the number of instances in this cell
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
-			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(np);
+			GenMath.MutableInteger count = nodeCount.get(np);
 			if (count != null) count.increment();
 		}
 
@@ -443,11 +441,11 @@ public class CellLists extends EDialog
 		boolean first = true;
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
-				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				Cell cell = cIt.next();
+				GenMath.MutableInteger count = nodeCount.get(cell);
 				if (count == null || count.intValue() == 0) continue;
 				if (first)
 					System.out.println("Instances appearing in " + curCell);
@@ -455,7 +453,7 @@ public class CellLists extends EDialog
 				String line = "   " + count.intValue() + " instances of " + cell + " at";
 				for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					if (ni.getProto() != cell) continue;
 					line += " (" + ni.getAnchorCenterX() + "," + ni.getAnchorCenterY() + ")";
 				}
@@ -479,10 +477,10 @@ public class CellLists extends EDialog
 		// set counters on every cell in every library
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				nodeCount.put(cell, new GenMath.MutableInteger(0));
 			}
 		}
@@ -491,9 +489,9 @@ public class CellLists extends EDialog
 		boolean found = false;
 		for(Iterator<NodeInst> nIt = curCell.getInstancesOf(); nIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nIt.next();
+			NodeInst ni = nIt.next();
 			Cell cell = ni.getParent();
-			GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+			GenMath.MutableInteger count = nodeCount.get(cell);
 			if (count != null)
 			{
 				count.increment();
@@ -507,10 +505,10 @@ public class CellLists extends EDialog
 		{
 			for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)nIt.next();
+				NodeInst ni = nIt.next();
 				if (ni.isIconOfParent()) continue;
 				Cell cell = ni.getParent();
-				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				GenMath.MutableInteger count = nodeCount.get(cell);
 				if (count != null)
 				{
 					count.increment();
@@ -528,11 +526,11 @@ public class CellLists extends EDialog
 		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
-				GenMath.MutableInteger count = (GenMath.MutableInteger)nodeCount.get(cell);
+				Cell cell = cIt.next();
+				GenMath.MutableInteger count = nodeCount.get(cell);
 				if (count == null || count.intValue() == 0) continue;
 				System.out.println("  " + count.intValue() + " instances in " + cell);
 			}
@@ -899,10 +897,10 @@ public class CellLists extends EDialog
 			// mark all cells for display
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					cellsSeen.add(cell);
 				}
 			}
@@ -918,10 +916,10 @@ public class CellLists extends EDialog
 				// mark those that are in use
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						Cell iconCell = cell.iconView();
 						if (iconCell == null) iconCell = cell;
 						if (cell.getInstancesOf().hasNext() || iconCell.getInstancesOf().hasNext())
@@ -933,10 +931,10 @@ public class CellLists extends EDialog
 				// mark those that are not in use
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						Cell iconCell = cell.iconView();
 						if (iconCell != null)
 						{
@@ -945,7 +943,7 @@ public class CellLists extends EDialog
 							boolean found = false;
 							for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
 							{
-								NodeInst ni = (NodeInst)nIt.next();
+								NodeInst ni = nIt.next();
 								if (ni.isIconOfParent()) { found = true;   break; }
 							}
 							if (found) continue;
@@ -958,7 +956,7 @@ public class CellLists extends EDialog
 								boolean found = false;
 								for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
 								{
-									NodeInst ni = (NodeInst)nIt.next();
+									NodeInst ni = nIt.next();
 									if (ni.isIconOfParent()) { found = true;   break; }
 								}
 								if (found) continue;
@@ -975,10 +973,10 @@ public class CellLists extends EDialog
 				// mark placeholder cells
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						Variable var = cell.getVar("IO_true_library");
 						if (var != null) cellsSeen.add(cell);
 					}
@@ -995,10 +993,10 @@ public class CellLists extends EDialog
 			{
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Library lib = (Library)it.next();
+					Library lib = it.next();
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
-						Cell cell = (Cell)cIt.next();
+						Cell cell = cIt.next();
 						if (cell.getView() != v)
 						{
 							if (cell.isIcon())
@@ -1017,10 +1015,10 @@ public class CellLists extends EDialog
 		{
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell.getNewestVersion() != cell) cellsSeen.remove(cell);
 				}
 			}
@@ -1029,10 +1027,10 @@ public class CellLists extends EDialog
 		{
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
+				Library lib = it.next();
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
+					Cell cell = cIt.next();
 					if (cell.getNewestVersion() == cell) cellsSeen.remove(cell);
 				}
 			}
@@ -1042,11 +1040,11 @@ public class CellLists extends EDialog
 		List<Cell> cellList = new ArrayList<Cell>();
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			if (lib.isHidden()) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				if (cellsSeen.contains(cell)) cellList.add(cell);
 			}
 		}
@@ -1082,9 +1080,8 @@ public class CellLists extends EDialog
 						dataOutputStream.write(header.getBytes(), 0, header.length());
 						header = "Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n";
 						dataOutputStream.write(header.getBytes(), 0, header.length());
-						for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
+						for(Cell cell : cellList)
 						{
-							Cell cell = (Cell)it.next();
 							String line =  makeCellLine(cell, -1) + "\n";
 							dataOutputStream.write(line.getBytes(), 0, line.length());
 						}
@@ -1098,17 +1095,15 @@ public class CellLists extends EDialog
 			} else
 			{
 				int maxLen = 0;
-				for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
+				for(Cell cell : cellList)
 				{
-					Cell cell = (Cell)it.next();
 					maxLen = Math.max(maxLen, cell.noLibDescribe().length());
 				}
 				maxLen = Math.max(maxLen+2, 7);
 				printHeaderLine(maxLen);
 				Library lib = null;
-				for(Iterator<Cell> it = cellList.iterator(); it.hasNext(); )
+				for(Cell cell : cellList)
 				{
-					Cell cell = (Cell)it.next();
 					if (cell.getLibrary() != lib)
 					{
 						lib = cell.getLibrary();

@@ -129,7 +129,7 @@ public class AnnularRing extends EDialog
 		String nodeName = (String)layerJList.getSelectedValue();
 		PrimitiveNode np = Technology.getCurrent().findNodeProto(nodeName);
 		if (np == null) return;
-		MakeAnnulus job = new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter);
+		new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter);
 	}
 
 	/**
@@ -158,6 +158,7 @@ public class AnnularRing extends EDialog
 		{
 			// allocate space for the trace
 			int numSegments = segments + 1;
+			if (inner == 0 && degrees < 3600) numSegments += 2;
 			if (inner > 0) numSegments *= 2;
 			EPoint [] points = new EPoint[numSegments];
 	
@@ -172,6 +173,8 @@ public class AnnularRing extends EDialog
 					points[l++] = new EPoint(x, y);
 				}
 			}
+			if (inner == 0 && degrees < 3600)
+				points[l++] = new EPoint(0, 0);
 			for(int i=segments; i>=0; i--)
 			{
 				int p = degrees*i/segments;
@@ -179,6 +182,8 @@ public class AnnularRing extends EDialog
 				double y = outer * DBMath.sin(p);
 				points[l++] = new EPoint(x, y);
 			}
+			if (inner == 0 && degrees < 3600)
+				points[l++] = new EPoint(0, 0);
 			double lX = points[0].getX();
 			double hX = lX;
 			double lY = points[0].getY();

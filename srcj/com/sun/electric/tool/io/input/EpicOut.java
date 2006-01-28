@@ -328,7 +328,7 @@ public class EpicOut extends Simulate
         sd.setSeparatorChar(separator);
         for (int i = 0; i < reader.signals.size(); i++)
         {
-        	EpicAnalogSignal s = (EpicAnalogSignal)reader.signals.get(i);
+        	EpicAnalogSignal s = reader.signals.get(i);
             if (s == null) continue;
             double resolution = 1;
             switch (s.type)
@@ -502,7 +502,7 @@ public class EpicOut extends Simulate
                     int sigNum = TextUtils.atoi(split[2]);
                     while (signals.size() <= sigNum)
                         signals.add(null);
-                    EpicAnalogSignal s = (EpicAnalogSignal)signals.get(sigNum);
+                    EpicAnalogSignal s = signals.get(sigNum);
                     if (s == null)
                     {
                         s = new EpicAnalogSignal(an);
@@ -622,7 +622,7 @@ public class EpicOut extends Simulate
             
             while (signals.size() <= sigNum)
                 signals.add(null);
-            EpicAnalogSignal s = (EpicAnalogSignal)signals.get(sigNum);
+            EpicAnalogSignal s = signals.get(sigNum);
             if (s == null) {
                 s = new EpicAnalogSignal(an);
                 EpicProcessing ep = new EpicProcessing();

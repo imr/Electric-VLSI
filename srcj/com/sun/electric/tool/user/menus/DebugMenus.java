@@ -1118,7 +1118,7 @@ public class DebugMenus
 					if ( func.isSubstrate() )
 					{
 						merge.addPolygon(layer, poly);
-						List<Poly> rectList = (List<Poly>)allLayers.get(layer);
+						List<Poly> rectList = allLayers.get(layer);
 
 						if ( rectList == null )
 						{
@@ -1161,7 +1161,7 @@ public class DebugMenus
 					{
 						poly.transform(transform);
 						merge.addPolygon(layer, poly);
-						List<Poly> rectList = (List<Poly>)allLayers.get(layer);
+						List<Poly> rectList = allLayers.get(layer);
 
 						if (rectList == null)
 						{
@@ -1186,7 +1186,7 @@ public class DebugMenus
 				// Temp solution until qtree implementation is ready
 				// delete uncessary polygons. Doesn't insert poly if identical
 				// to original. Very ineficient!!
-				List<Poly> rectList = (List<Poly>)allLayers.get(layer);
+				List<Poly> rectList = allLayers.get(layer);
 				List<PolyBase> delList = new ArrayList<PolyBase>();
 
 				for (Poly p : rectList)

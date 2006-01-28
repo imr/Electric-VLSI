@@ -5056,7 +5056,7 @@ public class CompileVHDL
 		String lcIdent = TextUtils.canonicString(ident);
 		for ( ; symList != null; symList = symList.last)
 		{
-			SymbolTree node = (SymbolTree)symList.sym.get(lcIdent);
+			SymbolTree node = symList.sym.get(lcIdent);
 			if (node != null) return node;
 		}
 		return null;
@@ -5073,7 +5073,7 @@ public class CompileVHDL
 	{
 		if (symList != null)
 		{
-			SymbolTree node = (SymbolTree)symList.sym.get(TextUtils.canonicString(ident));
+			SymbolTree node = symList.sym.get(TextUtils.canonicString(ident));
 			if (node != null) return node;
 		}
 		return null;

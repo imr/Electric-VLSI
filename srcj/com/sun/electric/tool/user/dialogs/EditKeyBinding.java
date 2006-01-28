@@ -370,7 +370,7 @@ public class EditKeyBinding extends EDialog {
         // create array of strings to display in list box
         String [] objects = new String[conflicts.size()];
         for (int i=0; i<conflicts.size(); i++) {
-            KeyBindings k = (KeyBindings)conflicts.get(i);
+            KeyBindings k = conflicts.get(i);
             String s = k.getActionDesc() + "  [ "+k.bindingsToString()+" ]";
             objects[i] = s;
         }

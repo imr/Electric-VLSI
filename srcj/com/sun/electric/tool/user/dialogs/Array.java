@@ -122,7 +122,7 @@ public class Array extends EDialog
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 1)
 		{
-			ElectricObject eObj = (ElectricObject)highs.get(0);
+			ElectricObject eObj = highs.get(0);
 			if (eObj instanceof NodeInst)
 			{
 				onlyDRCCorrect.setEnabled(true);
@@ -461,7 +461,7 @@ public class Array extends EDialog
 				geomsToCheck = new NodeInst[xRepeat * yRepeat];
 				validity = new boolean[xRepeat * yRepeat];
 				if (nodeList.size() == 1)
-					geomsToCheck[checkNodeCount++] = (NodeInst)nodeList.get(0);
+					geomsToCheck[checkNodeCount++] = nodeList.get(0);
 			}
 
 			// create the array
@@ -569,9 +569,9 @@ public class Array extends EDialog
 						yOff1 = -yOff1;
 					}
 
-					NodeInst ni0 = (NodeInst)nodeMap.get(ai.getHeadPortInst().getNodeInst());
+					NodeInst ni0 = nodeMap.get(ai.getHeadPortInst().getNodeInst());
 					if (ni0 == null) continue;
-					NodeInst ni1 = (NodeInst)nodeMap.get(ai.getTailPortInst().getNodeInst());
+					NodeInst ni1 = nodeMap.get(ai.getTailPortInst().getNodeInst());
 					if (ni1 == null) continue;
 					cX0 = ni0.getAnchorCenterX();
 					cY0 = ni0.getAnchorCenterY();
@@ -607,7 +607,7 @@ public class Array extends EDialog
 				for(Export pp : exportList)
 				{
 					PortInst oldPI = pp.getOriginalPort();
-					NodeInst newNI = (NodeInst)nodeMap.get(oldPI.getNodeInst());
+					NodeInst newNI = nodeMap.get(oldPI.getNodeInst());
 					if (newNI == null) continue;
 					PortInst pi = newNI.findPortInstFromProto(oldPI.getPortProto());
 					portInstsToExport.add(pi);
