@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -33,7 +34,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 
@@ -75,23 +79,23 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      * Create a Log of a single message.
      */
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
-        protected String message;
-        protected Cell   logCell;                // cell associated with log (not really used)
-        protected int    sortKey;
-        protected List<ErrorHighlight> highlights;
+        private final String message;
+        final CellId logCellId;                // cell associated with log (not really used)
+        private final int    sortKey;
+        private ErrorHighlight[] highlights;
         protected int    index;
 
         public MessageLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) {
             this.message = message;
-            this.logCell = cell;
+            this.logCellId = cell != null ? (CellId)cell.getId() : null;
             this.sortKey = sortKey;
-            this.highlights = highlights;
+            this.highlights = highlights.toArray(ErrorHighlight.NULL_ARRAY);
             index = 0;
         }
 
         public String getMessageString() { return message; }
 
-        public Iterator<ErrorHighlight> getHighlights() { return highlights.iterator(); }
+        public Iterator<ErrorHighlight> getHighlights() { return ArrayIterator.iterator(highlights); }
 
         public int getSortKey() { return sortKey; }
 
@@ -107,22 +111,22 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
         }
 
-        /**
-         * Method to add "geom" to the error in "errorlist".  Also adds a
-         * hierarchical traversal path "path" (which is "pathlen" long).
-         */
-        private void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
-        {
-            highlights.add(new ErrorHighGeom(cell, context, geom, showit));
-        }
-
-        /**
-         * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
-         */
-        private void addLine(EPoint pt1, EPoint pt2, Cell cell, boolean thick)
-        {
-            highlights.add(new ErrorHighLine(cell, pt1, pt2, thick));
-        }
+//        /**
+//         * Method to add "geom" to the error in "errorlist".  Also adds a
+//         * hierarchical traversal path "path" (which is "pathlen" long).
+//         */
+//        private void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
+//        {
+//            highlights.add(new ErrorHighGeom(cell, context, geom, showit));
+//        }
+//
+//        /**
+//         * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
+//         */
+//        private void addLine(EPoint pt1, EPoint pt2, Cell cell, boolean thick)
+//        {
+//            highlights.add(new ErrorHighLine(cell, pt1, pt2, thick));
+//        }
 
         public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
         {
@@ -152,6 +156,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         protected void xmlDescription(PrintStream msg)
         {
             String className = this.getClass().getSimpleName();
+            if (logCellId == null) return;
+            Cell logCell = (Cell)logCellId.inCurrentThread();
+            if (logCell == null) return;
             msg.append("\t<" + className + " message=\"" + message + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
             for(ErrorHighlight eh : highlights)
@@ -166,8 +173,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
          * (In a linked Cell, and all highlights are still valid)
          */
         public boolean isValid() {
-            if (logCell == null) return true;
-            if (!logCell.isLinked()) return false;
+            if (logCellId == null) return true;
+            if (logCellId.inCurrentThread() == null) return false;
             // check validity of highlights
             boolean allValid = true;
             for (ErrorHighlight erh : highlights) {
@@ -332,7 +339,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void logError(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(new ErrorHighGeom(cell, context, geom, true));
+        h.add(newErrorHighlight(context, geom));
     	logAnError(message, cell, sortKey, h);
     }
 
@@ -343,8 +350,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      */
-    public synchronized void logError(String message, Export pp, Cell cell, int sortKey)
+    public synchronized void logError(String message, Export pp, int sortKey)
     {
+        Cell cell = (Cell)pp.getParent();
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
         h.add(new ErrorHighExport(cell, null, pp));
     	logAnError(message, cell, sortKey, h);
@@ -400,7 +408,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-    	        h.add(new ErrorHighGeom(cell, null, geom, true));
+    	        h.add(newErrorHighlight(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -428,7 +436,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-                h.add(new ErrorHighGeom(cell, null, geom, true));
+                h.add(newErrorHighlight(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -488,8 +496,8 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         // create a new ErrorLog object
         WarningLog el = new WarningLog(message, cell, sortKey, highlights);
 
-        // store information about the error
-        el.highlights = new ArrayList<ErrorHighlight>();
+//        // store information about the error
+//        el.highlights = new ArrayList<ErrorHighlight>();
 
         // add the ErrorLog into the global list
         allWarnings.add(el);
@@ -523,7 +531,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void logWarning(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(new ErrorHighGeom(cell, context, geom, true));
+        h.add(newErrorHighlight(context, geom));
     	logAWarning(message, cell, sortKey, h);
     }
 
@@ -560,7 +568,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-                h.add(new ErrorHighGeom(cell, null, geom, true));
+                h.add(newErrorHighlight(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -592,6 +600,13 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     		}
     	}
     	logAWarning(message, cell, sortKey, h);
+    }
+    
+    private static ErrorHighlight newErrorHighlight(VarContext context, Geometric geom) {
+        if (geom instanceof NodeInst)
+            return new ErrorHighNode(context, (NodeInst)geom);
+        else
+            return new ErrorHighArc(context, (ArcInst)geom);
     }
     
 	/**
@@ -636,17 +651,18 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      * @param cell the cell for which errors will be removed
      */
     public synchronized void clearLogs(Cell cell) {
-       ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
+        CellId cellId = (CellId)cell.getId();
+        ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
         for (MessageLog log : allErrors) {
-            if (log.logCell != cell) errLogs.add(log);
+            if (log.logCellId != cellId) errLogs.add(log);
         }
         allErrors = errLogs;
 
 	    ArrayList<WarningLog> warndLogs = new ArrayList<WarningLog>();
         // Warnings
         for (WarningLog log : allWarnings) {
-            if (log.logCell != cell) warndLogs.add(log);
+            if (log.logCellId != cellId) warndLogs.add(log);
         }
         allWarnings = warndLogs;
         currentLogNumber = getNumLogs()-1;
@@ -1104,7 +1120,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                     Geometric geom = curCell.findNode(geomName);
                     if (geom == null) // try arc instead
                         geom = curCell.findArc(geomName);
-                    highlights.add(new ErrorHighGeom(curCell, null, geom, true));
+                    highlights.add(newErrorHighlight(null, geom));
                 }
                 else if (thickTypeBody)
                 {

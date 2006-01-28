@@ -1,10 +1,11 @@
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 
@@ -15,16 +16,18 @@ import java.awt.geom.Point2D;
  * Class to define Highlighted errors.
  */
 public abstract class ErrorHighlight {
-    Cell        cell;
-    VarContext  context;
+    static final ErrorHighlight[] NULL_ARRAY = {};
+
+    private final CellId cellId;
+    VarContext  context; // Yet do be immutable
 
     ErrorHighlight(Cell c, VarContext con)
     {
-        this.cell = c;
+        this.cellId = c != null ? (CellId)c.getId() : null;
         this.context = con;
     }
 
-    Cell getCell() { return cell; }
+    Cell getCell() { return cellId != null ? (Cell)cellId.inCurrentThread() : null; }
 
     VarContext getVarContext(){ return context; }
 
@@ -34,33 +37,34 @@ public abstract class ErrorHighlight {
 
     void xmlDescription(PrintStream msg) {;System.out.println("Not implemented in xmlDescription");}
 
-    boolean isValid() {return (cell.isLinked());} // Still have problems with minAre DRC errors
+    boolean isValid() { return cellId == null || getCell() != null; } // Still have problems with minAre DRC errors
 
     void addToHighlighter(Highlighter h) {;}
 }
 
 class ErrorHighExport extends ErrorHighlight {
 
-    Export      pp;
+    private final ExportId      pp;
 
     public ErrorHighExport(Cell c, VarContext con, Export p)
     {
-        super(c, con);
-        this.pp = p;
+        super((Cell)p.getParent(), con);
+        this.pp = (ExportId)p.getId();
     }
 
-    boolean isValid() {return pp.isLinked();}
+    boolean isValid() {return pp.inCurrentThread() != null;}
 
     void addToHighlighter(Highlighter h)
     {
-        h.addText(pp, cell, Export.EXPORT_NAME);
+        Export e = (Export)pp.inCurrentThread();
+        h.addText(e, (Cell)e.getParent(), Export.EXPORT_NAME);
     }
 }
 
 class ErrorHighLine extends ErrorHighlight {
 
-	EPoint p1, p2;
-    boolean thickLine;
+	private final EPoint p1, p2;
+    private final boolean thickLine;
 
     public ErrorHighLine(Cell c, EPoint x1, EPoint x2, boolean thick)
     {
@@ -75,19 +79,20 @@ class ErrorHighLine extends ErrorHighlight {
         msg.append("\t\t<"+((thickLine)?"ERRORTYPETHICKLINE ":"ERRORTYPELINE "));
         msg.append("p1=\"(" + p1.getX() + "," + p1.getY() + ")\" ");
         msg.append("p2=\"(" + p2.getX() + "," + p2.getY() + ")\" ");
-        msg.append("cellName=\"" + cell.describe(false) + "\"");
+        msg.append("cellName=\"" + getCell().describe(false) + "\"");
         msg.append(" />\n");
     }
 
     void addToHighlighter(Highlighter h)
     {
+        Cell cell = getCell();
         if (thickLine) h.addThickLine(p1, p2, cell);
         else h.addLine(p1, p2, cell);
     }
 }
 
 class ErrorHighPoint extends ErrorHighlight {
-	EPoint point;
+	private final EPoint point;
 
     ErrorHighPoint(Cell c, EPoint p)
     {
@@ -98,6 +103,7 @@ class ErrorHighPoint extends ErrorHighlight {
     void addToHighlighter(Highlighter h)
     {
         double consize = 5;
+        Cell cell = getCell();
         h.addLine(new Point2D.Double(point.getX()-consize, point.getY()-consize),
                 new Point2D.Double(point.getX()+consize, point.getY()+consize), cell);
         h.addLine(new Point2D.Double(point.getX()-consize, point.getY()+consize),
@@ -105,41 +111,82 @@ class ErrorHighPoint extends ErrorHighlight {
     }
 }
 
-class ErrorHighGeom extends ErrorHighlight {
+class ErrorHighNode extends ErrorHighlight {
 
-    Geometric   geom;
-    boolean     showgeom;
+    private final int nodeId;
 
-    public ErrorHighGeom(Cell c, VarContext con, Geometric g, boolean show)
+    public ErrorHighNode(VarContext con, NodeInst ni)
     {
-        super(c, con);
-        this.geom = g;
-        this.showgeom = show;
+        super(ni.getParent(), con);
+        nodeId = ni.getD().nodeId;
     }
 
     boolean containsObject(Cell c, Object obj)
     {
-        return cell == c && geom == obj;
+        return getCell() == c && getObject() == obj;
     }
 
-    Object getObject() { return geom; }
+    Object getObject() {
+        Cell cell = getCell();
+        if (cell == null) return null;
+        return cell.getNodeById(nodeId);
+    }
 
     void xmlDescription(PrintStream msg)
     {
-        if (!showgeom) return;
+        NodeInst ni = (NodeInst)getObject();
         msg.append("\t\t<ERRORTYPEGEOM ");
-        if (geom instanceof NodeInst)
-            msg.append("geomName=\"" + ((NodeInst)geom).getD().name + "\" ");
-        else
-            msg.append("geomName=\"" + ((ArcInst)geom).getD().name + "\" ");
-        msg.append("cellName=\"" + cell.describe(false) + "\"");
+        msg.append("geomName=\"" + ni.getName() + "\" ");
+        msg.append("cellName=\"" + ni.getParent().describe(false) + "\"");
         msg.append(" />\n");
     }
 
-    boolean isValid() {return geom.isLinked();}
+    boolean isValid() { return getObject() != null; }
 
     void addToHighlighter(Highlighter h)
     {
-        if (showgeom) h.addElectricObject(geom, cell);
+        NodeInst ni = (NodeInst)getObject();
+        if (ni != null)
+            h.addElectricObject(ni, ni.getParent());
+    }
+}
+
+class ErrorHighArc extends ErrorHighlight {
+
+    private final int arcId;
+
+    public ErrorHighArc(VarContext con, ArcInst ai)
+    {
+        super(ai.getParent(), con);
+        arcId = ai.getD().arcId;
+    }
+
+    boolean containsObject(Cell c, Object obj)
+    {
+        return getCell() == c && getObject() == obj;
+    }
+
+    Object getObject() {
+        Cell cell = getCell();
+        if (cell == null) return null;
+        return cell.getArcById(arcId);
+    }
+
+    void xmlDescription(PrintStream msg)
+    {
+        ArcInst ai = (ArcInst)getObject();
+        msg.append("\t\t<ERRORTYPEGEOM ");
+        msg.append("geomName=\"" + ai.getD().name + "\" ");
+        msg.append("cellName=\"" + ai.getParent().describe(false) + "\"");
+        msg.append(" />\n");
+    }
+
+    boolean isValid() {return getObject() != null; }
+
+    void addToHighlighter(Highlighter h)
+    {
+        ArcInst ai = (ArcInst)getObject();
+        if (ai != null)
+            h.addElectricObject(ai, ai.getParent());
     }
 }

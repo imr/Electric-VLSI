@@ -404,7 +404,6 @@ public class CIF extends Geometry
 		if (error)
 		{
 			// there was an error, for now print error
-			ErrorLogger.MessageLog err = null;
 			String layerName;
 			if (layer == null)
 			{

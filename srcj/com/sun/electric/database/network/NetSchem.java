@@ -397,7 +397,7 @@ class NetSchem extends NetCell {
 			if (equivIndex < 0) {
 				String msg = cell + ": Icon port <"+e.getNameKey()+"> has no equivalent port";
 				System.out.println(msg);
-				NetworkTool.errorLogger.logError(msg, e, cell, NetworkTool.errorSortPorts);
+				NetworkTool.errorLogger.logError(msg, e, NetworkTool.errorSortPorts);
 			}
 		}
 		if (!cell.isMultiPartIcon() && c != null && numPorts != c.getNumPorts()) {
@@ -406,7 +406,7 @@ class NetSchem extends NetCell {
 				if (e.getEquivalentPort(cell) == null) {
 					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell;
 					System.out.println(msg);
-					NetworkTool.errorLogger.logError(msg, e, c, NetworkTool.errorSortPorts);
+					NetworkTool.errorLogger.logError(msg, e, NetworkTool.errorSortPorts);
 				}
 			}
 		}
