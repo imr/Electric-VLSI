@@ -150,14 +150,14 @@ public class Quick
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
 	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
 	private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
-    private DRC.CheckDRCLayoutJob job; // Reference to running job
+    private DRC.CheckDRCJob job; // Reference to running job
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to caching current extra bits
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-	public Quick(DRC.CheckDRCLayoutJob job, GeometryHandler.GHMode mode)
+	public Quick(DRC.CheckDRCJob job, GeometryHandler.GHMode mode)
 	{
 		this.job = job;
         this.mergeMode = mode;
@@ -215,8 +215,8 @@ public class Quick
 	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
 	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
 
-    public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
+    public static ErrorLogger checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+                                       Rectangle2D bounds, DRC.CheckDRCJob drcJob)
     {
         return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_SWEEP);
     }
@@ -230,10 +230,10 @@ public class Quick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
      * @param drcJob
-	 * @return the number of errors found
+	 * @return ErrorLogger containing the information
 	 */
-	public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob, GeometryHandler.GHMode mode)
+	public static ErrorLogger checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+                                       Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode)
 	{
 		Quick q = new Quick(drcJob, mode);
 		return q.doCheck(cell, geomsToCheck, validity, bounds);
@@ -241,7 +241,7 @@ public class Quick
 
 
     // returns the number of errors found
-	private int doCheck(Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
+	private ErrorLogger doCheck(Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		// Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
@@ -257,7 +257,7 @@ public class Quick
         minAllowedResolution = tech.getResolution();
 
 		// Nothing to check for this particular technology
-		if (rules == null || rules.getNumberOfRules() == 0) return 0;
+		if (rules == null || rules.getNumberOfRules() == 0) return errorLogger;
 
 		// get the current DRC options
 		errorTypeSearch = DRC.getErrorType();
@@ -456,7 +456,7 @@ public class Quick
 		    new DRC.UpdateDRCDates(activeBits, goodDRCDate, cleanDRCDate);
 	    }
 
-        return logsFound;
+        return errorLogger;
 	}
 
     /*************************** QUICK DRC CELL EXAMINATION ***************************/

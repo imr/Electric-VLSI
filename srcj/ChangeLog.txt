@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/28/06, GVG) Incremental Schematic working now
+
 IMP: (1/27/06, GVG) Update StatusBar on click on EditWindow (Bug#799).
 
 IMP: (1/27/06, GVG) More improvements in MinArea algorithms.

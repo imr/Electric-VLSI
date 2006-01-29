@@ -62,19 +62,40 @@ public class Schematic
 	private static HashSet<Cell> cellsChecked;
     private static ErrorLogger errorLogger = null;
 
-	public static ErrorLogger doCheck(Cell cell)
+	public static ErrorLogger doCheck(Cell cell, Geometric[] geomsToCheck)
 	{
 		cellsChecked = new HashSet<Cell>();
 
         if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
-		checkSchematicCellRecursively(cell);
+		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
 		cellsChecked = null;
 		return(errorLogger);
 	}
 
-	private static void checkSchematicCellRecursively(Cell cell)
+    private static Cell isACellToCheck(Geometric geo)
+    {
+        if (geo instanceof NodeInst)
+        {
+            NodeInst ni = (NodeInst)geo;
+
+            // ignore documentation icon
+            if (ni.isIconOfParent()) return null;
+
+            NodeProto np = ni.getProto();
+            if (!(np instanceof Cell)) return null;
+            Cell subCell = (Cell)np;
+
+            Cell contentsCell = subCell.contentsView();
+            if (contentsCell == null) contentsCell = subCell;
+            if (cellsChecked.contains(contentsCell)) return null;
+            return contentsCell;
+        }
+        return null;
+    }
+
+	private static void checkSchematicCellRecursively(Cell cell, Geometric[] geomsToCheck)
 	{
 		cellsChecked.add(cell);
 
@@ -82,46 +103,74 @@ public class Schematic
 		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech)
 			return;
 
-		// recursively check contents
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			Cell subCell = (Cell)np;
+		// recursively check contents in case of hierchically checking
+        if (geomsToCheck == null)
+        {
+            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
 
-			Cell contentsCell = subCell.contentsView();
-			if (contentsCell == null) contentsCell = subCell;
-			if (cellsChecked.contains(contentsCell)) continue;
+                Cell contentsCell = isACellToCheck(ni);
 
-			// ignore documentation icon
-			if (ni.isIconOfParent()) continue;
+//                // ignore documentation icon
+//                if (ni.isIconOfParent()) continue;
+//
+//                NodeProto np = ni.getProto();
+//                if (!(np instanceof Cell)) continue;
+//                Cell subCell = (Cell)np;
+//
+//                Cell contentsCell = subCell.contentsView();
+//                if (contentsCell == null) contentsCell = subCell;
+//                if (cellsChecked.contains(contentsCell)) continue;
 
-			checkSchematicCellRecursively(contentsCell);
-		}
+                if (contentsCell != null)
+                    checkSchematicCellRecursively(contentsCell, geomsToCheck);
+            }
+        }
+        else
+        {
+            for (Geometric geo : geomsToCheck)
+            {
+                Cell contentsCell = isACellToCheck(geo);
+
+                if (contentsCell != null)
+                    checkSchematicCellRecursively(contentsCell, geomsToCheck);
+            }
+        }
 
 		// now check this cell
 		System.out.println("Checking schematic " + cell);
-		checkSchematicCell(cell, false);
+		checkSchematicCell(cell, false, geomsToCheck);
 	}
 
-	private static void checkSchematicCell(Cell cell, boolean justThis)
+	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck)
 	{
 		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() instanceof PrimitiveNode &&
-				ni.getProto().getTechnology() == Generic.tech) continue;
-			schematicDoCheck(netlist, ni);
-		}
-		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			schematicDoCheck(netlist, ai);
-		}
+
+        // Normal hierarchically geometry
+        if (geomsToCheck == null)
+        {
+            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = (NodeInst)it.next();
+                if (ni.getProto() instanceof PrimitiveNode &&
+                    ni.getProto().getTechnology() == Generic.tech) continue;
+                schematicDoCheck(netlist, ni);
+            }
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = (ArcInst)it.next();
+                schematicDoCheck(netlist, ai);
+            }
+        }
+        else
+        {
+            for (Geometric geo : geomsToCheck)
+                schematicDoCheck(netlist, geo);
+        }
+
 		int errorCount = errorLogger.getNumErrors();
 		int thisErrors = errorCount - initialErrorCount;
 		String indent = "   ";

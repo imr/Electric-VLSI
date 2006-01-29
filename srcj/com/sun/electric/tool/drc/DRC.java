@@ -185,13 +185,6 @@ public class DRC extends Listener
 		// Handling clipboard case (one type of hidden libraries)
 		if (cellToCheck.getLibrary().isHidden()) return;
 
-        if (!cellToCheck.getTechnology().isScaleRelevant())
-        {
-            if (Job.LOCALDEBUGFLAG)
-                System.out.println("Incremental for '" + cellToCheck.getTechnology() +
-                    "' not implemented");
-            return;
-        }
 		// if there is a cell to check, do it
 		if (cellSet != null)
 		{
@@ -199,8 +192,8 @@ public class DRC extends Listener
 			int i = 0;
             for(Geometric geom : cellSet)
 				objectsToCheck[i++] = geom;
-//            if (cellToCheck.getTechnology().isScaleRelevant())
-			    new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
+
+            new CheckDRCIncrementally(cellToCheck, objectsToCheck, cellToCheck.getTechnology().isScaleRelevant());
 		}
 	}
 
@@ -287,38 +280,41 @@ public class DRC extends Listener
     public static void checkDRCHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode)
     {
         if (cell == null) return;
+        boolean isLayout = true; // hierarchical check of layout by default
 		if (cell.isSchematic() || cell.getTechnology() == Schematics.tech ||
 			cell.isIcon() || cell.getTechnology() == Artwork.tech)
-		{
 			// hierarchical check of schematics
-			new CheckSchematicHierarchically(cell);
-		} else
-		{
-			// hierarchical check of layout
-            if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
-			new CheckLayoutHierarchically(cell, bounds, mode);
-		}
+			isLayout = false;
+
+        if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
+        new CheckDRCHierarchically(cell, isLayout, bounds, mode);
     }
 
 	/**
 	 * Base class for checking design rules.
 	 *
 	 */
-	public static class CheckDRCLayoutJob extends Job
+	public static class CheckDRCJob extends Job
 	{
 		Cell cell;
+        boolean isLayout; // to check layout
 
-		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority)
+        private static String getJobName(Cell cell) { return "Design-Rule Check " + cell; }
+		protected CheckDRCJob(Cell cell, Listener tool, Priority priority, boolean layout)
 		{
-			super(title, tool, Job.Type.EXAMINE, null, null, priority);
+			super(getJobName(cell), tool, Job.Type.EXAMINE, null, null, priority);
 			this.cell = cell;
+            this.isLayout = layout;
 
 		}
 		// never used
 		public boolean doIt() throws JobException { return (false);}
 	}
 
-	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob
+    /**
+     * Class for hierarchical DRC for layout and schematics
+     */
+	private static class CheckDRCHierarchically extends CheckDRCJob
 	{
 		Rectangle2D bounds;
         private GeometryHandler.GHMode mergeMode; // to select the merge algorithm
@@ -326,11 +322,12 @@ public class DRC extends Listener
         /**
          * Check bounds within cell. If bounds is null, check entire cell.
          * @param cell
+         * @param layout
          * @param bounds
          */
-		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode)
+		protected CheckDRCHierarchically(Cell cell, boolean layout, Rectangle2D bounds, GeometryHandler.GHMode mode)
 		{
-			super("Design-Rule Check", cell, tool, Job.Priority.USER);
+			super(cell, tool, Job.Priority.USER, layout);
 			this.bounds = bounds;
             this.mergeMode = mode;
 			startJob();
@@ -339,26 +336,28 @@ public class DRC extends Listener
 		public boolean doIt() throws JobException
 		{
 			long startTime = System.currentTimeMillis();
-            int errorCount = 0, warnCount = 0;
-            if (Quick.checkDesignRules(cell, null, null, bounds, this, mergeMode) > 0)
-            {
-                errorCount = ErrorLogger.getCurrent().getNumErrors();
-                warnCount = ErrorLogger.getCurrent().getNumWarnings();
-            }
+            ErrorLogger errorLog = null;
+            if (isLayout)
+                errorLog = Quick.checkDesignRules(cell, null, null, bounds, this, mergeMode);
+            else
+                errorLog = Schematic.doCheck(cell, null);
+
             long endTime = System.currentTimeMillis();
+            int errorCount = errorLog.getNumErrors();
+            int warnCount = errorLog.getNumWarnings();
             System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+
             return true;
 		}
 	}
 
-
-	private static class CheckLayoutIncrementally extends CheckDRCLayoutJob
+	private static class CheckDRCIncrementally extends CheckDRCJob
 	{
 		Geometric [] objectsToCheck;
 
-		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
+		protected CheckDRCIncrementally(Cell cell, Geometric[] objectsToCheck, boolean layout)
 		{
-			super("DRC in " + cell, cell, tool, Job.Priority.ANALYSIS);
+			super(cell, tool, Job.Priority.ANALYSIS, layout);
 			this.objectsToCheck = objectsToCheck;
 			startJob();
 		}
@@ -366,44 +365,43 @@ public class DRC extends Listener
 		public boolean doIt() throws JobException
 		{
 			incrementalRunning = true;
-			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
+            ErrorLogger errorLog = null;
+            if (isLayout)
+                errorLog = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
+            else
+                errorLog = Schematic.doCheck(cell, objectsToCheck);
+            int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
-			{
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
-			}
 			incrementalRunning = false;
 			doIncrementalDRCTask();
 			return true;
 		}
 	}
 
-	private static class CheckSchematicHierarchically extends Job
-	{
-		Cell cell;
-//		Rectangle2D bounds;
-
-        /**
-         * Check bounds within Cell.  If bounds is null, check entire cell.
-         * @param cell
-         */
-		protected CheckSchematicHierarchically(Cell cell)
-		{
-			super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-//			this.bounds = bounds;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			long startTime = System.currentTimeMillis();
-			ErrorLogger errorLog = Schematic.doCheck(cell);
-			long endTime = System.currentTimeMillis();
-			int errorCount = errorLog.getNumErrors();
-			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			return true;
-		}
-	}
+//	private static class CheckSchematicHierarchically extends CheckDRCJob
+//	{
+//        /**
+//         * Check bounds within Cell.  If bounds is null, check entire cell.
+//         * @param cell
+//         */
+//		protected CheckSchematicHierarchically(Cell cell)
+//		{
+//			super("Design-Rule Check " + cell, cell, tool, Job.Priority.USER);
+////            super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			long startTime = System.currentTimeMillis();
+//			ErrorLogger errorLog = Schematic.doCheck(cell, null);
+//			long endTime = System.currentTimeMillis();
+//			int errorCount = errorLog.getNumErrors();
+//			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+//			return true;
+//		}
+//	}
 
 	/**
 	 * Method to delete all cached date information on all cells.
