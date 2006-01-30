@@ -52,8 +52,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -95,7 +97,10 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
         public String getMessageString() { return message; }
 
-        public Iterator<ErrorHighlight> getHighlights() { return ArrayIterator.iterator(highlights); }
+        public Iterator<ErrorHighlight> getHighlights()
+        {
+        	return ArrayIterator.iterator(highlights);
+        }
 
         public int getSortKey() { return sortKey; }
 
@@ -601,14 +606,14 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	}
     	logAWarning(message, cell, sortKey, h);
     }
-    
+
     private static ErrorHighlight newErrorHighlight(VarContext context, Geometric geom) {
         if (geom instanceof NodeInst)
             return new ErrorHighNode(context, (NodeInst)geom);
         else
             return new ErrorHighArc(context, (ArcInst)geom);
     }
-    
+
 	/**
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
@@ -700,10 +705,10 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
         buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPETHICKLINE)* >");
+        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPELINE)* >");
         buffWriter.println(" <!ELEMENT WarningLog ANY >");
         buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
-        buffWriter.println(" <!ELEMENT ERRORTYPETHICKLINE ANY>");
+        buffWriter.println(" <!ELEMENT ERRORTYPELINE ANY>");
         buffWriter.println("<!ATTLIST ErrorLogger");
         buffWriter.println("    errorSystem CDATA #REQUIRED");
         buffWriter.println(" >");
@@ -719,10 +724,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         buffWriter.println("    geomName CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST ERRORTYPETHICKLINE");
+        buffWriter.println(" <!ATTLIST ERRORTYPELINE");
         buffWriter.println("    p1 CDATA #REQUIRED");
         buffWriter.println("    p2 CDATA #REQUIRED");
-        buffWriter.println("    center CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" ]>");
@@ -1010,8 +1014,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         {
             private ErrorLogger logger = null;
             private Cell curCell;
-            private String message;
+            private String message = "";
         	private List<ErrorHighlight> highlights;
+        	private Set<String> badCellNames = new HashSet<String>();
 
             XMLHandler()
             {
@@ -1038,13 +1043,17 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 boolean warnLogBody = qName.equals("WarningLog");
                 if (errorLogBody)
                 {
-                    int sortLayer = curCell.hashCode();
+                    int sortLayer = 0;
+                    if (curCell != null) sortLayer = curCell.hashCode();
                     logger.logAnError(message, curCell, sortLayer, highlights);
+                    message = "";
                 }
                 else if (warnLogBody)
                 {
-                    int sortLayer = curCell.hashCode();
+                    int sortLayer = 0;
+                    if (curCell != null) sortLayer = curCell.hashCode();
                     logger.logAWarning(message, curCell, sortLayer, highlights);
+                    message = "";
                 }
             }
 
@@ -1054,12 +1063,11 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
-                boolean thickTypeBody = qName.equals("ERRORTYPETHICKLINE");
+                boolean lineTypeBody = qName.equals("ERRORTYPELINE");
 
-                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !thickTypeBody) return;
+                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !lineTypeBody) return;
 
                 String cellName = null, geomName = null, viewName = null;
-                message = "";
                 EPoint p1 = null, p2 = null;
 
                 for (int i = 0; i < attributes.getLength(); i++)
@@ -1105,6 +1113,15 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 }
                 View view = View.findView(viewName);
                 curCell = Library.findCellInLibraries(cellName, view);
+                if (curCell == null || !curCell.isLinked())
+                {
+                	if (!badCellNames.contains(cellName))
+                	{
+                		badCellNames.add(cellName);
+                		System.out.println("Cannot find cell: " + cellName);
+                	}
+                	return;
+                }
                 if (errorLogBody)
                 {
                     int sortLayer = curCell.hashCode();
@@ -1122,7 +1139,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                         geom = curCell.findArc(geomName);
                     highlights.add(newErrorHighlight(null, geom));
                 }
-                else if (thickTypeBody)
+                else if (lineTypeBody)
                 {
                     highlights.add(new ErrorHighLine(curCell, p1, p2, true));
                 }
