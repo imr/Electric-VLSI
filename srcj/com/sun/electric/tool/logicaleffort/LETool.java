@@ -488,7 +488,7 @@ public class LETool extends Listener {
                 }
                 new UpdateSizes(sizes, varNames, cell);
                 netlister.getErrorLogger().termLogging(true);
-                netlister.nullErrorLogger();
+                //netlister.nullErrorLogger();
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
                 netlister.done();

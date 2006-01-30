@@ -236,13 +236,11 @@ public class LENetlister2 extends LENetlister {
                 }
             }
         }
-
-        done();
     }
 
     public void done() {
         errorLogger.termLogging(true);
-        errorLogger = null;
+        //errorLogger = null;
     }
 
     public ErrorLogger getErrorLogger() { return errorLogger; }

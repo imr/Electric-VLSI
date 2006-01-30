@@ -171,7 +171,7 @@ public class LENetlister1 extends LENetlister {
 
     public void done() {
         errorLogger.termLogging(true);
-        errorLogger = null;
+        //errorLogger = null;
     }
 
     public ErrorLogger getErrorLogger() { return errorLogger; }
