@@ -1046,7 +1046,7 @@ public class VectorDrawing
 						if (!User.isTextVisibilityOnPort()) continue;
 						break;
 				}
-				if (vt.height < maxObjectSize) continue;
+				if (vt.height*User.getGlobalTextScale() < maxObjectSize) continue;
 
 				String drawString = vt.str;
 				databaseToScreen(vt.bounds.getMinX()+oX, vt.bounds.getMinY()+oY, tempPt1);

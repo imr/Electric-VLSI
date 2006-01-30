@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (1/30/06, SMR) When global text is scaled, small text is still not displayed.
+FIX: In VectorDrawing.drawList(), account for global scale when clipping text.
+
 IMP: (1/30/06, SMR) Added Pref methods "delayPrefFlushing()" and "resumePrefFlushing()"
      to speed up bulk preference changes.
 
