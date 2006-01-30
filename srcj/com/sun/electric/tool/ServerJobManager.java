@@ -64,21 +64,23 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<ServerConnection> serverConnections = new ArrayList<ServerConnection>();
     private final UserInterface redirectInterface = new UserInterfaceRedirect();
-    private final int numThreads;
+    private int numThreads;
+    private final int maxNumThreads;
     private boolean runningChangeJob;
     private boolean jobTreeChanged;
+    private boolean signalledEThread;
 
     
     private Snapshot currentSnapshot = new Snapshot();
     
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {
-        numThreads = initThreads(recommendedNumThreads);
+        maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
     }
     
     ServerJobManager(int recommendedNumThreads, int socketPort) {
-        numThreads = initThreads(recommendedNumThreads);
+        maxNumThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(socketPort);
@@ -90,22 +92,23 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     }
     
     private int initThreads(int recommendedNumThreads) {
-        int numThreads = DEFAULT_NUM_THREADS;
+        int maxNumThreads = DEFAULT_NUM_THREADS;
         if (recommendedNumThreads > 0)
-            numThreads = recommendedNumThreads;
-        Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "starting threads");
-        for (int i = 0; i < numThreads; i++)
-            new DatabaseChangesThread(i);
-        return numThreads;
+            maxNumThreads = recommendedNumThreads;
+        Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "maxNumThreads=" + maxNumThreads);
+        return maxNumThreads;
     }
     
-   /** Add job to list of jobs */
+    /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
         lock();
         try {
-//            if (waitingJobs.isEmpty())
-//                databaseChangesMutex.signal();
+            if (onMySnapshot)
+                waitingJobs.add(0, ejob);
+            else
+                waitingJobs.add(ejob);
             setEJobState(ejob, EJob.State.WAITING, onMySnapshot ? EJob.WAITING_NOW : "waiting");
+            invokeEThread();
         } finally {
             unlock();
         }
@@ -244,33 +247,16 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
             ejob.serializeResult();
         else
             ejob.serializeExceptionResult(jobException);
-        lock();
-        try {
-            setEJobState(ejob, EJob.State.SERVER_DONE, "done");
-        } finally {
-            unlock();
-        }
     }
 
-    private EJob selectDoIt() {
-        lock();
-        try {
-            for (;;) {
-                // Search for examine
-                if (canRun()) {
-                    EJob ejob = waitingJobs.get(0);
-                    setEJobState(ejob, EJob.State.RUNNING, "running");
-                    return ejob;
-                }
-                try {
-                    Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
-                    databaseChangesMutex.await();
-                    Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");
-                } catch (InterruptedException e) {}
-            }
-        } finally {
-            unlock();
-        }
+    private void invokeEThread() {
+        if (signalledEThread || startedJobs.size() >= maxNumThreads) return;
+        if (!canDoIt()) return;
+        if (startedJobs.size() < numThreads)
+            databaseChangesMutex.signal();
+        else
+            new DatabaseChangesThread(numThreads++);
+        signalledEThread = true;
     }
     
     private EJob selectTerminateIt() {
@@ -299,10 +285,10 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         }
     }
     
-    private boolean canRun() {
+    private boolean canDoIt() {
         if (waitingJobs.isEmpty()) return false;
         EJob ejob = waitingJobs.get(0);
-        return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine() && startedJobs.size() < numThreads;
+        return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine();
     }
     
     private void updateSnapshot() {
@@ -324,28 +310,9 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         EJob.State oldState = ejob.state;
         switch (newState) {
             case WAITING:
-                if (info.equals(EJob.WAITING_NOW))
-                    waitingJobs.add(0, ejob);
-                else
-                    waitingJobs.add(ejob);
-                if (startedJobs.isEmpty())
-                    databaseChangesMutex.signal();
                 break;
             case RUNNING:
-                if (oldState == EJob.State.WAITING) {
-                    EJob ej = waitingJobs.remove(0);
-                    assert ej == ejob;
-                    if (ejob.isExamine()) {
-                        assert !runningChangeJob;
-                        if (canRun())
-                            databaseChangesMutex.signal();
-                    } else {
-                        assert startedJobs.isEmpty();
-                        assert !runningChangeJob;
-                        runningChangeJob = true;
-                    }
-                    startedJobs.add(ejob);
-                } else {
+                if (oldState == EJob.State.RUNNING) {
                     assert oldState == EJob.State.RUNNING;
                     ejob.progress = info;
                     if (info.equals(EJob.ABORTING))
@@ -460,27 +427,56 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
 		}
 
         public void run() {
-            Job.logger.entering(CLASS_NAME, "run", getName());
+            Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
+            EJob finishedEJob = null;
             for (;;) {
-                EJob ejob = selectDoIt();
-                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
-                ServerConnection connection = ejob.connection;
-                if (connection != null) {
-                    Throwable e = ejob.deserialize();
-                    if (e != null) {
-                        ejob.serializeExceptionResult(e);
-                        e.printStackTrace();
-                        lock();
-                        try {
-                            setEJobState(ejob, EJob.State.SERVER_DONE, "failed");
-                        } finally {
-                            unlock();
+                EJob selectedEJob = null;
+                lock();
+                try {
+                    if (finishedEJob != null)
+                        setEJobState(finishedEJob, EJob.State.SERVER_DONE, "done");
+                    for (;;) {
+                        signalledEThread = false;
+                        // Search for examine
+                        if (canDoIt()) {
+                            EJob ejob = waitingJobs.remove(0);
+                            startedJobs.add(ejob);
+                            if (ejob.isExamine()) {
+                                assert !runningChangeJob;
+                                invokeEThread();
+                            } else {
+                                assert startedJobs.size() == 1;
+                                assert !runningChangeJob;
+                                runningChangeJob = true;
+                            }
+                            setEJobState(ejob, EJob.State.RUNNING, "running");
+                            selectedEJob = ejob;
+                            break;
                         }
+                        if (Job.threadMode == Job.Mode.BATCH && startedJobs.isEmpty()) {
+                            ActivityLogger.finished();
+                            System.exit(0);
+                        }
+                        Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
+                        databaseChangesMutex.awaitUninterruptibly();
+                        Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");
+                    }
+                } finally {
+                    unlock();
+                }
+                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", selectedEJob.jobName);
+                ServerConnection connection = selectedEJob.connection;
+                if (connection != null) {
+                    Throwable e = selectedEJob.deserialize();
+                    if (e != null) {
+                        selectedEJob.serializeExceptionResult(e);
+                        e.printStackTrace();
                         continue;
                     }
                 }
-                runJob(this, ejob);
-                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", ejob.jobName);
+                runJob(this, selectedEJob);
+                finishedEJob = selectedEJob;
+                Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);
             }
         }
 	}

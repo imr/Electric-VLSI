@@ -563,7 +563,9 @@ public final class Main
 			}
 
 			openCommandLineLibs(argsList);
-
+            if (BATCHMODE && beanShellScript != null)
+                EvalJavaBsh.runScript(beanShellScript);
+                
             return true;
 		}
         
@@ -583,11 +585,6 @@ public final class Main
                         if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
                     }
                 });
-            }
-            else
-            {
-               // run script
-               if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
             }
         }
 	}

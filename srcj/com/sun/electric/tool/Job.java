@@ -594,7 +594,7 @@ public abstract class Job implements Serializable {
 	 * Method to check whether examining of database is allowed.
 	 */
     public static void checkExamine() {
-        if (!getDebug()) return;
+//        if (!getDebug()) return;
 //        if (NOTHREADING) return;
 	    /*
 	    // disabled by Gilda on Oct 18
