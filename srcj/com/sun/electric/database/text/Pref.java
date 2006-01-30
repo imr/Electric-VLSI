@@ -23,25 +23,28 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.Job;
-import com.sun.electric.Main;
+import com.sun.electric.tool.user.CircuitChanges;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
-import java.net.URLConnection;
-import java.net.URL;
 
 /**
  * This class manages options.
@@ -203,24 +206,13 @@ public class Pref
 	private   Object      factoryObj;
 
 	private static List<Pref> allPrefs = new ArrayList<Pref>();
+	private static boolean doFlushing = true;
+	private static Set<Preferences> queueForFlushing;
 
 	/**
 	 * The constructor for the Pref.
 	 */
 	protected Pref() {}
-
-	/**
-	 * Method to import the preferences from an XML file.
-	 * Prompts the user and reads the file.
-	 */
-//	public static void importPrefs()
-//	{
-//		// prompt for the XML file
-//        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
-//        if (fileName == null) return;
-//
-//        importPrefs(fileName);
-//    }
 
     /**
      * Method used in regressions so it has to be public.
@@ -330,19 +322,6 @@ public class Pref
 	}
 
 	/**
-	 * Method to export the preferences to an XML file.
-	 * Prompts the user and writes the file.
-	 */
-//	public static void exportPrefs()
-//	{
-//		// prompt for the XML file
-//        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
-//        if (fileName == null) return;
-//
-//        exportPrefs(fileName);
-//    }
-
-	/**
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
 	 * @param fileName the file to write.
 	 */
@@ -389,6 +368,7 @@ public class Pref
 			this.cachedObj = new Integer(factory ? 1 : 0);
 		allPrefs.add(this);
 	}
+
 	/**
 	 * Factory methods to create a boolean Pref objects.
 	 * @param name the name of this Pref.
@@ -421,6 +401,7 @@ public class Pref
 			this.cachedObj = new Integer(factory);
 		allPrefs.add(this);
 	}
+
 	/**
 	 * Factory methods to create an integer Pref objects.
 	 * @param name the name of this Pref.
@@ -453,6 +434,7 @@ public class Pref
 			this.cachedObj = new Long(factory);
 		allPrefs.add(this);
 	}
+
 	/**
 	 * Factory methods to create a long Pref objects.
 	 * @param name the name of this Pref.
@@ -485,6 +467,7 @@ public class Pref
 			this.cachedObj = new Double(factory);
 		allPrefs.add(this);
 	}
+
 	/**
 	 * Factory methods to create a double Pref objects.
 	 * @param name the name of this Pref.
@@ -653,6 +636,31 @@ public class Pref
 	public void setSideEffect() {}
 
 	/**
+	 * Method to delay the saving of preferences to disk.
+	 * Since individual saving is time-consuming, batches of preference
+	 * changes are wrapped with this, and "resumePrefFlushing()".
+	 */
+	public static void delayPrefFlushing()
+	{
+		doFlushing = false;
+		queueForFlushing = new HashSet<Preferences>();
+	}
+
+	/**
+	 * Method to resume the saving of preferences to disk.
+	 * Since individual saving is time-consuming, batches of preference
+	 * changes are wrapped with this, and "resumePrefFlushing()".
+	 * Besides resuming saving, this method also saves anything queued
+	 * while saving was delayed.
+	 */
+	public static void resumePrefFlushing()
+	{
+		doFlushing = true;
+		for(Preferences p : queueForFlushing)
+			flushOptions(p);
+	}
+
+	/**
 	 * Method to set a new boolean value on this Pref object.
 	 * @param v the new boolean value of this Pref object.
 	 */
@@ -665,7 +673,8 @@ public class Pref
 			if (prefs != null)
 			{
 				prefs.putBoolean(name, v);
-				flushOptions();
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
 			}
 		}
 		setSideEffect();
@@ -684,7 +693,8 @@ public class Pref
 			if (prefs != null)
 			{
 				prefs.putInt(name, v);
-				flushOptions();
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
 			}
 		}
 		setSideEffect();
@@ -703,7 +713,8 @@ public class Pref
 			if (prefs != null)
 			{
 				prefs.putLong(name, v);
-				flushOptions();
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
 			}
 		}
 		setSideEffect();
@@ -725,7 +736,8 @@ public class Pref
 			if (prefs != null)
 			{
 				prefs.putDouble(name, v);
-				flushOptions();
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
 			}
 			changed = true;
 		}
@@ -746,7 +758,8 @@ public class Pref
 			if (prefs != null)
 			{
 				prefs.put(name, str);
-				flushOptions();
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
 			}
 		}
 		setSideEffect();
@@ -912,12 +925,12 @@ public class Pref
      */
     public static void finishPrefReconcilation(List<Meaning> meaningsToReconcile)
     {
+    	// delay flushing of preferences until all chanages are made
+		delayPrefFlushing();
         for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
         {
             Meaning meaning = (Meaning)it.next();
             Pref pref = meaning.getPref();
-
-//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
             Object obj = meaning.getDesiredValue();
 
             // set the option
@@ -934,8 +947,13 @@ public class Pref
             }
             System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
         }
+
+        // resume flushing, and save everything just set
+        resumePrefFlushing();
+
         // Repair libraries in case number of layers was changed or arcs must be resized.
         CircuitChanges.checkAndRepairCommand(true);
+
         // Repair libraries in case default width changes due to foundry changes
         new Technology.ResetDefaultWidthJob(null);
     }
@@ -945,15 +963,15 @@ public class Pref
 	/**
 	 * Method to force all Preferences to be saved.
 	 */
-	private void flushOptions()
+	private static void flushOptions(Preferences p)
 	{
 		try
 		{
-			prefs.flush();
+			p.flush();
 		} catch (BackingStoreException e)
 		{
             if (!Job.BATCHMODE) {
-			    System.out.println("Failed to save " + name + " options");
+			    System.out.println("Failed to save preferences");
             }
 		}
 	}
