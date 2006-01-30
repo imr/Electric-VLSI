@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/30/06, SMR) Added Pref methods "delayPrefFlushing()" and "resumePrefFlushing()"
+     to speed up bulk preference changes.
+
+BUG: (1/30/06, SMR) Saved error logs do not read back in.
+FIX: Adjusted parsing to match new output.
+
 IMP: (1/28/06, GVG) Incremental Schematic working now
 
 IMP: (1/27/06, GVG) Update StatusBar on click on EditWindow (Bug#799).
