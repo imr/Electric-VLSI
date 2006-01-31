@@ -2625,6 +2625,9 @@ public class Quick
 		HashMap<NodeInst,NodeInst> notExportedNodes = new HashMap<NodeInst,NodeInst>();
 		HashMap<NodeInst,NodeInst> checkedNodes = new HashMap<NodeInst,NodeInst>();
 
+        // remember number of errors before the min area checking
+        errorFound = errorLogger.getNumErrors();
+        
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
         QuickAreaEnumerator quickArea1 = new QuickAreaEnumerator(cp.netlist, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
@@ -2634,6 +2637,9 @@ public class Quick
 
         // Job aborted
         if (job != null && job.checkAbort()) return 0;
+
+        errorFound = errorLogger.getNumErrors() - errorFound;
+
 //		for(Iterator<Network> netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 //		{
 //			Network net = netIt.next();
@@ -4374,6 +4380,8 @@ public class Quick
          * Case 4: Checking (QuickAreaBucket bucket : buckets) in exitCell in all cells -> best result?
          * Case 5: Checking (QuickAreaBucket bucket : buckets) in exitCell only on Top Cell -> too slow
          * Case 6: Skip if addElement() adds element bigger than minArea -> doesn't work because I skip disconnected
+         * Case 9: Prunning network buckets to check by checking network in the cells. Do process in enterCell and cache
+         * the data
          * areas in a given network
          */
         private class QuickAreaBucket
