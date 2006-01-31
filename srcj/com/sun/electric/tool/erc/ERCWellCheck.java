@@ -587,10 +587,9 @@ public class ERCWellCheck
                 for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = it.next();
-                    NodeProto subNp = ni.getProto();
-                    if (subNp instanceof PrimitiveNode) continue;
+                    if (!ni.isCellInstance()) continue;
                     // get sub-merge information for the cell instance
-                    GeometryHandler subMerge = check.cellMerges.get(subNp);
+                    GeometryHandler subMerge = check.cellMerges.get(ni.getProto());
                     if (subMerge != null)
                     {
                         AffineTransform tTrans = ni.translateOut(ni.rotateOut());
@@ -621,10 +620,9 @@ public class ERCWellCheck
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
-				NodeProto subNp = ni.getProto();
-				if (subNp instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
-					PrimitiveNode pNp = (PrimitiveNode)subNp;
+					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
 					Technology tech = pNp.getTechnology();
 					// Getting only ercLayers
 					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, true, ercLayers);

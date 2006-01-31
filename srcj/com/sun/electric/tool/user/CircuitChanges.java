@@ -1132,8 +1132,7 @@ public class CircuitChanges
 		{
 			for(NodeInst ni : list)
 			{
-				NodeProto np = ni.getProto();
-				if (!(np instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				{
 					if (ni.isExpanded())
 						setUnExpand(ni, amount);
@@ -1168,15 +1167,13 @@ public class CircuitChanges
 		}
 
 		// explore insides of this one
-		NodeProto np = ni.getProto();
-		if (!(np instanceof Cell)) return;
-		Cell cell = (Cell)np;
+		if (!ni.isCellInstance()) return;
+		Cell cell = (Cell)ni.getProto();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst subNi = it.next();
-			NodeProto subNp = subNi.getProto();
-			if (!(subNp instanceof Cell)) continue;
-			Cell subCell = (Cell)subNp;
+			if (!subNi.isCellInstance()) continue;
+			Cell subCell = (Cell)subNi.getProto();
 
 			// ignore recursive references (showing icon in contents)
 			if (subNi.isIconOfParent()) continue;
@@ -1188,14 +1185,12 @@ public class CircuitChanges
 	{
 		if (!ni.isExpanded()) return;
 
-		NodeProto np = ni.getProto();
-		if (!(np instanceof Cell)) return;
-		Cell cell = (Cell)np;
+		if (!ni.isCellInstance()) return;
+		Cell cell = (Cell)ni.getProto();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst subNi = it.next();
-			NodeProto subNp = subNi.getProto();
-			if (!(subNp instanceof Cell)) continue;
+			if (!subNi.isCellInstance()) continue;
 
 			// ignore recursive references (showing icon in contents)
 			if (subNi.isIconOfParent()) continue;
@@ -1213,16 +1208,14 @@ public class CircuitChanges
 	{
 		expandFlagBit.remove(ni);
 		if (!ni.isExpanded()) return(0);
-		NodeProto np = ni.getProto();
 		int depth = 0;
-		if (np instanceof Cell)
+		if (ni.isCellInstance())
 		{
-			Cell cell = (Cell)np;
+			Cell cell = (Cell)ni.getProto();
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst subNi = it.next();
-				NodeProto subNp = subNi.getProto();
-				if (!(subNp instanceof Cell)) continue;
+				if (!subNi.isCellInstance()) continue;
 
 				// ignore recursive references (showing icon in contents)
 				if (subNi.isIconOfParent()) continue;
@@ -1266,7 +1259,7 @@ public class CircuitChanges
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = nIt.next();
-					if (!(ni.getProto() instanceof Cell)) continue;
+					if (!ni.isCellInstance()) continue;
 					Cell subCell = (Cell)ni.getProto();
 					Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
 					if (var != null)
@@ -1292,7 +1285,7 @@ public class CircuitChanges
 					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 					{
 						NodeInst ni = nIt.next();
-						if (!(ni.getProto() instanceof Cell)) continue;
+						if (!ni.isCellInstance()) continue;
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() == oLib) { found = true;   break; }
 					}
@@ -1312,7 +1305,7 @@ public class CircuitChanges
 					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 					{
 						NodeInst ni = nIt.next();
-						if (!(ni.getProto() instanceof Cell)) continue;
+						if (!ni.isCellInstance()) continue;
 						Cell subCell = (Cell)ni.getProto();
 						Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
 						if (var == null) continue;

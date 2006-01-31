@@ -142,9 +142,9 @@ public class DXF extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			NodeProto np = ni.getProto();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
+				NodeProto np = ni.getProto();
 				if (!cellsSeen.contains(np)) writeDXFCell((Cell)np, true);
 			}
 		}
@@ -170,7 +170,7 @@ public class DXF extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (np instanceof Cell && !cellsSeen.contains(np))
+				if (ni.isCellInstance() && !cellsSeen.contains(np))
 					writeDXFCell((Cell)np, true);
 			}
 			printWriter.print("  0\nBLOCK\n");
@@ -187,7 +187,7 @@ public class DXF extends Output
 			NodeProto np = ni.getProto();
 
 			// handle instances
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				Cell subCell = (Cell)np;
 				printWriter.print("  0\nINSERT\n");
@@ -211,7 +211,7 @@ public class DXF extends Output
 			if (var != null) layerName = var.getPureValue(-1); else
 			{
 				// examine technology for proper layer name
-				if (ni.getProto() instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
 					Technology.NodeLayer [] nodeLayers = pNp.getLayers();

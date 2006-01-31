@@ -1802,13 +1802,13 @@ public class Highlighter implements DatabaseChangeListener {
                     {
                         case 0:			// check primitive nodes
                             if (!(geom instanceof NodeInst)) break;
-                            if (((NodeInst)geom).getProto() instanceof Cell) break;
+                            if (((NodeInst)geom).isCellInstance()) break;
                             h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
                             if (h != null) list.add(h);
                             break;
                         case 1:			// check Cell instances
                             if (!(geom instanceof NodeInst)) break;
-                            if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
+                            if (!((NodeInst)geom).isCellInstance()) break;
                             h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
                             if (h != null) list.add(h);
                             break;
@@ -1850,7 +1850,7 @@ public class Highlighter implements DatabaseChangeListener {
 
 			// do not "find" hard-to-find nodes if "findSpecial" is not set
 			boolean hardToSelect = ni.isHardSelect();
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				if (!User.isEasySelectionOfCellInstances()) hardToSelect = true;
 			} else
@@ -2086,7 +2086,7 @@ public class Highlighter implements DatabaseChangeListener {
 
 		NodeProto np = ni.getProto();
 		Poly nodePoly = null;
-		if (np instanceof PrimitiveNode)
+		if (!ni.isCellInstance())
 		{
 			// special case for MOS transistors: examine the gate/active tabs
             // special case for RESIST in layout  (fun == PrimitiveNode.Function.RESIST and PrimitiveNode.POLYGONAL

@@ -232,7 +232,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
-					if (ni.getProto() instanceof Cell)
+					if (ni.isCellInstance())
 					{
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() == this)
@@ -353,9 +353,8 @@ public class Library extends ElectricObject implements Comparable<Library>
                     Cell c = (Cell)itCell.next();
                     for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
                         NodeInst ni = (NodeInst)it.next();
-                        NodeProto np = ni.getProto();
-                        if (np instanceof Cell) {
-                            Cell cc = (Cell)np;
+                        if (ni.isCellInstance()) {
+                            Cell cc = (Cell)ni.getProto();
                             if (cc.getLibrary() == refLib) {
                                 d.dependencies.add(c);
                                 d.dependencies.add(cc);
@@ -396,9 +395,8 @@ public class Library extends ElectricObject implements Comparable<Library>
             Cell c = (Cell)itCell.next();
             for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
-                NodeProto np = ni.getProto();
-                if (np instanceof Cell) {
-                    Cell cc = (Cell)np;
+                if (ni.isCellInstance()) {
+                    Cell cc = (Cell)ni.getProto();
                     if (cc.getLibrary() == lib) {
                         refFound = true;
                         break;

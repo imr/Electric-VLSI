@@ -583,7 +583,7 @@ public class EDIF extends Topology
 			{
 				NodeInst ni = it.next();
 				NodeProto np = ni.getProto();
-				if (!(np instanceof PrimitiveNode)) continue;
+				if (ni.isCellInstance()) continue;
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
                 PrimitiveNode pn = (PrimitiveNode)np;
 				PrimitiveNode.Function fun = ni.getFunction();
@@ -648,12 +648,12 @@ public class EDIF extends Topology
 		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst no = nIt.next();
-            if (no.getProto() instanceof Cell) {
+            if (no.isCellInstance()) {
                 Cell c = (Cell)no.getProto();
                 if (cell.iconView() == c) continue;         // can't make instance of icon view
             }
 
-			if (no.getProto() instanceof PrimitiveNode)
+			if (!no.isCellInstance())
 			{
 				PrimitiveNode.Function fun = ((NodeInst)no).getFunction();
                 Variable var = no.getVar(Artwork.ART_MESSAGE);
@@ -711,7 +711,7 @@ public class EDIF extends Topology
                         openedPortImplementation = true;
                     }
                 }
-            } else if (no.getProto() instanceof PrimitiveNode)
+            } else if (!no.isCellInstance())
 			{
 				NodeInst ni = (NodeInst)no;
 				PrimitiveNode.Function fun = ni.getFunction();
@@ -766,7 +766,7 @@ public class EDIF extends Topology
                 blockOpen("origin");
                 double cX = ni.getAnchorCenterX(), cY = ni.getAnchorCenterY();
 /*
-                if (no.getProto() instanceof Cell)
+                if (no.isCellInstance())
                 {
                     Rectangle2D cellBounds = ((Cell)no.getProto()).getBounds();
                     cX = ni.getTrueCenterX() - cellBounds.getCenterX();
@@ -1267,7 +1267,7 @@ public class EDIF extends Topology
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
                 PrimitiveNode pn = (PrimitiveNode)np;
@@ -1323,7 +1323,7 @@ public class EDIF extends Topology
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
                 PrimitiveNode pn = (PrimitiveNode)np;
@@ -1361,11 +1361,10 @@ public class EDIF extends Topology
 	}
 
     private Object getPrimKey(NodeInst ni, int i) {
-        NodeProto np = ni.getProto();
-        if (!(np instanceof PrimitiveNode)) return null;
-        PrimitiveNode pn = (PrimitiveNode)np;
+        if (ni.isCellInstance()) return null;
+        PrimitiveNode pn = (PrimitiveNode)ni.getProto();
         PrimitiveNode.Function func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
-        String key = pn.getTechnology().getTechShortName() + "_" + np.getName() + "_" + func.getConstantName() + "_" +i;
+        String key = pn.getTechnology().getTechShortName() + "_" + pn.getName() + "_" + func.getConstantName() + "_" +i;
         return key;
     }
 
@@ -1703,7 +1702,7 @@ public class EDIF extends Topology
 		NodeProto np = ni.getProto();
 
 		// primitive nodeinst: ask the technology how to draw it
-		if (np instanceof PrimitiveNode)
+		if (!ni.isCellInstance())
 		{
 			Technology tech = np.getTechnology();
 			Poly [] polys = tech.getShapeOfNode(ni);

@@ -292,7 +292,7 @@ public class Change extends EDialog implements HighlightListener
 			showPrimitives.setEnabled(true);
 			showCells.setEnabled(true);
 			NodeInst ni = (NodeInst)geomToChange;
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				showCells.setSelected(true);
 			} else
@@ -336,7 +336,7 @@ public class Change extends EDialog implements HighlightListener
 			if (showCells.isSelected())
 			{
 				// cell: only list other cells as replacements
-				if (ni.getProto() instanceof Cell && canSwitchLibraries)
+				if (ni.isCellInstance() && canSwitchLibraries)
 				{
 					Cell parent = (Cell)ni.getProto();
 					Library lib = parent.getLibrary();
@@ -374,7 +374,7 @@ public class Change extends EDialog implements HighlightListener
 			}
             changeList.setSelectedIndex(0);
             // try to select prototype of selected node
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 Cell c = (Cell)ni.getProto();
                 for (int i=0; i<changeListModel.getSize(); i++) {
                     String str = (String)changeListModel.get(i);
@@ -953,7 +953,7 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() instanceof Cell) continue;
+				if (ni.isCellInstance()) continue;
 				if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 				boolean allArcs = true;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )

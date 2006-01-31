@@ -466,7 +466,7 @@ public class ReadableDump extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			if (subCell.getLibrary() != lib) continue;
 			if (!cellOrdering.containsKey(subCell)) textRecurse(lib, subCell);

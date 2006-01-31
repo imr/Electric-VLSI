@@ -613,9 +613,8 @@ public class PostScript extends Output
 			NodeInst ni = it.next();
 			AffineTransform subRot = ni.rotateOut();
 			subRot.preConcatenate(trans);
-			NodeProto np = ni.getProto();
 
-			if (np instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				if (!topLevel && ni.isVisInside()) continue;
 				PrimitiveNode prim = (PrimitiveNode)ni.getProto();
@@ -629,7 +628,7 @@ public class PostScript extends Output
 			} else
 			{
 				// a cell
-				Cell subCell = (Cell)np;
+				Cell subCell = (Cell)ni.getProto();
 				AffineTransform subTrans = ni.translateOut();
 				subTrans.preConcatenate(subRot);
 				if (!ni.isExpanded())

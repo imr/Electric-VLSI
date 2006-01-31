@@ -577,7 +577,7 @@ public class GenerateVHDL
 		{
 			// cell instances are easy
 			special = BLOCKNORMAL;
-			if (ni.getProto() instanceof Cell) { primName = ni.getProto().getName();   return; }
+			if (ni.isCellInstance()) { primName = ni.getProto().getName();   return; }
 
 			// get the primitive function
 			PrimitiveNode.Function k = ni.getFunction();
@@ -828,7 +828,7 @@ public class GenerateVHDL
 			for(Iterator<NodeInst> it = environment.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				if (orig.equals(ni.getProto().getName()))
 				{
 					sb.insert(0, "_");

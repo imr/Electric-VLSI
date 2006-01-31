@@ -1423,10 +1423,9 @@ public class Schematics extends Technology
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
-		NodeProto prototype = ni.getProto();
-		if (!(prototype instanceof PrimitiveNode)) return null;
+		if (ni.isCellInstance()) return null;
 
-		PrimitiveNode np = (PrimitiveNode)prototype;
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		boolean extraBlobs = false;
 		if (np == wirePinNode)
 		{

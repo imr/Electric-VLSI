@@ -567,7 +567,7 @@ public class Spice extends Topology
             for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
             {
                 NodeInst ni = (NodeInst)aIt.next();
-                if (ni.getProto() instanceof PrimitiveNode) {
+                if (!ni.isCellInstance()) {
                     if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
                         PortInst gate0 = ni.getTransistorGatePort();
                         PortInst gate1 = null;
@@ -1587,7 +1587,7 @@ public class Spice extends Topology
         boolean mark = false;
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
-            if (!(ni.getProto() instanceof Cell)) continue;
+            if (!ni.isCellInstance()) continue;
             if (ni.isIconOfParent()) continue;
             if (ni.getVar(LENetlister.ATTR_LEGATE) != null) { mark = true; continue; }
             if (ni.getVar(LENetlister.ATTR_LEKEEPER) != null) { mark = true; continue; }
@@ -2552,13 +2552,12 @@ public class Spice extends Topology
 	private void addNodeInformation(Netlist netList, HashMap<Network,SpiceNet> spiceNets, NodeInst ni)
 	{
 		// cells have no area or capacitance (for now)
-		NodeProto np = ni.getProto();
-		if (np instanceof Cell) return;  // No area for complex nodes
+		if (ni.isCellInstance()) return;  // No area for complex nodes
 
 		PrimitiveNode.Function function = ni.getFunction();
 
 		// initialize to examine the polygons on this node
-		Technology tech = np.getTechnology();
+		Technology tech = ni.getProto().getTechnology();
 		AffineTransform trans = ni.rotateOut();
 
 		// make linked list of polygons
@@ -2686,7 +2685,7 @@ public class Spice extends Topology
             NodeInst ni = (NodeInst)it.next();
 
             // if node is a cell, check if subcell is empty
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 // ignore own icon
                 if (ni.isIconOfParent()) {
                     continue;

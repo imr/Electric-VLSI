@@ -1415,7 +1415,7 @@ public class Technology implements Comparable<Technology>
 	 */
     public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
     {
-        if (!(ni.getProto() instanceof PrimitiveNode)) return null;
+        if (ni.isCellInstance()) return null;
         SizeOffset so = ni.getSizeOffset();
         double length = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
         double width = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
@@ -1426,7 +1426,7 @@ public class Technology implements Comparable<Technology>
 
 //    public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
 //    {
-//        if (!(ni.getProto() instanceof PrimitiveNode)) return null;
+//        if (ni.isCellInstance()) return null;
 //        SizeOffset so = ni.getSizeOffset();
 //        double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 //        double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
@@ -1675,10 +1675,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, List onlyTheseLayers)
 	{
-		NodeProto prototype = ni.getProto();
-		if (!(prototype instanceof PrimitiveNode)) return null;
+		if (ni.isCellInstance()) return null;
 
-		PrimitiveNode np = (PrimitiveNode)prototype;
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		NodeLayer [] primLayers = np.getLayers();
 		if (electrical)
 		{
@@ -2002,9 +2001,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public boolean isMultiCutCase(NodeInst ni)
 	{
-		NodeProto np = ni.getProto();
-		if (np instanceof Cell) return false;
-		PrimitiveNode pnp = (PrimitiveNode)np;
+		if (ni.isCellInstance()) return false;
+		PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
 
 		return (isMultiCutInTechnology(new MultiCutData(ni.getD(), pnp.getSpecialValues())));
@@ -3588,7 +3586,7 @@ public class Technology implements Comparable<Technology>
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
 				Technology nodeTech = np.getTechnology();
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					Cell subCell = (Cell)np;
 					if (subCell.isIcon())

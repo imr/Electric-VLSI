@@ -708,7 +708,7 @@ public class EditMenu {
 			for(Geometric geom : list)
 			{
 				NodeInst ni = (NodeInst)geom;
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				boolean changed = false;
 				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 				{
@@ -810,7 +810,7 @@ public class EditMenu {
                         Cell c = it2.next();
                         for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
                             NodeInst ni = it3.next();
-                            if (ni.getProto() instanceof Cell) {
+                            if (ni.isCellInstance()) {
                                 if (whatToUpdate == 0) {
                                     updateInheritance(ni, (Cell)ni.getProto());
                                     count++;
@@ -827,7 +827,7 @@ public class EditMenu {
                 for (Geometric eobj : highlighted) {
                     if (eobj instanceof NodeInst) {
                         NodeInst ni = (NodeInst)eobj;
-                        if (ni.getProto() instanceof Cell) {
+                        if (ni.isCellInstance()) {
                             if (whatToUpdate == 0) {
                                 updateInheritance(ni, (Cell)ni.getProto());
                                 count++;
@@ -934,7 +934,7 @@ public class EditMenu {
 			// "select all" should not include the cell-center
 			if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
 			boolean hard = ni.isHardSelect();
-			if ((ni.getProto() instanceof Cell) && cellsAreHard) hard = true;
+			if ((ni.isCellInstance()) && cellsAreHard) hard = true;
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
 			if (!ni.isInvisiblePinWithText())

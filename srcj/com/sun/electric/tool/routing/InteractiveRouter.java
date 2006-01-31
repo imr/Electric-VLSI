@@ -596,7 +596,7 @@ public abstract class InteractiveRouter extends Router {
             NodeInst ni = pi.getNodeInst();
             PortProto pp = pi.getPortProto();
             boolean compressPort = false;
-            if (ni.getProto() instanceof PrimitiveNode) compressPort = true;
+            if (!ni.isCellInstance()) compressPort = true;
             Poly poly = ni.getShapeOfPort(pp, clicked, compressPort, arcWidth); // this is for multi-site ports
             return poly;
         }

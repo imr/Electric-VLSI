@@ -324,7 +324,7 @@ public class LENetlister2 extends LENetlister {
         public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
             CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
 
-            if (!(ni.getNodeInst().getProto() instanceof PrimitiveNode))
+            if (ni.getNodeInst().isCellInstance())
                 if (DEBUG_FIRSTPASS) System.out.println(" === visiting "+ni.getName());
             // see if we can make an LENodable from the nodable
             LENodable.Type type = netlister.getType(ni, info);

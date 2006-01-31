@@ -1554,7 +1554,7 @@ public class FillGenerator implements Serializable {
             {
                 NodeInst ni = it.next();
 
-                if (!(ni.getProto() instanceof Cell))
+                if (!ni.isCellInstance())
                 {
                     for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                     {
@@ -1804,7 +1804,7 @@ public class FillGenerator implements Serializable {
 //                NodeInst ni = itNode.next();
 //                tmp.clear();
 //                NodeProto np = ni.getProto();
-//                if (!(np instanceof PrimitiveNode)) continue;
+//                if (ni.isCellInstance()) continue;
 //                PrimitiveNode pn = (PrimitiveNode)np;
 //                if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
 //
@@ -1928,12 +1928,11 @@ public class FillGenerator implements Serializable {
                 if (geom instanceof NodeInst)
                 {
                     NodeInst ni = (NodeInst)geom;
-				    NodeProto np = ni.getProto();
 
                     if (NodeInst.isSpecialNode(ni)) continue;
 
                     // ignore nodes that are not primitive
-                    if (np instanceof Cell)
+                    if (ni.isCellInstance())
                     {
                         // instance found: look inside it for offending geometry
                         AffineTransform rTransI = ni.rotateIn();
@@ -1942,7 +1941,7 @@ public class FillGenerator implements Serializable {
                         subBound.setRect(nodeBounds);
                         DBMath.transformRect(subBound, rTransI);
 
-                        if (searchCollision((Cell)np, subBound, theseLayers, p, fillNi, connectionNi, upTrans))
+                        if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, fillNi, connectionNi, upTrans))
                             return true;
                     } else
                     {

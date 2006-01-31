@@ -104,7 +104,7 @@ public class AutoStitch
 				if (eObj instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)eObj;
-					if (ni.getProto() instanceof PrimitiveNode)
+					if (!ni.isCellInstance())
 					{
 						PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 						if (pnp.getTechnology() == Generic.tech) continue;
@@ -122,7 +122,7 @@ public class AutoStitch
 			{
 				NodeInst ni = it.next();
 				if (ni.isIconOfParent()) continue;
-				if (ni.getProto() instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 					if (pnp.getTechnology() == Generic.tech) continue;
@@ -424,12 +424,12 @@ public class AutoStitch
 	{
 		boolean headTooWide = true;
 		NodeInst hNi = ai.getHeadPortInst().getNodeInst();
-		if (hNi.getProto() instanceof Cell) headTooWide = false; else
+		if (hNi.isCellInstance()) headTooWide = false; else
 			if (ai.getWidth() <= hNi.getXSize() && ai.getWidth() <= hNi.getYSize()) headTooWide = false;
 
 		boolean tailTooWide = true;
 		NodeInst tNi = ai.getTailPortInst().getNodeInst();
-		if (tNi.getProto() instanceof Cell) tailTooWide = false; else
+		if (tNi.isCellInstance()) tailTooWide = false; else
 			if (ai.getWidth() <= tNi.getXSize() && ai.getWidth() <= tNi.getYSize()) tailTooWide = false;
 
 		return headTooWide || tailTooWide;
@@ -507,7 +507,7 @@ public class AutoStitch
 			{
 				// other geometric a NodeInst
 				NodeInst oNi = (NodeInst)oGeom;
-				if (oNi.getProto() instanceof PrimitiveNode)
+				if (!oNi.isCellInstance())
 				{
 					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
 					if (pnp.getTechnology() == Generic.tech) continue;
@@ -539,7 +539,7 @@ public class AutoStitch
 
 		// now look at every layer in this node
 		Rectangle2D oBounds = oNi.getBounds();
-		if (ni.getProto() instanceof Cell)
+		if (ni.isCellInstance())
 		{
 			// complex node instance: look at all ports
 			Rectangle2D [] boundArray = nodeBounds.get(ni);
@@ -574,7 +574,7 @@ public class AutoStitch
 				AffineTransform trans = ni.rotateOut();
 				NodeInst rNi = ni;
 				PortProto rPp = pp;
-				while (rNi.getProto() instanceof Cell)
+				while (rNi.isCellInstance())
 				{
 					AffineTransform temp = rNi.translateOut();
 					temp.preConcatenate(trans);
@@ -857,7 +857,7 @@ public class AutoStitch
 
 	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
-		if (ni.getProto() instanceof Cell) return 0;
+		if (ni.isCellInstance()) return 0;
 		Network arcNet = nl.getNetwork(ai, 0);
 
 		// look at all polygons on the arcinst
@@ -971,7 +971,7 @@ public class AutoStitch
 		Network net = netlist.getNetwork(pi);
 
 		// now look at every layer in this node
-		if (oNi.getProto() instanceof Cell)
+		if (oNi.isCellInstance())
 		{
 			// complex cell: look at all exports
 			Rectangle2D [] boundArray = nodeBounds.get(oNi);
@@ -1011,7 +1011,7 @@ public class AutoStitch
 				AffineTransform trans = oNi.rotateOut();
 				NodeInst rNi = oNi;
 				PortProto rPp = mPp;
-				while (rNi.getProto() instanceof Cell)
+				while (rNi.isCellInstance())
 				{
 					AffineTransform temp = rNi.translateOut();
 					temp.preConcatenate(trans);

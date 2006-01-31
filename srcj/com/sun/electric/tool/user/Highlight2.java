@@ -354,12 +354,11 @@ public abstract class Highlight2 implements Cloneable{
     public static Poly getNodeInstOutline(NodeInst ni) {
 
         AffineTransform trans = ni.rotateOutAboutTrueCenter();
-        NodeProto np = ni.getProto();
 
         Poly poly = null;
-        if (np instanceof PrimitiveNode)
+        if (!ni.isCellInstance())
         {
-        	PrimitiveNode pn = (PrimitiveNode)np;
+        	PrimitiveNode pn = (PrimitiveNode)ni.getProto();
 
         	// special case for outline nodes
             if (pn.isHoldsOutline())

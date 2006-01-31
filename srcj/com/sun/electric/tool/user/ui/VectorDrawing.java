@@ -92,6 +92,7 @@ public class VectorDrawing
 	/** statistics */										private int crossCount, textCount, circleCount, arcCount;
 	/** statistics */										private int subCellCount, tinySubCellCount;
 	/** the threshold of object sizes */					private float maxObjectSize;
+	/** the threshold of text sizes */						private float maxTextSize;
 	/** the maximum cell size above which no greeking */	private float maxCellSize;
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
@@ -466,6 +467,7 @@ public class VectorDrawing
 		// set size limit
 		scale = (float)wnd.getScale();
 		maxObjectSize = (float)User.getGreekSizeLimit() / scale;
+		maxTextSize = maxObjectSize / (float)User.getGlobalTextScale();
 		Rectangle2D screenBounds = wnd.getDisplayedBounds();
 		double screenArea = screenBounds.getWidth() * screenBounds.getHeight();
 		maxCellSize = (float)(User.getGreekCellSizeLimit() * screenArea);
@@ -776,7 +778,6 @@ public class VectorDrawing
 			// see if the cell is too tiny to draw
 			if (vsc.size < maxObjectSize && vsc.ni != null)
 			{
-//				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 				Orientation thisOrient = vsc.ni.getOrient();
 				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
@@ -817,7 +818,6 @@ public class VectorDrawing
 			if (expanded)
 			{
 				Orientation thisOrient = vsc.ni.getOrient();
-//				Orientation recurseTrans = thisOrient.concatenate(trans);
 				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
 				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
@@ -1046,7 +1046,7 @@ public class VectorDrawing
 						if (!User.isTextVisibilityOnPort()) continue;
 						break;
 				}
-				if (vt.height*User.getGlobalTextScale() < maxObjectSize) continue;
+				if (vt.height < maxTextSize) continue;
 
 				String drawString = vt.str;
 				databaseToScreen(vt.bounds.getMinX()+oX, vt.bounds.getMinY()+oY, tempPt1);
@@ -1348,6 +1348,7 @@ public class VectorDrawing
 		subVD.szHalfWidth = greekWid / 2;
 		subVD.szHalfHeight = greekHei / 2;
 		subVD.maxObjectSize = 0;
+		subVD.maxTextSize = 0;
 		subVD.scale = (float)greekScale;
 		subVD.offX = (float)cellCtr.getX();
 		subVD.offY = (float)cellCtr.getY();
@@ -1635,7 +1636,7 @@ public class VectorDrawing
 			hideOnLowLevel = true;
 
 		// draw the node
-		if (np instanceof Cell)
+		if (ni.isCellInstance())
 		{
 			// cell instance
 			Cell subCell = (Cell)np;

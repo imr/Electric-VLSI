@@ -136,7 +136,7 @@ class LayoutCell {
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             boolean portsModified;
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 LayoutCell subCell = Layout.getCellInfo((Cell)ni.getProto());
                 portsModified = subCell.exportsModified;
             } else {
@@ -343,7 +343,7 @@ class LayoutCell {
 			{
 				if (ono.isLocked()) locked = true; else
 				{
-					if (ono.getProto() instanceof Cell)
+					if (ono.isCellInstance())
 					{
 						if (ono.getParent().isInstancesLocked()) locked = true;
 						if (User.isDisallowModificationComplexNodes()) locked = true;
@@ -521,7 +521,7 @@ class LayoutCell {
 			{
 				if (ono.isLocked()) mangle = false; else
 				{
-					if (ono.getProto() instanceof Cell)
+					if (ono.isCellInstance())
 					{
 						if (ono.getParent().isInstancesLocked()) mangle = false;
 					} else
@@ -1044,7 +1044,7 @@ class LayoutCell {
 //               rc.touched = true;
 //               rc.locked = true;
 //           }
-//           if (ni.getProto() instanceof Cell) {
+//           if (ni.isCellInstance()) {
 //                LayoutCell ci = Layout.getCellInfo((Cell)ni.getProto());
 //                if (ci.exportsModified) rc.touched = true;
 //           } else if (d != null && (d.width != ni.getXSize() || d.height != ni.getYSize())) {

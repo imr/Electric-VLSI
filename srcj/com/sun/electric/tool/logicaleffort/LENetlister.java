@@ -157,7 +157,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         for (Iterator<NodeInst> instIt = cell.getNodes(); instIt.hasNext();) {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.isIconOfParent()) continue;
-            if (!(ni.getProto() instanceof Cell)) continue;
+            if (!ni.isCellInstance()) continue;
             if (ni.getVar(ATTR_LESETTINGS) != null) {
 				Technology tech = cell.getTechnology();
                 float su = (float)tech.getGlobalFanout();

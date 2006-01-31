@@ -89,7 +89,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
-				if (ni.getProto() instanceof PrimitiveNode &&
+				if (!ni.isCellInstance() &&
 					ni.getProto().getTechnology() == Artwork.tech)
 						artworkObjects.add(ni);
 			} else if (geom instanceof ArcInst)

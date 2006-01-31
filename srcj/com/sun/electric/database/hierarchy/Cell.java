@@ -523,7 +523,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() instanceof PrimitiveNode) continue;
+				if (!ni.isCellInstance()) continue;
 				Cell niProto = (Cell)ni.getProto();
 
 				boolean maySubstitute = useExisting;
@@ -654,7 +654,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				opi[i] = null;
 				NodeInst ono = newNodes.get(ai.getPortInst(i).getNodeInst());
 				PortProto pp = ai.getPortInst(i).getPortProto();
-				if (ono.getProto() instanceof PrimitiveNode)
+				if (!ono.isCellInstance())
 				{
 					// primitives associate ports directly
 					opi[i] = ono.findPortInstFromProto(pp);
@@ -1116,7 +1116,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeInst ni = chronNodes.get(d.nodeId);
             if (ni != null) {
                 ni.setDInClient(d);
-                if (exportsModified != null && ni.getProto() instanceof Cell) {
+                if (exportsModified != null && ni.isCellInstance()) {
                     if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
                         ni.updatePortInsts();
                 }
@@ -1254,7 +1254,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
-            if (exportsModified != null && ni.getProto() instanceof Cell) {
+            if (exportsModified != null && ni.isCellInstance()) {
                 if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
                     ni.sortConnections();
             }
@@ -1278,7 +1278,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void updatePortInsts(BitSet exportsModified) {
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 if (exportsModified.get(((Cell)ni.getProto()).getCellIndex())) {
                     ni.updatePortInsts();
                     ni.sortConnections();
@@ -2082,9 +2082,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		checkChanging();
 
 		// check to see if this instantiation would create a circular library dependency
-		NodeProto protoType = ni.getProto();
-		if (protoType instanceof Cell) {
-			Cell instProto = (Cell)protoType;
+		if (ni.isCellInstance()) {
+			Cell instProto = (Cell)ni.getProto();
 			if (instProto.getLibrary() != getLibrary()) {
 				// a reference will be created, check it
 				Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
@@ -2112,8 +2111,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         setContentsModified();
         
         // count usage
-        if (protoType instanceof Cell) {
-            CellUsage u = d.cellId.getUsageIn(((Cell)protoType).d.cellId);
+        if (ni.isCellInstance()) {
+            CellUsage u = d.cellId.getUsageIn(((Cell)ni.getProto()).d.cellId);
             if (cellUsages.length <= u.indexInParent) {
                 int[] newCellUsages = new int[u.indexInParent + 1];
                 System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
@@ -2210,7 +2209,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		assert ni.isLinked();
 
         // remove usage count
-        if (ni.getProto() instanceof Cell) {
+        if (ni.isCellInstance()) {
             CellUsage u = d.cellId.getUsageIn(((Cell)ni.getProto()).d.cellId);
             cellUsages[u.indexInParent]--;
             if (cellUsages[u.indexInParent] <= 0) {
@@ -3486,9 +3485,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
-            NodeProto np = ni.getProto();
-            if (np instanceof Cell) {
-                Cell c = (Cell)np;
+            if (ni.isCellInstance()) {
+                Cell c = (Cell)ni.getProto();
                 // ignore instances of icon view inside content view
                 if (c.isIconOf(parent)) continue;
                 if (c == contentView) return true;
@@ -3533,10 +3531,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //				lastParent = ni.getParent();
 //
 //				// special case: allow an icon to be inside of the contents for illustration
-//				NodeProto niProto = ni.getProto();
-//				if (niProto instanceof Cell)
+//				if (ni.isCellInstance())
 //				{
-//					if (((Cell)niProto).isIconOf(child))
+//					if (((Cell)ni.getProto()).isIconOf(child))
 //					{
 //						if (!child.isIcon()) continue;
 //					}
@@ -3958,9 +3955,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			Cell subCell = (Cell)np;
+			if (!ni.isCellInstance()) continue;
+			Cell subCell = (Cell)ni.getProto();
 
 			// ignore recursive references (showing icon in contents)
 			if (subCell.isIconOf(this)) continue;
@@ -4159,7 +4155,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
-            if (!(ni.getProto() instanceof Cell)) continue;
+            if (!ni.isCellInstance()) continue;
             boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
             if (cellPrefs != null) {
                 String nodeName = "E" + ni.getName();
@@ -4189,7 +4185,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int num = 0, expanded = 0, diff = 0;
         for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
-            if (!(ni.getProto() instanceof Cell)) continue;
+            if (!ni.isCellInstance()) continue;
             num++;
             if (ni.isExpanded()) expanded++;
             if (ni.isExpanded() != ((Cell)ni.getProto()).isWantExpanded())
@@ -4220,7 +4216,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             cellPrefs.put("CELL", cellName);
             for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
-                if (!(ni.getProto() instanceof Cell)) continue;
+                if (!ni.isCellInstance()) continue;
                 boolean defaultExpanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
                 if (ni.isExpanded() != defaultExpanded) {
                     String nodeName = "E" + ni.getName();
@@ -4370,7 +4366,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				if (cmp == 0)
 					assert prevNi.getD().nodeId < ni.getD().nodeId;
 			}
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 CellUsage u = cellId.getUsageIn(((Cell)ni.getProto()).d.cellId);
                 usages[u.indexInParent]++;
             }
@@ -4746,15 +4742,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = nodes.get(i);
-			NodeProto nProto = ni.getProto();
-			if (nProto instanceof Cell)
+			if (ni.isCellInstance())
 			{
-				Cell nCell = (Cell)nProto;
+				Cell nCell = (Cell)ni.getProto();
 				nCell.getZValues(array);
 			}
 			else
 			{
-				PrimitiveNode np = (PrimitiveNode)nProto;
+				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 				np.getZValues(array);
 			}
 		}
@@ -4786,10 +4781,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = nodes.get(i);
-			NodeProto nProto = ni.getProto();
-			if (nProto instanceof Cell)
+			if (ni.isCellInstance())
 			{
-				Cell nCell = (Cell)nProto;
+				Cell nCell = (Cell)ni.getProto();
 				if (nCell.getLibrary() == elib)
 					set.add(this);
 				else

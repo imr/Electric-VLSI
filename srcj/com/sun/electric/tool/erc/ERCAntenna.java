@@ -377,7 +377,7 @@ public class ERCAntenna
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			if (fsCell.contains(subCell)) continue;
 	
@@ -412,7 +412,7 @@ public class ERCAntenna
 			// if this is a subcell, recurse on it
 			fsGeom.add(ni);
 			NodeInst thisni = ni;
-			while (thisni.getProto() instanceof Cell)
+			while (thisni.isCellInstance())
 			{
 				antstack[depth] = thisni;
 				depth++;

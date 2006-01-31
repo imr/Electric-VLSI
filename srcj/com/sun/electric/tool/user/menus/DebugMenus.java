@@ -1143,10 +1143,9 @@ public class DebugMenus
 					continue;
 				}
 
-				NodeProto protoType = node.getProto();
-				if (protoType instanceof Cell) continue;
+				if (node.isCellInstance()) continue;
 
-				Technology tech = protoType.getTechnology();
+				Technology tech = node.getProto().getTechnology();
 				Poly[] polyList = tech.getShapeOfNode(node);
 				AffineTransform transform = node.rotateOut();
 
@@ -1272,7 +1271,7 @@ public class DebugMenus
 				NodeInst ni = (NodeInst)eobj;
 				if (useproto) {
 					System.out.println("using prototype");
-					if (ni.getProto() instanceof Cell)
+					if (ni.isCellInstance())
 						((Cell)ni.getProto()).getInfo();
 				} else {
 					ni.getInfo();
@@ -1649,13 +1648,13 @@ public class DebugMenus
 				{
 					NodeInst ni = nIt.next();
 					countVars('N', ni);
-					if (ni.getProto() instanceof Cell) subCells++;
+					if (ni.isCellInstance()) subCells++;
 					if (ni.isUsernamed()) namedNodes++;
 // 					if (cellNodes.contains(ni.getName()))
 // 						System.out.println(cell + " has duplicate node " + ni.getName());
 					cellNodes.add(ni.getName());
                     if (ni.isUsernamed()) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_NAME), true, null);
-                    if (ni.getProto() instanceof Cell) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_PROTO), true, null);
+                    if (ni.isCellInstance()) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_PROTO), true, null);
 					countPoint(ni.getAnchorCenter());
 					
 					for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )

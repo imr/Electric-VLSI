@@ -63,7 +63,7 @@ public class DrcRings {
 			if (filter.skip(ni)) continue;
 			
 			// only do Cells
-			if (ni.getProto() instanceof PrimitiveNode)  continue;
+			if (!ni.isCellInstance())  continue;
 			
 			Rectangle2D cellBounds = LayoutLib.getBounds(ni);
 			

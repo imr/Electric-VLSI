@@ -731,7 +731,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				boolean changes = false;
 				for(NodeInst ni : nodeList)
 				{
-					if (ni.getProto() instanceof Cell)
+					if (ni.isCellInstance())
 					{
 						if (mcp.expanded == 1)
 						{

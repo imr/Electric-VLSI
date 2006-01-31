@@ -370,7 +370,7 @@ public abstract class Router {
         // check any wires that connect to the export of this portinst in the
         // prototype, if this is a cell instance
         NodeInst ni = pi.getNodeInst();
-        if (ni.getProto() instanceof Cell) {
+        if (ni.isCellInstance()) {
             Cell cell = (Cell)ni.getProto();
             Export export = cell.findExport(pi.getPortProto().getName());
             PortInst exportedInst = export.getOriginalPort();

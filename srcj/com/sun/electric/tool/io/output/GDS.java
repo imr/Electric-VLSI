@@ -568,7 +568,7 @@ public class GDS extends Geometry
             cellNames.put(cell, makeUniqueName(cell, cellNames));
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 Cell c = (Cell)ni.getProto();
                 Cell cproto = c.contentsView();
                 if (cproto == null) cproto = c;

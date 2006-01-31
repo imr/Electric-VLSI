@@ -261,10 +261,9 @@ public class RouteElementArc extends RouteElement {
 			if (!headPoly.isInside(headPoint))
 			{
 				NodeInst headNi = headPi.getNodeInst();
-				NodeProto np = headNi.getProto();
-				if (np instanceof PrimitiveNode)
+				if (!headNi.isCellInstance())
 				{
-					PrimitiveNode pNp = (PrimitiveNode)np;
+					PrimitiveNode pNp = (PrimitiveNode)headNi.getProto();
 					Dimension2D autoGrowth = pNp.getAutoGrowth();
 					if (autoGrowth != null)
 					{
@@ -289,10 +288,9 @@ public class RouteElementArc extends RouteElement {
 			if (!tailPoly.isInside(tailPoint))
 			{
 				NodeInst tailNi = tailPi.getNodeInst();
-				NodeProto np = tailNi.getProto();
-				if (np instanceof PrimitiveNode)
+				if (!tailNi.isCellInstance())
 				{
-					PrimitiveNode pNp = (PrimitiveNode)np;
+					PrimitiveNode pNp = (PrimitiveNode)tailNi.getProto();
 					Dimension2D autoGrowth = pNp.getAutoGrowth();
 					if (autoGrowth != null)
 					{

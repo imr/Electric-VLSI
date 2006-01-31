@@ -564,7 +564,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 			return;
 		}
 		NodeProto np = ni.getProto();
-		if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isHoldsOutline()))
+		if (ni.isCellInstance() || !((PrimitiveNode)np).isHoldsOutline())
 		{
 			System.out.println("Sorry, " + np + " does not hold outline information");
             if (oldMode == CursorMode.OUTLINE) clickZoomWireCommand(); else

@@ -332,10 +332,9 @@ public class FPGA extends Technology
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
-		NodeProto prototype = ni.getProto();
-		if (!(prototype instanceof PrimitiveNode)) return null;
+		if (ni.isCellInstance()) return null;
 
-		PrimitiveNode np = (PrimitiveNode)prototype;
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np == tech.wirePinNode)
 		{
 			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
@@ -543,7 +542,7 @@ public class FPGA extends Technology
 		NodeInst ni = pi.getNodeInst();
 		PortProto pp = pi.getPortProto();
 		NodeProto np = ni.getProto();
-		if (np instanceof Cell)
+		if (ni.isCellInstance())
 		{
 			// follow down into cell
 			VarContext down = curContext.push(ni);

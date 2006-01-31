@@ -345,7 +345,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			if (subCell.isIcon())
 			{

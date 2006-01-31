@@ -358,7 +358,7 @@ public class ChangeText extends EDialog
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() instanceof Cell && !ni.isExpanded())
+			if (ni.isCellInstance() && !ni.isExpanded())
 			{
 				// cell instance text
 				accumulateTextFound(cp, ni, NodeInst.NODE_PROTO, change);

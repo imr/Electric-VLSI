@@ -232,14 +232,13 @@ public class ParasiticTool extends Listener{
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
             NodeInst ni = no.getNodeInst();
-            NodeProto np = ni.getProto();
-            if (np instanceof Cell) return true;  // hierarchical
+            if (ni.isCellInstance()) return true;  // hierarchical
 
             // Its like pins, facet-center
 			if (NodeInst.isSpecialNode(ni)) return (false);
 
             // initialize to examine the polygons on this node
-            Technology tech = np.getTechnology();
+            Technology tech = ni.getProto().getTechnology();
             AffineTransform trans = ni.rotateOut();
             ExtractedPBucket parasitic = tool.createBucket(ni, (ParasiticCellInfo)info);
             if (parasitic != null) transAndRCList.add(parasitic);
@@ -453,7 +452,7 @@ public class ParasiticTool extends Listener{
 					if (np.getTechnology() != tech) continue;
 
                     // ignore nodes that are not primitive
-                    if (np instanceof Cell)
+                    if (ni.isCellInstance())
                         System.out.println("Skipping case for now");
                     else
                     {
@@ -537,7 +536,7 @@ public class ParasiticTool extends Listener{
                 AffineTransform trans = ni.rotateOut();
                 NodeProto np = ni.getProto();
 	            nodeMap.put(ni, ni);
-				if (np instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pNp = (PrimitiveNode)np;
 					Technology tech = pNp.getTechnology();

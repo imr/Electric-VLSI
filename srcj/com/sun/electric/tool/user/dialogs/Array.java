@@ -140,7 +140,7 @@ public class Array extends EDialog
 		{
 			if (!(eObj instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)eObj;
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			Dimension2D spacing = subCell.getCharacteristicSpacing();
 			if (spacing == null) continue;
@@ -662,7 +662,7 @@ public class Array extends EDialog
             if (geom instanceof NodeInst) {
 				NodeInst ni = (NodeInst)geom;
                 ni.setName(totalName);
-                if (ni.getProto() instanceof Cell)
+                if (ni.isCellInstance())
                     ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
             } else {
                 ((ArcInst)geom).setName(totalName);

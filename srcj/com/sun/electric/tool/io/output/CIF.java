@@ -208,7 +208,7 @@ public class CIF extends Geometry
 		for (Iterator<NodeInst> noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
 		{
 			NodeInst ni = noIt.next();
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 				writeNodable(ni);
 		}
 		writeLine("DF;");
@@ -448,8 +448,7 @@ public class CIF extends Geometry
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
 		{
 			NodeInst ni = (NodeInst)no;
-			NodeProto np = ni.getProto();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				if (!ni.isExpanded() && IOTool.isCIFOutMimicsDisplay())
 				{

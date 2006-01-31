@@ -1529,7 +1529,7 @@ public class Maze
 		if (np == Generic.tech.invisiblePinNode) return;
 
 		AffineTransform rotateNode = ni.rotateOut(prevTrans);
-		if (np instanceof PrimitiveNode)
+		if (!ni.isCellInstance())
 		{
 			// primitive nodeinst: ask the technology how to draw it
 			Technology tech = np.getTechnology();

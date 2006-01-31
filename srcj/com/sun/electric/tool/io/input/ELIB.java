@@ -1487,7 +1487,7 @@ public class ELIB extends LibraryFiles
 
             // if this was a dummy cell, create the export in cell
             Cell c = null;
-            if (node.getProto() != null && node.getProto() instanceof Cell)
+            if (node.getProto() != null && node.isCellInstance())
                 if (((Cell)node.getProto()).getVar(IO_DUMMY_OBJECT) != null) c = (Cell)node.getProto();
             if (c != null) {
                 double anchorX = node.getAnchorCenterX();

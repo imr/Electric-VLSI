@@ -83,9 +83,8 @@ public class Schematic
             // ignore documentation icon
             if (ni.isIconOfParent()) return null;
 
-            NodeProto np = ni.getProto();
-            if (!(np instanceof Cell)) return null;
-            Cell subCell = (Cell)np;
+            if (!ni.isCellInstance()) return null;
+            Cell subCell = (Cell)ni.getProto();
 
             Cell contentsCell = subCell.contentsView();
             if (contentsCell == null) contentsCell = subCell;
@@ -115,9 +114,8 @@ public class Schematic
 //                // ignore documentation icon
 //                if (ni.isIconOfParent()) continue;
 //
-//                NodeProto np = ni.getProto();
-//                if (!(np instanceof Cell)) continue;
-//                Cell subCell = (Cell)np;
+//                if (!ni.isCellInstance()) continue;
+//                Cell subCell = (Cell)ni.getProto();
 //
 //                Cell contentsCell = subCell.contentsView();
 //                if (contentsCell == null) contentsCell = subCell;
@@ -155,7 +153,7 @@ public class Schematic
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = (NodeInst)it.next();
-                if (ni.getProto() instanceof PrimitiveNode &&
+                if (!ni.isCellInstance() &&
                     ni.getProto().getTechnology() == Generic.tech) continue;
                 schematicDoCheck(netlist, ni);
             }
@@ -388,7 +386,7 @@ public class Schematic
 			{
 				PortInst pi = ai.getPortInst(i);
 				NodeInst ni = pi.getNodeInst();
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				Cell subNp = (Cell)ni.getProto();
 				PortProto pp = pi.getPortProto();
 
@@ -439,7 +437,7 @@ public class Schematic
 			NodeProto np = ni.getProto();
 			AffineTransform localTrans = ni.rotateOut();
 			localTrans.preConcatenate(trans);
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				if (ni.isExpanded())
 				{
@@ -514,7 +512,7 @@ public class Schematic
 			{
 				// found node nearby
 				NodeInst oNi = (NodeInst)oGeom;
-				if (oNi.getProto() instanceof PrimitiveNode &&
+				if (!oNi.isCellInstance() &&
 					oNi.getProto().getTechnology() == Generic.tech) continue;
 				if (geom instanceof NodeInst)
 				{
@@ -647,7 +645,7 @@ public class Schematic
 			NodeProto np = ni.getProto();
 			AffineTransform thisTrans = ni.rotateOut();
 			thisTrans.preConcatenate(oTrans);
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				AffineTransform subRot = ni.translateOut();
 				subRot.preConcatenate(thisTrans);

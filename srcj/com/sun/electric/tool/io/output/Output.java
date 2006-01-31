@@ -416,7 +416,7 @@ public class Output
 				if (ni.getName() == null)
 					System.out.println("ERROR: " + cell + " has " + ni + " with no name");
 				NodeProto np = ni.getProto();
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					gatherCell((Cell)np);
 				} else

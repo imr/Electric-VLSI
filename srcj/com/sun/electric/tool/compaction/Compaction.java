@@ -967,7 +967,7 @@ public class Compaction extends Listener
 				newObject.outerHighx = bounds.getMaxX();
 				newObject.outerLowy = bounds.getMinY();
 				newObject.outerHighy = bounds.getMaxY();
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					newObject.lowx = newObject.outerLowx;
 					newObject.highx = newObject.outerHighx;
@@ -997,7 +997,7 @@ public class Compaction extends Listener
 			HashMap<PortProto,Integer> localPortIndices = fillNode(ni, arcIndices, portIndices);
 
 			// create pseudo-object for complex ni
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				Cell subCell = (Cell)ni.getProto();
 

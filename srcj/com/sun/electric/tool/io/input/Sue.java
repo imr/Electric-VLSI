@@ -721,7 +721,7 @@ public class Sue extends Input
                         
                     // make sure the parameter exists in the cell definition
                     NodeProto np = ni.getProto();
-                    if (isParam && np instanceof Cell) {
+                    if (isParam && ni.isCellInstance()) {
                         Cell cnp = ((Cell)np).contentsView();
                         if (cnp == null) cnp = (Cell)np;
                         Variable contentsVar = cnp.getVar(varKey);
@@ -750,7 +750,7 @@ public class Sue extends Input
 //
 //							// make sure the parameter exists in the cell definition
 //							NodeProto np = ni.getProto();
-//							if (np instanceof Cell)
+//							if (ni.isCellInstance())
 //							{
 //								Cell cnp = ((Cell)np).contentsView();
 //								if (cnp == null) cnp = (Cell)np;

@@ -661,7 +661,7 @@ public class Artwork extends Technology
 	 */
 	public void setDefaultOutline(NodeInst ni)
 	{
-		if (!(ni.getProto() instanceof PrimitiveNode)) return;
+		if (ni.isCellInstance()) return;
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np == openedPolygonNode || np == openedDottedPolygonNode ||
 			np == openedDashedPolygonNode ||  np == openedThickerPolygonNode ||

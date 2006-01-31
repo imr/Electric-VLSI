@@ -482,7 +482,7 @@ public class CircuitChangeJobs
 				// if a primitive has an offset, see if the node edges are aligned
 				if (bodyXOffset != 0 || bodyYOffset != 0)
 				{
-					if (ni.getProto() instanceof PrimitiveNode)
+					if (!ni.isCellInstance())
 					{
 						AffineTransform transr = ni.rotateOut();
 						Technology tech = ni.getProto().getTechnology();
@@ -843,7 +843,7 @@ public class CircuitChangeJobs
 					{
 						Connection con = cIt.next();
 						if (con.getPortInst() != pi) continue;
-						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+						if (!pi.getNodeInst().isCellInstance())
 						{
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 							if (pp.isNegatable())
@@ -861,7 +861,7 @@ public class CircuitChangeJobs
 					for(int i=0; i<2; i++)
 					{
 						PortInst pi = ai.getPortInst(i);
-						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+						if (!pi.getNodeInst().isCellInstance())
 						{
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 							if (pp.isNegatable())
@@ -1412,7 +1412,7 @@ public class CircuitChangeJobs
 		{
 			for(NodeInst ni : nodesToDelete)
 			{
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 
 				// reconstruct each connection to a deleted cell instance
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
@@ -1461,7 +1461,7 @@ public class CircuitChangeJobs
 		List<NodeInst> deleteTheseNodes = new ArrayList<NodeInst>();
 		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
-			if (ni.getProto() instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
@@ -1477,7 +1477,7 @@ public class CircuitChangeJobs
 		List<NodeInst> nodesToPassThru = new ArrayList<NodeInst>();
 		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
-			if (ni.getProto() instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.getNumExports() != 0) continue;
@@ -2748,9 +2748,8 @@ public class CircuitChangeJobs
 	public static void inheritAttributes(NodeInst ni, boolean cleanUp)
 	{
 		// ignore primitives
-		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode) return;
-		Cell cell = (Cell)np;
+		if (!ni.isCellInstance()) return;
+		Cell cell = (Cell)ni.getProto();
 
 		// first inherit directly from this node's prototype
 		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
@@ -3209,7 +3208,7 @@ public class CircuitChangeJobs
 				throw e;
 			}
 			boolean complexNode = false;
-			if (item.getProto() instanceof PrimitiveNode)
+			if (!item.isCellInstance())
 			{
 				// see if a primitive is locked
 				if (((PrimitiveNode)item.getProto()).isLockedPrim() &&
@@ -3285,7 +3284,7 @@ public class CircuitChangeJobs
 				if (ret == 3 || ret == -1) return -1;  // -1 represents ESC or cancel
 			}
 			boolean complexNode = false;
-			if (item.getProto() instanceof PrimitiveNode)
+			if (!item.isCellInstance())
 			{
 				// see if a primitive is locked
 				if (((PrimitiveNode)item.getProto()).isLockedPrim() &&

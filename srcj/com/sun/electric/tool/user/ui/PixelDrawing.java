@@ -1479,7 +1479,7 @@ public class PixelDrawing
 		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 
 			// if limiting drawing, reject when out of area
 			if (drawLimitBounds != null)

@@ -236,9 +236,8 @@ public class CellLists extends EDialog
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			Cell subCell = (Cell)np;
+			if (!ni.isCellInstance()) continue;
+			Cell subCell = (Cell)ni.getProto();
 			recursiveMark(subCell, cellsSeen);
 			Cell contentsCell = subCell.contentsView();
 			if (contentsCell != null) recursiveMark(contentsCell, cellsSeen);
@@ -431,9 +430,8 @@ public class CellLists extends EDialog
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			GenMath.MutableInteger count = nodeCount.get(np);
+			if (!ni.isCellInstance()) continue;
+			GenMath.MutableInteger count = nodeCount.get(ni.getProto());
 			if (count != null) count.increment();
 		}
 

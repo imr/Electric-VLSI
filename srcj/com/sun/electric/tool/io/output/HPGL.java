@@ -218,8 +218,7 @@ public class HPGL extends Output
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			NodeInst ni = (NodeInst)no;
-			NodeProto np = ni.getProto();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				if (!ni.isExpanded()) return false;
 			}
@@ -243,7 +242,7 @@ public class HPGL extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				AffineTransform nodeTrans = ni.rotateOut(trans);
-				if (ni.getProto() instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
 					PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 					Technology tech = prim.getTechnology();

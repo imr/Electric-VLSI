@@ -844,7 +844,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				changed = true;
 			}
 
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				if (currentExpansion != initialExpansion)
 				{

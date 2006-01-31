@@ -203,7 +203,7 @@ public class Connectivity
 			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					Cell subCell = (Cell)ni.getProto();
 					Cell convertedCell = convertedCells.get(subCell);
@@ -238,7 +238,7 @@ public class Connectivity
 
 			// see if the node can be copied or must be extracted
 			NodeProto copyType = null;
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				copyType = convertedCells.get(ni.getProto());
 				if (copyType == null) copyType = ni.getProto();
@@ -365,7 +365,7 @@ public class Connectivity
 		{
 			NodeInst ni = it.next();
 			if (ni.isIconOfParent()) continue;
-			if (ni.getProto() instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 				if (pnp.getTechnology() == Generic.tech) continue;
@@ -586,7 +586,7 @@ public class Connectivity
 			Geometric geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				Cell subCell = (Cell)ni.getProto();
 				boolean found = false;
@@ -657,7 +657,7 @@ public class Connectivity
 			if (geom instanceof ArcInst) continue;
 			NodeInst subNi = (NodeInst)geom;
 			PortInst foundPi = null;
-			if (subNi.getProto() instanceof Cell)
+			if (subNi.isCellInstance())
 			{
 				PortInst pi = makePort(subNi, layer, inside);
 				if (pi != null) foundPi = pi;
@@ -1827,7 +1827,7 @@ public class Connectivity
 			Geometric geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
-			if (ni.getProto() instanceof Cell) continue;
+			if (ni.isCellInstance()) continue;
 			AffineTransform trans = ni.rotateOut();
 			Technology tech = ni.getProto().getTechnology();
 			Poly [] nodePolys = tech.getShapeOfNode(ni, null, null, true, true, null);

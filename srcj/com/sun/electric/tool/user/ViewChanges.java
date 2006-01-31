@@ -1087,7 +1087,7 @@ public class ViewChanges
 		double [] y = new double[MAXADJUST];
 		for(NodeInst ni : nodesInCell)
 		{
-			if (ni.getProto() instanceof Cell) continue;
+			if (ni.isCellInstance()) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun != PrimitiveNode.Function.PIN) continue;
 
@@ -1135,7 +1135,7 @@ public class ViewChanges
 	 */
 	private static PrimitiveNode.Function getNodeType(NodeInst ni)
 	{
-		if (ni.getProto() instanceof Cell) return null;
+		if (ni.isCellInstance()) return null;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor()) return fun;
 		if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
@@ -1236,7 +1236,7 @@ public class ViewChanges
 				NodeInst ni = it.next();
 
 				// ignore primitives
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 
 				// ignore recursive references (showing icon in contents)
 				if (ni.isIconOfParent()) continue;
@@ -1281,7 +1281,7 @@ public class ViewChanges
 			{
 				NodeInst ni = it.next();
 				// handle sub-cells
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					Cell newCellType = (Cell)convertedCells.get(ni.getProto());
 					if (newCellType == null)
@@ -1388,7 +1388,7 @@ public class ViewChanges
 		{
 			// easy translation if complex or already in the proper technology
 			NodeProto oldNp = oldni.getProto();
-			if (oldNp instanceof Cell || oldNp.getTechnology() == newTech) return oldNp;
+			if (oldni.isCellInstance() || oldNp.getTechnology() == newTech) return oldNp;
 
 			// if this is a layer node, check the layer functions
 			PrimitiveNode.Function type = oldni.getFunction();
@@ -1558,7 +1558,7 @@ public class ViewChanges
 		 */
 		private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
 		{
-			if (newNi.getProto() instanceof Cell)
+			if (newNi.isCellInstance())
 			{
 				// cells can associate by comparing names
 				PortProto pp = newNi.getProto().findPortProto(oldPp.getName());

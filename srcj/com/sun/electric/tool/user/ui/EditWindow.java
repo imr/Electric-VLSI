@@ -379,7 +379,7 @@ public class EditWindow extends JPanel
         highlighter.clear();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
-            if (ni.getProto() instanceof Cell) {
+            if (ni.isCellInstance()) {
                 Cell nodeCell = (Cell)ni.getProto();
                 if (nodeCell == currentCell) {
                     highlighter.addElectricObject(ni, cell);
@@ -2953,13 +2953,12 @@ public class EditWindow extends JPanel
             System.out.println("Must select a Node to descend into");
             return;
         }
-        NodeProto np = ni.getProto();
-        if (!(np instanceof Cell))
+        if (!ni.isCellInstance())
         {
             System.out.println("Can only descend into cell instances");
             return;
         }
-        Cell cell = (Cell)np;
+        Cell cell = (Cell)ni.getProto();
         Cell schCell = cell.getEquivalent();
 
         // special case: if cell is icon of current cell, descend into icon
@@ -2967,7 +2966,7 @@ public class EditWindow extends JPanel
         if (schCell == null) schCell = cell;
 
         // handle in-place display
-		if (np != schCell) inPlace = false;
+		if (cell != schCell) inPlace = false;
 		if (inPlace)
 		{
 			AffineTransform transIn = ni.rotateIn(ni.translateIn());
@@ -3270,7 +3269,7 @@ public class EditWindow extends JPanel
                 for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = it.next();
-                    if (ni.getProto() instanceof Cell)
+                    if (ni.isCellInstance())
                     {
                         Cell nodeCell = (Cell)ni.getProto();
                         if (nodeCell == oldCell || nodeCell.isIconOf(oldCell))

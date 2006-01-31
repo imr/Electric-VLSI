@@ -185,10 +185,9 @@ public class Maxwell extends Output
 			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				NodeProto np = ni.getProto();
-				if (!(np instanceof PrimitiveNode)) continue;
+				if (ni.isCellInstance()) continue;
 				AffineTransform transRot = ni.rotateOut();
-				Technology tech = np.getTechnology();
+				Technology tech = ni.getProto().getTechnology();
 				Poly [] polyList = tech.getShapeOfNode(ni, null, null, true, false, null);
 				int tot = polyList.length;
 				for(int i=0; i<tot; i++)

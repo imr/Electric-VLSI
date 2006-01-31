@@ -334,7 +334,7 @@ public class River
 	 */
 	private void checkTheCell(NodeInst ni)
 	{
-		if (ni.getProto() instanceof Cell)
+		if (ni.isCellInstance())
 		{
 			// the node is nonprimitive
 			if (!moveCellValid) return;

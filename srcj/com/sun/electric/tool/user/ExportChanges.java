@@ -436,7 +436,7 @@ public final class ExportChanges
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            if (!(ni.getProto() instanceof Cell)) continue;
+            if (!ni.isCellInstance()) continue;
             for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
             {
                 PortInst pi = pIt.next();
@@ -642,7 +642,7 @@ public final class ExportChanges
 
             // only look for cells, not primitives
             if (ignorePrimitives)
-                if (!(ni.getProto() instanceof Cell)) continue;
+                if (!ni.isCellInstance()) continue;
 
             // ignore recursive references (showing icon in contents)
             if (ni.isIconOfParent()) continue;
@@ -1328,7 +1328,7 @@ public final class ExportChanges
 
 	    				// must add port "oPp" to cell "np"
 	    				NodeInst oNi = oPp.getOriginalPort().getNodeInst();
-	    				if (oNi.getProto() instanceof Cell)
+	    				if (oNi.isCellInstance())
 	    				{
 	    					if (!noCells)
 	    						System.out.println("Cannot yet make exports that come from other cell instances (i.e. export " +

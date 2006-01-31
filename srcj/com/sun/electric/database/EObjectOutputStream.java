@@ -173,10 +173,9 @@ public class EObjectOutputStream extends ObjectOutputStream {
         private Object readResolve() throws ObjectStreamException {
             Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
             NodeInst ni = cell.getNodeById(nodeId);
-            NodeProto np = ni.getProto();
             int portIndex;
-            if (np instanceof Cell) {
-                Export e = ((Cell)np).getExportChron(portChronIndex);
+            if (ni.isCellInstance()) {
+                Export e = ((Cell)ni.getProto()).getExportChron(portChronIndex);
                 portIndex = e.getPortIndex();
             } else {
                 portIndex = portChronIndex;

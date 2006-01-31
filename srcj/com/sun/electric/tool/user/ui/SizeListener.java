@@ -318,7 +318,7 @@ public class SizeListener
 					SizeOffset so = ni.getSizeOffset();				
 					double x = xS + so.getLowXOffset() + so.getHighXOffset();
 					double y = yS + so.getLowYOffset() + so.getHighYOffset();
-					if (ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare())
+					if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare())
 					{
 						if (y > x) x = y; else y = x;
 					}
@@ -550,7 +550,7 @@ public class SizeListener
 		}
 
 		// see what keys are held
-		boolean square = ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare();
+		boolean square = !ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare();
 		if ((evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0 &&
 			(evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) == 0)
 		{

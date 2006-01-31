@@ -418,7 +418,7 @@ public class Routing extends Listener
 					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
 				if (ni.getNumExports() > 0) term = true;
-				if (ni.getProto() instanceof Cell) term = true;
+				if (ni.isCellInstance()) term = true;
 				if (term)
 				{
 					// valid network end: see if it is in the list
@@ -573,7 +573,7 @@ public class Routing extends Listener
 
 			// ignore connecting nodes
 			PrimitiveNode.Function fun = null;
-			if (ni.getProto() instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				fun = ni.getFunction();
 				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
@@ -602,7 +602,7 @@ public class Routing extends Listener
 			for(Iterator<NodeInst> nIt = fromCell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst oNi = nIt.next();
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					if (((Cell)oNi.getProto()).getCellGroup() == ((Cell)ni.getProto()).getCellGroup()) fromList.add(oNi);
 				} else
@@ -615,7 +615,7 @@ public class Routing extends Listener
 			for(Iterator<NodeInst> nIt = toCell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst oNi = nIt.next();
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					if (oNi.getProto() == ni.getProto()) toList.add(oNi);
 				} else
@@ -734,7 +734,7 @@ public class Routing extends Listener
 		{
 			NodeInst tNi = tIt.next();
 			if (nodesAssoc.get(tNi) != null) continue;
-			if (tNi.getProto() instanceof Cell) continue;
+			if (tNi.isCellInstance()) continue;
 			if (tNi.getNumExports() == 0) continue;
 			PrimitiveNode.Function fun = tNi.getFunction();
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;

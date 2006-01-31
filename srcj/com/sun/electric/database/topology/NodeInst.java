@@ -161,7 +161,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
 
-        expanded = protoType instanceof Cell && ((Cell)protoType).isWantExpanded();
+        expanded = isCellInstance() && ((Cell)protoType).isWantExpanded();
         
 		// fill in the geometry
 		redoGeometric();
@@ -2790,6 +2790,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the prototype of this NodeInst.
 	 */
 	public NodeProto getProto() { return protoType; }
+
+	/**
+	 * Method to tell whether this NodeInst is a cell instance.
+	 * @return true if this NodeInst is a cell instance, false if it is a primitive
+	 */
+	public boolean isCellInstance() { return protoType instanceof Cell; }
 
 	/**
 	 * Method to return the number of actual NodeProtos which

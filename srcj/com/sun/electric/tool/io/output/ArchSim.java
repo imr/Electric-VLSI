@@ -95,7 +95,7 @@ public class ArchSim extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			if (ni.isIconOfParent()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			printWriter.println("<component name= \"" + ni.getName() + "\" type= \"" + subCell.getName() + "\" />");
@@ -117,7 +117,7 @@ public class ArchSim extends Output
 			for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
 			{
 				NodeInst ni = oIt.next();
-				if (!(ni.getProto() instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				if (ni.isIconOfParent()) continue;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext();)
 				{

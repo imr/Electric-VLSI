@@ -105,7 +105,7 @@ public class L extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			if (ni.isIconOfParent()) continue;
 			Cell np = (Cell)ni.getProto();
 
@@ -166,7 +166,7 @@ public class L extends Output
 
 			// determine type of component
 			String type = np.getName();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				// ignore recursive references (showing icon in contents)
 				if (ni.isIconOfParent()) continue;
@@ -486,7 +486,7 @@ public class L extends Output
 	 */
 	private int getNodeType(NodeInst ni)
 	{
-		if (ni.getProto() instanceof Cell) return INSTANCE;
+		if (ni.isCellInstance()) return INSTANCE;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS) return TRANSISTOR;
 		if (fun != PrimitiveNode.Function.PIN) return OTHERNODE;

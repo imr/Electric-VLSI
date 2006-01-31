@@ -359,7 +359,7 @@ public class SchemToLay {
 		String pNm = prot.getName();
 		
 		// we actually generate layout for two primitive nodes: Power and Ground
-		if (!(prot instanceof Cell)) {
+		if (!iconInst.isCellInstance()) {
 			if (pNm.equals("Power")) {
 				return TieHi.makePart(stdCell);
 			} else if (pNm.equals("Ground")) {
@@ -461,7 +461,7 @@ public class SchemToLay {
 	private static boolean isUsefulIconInst(NodeInst ni, Cell schematic) {
 		if (ni.isIconOfParent()) return false;
 		NodeProto np = ni.getProto();
-		if (!(np instanceof Cell)) {
+		if (!ni.isCellInstance()) {
 			// Power and Ground symbols mean we need to connect this net to
 			// vdd or gnd.
 			if (np.getName().equals("Power") ||

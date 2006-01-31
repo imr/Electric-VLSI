@@ -264,7 +264,7 @@ public class Layout extends Constraints
         if (subrot == null) return null;
 		NodeInst bottomNi = ni;
 		PortProto bottomPP = pp;
-		while (bottomNi.getProto() instanceof Cell)
+		while (bottomNi.isCellInstance())
 		{
 			AffineTransform localtran = makeOldTrans(bottomNi);
 			subrot.concatenate(localtran);

@@ -838,7 +838,7 @@ public class PadGenerator
 		{
 			NodeInst ni = it.next();
 			if (ni.isIconOfParent()) continue;
-			if (ni.getProto() instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 				if (pnp.getTechnology() == Generic.tech) continue;

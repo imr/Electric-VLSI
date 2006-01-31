@@ -312,10 +312,9 @@ public class PostScriptColor
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			if (!ni.isExpanded()) continue;
-			Cell subCell = (Cell)np;
+			Cell subCell = (Cell)ni.getProto();
 			if (cellStructs.get(subCell) != null) continue;
 			extractDatabase(subCell);
 		}
@@ -338,7 +337,7 @@ public class PostScriptColor
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				// instance
 				if (!ni.isExpanded())

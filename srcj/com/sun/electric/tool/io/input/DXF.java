@@ -1358,7 +1358,7 @@ public class DXF extends Input
 		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
 				return true;
@@ -1435,7 +1435,7 @@ public class DXF extends Input
 		for(Iterator<NodeInst> it = onp.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
 				return null;

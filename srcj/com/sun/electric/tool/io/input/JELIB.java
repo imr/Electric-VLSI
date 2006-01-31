@@ -1149,7 +1149,7 @@ public class JELIB extends LibraryFiles
 		} else
 		{
 			pi = ni.findPortInst(portName);
-			if (pi == null && ni.getProto() instanceof PrimitiveNode)
+			if (pi == null && !ni.isCellInstance())
 			{
 				PrimitiveNode primNode = (PrimitiveNode)ni.getProto();
 				PrimitivePort primPort = primNode.getTechnology().convertOldPortName(portName, primNode);
@@ -1158,8 +1158,7 @@ public class JELIB extends LibraryFiles
 		}
 
 		// primitives use the name match
-//		NodeProto np = ni.getProto();
-//		if (np instanceof PrimitiveNode) return pi;
+//		if (!ni.isCellInstance()) return pi;
 
 		// make sure the port can handle the position
 		if (pi != null && pos != null)

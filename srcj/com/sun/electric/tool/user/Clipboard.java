@@ -675,7 +675,7 @@ public class Clipboard
 		// check for recursion
 		for(NodeInst ni : theNodes)
 		{
-			if (ni.getProto() instanceof PrimitiveNode) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell niCell = (Cell)ni.getProto();
             if (Cell.isInstantiationRecursive(niCell, toCell))
 			{
@@ -850,7 +850,7 @@ public class Clipboard
 		destNode.clearExpanded();
 		if (srcNode.isExpanded()) destNode.setExpanded();
 
-		if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
+		if (!destNode.isCellInstance() && !srcNode.isCellInstance()) {
 			if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
 				Technology tech = srcNode.getProto().getTechnology();
 				tech.setPrimitiveFunction(destNode, srcNode.getFunction());
@@ -858,7 +858,7 @@ public class Clipboard
 		}
 
 		// make the sizes the same if they are primitives
-		if (destNode.getProto() instanceof PrimitiveNode)
+		if (!destNode.isCellInstance())
 		{
 			double dX = srcNode.getXSize() - destNode.getXSize();
 			double dY = srcNode.getYSize() - destNode.getYSize();

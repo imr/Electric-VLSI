@@ -113,8 +113,7 @@ public class PortOriginal
 	private void traverse()
 	{
         orient = bottomNi.getOrient();
-//		angle = bottomNi.getAngle();
-		while (bottomNi.getProto() instanceof Cell)
+		while (bottomNi.isCellInstance())
 		{
 			subrot = bottomNi.translateOut(subrot);
 			bottomPort = ((Export)bottomPp).getOriginalPort();
@@ -122,8 +121,6 @@ public class PortOriginal
 			bottomPp = bottomPort.getPortProto();
 			subrot = bottomNi.rotateOut(subrot);
             orient = orient.concatenate(bottomNi.getOrient());
-//			angle += bottomNi.getAngle();
-//			if (bottomNi.isMirroredAboutXAxis() != bottomNi.isMirroredAboutYAxis()) angle += 1800;
 		}
 	}
 

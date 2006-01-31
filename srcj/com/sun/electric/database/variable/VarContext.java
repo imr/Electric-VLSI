@@ -502,7 +502,7 @@ public class VarContext implements Serializable
 			}
 				
 			NodeProto np = sni.getProto();               // look up default var value on prototype
-			if (np instanceof Cell && sni.getProto() instanceof Cell) {
+			if (np instanceof Cell) {
 				Cell cell = (Cell)sni.getProto();
 				Cell equiv = cell.getEquivalent();
 				if (equiv != null) cell = equiv;

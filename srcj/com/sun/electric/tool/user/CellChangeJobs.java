@@ -287,7 +287,7 @@ public class CellChangeJobs
 						for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 						{
 							NodeInst ni = nIt.next();
-							if (!(ni.getProto() instanceof Cell)) continue;
+							if (!ni.isCellInstance()) continue;
 							Cell sub = (Cell)ni.getProto();
 	
 							// ignore recursive references (showing icon in contents)

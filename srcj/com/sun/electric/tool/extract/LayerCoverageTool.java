@@ -699,7 +699,6 @@ public class LayerCoverageTool extends Listener
 			//if (checkAbort()) return false;
 			NodeInst node = no.getNodeInst();
 			boolean found = (netSet == null);
-			NodeProto np = node.getProto();
 
 			// Its like pins, facet-center
 			if (NodeInst.isSpecialNode(node)) return (false);
@@ -707,7 +706,7 @@ public class LayerCoverageTool extends Listener
             boolean inside = doesIntersectBoundingBox(node.getBounds(), info);
 
 			// Its a cell
-            if (np instanceof Cell) return (inside);
+            if (node.isCellInstance()) return (inside);
 
             // Geometry outside contour
             if (!inside) return false;
@@ -736,7 +735,7 @@ public class LayerCoverageTool extends Listener
 				return (false);
 			}
 
-			Technology tech = np.getTechnology();
+			Technology tech = node.getProto().getTechnology();
 			Poly[] polyList = tech.getShapeOfNode(node);
 			AffineTransform transform = node.rotateOut();
 

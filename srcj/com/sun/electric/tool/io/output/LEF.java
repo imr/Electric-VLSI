@@ -250,7 +250,7 @@ public class LEF extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() instanceof Cell) continue;
+			if (ni.isCellInstance()) continue;
 			if (info.isRootCell() && nodesSeen.contains(ni)) continue;
 			AffineTransform rot = ni.rotateOut(trans);
 			Technology tech = ni.getProto().getTechnology();
@@ -286,7 +286,7 @@ public class LEF extends Output
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() instanceof Cell) continue;
+			if (ni.isCellInstance()) continue;
 			if (ni == ignore) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&

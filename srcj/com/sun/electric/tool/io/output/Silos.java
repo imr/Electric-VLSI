@@ -115,7 +115,7 @@ public class Silos extends Topology
 		for(Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() instanceof Cell) continue;	// only real sources
+			if (ni.isCellInstance()) continue;	// only real sources
 
 			PrimitiveNode.Function nodetype = ni.getFunction();
 			if (nodetype != PrimitiveNode.Function.SOURCE) continue;
@@ -592,7 +592,7 @@ public class Silos extends Topology
 	 */
 	private PrimitiveNode.Function getPrimitiveType(NodeInst ni)
 	{
-		if (ni.getProto() instanceof Cell) return null;
+		if (ni.isCellInstance()) return null;
 
 		PrimitiveNode.Function func = ni.getFunction();
 		if (func == PrimitiveNode.Function.TRAPMOS || func == PrimitiveNode.Function.TRA4PMOS)
