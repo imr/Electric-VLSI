@@ -513,7 +513,7 @@ public class CellChangeJobs
 					for(Iterator<NodeInst> nIt = trueCell.getNodes(); nIt.hasNext(); )
 					{
 						NodeInst ni = nIt.next();
-						if (!(ni.getProto() instanceof Cell)) continue;
+						if (!ni.isCellInstance()) continue;
 
 						// ignore recursive references (showing icon in contents)
 						if (ni.isIconOfParent()) continue;
@@ -689,8 +689,7 @@ public class CellChangeJobs
 			boolean foundInstance = false;
 			for(NodeInst ni : nodes)
 			{
-				NodeProto np = ni.getProto();
-				if (!(np instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 				foundInstance = true;
 				extractOneNode(ni, copyExports);
 			}
@@ -1103,9 +1102,8 @@ public class CellChangeJobs
 				{
 					NodeInst ni = it.next();
                     if (!copySubCells && !ni.isIconOfParent()) continue;
-					NodeProto np = ni.getProto();
-					if (!(np instanceof Cell)) continue;
-					Cell cell = (Cell)np;
+					if (!ni.isCellInstance()) continue;
+					Cell cell = (Cell)ni.getProto();
 
 					// allow cross-library references to stay
 					if (cell.getLibrary() == toLib) continue;

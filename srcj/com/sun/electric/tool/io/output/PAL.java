@@ -141,8 +141,7 @@ public class PAL extends Output
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			// if this is a cell instance, keep recursing down
-			NodeProto np = no.getProto();
-			if (!(np instanceof PrimitiveNode)) return true;
+			if (no.isCellInstance()) return true;
 
 			// Nodable is NodeInst because it is primitive node
 			NodeInst ni = (NodeInst)no;

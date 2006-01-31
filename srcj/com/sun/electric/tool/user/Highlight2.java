@@ -783,7 +783,7 @@ class HighlightEOBJ extends Highlight2
             int offY = highOffY;
 /*
 			boolean drewOutline = false;
-			if (np instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				// special case for outline nodes
 				if (np.isHoldsOutline())
@@ -970,7 +970,7 @@ class HighlightEOBJ extends Highlight2
 //				g.setColor(mainColor);
 
                 // show name of port
-                if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D))
+                if (ni.isCellInstance() && (g instanceof Graphics2D))
 				{
 					// only show name if port is wired (because all other situations already show the port)
 					boolean wired = false;

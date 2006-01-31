@@ -61,7 +61,7 @@ public class EDIFEquiv {
         NodeProto np = ni.getProto();
         PrimitiveNode.Function func = np.getFunction();
         PortCharacteristic exportType = null;
-        if (np instanceof PrimitiveNode) {
+        if (!ni.isCellInstance()) {
             PrimitiveNode pn = (PrimitiveNode)np;
             func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
             // if this is an off page node and one of it's ports is exported, find out type

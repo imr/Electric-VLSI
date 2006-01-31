@@ -258,7 +258,7 @@ public class JELIB extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					printWriter.print("I" + cellNames.get(np));
 				} else {
@@ -284,7 +284,7 @@ public class JELIB extends Output
 					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
-				if (np instanceof PrimitiveNode)
+				if (!ni.isCellInstance())
 				{
 					printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
 					printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));

@@ -324,7 +324,7 @@ public class SchemToLay {
 			NodeProto np = pi.getNodeInst().getProto();
 			
 			// if it's an instance of the Cell wire{ic} then pitch it
-			if (np instanceof Cell  &&  np.getName().equals("wire{ic}")) {
+			if (np instanceof Cell && np.getName().equals("wire{ic}")) {
 				return true;
 			} 
 			if (np instanceof PrimitiveNode && 

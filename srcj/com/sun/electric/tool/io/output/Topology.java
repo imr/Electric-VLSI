@@ -239,8 +239,7 @@ public abstract class Topology extends Output
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
 		{
-			NodeProto np = no.getProto();
-			if (np instanceof PrimitiveNode) return false;
+			if (!no.isCellInstance()) return false;
 
 			VarContext context = info.getContext();
 			String parameterizedName = parameterizedName(no, context);
@@ -920,8 +919,7 @@ public abstract class Topology extends Output
 	{
 		Cell cell = (Cell)no.getProto();
 		String uniqueCellName = getUniqueCellName(cell);
-		if (canParameterizeNames() &&
-			no.getProto() instanceof Cell)
+		if (canParameterizeNames() && no.isCellInstance())
 		{
 			// if there are parameters, append them to this name
 			HashMap<Variable.Key,Variable> paramValues = new HashMap<Variable.Key,Variable>();

@@ -235,9 +235,9 @@ class NetCell
             }
             ErrorLogger.MessageLog log = null;
             NodeProto np = ni.getProto();
-			if (np instanceof Cell && NetworkTool.getNetCell((Cell)np) instanceof NetSchem ||
+			if (ni.isCellInstance() && NetworkTool.getNetCell((Cell)np) instanceof NetSchem ||
                 np == Generic.tech.universalPinNode ||
-                np instanceof PrimitiveNode && np.getTechnology() == Schematics.tech) {
+                !ni.isCellInstance() && np.getTechnology() == Schematics.tech) {
                 if (strangeNodes == null)
                     strangeNodes = new HashMap<NodeProto,ArrayList<NodeInst>>();
                 ArrayList<NodeInst> nodesOfType = (ArrayList<NodeInst>)strangeNodes.get(np);
@@ -566,9 +566,8 @@ class NetCell
 	{
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			NetCell netCell = NetworkTool.getNetCell((Cell)np);
+			if (!ni.isCellInstance()) continue;
+			NetCell netCell = NetworkTool.getNetCell((Cell)ni.getProto());
 			if (netCell instanceof NetSchem) continue;
 			int[] eq = netCell.equivPorts;
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
@@ -789,7 +788,7 @@ class NetCell
 //        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
 //            Nodable no = (Nodable)it.next();
-//            if (!(no.getProto() instanceof Cell)) continue;
+//            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlists.put(subCell, NetworkTool.getNetlist(subCell, false));
 //        }

@@ -226,10 +226,9 @@ public class Netlist
 	 * @return subnetlist for a given Nidable.
 	 */
 	public Netlist getNetlist(Nodable no) {
-		NodeProto np = no.getProto();
-		if (!(np instanceof Cell)) return null;
-        return NetworkTool.getNetCell((Cell)np).getNetlist(shortResistors);
-//		return (Netlist)subNetlists.get(np);
+		if (!no.isCellInstance()) return null;
+        return NetworkTool.getNetCell((Cell)no.getProto()).getNetlist(shortResistors);
+//		return (Netlist)subNetlists.get(no.getProto());
 	}
 
 	/**

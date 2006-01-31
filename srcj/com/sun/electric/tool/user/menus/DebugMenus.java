@@ -898,10 +898,9 @@ public class DebugMenus
                 {
                     NodeInst node = itNodes.next();
                     if (node.isIconOfParent()) continue;
-                    NodeProto np = (NodeProto)node.getProto();
-                    if (np instanceof Cell)
+                    if (node.isCellInstance())
                     {
-                        Cell master = (Cell)np;
+                        Cell master = (Cell)node.getProto();
                         if (!master.isIcon()) continue;
                         NodeInst ni = null;
                         // Searching for instance of that icon in master cell

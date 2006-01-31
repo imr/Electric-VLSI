@@ -527,7 +527,7 @@ public class Verilog extends Topology
 
 			// not interested in passive nodes (ports electrically connected)
 			PrimitiveNode.Function nodeType = PrimitiveNode.Function.UNKNOWN;
-			if (niProto instanceof PrimitiveNode)
+			if (!no.isCellInstance())
 			{
 				NodeInst ni = (NodeInst)no;
 				Iterator<PortInst> pIt = ni.getPortInsts();
@@ -555,7 +555,7 @@ public class Verilog extends Topology
 			}
 
 			// look for a Verilog template on the prototype
-			if (niProto instanceof Cell)
+			if (no.isCellInstance())
 			{
 				Variable varTemplate = ((Cell)niProto).getVar(VERILOG_TEMPLATE_KEY);
 				if (varTemplate != null)
@@ -646,7 +646,7 @@ public class Verilog extends Topology
 			int implicitPorts = 0;
 			boolean dropBias = false;
 			String nodeName = "";
-			if (niProto instanceof Cell)
+			if (no.isCellInstance())
 			{
 				// make sure there are contents for this cell instance
 				if (((Cell)niProto).getView() == View.ICON) continue;

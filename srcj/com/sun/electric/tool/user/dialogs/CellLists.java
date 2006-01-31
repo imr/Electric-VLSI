@@ -394,7 +394,7 @@ public class CellLists extends EDialog
 			GenMath.MutableInteger count = nodeCount.get(np);
 			if (count != null) count.increment();
 
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)np;
 
 			/* ignore recursive references (showing icon in contents) */

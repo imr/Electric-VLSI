@@ -646,7 +646,7 @@ public class View3DWindow extends JPanel
         if (NodeInst.isSpecialNode(no)) return;
 
 		List<Shape3D> list = null;
-		if (!(nProto instanceof PrimitiveNode))
+		if (no.isCellInstance())
 		{
 			// Cell
 			Cell cell = (Cell)nProto;

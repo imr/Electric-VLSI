@@ -420,7 +420,7 @@ public class ScanChainXML {
                 context.push(no);
                 return context;
             }
-            if (no.getProto() instanceof Cell) {
+            if (no.isCellInstance()) {
                 // descend
                 Cell subCell = (Cell)no.getProto();
                 subCell = subCell.contentsView();
@@ -931,7 +931,7 @@ public class ScanChainXML {
         }
 
         // check if this is a scan chain element
-        if (np instanceof Cell) {
+        if (no.isCellInstance()) {
             ScanChainElement e = getScanChainElement(np.getName(), inport.name.toString());
             if (e != null) {
                 SubChain sub;

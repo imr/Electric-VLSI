@@ -515,7 +515,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
 
 		scalableTrans = false;
-		if (np instanceof PrimitiveNode)
+		if (!ni.isCellInstance())
 		{
 			if (np.getTechnology() == MoCMOS.tech)
 			{

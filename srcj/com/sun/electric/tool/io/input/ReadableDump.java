@@ -567,7 +567,7 @@ public class ReadableDump extends LibraryFiles
 		PortProto pp = np.findPortProto(portName);
 
 		// convert special port names
-		if (pp == null && np instanceof PrimitiveNode)
+		if (pp == null && !ni.isCellInstance())
 		{
 			Technology tech = np.getTechnology();
 			pp = tech.convertOldPortName(portName, (PrimitiveNode)np);

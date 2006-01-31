@@ -234,9 +234,6 @@ public class L extends Output
 			int oldRotation = or.getCAngle();
 			int oldTranspose = or.isCTranspose() ? 1 : 0;
 
-//			Point oldStyle = ni.getOldStyleRotationAndTranspose();
-//			int oldRotation = oldStyle.x;
-//			int oldTranspose = oldStyle.y;
 			if (oldRotation != 0 || oldTranspose != 0)
 			{
 				if (oldTranspose != 0)
@@ -263,7 +260,7 @@ public class L extends Output
 			}
 
 			// write location
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				Rectangle2D cellBounds = ((Cell)ni.getProto()).getBounds();
 				printWriter.println(" AT (" + TextUtils.formatDouble(ni.getTrueCenterX() - cellBounds.getCenterX()) + "," +

@@ -169,8 +169,7 @@ public class MOSSIM extends Topology
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
-			NodeProto subnp = no.getProto();
-			if (subnp instanceof Cell)
+			if (no.isCellInstance())
 			{
 				// complex node: make instance call
 				String nodeName = parameterizedName(no, context);

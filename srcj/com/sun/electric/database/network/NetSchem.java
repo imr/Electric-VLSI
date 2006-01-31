@@ -126,6 +126,12 @@ class NetSchem extends NetCell {
 		}
 
 		/**
+		 * Method to tell whether this is a cell instance.
+		 * @return true becaue NetSchem objects are always cell instances.
+		 */
+		public boolean isCellInstance() { return true; }
+
+		/**
 		 * Method to return the number of actual NodeProtos which
 		 * produced this Nodable.
 		 * @return number of actual NodeProtos.
@@ -598,7 +604,7 @@ class NetSchem extends NetCell {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
 			NetCell netCell = null;
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 				netCell = NetworkTool.getNetCell((Cell)np);
 			if (netCell != null && netCell instanceof NetSchem) {
 				if (ni.getNameKey().hasDuplicates()) {
@@ -871,7 +877,7 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode) {
+			if (!ni.isCellInstance()) {
 				if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
 				if (np == Schematics.tech.offpageNode) continue;
 			}
@@ -882,7 +888,7 @@ class NetSchem extends NetCell {
 				if (drawn < 0) continue;
 				int oldWidth = drawnWidths[drawn];
 				int newWidth = 1;
-				if (np instanceof Cell) {
+				if (ni.isCellInstance()) {
 					NetCell netCell = NetworkTool.getNetCell((Cell)np);
 					if (netCell instanceof NetSchem) {
 						int arraySize = ((Cell)np).isIcon() ? ni.getNameKey().busWidth() : 1;
@@ -975,7 +981,7 @@ class NetSchem extends NetCell {
 			NodeInst ni = cell.getNode(k);
 			if (ni.isIconOfParent()) continue;
 			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode) {
+			if (!ni.isCellInstance()) {
 				// Connect global primitives
 				Global g = globalInst(ni);
 				if (g != null) {
@@ -1094,7 +1100,7 @@ class NetSchem extends NetCell {
 			NodeInst ni = cell.getNode(k);
 			int nodeOffset = ni_pi[k];
 			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode) {
+			if (!ni.isCellInstance()) {
 				if (np == Schematics.tech.resistorNode)
 					netlistT.connectMap(drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
 				continue;
@@ -1324,7 +1330,7 @@ class NetSchem extends NetCell {
 //        HashMap/*<Cell,Netlist>*/ subNetlistsF = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator it = getNodables(); it.hasNext(); ) {
 //            Nodable no = (Nodable)it.next();
-//            if (!(no.getProto() instanceof Cell)) continue;
+//            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlistsF.put(subCell, NetworkTool.getNetlist(subCell, false));
 //        }
@@ -1334,7 +1340,7 @@ class NetSchem extends NetCell {
 //        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
 //            Nodable no = (Nodable)it.next();
-//            if (!(no.getProto() instanceof Cell)) continue;
+//            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlistsT.put(subCell, NetworkTool.getNetlist(subCell, true));
 //        }

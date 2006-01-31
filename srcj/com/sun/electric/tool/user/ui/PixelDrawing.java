@@ -1001,7 +1001,7 @@ public class PixelDrawing
 		if (topWnd != null) topLevel = (ni.getParent() == topWnd.getCell());
 
 		// draw the node
-		if (np instanceof Cell)
+		if (ni.isCellInstance())
 		{
 			// cell instance
 			totalCells++;

@@ -686,7 +686,7 @@ public class Highlight
             int offY = highOffY;
 /*
 			boolean drewOutline = false;
-			if (np instanceof PrimitiveNode)
+			if (!ni.isCellInstance())
 			{
 				// special case for outline nodes
 				if (np.isHoldsOutline()) 
@@ -872,7 +872,7 @@ public class Highlight
 				g.setColor(mainColor);
 
                 // show name of port
-                if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D))
+                if (ni.isCellInstance() && (g instanceof Graphics2D))
 				{
 					// only show name if port is wired (because all other situations already show the port)
 					boolean wired = false;
@@ -1061,12 +1061,11 @@ public class Highlight
     public static Poly getNodeInstOutline(NodeInst ni) {
 
         AffineTransform trans = ni.rotateOutAboutTrueCenter();
-        NodeProto np = ni.getProto();
 
         Poly poly = null;
-        if (np instanceof PrimitiveNode)
+        if (!ni.isCellInstance())
         {
-        	PrimitiveNode pn = (PrimitiveNode)np;
+        	PrimitiveNode pn = (PrimitiveNode)ni.getProto();
 
         	// special case for outline nodes
             if (pn.isHoldsOutline())

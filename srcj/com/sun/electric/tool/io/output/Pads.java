@@ -167,8 +167,7 @@ public class Pads extends Output
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
-			NodeProto np = no.getProto();
-			if (np instanceof PrimitiveNode) return false;
+			if (!no.isCellInstance()) return false;
 
 			// if node doesn't have "ref_des" on it, recurse down the hierarchy
 			Variable var = no.getVar(REF_DES_KEY);
@@ -186,7 +185,7 @@ public class Pads extends Output
 			printWriter.println(nodeName + "  " + pkgType + "@" + pkgType);
 
 			// save all networks on this node for later
-			for(Iterator<PortProto> it = np.getPorts(); it.hasNext(); )
+			for(Iterator<PortProto> it = no.getProto().getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				String pName = null;

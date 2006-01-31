@@ -372,7 +372,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private Wire getWireForPortInst(PortInst pi, CellInfo info) {
 		NodeInst ni = pi.getNodeInst();
 		NodeProto np = ni.getProto();
-		error(!(np instanceof PrimitiveNode), "not PrimitiveNode");
+		error(ni.isCellInstance(), "not PrimitiveNode");
 		PortProto pp = pi.getPortProto();
 		int[] netIDs = info.getPortNetIDs(ni, pp);
 		error(netIDs.length!=1, "Primitive Port connected to bus?");
@@ -742,11 +742,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public boolean visitNodeInst(Nodable no, CellInfo ci) {
 		NccCellInfo info = (NccCellInfo) ci;
 		NodeProto np = no.getProto();
-		if (np instanceof PrimitiveNode) {
+		if (!no.isCellInstance()) {
 			doPrimitiveNode((NodeInst)no, np, info);
 			return false; 
 		} else {
-			error(!(np instanceof Cell), "expecting Cell");
+			error(!no.isCellInstance(), "expecting Cell");
 //			boolean paralleled = info.isDiscardable(no);
 //			return !paralleled;
 			return true;

@@ -792,9 +792,6 @@ public class EDIF extends Input
 			NodeInst ni = it.next();
 			if (ni.getProto() != np) continue;
             if (!ni.getOrient().equals(orient)) continue;
-//			if (ni.getAngle() != angle) continue;
-//			if (ni.isXMirrored() != (sX < 0)) continue;
-//			if (ni.isYMirrored() != (sY < 0)) continue;
 			if (ni.getAnchorCenterX() != cX) continue;
 			if (ni.getAnchorCenterY() != cY) continue;
 			return ni;
@@ -802,21 +799,6 @@ public class EDIF extends Input
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, orient, null, 0);
 		return ni;
 	}
-
-//	private Point2D getSizeAndMirror(NodeProto np)
-//	{
-//		double sX = np.getDefWidth();
-//		double sY = np.getDefHeight();
-//		if (np instanceof Cell)
-//		{
-//			Rectangle2D bounds = ((Cell)np).getBounds();
-//			sX = bounds.getWidth();
-//			sY = bounds.getHeight();
-//		}
-//		if (curOrientation.isXMirrored()) sX = -sX;
-//		if (curOrientation.isYMirrored()) sY = -sY;
-//		return new Point2D.Double(sX, sY);
-//	}
 
 	/**
 	 * Method to return the text height to use when it says "textheight" units in the EDIF file.

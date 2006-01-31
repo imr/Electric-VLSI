@@ -309,7 +309,7 @@ public class ReadableDump extends Output
 				NodeProto np = ni.getProto();
 				Integer nodeIndex = (Integer)nodeMap.get(ni);
 				printWriter.println("**node: " + nodeIndex.intValue());
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					Integer subMi = (Integer)cellOrdering.get(np);
 					//DBMath.MutableInteger subMi = (DBMath.MutableInteger)cellOrdering.get(np);
@@ -318,7 +318,7 @@ public class ReadableDump extends Output
 				{
 					printWriter.println("type: " + np.getTechnology().getTechName() + ":" + np.getName());
 				}
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * scale);
 					highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * scale);
@@ -348,7 +348,7 @@ public class ReadableDump extends Output
 					angle = (angle + 2700) % 3600;
 				}
 				printWriter.println("rotation: " + angle + " transpose: " + transpose);
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 					writeTextDescriptor(-1, ni.getTextDescriptor(NodeInst.NODE_PROTO));
 				printWriter.println("userbits: " + ni.getD().getElibBits());
 				writeVars(ni, cell);

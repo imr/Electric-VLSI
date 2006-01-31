@@ -1012,9 +1012,8 @@ public class ToolMenu {
             Nodable no = it.next();
 
             // only want complex nodes
-            NodeProto subnp = no.getProto();
-            if (!(subnp instanceof Cell)) continue;
-            Cell subCell = (Cell)subnp;
+            if (!no.isCellInstance()) continue;
+            Cell subCell = (Cell)no.getProto();
 
             // look at all wires connected to the node
             for(Iterator<PortProto> pIt = subCell.getPorts(); pIt.hasNext(); )

@@ -1890,7 +1890,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
 		if (childNodable == null || childNetwork == null) return null;
-		if (!(childNodable.getProto() instanceof Cell)) return null;
+		if (!childNodable.isCellInstance()) return null;
 		Cell childCell = (Cell)childNodable.getProto();
 		if (childCell.contentsView() != null)
 			childCell = childCell.contentsView();

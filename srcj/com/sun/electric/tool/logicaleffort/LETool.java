@@ -173,7 +173,7 @@ public class LETool extends Listener {
         NodeProto np = no.getProto();                               // get contents of instance
         if (np == null)
             throw new VarContext.EvalException("subdrive(): null nodeProto");
-        if (!(np instanceof Cell))
+        if (!no.isCellInstance())
             throw new VarContext.EvalException("subdrive(): NodeProto not a Cell");
         Cell cell = (Cell)np;
 

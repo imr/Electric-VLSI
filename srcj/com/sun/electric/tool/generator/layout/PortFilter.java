@@ -58,7 +58,7 @@ public abstract class PortFilter {
 	    
 	    NodeProto np = ni.getProto();
 	    String nm = np.getName();
-	    return np instanceof PrimitiveNode &&
+	    return !ni.isCellInstance() &&
 		(nm.equals("Wire_Pin") || nm.equals("Bus_Pin") ||
 		 nm.equals("Off-Page") || nm.equals("Facet-Center") ||
 		 nm.equals("Invisible-Pin"));

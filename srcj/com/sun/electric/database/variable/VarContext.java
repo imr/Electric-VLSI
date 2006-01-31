@@ -455,7 +455,7 @@ public class VarContext implements Serializable
 		Variable.Key key = Variable.findKey(name);
 		if (key == null) throwNotFound(name);
         Variable var = ni.getVar(key);
-        if (var == null && ni.getProto() instanceof Cell) {
+        if (var == null && ni.isCellInstance()) {
             // look up default var on prototype
 			Cell cell = (Cell)ni.getProto();
 			Cell equiv = cell.getEquivalent();
@@ -500,9 +500,9 @@ public class VarContext implements Serializable
 				value = scan.pop().evalVarRecurse(var, sni);
 				break;
 			}
-				
-			NodeProto np = sni.getProto();               // look up default var value on prototype
-			if (np instanceof Cell) {
+
+			// look up default var value on prototype
+			if (sni.isCellInstance()) {
 				Cell cell = (Cell)sni.getProto();
 				Cell equiv = cell.getEquivalent();
 				if (equiv != null) cell = equiv;

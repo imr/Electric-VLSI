@@ -3912,8 +3912,8 @@ public class Technology implements Comparable<Technology>
                     Object o = l.get(0);
                     if (o instanceof NodeInst)
                     {
-                        NodeProto p = ((NodeInst)o).getProto();
-                        if (p instanceof PrimitiveNode && ((PrimitiveNode)p).isNotUsed())
+                    	NodeInst ni = (NodeInst)o;
+                        if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isNotUsed())
                             obj = null;
                     }
                 }

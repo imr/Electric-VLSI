@@ -868,7 +868,7 @@ public class Spice extends Topology
 			NodeProto niProto = no.getProto();
 
 			// handle sub-cell calls
-			if (niProto instanceof Cell)
+			if (no.isCellInstance())
 			{
 				Cell subCell = (Cell)niProto;
 
@@ -1616,8 +1616,7 @@ public class Spice extends Topology
             VarContext vc = context.push(no);
             uniqueCellName.append("_"+vc.getInstPath("."));
         } else {
-            if (canParameterizeNames() &&
-                no.getProto() instanceof Cell)
+            if (canParameterizeNames() && no.isCellInstance())
             {
                 // if there are parameters, append them to this name
                 List<Variable> paramValues = new ArrayList<Variable>();

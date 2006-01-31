@@ -45,6 +45,12 @@ public interface Nodable
 	public NodeProto getProto();
 
 	/**
+	 * Method to tell whether this Nodable is a cell instance.
+	 * @return true if this Nodable is a cell instance, false if it is a primitive
+	 */
+	public boolean isCellInstance();
+
+	/**
 	 * Method to return the number of actual NodeProtos which
 	 * produced this Nodable.
 	 * @return number of actual NodeProtos.

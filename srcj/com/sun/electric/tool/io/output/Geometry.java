@@ -285,8 +285,7 @@ public abstract class Geometry extends Output
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
         {
-            NodeProto np = no.getProto();
-            if (np instanceof PrimitiveNode)
+            if (!no.isCellInstance())
 			{
     			NodeInst ni = (NodeInst)no;
     			// don't copy Cell-Centers

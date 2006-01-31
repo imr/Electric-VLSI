@@ -254,8 +254,7 @@ public class Silos extends Topology
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
-			NodeProto niProto = no.getProto();
-			if (niProto instanceof Cell)
+			if (no.isCellInstance())
 			{
 				String nodeName = parameterizedName(no, context);
 				CellNetInfo subCni = getCellNetInfo(nodeName);
@@ -298,10 +297,9 @@ public class Silos extends Topology
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
-			NodeProto niProto = no.getProto();
 
 			// not interested in passive nodes (ports electrically connected)
-			if (niProto instanceof PrimitiveNode)
+			if (!no.isCellInstance())
 			{
 				NodeInst ni = (NodeInst)no;
 				PrimitiveNode.Function nodeType = getPrimitiveType(ni);

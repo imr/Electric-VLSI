@@ -198,7 +198,7 @@ public final class HierarchyEnumerator {
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext();) {
 			Nodable ni = (Nodable)it.next();
 			NodeProto np = ni.getProto();
-			if (np instanceof Cell && !((Cell)np).isIcon()) {
+			if (ni.isCellInstance() && !((Cell)np).isIcon()) {
                 Cell subCell = (Cell)np;
                 CellShorts subShorts = getShortened(subCell, netlist.getNetlist(ni));
                 Netlist subNetlist = netlist.getNetlist(ni);
@@ -229,7 +229,7 @@ public final class HierarchyEnumerator {
                             externalIds[extID] = net.getNetIndex();
                     }
                 }
-            } else if (np instanceof PrimitiveNode) {
+            } else if (!ni.isCellInstance()) {
                 PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
                 if (fun == PrimitiveNode.Function.RESIST && shortResistors ||
                         fun == PrimitiveNode.Function.PRESIST && shortPolyResistors) {
@@ -365,7 +365,7 @@ public final class HierarchyEnumerator {
 			instCnt++;
 			boolean descend = visitor.visitNodeInst(ni, info);
 			NodeProto np = ni.getProto();
-			if (descend && np instanceof Cell && !((Cell)np).isIcon()) {
+			if (descend && ni.isCellInstance() && !((Cell)np).isIcon()) {
 				int[][] portNmToNetIDs2 = buildPortMap(netlist, ni, netNdxToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
 				if (ni instanceof NodeInst) {
@@ -998,7 +998,7 @@ public final class HierarchyEnumerator {
      */
     public static Network getNetworkInChild(Network parentNet, Nodable childNodable) {
         if (childNodable == null || parentNet == null) return null;
-        if (!(childNodable.getProto() instanceof Cell)) return null;
+        if (!childNodable.isCellInstance()) return null;
         Cell childCell = (Cell)childNodable.getProto();
 		Netlist parentNetlist = parentNet.getNetlist();
 		Netlist childNetlist = parentNetlist.getNetlist(childNodable);

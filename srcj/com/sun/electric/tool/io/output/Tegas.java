@@ -185,7 +185,7 @@ public class Tegas extends Topology
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
 			Nodable no = (Nodable)it.next();
-			if (no.getProto() instanceof Cell)
+			if (no.isCellInstance())
 			{
 				// This case can either be for an existing  user defined module in this
 				// directory or for a module from the MASTER directory
@@ -266,7 +266,7 @@ public class Tegas extends Topology
 			PrimitiveNode.Function fun = getNodableFunction(no);
 			if (fun.isTransistor() || fun == PrimitiveNode.Function.GATEXOR ||
 				fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
-				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
+				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.isCellInstance())
 			{
 				nodeNames.put(no, new Integer(count++));
 				continue;
@@ -298,7 +298,7 @@ public class Tegas extends Topology
 			// handle nodeinst descriptions
 			if (fun.isTransistor() || fun == PrimitiveNode.Function.GATEXOR ||
 				fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
-				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
+				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.isCellInstance())
 			{
 				String str1 = getOutputSignals(no, context, cni) + " = " + getNodeProtoName(no) + getInputSignals(no, context, cni) + getGateDelay(no) + ";\n";
 				writeWidthLimited(str1);
@@ -330,7 +330,7 @@ public class Tegas extends Topology
 		PrimitiveNode.Function fun = getNodableFunction(no);
 
 		boolean needComma = false;
-		if (no.getProto() instanceof Cell)
+		if (no.isCellInstance())
 		{
 			CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 			for(Iterator<CellSignal> it = subCni.getCellSignals(); it.hasNext(); )
@@ -403,7 +403,7 @@ public class Tegas extends Topology
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("(");
 		boolean first = true;
-		if (no.getProto() instanceof Cell)
+		if (no.isCellInstance())
 		{
 			CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 			for(Iterator<CellSignal> it = subCni.getCellSignals(); it.hasNext(); )
@@ -543,7 +543,7 @@ public class Tegas extends Topology
 	 */
 	private String getGateDelay(Nodable no)
 	{
-		if (no.getProto() instanceof Cell) return "";
+		if (no.isCellInstance()) return "";
 		NodeInst ni = (NodeInst)no;
 		PrimitiveNode.Function fun = ni.getFunction();
 
@@ -681,7 +681,7 @@ public class Tegas extends Topology
 	private PrimitiveNode.Function getNodableFunction(Nodable no)
 	{
 		PrimitiveNode.Function fun = PrimitiveNode.Function.UNKNOWN;
-		if (no.getProto() instanceof PrimitiveNode)
+		if (!no.isCellInstance())
 		{
 			NodeInst ni = (NodeInst)no;
 			fun = ni.getFunction();
@@ -696,7 +696,7 @@ public class Tegas extends Topology
 	 */
 	private String getNodeProtoName(Nodable no)
 	{
-		if (no.getProto() instanceof Cell)
+		if (no.isCellInstance())
 		{
 			return convertName(no.getProto().describe(false));
 		}
