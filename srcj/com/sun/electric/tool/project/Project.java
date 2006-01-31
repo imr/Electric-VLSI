@@ -50,27 +50,14 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -78,33 +65,16 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-
 
 /**
  * This is the Project Management tool.
@@ -126,17 +96,17 @@ public class Project extends Listener
 	public static final int OLDVERSION         = 4;
 
 	private static final Variable.Key PROJLOCKEDKEY = Variable.newKey("PROJ_locked");
-	private static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
+	        static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
 	private static final Variable.Key PROJLIBRARYKEY = Variable.newKey("PROJ_library");
 	private static final String PUSERFILE   = "projectusers";
-	private static final String PROJECTFILE = "project.proj";
+	        static final String PROJECTFILE = "project.proj";
 
 	/** the Project tool. */					private static Project tool = new Project();
 	/** the users */							private static HashMap<String,String> usersMap;
-	/** all libraries read in */				private static HashMap<Library,ProjectLibrary> libraryProjectInfo = new HashMap<Library,ProjectLibrary>();
 	/** nonzero if the system is active */		private static boolean pmActive;
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
 	/** check modules */						private static List<FCheck>    fCheckList = new ArrayList<FCheck>();
+	/** the database describing the project */	private static ProjectDB projectDB = new ProjectDB();
 
 	/**
 	 * Each combination of cell and change-batch is queued by one of these objects.
@@ -146,478 +116,6 @@ public class Project extends Listener
 		Cell   entry;
 		int    batchNumber;
 	};
-
-	/**
-	 * ProjectCell objects describe a specific version of a cell that is in the repository.
-	 */
-	private static class ProjectCell
-	{
-		/** name of the cell */								String   cellName;
-		/** cell view */									View     cellView;
-		/** cell version */									int      cellVersion;
-		/** the type of the library file with this cell */	FileType libType;
-		/** the actual cell (if known) */					Cell     cell;
-		/** true if this is the latest version */			boolean  latestVersion;
-		/** date of cell's checkin */						String   checkInDate;
-		/** current owner of this cell (if checked out) */	String   owner;
-		/** previous owner of this cell (if checked in) */	String   lastOwner;
-		/** comments for this cell */						String   comment;
-		/** library that contains this cell */				ProjectLibrary projLib;
-
-		private static ProjectCell findProjectCell(Cell cell)
-		{
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(cell.getLibrary());
-			ProjectCell pc = (ProjectCell)pl.byCell.get(cell);
-			return pc;
-		}
-
-		private String describe()
-		{
-			String cn = cellName;
-			if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
-			return cn;
-		}
-
-		private String describeWithVersion()
-		{
-			String cn = cellName + ";" + cellVersion;
-			if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
-			return cn;
-		}
-	}
-
-	/**
-	 * ProjectLibrary objects describe a library of cells in the repository.
-	 */
-	private static class ProjectLibrary
-	{
-		/** the project directory */				private String                     projDirectory;
-		/** Library associated with project file */	private Library                    lib;
-		/** all cell records in the project */		private List<ProjectCell>          allCells;
-		/** cell records by Cell in the project */	private HashMap<Cell,ProjectCell>  byCell;
-		/** I/O channel for project file */			private transient RandomAccessFile raf;
-		/** Lock on file when updating it */		private transient FileLock         lock;
-
-		private ProjectLibrary()
-		{
-			allCells = new ArrayList<ProjectCell>();
-			byCell = new HashMap<Cell,ProjectCell>();
-		}
-
-		/**
-		 * Method to add a ProjectCell to this ProjectLibrary.
-		 * Keeps the list sorted.
-		 * @param pc the ProjectCell to add.
-		 */
-		private void addProjectCell(ProjectCell pc)
-		{
-			allCells.add(pc);
-			Collections.sort(allCells, new OrderedProjectCells());
-		}
-
-		/**
-		 * Method to remove a ProjectCell from this ProjectLibrary.
-		 * Keeps the list sorted.
-		 * @param pc the ProjectCell to remove.
-		 */
-		private void removeProjectCell(ProjectCell pc)
-		{
-			allCells.remove(pc);
-			Collections.sort(allCells, new OrderedProjectCells());
-		}
-
-		/**
-		 * Method to ensure that there is project information for a given library.
-		 * @param lib the Library to check.
-		 * @return a ProjectLibrary object for the Library.  If the library is marked
-		 * as being part of a project, that project file is read in.  If the library is
-		 * not in a project, the returned object has nothing in it.
-		 */
-		private static ProjectLibrary findProjectLibrary(Library lib)
-		{
-			// see if this library has a known project database
-			ProjectLibrary pl = (ProjectLibrary)libraryProjectInfo.get(lib);
-			if (pl != null) return pl;
-			pl = createProject(lib);
-			libraryProjectInfo.put(lib, pl);
-			return pl;
-		}
-
-		private ProjectCell findProjectCellByNameView(String name, View view)
-		{
-			for(ProjectCell pc : allCells)
-			{
-				if (pc.cellName.equals(name) && pc.cellView == view) return pc;
-			}
-			return null;
-		}
-
-		private ProjectCell findProjectCellByNameViewVersion(String name, View view, int version)
-		{
-			for(ProjectCell pc : allCells)
-			{
-				if (pc.cellName.equals(name) && pc.cellView == view && pc.cellVersion == version) return pc;
-			}
-			return null;
-		}
-
-		private static ProjectLibrary createProject(Library lib)
-		{
-			// create a new project database
-			ProjectLibrary pl = new ProjectLibrary();
-			pl.lib = lib;
-
-			// figure out the location of the project file
-			Variable var = lib.getVar(PROJPATHKEY);
-			if (var == null) return pl;
-			URL url = TextUtils.makeURLToFile((String)var.getObject());
-			if (!TextUtils.URLExists(url))
-			{
-				url = null;
-				if (getRepositoryLocation().length() > 0)
-				{
-					url = TextUtils.makeURLToFile(getRepositoryLocation() + File.separator + lib.getName() + File.separator + PROJECTFILE);
-					if (!TextUtils.URLExists(url)) url = null;
-				}
-				if (url == null)
-				{
-					String userFile = OpenFile.chooseInputFile(FileType.PROJECT, "Find Project File for " + lib);
-					if (userFile == null) return pl;
-					url = TextUtils.makeURLToFile(userFile);
-				}
-			}
-
-			// prepare to read the project file
-			String projectFile = url.getFile();
-			String projDir = "";
-			int sepPos = projectFile.lastIndexOf('/');
-			if (sepPos >= 0) projDir = projectFile.substring(0, sepPos);
-			try
-			{
-				pl.raf = new RandomAccessFile(projectFile, "r");
-			} catch (FileNotFoundException e)
-			{
-				System.out.println("Cannot read file: " + projectFile);
-				return pl;
-			}
-
-			// learn the repository location if this path is valid
-			if (getRepositoryLocation().length() == 0)
-			{
-				String repositoryLocation = null;
-				if (sepPos > 1)
-				{
-					int nextSepPos = projectFile.lastIndexOf('/', sepPos-1);
-					if (nextSepPos >= 0) repositoryLocation = projectFile.substring(0, nextSepPos);
-				}
-				if (repositoryLocation == null)
-				{
-					Job.getUserInterface().showInformationMessage(
-						"You should setup Project Management by choosing a Repository location.  Use the 'Project Management' tab under General Preferences",
-						"Setup Project Management");
-				} else
-				{
-					setRepositoryLocation(repositoryLocation);
-				}
-			}
-
-			pl.projDirectory = projDir;
-			pl.loadProjectFile();
-
-			try
-			{
-				pl.raf.close();
-			} catch (IOException e)
-			{
-				System.out.println("Error closing project file");
-			}
-			pl.raf = null;
-			return pl;
-		}
-
-		/**
-		 * Method to lock this project file.
-		 * @return true on error (no project file, cannot lock it).
-		 * Also prints error message.
-		 */
-		private boolean lockProjectFile()
-		{
-			if (tryLockProjectFile())
-			{
-				Job.getUserInterface().showErrorMessage(
-					"Cannot lock the project file.  It may be in use by another user, or it may be damaged.",
-					"Internal Error");
-				return true;
-			}
-			return false;
-		}
-
-		/**
-		 * Method to lock a set of project files.
-		 * @param projectFiles the set of project files.
-		 * @return true on error.  Also prints error message.
-		 */
-		private static boolean lockManyProjectFiles(Set<ProjectLibrary> projectFiles)
-		{
-			List<ProjectLibrary> didThem = new ArrayList<ProjectLibrary>();
-			for(ProjectLibrary pl : projectFiles)
-			{
-				if (pl.tryLockProjectFile())
-				{
-					// failed
-					Job.getUserInterface().showErrorMessage(
-						"Cannot lock the project file for library " + pl.lib.getName() +
-						".  It may be in use by another user, or it may be damaged.",
-						"Access Error");
-
-					// unlock those already locked
-					for(ProjectLibrary uPl : didThem)
-					{
-						uPl.releaseProjectFileLock(false);
-					}
-					return true;
-				}
-				didThem.add(pl);
-			}
-			return false;
-		}
-
-		/**
-		 * Method to lock this project file.
-		 * @return true on error (no project file, cannot lock it).
-		 */
-		private boolean tryLockProjectFile()
-		{
-			// prepare to read the project file
-			String projectFile = projDirectory + File.separator + PROJECTFILE;
-			try
-			{
-				raf = new RandomAccessFile(projectFile, "rw");
-			} catch (FileNotFoundException e)
-			{
-				System.out.println("Cannot read file " + projectFile);
-				return true;
-			}
-
-			FileChannel fc = raf.getChannel();
-			try
-			{
-				lock = fc.lock();
-			} catch (IOException e1)
-			{
-				System.out.println("Unable to lock project file");
-				try
-				{
-					raf.close();
-				} catch (IOException e2)
-				{
-					System.out.println("Unable to close project file");
-				}
-				raf = null;
-				return true;
-			}
-			if (loadProjectFile())
-			{
-				try
-				{
-					lock.release();
-					raf.close();
-				} catch (IOException e)
-				{
-					System.out.println("Unable to release project file lock");
-				}
-				raf = null;
-				return true;
-			}
-			return false;
-		}
-
-		/**
-		 * Method to release the lock on this project file.
-		 * @param save true to rewrite it first.
-		 */
-		private void releaseProjectFileLock(boolean save)
-		{
-			if (save)
-			{
-				FileChannel fc = raf.getChannel();
-				try
-				{
-					fc.position(0);
-					fc.truncate(0);
-					for(ProjectCell pc : allCells)
-					{
-						String line = "::" + pc.cellName + ":" + pc.cellVersion + "-" +
-							pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0] + ":" +
-							pc.owner + ":" + pc.lastOwner + ":" + pc.comment + "\n";
-						ByteBuffer bb = ByteBuffer.wrap(line.getBytes());
-						fc.write(bb);
-					}
-				} catch (IOException e)
-				{
-					System.out.println("Error saving project file");
-				}
-			}
-			try
-			{
-				lock.release();
-				raf.close();
-			} catch (IOException e)
-			{
-				System.out.println("Unable to unlock and close project file");
-				lock = null;
-			}
-		}
-		/**
-		 * Method to unlock a set of project files.
-		 * @param projectFiles the set of project files.
-		 */
-		private static void releaseManyProjectFiles(Set<ProjectLibrary> projectFiles)
-		{
-			for(ProjectLibrary pl : projectFiles)
-			{
-				pl.releaseProjectFileLock(true);
-			}
-		}
-
-		/**
-		 * Method to read the project file into memory.
-		 * @return true on error.
-		 */
-		private boolean loadProjectFile()
-		{
-			allCells.clear();
-			byCell.clear();
-
-			// read the project file
-			int [] colonPos = new int[6];
-			for(;;)
-			{
-				String userLine = null;
-				try
-				{
-					userLine = raf.readLine();
-				} catch (IOException e)
-				{
-					userLine = null;
-				}
-				if (userLine == null) break;
-
-				ProjectCell pc = new ProjectCell();
-				pc.projLib = this;
-				int prevPos = 0;
-				for(int i=0; i<6; i++)
-				{
-					colonPos[i] = userLine.indexOf(':', prevPos);
-					prevPos = colonPos[i] + 1;
-					if (prevPos <= 0)
-					{
-						System.out.println("Too few keywords in project file: " + userLine);
-						return true;
-					}
-				}
-				if (colonPos[0] != 0)
-				{
-					System.out.println("Missing initial ':' in project file: " + userLine);
-					return true;
-				}
-
-				// get cell name
-				pc.cellName = userLine.substring(colonPos[1]+1, colonPos[2]);
-
-				// get version
-				String section = userLine.substring(colonPos[2]+1, colonPos[3]);
-				int dashPos = section.indexOf('-');
-				if (dashPos < 0)
-				{
-					System.out.println("Missing '-' after version number in project file: " + userLine);
-					return true;
-				}
-				int dotPos = section.indexOf('.');
-				if (dotPos < 0)
-				{
-					System.out.println("Missing '.' after view type in project file: " + userLine);
-					return true;
-				}
-				pc.cellVersion = TextUtils.atoi(section.substring(0, dashPos));
-
-				// get view
-				String viewPart = section.substring(dashPos+1, dotPos);
-				pc.cellView = View.findView(viewPart);
-
-				// get file type
-				String fileType = section.substring(dotPos+1);
-				if (fileType.equals("elib")) pc.libType = FileType.ELIB; else
-					if (fileType.equals("jelib")) pc.libType = FileType.JELIB; else
-						if (fileType.equals("txt")) pc.libType = FileType.READABLEDUMP; else
-				{
-					System.out.println("Unknown library type in project file: " + userLine);
-					return true;
-				}
-
-				// get owner
-				pc.owner = userLine.substring(colonPos[3]+1, colonPos[4]);
-
-				// get last owner
-				pc.lastOwner = userLine.substring(colonPos[4]+1, colonPos[5]);
-
-				// get comments
-				pc.comment = userLine.substring(colonPos[5]+1);
-
-				// check for duplication
-				for(ProjectCell opc : allCells)
-				{
-					if (!opc.cellName.equalsIgnoreCase(pc.cellName)) continue;
-					if (opc.cellView != pc.cellView) continue;
-					if (opc.cellVersion != pc.cellVersion) continue;
-					System.out.println("Error in project file: version " + pc.cellVersion + ", view '" +
-						pc.cellView.getFullName() + "' of cell '" + pc.cellName + "' exists twice");
-				}
-
-				// find the cell associated with this entry
-				pc.latestVersion = false;
-				String cellName = pc.describeWithVersion();
-				pc.cell = lib.findNodeProto(cellName);
-				if (pc.cell != null)
-				{
-					if (pc.cell.getVersion() > pc.cellVersion)
-					{
-						if (!pc.owner.equals(getCurrentUserName()))
-						{
-							if (pc.owner.length() == 0)
-							{
-								System.out.println("WARNING: " + pc.cell + " is being edited, but it is not checked-out");
-							} else
-							{
-								System.out.println("WARNING: " + pc.cell + " is being edited, but it is checked-out to " + pc.owner);
-							}
-						}
-					}
-					byCell.put(pc.cell, pc);
-				}
-
-				// link it in
-				allCells.add(pc);
-			}
-
-			// determine the most recent views
-			HashMap<String,ProjectCell> mostRecent = new HashMap<String,ProjectCell>();
-			for(ProjectCell pc : allCells)
-			{
-				String cellEntry = pc.describe();
-				ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
-				if (recent != null && recent.cellVersion > pc.cellVersion) continue;
-				mostRecent.put(cellEntry, pc);
-			}
-			for(ProjectCell pc : allCells)
-			{
-				String cellEntry = pc.describe();
-				ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
-				pc.latestVersion = (recent == pc);
-			}
-			return false;
-		}
-	}
 
 	/****************************** TOOL CONTROL ******************************/
 
@@ -652,8 +150,8 @@ public class Project extends Listener
 	 */
 	public static boolean isLibraryManaged(Library lib)
 	{
-		ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-		if (pl.allCells.size() == 0) return false;
+		ProjectLibrary pl = projectDB.findProjectLibrary(lib);
+		if (pl.isEmpty()) return false;
 		return true;
 	}
 	
@@ -670,11 +168,11 @@ public class Project extends Listener
 	public static int getCellStatus(Cell cell)
 	{
 		Cell newestVersion = cell.getNewestVersion();
-		ProjectCell pc = ProjectCell.findProjectCell(newestVersion);
+		ProjectCell pc = projectDB.findProjectCell(newestVersion);
 		if (pc == null) return NOTMANAGED;
 		if (newestVersion != cell) return OLDVERSION;
-		if (pc.owner.length() == 0) return CHECKEDIN;
-		if (pc.owner.equals(getCurrentUserName())) return CHECKEDOUTTOYOU;
+		if (pc.getOwner().length() == 0) return CHECKEDIN;
+		if (pc.getOwner().equals(getCurrentUserName())) return CHECKEDOUTTOYOU;
 		return CHECKEDOUTTOOTHERS;
 	}
 
@@ -686,9 +184,9 @@ public class Project extends Listener
 	 */
 	public static String getCellOwner(Cell cell)
 	{
-		ProjectCell pc = ProjectCell.findProjectCell(cell);
+		ProjectCell pc = projectDB.findProjectCell(cell);
 		if (pc == null) return "";
-		return pc.owner;
+		return pc.getOwner();
 	}
 
 	/**
@@ -699,7 +197,7 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 
-		new UpdateJob();
+		new UpdateJob(projectDB);
 		pmActive = true;
 	}
 
@@ -726,7 +224,7 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 
-		new CheckInJob(cell.getLibrary(), cellsMarked);
+		new CheckInJob(projectDB, cell.getLibrary(), cellsMarked);
 	}
 
 	/**
@@ -755,27 +253,7 @@ public class Project extends Listener
 		List<Cell> oneCell = new ArrayList<Cell>();
 		oneCell.add(cell);
 
-		// make a set of project libraries that are affected
-		Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
-		for(Cell oldVers : oneCell)
-		{
-			Library lib = oldVers.getLibrary();
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			projectLibs.add(pl);
-		}
-
-		// lock access to the project files
-		if (ProjectLibrary.lockManyProjectFiles(projectLibs)) return;
-
-		// check out the cell
-		List<Cell> newCells = preCheckOutCells(oneCell);
-		if (newCells == null)
-		{
-			ProjectLibrary.releaseManyProjectFiles(projectLibs);
-			return;
-		}
-
-		new CheckOutJob(newCells, projectLibs);
+		new CheckOutJob(projectDB, oneCell);
 
 	}
 
@@ -801,7 +279,11 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 
-		new CancelCheckOutJob(cell);
+		boolean response = Job.getUserInterface().confirmMessage(
+			"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
+		if (!response) return;
+
+		new CancelCheckOutJob(projectDB, cell);
 	}
 
 	/**
@@ -825,7 +307,7 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 		
-		new AddCellJob(cell);
+		new AddCellJob(projectDB, cell);
 	}
 
 	/**
@@ -849,7 +331,7 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 
-		new DeleteCellJob(cell);
+		new DeleteCellJob(projectDB, cell);
 	}
 
 	/**
@@ -870,7 +352,7 @@ public class Project extends Listener
 	public static void examineHistory(Cell cell)
 	{
 		pmActive = true;
-		new ShowHistory(cell);
+		new HistoryDialog(projectDB, cell);
 	}
 
 	/**
@@ -880,7 +362,7 @@ public class Project extends Listener
 	public static void getALibrary()
 	{
 		pmActive = true;
-		new ShowLibsInRepository();
+		new LibraryDialog(projectDB);
 	}
 
 	/**
@@ -917,7 +399,7 @@ public class Project extends Listener
 			if (isLibraryManaged(lib)) continue;
 			libList.add(lib);
 		}
-		new AddLibraryJob(libList);
+		new AddLibraryJob(projectDB, libList);
 	}
 
 	/**
@@ -949,7 +431,7 @@ public class Project extends Listener
 		includeDependentLibraries(lib, yesList, noList, false);
 
 		// add them to the repository
-		new AddLibraryJob(yesList);
+		new AddLibraryJob(projectDB, yesList);
 		pmActive = true;
 	}
 
@@ -970,7 +452,7 @@ public class Project extends Listener
 			for(Iterator<NodeInst>nIt = cell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst ni = nIt.next();
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					Cell subCell = (Cell)ni.getProto();
 					Library oLib = subCell.getLibrary();
@@ -1211,12 +693,7 @@ public class Project extends Listener
 				pmActive = true;
 
 				// see if this library has a known project database
-				ProjectLibrary pl = (ProjectLibrary)libraryProjectInfo.get(lib);
-				if (pl == null)
-				{
-					pl = ProjectLibrary.createProject(lib);
-					libraryProjectInfo.put(lib, pl);
-				}
+				projectDB.findProjectLibrary(lib);
 			}
 		}
 	}
@@ -1305,7 +782,7 @@ public class Project extends Listener
 			} else
 			{
 				// change allowed: check-out necessary cells
-				new AutoCheckoutJob(cellsThatChanged);
+				new AutoCheckoutJob(projectDB, cellsThatChanged);
 			}
 		}
 	}
@@ -1315,76 +792,76 @@ public class Project extends Listener
 	 */
 	private static class AutoCheckoutJob extends Job
 	{
+		private ProjectDB pdb;
 		private List<Cell> cellsThatChanged;
 		private HashMap<Cell,Cell> newCells;
 
-		private AutoCheckoutJob(List<Cell> cellsThatChanged)
+		private AutoCheckoutJob(ProjectDB pdb, List<Cell> cellsThatChanged)
 		{
 			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.cellsThatChanged = cellsThatChanged;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// check out the cells (TODO: this won't work on the server)
-
 			// make a set of project libraries that are affected
 			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
 			for(Cell oldVers : cellsThatChanged)
 			{
 				Library lib = oldVers.getLibrary();
-				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
+				ProjectLibrary pl = pdb.findProjectLibrary(lib);
 				projectLibs.add(pl);
 			}
 
-			// lock access to the project files
-			if (!ProjectLibrary.lockManyProjectFiles(projectLibs))
+			// lock access to the project files (throws JobException on error)
+			ProjectLibrary.lockManyProjectFiles(projectLibs);
+
+			// check out the cell
+			try
 			{
-				// check out the cell
-				List<Cell> cellsThatCanChange = preCheckOutCells(cellsThatChanged);
-				if (newCells == null)
-				{
-					ProjectLibrary.releaseManyProjectFiles(projectLibs);
-				} else
-				{
-					// prevent tools (including this one) from seeing the changes
-					setChangeStatus(true);
-
-					// make new version
-					newCells = new HashMap<Cell,Cell>();
-					for(Cell oldVers : cellsThatCanChange)
-					{
-						Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
-						if (newVers != null)
-							newCells.put(oldVers, newVers);
-					}
-
-					setChangeStatus(false);
-				}
-				fieldVariableChanged("newCells");
+				preCheckOutCells(pdb, cellsThatChanged);
+			} catch (JobException e)
+			{
+				ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				throw e;
 			}
+
+			// prevent tools (including this one) from seeing the changes
+			setChangeStatus(true);
+
+			// make new version
+			newCells = new HashMap<Cell,Cell>();
+			for(Cell oldVers : cellsThatChanged)
+			{
+				// change version information (throws JobException on error)
+				Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
+				if (newVers != null)
+				{
+					// update records for the changed cells
+		        	bumpRecordVersions(pdb, oldVers, newVers);
+
+		        	newCells.put(oldVers, newVers);
+				}
+			}
+
+			setChangeStatus(false);
+			fieldVariableChanged("newCells");
 			return true;
 		}
 
 		public void terminateIt(JobException je)
         {
+        	// update user interface for the changed cells
 			for(Cell oldVers : newCells.keySet())
 			{
 				Cell newVers = newCells.get(oldVers);
-
-				// update records for the changed cells
-	        	bumpRecordVersions(oldVers, newVers);
-	
-	        	// update user interface for the changed cells
-	        	updateUI(oldVers, newVers);
+		        	updateUI(oldVers, newVers);
 			}
 
 			// update explorer tree
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				public void run() { WindowFrame.wantToRedoLibraryTree(); }
-			});
+			WindowFrame.wantToRedoLibraryTree();
         }
 	}
 
@@ -1499,76 +976,97 @@ public class Project extends Listener
 	 */
 	private static class CheckOutJob extends Job
 	{
+		private ProjectDB pdb;
 		private List<Cell> checkOutCells;
-		private HashMap<Cell,Cell> newCells;
-		private transient Set<ProjectLibrary> projectLibs;
+		private HashMap<Cell, Cell> createdCells;
 
-		private CheckOutJob(List<Cell> checkOutCells, Set<ProjectLibrary> projectLibs)
+		private CheckOutJob(ProjectDB pdb, List<Cell> checkOutCells)
 		{
 			super("Check out cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.checkOutCells = checkOutCells;
-			this.projectLibs = projectLibs;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+			// make a set of project libraries that are affected
+			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
+			for(Cell oldVers : checkOutCells)
+			{
+				Library lib = oldVers.getLibrary();
+				ProjectLibrary pl = pdb.findProjectLibrary(lib);
+				projectLibs.add(pl);
+			}
+
+			// lock access to the project files (throws JobException on error)
+			ProjectLibrary.lockManyProjectFiles(projectLibs);
+
+			// check out the cell
+			try
+			{
+				preCheckOutCells(pdb, checkOutCells);
+			} catch (JobException e)
+			{
+				ProjectLibrary.releaseManyProjectFiles(projectLibs);
+				throw e;
+			}
+
 			// prevent tools (including this one) from seeing the changes
 			setChangeStatus(true);
 
 			// make new version
-			newCells = new HashMap<Cell,Cell>();
+			createdCells = new HashMap<Cell,Cell>();
 			for(Cell oldVers : checkOutCells)
 			{
+				// change version information (throws JobException on error)
 				Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
 				if (newVers != null)
-					newCells.put(oldVers, newVers);
+				{
+					// update records for the changed cells
+		        	bumpRecordVersions(pdb, oldVers, newVers);
+
+		        	createdCells.put(oldVers, newVers);
+				}
 			}
 
 			setChangeStatus(false);
 
-			fieldVariableChanged("newCells");
+			ProjectLibrary.releaseManyProjectFiles(projectLibs);
+
+			fieldVariableChanged("createdCells");
 			return true;
 		}
 
         public void terminateIt(JobException je)
         {
-			for(Cell oldVers : newCells.keySet())
+        	// update user interface for the changed cells
+			for(Cell oldVers : createdCells.keySet())
 			{
-				Cell newVers = newCells.get(oldVers);
-
-				// update records for the changed cells
-	        	bumpRecordVersions(oldVers, newVers);
-	
-	        	// update user interface for the changed cells
+				Cell newVers = createdCells.get(oldVers);
 	        	updateUI(oldVers, newVers);
 			}
 
 			// update explorer tree
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				public void run() { WindowFrame.wantToRedoLibraryTree(); }
-			});
+			WindowFrame.wantToRedoLibraryTree();
 
-			// relase project file lock
-			ProjectLibrary.releaseManyProjectFiles(projectLibs);
 			if (je == null)
 			{
 				// if it worked, print dependencies and display
-				if (newCells != null && newCells.size() > 0)
+				if (createdCells != null && createdCells.size() > 0)
 				{
 					StringBuffer cellNames = new StringBuffer();
 					int numCells = 0;
-					for(Cell oldVers : newCells.keySet())
+					for(Cell oldVers : createdCells.keySet())
 					{
-						Cell newVers = newCells.get(oldVers);
+						Cell newVers = createdCells.get(oldVers);
 						if (cellNames.length() > 0) cellNames.append(", ");
 						cellNames.append(newVers.describe(false));
 						numCells++;
 					}
 					if (numCells > 1) System.out.println("Cells " + cellNames + " checked out for your use"); else
 						System.out.println("Cell " + cellNames + " checked out for your use");
-					Cell newVers = (Cell)newCells.get(0);
+					Cell newVers = (Cell)createdCells.get(0);
 
 					// advise of possible problems with other checkouts higher up in the hierarchy
 					HashMap<Cell,MutableInteger> cellsMarked = new HashMap<Cell,MutableInteger>();
@@ -1672,7 +1170,7 @@ public class Project extends Listener
 									for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 									{
 										NodeInst ni = nIt.next();
-										if (!(ni.getProto() instanceof Cell)) continue;
+										if (!ni.isCellInstance()) continue;
 										MutableInteger subVal = (MutableInteger)cellsMarked.get(ni.getProto());
 										if (subVal.intValue() == 0) subVal.setValue(1);
 									}
@@ -1724,93 +1222,79 @@ public class Project extends Listener
 	/**
 	 * Method to check out a list of Cells.
 	 * @param cellsToCheckOut the List of Cells to check out.
-	 * @return a List of new versions of the Cells.
-	 * Returns null on error.
+	 * Throws JobException on error.
 	 */
-	private static List<Cell> preCheckOutCells(List<Cell> cellsToCheckOut)
+	private static void preCheckOutCells(ProjectDB pdb, List<Cell> cellsToCheckOut)
+		throws JobException
 	{
-		// see if there is a newer version of a cell
+		// examine each cell being checked out
 		for(Cell oldVers : cellsToCheckOut)
 		{
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(oldVers.getLibrary());
+			// see if there is a newer version of a cell
+			ProjectLibrary pl = pdb.findProjectLibrary(oldVers.getLibrary());
 			ProjectCell newestProjectCell = null;
-			for(ProjectCell pc : pl.allCells)
+			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 			{
-				if (pc.cellName.equals(oldVers.getName()) && pc.cellView == oldVers.getView())
+				ProjectCell pc = it.next();
+				if (pc.getCellName().equals(oldVers.getName()) && pc.getView() == oldVers.getView())
 				{
-					if (pc.cellVersion > oldVers.getVersion())
+					if (pc.getVersion() > oldVers.getVersion())
 					{
-						if (newestProjectCell == null || newestProjectCell.cellVersion < pc.cellVersion)
+						if (newestProjectCell == null || newestProjectCell.getVersion() < pc.getVersion())
 							newestProjectCell = pc;
 					}
 				}
 			}
 			if (newestProjectCell != null)
 			{
-				if (newestProjectCell.owner.length() == 0)
+				if (newestProjectCell.getOwner().length() == 0)
 				{
-					Job.getUserInterface().showErrorMessage(
-						"A more recent version of cell " + oldVers.describe(false) + " is in the repository.  Do an update first.",
-						"Check-Out Error");
-					return null;
+					throw new JobException(
+						"A more recent version of cell " + oldVers.describe(false) + " is in the repository.  Do an update first.");
 				}
-				if (newestProjectCell.owner.equals(getCurrentUserName()))
+				if (newestProjectCell.getOwner().equals(getCurrentUserName()))
 				{
-					Job.getUserInterface().showErrorMessage(
-						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.",
-						"Check-Out Warning");
-					return null;
+					throw new JobException(
+						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.");
 				} else
 				{
-					Job.getUserInterface().showErrorMessage(
-						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.owner + "'",
-						"Check-Out Error");
-					return null;
+					throw new JobException(
+						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.getOwner() + "'");
 				}
 			}
 
 			// find this cell in the project file
-			ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
+			ProjectCell pc = pl.findProjectCell(oldVers);
 			if (pc == null)
 			{
-				Job.getUserInterface().showErrorMessage(
-					"Cell " + oldVers.describe(false) + " is not in the project.  You must add it to the project before being able to check it out and in.",
-					"Check Out Error");
-				return null;
+				throw new JobException(
+					"Cell " + oldVers.describe(false) + " is not in the project.  You must add it to the project before being able to check it out and in.");
 			}
 
 			// see if it is available
-			if (pc.owner.length() != 0)
+			if (pc.getOwner().length() != 0)
 			{
-				if (pc.owner.equals(getCurrentUserName()))
+				if (pc.getOwner().equals(getCurrentUserName()))
 				{
-					Job.getUserInterface().showErrorMessage(
-						"Cell " + oldVers.describe(false) + " is already checked out to you.",
-						"Check Out Error");
-					new MarkCellJob(oldVers, false);
+					markLocked(oldVers, false);		// CHANGES DATABASE
+					throw new JobException(
+						"Cell " + oldVers.describe(false) + " is already checked out to you.");
 				} else
 				{
-					Job.getUserInterface().showErrorMessage(
-						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.owner + "'",
-						"Check Out Error");
+					throw new JobException(
+						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.getOwner() + "'");
 				}
-				return null;
 			}
 
 			// make sure we have the latest version
-			if (pc.cellVersion > oldVers.getVersion())
+			if (pc.getVersion() > oldVers.getVersion())
 			{
-				Job.getUserInterface().showErrorMessage(
+				throw new JobException(
 					"Cannot check out cell " + oldVers.describe(false) +
 					" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
-					pc.cellVersion + ").  Do an 'update' first",
-					"Check Out Error");
-				return null;
+					pc.getVersion() + ").  Do an 'update' first");
 			}
 		}
-
-		// report the cells that have been created
-		return cellsToCheckOut;
 	}
 
 	/**
@@ -1840,27 +1324,20 @@ public class Project extends Listener
 	 * Method to update the project databases to account for cell replacements.
 	 * @param newCells a map from old cells to new cells.
 	 */
-	private static void bumpRecordVersions(Cell oldVers, Cell newVers)
+	private static void bumpRecordVersions(ProjectDB pdb, Cell oldVers, Cell newVers)
 	{
-		ProjectLibrary pl = ProjectLibrary.findProjectLibrary(oldVers.getLibrary());
-		ProjectCell pc = (ProjectCell)pl.byCell.get(oldVers);
-		ProjectCell newPC = new ProjectCell();
-		newPC.cell = newVers;
-		newPC.latestVersion = true;
-		newPC.cellName = pc.cellName;
-		newPC.cellVersion = newVers.getVersion();
-		newPC.cellView = pc.cellView;
-		newPC.comment = "CHECKED OUT";
-		newPC.lastOwner = "";
-		newPC.libType = pc.libType;
-		newPC.owner = getCurrentUserName();
-		newPC.projLib = pl;
-		pc.latestVersion = false;
-		pc.cell = null;
+		// find the old ProjectCell
+		ProjectLibrary pl = pdb.findProjectLibrary(oldVers.getLibrary());
+		ProjectCell oldPC = pl.findProjectCell(oldVers);
 
-		pl.byCell.remove(oldVers);
-		pl.byCell.put(newVers, newPC);
-		pl.addProjectCell(newPC);
+		// make the new ProjectCell
+		ProjectCell newPC = new ProjectCell(newVers, pl);
+		newPC.setLibType(oldPC.getLibType());
+		newPC.setComment("CHECKED OUT");
+		newPC.setOwner(getCurrentUserName());
+
+		pl.linkProjectCellToCell(oldPC, null);
+		pl.linkProjectCellToCell(newPC, newVers);
 	}
 
 	/**
@@ -1898,11 +1375,13 @@ public class Project extends Listener
 	 */
 	private static class CancelCheckOutJob extends Job
 	{
+		private ProjectDB pdb;
 		private Cell cell, newCell, oldCell;
 
-		private CancelCheckOutJob(Cell cell)
+		private CancelCheckOutJob(ProjectDB pdb, Cell cell)
 		{
 			super("Cancel Check-out " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.cell = cell;
 			startJob();
 		}
@@ -1910,33 +1389,36 @@ public class Project extends Listener
 		public boolean doIt() throws JobException
 		{
 			Library lib = cell.getLibrary();
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			if (pl.lockProjectFile()) return false;
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+
+			// lock access to the project files (throws JobException on error)
+			pl.lockProjectFile();
 
 			ProjectCell cancelled = null;
 			ProjectCell former = null;
-			for(ProjectCell pc : pl.allCells)
+			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 			{
-				if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
+				ProjectCell pc = it.next();
+				if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
 				{
-					if (pc.cellVersion >= cell.getVersion())
+					if (pc.getVersion() >= cell.getVersion())
 					{
-						if (pc.owner.length() > 0)
+						if (pc.getOwner().length() > 0)
 						{
-							if (pc.owner.equals(getCurrentUserName()))
+							if (pc.getOwner().equals(getCurrentUserName()))
 							{
 								cancelled = pc;
 							} else
 							{
 								pl.releaseProjectFileLock(true);
 								throw new JobException(
-									"This cell is not checked out to you.  Only user '" + pc.owner + "' can cancel the check-out.");
+									"This cell is not checked out to you.  Only user '" + pc.getOwner() + "' can cancel the check-out.");
 							}
 						}
 					} else
 					{
 						// find most recent former version
-						if (former != null && former.cellVersion < pc.cellVersion) former = null;
+						if (former != null && former.getVersion() < pc.getVersion()) former = null;
 						if (former == null) former = pc;
 					}
 				}
@@ -1953,23 +1435,19 @@ public class Project extends Listener
 				pl.releaseProjectFileLock(true);
 				throw new JobException("Cannot find former version to restore.");
 			}
-			oldCell = cancelled.cell;
-
-			boolean response = Job.getUserInterface().confirmMessage(
-				"Cancel all changes to the checked-out " + oldCell + " and revert to the checked-in version?");
-			if (!response) return false;
+			oldCell = cancelled.getCell();
 
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
 
 			// replace former usage with new version
-			getCellFromRepository(former, lib, false, false);		// CHANGES DATABASE
-			newCell = former.cell;
+			getCellFromRepository(pdb, former, lib, false, false);		// CHANGES DATABASE
+			newCell = former.getCell();
 			if (newCell == null)
 			{
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
-				throw new JobException("Error bringing in former version (" + former.cellVersion + ")");
+				throw new JobException("Error bringing in former version (" + former.getVersion() + ")");
 			}
 
 			if (useNewestVersion(oldCell, newCell))		// CHANGES DATABASE
@@ -1980,12 +1458,11 @@ public class Project extends Listener
 			}
 
 			pl.removeProjectCell(cancelled);
-			if (cancelled.cell != null)
+			if (cancelled.getCell() != null)
 			{
-				markLocked(cancelled.cell, true);		// CHANGES DATABASE
-				pl.byCell.remove(cancelled.cell);
+				markLocked(cancelled.getCell(), true);		// CHANGES DATABASE
 			}
-			former.latestVersion = true;
+			former.setLatestVersion(true);
 
 			// restore change broadcast
 			setChangeStatus(false);
@@ -2005,40 +1482,19 @@ public class Project extends Listener
 	}
 
 	/**
-	 * This class sets marks on a cell to indicate its project status.
-	 */
-	private static class MarkCellJob extends Job
-	{
-		private Cell cell;
-		private boolean mark;
-
-		protected MarkCellJob(Cell cell, boolean mark)
-		{
-			super("Check cell status", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			this.mark = mark;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			markLocked(cell, mark);		// CHANGES DATABASE
-			return true;
-		}
-	}
-
-	/**
 	 * This class checks in cells to Project Management.
 	 * It involves updating the project database and saving the current cells to disk.
 	 */
 	private static class CheckInJob extends Job
 	{
+		private ProjectDB pdb;
 		private Library lib;
 		private HashMap<Cell,MutableInteger> cellsMarked;
 
-		protected CheckInJob(Library lib, HashMap<Cell,MutableInteger> cellsMarked)
+		protected CheckInJob(ProjectDB pdb, Library lib, HashMap<Cell,MutableInteger> cellsMarked)
 		{
 			super("Check in cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.lib = lib;
 			this.cellsMarked = cellsMarked;
 			startJob();
@@ -2046,8 +1502,10 @@ public class Project extends Listener
 
 		public boolean doIt() throws JobException
 		{
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			if (pl.lockProjectFile()) return false;
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+
+			// lock access to the project files (throws JobException on error)
+			pl.lockProjectFile();
 
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
@@ -2070,16 +1528,16 @@ public class Project extends Listener
 				if (mi.intValue() == 0) continue;
 
 				// find this in the project file
-				ProjectCell pc = ProjectCell.findProjectCell(cell);
+				ProjectCell pc = pdb.findProjectCell(cell);
 				if (pc == null)
 				{
 					error = "Cell " + cell.describe(true) + " is not in the project.  Add it before checking it in or out.";
 				} else
 				{
 					// see if it is available
-					if (!pc.owner.equals(getCurrentUserName()))
+					if (!pc.getOwner().equals(getCurrentUserName()))
 					{
-						error = "You cannot check-in " + cell + " because it is checked out to '" + pc.owner + "', not you.";
+						error = "You cannot check-in " + cell + " because it is checked out to '" + pc.getOwner() + "', not you.";
 					} else
 					{
 						if (comment == null)
@@ -2092,10 +1550,10 @@ public class Project extends Listener
 							error = "Error writing " + cell;
 						} else
 						{
-							pc.owner = "";
-							pc.lastOwner = getCurrentUserName();
-							pc.cellVersion = cell.getVersion();
-							pc.comment = comment;
+							pc.setOwner("");
+							pc.setLastOwner(getCurrentUserName());
+							pc.setVersion(cell.getVersion());
+							pc.setComment(comment);
 							markLocked(cell, true);		// CHANGES DATABASE
 							System.out.println("Cell " + cell.describe(true) + " checked in");
 						}
@@ -2115,447 +1573,57 @@ public class Project extends Listener
 	}
 
 	/**
-	 * This class displays a dialog for examining a cell's old versions.
-	 */
-	private static class ShowHistory extends EDialog
-	{
-		private Cell cell;
-		private TableModel dataModel;
-		private JTable table;
-
-		private ShowHistory(Cell cell)
-		{
-			super(null, true);
-			this.cell = cell;
-			initComponents();
-			setVisible(true);
-		}
-
-		protected void escapePressed() { doButton(false); }
-
-		private void doButton(boolean retrieve)
-		{
-			if (retrieve)
-			{
-				int index = table.getSelectedRow();
-				int version = TextUtils.atoi((String)dataModel.getValueAt(index, 0));
-				new GetOldVersionJob(cell, version);
-			} else
-			{
-				dispose();
-			}
-		}
-
-		private void initComponents()
-		{
-			getContentPane().setLayout(new GridBagLayout());
-
-			setTitle("Examine the History of " + cell);
-			setName("");
-			addWindowListener(new WindowAdapter()
-			{
-				public void windowClosing(WindowEvent evt) { doButton(false); }
-			});
-
-			// gather versions found in the project file
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(cell.getLibrary());
-			List<ProjectCell> versions = new ArrayList<ProjectCell>();
-			for(ProjectCell pc : pl.allCells)
-			{
-				if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
-				{
-					pc.checkInDate = "Not In Repository Yet";
-					versions.add(pc);
-				}
-			}
-
-//for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
-//{
-//	ProjectCell xx = it.next();
-//	System.out.println(xx.cellName+";"+xx.cellVersion+"{"+xx.cellView.getAbbreviation()+"} is cell: "+xx.cell+
-//		" owner="+xx.owner+" lastOwner="+xx.lastOwner);
-//}
-			// consider the files in the repository, too
-			String dirName = pl.projDirectory + File.separator + cell.getName();
-			File dir = new File(dirName);
-			File [] filesInDir = dir.listFiles();
-			for(int i=0; i<filesInDir.length; i++)
-			{
-				File subFile = filesInDir[i];
-				Date modDate = new Date(subFile.lastModified());
-				int version = TextUtils.atoi(subFile.getName());
-				boolean found = false;
-				for(ProjectCell pc : versions)
-				{
-					if (pc.cellVersion == version)
-					{
-						pc.checkInDate = TextUtils.formatDate(modDate);
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					ProjectCell pc = new ProjectCell();
-					pc.cellName = cell.getName();
-					pc.cellVersion = version;
-					pc.checkInDate = TextUtils.formatDate(modDate);
-					pc.projLib = pl;
-					versions.add(pc);
-				}
-			}
-
-			// sort the list by versions
-			Collections.sort(versions, new ProjectCellByVersion());
-
-			// make table
-			int numVersions = versions.size();
-			Object [][] data = new Object[numVersions][4];
-			int index = 0;
-			for(ProjectCell pc : versions)
-			{
-				data[index][0] = Integer.toString(pc.cellVersion);
-				data[index][1] = pc.checkInDate;
-				data[index][2] = pc.lastOwner;
-				if (pc.owner.length() > 0) data[index][2] = pc.owner;
-				data[index][3] = pc.comment;
-				index++;
-			}
-
-			dataModel = new HistoryTableModel(data);
-			table = new JTable(dataModel);
-//			table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-			TableColumn versCol = table.getColumnModel().getColumn(0);
-			TableColumn dateCol = table.getColumnModel().getColumn(1);
-			TableColumn userCol = table.getColumnModel().getColumn(2);
-			TableColumn commentCol = table.getColumnModel().getColumn(3);
-			versCol.setPreferredWidth(10);
-			dateCol.setPreferredWidth(30);
-			userCol.setPreferredWidth(20);
-			commentCol.setPreferredWidth(40);
-			JScrollPane tableScrollPane = new JScrollPane(table);
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 0;
-			gbc.gridwidth = 2;
-			gbc.weightx = gbc.weighty = 1;
-			gbc.fill = GridBagConstraints.BOTH;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(tableScrollPane, gbc);
-
-			// OK and Cancel
-			JButton ok = new JButton("Retrieve");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 1;   gbc.gridy = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(ok, gbc);
-			ok.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { doButton(true); }
-			});
-
-			JButton cancel = new JButton("Done");
-			getRootPane().setDefaultButton(cancel);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(cancel, gbc);
-			cancel.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { doButton(false); }
-			});
-
-			pack();
-		}
-
-		class HistoryTableModel extends AbstractTableModel
-		{
-	        private String[] columnNames;
-	        private Object[][] data;
-
-	        HistoryTableModel(Object [][] data)
-	        {
-	        	this.data = data;
-	        	columnNames = new String[] {"Version", "Date", "Who", "Comments"};
-	        }
-
-	        public int getColumnCount() { return columnNames.length; }
-
-	        public int getRowCount() { return data.length; }
-
-	        public String getColumnName(int col) { return columnNames[col]; }
-
-	        public Object getValueAt(int row, int col) { return data[row][col]; }
-
-	        public Class<?> getColumnClass(int c) { return getValueAt(0, c).getClass(); }
-	    }
-	}
-
-	/**
-	 * This class displays a dialog for selecting a library in the repository.
-	 */
-	private static class ShowLibsInRepository extends EDialog
-	{
-		private JList libList;
-		private DefaultListModel libModel;
-
-		private ShowLibsInRepository()
-		{
-			super(null, true);
-			initComponents();
-			setVisible(true);
-		}
-
-		protected void escapePressed() { doButton(false); }
-
-		private void doButton(boolean retrieve)
-		{
-			if (retrieve)
-			{
-				int index = libList.getSelectedIndex();
-				String libName = (String)libModel.getElementAt(index);
-				new RetrieveLibraryFromRepositoryJob(libName);
-			}
-			dispose();
-		}
-
-		private void initComponents()
-		{
-			getContentPane().setLayout(new GridBagLayout());
-
-			setTitle("Retrieve a Library from the Repository");
-			setName("");
-			addWindowListener(new WindowAdapter()
-			{
-				public void windowClosing(WindowEvent evt) { doButton(false); }
-			});
-
-			JScrollPane libPane = new JScrollPane();
-			libModel = new DefaultListModel();
-			libList = new JList(libModel);
-			libList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			libPane.setViewportView(libList);
-			libList.clearSelection();
-			libList.addMouseListener(new MouseAdapter()
-			{
-				public void mouseClicked(MouseEvent e)
-				{
-					if (e.getClickCount() == 2) doButton(true);
-				}
-			});
-
-			// consider the files in the repository, too
-			String dirName = getRepositoryLocation();
-			File dir = new File(dirName);
-			File [] filesInDir = dir.listFiles();
-			List<String> libNames = new ArrayList<String>();
-			for(int i=0; i<filesInDir.length; i++)
-			{
-				File subFile = filesInDir[i];
-				if (subFile.isDirectory())
-					libNames.add(subFile.getName());
-			}
-			Collections.sort(libNames, new TextUtils.ObjectsByToString());
-			for(String libName : libNames)
-			{
-				libModel.addElement(libName);
-			}
-
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 0;
-			gbc.gridwidth = 2;
-			gbc.weightx = gbc.weighty = 1;
-			gbc.fill = GridBagConstraints.BOTH;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(libPane, gbc);
-
-			// OK and Cancel
-			JButton ok = new JButton("OK");
-			getRootPane().setDefaultButton(ok);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 1;   gbc.gridy = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(ok, gbc);
-			ok.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { doButton(true); }
-			});
-
-			JButton cancel = new JButton("Cancel");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(cancel, gbc);
-			cancel.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { doButton(false); }
-			});
-
-			pack();
-		}
-	}
-
-	/**
-	 * This class gets old versions of cells from the Project Management repository.
-	 */
-	private static class GetOldVersionJob extends Job
-	{
-		private Cell cell;
-		private int version;
-
-		protected GetOldVersionJob(Cell cell, int version)
-		{
-			super("Update " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			this.version = version;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Library lib = cell.getLibrary();
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-
-			String cellName = cell.getName() + ";" + version;
-			if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
-			Cell exists = cell.getLibrary().findNodeProto(cellName);
-			if (exists != null)
-				throw new JobException("Version " + version + " of cell " + cell.getName() +
-					" is already in your library");
-
-			ProjectCell foundPC = pl.findProjectCellByNameViewVersion(cell.getName(), cell.getView(), version);
-			if (foundPC == null)
-				throw new JobException("Can't find that version in the repository!");
-
-			// prevent tools (including this one) from seeing the change
-			setChangeStatus(true);
-
-			getCellFromRepository(foundPC, lib, false, false);		// CHANGES DATABASE
-			if (foundPC.cell == null)
-			{
-				setChangeStatus(false);
-				throw new JobException("Error retrieving old version of cell");
-			}
-			markLocked(foundPC.cell, false);		// CHANGES DATABASE
-
-			// allow changes
-			setChangeStatus(false);
-
-			System.out.println("Cell " + foundPC.cell.describe(true) + " is now in this library");
-			return true;
-		}
-	}
-
-	/**
-	 * This class gets old versions of cells from the Project Management repository.
-	 */
-	private static class RetrieveLibraryFromRepositoryJob extends Job
-	{
-		private String libName;
-
-		protected RetrieveLibraryFromRepositoryJob(String libName)
-		{
-			super("Retrieve Library from Repository", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.libName = libName;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Library lib = Library.findLibrary(libName);
-			if (lib != null)
-				throw new JobException("Library '" + lib.getName() + "' already exists");
-			lib = Library.newInstance(libName, null);
-			String projFile = Project.getRepositoryLocation() + File.separator + libName + File.separator + PROJECTFILE;
-			File pf = new File(projFile);
-			if (!pf.exists())
-				throw new JobException("Cannot find project file '" + projFile + "'...retrieve aborted.");
-			lib.newVar(PROJPATHKEY, projFile);
-
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-
-			// prevent tools (including this one) from seeing the change
-			setChangeStatus(true);
-
-			// make a list of the most recent cells that are not checked-out
-			List<ProjectCell> cellsToGet = new ArrayList<ProjectCell>();
-			String lastName = "";
-			for(ProjectCell pc : pl.allCells)
-			{
-				String name = pc.describe();
-				if (pc.owner.length() > 0) continue;
-				if (name.equals(lastName)) cellsToGet.remove(cellsToGet.size()-1);
-				cellsToGet.add(pc);
-				lastName = name;
-			}
-
-			// check them out
-			String userName = getCurrentUserName();
-			for(ProjectCell pc : cellsToGet)
-			{
-				if (pc.cell == null)
-				{
-					getCellFromRepository(pc, lib, true, true);		// CHANGES DATABASE
-					if (pc.cell == null)
-					{
-						setChangeStatus(false);
-						throw new JobException("Error retrieving old version of cell");
-					}
-				}
-				if (pc.cell != null)
-				{
-					boolean youOwn = userName.length() > 0 && pc.owner.equals(userName);
-					markLocked(pc.cell, !youOwn);		// CHANGES DATABASE
-				}
-			}
-
-			// allow changes
-			setChangeStatus(false);
-
-			System.out.println("Library " + lib.getName() + " has been retrieved from the repository");
-			return true;
-		}
-	}
-
-	/**
 	 * This class updates cells from the Project Management repository.
 	 */
 	private static class UpdateJob extends Job
 	{
-		protected UpdateJob()
+		private ProjectDB pdb;
+
+		private UpdateJob(ProjectDB pdb)
 		{
 			super("Update all Cells from Repository", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// make a list of all cells that need to be updated
-			List<ProjectCell> updatedProjectCells = new ArrayList<ProjectCell>();
+			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
 			for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
 				Library lib = lIt.next();
 				if (lib.isHidden()) continue;
-				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-				if (pl.projDirectory == null) continue;
-				if (!pl.lockProjectFile()) pl.releaseProjectFileLock(false);
+				ProjectLibrary pl = pdb.findProjectLibrary(lib);
+				if (pl.getProjectDirectory() == null) continue;
+				projectLibs.add(pl);
+			}
 
+			// lock access to the project files (throws JobException on error)
+			ProjectLibrary.lockManyProjectFiles(projectLibs);
+
+			// make a list of all cells that need to be updated
+			List<ProjectCell> updatedProjectCells = new ArrayList<ProjectCell>();
+			for(ProjectLibrary pl : projectLibs)
+			{
 				// add ProjectCells that need to be updated to the list
 				addNewProjectCells(pl, updatedProjectCells);		// CHANGES DATABASE
 			}
 
 			// lock library projects
-			HashSet<ProjectLibrary> libsLocked = new HashSet<ProjectLibrary>();
 			boolean allLocked = true;
 			for(ProjectCell pc : updatedProjectCells)
 			{
-				ProjectLibrary pl = pc.projLib;
-				if (libsLocked.contains(pl)) continue;
-				if (pl.lockProjectFile()) { allLocked = false;   break; }
-				libsLocked.add(pl);
+				ProjectLibrary pl = pc.getProjectLibrary();
+				if (projectLibs.contains(pl)) continue;
+				try
+				{
+					pl.lockProjectFile();
+				} catch (JobException e)
+				{
+					allLocked = false;
+					break;
+				}
+				projectLibs.add(pl);
 			}
 
 			int total = 0;
@@ -2569,7 +1637,7 @@ public class Project extends Listener
 					Iterator<ProjectCell> it = updatedProjectCells.iterator();
 					if (!it.hasNext()) break;
 					ProjectCell pc = it.next();
-					total += updateCellFromRepository(pc, updatedProjectCells);		// CHANGES DATABASE
+					total += updateCellFromRepository(pdb, pc, updatedProjectCells);		// CHANGES DATABASE
 				}
 
 				// restore change broadcast
@@ -2577,10 +1645,10 @@ public class Project extends Listener
 			}
 
 			// relase project file locks and validate all cell locks
-			for(ProjectLibrary pl : libsLocked)
+			for(ProjectLibrary pl : projectLibs)
 			{
 				pl.releaseProjectFileLock(false);
-				validateLocks(pl.lib);		// CHANGES DATABASE
+				validateLocks(pdb, pl.getLibrary());		// CHANGES DATABASE
 			}
 
 			// summarize
@@ -2588,6 +1656,12 @@ public class Project extends Listener
 				System.out.println("Updated " + total + " cells");
 			return true;
 		}
+
+		public void terminateIt(JobException je)
+        {
+			// update explorer tree
+			WindowFrame.wantToRedoLibraryTree();
+        }
 	}
 
 	/**
@@ -2595,11 +1669,13 @@ public class Project extends Listener
 	 */
 	private static class AddLibraryJob extends Job
 	{
+		private ProjectDB pdb;
 		private Set<Library> libList;
 
-		protected AddLibraryJob(Set<Library> libList)
+		protected AddLibraryJob(ProjectDB pdb, Set<Library> libList)
 		{
 			super("Add Library", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.libList = libList;
 			startJob();
 		}
@@ -2608,10 +1684,10 @@ public class Project extends Listener
 		{
 			for(Library aLib : libList)
 			{
-				ProjectLibrary pl = ProjectLibrary.findProjectLibrary(aLib);
-				if (pl.allCells.size() != 0) continue;
+				ProjectLibrary pl = pdb.findProjectLibrary(aLib);
+				if (!pl.isEmpty()) continue;
 
-				if (!addLibraryNow(aLib, pl)) return false;		// CHANGES DATABASE
+				addLibraryNow(aLib, pl);		// CHANGES DATABASE
 			}
 			return true;
 		}
@@ -2629,31 +1705,28 @@ public class Project extends Listener
 	 * Method to check a library into the repository.
 	 * @param lib the library to add to the repository.
 	 * @param pl the ProjectLibrary associated with the library.
-	 * @return false on error.
+	 * Throws a JobException on error.
 	 */
-	private static boolean addLibraryNow(Library lib, ProjectLibrary pl)
+	private static void addLibraryNow(Library lib, ProjectLibrary pl)
+		throws JobException
 	{
 		// get path prefix for cell libraries
 		String libraryname = lib.getName();
 
 		// create the top-level directory for this library
-		pl.projDirectory = Project.getRepositoryLocation() + File.separator + libraryname;
-		File dir = new File(pl.projDirectory);
+		pl.setProjectDirectory(Project.getRepositoryLocation() + File.separator + libraryname);
+		File dir = new File(pl.getProjectDirectory());
 		if (dir.exists())
 		{
-			Job.getUserInterface().showErrorMessage(
-				"Repository directory '" + pl.projDirectory + "' already exists",
-				"Error Adding Library");
-			return false;
+			throw new JobException(
+				"Repository directory '" + pl.getProjectDirectory() + "' already exists");
 		}
 		if (!dir.mkdir())
 		{
-			Job.getUserInterface().showErrorMessage(
-				"Could not create repository directory '" + pl.projDirectory + "'",
-				"Error Adding Library");
-			return false;
+			throw new JobException(
+				"Could not create repository directory '" + pl.getProjectDirectory() + "'");
 		}
-		System.out.println("Making repository directory '" + pl.projDirectory + "'...");
+		System.out.println("Making repository directory '" + pl.getProjectDirectory() + "'...");
 
 		// turn off all tools
 		setChangeStatus(true);
@@ -2663,29 +1736,21 @@ public class Project extends Listener
 		{
 			Cell cell = it.next();
 
-			ProjectCell pc = new ProjectCell();
-			pc.cellName = cell.getName();
-			pc.cellView = cell.getView();
-			pc.cellVersion = cell.getVersion();
-			pc.owner = "";
-			pc.lastOwner = getCurrentUserName();
-			pc.comment = "Initial checkin";
-			pc.libType = FileType.JELIB;
-			pc.cell = cell;
-			pc.latestVersion = true;
-			pc.projLib = pl;
+			ProjectCell pc = new ProjectCell(cell, pl);
+			pc.setLastOwner(getCurrentUserName());
+			pc.setComment("Initial checkin");
 
 			// ignore old unused cell versions
 			if (cell.getNewestVersion() != cell)
 			{
 				if (cell.getNumUsagesIn() == 0) continue;
 				System.out.println("Warning: including old version of " + cell);
-				pc.latestVersion = false;
+				pc.setLatestVersion(false);
 			}
 
 			// link the cell into the project lists
-			pl.addProjectCell(pc);
-			pl.byCell.put(cell, pc);
+			pl.linkProjectCellToCell(pc, cell);
+
 			if (writeCell(cell, pc)) System.out.println("Error writing cell file"); else		// CHANGES DATABASE
 			{
 				// write the cell to disk in its own library
@@ -2697,16 +1762,17 @@ public class Project extends Listener
 		}
 
 		// create the project file
-		String projfile = pl.projDirectory + File.separator + PROJECTFILE;
+		String projfile = pl.getProjectDirectory() + File.separator + PROJECTFILE;
 		lib.newVar(PROJPATHKEY, projfile);
 		try
 		{
 			PrintStream buffWriter = new PrintStream(new FileOutputStream(projfile));
-			for(ProjectCell pc : pl.allCells)
+			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 			{
-				buffWriter.println("::" + pc.cellName + ":" + pc.cellVersion + "-" +
-					pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0] + ":" +
-					pc.owner + ":" + pc.lastOwner + ":" + pc.comment);
+				ProjectCell pc = it.next();
+				buffWriter.println("::" + pc.getCellName() + ":" + pc.getVersion() + "-" +
+					pc.getView().getFullName() + "." + pc.getLibExtension() + ":" +
+					pc.getOwner() + ":" + pc.getLastOwner() + ":" + pc.getComment());
 			}
 			buffWriter.close();
 		} catch (IOException e)
@@ -2716,7 +1782,6 @@ public class Project extends Listener
 
 		// restore tool state
 		setChangeStatus(false);
-		return true;
 	}
 
 	/**
@@ -2724,11 +1789,13 @@ public class Project extends Listener
 	 */
 	private static class AddCellJob extends Job
 	{
+		private ProjectDB pdb;
 		private Cell cell;
 
-		protected AddCellJob(Cell cell)
+		private AddCellJob(ProjectDB pdb, Cell cell)
 		{
 			super("Add " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.cell = cell;
 			startJob();
 		}
@@ -2739,8 +1806,10 @@ public class Project extends Listener
 				throw new JobException("Cannot add an old version of the cell");
 
 			Library lib = cell.getLibrary();
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			if (pl.lockProjectFile()) return false;
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+
+			// lock access to the project files (throws JobException on error)
+			pl.lockProjectFile();
 
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
@@ -2754,17 +1823,9 @@ public class Project extends Listener
 			} else
 			{
 				// create new entry for this cell
-				ProjectCell pc = new ProjectCell();
-				pc.cellName = cell.getName();
-				pc.cellView = cell.getView();
-				pc.cellVersion = cell.getVersion();
-				pc.owner = "";
-				pc.lastOwner = getCurrentUserName();
-				pc.comment = "Initial checkin";
-				pc.latestVersion = true;
-				pc.projLib = pl;
-				pc.libType = FileType.JELIB;
-				pc.cell = cell;
+				ProjectCell pc = new ProjectCell(cell, pl);
+				pc.setLastOwner(getCurrentUserName());
+				pc.setComment("Initial checkin");
 
 				if (writeCell(cell, pc))		// CHANGES DATABASE
 				{
@@ -2772,8 +1833,7 @@ public class Project extends Listener
 				} else
 				{
 					// link it in
-					pl.addProjectCell(pc);
-					pl.byCell.put(cell, pc);
+					pl.linkProjectCellToCell(pc, cell);
 
 					// mark this cell "checked in" and locked
 					markLocked(cell, true);		// CHANGES DATABASE
@@ -2798,11 +1858,13 @@ public class Project extends Listener
 	 */
 	private static class DeleteCellJob extends Job
 	{
+		private ProjectDB pdb;
 		private Cell cell;
 
-		protected DeleteCellJob(Cell cell)
+		protected DeleteCellJob(ProjectDB pdb, Cell cell)
 		{
 			super("Delete cell", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pdb = pdb;
 			this.cell = cell;
 			startJob();
 		}
@@ -2836,22 +1898,26 @@ public class Project extends Listener
 			if (markedCells.size() > 0)
 				throw new JobException("Cannot delete " + cell + " because it is still being used by: " + err.toString());
 
-			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(lib);
-			if (pl.lockProjectFile()) return false;
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+
+			// lock access to the project files (throws JobException on error)
+			pl.lockProjectFile();
 
 			// make sure the user has no cells checked-out
 			boolean youOwn = false;
 			String error = null;
-			for(ProjectCell pc : pl.allCells)
+			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 			{
-				if (pc.owner.equals(getCurrentUserName())) { youOwn = true;   break; }
+				ProjectCell pc = it.next();
+				if (pc.getOwner().equals(getCurrentUserName())) { youOwn = true;   break; }
 			}
 			if (youOwn)
 			{
 				StringBuffer infstr = new StringBuffer();
-				for(ProjectCell pc : pl.allCells)
+				for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 				{
-					if (!pc.owner.equals(getCurrentUserName())) continue;
+					ProjectCell pc = it.next();
+					if (!pc.getOwner().equals(getCurrentUserName())) continue;
 					if (infstr.length() > 0) infstr.append(", ");
 					infstr.append(pc.describe());
 				}
@@ -2862,16 +1928,18 @@ public class Project extends Listener
 			{
 				// find this in the project file
 				List<ProjectCell> copyList = new ArrayList<ProjectCell>();
-				for(ProjectCell pc : pl.allCells)
+				for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+				{
+					ProjectCell pc = it.next();
 					copyList.add(pc);
+				}
 				boolean found = false;
 				for(ProjectCell pc : copyList)
 				{
-					if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
+					if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
 					{
 						// unlink it
 						pl.removeProjectCell(pc);
-						if (pc.cell != null) pl.byCell.remove(pc.cell);
 
 						// disable change broadcast
 						setChangeStatus(true);
@@ -2909,7 +1977,7 @@ public class Project extends Listener
 
 	/************************ SUPPORT ***********************/
 
-	private static void setChangeStatus(boolean quiet)
+	static void setChangeStatus(boolean quiet)
 	{
 		if (quiet) ignoreChanges = quiet;
 		Undo.changesQuiet(quiet);
@@ -2974,25 +2042,25 @@ public class Project extends Listener
 		}
 	}
 
-	private static void validateLocks(Library lib)
+	private static void validateLocks(ProjectDB pdb, Library lib)
 	{
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = it.next();
-			ProjectCell pc = ProjectCell.findProjectCell(cell);
+			ProjectCell pc = pdb.findProjectCell(cell);
 			if (pc == null)
 			{
 				// cell not in the project: writable
 				markLocked(cell, false);		// CHANGES DATABASE
 			} else
 			{
-				if (cell.getVersion() < pc.cellVersion)
+				if (cell.getVersion() < pc.getVersion())
 				{
 					// cell is an old version: writable
 					markLocked(cell, false);		// CHANGES DATABASE
 				} else
 				{
-					if (pc.owner.equals(getCurrentUserName()))
+					if (pc.getOwner().equals(getCurrentUserName()))
 					{
 						// cell checked out to current user: writable
 						markLocked(cell, false);		// CHANGES DATABASE
@@ -3006,7 +2074,7 @@ public class Project extends Listener
 		}
 	}
 
-	private static void markLocked(Cell cell, boolean locked)
+	static void markLocked(Cell cell, boolean locked)
 	{
 		if (!locked)
 		{
@@ -3141,7 +2209,7 @@ public class Project extends Listener
 						for(Iterator<NodeInst> nIt = oCell.getNodes(); nIt.hasNext(); )
 						{
 							NodeInst ni = nIt.next();
-							if (!(ni.getProto() instanceof Cell)) continue;
+							if (!ni.isCellInstance()) continue;
 							mi = (MutableInteger)cellsMarked2.get(ni.getProto());
 							if (mi.intValue() == 0) mi.setValue(1);
 						}
@@ -3197,19 +2265,19 @@ public class Project extends Listener
 	 * Method to get the latest version of the cell described by "pc" and return
 	 * the newly created cell.
 	 */
-	private static void getCellFromRepository(ProjectCell pc, Library lib, boolean recursively, boolean report)
+	static void getCellFromRepository(ProjectDB pdb, ProjectCell pc, Library lib, boolean recursively, boolean report)
 	{
 		// figure out the library name
-		ProjectLibrary pl = pc.projLib;
-		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
-			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
+		ProjectLibrary pl = pc.getProjectLibrary();
+		String libName = pl.getProjectDirectory() + File.separator + pc.getCellName() + File.separator + pc.getVersion() + "-" +
+			pc.getView().getFullName() + "." + pc.getLibExtension();
 		URL libURL = TextUtils.makeURLToFile(libName);
 
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
@@ -3222,7 +2290,7 @@ public class Project extends Listener
 				for(Iterator<NodeInst> it = cur.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					if (ni.getProto() instanceof Cell)
+					if (ni.isCellInstance())
 					{
 						Cell subCell = (Cell)ni.getProto();
 						Library subLib = lib;
@@ -3246,23 +2314,24 @@ public class Project extends Listener
 								} else
 								{
 									subLib.newVar(PROJPATHKEY, projFile);
-									ProjectLibrary subPL = ProjectLibrary.findProjectLibrary(subLib);
+									ProjectLibrary subPL = pdb.findProjectLibrary(subLib);
 	
 									// get all recent cells
 									String userName = getCurrentUserName();
-									for(ProjectCell recPC : subPL.allCells)
+									for(Iterator<ProjectCell> pIt = subPL.getProjectCells(); pIt.hasNext(); )
 									{
-										if (!recPC.latestVersion) continue;
-										if (recPC.cell == null)
+										ProjectCell recPC = pIt.next();
+										if (!recPC.isLatestVersion()) continue;
+										if (recPC.getCell() == null)
 										{
-											getCellFromRepository(recPC, subLib, true, report);
-											if (recPC.cell == null)
+											getCellFromRepository(pdb, recPC, subLib, true, report);
+											if (recPC.getCell() == null)
 												System.out.println("Error retrieving cell from repository");
 										}
-										if (recPC.cell != null)
+										if (recPC.getCell() != null)
 										{
-											boolean youOwn = userName.length() > 0 && recPC.owner.equals(userName);
-											markLocked(recPC.cell, !youOwn);		// CHANGES DATABASE
+											boolean youOwn = userName.length() > 0 && recPC.getOwner().equals(userName);
+											markLocked(recPC.getCell(), !youOwn);		// CHANGES DATABASE
 										}
 									}
 								}
@@ -3275,29 +2344,30 @@ public class Project extends Listener
 						// if doing a recursive cell copy, see if others should be copied first
 						if (realSubCell == null && recursively)
 						{
-							ProjectLibrary subPL = ProjectLibrary.findProjectLibrary(subLib);
+							ProjectLibrary subPL = pdb.findProjectLibrary(subLib);
 							ProjectCell subPC = subPL.findProjectCellByNameViewVersion(subCell.getName(), subCell.getView(), subCell.getVersion());
 							if (subPC == null)
 							{
 								// could not find that cell, see if a different version is available
-								for(ProjectCell oPc : subPL.allCells)
+								for(Iterator<ProjectCell> pIt = subPL.getProjectCells(); pIt.hasNext(); )
 								{
-									if (oPc.cellName.equals(subCell.getName()) && oPc.cellView == subCell.getView())
+									ProjectCell oPc = pIt.next();
+									if (oPc.getCellName().equals(subCell.getName()) && oPc.getView() == subCell.getView())
 									{
-										if (subPC != null && subPC.cellVersion > oPc.cellVersion) continue;
+										if (subPC != null && subPC.getVersion() > oPc.getVersion()) continue;
 										subPC = oPc;
 									}
 								}
 							}
 							if (subPC != null)
 							{
-								if (subPC.cell != null)
+								if (subPC.getCell() != null)
 								{
 									System.out.println("ERROR: cell " + cellName + " does not exist, but it appears as " +
-										subPC.cell);
+										subPC.getCell());
 								}
-								getCellFromRepository(subPC, subLib, recursively, false);
-								realSubCell = subPC.cell;
+								getCellFromRepository(pdb, subPC, subLib, recursively, false);
+								realSubCell = subPC.getCell();
 							}
 						}
 						if (realSubCell == null)
@@ -3320,58 +2390,55 @@ public class Project extends Listener
 		}
 
 		// return the new cell
-		pc.cell = newCell;
 		if (newCell != null)
-			pl.byCell.put(newCell, pc);
+			pl.linkProjectCellToCell(pc, newCell);
 	}
 
 	private static void addNewProjectCells(ProjectLibrary pl, List<ProjectCell> updatedProjectCells)
 	{
 		HashMap<String,ProjectCell> versionToGet = new HashMap<String,ProjectCell>();
-		for(ProjectCell pc : pl.allCells)
+		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 		{
-			String cellName = pc.cellName + "{" + pc.cellView.getAbbreviation() + "}";
+			ProjectCell pc = it.next();
+			String cellName = pc.getCellName() + "{" + pc.getView().getAbbreviation() + "}";
 			ProjectCell pcToGet = (ProjectCell)versionToGet.get(cellName);
 			if (pcToGet != null)
 			{
-				if (pc.cellVersion <= pcToGet.cellVersion) continue;
-				if (pc.owner.length() > 0)
+				if (pc.getVersion() <= pcToGet.getVersion()) continue;
+				if (pc.getOwner().length() > 0)
 				{
 					// this version is checked-out
-					Cell oldCell = pl.lib.findNodeProto(pc.describeWithVersion());
+					Cell oldCell = pl.getLibrary().findNodeProto(pc.describeWithVersion());
 					if (oldCell != null)
 					{
 						// found the cell in the library
-						if (pc.owner.equals(Project.getCurrentUserName()))
+						if (pc.getOwner().equals(Project.getCurrentUserName()))
 						{
 							versionToGet.remove(cellName);
 						} else
 						{
-							System.out.println("WARNING: " + oldCell + " is checked-out to " + pc.owner);
+							System.out.println("WARNING: " + oldCell + " is checked-out to " + pc.getOwner());
 						}
 						continue;
 					} else
 					{
 						// the cell is not in the library
-						if (!pc.owner.equals(Project.getCurrentUserName()))
-							continue;
+						if (!pc.getOwner().equals(Project.getCurrentUserName())) continue;
 
-						System.out.println("WARNING: Cell " + pl.lib.getName() + ":" + pc.describe() +
+						System.out.println("WARNING: Cell " + pl.getLibrary().getName() + ":" + pc.describe() +
 							" is checked-out to you but is missing from this library.  Re-building it.");
 						// prevent tools (including this one) from seeing the changes
 						setChangeStatus(true);
 
-						oldCell = pl.lib.findNodeProto(pc.describe());
+						oldCell = pl.getLibrary().findNodeProto(pc.describe());
 						Library lib = oldCell.getLibrary();
-						String newName = oldCell.getName() + ";" + pc.cellVersion + "{" + pc.cellView.getAbbreviation() + "}";
+						String newName = oldCell.getName() + ";" + pc.getVersion() + "{" + pc.getView().getAbbreviation() + "}";
 						if (oldCell != null)
 						{
 							Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);
 							if (newVers == null)
 							{
-								Job.getUserInterface().showErrorMessage(
-									"Error making new version of cell " + oldCell.describe(false),
-									"Check Out Error");
+								System.out.println("Error making new version of cell " + oldCell.describe(false));
 								setChangeStatus(false);
 								continue;
 							}
@@ -3379,23 +2446,18 @@ public class Project extends Listener
 							// replace former usage with new version
 							if (useNewestVersion(oldCell, newVers))		// CHANGES DATABASE
 							{
-								Job.getUserInterface().showErrorMessage(
-									"Error replacing instances of cell " + oldCell.describe(false),
-									"Check Out Error");
+								System.out.println("Error replacing instances of cell " + oldCell.describe(false));
 								setChangeStatus(false);
 								continue;
 							}
-							pl.byCell.remove(oldCell);
-							pc.cell = newVers;
-							pl.byCell.put(newVers, pc);
+							pl.ignoreCell(oldCell);
+							pl.linkProjectCellToCell(pc, newVers);
 							markLocked(newVers, false);		// CHANGES DATABASE
 						} else
 						{
 							// the cell never existed before: create it
 							Cell newVers = Cell.makeInstance(lib, newName);
-							pl.byCell.remove(oldCell);
-							pc.cell = newVers;
-							pl.byCell.put(newVers, pc);
+							pl.linkProjectCellToCell(pc, newVers);
 						}
 						setChangeStatus(false);
 					}
@@ -3406,9 +2468,9 @@ public class Project extends Listener
 		for(String cellName : versionToGet.keySet())
 		{
 			ProjectCell pc = (ProjectCell)versionToGet.get(cellName);
-			Cell oldCellAny = pl.lib.findNodeProto(pc.describe());
-			Cell oldCell = pl.lib.findNodeProto(pc.describeWithVersion());
-			if (oldCellAny != null && oldCellAny.getVersion() > pc.cellVersion)
+			Cell oldCellAny = pl.getLibrary().findNodeProto(pc.describe());
+			Cell oldCell = pl.getLibrary().findNodeProto(pc.describeWithVersion());
+			if (oldCellAny != null && oldCellAny.getVersion() > pc.getVersion())
 				System.out.println("WARNING: " + oldCellAny + " is newer than what is in the repository.  Updating it from the repository version");
 			if (oldCell == null) updatedProjectCells.add(pc);
 		}
@@ -3420,20 +2482,20 @@ public class Project extends Listener
 	 * If subcells need to be updated first, that will happen.
 	 * @return the number of cells that were updated.
 	 */
-	private static int updateCellFromRepository(ProjectCell pc, List<ProjectCell> updatedProjectCells)
+	private static int updateCellFromRepository(ProjectDB pdb, ProjectCell pc, List<ProjectCell> updatedProjectCells)
 	{
-		ProjectLibrary pl = pc.projLib;
-		Library lib = pl.lib;
+		ProjectLibrary pl = pc.getProjectLibrary();
+		Library lib = pl.getLibrary();
 		Cell oldCell = lib.findNodeProto(pc.describe());
 		Cell newCell = null;
 
 		// read the library with the new cell
 		int total = 0;
-		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
-			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
+		String libName = pl.getProjectDirectory() + File.separator + pc.getCellName() + File.separator + pc.getVersion() + "-" +
+			pc.getView().getFullName() + "." + pc.getLibExtension();
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
@@ -3448,7 +2510,7 @@ public class Project extends Listener
 					NodeInst ni = it.next();
 					NodeProto np = ni.getProto();
 					nodePrototypes.put(ni, np);
-					if (!(np instanceof Cell)) continue;
+					if (!ni.isCellInstance()) continue;
 					Cell subCell = (Cell)np;
 					if (subCell.getView().isTextView()) continue;
 					Library subLib = lib;
@@ -3473,7 +2535,7 @@ public class Project extends Listener
 							} else
 							{
 								subLib.newVar(PROJPATHKEY, projFile);
-								ProjectLibrary subPL = ProjectLibrary.findProjectLibrary(subLib);
+								ProjectLibrary subPL = pdb.findProjectLibrary(subLib);
 
 								// get all recent cells
 								addNewProjectCells(subPL, updatedProjectCells);
@@ -3484,21 +2546,21 @@ public class Project extends Listener
 					Cell foundSubCell = subLib.findNodeProto(subCellName);
 					if (foundSubCell == null)
 					{
-						ProjectLibrary subPL = ProjectLibrary.findProjectLibrary(subLib);
+						ProjectLibrary subPL = pdb.findProjectLibrary(subLib);
 						ProjectCell subCellPC = subPL.findProjectCellByNameViewVersion(subCell.getName(), subCell.getView(), subCell.getVersion());
 						if (subCellPC != null)
 						{
-							if (subCellPC.cell != null)
+							if (subCellPC.getCell() != null)
 							{
 								System.out.println("ERROR: cell " + subCellName + " does not exist, but it appears as " +
-									subCellPC.cell);
+									subCellPC.getCell());
 							}
 							if (!updatedProjectCells.contains(subCellPC))
 							{
 								System.out.println("ERROR: cell " + subCellName + " needs to be updated but isn't in the list");
 							}
-							total += updateCellFromRepository(subCellPC, updatedProjectCells);
-							foundSubCell = subCellPC.cell;
+							total += updateCellFromRepository(pdb, subCellPC, updatedProjectCells);
+							foundSubCell = subCellPC.getCell();
 						}
 					}
 					nodePrototypes.put(ni, foundSubCell);
@@ -3516,8 +2578,7 @@ public class Project extends Listener
 		// return the new cell
 		if (newCell != null)
 		{
-			pc.cell = newCell;
-			pl.byCell.put(newCell, pc);
+			pl.linkProjectCellToCell(pc, newCell);
 			if (oldCell != null)
 			{
 				if (useNewestVersion(oldCell, newCell))		// CHANGES DATABASE
@@ -3527,7 +2588,7 @@ public class Project extends Listener
 				{
 					System.out.println("Updated " + newCell);
 				}
-				pl.byCell.remove(oldCell);
+				pl.ignoreCell(oldCell);
 			} else
 			{
 				System.out.println("Added new " + newCell);
@@ -3576,12 +2637,6 @@ public class Project extends Listener
 			}
 		}
 
-		// update explorer tree
-		SwingUtilities.invokeLater(new Runnable()
-		{
-			public void run() { WindowFrame.wantToRedoLibraryTree(); }
-		});
-
 		// replace library references
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -3603,7 +2658,7 @@ public class Project extends Listener
 	 */
 	private static boolean writeCell(Cell cell, ProjectCell pc)
 	{
-		String dirName = pc.projLib.projDirectory + File.separator + cell.getName();
+		String dirName = pc.getProjectLibrary().getProjectDirectory() + File.separator + cell.getName();
 		File dir = new File(dirName);
 		if (!dir.exists())
 		{
@@ -3633,7 +2688,7 @@ public class Project extends Listener
 
 		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
-		boolean error = Output.writeLibrary(fLib, pc.libType, false, true);
+		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true);
 		if (error)
 		{
 			System.out.println("Could not save library with " + cell + " in it");
@@ -3671,13 +2726,12 @@ public class Project extends Listener
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			nodePrototypes.put(ni, np);
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 			Cell cell = (Cell)np;
 			if (cell.getView().isTextView()) continue;
 
 			// get proper subcell name
-			String subCellName = cell.getName() + ";" + cell.getVersion() + "{" +  cell.getView().getAbbreviation() + "}";
-//			String subCellName = cell.noLibDescribe();
+			String subCellName = describeFullCellName(cell);
 			if (cell.getLibrary() != fromCell.getLibrary())
 				subCellName = cell.getLibrary().getName() + "__" + subCellName;
 
@@ -3714,32 +2768,6 @@ public class Project extends Listener
 		if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
 		return cellName;
 	}
-
-	/**
-	 * Class to sort project cells.
-	 */
-    private static class OrderedProjectCells implements Comparator<ProjectCell>
-    {
-        public int compare(ProjectCell pc1, ProjectCell pc2)
-        {
-        	int diff = pc1.cellName.compareTo(pc2.cellName);
-        	if (diff != 0) return diff;
-        	diff = pc1.cellView.getFullName().compareTo(pc2.cellView.getFullName());
-        	if (diff != 0) return diff;
-        	return pc1.cellVersion - pc2.cellVersion;
-        }
-    }
-
-	/**
-	 * Class to sort project cells by reverse version number.
-	 */
-    private static class ProjectCellByVersion implements Comparator<ProjectCell>
-    {
-        public int compare(ProjectCell pc1, ProjectCell pc2)
-        {
-        	return pc2.cellVersion - pc1.cellVersion;
-        }
-    }
 
 	private static final int ROTORSZ = 256;		/* a power of two */
 	private static final int MASK =   (ROTORSZ-1);
@@ -3877,7 +2905,7 @@ public class Project extends Listener
 		boolean alter = getRepositoryLocation().length() > 0;
 		cacheRepositoryLocation.setString(r);
 		usersMap = null;
-		if (alter) libraryProjectInfo.clear();
+		if (alter) projectDB.clearDatabase();
 	}
 
 	private static Pref cacheAuthorizationPassword = Pref.makeStringPref("e", tool.prefs, "e");
