@@ -238,6 +238,7 @@ public class Pref
 			System.out.println("Importing preferences...");
 
 			// reset all preferences to factory values
+			delayPrefFlushing();
 			for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
 			{
 				Pref pref = (Pref)it.next();
@@ -265,6 +266,7 @@ public class Pref
 						break;
 				}
 			}
+			resumePrefFlushing();
 
 			// import preferences
 			Preferences.importPreferences(inputStream);

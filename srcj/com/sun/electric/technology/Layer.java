@@ -639,6 +639,7 @@ public class Layer
 	 */
 	public static void preserveVisibility()
 	{
+		Pref.delayPrefFlushing();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -654,6 +655,7 @@ public class Layer
 				}
 			}
 		}
+		Pref.resumePrefFlushing();
 	}
 
 	/**

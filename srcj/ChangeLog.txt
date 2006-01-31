@@ -11,7 +11,8 @@ BUG: (1/30/06, SMR) When global text is scaled, small text is still not displaye
 FIX: In VectorDrawing.drawList(), account for global scale when clipping text.
 
 IMP: (1/30/06, SMR) Added Pref methods "delayPrefFlushing()" and "resumePrefFlushing()"
-     to speed up bulk preference changes.
+     to speed up bulk preference changes.  Used in WaveformWindow.preserveSignalOrder(),
+     Layer.preserveVisibility(), Pref.importPrefs(), Pref.finishPrefReconcilation(). 
 
 BUG: (1/30/06, SMR) Saved error logs do not read back in.
 FIX: Adjusted parsing to match new output.

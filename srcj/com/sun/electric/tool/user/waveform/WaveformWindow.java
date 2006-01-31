@@ -2859,6 +2859,7 @@ if (wp.getSignalButtons() != null)
 	 */
 	public static void preserveSignalOrder()
 	{
+		Pref.delayPrefFlushing();
 		for(String cellName : savedSignalOrder.keySet())
 		{
 			String savedOrder = (String)savedSignalOrder.get(cellName);
@@ -2870,6 +2871,7 @@ if (wp.getSignalButtons() != null)
 			Pref savedSignalPref = Pref.makeStringPref("SavedSignalsForCell" + cellName, lib.getPrefs(), "");
 			savedSignalPref.setString(savedOrder);
 		}
+		Pref.resumePrefFlushing();
 	}
 
 	/**
