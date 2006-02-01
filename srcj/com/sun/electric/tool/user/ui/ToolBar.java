@@ -444,8 +444,15 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.add(unExpandButton);
 
 		// return the toolbar
+        toolbar.setFocusable(false);
 		return toolbar;
 	}
+
+    public Component add(Component comp) {
+        super.add(comp);
+        comp.setFocusable(false);
+        return comp;
+    }
 
     // ------------------------------------------------------------------------------------
 
