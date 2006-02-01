@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.TextWindow;
 
 import java.awt.geom.Point2D;
 import java.util.List;

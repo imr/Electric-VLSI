@@ -23,45 +23,17 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.EJob.State;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
-import java.awt.geom.Point2D;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
