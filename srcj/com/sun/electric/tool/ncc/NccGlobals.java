@@ -103,13 +103,13 @@ public class NccGlobals {
 	
 	private void countNetObjs(int[] counts, Iterator<EquivRecord> it) {
 		while (it.hasNext()) {
-			EquivRecord er = (EquivRecord) it.next();
+			EquivRecord er = it.next();
 			error(!er.isLeaf(), "Must be leaf");
 			int numCkts = er.numCircuits();
 			error(counts.length!=numCkts, "different number of Circuits");
 			Iterator<Circuit> it2 = er.getCircuits();
 			for (int i=0; i<numCkts; i++) {
-				counts[i] += ((Circuit) it2.next()).numNetObjs(); 
+				counts[i] += it2.next().numNetObjs(); 
 			}
 		}
 	}
@@ -124,8 +124,7 @@ public class NccGlobals {
 	private EquivRecord buildEquivRec(int code, List<NccNetlist> nccNets) {
 		boolean atLeastOneNetObj = false;
 		List<Circuit> ckts = new ArrayList<Circuit>();
-		for (Iterator<NccNetlist> it=nccNets.iterator(); it.hasNext();) {
-			NccNetlist nets = (NccNetlist) it.next();
+		for (NccNetlist nets : nccNets) {
 			List<NetObject> netObjs = getNetObjs(code, nets);
 			if (netObjs.size()!=0)  atLeastOneNetObj = true;
 			ckts.add(Circuit.please(netObjs));
@@ -165,7 +164,7 @@ public class NccGlobals {
 		cantBuildNetlist = new boolean[nccNets.size()];
 		int i=0;
 		for (Iterator<NccNetlist> it=nccNets.iterator(); it.hasNext(); i++) {
-			NccNetlist nl = (NccNetlist) it.next();
+			NccNetlist nl = it.next();
 			rootCells[i] = nl.getRootCell();
 			rootContexts[i] = nl.getRootContext();
             cantBuildNetlist[i] = nl.cantBuildNetlist();
@@ -228,10 +227,10 @@ public class NccGlobals {
 		}
 		int wireNdx = 0;
 		for (Iterator<EquivRecord> it=wireLeafRecs.getMatched(); it.hasNext(); wireNdx++) {
-			EquivRecord er = (EquivRecord) it.next();
+			EquivRecord er = it.next();
 			int cktNdx = 0;
 			for (Iterator<Circuit> cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
-				Circuit ckt = (Circuit) cit.next();
+				Circuit ckt = cit.next();
 				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
 				Wire w = (Wire) ckt.getNetObjs().next();
 				equivNets[cktNdx][wireNdx] = w.getNameProxy().getNetNameProxy();

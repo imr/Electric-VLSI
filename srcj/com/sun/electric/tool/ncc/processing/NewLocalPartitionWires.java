@@ -93,9 +93,8 @@ public class NewLocalPartitionWires {
 		private Integer id;
 		private List<PinTypeCount> getListOfPinTypeCounts() {
 			List<PinTypeCount> l = new ArrayList<PinTypeCount>();
-			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
-			     it.hasNext();) {
-				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(it.next());
+			for (PinType t : pinTypeToPinTypeCount.keySet()) {
+				PinTypeCount c = pinTypeToPinTypeCount.get(t);
 				l.add(c);
 			}
 			return l;
@@ -103,10 +102,8 @@ public class NewLocalPartitionWires {
 		
 		public int hashCode() {
 			int code = 0;
-			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
-				 it.hasNext();) {
-				PinType t = (PinType) it.next();
-				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(t);
+			for (PinType t : pinTypeToPinTypeCount.keySet()) {
+				PinTypeCount c = pinTypeToPinTypeCount.get(t);
 				code += t.hashCode() + c.hashCode();
 			}
 			return code; 
@@ -116,18 +113,16 @@ public class NewLocalPartitionWires {
 			Signature s2 = (Signature) o;
 			if (pinTypeToPinTypeCount.size()!=s2.pinTypeToPinTypeCount.size())
 				return false;
-			for (Iterator<PinType> it=pinTypeToPinTypeCount.keySet().iterator(); 
-			     it.hasNext();) {
-				PinType t = (PinType) it.next();
-				PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(t);
-				PinTypeCount c2 = (PinTypeCount) s2.pinTypeToPinTypeCount.get(t);
+			for (PinType t : pinTypeToPinTypeCount.keySet()) {
+				PinTypeCount c = pinTypeToPinTypeCount.get(t);
+				PinTypeCount c2 = s2.pinTypeToPinTypeCount.get(t);
 				if (!c.equals(c2)) return false;
 			}
 			return true;
 		}
 		
 		public void increment(PinType t) {
-			PinTypeCount c = (PinTypeCount) pinTypeToPinTypeCount.get(t);
+			PinTypeCount c = pinTypeToPinTypeCount.get(t);
 			if (c==null) {
 				c = new PinTypeCount(t);
 				pinTypeToPinTypeCount.put(t, c);
@@ -149,8 +144,8 @@ public class NewLocalPartitionWires {
 			if (pinTypeCounts.size()==0) {
 				pinTypeDescrs.add("disconnected");
 			} else {
-				for (Iterator<PinTypeCount> it=pinTypeCounts.iterator(); it.hasNext();) {
-					String descr = ((PinTypeCount) it.next()).description();
+				for (PinTypeCount t : pinTypeCounts) {
+					String descr = t.description();
 					pinTypeDescrs.add(descr);
 				}
 			}
@@ -173,9 +168,9 @@ public class NewLocalPartitionWires {
 		private void doFor(Part p) {
 			int pinNdx=0;
 			for (Iterator<Wire> itw=p.getConnected(); itw.hasNext(); pinNdx++) {
-				Wire w = (Wire) itw.next();
+				Wire w = itw.next();
 				PinType t = p.getPinTypeOfNthPin(pinNdx);
-				Signature s = (Signature) wireToSignature.get(w);
+				Signature s = wireToSignature.get(w);
 				if (s==null) {
 					s = new Signature();
 					wireToSignature.put(w, s);
@@ -215,11 +210,10 @@ public class NewLocalPartitionWires {
 	private void cannonizeSignatures(Map<Wire,Signature> wireToSignature) {
 		Map<Signature,Signature> signatures = new HashMap<Signature,Signature>();
 		int sigID = 0;
-		for (Iterator<Wire> it=wireToSignature.keySet().iterator(); it.hasNext();) {
-			Wire w = (Wire) it.next();
-			Signature s = (Signature) wireToSignature.get(w);
+		for (Wire w : wireToSignature.keySet()) {
+			Signature s = wireToSignature.get(w);
 
-			Signature cannonicalS = (Signature) signatures.get(s);
+			Signature cannonicalS = signatures.get(s);
 			if (cannonicalS==null) {
 				cannonicalS = s;
 				signatures.put(cannonicalS, cannonicalS);
@@ -240,7 +234,7 @@ public class NewLocalPartitionWires {
 		
 		public Integer doFor(NetObject o) {
 			Wire w = (Wire) o;
-			Signature s = (Signature) wireToSignature.get(w);
+			Signature s = wireToSignature.get(w);
 			return s.getID();
 		}
 		
@@ -262,7 +256,7 @@ public class NewLocalPartitionWires {
 			return l;
 		}
 		public Integer doFor(NetObject no) {
-			lastSignature = (Signature) wireToSignature.get(no); 
+			lastSignature = wireToSignature.get(no); 
 			return Strategy.CODE_NO_CHANGE;
 		}
 		private SignPartitions(Map<Wire,Signature> wireToSignature, NccGlobals globs) {

@@ -95,9 +95,8 @@ public class NewCell extends EDialog
         View defaultView = View.LAYOUT;
         if (curTech == Schematics.tech) defaultView = View.SCHEMATIC;
         else if (curTech == Artwork.tech) defaultView = View.ICON;
-		for (Iterator<View> it = View.getOrderedViews().iterator(); it.hasNext(); )
+		for (View v : View.getOrderedViews())
 		{
-			View v = (View)it.next();
             ViewTechOption option = new ViewTechOption(v, null);
 			viewModel.addElement(option);
             if (v == defaultView) theViewOption = option;
@@ -114,7 +113,7 @@ public class NewCell extends EDialog
         // Choosen appropiate technology
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
         {
-            Technology tech = (Technology)it.next();
+            Technology tech = it.next();
             if (tech != Schematics.tech && tech != Artwork.tech)
             {
                 ViewTechOption option = new ViewTechOption(null, tech);
@@ -138,10 +137,8 @@ public class NewCell extends EDialog
 
 		// make a popup of libraries
 		List<Library> libList = Library.getVisibleLibraries();
-		/*for(Library lib: libList) library.addItem(lib.getName());*/
-		for (Iterator<Library> it = libList.iterator(); it.hasNext(); )
+		for (Library lib : libList)
 		{
-			Library lib = (Library)it.next();
 			library.addItem(lib.getName());
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());

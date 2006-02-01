@@ -69,21 +69,21 @@ public class NccBottomUp {
 	 * will be easier for the user to understand. */
 	private CellContext selectAndRemoveReferenceCellContext(List<CellContext> cellCtxts) {
 		for (Iterator<CellContext> it=cellCtxts.iterator(); it.hasNext();) {
-			CellContext cc = (CellContext) it.next();
+			CellContext cc = it.next();
 			if (cc.cell.isSchematic()) {
 				it.remove();
 				return cc;
 			}
 		}
 		Iterator<CellContext> it=cellCtxts.iterator(); 
-		CellContext refCell = (CellContext) it.next();
+		CellContext refCell = it.next();
 		it.remove();
 		return refCell;
 	}
 
 	private boolean hasBlackBoxAnnotation(CompareList compareList) {
 		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) {
-			Cell c = ((CellContext) it.next()).cell;
+			Cell c = it.next().cell;
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
 			String reason = ann.getBlackBoxReason(); 
@@ -132,12 +132,12 @@ public class NccBottomUp {
 		// detection
 		Set<Cell> compareListCells = new HashSet<Cell>();
 		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) { 
-			CellContext cc = (CellContext) it.next();
+			CellContext cc = it.next();
 		    cellCntxts.add(cc);
 		    compareListCells.add(cc.cell);
 		}
 
-		Cell cell = ((CellContext)cellCntxts.iterator().next()).cell;
+		Cell cell = cellCntxts.iterator().next().cell;
 		String grpNm = cell.getLibrary().getName()+":"+cell.getName();
 
 		hierInfo.beginNextCompareList(grpNm);
@@ -148,8 +148,7 @@ public class NccBottomUp {
 
 		NccResult result = new NccResult(true, true, true, null);
 		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
-		for (Iterator<CellContext> it=cellCntxts.iterator(); it.hasNext();) {
-			CellContext thisCC = (CellContext) it.next();
+		for (CellContext thisCC : cellCntxts) {
 			if (blackBoxAnn || 
 			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
 				if (hierInfo==null) continue;
@@ -180,8 +179,8 @@ public class NccBottomUp {
 	}
 	
 	private boolean hasNotSubcircuitAnnotation(List<CellContext> cellContextsInGroup) {
-		for (Iterator<CellContext> it=cellContextsInGroup.iterator(); it.hasNext();) {
-			Cell c = ((CellContext) it.next()).cell;
+		for (CellContext cc : cellContextsInGroup) {
+			Cell c = cc.cell;
 			NccCellAnnotations anns = NccCellAnnotations.getAnnotations(c);
 			if (anns==null) continue;
 			String notSubcktReason = anns.getNotSubcircuitReason();
@@ -201,7 +200,7 @@ public class NccBottomUp {
 		NccResult result = new NccResult(true, true, true, null);
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator<CompareList> it=compareLists.iterator(); it.hasNext();) {
-			CompareList compareList = (CompareList) it.next();
+			CompareList compareList = it.next();
 
 			boolean blackBoxAnn = hasBlackBoxAnnotation(compareList);
 

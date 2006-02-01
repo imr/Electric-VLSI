@@ -232,7 +232,7 @@ public class OptionReconcile extends EDialog
 		for(JRadioButton cb : changedOptions.keySet())
 		{
 			if (!cb.isSelected()) continue;
-			Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
+			Pref.Meaning meaning = changedOptions.get(cb);
             meaningsToReconcile.add(meaning);
 		}
         Pref.finishPrefReconcilation(meaningsToReconcile);
@@ -263,7 +263,7 @@ public class OptionReconcile extends EDialog
 //			{
 //				JRadioButton cb = it.next();
 //				if (!cb.isSelected()) continue;
-//				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
+//				Pref.Meaning meaning = changedOptions.get(cb);
 //                meaningsToReconcile.add(meaning);
 //			}
 //            Pref.finishPrefReconcilation(meaningsToReconcile);

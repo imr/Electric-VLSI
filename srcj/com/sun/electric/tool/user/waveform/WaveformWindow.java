@@ -942,7 +942,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			if (wavePanels.size() > 0)
 			{
-				Panel aPanel = (Panel)wavePanels.get(0);
+				Panel aPanel = wavePanels.get(0);
 				lowXValue = aPanel.getMinXAxis();
 				highXValue = aPanel.getMaxXAxis();
 			}
@@ -2119,7 +2119,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
 		for(Signal sSig : found)
 		{
-			Object treeNode = (Object)treeNodeFromSignal.get(sSig);
+			Object treeNode = treeNodeFromSignal.get(sSig);
 			if (treeNode != null)
 			{
 				if (treeNode instanceof DefaultMutableTreeNode)
@@ -2148,7 +2148,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (highlightedObjects.size() == 1)
 		{
 			// if a node is highlighted that has current measured on it, use that
-			Geometric geom = (Geometric)highlightedObjects.get(0);
+			Geometric geom = highlightedObjects.get(0);
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
@@ -2393,7 +2393,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 
 			if (net == null) continue;
-			Integer state = (Integer)netValues.get(net);
+			Integer state = netValues.get(net);
 			if (state == null) continue;
 			Color col = getHighlightColor(state.intValue());
 			schemWnd.addCrossProbeBox(ni.getBounds(), col);
@@ -2409,7 +2409,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(int i=0; i<width; i++)
 			{
 				Network net = netlist.getNetwork(ai, i);
-				Integer state = (Integer)netValues.get(net);
+				Integer state = netValues.get(net);
 				if (state == null) continue;
 				Color col = getHighlightColor(state.intValue());
 				schemWnd.addCrossProbeLine(ai.getHeadLocation(), ai.getTailLocation(), col);
@@ -2527,7 +2527,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					List<Signal> inBus = ss.getBussedSignals();
 					for(int b=0; b<inBus.size(); b++)
 					{
-						Signal subDS = (Signal)inBus.get(b);
+						Signal subDS = inBus.get(b);
 						String oldSigName = subDS.getFullName();
 						Signal newBus = null;
 						for(Signal newSs :  an.getSignals() )
@@ -2862,7 +2862,7 @@ if (wp.getSignalButtons() != null)
 		Pref.delayPrefFlushing();
 		for(String cellName : savedSignalOrder.keySet())
 		{
-			String savedOrder = (String)savedSignalOrder.get(cellName);
+			String savedOrder = savedSignalOrder.get(cellName);
 			int colonPos = cellName.indexOf(':');
 			if (colonPos < 0) continue;
 			Library lib = Library.findLibrary(cellName.substring(0, colonPos));
@@ -2882,7 +2882,7 @@ if (wp.getSignalButtons() != null)
 	 */
 	public static String [] getSignalOrder(Cell cell)
 	{
-		String savedOrder = (String)savedSignalOrder.get(cell.getLibrary().getName() + ":" + cell.getName());
+		String savedOrder = savedSignalOrder.get(cell.getLibrary().getName() + ":" + cell.getName());
 		if (savedOrder == null)
 		{
 			Pref savedSignalPref = Pref.makeStringPref("SavedSignalsForCell" + cell.getName(), cell.getLibrary().getPrefs(), "");

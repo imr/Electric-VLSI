@@ -325,7 +325,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			// only 1 cell-center is allowed: check for others
 			for(Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
 			{
-				NodeInst oNi = (NodeInst)it.next();
+				NodeInst oNi = it.next();
 				if (oNi.getProto() == Generic.tech.cellCenterNode)
 				{
 					System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
@@ -385,7 +385,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		// kill the arcs attached to the connections.  This will also remove the connections themselves
 		while (connections.size() > 0)
 		{
-			Connection con = (Connection)connections.get(connections.size() - 1);
+			Connection con = connections.get(connections.size() - 1);
 			con.getArc().kill();
 		}
 
@@ -464,7 +464,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         
 //        // change the coordinates of every arc end connected to this
 //        for(Iterator<Connection> it = getConnections(); it.hasNext(); ) {
-//            Connection con = (Connection)it.next();
+//            Connection con = it.next();
 //            if (con.getPortInst().getNodeInst() == this) {
 //                Point2D oldLocation = con.getLocation();
 //                switch (con.getEndIndex()) {
@@ -580,7 +580,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		int arcCount = 0;
 		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 
 			// make sure there is an association for this port
 			int index = 0;
@@ -622,7 +622,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		// see if the old exports have the same connections
 		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 
 			// make sure there is an association for this port
 			int index = 0;
@@ -649,9 +649,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		List<Connection> arcList = new ArrayList<Connection>();
 		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 			arcList.add(it.next());
-		for(Iterator<Connection> it = arcList.iterator(); it.hasNext(); )
+		for(Connection con : arcList)
 		{
-			Connection con = (Connection)it.next();
 			int index = 0;
 			for( ; index<oldAssoc.length; index++)
 				if (oldAssoc[index].portInst == con.getPortInst()) break;
@@ -739,7 +738,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 					boolean adjustable = true;
 					for(Iterator<Connection> oIt = adjustThisNode.getConnections(); oIt.hasNext(); )
 					{
-						Connection otherCon = (Connection)oIt.next();
+						Connection otherCon = oIt.next();
 						ArcInst otherArc = otherCon.getArc();
 						if (otherArc == ai) continue;
 						if (otherArc.isRigid()) { adjustable = false;   break; }
@@ -836,9 +835,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		{
 			exportList.add(it.next());
 		}
-		for(Iterator<Export> it = exportList.iterator(); it.hasNext(); )
+		for(Export pp : exportList)
 		{
-			Export pp = (Export)it.next();
 			int index = 0;
 			for( ; index<oldAssoc.length; index++)
 				if (oldAssoc[index].portInst == pp.getOriginalPort()) break;
@@ -1227,7 +1225,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			numExports = getNumExports();
 			for(Iterator<Export> it = getExports(); it.hasNext(); )
 			{
-				Export pp = (Export)it.next();
+				Export pp = it.next();
 				numExportVariables += pp.numDisplayableVariables(false);
 			}
 		}
@@ -1271,7 +1269,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			AffineTransform unTrans = rotateIn();
 			for(Iterator<Export> it = getExports(); it.hasNext(); )
 			{
-				Export pp = (Export)it.next();
+				Export pp = it.next();
 				polys[start] = pp.getNamePoly();
 				polys[start].transform(unTrans);
 				start++;
@@ -1352,7 +1350,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
         // get all parameters on this object
         for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = (Variable)it.next();
+            Variable v = it.next();
             if (!isParam(v.getKey())) continue;
             keysToVars.put(v.getKey(), v);
         }
@@ -1360,7 +1358,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         Cell defOwner = getVarDefaultOwner();
         if (defOwner != null) {
             for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
-                Variable v = (Variable)it.next();
+                Variable v = it.next();
                 if (keysToVars.get(v.getKey()) == null)
                     keysToVars.put(v.getKey(), v);
             }
@@ -1416,7 +1414,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
-			PortInst pi = (PortInst)it.next();
+			PortInst pi = it.next();
 			numVarsOnNode += pi.numDisplayableVariables(multipleStrings);
 		}
 		return numVarsOnNode;
@@ -1471,7 +1469,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		for(Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
 		{
-			PortInst pi = (PortInst)it.next();
+			PortInst pi = it.next();
 			int justAdded = pi.addDisplayableVariables(rect, polys, start+numAddedVariables, wnd, multipleStrings);
 			for(int i=0; i<justAdded; i++)
 				polys[start+numAddedVariables+i].setPort(pi.getPortProto());
@@ -2015,14 +2013,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         ArrayList<Connection> savedConnections = new ArrayList<Connection>();
         for (Iterator<Connection> it = connections.iterator(); it.hasNext(); ) {
-            Connection con = (Connection)it.next();
+            Connection con = it.next();
             if (con.getPortInst().getPortProto() == pp) {
                 savedConnections.add(con);
                 it.remove();
             }
         }
         for (int i = 0; i < savedConnections.size(); i++) {
-            Connection con = (Connection)savedConnections.get(i);
+            Connection con = savedConnections.get(i);
             addConnection(con);
         }
         check();
@@ -2118,7 +2116,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		int k = 0;
 		for(Iterator<PortInst> it1 = ni1.getPortInsts(); it1.hasNext(); )
 		{
-			PortInst pi1 = (PortInst)it1.next();
+			PortInst pi1 = it1.next();
 			portInfo1[k] = new PortAssociation();
 			portInfo1[k].portInst = pi1;
 			portInfo1[k].poly = pi1.getPoly();
@@ -2133,7 +2131,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		k = 0;
 		for(Iterator<PortInst> it2 = ni2.getPortInsts(); it2.hasNext(); )
 		{
-			PortInst pi2 = (PortInst)it2.next();
+			PortInst pi2 = it2.next();
 			portInfo2[k] = new PortAssociation();
 			portInfo2[k].portInst = pi2;
 			portInfo2[k].poly = pi2.getPoly();
@@ -2232,7 +2230,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		{
 			for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				ArcInst ai = con.getArc();
 				if (ai.getProto().isWipable())
 				{
@@ -2276,7 +2274,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// gather the angles of the nodes/arcs
 		for (Iterator<Connection> it = getConnections(); it.hasNext(); ) {
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 
 			// ignore zero-size arcs
@@ -2325,7 +2323,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		Point2D [] delta = new Point2D.Double[2];
 		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			if (j >= 2) { j = 0;   break; }
 			ArcInst ai = con.getArc();
 			reconAr[j] = ai;
@@ -2502,7 +2500,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		while (low <= high) {
 			int mid = (low + high) >> 1;
-			Connection con = (Connection)connections.get(mid);
+			Connection con = connections.get(mid);
 			if (con.getPortInst().getPortIndex() < portIndex)
 				low = mid + 1;
 			else
@@ -2715,7 +2713,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		// invisible: look for offset text
 		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
-			Export pp = (Export)it.next();
+			Export pp = it.next();
 			TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
 			if (td.getXOff() != 0 || td.getYOff() != 0)
 			{
@@ -2727,7 +2725,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			if (var.isDisplay() && (var.getXOff() != 0 || var.getYOff() != 0))
 			{
 				Point2D retVal = new Point2D.Double(getAnchorCenterX() + var.getXOff(), getAnchorCenterY() +var.getYOff());
@@ -3167,7 +3165,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			int foundUsage = 0;
 			for (Iterator<CellUsage> it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
 			{
-				CellUsage u = (CellUsage)it.next();
+				CellUsage u = it.next();
 				if (u.parentId == parent.getId()) foundUsage++;
 			}
 			assert foundUsage == 1;
@@ -3186,7 +3184,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         
         int lastPortIndex = -1;
         for (int i = 0; i < connections.size(); i++) {
-            Connection con = (Connection)connections.get(i);
+            Connection con = connections.get(i);
             PortInst pi = con.getPortInst();
             assert pi.getNodeInst() == this;
             int portIndex = pi.getPortIndex();
@@ -3479,11 +3477,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         for (Iterator<PortInst> it = getPortInsts(); it.hasNext(); )
         {
             boolean found = false;
-            PortInst port = (PortInst)it.next();
+            PortInst port = it.next();
 
             for (Iterator<PortInst> i = no.getPortInsts(); i.hasNext();)
             {
-                PortInst p = (PortInst)i.next();
+                PortInst p = i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 
@@ -3507,12 +3505,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         noCheckAgain.clear();
 		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
-			Export export = (Export)it.next();
+			Export export = it.next();
             boolean found = false;
 
             for (Iterator<Export> i = no.getExports(); i.hasNext();)
             {
-                Export p = (Export)i.next();
+                Export p = i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 
@@ -3535,12 +3533,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         noCheckAgain.clear();
 		for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
             boolean found = false;
 
             for (Iterator<Variable> i = no.getVariables(); i.hasNext();)
             {
-                Variable p = (Variable)i.next();
+                Variable p = i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 

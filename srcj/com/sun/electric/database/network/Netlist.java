@@ -204,7 +204,7 @@ public class Netlist
 //        Netlist netlist = NetworkTool.getUserNetlist(parent);
         for (Iterator<Nodable> it = netCell.getNodables(); it.hasNext(); ) {
 //        for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
+            Nodable no = it.next();
             if (no.contains(ni, arrayIndex)) return no;
         }
         return null;
@@ -228,7 +228,7 @@ public class Netlist
 	public Netlist getNetlist(Nodable no) {
 		if (!no.isCellInstance()) return null;
         return NetworkTool.getNetCell((Cell)no.getProto()).getNetlist(shortResistors);
-//		return (Netlist)subNetlists.get(no.getProto());
+//		return subNetlists.get(no.getProto());
 	}
 
 	/**

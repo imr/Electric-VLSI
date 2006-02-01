@@ -68,7 +68,7 @@ public class Wire extends NetObject{
     public void putInFinalForm() {
     	Set<Part> goodParts = new HashSet<Part>();
     	for (Iterator<Part> it=getParts(); it.hasNext();) {
-    		Part p = (Part) it.next();
+    		Part p = it.next();
     		if (!p.isDeleted())  goodParts.add(p);
     	}
     	parts = new ArrayList<Part>();
@@ -92,7 +92,7 @@ public class Wire extends NetObject{
     public void checkMe(Circuit parent){
     	error(getParent()!=parent, "wrong parent");
         for (Iterator<Part> it=getParts(); it.hasNext();) {
-            NetObject nn=(NetObject)it.next();
+            NetObject nn=it.next();
             error(!(nn instanceof Part), "expecting only parts");
             Part pp=(Part)nn;
             error(pp.numPinsConnected(this)==0, 
@@ -110,7 +110,7 @@ public class Wire extends NetObject{
     public Integer computeHashCode(){
         int sum= 0;
         for (Iterator<Part> it=getParts(); it.hasNext();) {
-            Part pp= (Part) it.next();
+            Part pp= it.next();
             sum += pp.getHashFor(this);
         }
         return new Integer(sum);
@@ -142,7 +142,7 @@ public class Wire extends NetObject{
         
 		int i=0;
         for (Iterator<Part> it=getParts(); it.hasNext() && i<maxParts; i++){
-            Part p = (Part)it.next();
+            Part p = it.next();
             String cc = p.instanceDescription();
             s += " (" + cc + " Port: " + p.connectionDescription(this)+") ";
         }

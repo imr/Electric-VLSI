@@ -188,7 +188,7 @@ public class WindowFrame extends Observable
 	{
         for(Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
             wf.setChanged();
             wf.notifyObservers(wf.getContent());
             wf.clearChanged();
@@ -225,7 +225,7 @@ public class WindowFrame extends Observable
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			wf.paletteTab.loadTechnologies(false);
 			wf.layersTab.loadTechnologies(false);
 		}
@@ -553,7 +553,7 @@ public class WindowFrame extends Observable
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			wf.openLibraryInExplorerTree(Library.getCurrent(), new TreePath(wf.rootNode), openLib);
 		}
 	}
@@ -602,7 +602,7 @@ public class WindowFrame extends Observable
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			wf.wantToRedoLibraryTree = true;
             wf.redoExplorerTreeIfRequested();
 		}
@@ -618,7 +618,7 @@ public class WindowFrame extends Observable
         }
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			wf.wantToRedoJobTree = true;
             wf.redoExplorerTreeIfRequested();
 		}
@@ -634,7 +634,7 @@ public class WindowFrame extends Observable
         }
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
             wf.wantToRedoErrorTree = true;
             wf.redoExplorerTreeIfRequested();
 		}
@@ -798,9 +798,9 @@ public class WindowFrame extends Observable
     public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
         synchronized(windowList) {
             if ((curWindowFrame == null) && makeNewFrame) {
-                for (Iterator<WindowFrame> it = windowList.iterator(); it.hasNext(); ) {
+                for (WindowFrame wf : windowList) {
                     // get last in list
-                    curWindowFrame = (WindowFrame)it.next();
+                    curWindowFrame = wf;
                 }
                 if (curWindowFrame == null)
                     curWindowFrame = createEditWindow(null);
@@ -872,7 +872,7 @@ public class WindowFrame extends Observable
 	{
 		for (Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			Cell cell = content.getCell();
 			if (cell != null && cell.getLibrary() == lib)
@@ -956,7 +956,7 @@ public class WindowFrame extends Observable
 		// rebuild window titles
 		for (Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{
-			WindowFrame w = (WindowFrame)it.next();
+			WindowFrame w = it.next();
 			WindowContent content = w.getContent();
 
 			if (content != null) content.setWindowTitle();
@@ -1213,12 +1213,12 @@ public class WindowFrame extends Observable
 
 		public void windowActivated(WindowEvent evt)
 		{
-			WindowFrame.setCurrentWindowFrame((WindowFrame)wf.get());
+			WindowFrame.setCurrentWindowFrame(wf.get());
 		}
 
 		public void windowClosing(WindowEvent evt)
 		{
-			((WindowFrame)wf.get()).finished();
+			wf.get().finished();
 		}
 	}
 
@@ -1238,12 +1238,12 @@ public class WindowFrame extends Observable
 
 		public void internalFrameClosing(InternalFrameEvent evt)
 		{
-			((WindowFrame)wf.get()).finished();
+			wf.get().finished();
 		}
 
 		public void internalFrameActivated(InternalFrameEvent evt)
 		{
-			WindowFrame.setCurrentWindowFrame((WindowFrame)wf.get());
+			WindowFrame.setCurrentWindowFrame(wf.get());
 		}
 	}
 
@@ -1256,7 +1256,7 @@ public class WindowFrame extends Observable
 
         private void updateLibraryTrees() {
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-                WindowFrame frame = (WindowFrame)it.next();
+                WindowFrame frame = it.next();
                 frame.wantToRedoLibraryTree = true;
                 frame.redoExplorerTreeIfRequested();
             }
@@ -1273,7 +1273,7 @@ public class WindowFrame extends Observable
 //             boolean changed = false;
 //             for (Iterator it = batch.getChanges(); it.hasNext(); )
 //             {
-//                 Undo.Change change = (Undo.Change)it.next();
+//                 Undo.Change change = it.next();
 //                 if (change.getType() == Undo.Type.LIBRARYKILL ||
 //                     change.getType() == Undo.Type.LIBRARYNEW ||
 //                     change.getType() == Undo.Type.CELLKILL ||

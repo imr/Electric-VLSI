@@ -89,13 +89,13 @@ public class NccBackAnnotate {
             Network layNet = equivs.equivNets[lay][i].getNet();
             String layName = layNet.getName();
 //            if (!layNet.hasNames()) continue;
-//            String layName = (String)layNet.getNames().next();
+//            String layName = layNet.getNames().next();
 
             // get sch net name
             Network schNet = equivs.equivNets[sch][i].getNet();
             String schName = schNet.getName();
 //            if (!schNet.hasNames()) continue;
-//            String schName = (String)schNet.getNames().next();
+//            String schName = schNet.getNames().next();
 
             // only back-annotate if parent cells are from same cell group
             //if (layNet.getParent().getCellGroup() != schNet.getParent().getCellGroup()) continue;
@@ -103,7 +103,7 @@ public class NccBackAnnotate {
             // debug
             System.out.print("("+layNet.getParent().describe(false)+")lay:\t"+layName+"\t("+schNet.getParent().describe(false)+")sch:");
             for (Iterator<String> it = schNet.getNames(); it.hasNext();) {
-                System.out.print("\t"+(String)it.next());
+                System.out.print("\t"+it.next());
             }
             System.out.println();
 
@@ -119,7 +119,7 @@ public class NccBackAnnotate {
             Cell layCell = layNet.getParent();
             boolean skip = false;
             for (Iterator<Network> it = layNet.getNetlist().getNetworks(); it.hasNext();) {
-                net = (Network)it.next();
+                net = it.next();
                 if (net.hasName(schName)) {
                     skip = true;
                     //System.out.println("Found name '"+schName+"' already on net in cell "+layCell.describe(true)+", layNet to backAnnotate is "+layName);
@@ -136,15 +136,14 @@ public class NccBackAnnotate {
             // name an arc on net if possible
             Iterator<ArcInst> arcIt = layNet.getArcs();
             if (arcIt.hasNext()) {
-                ArcInst ai = (ArcInst)arcIt.next();
+                ArcInst ai = arcIt.next();
                 //ai.setName(schName);
                 newArcNames.put(ai, schName);
                 System.out.println("Back-annotated in cell "+layCell.describe(true)+", net '"+layName+"' to '"+schName+"'");
                 backAnnotated.put(layCell.describe(false) + layName, layNet);
             }
         }
-        for (Iterator<Map.Entry<ArcInst,String>> it = newArcNames.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<ArcInst,String> entry = (Map.Entry<ArcInst,String>)it.next();
+        for (Map.Entry<ArcInst,String> entry : newArcNames.entrySet()) {
             ArcInst ai = (ArcInst)entry.getKey();
             String name = (String)entry.getValue();
             ai.setName(name);

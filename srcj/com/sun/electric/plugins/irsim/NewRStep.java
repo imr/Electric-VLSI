@@ -237,9 +237,8 @@ public class NewRStep extends Eval
 
 			n.getThev().setT(null);
 
-			for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
+			for(Sim.Trans t : n.nTermList)
 			{
-				Sim.Trans t = (Sim.Trans)it.next();
 				if (t.state == Sim.OFF) continue;
 
 				if ((t.tFlags & (Sim.PBROKEN | Sim.BROKEN)) == 0)
@@ -596,10 +595,8 @@ public class NewRStep extends Eval
 			case Sim.HIGH:  r.cHigh.min = r.cHigh.max = n.nCap;	break;
 		}
 
-		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
+		for(Sim.Trans t : n.nTermList)
 		{
-			Sim.Trans t = (Sim.Trans)it.next();
-
 			// ignore path going back or through a broken loop
 			if (t == tran || t.state == Sim.OFF || (t.tFlags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
@@ -990,9 +987,8 @@ public class NewRStep extends Eval
 		r.tIn = 0.0;
 		r.flags &= ~(T_DOMDRIVEN | T_INT);
 
-		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
+		for(Sim.Trans t : n.nTermList)
 		{
-			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tFlags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
 			Sim.Node  other;
@@ -1103,9 +1099,8 @@ public class NewRStep extends Eval
 
 		double taup = r.tauA * n.nCap;
 
-		for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
+		for(Sim.Trans t : n.nTermList)
 		{
-			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tFlags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
 
@@ -1150,9 +1145,8 @@ public class NewRStep extends Eval
 
 		int rType = (dom == Sim.LOW) ? Sim.R_LOW : Sim.R_HIGH;
 		float nmos = 0, pmos = 0;
-		for(Iterator<Sim.Trans> it = nd.nTermList.iterator(); it.hasNext(); )
+		for(Sim.Trans t : nd.nTermList)
 		{
-			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || (t.tFlags & Sim.BROKEN) != 0)
 				continue;
 			if (Sim.baseType(t.tType) == Sim.PCHAN)

@@ -185,9 +185,9 @@ public class Network {
     public Iterator<PortInst> getPorts() {
         ArrayList<PortInst> ports = new ArrayList<PortInst>();
         for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
-                PortInst pi = (PortInst)pit.next();
+                PortInst pi = pit.next();
                 if (netlist.getNetwork(pi) == this)
                     ports.add(pi);
             }
@@ -199,7 +199,7 @@ public class Network {
     public Iterator<Export> getExports() {
         ArrayList<Export> exports = new ArrayList<Export>();
         for (Iterator<Export> it = getParent().getExports(); it.hasNext();) {
-            Export e = (Export) it.next();
+            Export e = it.next();
             int busWidth = netlist.getBusWidth(e);
             for (int i = 0; i < busWidth; i++) {
                 if (netlist.getNetwork(e, i) == this) {
@@ -215,7 +215,7 @@ public class Network {
     public Iterator<ArcInst> getArcs() {
         ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
         for (Iterator<ArcInst> it = getParent().getArcs(); it.hasNext();) {
-            ArcInst ai = (ArcInst) it.next();
+            ArcInst ai = it.next();
             int busWidth = netlist.getBusWidth(ai);
             for (int i = 0; i < busWidth; i++) {
                 if (netlist.getNetwork(ai, i) == this) {
@@ -246,9 +246,9 @@ public class Network {
      */
     public String describe(boolean withQuotes) {
         Iterator<String> it = getNames();
-        String name = (String)it.next();
+        String name = it.next();
         while (it.hasNext())
-            name += "/" + (String)it.next();
+            name += "/" + it.next();
         if (withQuotes) name = "'"+name+"'";
         return name;
     }

@@ -68,7 +68,7 @@ public class NetPBucket implements ExtractedPBucket
             resGeom.add(layer, poly);
         else
         {
-            List<Poly> list = (List<Poly>)resSubGeom.get(layer);
+            List<Poly> list = resSubGeom.get(layer);
             if (list == null)
             {
                 list = new ArrayList<Poly>(1);
@@ -77,7 +77,7 @@ public class NetPBucket implements ExtractedPBucket
             list.add(poly);
         }
 
-        List<String> list = (List<String>)resNameMap.get(layer);
+        List<String> list = resNameMap.get(layer);
         if (list == null)
         {
             list = new ArrayList<String>(2);
@@ -117,16 +117,14 @@ public class NetPBucket implements ExtractedPBucket
         // Resistance values
         for (Iterator<Layer> it = resGeom.getKeyIterator(); it.hasNext();)
         {
-            Layer layer = (Layer)it.next();
+            Layer layer = it.next();
             Collection<PolyBase> c = resGeom.getObjects(layer, false, true);
-            List<String> nameList = (List<String>)resNameMap.get(layer);
+            List<String> nameList = resNameMap.get(layer);
             if (nameList == null || nameList.size() != 2)
                 continue;
             double value = 0;
-            for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
+            for (PolyBase poly : c)
             {
-//                PolyNodeMerge node = (PolyNodeMerge)i.next();
-                PolyBase poly = i.next(); //node.getPolygon();
                 Rectangle2D rect = ((PolyBase)poly).getBounds2D();
                 double w = rect.getWidth();
                 double h = rect.getHeight();
@@ -166,15 +164,13 @@ public class NetPBucket implements ExtractedPBucket
 
         for (Iterator<Layer> it = capMerge.getKeyIterator(); it.hasNext();)
         {
-            Layer layer = (Layer)it.next();
+            Layer layer = it.next();
             if (layer.isDiffusionLayer()) continue;      // diffusion layers included in transistors
             Collection<PolyBase> c = capMerge.getObjects(layer, false, true);
             double area = 0, perim = 0;
 
-            for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
+            for (PolyBase poly : c)
             {
-//                PolyNodeMerge node = (PolyNodeMerge)i.next();
-                PolyBase poly = i.next(); // node.getPolygon();
                 area += poly.getArea();
                 perim += poly.getPerimeter();
             }
@@ -209,14 +205,12 @@ public class NetPBucket implements ExtractedPBucket
                double area = 0, perim = 0;
                for (Iterator<Layer> it = capMerge.getKeyIterator(); it.hasNext();)
                {
-                    Layer layer = (Layer)it.next();
+                    Layer layer = it.next();
                     if (!layer.isDiffusionLayer()) continue;
                     Collection<PolyBase> c = capMerge.getObjects(layer, false, true);
 
-                    for (Iterator<PolyBase> i = c.iterator(); i.hasNext(); )
+                    for (PolyBase poly : c)
                     {
-//                        PolyNodeMerge node = (PolyNodeMerge)i.next();
-                        PolyBase poly = i.next(); // node.getPolygon();
                         area += poly.getArea();
                         perim += poly.getPerimeter();
                     }

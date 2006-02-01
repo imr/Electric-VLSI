@@ -50,7 +50,7 @@ public class NetEquivalence {
 	
 	private boolean nameMatch(NetNameProxy prox, Network net) {
 		for (Iterator<String> it=prox.leafNames(); it.hasNext();) {
-			String proxNm = (String) it.next();
+			String proxNm = it.next();
 			if (net.hasName(proxNm)) return true;
 		}
 		return false;
@@ -82,7 +82,7 @@ public class NetEquivalence {
 		if (nc.getCell()!=net.getParent())  return null;
 		if (!nc.getContext().equals(vc))  return null;
 		for (Iterator<Integer> it=nc.getIndices(); it.hasNext();) {
-			int index = ((Integer)it.next()).intValue();
+			int index = it.next().intValue();
 			NetNameProxy prox = equivNets[designIndex][index];
 			if (nameMatch(prox, net)) {
 				int equivDesign = designIndex==0 ? 1 : 0;
@@ -154,7 +154,7 @@ class InstancePathToNccContext {
 	private NccContext root;
 	private Map<VarContext,NccContext> varToNccContext = new HashMap<VarContext,NccContext>();
 	private NccContext getNccContext(VarContext vc) {
-		NccContext nc = (NccContext) varToNccContext.get(vc);
+		NccContext nc = varToNccContext.get(vc);
 		if (nc==null) {
 			nc = new NccContext(vc);
 			varToNccContext.put(vc, nc);
@@ -194,8 +194,7 @@ class InstancePathToNccContext {
 	public NccContext findNccContext(VarContext vc) {
 		List<String> names = instNames(vc);
 		NccContext nc = root;
-		for (Iterator<String> it=names.iterator(); it.hasNext();) {
-			String instNm = (String) it.next();
+		for (String instNm : names) {
 			nc = nc.findChild(instNm);
 			if (nc==null)  return null;
 		}
@@ -235,7 +234,7 @@ class NccContext {
 	}
 	public Iterator<Integer> getIndices() {return objectIndices.iterator();}
 	public NccContext findChild(String instNm) {
-		return (NccContext) nodableNameToChild.get(instNm);
+		return nodableNameToChild.get(instNm);
 	}
 	/** @return the VarContext */
 	public VarContext getContext() {return context;}

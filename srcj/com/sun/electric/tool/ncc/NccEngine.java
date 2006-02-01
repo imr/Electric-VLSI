@@ -67,9 +67,9 @@ public class NccEngine {
 		for (itCell=cells.iterator(),
 			 itCon=contexts.iterator(),
 			 itNet=netlists.iterator(); itCell.hasNext();) {
-			Cell cell = (Cell) itCell.next();
-			VarContext context = (VarContext) itCon.next();
-			Netlist netlist = (Netlist) itNet.next();
+			Cell cell = itCell.next();
+			VarContext context = itCon.next();
+			Netlist netlist = itNet.next();
 			NccNetlist nccList = new NccNetlist(cell, context, netlist, 
 			                                    hierInfo, blackBox, globals);
 			nccLists.add(nccList);
@@ -83,7 +83,7 @@ public class NccEngine {
 		if (rec==null) return counts;
 		int i=0;
 		for (Iterator<Circuit> it=rec.getCircuits(); it.hasNext(); i++) {
-			Circuit ckt = (Circuit) it.next();
+			Circuit ckt = it.next();
 			counts[i] = ckt.numNetObjs();
 		}
 		return counts;
@@ -195,7 +195,7 @@ public class NccEngine {
 	private boolean netlistErrors(List nccNets) {
 		boolean netlistErrors = false;
 		for (Iterator it=nccNets.iterator(); it.hasNext();) {
-			NccNetlist nets = (NccNetlist) it.next();
+			NccNetlist nets = it.next();
 			netlistErrors |= nets.netlistErrors();
 		}
 		return netlistErrors;

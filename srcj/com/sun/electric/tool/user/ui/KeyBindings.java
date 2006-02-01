@@ -158,8 +158,7 @@ public class KeyBindings implements ActionListener {
         if (!enabled) return;
         if (eventSource != null)
             e.setSource(eventSource);               // fake the source of the event
-        for (Iterator<ActionListener> it = actionListeners.iterator(); it.hasNext(); ) {
-            ActionListener action = (ActionListener)it.next();
+        for (ActionListener action : actionListeners) {
             action.actionPerformed(e);
         }
     }
@@ -172,7 +171,7 @@ public class KeyBindings implements ActionListener {
     public String bindingsToString() {
         StringBuffer buf = new StringBuffer("");
         for (Iterator<KeyStrokePair> it = keyStrokePairs.iterator(); it.hasNext(); ) {
-            KeyStrokePair k = (KeyStrokePair)it.next();
+            KeyStrokePair k = it.next();
             buf.append(k.toString());
             if (it.hasNext()) buf.append(sep);
         }

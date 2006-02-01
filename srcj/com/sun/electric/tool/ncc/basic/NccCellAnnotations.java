@@ -158,7 +158,7 @@ public class NccCellAnnotations {
 	}
 
 	private void prErr(String s) {
-		String currAnnot = (String) annotText.get(annotText.size()-1);
+		String currAnnot = annotText.get(annotText.size()-1);
 		System.out.println("  "+s+"  cell= "+cellThatOwnsMe+" annotation= "+currAnnot);
 	}
 	private void processJoinGroupAnnotation(String note) {
@@ -366,15 +366,13 @@ public class NccCellAnnotations {
 	public Iterator<String> getAnnotationText() {return annotText.iterator();}
 	public Cell.CellGroup getGroupToJoin() {return groupToJoin;}
 	public boolean flattenInstance(String instName) {
-		for (Iterator<NamePattern> it=flattenInstances.iterator(); it.hasNext();) {
-			NamePattern pattern = (NamePattern) it.next();
+		for (NamePattern pattern : flattenInstances) {
 			if (pattern.matches(instName)) return true;
 		}
 		return false;
 	}
 	public boolean renameExport(String exportName) {
-		for (Iterator<NamePattern> it=exportsToRename.iterator(); it.hasNext();) {
-			NamePattern pattern = (NamePattern) it.next();
+		for (NamePattern pattern : exportsToRename) {
 			if (pattern.matches(exportName)) return true;
 		}
 		return false;

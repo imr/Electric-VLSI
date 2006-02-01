@@ -66,8 +66,7 @@ public class Net {
      * Returns true if this net is driven by a sizeable gate.
      */
     protected boolean isDrivenBySizeableGate() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
                 if (inst.getType() == Instance.Type.LEGATE) return true;
@@ -80,8 +79,7 @@ public class Net {
      * Returns true if this net is driven by a static gate (non-sizeable).
      */
     protected boolean isDrivenByStaticGate() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
                 if (inst.getType() == Instance.Type.STATICGATE) return true;
@@ -95,8 +93,7 @@ public class Net {
      * fixed size gate.
      */
     protected boolean isDrivenByGate() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.OUTPUT) {
                 if ((inst.getType() == Instance.Type.LEGATE) ||
@@ -110,8 +107,7 @@ public class Net {
      * Returns true if this net drives a sizeable gate.
      */
     protected boolean drivesSizableGate() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
                 if (inst.getType() == Instance.Type.LEGATE) return true;
@@ -124,8 +120,7 @@ public class Net {
      * Returns true if this net drives a static gate.
      */
     protected boolean drivesStaticGate() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
                 if (inst.getType() == Instance.Type.STATICGATE) return true;
@@ -138,8 +133,7 @@ public class Net {
      * Returns true if this net drives a load or a wire
      */ 
     protected boolean drivesLoad() {
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext(); ) {
-            Pin pin = (Pin)it.next();
+        for (Pin pin : pins) {
             Instance inst = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
                 if ((inst.getType() == Instance.Type.LOAD) ||

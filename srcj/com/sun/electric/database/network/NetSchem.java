@@ -62,7 +62,7 @@ class NetSchem extends NetCell {
 		NetSchem mainSchem = null;
 		if (mainSchematics != null) mainSchem = (NetSchem)NetworkTool.getNetCell(mainSchematics);
 		for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext();) {
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			if (cell.isIcon()) {
 				NetSchem icon = (NetSchem)NetworkTool.getNetCell(cell);
 				if (icon == null) continue;
@@ -308,8 +308,8 @@ class NetSchem extends NetCell {
             for (int i = 0; i < shared.length; i++)
             {
                 for(Iterator<Variable> it = shared[i].nodeInst.getParameters(); it.hasNext(); ) {
-                    Variable v = (Variable)it.next();
-                    Variable var = (Variable)allParameters.get(v.getKey());
+                    Variable v = it.next();
+                    Variable var = allParameters.get(v.getKey());
                     if (var == null) {
                         allParameters.put(v.getKey(), v);
                         continue;
@@ -450,7 +450,7 @@ class NetSchem extends NetCell {
 	{
 		ArrayList<Nodable> nodables = new ArrayList<Nodable>();
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (nodeOffsets[ni.getNodeIndex()] < 0) continue;
 			nodables.add(ni);
 		}
@@ -460,8 +460,7 @@ class NetSchem extends NetCell {
 			if (proxy.isShared()) continue;
 			nodables.add(proxy);
 		}
-		for (Iterator<Proxy> it = name2proxy.values().iterator(); it.hasNext();) {
-			Proxy proxy = (Proxy)it.next();
+		for (Proxy proxy : name2proxy.values()) {
 			if (proxy.isShared())
 				nodables.add(proxy);
 		}
@@ -586,7 +585,7 @@ class NetSchem extends NetCell {
 		super.invalidateUsagesOf(strong);
 		if (cell.isIcon()) return;
 		for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext();) {
-			Cell c = (Cell)it.next();
+			Cell c = it.next();
 			if (!c.isIcon()) continue;
 			NetSchem icon = (NetSchem)NetworkTool.getNetCell(c);
 			icon.setInvalid(strong, strong);
@@ -738,13 +737,13 @@ class NetSchem extends NetCell {
 			if (ni.isIconOfParent()) netSchem = null;
 			Set<Global> gs = null; // exclude set of globals
 			if (netSchem != null && nodeInstExcludeGlobal != null)
-				gs = (Set<Global>)nodeInstExcludeGlobal.get(ni);
+				gs = nodeInstExcludeGlobal.get(ni);
 			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
 				Proxy proxy = null;
 				if (netSchem != null) {
 					Name name = ni.getNameKey().subname(i);
 					if (!name.isTempname()) {
-						Proxy namedProxy = (Proxy)name2proxy.get(name);
+						Proxy namedProxy = name2proxy.get(name);
 						if (namedProxy != null) {
 							Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
 							if (namedProxy.hasMulti(iconCell)) {
@@ -779,7 +778,7 @@ class NetSchem extends NetCell {
 					if (gs != null) {
 						if (proxyExcludeGlobals == null)
 							proxyExcludeGlobals = new HashMap<Proxy,Set<Global>>();
-						Set<Global> gs0 = (Set<Global>)proxyExcludeGlobals.get(proxy);
+						Set<Global> gs0 = proxyExcludeGlobals.get(proxy);
 						if (gs0 != null) {
 							gs = new HashSet<Global>(gs);
 							gs.addAll(gs0);
@@ -1053,7 +1052,7 @@ class NetSchem extends NetCell {
 			if (numGlobals == 0) continue;
 			Set/*<Global>*/ excludeGlobals = null;
 			if (proxyExcludeGlobals != null)
-				excludeGlobals = (Set)proxyExcludeGlobals.get(proxy);
+				excludeGlobals = proxyExcludeGlobals.get(proxy);
 			for (int i = 0; i < numGlobals; i++) {
 				Global g = schem.globals.get(i);
 				if (excludeGlobals != null && excludeGlobals.contains(g)) continue;
@@ -1066,7 +1065,7 @@ class NetSchem extends NetCell {
 		ArcInst ai1 = null;
 		ArcInst ai2 = null;
 		for (Iterator<Connection> it = ni.getConnections(); it.hasNext();) {
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			if (ai1 == null) {
 				ai1 = ai;
@@ -1190,7 +1189,7 @@ class NetSchem extends NetCell {
 
 		// add temporary names to unconnected ports
 		for (Iterator<Nodable> it = getNodables(); it.hasNext();) {
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			NodeProto np = no.getProto();
 			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
 				PortProto pp = np.getPort(i);
@@ -1256,7 +1255,7 @@ class NetSchem extends NetCell {
 				String s = "";
 				for (Iterator<String> sit = network.getNames(); sit.hasNext(); )
 				{
-					String n = (String)sit.next();
+					String n = sit.next();
 					s += "/"+ n;
 				}
 				System.out.println("    "+i+"    "+s);
@@ -1282,7 +1281,7 @@ class NetSchem extends NetCell {
 					}
 				}
 				for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext();) {
-					NetName nn = (NetName)it.next();
+					NetName nn = it.next();
 					if (netlist.nm_net[netlist.netMap[netNamesOffset + nn.index]] != l) continue;
 					System.out.println("\tNetName " + nn.name);
 				}
@@ -1329,7 +1328,7 @@ class NetSchem extends NetCell {
 		int mapSize = netNamesOffset + netNames.size();
 //        HashMap/*<Cell,Netlist>*/ subNetlistsF = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator it = getNodables(); it.hasNext(); ) {
-//            Nodable no = (Nodable)it.next();
+//            Nodable no = it.next();
 //            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlistsF.put(subCell, NetworkTool.getNetlist(subCell, false));
@@ -1339,7 +1338,7 @@ class NetSchem extends NetCell {
 
 //        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
-//            Nodable no = (Nodable)it.next();
+//            Nodable no = it.next();
 //            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlistsT.put(subCell, NetworkTool.getNetlist(subCell, true));
