@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (2/1/06, SMR) Transistors are not placed correctly (Bug #802).
+FIX: In EditWindow.showDraggedBox(), adjust preview box.
+
 BUG: (2/1/06, SMR) Regressions fail because of extra technology information.
 FIX: In Pref.getMeaningVariables(), ignore invalid options.
 

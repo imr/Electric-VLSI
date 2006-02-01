@@ -400,8 +400,6 @@ public class EditWindow extends JPanel
         requestFocus();
 		MessagesStream.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-//		EditWindow wnd = (EditWindow)evt.getSource();
-
 		WindowFrame.curMouseListener.mousePressed(evt);
 	}
 
@@ -482,7 +480,6 @@ public class EditWindow extends JPanel
 						//path = ni.describe() + path;
                         path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
                         if (first) first = false;
-//						AffineTransform trans = ni.rotateOut(ni.translateOut());
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
 						vc = vc.pop();
@@ -582,12 +579,9 @@ public class EditWindow extends JPanel
 			{
 				Cell placeCell = (Cell)np;
 				Rectangle2D cellBounds = placeCell.getBounds();
-//				SizeOffset so = np.getProtoSizeOffset();
 				poly = new Poly(cellBounds);
                 
 				AffineTransform rotate = orient.pureRotate();
-//				AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
-//					(defAngle >= 3600 ? true : false), false);
 				AffineTransform translate = new AffineTransform();
 				translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
 				rotate.concatenate(translate);
@@ -597,10 +591,10 @@ public class EditWindow extends JPanel
 				SizeOffset so = np.getProtoSizeOffset();
 				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
+				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
+				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
+				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
 				AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
-//				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
-//					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
 				poly.transform(trans);
 			}
 			Point2D [] points = poly.getPoints();
