@@ -52,6 +52,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.TextWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -92,7 +93,7 @@ public class Output
     public static void exportCellCommand(Cell cell, VarContext context, String filePath,
                                          FileType type, List<PolyBase> override)
     {
-        new OutputCellInfo(cell, context, filePath, type, override);
+    	new OutputCellInfo(cell, context, filePath, type, override);
     }
 
 	static class OrderedExports implements Comparator<Export>

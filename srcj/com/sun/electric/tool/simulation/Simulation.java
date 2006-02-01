@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -62,6 +63,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -146,7 +148,6 @@ public class Simulation extends Listener
 		switch (engine)
 		{
 			case ALS_ENGINE:
-
 				// see if the current cell needs to be compiled
 				Cell originalCell = cell;
 				int activities = 0;
@@ -167,7 +168,9 @@ public class Simulation extends Listener
 							activities |= COMPILE_VHDL_FOR_SIM;
 					}
 				}
-			    new DoALSActivity(cell, activities, originalCell, prevEngine);
+
+				// now schedule the simulation work
+				new DoALSActivity(cell, activities, originalCell, prevEngine);
 				break;
 
 			case IRSIM_ENGINE:
@@ -185,6 +188,7 @@ public class Simulation extends Listener
 		private Cell cell, originalCell;
 		private int activities;
 		private transient Engine prevEngine;
+		private List<Cell> textCellsToRedraw;
 
 		private DoALSActivity(Cell cell, int activities, Cell originalCell, Engine prevEngine)
 		{
@@ -198,6 +202,8 @@ public class Simulation extends Listener
 
 		public boolean doIt() throws JobException
 		{
+			textCellsToRedraw = new ArrayList<Cell>();
+			fieldVariableChanged("textCellsToRedraw");
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
 				// convert Schematic to VHDL
@@ -218,6 +224,7 @@ public class Simulation extends Listener
 				String [] array = new String[vhdlStrings.size()];
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
+				textCellsToRedraw.add(vhdlCell);
 				System.out.println(" Done, created " + vhdlCell);
 				cell = vhdlCell;
 				fieldVariableChanged("cell");
@@ -249,6 +256,7 @@ public class Simulation extends Listener
 				String [] array = new String[netlistStrings.size()];
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
+				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);
 				cell = netlistCell;
 				fieldVariableChanged("cell");
@@ -258,6 +266,13 @@ public class Simulation extends Listener
 
         public void terminateOK()
         {
+        	if (!Job.BATCHMODE)
+        	{
+	        	for(Cell cell : textCellsToRedraw)
+	        	{
+	        		TextWindow.updateText(cell);
+	        	}
+        	}
 			if (prevEngine != null)
 			{
 				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);

@@ -138,12 +138,12 @@ public class CellLists extends EDialog
 			for(int i=line.length(); i<maxlen; i++) line += " ";
 		}
 
-		/* add the version number */
+		// add the version number
 		String versionString = TextUtils.toBlankPaddedString(cell.getVersion(), 5);
 		line += versionString;
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
-		/* add the creation date */
+		// add the creation date
 		Date creationDate = cell.getCreationDate();
 		if (creationDate == null)
 		{
@@ -155,7 +155,7 @@ public class CellLists extends EDialog
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
-		/* add the revision date */
+		// add the revision date
 		Date revisionDate = cell.getRevisionDate();
 		if (revisionDate == null)
 		{
@@ -167,7 +167,7 @@ public class CellLists extends EDialog
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
-		/* add the size */
+		// add the size
 		if (cell.getView().isTextView())
 		{
 			int len = 0;
@@ -193,7 +193,7 @@ public class CellLists extends EDialog
 		}
 		if (maxlen < 0) line += "\t";
 
-		/* count the number of instances */
+		// count the number of instances
 		int total = 0;
 		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
@@ -206,7 +206,7 @@ public class CellLists extends EDialog
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
-		/* show other factors about the cell */
+		// show other factors about the cell
 		if (cell.isAllLocked()) line += "L"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 		if (cell.isInstancesLocked()) line += "I"; else line += " ";
@@ -226,7 +226,7 @@ public class CellLists extends EDialog
 		return line;
 	}
 
-	/*
+	/**
 	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
 	 */
 	private void recursiveMark(Cell cell, HashSet<Cell> cellsSeen)

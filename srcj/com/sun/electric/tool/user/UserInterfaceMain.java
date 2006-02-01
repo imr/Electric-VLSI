@@ -321,9 +321,4 @@ public class UserInterfaceMain implements UserInterface
 
         Pref.exportPrefs(fileName);
     }
-
-    /** For TextWindow */
-    public String [] getEditedText(Cell cell) { return TextWindow.getEditedText(cell); }
-
-    public void updateText(Cell cell, String [] strings) { TextWindow.updateText(cell, strings); }
 }

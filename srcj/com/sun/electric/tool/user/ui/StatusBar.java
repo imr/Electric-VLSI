@@ -238,27 +238,26 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         updateSelectedText();
         
 		Cell cell = null;
-		if (frame == null)
+		WindowFrame thisFrame = frame;
+		if (thisFrame == null)
 		{
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) cell = wf.getContent().getCell();
+			thisFrame = WindowFrame.getCurrentWindowFrame(false);
+			if (thisFrame != null) cell = thisFrame.getContent().getCell();
 		} else
 		{
-			Cell cellInPanel = frame.getContent().getCell();
+			Cell cellInPanel = thisFrame.getContent().getCell();
 			if (cellInPanel != null) cell = cellInPanel;
 		}
 		String sizeMsg = "";
 		if (cell != null)
 		{
-			if (cell.getView().isTextView())
+			if (thisFrame.getContent() instanceof TextWindow)
 			{
-				int len = 0;
-				String [] textLines = cell.getTextViewContents();
-				if (textLines != null) len = textLines.length;
+				TextWindow tw = (TextWindow)thisFrame.getContent();
+				int len = tw.getLineCount();
 				sizeMsg = "LINES: " + len;
 			} else
 			{
-//				String width = Double.toString(cell.getBounds().getWidth());
 				Rectangle2D bounds = cell.getBounds();
 				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),1) + "x" +
                         TextUtils.formatDouble(bounds.getHeight(), 1);

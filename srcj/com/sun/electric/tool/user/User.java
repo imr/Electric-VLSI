@@ -404,11 +404,9 @@ public class User extends Listener
 	/**
 	 * Method to announce that a Library is about to be saved to disk.
 	 * @param lib the Library that will be written.
-	 * The User tool makes sure that any text cells are properly stored in the database.
 	 */
 	public void writeLibrary(Library lib)
 	{
-		TextWindow.saveAllTextWindows();
 	}
 
 	public void startBatch(Tool t, boolean undoRedo)

@@ -158,8 +158,4 @@ public interface UserInterface
 	 * Prompts the user and writes the file.
 	 */
 	public void exportPrefs();
-
-    /** For TextWindow */
-    public String [] getEditedText(Cell cell);
-    public void updateText(Cell cell, String [] strings);
 }

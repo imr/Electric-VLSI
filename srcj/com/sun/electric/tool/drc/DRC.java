@@ -808,17 +808,20 @@ public class DRC extends Listener
         if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
         // Adding foundry to bits set
         Foundry foundry = tech.getSelectedFoundry();
-        switch(foundry.getType())
+        if (foundry != null)
         {
-            case MOSIS:
-                bits |= DRC_BIT_MOSIS_FOUNDRY;
-                break;
-            case TSMC:
-                bits |= DRC_BIT_TSMC_FOUNDRY;
-                break;
-            case ST:
-                bits |= DRC_BIT_ST_FOUNDRY;
-                break;
+	        switch(foundry.getType())
+	        {
+	            case MOSIS:
+	                bits |= DRC_BIT_MOSIS_FOUNDRY;
+	                break;
+	            case TSMC:
+	                bits |= DRC_BIT_TSMC_FOUNDRY;
+	                break;
+	            case ST:
+	                bits |= DRC_BIT_ST_FOUNDRY;
+	                break;
+	        }
         }
         return bits;
     }

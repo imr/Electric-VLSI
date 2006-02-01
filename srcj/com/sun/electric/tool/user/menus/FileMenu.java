@@ -689,6 +689,8 @@ public class FileMenu {
                     oLib.setChangedMajor();
             }
         }
+
+        // save the library
         new SaveLibrary(lib, fileName, type, compatibleWith6, false);
         return true;
     }

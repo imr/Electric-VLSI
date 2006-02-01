@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (2/1/06, SMR) Removed text window methods from UserInterface.
+
 IMP: (2/1/06, SMR) Technologies with no node groups (from the technology editor)
      have them created automatically in Technology.getNodesGrouped().
 

@@ -108,6 +108,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -1363,9 +1364,12 @@ public class ToolMenu {
 					activities |= COMPILE_VHDL_FOR_SC;
 			}
 		}
+
 		if (Library.findLibrary(SilComp.SCLIBNAME) == null)
 			new ReadSCLibraryJob();
-	    new DoSilCompActivity(cell, activities);
+
+		// do the silicon compilation task
+		new DoSilCompActivity(cell, activities);
 	}
 
 	/**
@@ -1381,7 +1385,9 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL);
+
+		// do the VHDL compilation task
+		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL);
 	}
 
 	/**
@@ -1430,6 +1436,7 @@ public class ToolMenu {
 	{
 		private Cell cell;
 		private int activities;
+		private List<Cell> textCellsToRedraw;
 
 		private DoSilCompActivity(Cell cell, int activities)
 		{
@@ -1442,6 +1449,8 @@ public class ToolMenu {
 		public boolean doIt() throws JobException
 		{
 			fieldVariableChanged("cell");
+			textCellsToRedraw = new ArrayList<Cell>();
+			fieldVariableChanged("textCellsToRedraw");
 
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
@@ -1461,6 +1470,7 @@ public class ToolMenu {
 				String [] array = new String[vhdlStrings.size()];
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
+				textCellsToRedraw.add(vhdlCell);
 				System.out.println(" Done, created " + vhdlCell);
 				cell = vhdlCell;
 			}
@@ -1487,6 +1497,7 @@ public class ToolMenu {
 				String [] array = new String[netlistStrings.size()];
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
+				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);
 				cell = netlistCell;
 			}
@@ -1532,10 +1543,17 @@ public class ToolMenu {
 
         public void terminateOK()
         {
-			if ((activities&SHOW_CELL) != 0 && !Job.BATCHMODE)
-			{
-				// show the cell
-				WindowFrame.createEditWindow(cell);
+        	if (!Job.BATCHMODE)
+        	{
+	        	for(Cell cell : textCellsToRedraw)
+	        	{
+	        		TextWindow.updateText(cell);
+	        	}
+				if ((activities&SHOW_CELL) != 0)
+				{
+					// show the cell
+					WindowFrame.createEditWindow(cell);
+				}
 			}
         }
 	}

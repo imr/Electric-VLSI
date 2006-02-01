@@ -634,14 +634,5 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         public void exportPrefs() {
             System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
         }
-
-        /** For TextWindow */
-        public String [] getEditedText(Cell cell) {
-            System.out.println("UserInterface.getEditedText was called from DatabaseChangesThread");
-            return null;
-        }
-        public void updateText(Cell cell, String [] strings) {
-            System.out.println("UserInterface.updateText was called from DatabaseChangesThread");
-        }
 	}
 }

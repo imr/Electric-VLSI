@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -59,7 +60,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JPanel;
@@ -215,7 +218,7 @@ public class TextWindow
 	 */
 	private static class TextWindowDocumentListener implements DocumentListener, FocusListener
 	{
-		TextWindow tw;
+		private TextWindow tw;
 
 		TextWindowDocumentListener(TextWindow tw) { this.tw = tw; }
 
@@ -233,6 +236,8 @@ public class TextWindow
 			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
 			MenuBar mb = top.getTheMenuBar();
 			mb.setIgnoreTextEditKeys(false);
+			if (tw.dirty)
+				new SaveCellText(tw);
 		}
 	}
 
@@ -264,48 +269,25 @@ public class TextWindow
 			dirty = false;
 			finishing = true;
 			if (cell == null) return;
-			SaveCellText job = new SaveCellText(cell, convertToStrings());
+			new SaveCellText(this);
 		}
 	}
 
 	/**
-	 * Method to save all text windows back into the database.
-	 * Call it before saving libraries so that the cells are current.
-	 * Also, the method must be called inside of a Job since it modifies the database.
-	 */
-	public static void saveAllTextWindows()
-	{
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			WindowContent content = wf.getContent();
-			if (content instanceof TextWindow)
-			{
-				TextWindow tw = (TextWindow)content;
-				if (tw.dirty)
-				{
-					Cell cell = tw.getCell();
-					String [] strings = tw.convertToStrings();
-					cell.setTextViewContents(strings);
-					tw.dirty = false;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Class to save a cell's text in a new thread.
+	 * Class to save a cell's text in a new Job.
 	 */
 	private static class SaveCellText extends Job
 	{
 		private Cell cell;
 		private String [] strings;
+		private transient TextWindow tw;
 
-		private SaveCellText(Cell cell, String [] strings)
+		private SaveCellText(TextWindow tw)
 		{
 			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			this.strings = strings;
+			this.tw = tw;
+			this.cell = tw.cell;
+			this.strings = tw.convertToStrings();
 			startJob();
 		}
 
@@ -314,8 +296,12 @@ public class TextWindow
 			cell.setTextViewContents(strings);
 			return true;
 		}
-	}
 
+		public void terminateOK()
+		{
+			tw.dirty = false;
+		}
+	}
 
 	/**
 	 * Method to set the window title.
@@ -476,33 +462,33 @@ public class TextWindow
 		textArea.setSelectionEnd(endPos);
 	}
 
-	/**
-	 * Method to get the text (for a textual cell) that is being edited.
-	 * @param cell a text-view Cell.
-	 * @return the text for the cell.
-	 * If that text is not being edited (or has not changed), returns null. 
-	 */
-	public static String [] getEditedText(Cell cell)
-	{
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			WindowContent content = wf.getContent();
-			if (content instanceof TextWindow)
-			{
-				if (content.getCell() == cell)
-				{
-					TextWindow tw = (TextWindow)content;
-					if (tw.dirty)
-					{
-						String [] strings = tw.convertToStrings();
-						return strings;
-					}
-				}
-			}
-		}
-		return null;
-	}
+//	/**
+//	 * Method to get the text (for a textual cell) that is being edited.
+//	 * @param cell a text-view Cell.
+//	 * @return the text for the cell.
+//	 * If that text is not being edited (or has not changed), returns null. 
+//	 */
+//	public static String [] getEditedText(Cell cell)
+//	{
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = it.next();
+//			WindowContent content = wf.getContent();
+//			if (content instanceof TextWindow)
+//			{
+//				if (content.getCell() == cell)
+//				{
+//					TextWindow tw = (TextWindow)content;
+//					if (tw.dirty)
+//					{
+//						String [] strings = tw.convertToStrings();
+//						return strings;
+//					}
+//				}
+//			}
+//		}
+//		return null;
+//	}
 
     private void updateText(String [] strings) {
         textArea.setText(makeOneString(strings));
@@ -514,9 +500,8 @@ public class TextWindow
 	 * This is called when the text for a cell has been changed by some other part of the system,
 	 * and should be redisplayed where appropriate.
 	 * @param cell the Cell whose text changed.
-	 * @param strings the new text for that cell.
 	 */
-	public static void updateText(Cell cell, String [] strings)
+	public static void updateText(Cell cell)
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -529,6 +514,7 @@ public class TextWindow
 					TextWindow tw = (TextWindow)content;
 					if (!tw.finishing)
 					{
+						String [] strings = cell.getTextViewContents();
 						tw.updateText(strings);
 					}
 				}
@@ -551,6 +537,18 @@ public class TextWindow
 			sb.append("\n");
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Method to return the number of lines of text in this TextWindow.
+	 * @return the number of lines of text in this TextWindow.
+	 */
+	public int getLineCount()
+	{
+		Document doc = textArea.getDocument();
+		Element paragraph = doc.getDefaultRootElement();
+		int lines = paragraph.getElementCount();
+		return lines;
 	}
 
 	/**

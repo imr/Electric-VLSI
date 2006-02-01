@@ -364,10 +364,6 @@ public final class Main
          * Prompts the user and writes the file.
          */
         public void exportPrefs() {;}
-
-        /** For TextWindow */
-        public String [] getEditedText(Cell cell) { return null; }
-        public void updateText(Cell cell, String [] strings) { ; }
 	}
 
 	/**

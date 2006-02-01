@@ -2970,10 +2970,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public String [] getTextViewContents()
 	{
-		// first see if this cell is being actively edited in a TextWindow
-		String [] strings = Job.getUserInterface().getEditedText(this);
-		if (strings != null) return strings;
-
 		// look on the cell for its text
 		Variable var = getVar(Cell.CELL_TEXT_KEY);
 		if (var == null) return null;
@@ -2983,18 +2979,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to get the strings in this Cell.
+	 * Method to set the strings in this Cell.
 	 * It is only valid for cells with "text" views (documentation, vhdl, netlist, etc.)
 	 * The call needs to be wrapped inside of a Job.
-	 * Returns null if there are no strings.
+	 * @param strings an array of Strings that define this Cell.
 	 */
 	public void setTextViewContents(String [] strings)
 	{
 		Job.checkChanging();
-
-		// see if this cell is being actively edited in a TextWindow
-		Job.getUserInterface().updateText(this, strings);
-
 		newVar(Cell.CELL_TEXT_KEY, strings);
 	}
 
