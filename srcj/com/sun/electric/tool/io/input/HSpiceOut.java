@@ -48,8 +48,12 @@ public class HSpiceOut extends Simulate
 {
 	/** true if tr/ac/sw file is binary */					private boolean isTRACDCBinary;
 	/** true if binary tr/ac/sw file has bytes swapped */	private boolean isTRACDCBinarySwapped;
+	/** the raw file base */								private String fileBase;
 	/** the "tr" file extension (tr0, tr1, ...) */			private String trExtension;
-	/** the "pa" file extension (could be pa1...) */		private String paExtension;
+	/** the "sw" file extension (sw0, sw1, ...) */			private String swExtension;
+	/** the "ac" file extension (ac0, ac1, ...) */			private String acExtension;
+	/** the "mt" file extension (mt0, mt1, ...) */			private String mtExtension;
+	/** the "pa" file extension (pa0, pa1, ...) */			private String paExtension;
 	private int binaryTRACDCSize, binaryTRACDCPosition;
 	private boolean eofReached;
 	private byte [] binaryTRACDCBuffer;
@@ -110,6 +114,8 @@ public class HSpiceOut extends Simulate
 
 	/**
 	 * Method to read HSpice output files.
+	 * @param fileURL the URL to one of the output files.
+	 * @param cell the Cell associated with these HSpice output files.
 	 */
 	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
@@ -118,11 +124,33 @@ public class HSpiceOut extends Simulate
 		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 
+		// figure out file names
+		fileBase = fileURL.getFile();
+		trExtension = "tr0";
+		swExtension = "sw0";
+		acExtension = "ac0";
+		mtExtension = "mt0";
+		paExtension = "pa0";
+		int dotPos = fileBase.lastIndexOf('.');
+		if (dotPos > 0)
+		{
+			String extension = fileBase.substring(dotPos+1);
+			fileBase = fileBase.substring(0, dotPos);
+			if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ac"))
+			{
+				trExtension = "tr" + extension.substring(2);
+				swExtension = "sw" + extension.substring(2);
+				acExtension = "ac" + extension.substring(2);
+				mtExtension = "mt" + extension.substring(2);
+				paExtension = "pa" + extension.substring(2);
+			}
+		}
+
 		// the .pa file has name information
 		List<PALine> paList = readPAFile(fileURL);
 
-		// read the signal data from the .tr file
-		readTRDCACFile(sd, fileURL, paList, Analysis.ANALYSIS_TRANS);
+		// read Transient analysis data (.tr file)
+		addTRData(sd, paList, fileURL);
 
 		// read DC analysis data (.sw file)
 		addDCData(sd, paList, fileURL);
@@ -147,23 +175,10 @@ public class HSpiceOut extends Simulate
 		throws IOException
 	{
 		// find the associated ".mt" name file
-		String trFile = fileURL.getFile();
-		String mtFile = trFile + ".mt0";
-		int dotPos = trFile.lastIndexOf('.');
-		if (dotPos > 0)
-		{
-			String trExtension = trFile.substring(dotPos+1);
-			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
-			{
-				String mtExtension = "mt" + trExtension.substring(2);
-				mtFile = trFile.substring(0, dotPos) + "." + mtExtension;
-			}
-		}
-
 		URL mtURL = null;
 		try
 		{
-			mtURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), mtFile);
+			mtURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + mtExtension);
 		} catch (java.net.MalformedURLException e)
 		{
 		}
@@ -272,27 +287,38 @@ public class HSpiceOut extends Simulate
 	 * @param fileURL the URL to the ".tr" file.
 	 * @throws IOException
 	 */
+	private void addTRData(Stimuli sd, List<PALine> paList, URL fileURL)
+		throws IOException
+	{
+		// find the associated ".sw" name file
+		URL swURL = null;
+		try
+		{
+			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + trExtension);
+		} catch (java.net.MalformedURLException e)
+		{
+		}
+		if (swURL == null) return;
+        if (!TextUtils.URLExists(swURL)) return;
+
+		// process the DC data
+		readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_TRANS);
+	}
+
+	/**
+	 * Method to find the ".sw" file and read DC data.
+	 * @param sd the Stimuli to add this DC data to.
+	 * @param fileURL the URL to the ".tr" file.
+	 * @throws IOException
+	 */
 	private void addDCData(Stimuli sd, List<PALine> paList, URL fileURL)
 		throws IOException
 	{
 		// find the associated ".sw" name file
-		String trFile = fileURL.getFile();
-		String swFile = trFile + ".sw0";
-		int dotPos = trFile.lastIndexOf('.');
-		if (dotPos > 0)
-		{
-			String trExtension = trFile.substring(dotPos+1);
-			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
-			{
-				String mtExtension = "sw" + trExtension.substring(2);
-				swFile = trFile.substring(0, dotPos) + "." + mtExtension;
-			}
-		}
-
 		URL swURL = null;
 		try
 		{
-			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), swFile);
+			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + swExtension);
 		} catch (java.net.MalformedURLException e)
 		{
 		}
@@ -313,23 +339,10 @@ public class HSpiceOut extends Simulate
 		throws IOException
 	{
 		// find the associated ".ac" name file
-		String trFile = fileURL.getFile();
-		String acFile = trFile + ".ac0";
-		int dotPos = trFile.lastIndexOf('.');
-		if (dotPos > 0)
-		{
-			String trExtension = trFile.substring(dotPos+1);
-			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
-			{
-				String mtExtension = "ac" + trExtension.substring(2);
-				acFile = trFile.substring(0, dotPos) + "." + mtExtension;
-			}
-		}
-
 		URL acURL = null;
 		try
 		{
-			acURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), acFile);
+			acURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + acExtension);
 		} catch (java.net.MalformedURLException e)
 		{
 		}
@@ -341,36 +354,19 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to examine the "tr" file pointer and read the associated "pa" file.
+	 * Method to read the "pa" file with full symbol names.
 	 * These files can end in "0", "1", "2",...
-	 * As a side effect (oh no) the field variables "trExtension" and "paExtension"
-	 * are set.
-	 * @param fileURL the URL to the simulation output file ("pa")
+	 * @param fileURL the URL to the simulation output file
 	 * @return a list of PALine objects that describe the name mapping file entries.
 	 */
 	private List<PALine> readPAFile(URL fileURL)
 		throws IOException
 	{
 		// find the associated ".pa" name file
-		String trFile = fileURL.getFile();
-		trExtension = "";
-		paExtension = "";
-		String paFile = trFile + ".pa0";
-		int dotPos = trFile.lastIndexOf('.');
-		if (dotPos > 0)
-		{
-			trExtension = trFile.substring(dotPos+1);
-			if (trExtension.length() > 2 && trExtension.startsWith("tr"))
-			{
-				paExtension = "pa" + trExtension.substring(2);
-				paFile = trFile.substring(0, dotPos) + "." + paExtension;
-			}
-		}
-
 		URL paURL = null;
 		try
 		{
-			paURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), paFile);
+			paURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + paExtension);
 		} catch (java.net.MalformedURLException e)
 		{
 		}
