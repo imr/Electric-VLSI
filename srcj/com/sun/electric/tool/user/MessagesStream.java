@@ -10,10 +10,26 @@ import java.util.Observer;
 /**
  * Class handles text sent to the Messages window.
  */
-public class MessagesStream
-extends OutputStream
+public class MessagesStream extends OutputStream
 {
 	private PrintWriter printWriter = null;
+    /** The messages stream */                              private static MessagesStream messagesStream;
+
+    private static void initializeMessageStream()
+    {
+        if (messagesStream == null)
+            messagesStream = new MessagesStream();
+    }
+
+    /**
+     * Method to return messages stream.
+     * @return the messages stream.
+     */
+    public static MessagesStream getMessagesStream()
+    {
+        initializeMessageStream();
+        return messagesStream;
+    }
 
     static class MessagesObserver extends Observable
     {

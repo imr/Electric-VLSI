@@ -109,8 +109,7 @@ public class TopLevel extends JFrame
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
 	/** The messagesWindow window. */								private static MessagesWindow messagesWindow;
-    /** The messagesWindow stream */                              private static MessagesStream messagesStream;
-	/** The rate of double-clicks. */						private static int doubleClickDelay;
+    /** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
 
@@ -177,12 +176,7 @@ public class TopLevel extends JFrame
 		return Resources.getResource(TopLevel.class, "IconElectric.gif");
 	}
 
-    private static void initializeMessageStream()
-    {
-        if (messagesStream == null)
-            messagesStream = new MessagesStream();
-    }
-	/**
+    /**
 	 * Method to initialize the window system with the specified mode.
      * If mode is null, the mode is implied by the operating system.
 	 */
@@ -190,8 +184,8 @@ public class TopLevel extends JFrame
 	{
 		// initialize the messagesWindow window
         messagesWindow = new MessagesWindow();
-        initializeMessageStream();
-        messagesStream.addObserver(messagesWindow);
+        MessagesStream stream = MessagesStream.getMessagesStream();
+        stream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
     }
 
@@ -326,16 +320,6 @@ public class TopLevel extends JFrame
 	public static MessagesWindow getMessagesWindow() { return messagesWindow; }
 
     /**
-     * Method to return messages stream.
-     * @return the messages stream.
-     */
-    public static MessagesStream getMessagesStream()
-    {
-        initializeMessageStream();
-        return messagesStream;
-    }
-
-	/**
 	 * Method to return status bar associated with this TopLevel.
 	 * @return the status bar associated with this TopLevel.
 	 */

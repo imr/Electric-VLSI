@@ -359,7 +359,7 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				NodeProto np = ni.getProto();
-				if (!(np instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 
 				// ignore documentation icons
 				if (ni.isIconOfParent()) continue;
@@ -373,7 +373,7 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				NodeProto np = ni.getProto();
-				if (!(np instanceof Cell)) continue;
+				if (!ni.isCellInstance()) continue;
 
 				// ignore documentation icons
 				if (ni.isIconOfParent()) continue;
@@ -496,7 +496,7 @@ public class Quick
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
@@ -562,7 +562,7 @@ public class Quick
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
 			}
-			boolean ret = (ni.getProto() instanceof Cell) ?
+			boolean ret = (ni.isCellInstance()) ?
 			        checkCellInst(ni, globalIndex) :
 			        checkNodeInst(ni, globalIndex);
 			if (ret)
@@ -950,7 +950,7 @@ public class Quick
 
 			// only check other nodes that are numerically higher (so each pair is only checked once)
 			if (oNi.getNodeIndex() <= ni.getNodeIndex()) continue;
-			if (!(oNi.getProto() instanceof Cell)) continue;
+			if (!oNi.isCellInstance()) continue;
 
 			// see if this configuration of instances has already been done
 			if (checkInteraction(ni, null, oNi, null, null)) continue;
@@ -1004,7 +1004,7 @@ public class Quick
 
                 if (NodeInst.isSpecialNode(ni)) continue; // Oct 5'04
 
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
                     // see if this configuration of instances has already been done
                     if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
@@ -1216,7 +1216,7 @@ public class Quick
 				if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
 
 				// ignore nodes that are not primitive
-				if (np instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					// instance found: look inside it for offending geometry
 					AffineTransform rTransI = ni.rotateIn();
@@ -1889,7 +1889,7 @@ public class Quick
 			if (geomToCheck instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geomToCheck;
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					errors = checkThisCellPlease(ni);
 				} else
@@ -2160,10 +2160,10 @@ public class Quick
 //		}
 		checkProtos.put(cell, cp);
 
-		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nIt.next();
-			if (!(ni.getProto() instanceof Cell)) continue;
+			NodeInst ni = nIt.next();
+			if (!ni.isCellInstance()) continue;
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
 			Cell subCell = (Cell)ni.getProto();
@@ -2204,7 +2204,7 @@ public class Quick
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
@@ -2236,11 +2236,11 @@ public class Quick
 		}
 
 		// now recurse
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
@@ -2249,22 +2249,22 @@ public class Quick
 		}
 	}
 
-	private void checkEnumerateNetworks(Cell cell, CheckProto cp, int globalIndex, HashMap enumeratedNets)
+	private void checkEnumerateNetworks(Cell cell, CheckProto cp, int globalIndex, HashMap<Network,Integer> enumeratedNets)
 	{
 		// store all network information in the appropriate place
-		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
+		for(Iterator<Network> nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
-			Network net = (Network)nIt.next();
-			Integer netNumber = (Integer)enumeratedNets.get(net);
+			Network net = nIt.next();
+			Integer netNumber = enumeratedNets.get(net);
 			Integer [] netNumbers = (Integer [])networkLists.get(net);
 			netNumbers[globalIndex] = netNumber;
 		}
 
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
+			if (!ni.isCellInstance()) continue;
 
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
@@ -2572,9 +2572,9 @@ public class Quick
         GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rules
-        for(Iterator layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
+        for(Iterator<Layer> layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
 		{
-			Layer layer = (Layer)layerIt.next();
+			Layer layer = layerIt.next();
             if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
 					continue;
 
@@ -2885,7 +2885,7 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)g;
 				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					// compute bounding area inside of sub-cell
 					AffineTransform rotI = ni.rotateIn();
@@ -2988,7 +2988,7 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)g;
 				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
-				if (ni.getProto() instanceof Cell)
+				if (ni.isCellInstance())
 				{
 					// compute bounding area inside of sub-cell
 					AffineTransform rotI = ni.rotateIn();
@@ -3351,7 +3351,7 @@ public class Quick
                 NodeInst ni = (NodeInst)g;
                 NodeProto np = ni.getProto();
                 if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-                if (np instanceof Cell)
+                if (ni.isCellInstance())
                 {
                     AffineTransform cellDownTrans = ni.transformIn();
                     AffineTransform	cellUpTrans = ni.transformOut();
@@ -3457,7 +3457,7 @@ public class Quick
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();
 			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				AffineTransform cellDownTrans = ni.transformIn();
 				AffineTransform	cellUpTrans = ni.transformOut();
@@ -3540,15 +3540,15 @@ public class Quick
      */
     private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, List drcLayers, Point2D[] points, boolean[] founds)
     {
-        for(Iterator sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
+        for(Iterator<Geometric> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
         {
-            Geometric g = (Geometric)sIt.next();
+            Geometric g = sIt.next();
 	        if (g == geom) continue;
             if (!(g instanceof NodeInst)) continue;
             NodeInst ni = (NodeInst)g;
             NodeProto np = ni.getProto();
 	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-            if (np instanceof Cell)
+            if (ni.isCellInstance())
             {
 				AffineTransform cellDownTrans = ni.transformIn();
 				AffineTransform	cellUpTrans = ni.transformOut();
@@ -3630,7 +3630,7 @@ public class Quick
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				AffineTransform rTransI = ni.rotateIn();
 				AffineTransform tTransI = ni.translateIn();
@@ -4135,9 +4135,9 @@ public class Quick
 	 */
 	private void accumulateExclusion(Cell cell)
 	{
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.drcNode)
 			{
@@ -4155,9 +4155,9 @@ public class Quick
 
 				// see if it is already in the list
 				boolean found = false;
-				for(Iterator dIt = exclusionList.iterator(); dIt.hasNext(); )
+				for(Iterator<DRCExclusion> dIt = exclusionList.iterator(); dIt.hasNext(); )
 				{
-					DRCExclusion oDex = (DRCExclusion)dIt.next();
+					DRCExclusion oDex = dIt.next();
 					if (oDex.cell != cell) continue;
 					if (oDex.poly.polySame(dex.poly))
 					{
@@ -4169,7 +4169,7 @@ public class Quick
 				continue;
 			}
 
-			if (np instanceof Cell)
+			if (ni.isCellInstance())
 			{
 				// examine contents
 //				AffineTransform tTrans = ni.translateOut(ni.rotateOut());

@@ -31,10 +31,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.tool.EJob.State;
-import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.Point2D;
@@ -367,7 +366,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     
     public void runLoop() {
         if (serverSocket == null) return;
-        TopLevel.getMessagesStream().addObserver(this);
+        MessagesStream.getMessagesStream().addObserver(this);
         try {
             // Wait for connections
             for (;;) {

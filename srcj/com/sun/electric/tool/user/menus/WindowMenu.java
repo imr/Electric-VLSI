@@ -28,6 +28,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -184,7 +185,7 @@ public class WindowMenu {
         MenuBar.Menu messagesSubMenu = MenuBar.makeMenu("_Messages Window");
         windowMenu.add(messagesSubMenu);
         messagesSubMenu.addMenuItem("_Save Messages...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesStream().save(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MessagesStream.getMessagesStream().save(); }});
         messagesSubMenu.addMenuItem("_Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
         messagesSubMenu.addMenuItem("Set F_ont...", null,

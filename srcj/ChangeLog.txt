@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (1/31/06, GVG) Move MessagesStream.messagesStream out of TopLevel (all regression scripts checked).
+More fixes in regressions.
+ 
 IMP: (1/31/06, SMR) Added NodeInst.isCellInstance() to distinguish cells from primitives
      without using "instanceof".
 
