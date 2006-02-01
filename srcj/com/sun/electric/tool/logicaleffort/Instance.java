@@ -158,8 +158,7 @@ public class Instance {
         // check that there is only one output pin for an leGate
         int outputPinCount = 0;
         StringBuffer err = new StringBuffer("LETool leGate '"+name+"' error: more than one output pin: ");
-        for (Iterator<Pin> it = pins.iterator(); it.hasNext();) {
-            Pin p = (Pin)it.next();
+        for (Pin p : pins) {
             if (p.getDir() == Pin.Dir.OUTPUT) {
                 outputPinCount++;
                 err.append(p.getName()+", ");

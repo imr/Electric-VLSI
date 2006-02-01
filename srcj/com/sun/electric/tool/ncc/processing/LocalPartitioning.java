@@ -68,8 +68,7 @@ public class LocalPartitioning {
 	private void partitionWiresUsingLocalInformation(Set<PinType> pinTypes) {
 		globals.status2("Partition Wires using local information");
 		EquivRecord root = globals.getRoot();
-		for (Iterator<PinType> it=pinTypes.iterator(); it.hasNext();) {
-			PinType pinType = (PinType) it.next();
+		for (PinType pinType : pinTypes) {
 			LeafList offspring = 
 				StratCountPartPinsOnWires.doYourJob(globals, pinType);
 //			if (offspring.size()!=0) {

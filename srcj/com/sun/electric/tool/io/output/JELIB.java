@@ -107,7 +107,7 @@ public class JELIB extends Output
 		boolean viewHeaderPrinted = false;
 		for(Iterator<View> it = View.getViews(); it.hasNext(); )
 		{
-			View view = (View)it.next();
+			View view = it.next();
 			if (!objInfo.containsKey(view)) continue;
 			if (!viewHeaderPrinted)
 			{
@@ -122,7 +122,7 @@ public class JELIB extends Output
 		boolean libraryHeaderPrinted = false;
 		for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library eLib = (Library)it.next();
+			Library eLib = it.next();
 			if (eLib == lib || !objInfo.containsKey(eLib)) continue;
 			if (!libraryHeaderPrinted)
 			{
@@ -142,7 +142,7 @@ public class JELIB extends Output
 			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
 			for(Iterator<Cell> cIt = eLib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				if (!objInfo.containsKey(cell)) continue;
 				Rectangle2D bounds = cell.getBounds();
 				printWriter.println("R" + convertString(cell.getCellName().toString()) +
@@ -155,7 +155,7 @@ public class JELIB extends Output
                 cellNames.put(cell, getFullCellName(cell));
 				for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
 				{
-					Export export = (Export)eIt.next();
+					Export export = eIt.next();
 					//if (!externalObjs.contains(export)) continue;
 
 					Poly poly = export.getOriginalPort().getPoly();
@@ -170,7 +170,7 @@ public class JELIB extends Output
 		boolean toolHeaderPrinted = false;
 		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
 		{
-			Tool tool = (Tool)it.next();
+			Tool tool = it.next();
 			if (Pref.getMeaningVariables(tool).size() == 0) continue;
 			if (!toolHeaderPrinted)
 			{
@@ -186,7 +186,7 @@ public class JELIB extends Output
 		boolean technologyHeaderPrinted = false;
 		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (!objInfo.containsKey(tech))	continue;
 			if (!technologyHeaderPrinted)
 			{
@@ -199,20 +199,20 @@ public class JELIB extends Output
 
 // 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
-// 				PrimitiveNode pn = (PrimitiveNode)nIt.next();
+// 				PrimitiveNode pn = nIt.next();
 // 				if (!externalObjs.contains(pn)) continue;
 
 // 				printWriter.println("D" + convertString(pn.getName()));
 // 				for(Iterator<PrimitivePort> pIt = pn.getPorts(); pIt.hasNext(); )
 // 				{
-// 					PrimitivePort pp = (PrimitivePort)pIt.next();
+// 					PrimitivePort pp = pIt.next();
 // 					if (!externalObjs.contains(pp)) continue;
 // 					printWriter.println("P" + convertString(pp.getName()));
 // 				}
 // 			}
 // 			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 // 			{
-// 				ArcProto ap = (ArcProto)aIt.next();
+// 				ArcProto ap = aIt.next();
 // 				if (!externalObjs.contains(ap)) continue;
 // 				printWriter.println("W" + convertString(ap.getName()));
 // 			}
@@ -222,7 +222,7 @@ public class JELIB extends Output
 		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
 		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
-			Cell cell = (Cell)cIt.next();
+			Cell cell = cIt.next();
 			if (!groups.contains(cell.getCellGroup()))
 				groups.add(cell.getCellGroup());
 			cellNames.put(cell, convertString(cell.getCellName().toString()));
@@ -231,7 +231,7 @@ public class JELIB extends Output
 		// write the cells of the database
 		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
-			Cell cell = (Cell)cIt.next();
+			Cell cell = cIt.next();
 
 			// write the Cell name
 			printWriter.println();
@@ -256,7 +256,7 @@ public class JELIB extends Output
             int duplicate = 0;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				NodeProto np = ni.getProto();
 				if (ni.isCellInstance())
 				{
@@ -318,7 +318,7 @@ public class JELIB extends Output
 			// write the arcs in this cell
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				if (cell.getTechnology() == ap.getTechnology())
 					printWriter.print("A" + convertString(ap.getName()));
@@ -360,7 +360,7 @@ public class JELIB extends Output
 			// write the exports in this cell
 			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
-				Export pp = (Export)it.next();
+				Export pp = it.next();
 				printWriter.print("E" + convertString(pp.getName()));
 				printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME)));
 
@@ -384,9 +384,8 @@ public class JELIB extends Output
 		// write groups in alphabetical order
 		printWriter.println();
 		printWriter.println("# Groups:");
-		for(Iterator<Cell.CellGroup> it = groups.iterator(); it.hasNext(); )
+		for(Cell.CellGroup group : groups)
 		{
-			Cell.CellGroup group = (Cell.CellGroup)it.next();
 			printWriter.print("G");
 
 			// if there is a main schematic cell, write that first
@@ -398,11 +397,11 @@ public class JELIB extends Output
 
 			for(Iterator<Cell> cIt = group.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				if (cell == main) continue;
 
 				printWriter.print("|");
-				printWriter.print((String)cellNames.get(cell));
+				printWriter.print(cellNames.get(cell));
 			}
 			printWriter.println();
 		}
@@ -564,7 +563,7 @@ public class JELIB extends Output
 			NodeInst ni = (NodeInst)eObj;
 			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
-				PortInst pi = (PortInst)it.next();
+				PortInst pi = it.next();
 				if (pi.getNumVariables() != 0)
 					printVars(pi, curCell);
 			}
@@ -582,7 +581,7 @@ public class JELIB extends Output
 		// write the variables
 		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
-			Variable var = (Variable)it.next();
+			Variable var = it.next();
 			Object varObj = var.getObjectInCurrentThread();
             if (varObj == null) continue;
 			String tdString = describeDescriptor(var, var.getTextDescriptor());
@@ -599,9 +598,8 @@ public class JELIB extends Output
 	private void printlnMeaningPrefs(Object obj)
 	{
 		List<Pref> prefs = Pref.getMeaningVariables(obj);
-		for(Iterator<Pref> it = prefs.iterator(); it.hasNext(); )
+		for(Pref pref : prefs)
 		{
-			Pref pref = (Pref)it.next();
 			Object value = pref.getValue();
 			printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value, null));
 		}

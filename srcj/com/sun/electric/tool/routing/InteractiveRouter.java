@@ -103,8 +103,7 @@ public abstract class InteractiveRouter extends Router {
         this.wnd = wnd;
         // copy current highlights
         startRouteHighlights.clear();
-        for (Iterator<Highlight2> it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
-            Highlight2 h = it.next();
+        for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
             startRouteHighlights.add(h);
         }
         wnd.clearHighlighting();
@@ -236,8 +235,7 @@ public abstract class InteractiveRouter extends Router {
         if (!started) startInteractiveRoute(wnd);
         wnd.clearHighlighting();
         //wnd.getHighlighter().setHighlightList(startRouteHighlights);
-        for (Iterator<RouteElement> it = route.iterator(); it.hasNext(); ) {
-            RouteElement e = (RouteElement)it.next();
+        for (RouteElement e : route) {
             e.addHighlightArea(wnd.getHighlighter());
         }
         wnd.finishedHighlighting();

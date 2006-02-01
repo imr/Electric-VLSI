@@ -155,8 +155,8 @@ public class JELIB extends LibraryFiles
 			nodeProtoList = new Cell[nodeProtoCount];
 			cellLambda = new double[nodeProtoCount];
 			int i = 0;
-			for (Iterator<Cell> it = allCells.keySet().iterator(); it.hasNext();)
-				nodeProtoList[i++] = (Cell)it.next();
+			for (Cell cell : allCells.keySet())
+				nodeProtoList[i++] = cell;
 			return false;
 		} catch (IOException e)
 		{
@@ -205,7 +205,7 @@ public class JELIB extends LibraryFiles
 						", Cell declaration needs " + numPieces + " fields: " + line, -1);
 					continue;
 				}
-				String name = revision >= 1 ? unQuote((String)pieces.get(0)) : unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+				String name = revision >= 1 ? unQuote(pieces.get(0)) : unQuote(pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
 				Cell newCell = Cell.newInstance(lib, name);
 				if (newCell == null)
 				{
@@ -213,15 +213,15 @@ public class JELIB extends LibraryFiles
 						", Unable to create cell " + name, -1);
 					continue;
 				}
-				Technology tech = Technology.findTechnology(unQuote((String)pieces.get(numPieces-4)));
+				Technology tech = Technology.findTechnology(unQuote(pieces.get(numPieces-4)));
 				newCell.setTechnology(tech);
-				long cDate = Long.parseLong((String)pieces.get(numPieces-3));
-				long rDate = Long.parseLong((String)pieces.get(numPieces-2));
+				long cDate = Long.parseLong(pieces.get(numPieces-3));
+				long rDate = Long.parseLong(pieces.get(numPieces-2));
 				newCell.lowLevelSetCreationDate(new Date(cDate));
 				newCell.lowLevelSetRevisionDate(new Date(rDate));
 
 				// parse state information in field 6
-				String stateInfo = (String)pieces.get(numPieces-1);
+				String stateInfo = pieces.get(numPieces-1);
 				boolean expanded = false, allLocked = false, instLocked = false,
 					cellLib = false, techLib = false;
 				for(int i=0; i<stateInfo.length(); i++)
@@ -273,11 +273,11 @@ public class JELIB extends LibraryFiles
 						", External library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
-				curExternalLibName = unQuote((String)pieces.get(0));
+				curExternalLibName = unQuote(pieces.get(0));
 				if (Library.findLibrary(curExternalLibName) != null) continue;
 
 				// recurse
-				readExternalLibraryFromFilename(unQuote((String)pieces.get(1)), FileType.JELIB);
+				readExternalLibraryFromFilename(unQuote(pieces.get(1)), FileType.JELIB);
 				continue;
 			}
 
@@ -294,18 +294,18 @@ public class JELIB extends LibraryFiles
 //						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
-				double lowX = TextUtils.atof((String)pieces.get(1));
-				double highX = TextUtils.atof((String)pieces.get(2));
-				double lowY = TextUtils.atof((String)pieces.get(3));
-				double highY = TextUtils.atof((String)pieces.get(4));
+				double lowX = TextUtils.atof(pieces.get(1));
+				double highX = TextUtils.atof(pieces.get(2));
+				double lowY = TextUtils.atof(pieces.get(3));
+				double highY = TextUtils.atof(pieces.get(4));
 				if (pieces.size() > 5)
 //				if (revision >= 1)
 				{
-					long cDate = Long.parseLong((String)pieces.get(5));
-					long rDate = Long.parseLong((String)pieces.get(6));
+					long cDate = Long.parseLong(pieces.get(5));
+					long rDate = Long.parseLong(pieces.get(6));
 				}
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
-				curExternalCellName = curExternalLibName + ":" + unQuote((String)pieces.get(0));
+				curExternalCellName = curExternalLibName + ":" + unQuote(pieces.get(0));
 				externalCells.put(curExternalCellName, bounds);
 				continue;
 			}
@@ -320,9 +320,9 @@ public class JELIB extends LibraryFiles
 						", External export declaration needs 3 fields: " + line, -1);
 					continue;
 				}
-				String exportName = unQuote((String)pieces.get(0));
-				double posX = TextUtils.atof((String)pieces.get(1));
-				double posY = TextUtils.atof((String)pieces.get(1));
+				String exportName = unQuote(pieces.get(0));
+				double posX = TextUtils.atof(pieces.get(1));
+				double posY = TextUtils.atof(pieces.get(1));
 				externalExports.put(curExternalCellName + ":" + exportName, new Point2D.Double(posX, posY));
 				continue;
 			}
@@ -337,7 +337,7 @@ public class JELIB extends LibraryFiles
 						", Library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
-				version = Version.parseVersion((String)pieces.get(1));
+				version = Version.parseVersion(pieces.get(1));
 				if (version == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -353,7 +353,7 @@ public class JELIB extends LibraryFiles
 					escapeChar = '^';
 					pieces = parseLine(line);
 				}
-				curLibName = unQuote((String)pieces.get(0));
+				curLibName = unQuote(pieces.get(0));
 				if (version.compareTo(Version.getVersion()) > 0)
 				{
 					Input.errorLogger.logWarning(filePath + ", line " + lineReader.getLineNumber() +
@@ -370,7 +370,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Tool information
 				List<String> pieces = parseLine(line);
-				String toolName = unQuote((String)pieces.get(0));
+				String toolName = unQuote(pieces.get(0));
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
 				{
@@ -391,11 +391,11 @@ public class JELIB extends LibraryFiles
 			{
 				// parse View information
 				List<String> pieces = parseLine(line);
-				String viewName = unQuote((String)pieces.get(0));
+				String viewName = unQuote(pieces.get(0));
 				View view = View.findView(viewName);
 				if (view == null)
 				{
-					String viewAbbr = unQuote((String)pieces.get(1));
+					String viewAbbr = unQuote(pieces.get(1));
 					view = View.newInstance(viewName, viewAbbr);
 					if (view == null)
 					{
@@ -414,7 +414,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Technology information
 				List<String> pieces = parseLine(line);
-				String techName = unQuote((String)pieces.get(0));
+				String techName = unQuote(pieces.get(0));
 				curTech = Technology.findTechnology(techName);
 				if (curTech == null)
 				{
@@ -436,7 +436,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitiveNode information
 				List<String> pieces = parseLine(line);
-				String primName = unQuote((String)pieces.get(0));
+				String primName = unQuote(pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -460,7 +460,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitivePort information
 				List<String> pieces = parseLine(line);
-				String primPortName = unQuote((String)pieces.get(0));
+				String primPortName = unQuote(pieces.get(0));
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -486,7 +486,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse ArcProto information
 				List<String> pieces = parseLine(line);
-				String arcName = unQuote((String)pieces.get(0));
+				String arcName = unQuote(pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -514,7 +514,7 @@ public class JELIB extends LibraryFiles
 				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
-					String cellName = unQuote((String)pieces.get(i));
+					String cellName = unQuote(pieces.get(i));
 					if (cellName.length() == 0) continue;
 					int colonPos = cellName.indexOf(':');
 					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
@@ -540,8 +540,8 @@ public class JELIB extends LibraryFiles
 		HashMap<String,String> protoNames = new HashMap<String,String>();
 		for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
 		{
-			Cell cell = (Cell)cit.next();
-			String protoName = (String)protoNames.get(cell.getName());
+			Cell cell = cit.next();
+			String protoName = protoNames.get(cell.getName());
 			if (protoName == null)
 			{
 				protoName = cell.getName();
@@ -549,9 +549,8 @@ public class JELIB extends LibraryFiles
 			}
 			transitive.theseAreRelated(cell, protoName);
 		}
-		for (Iterator<Cell[]> git = groupLines.iterator(); git.hasNext(); )
+		for (Cell[] groupLine : groupLines)
 		{
-			Cell[] groupLine = (Cell[])git.next();
 			Cell firstCell = null;
 			for (int i = 0; i < groupLine.length; i++)
 			{
@@ -566,11 +565,10 @@ public class JELIB extends LibraryFiles
 		// create the cell groups
 		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
 		{
-			Set<Object> group = (Set<Object>)git.next();
+			Set<Object> group = git.next();
 			Cell firstCell = null;
-			for (Iterator<Object> it = group.iterator(); it.hasNext();)
+			for (Object o : group)
 			{
-				Object o = it.next();
 				if (!(o instanceof Cell)) continue;
 				Cell cell = (Cell)o;
 				if (firstCell == null)
@@ -581,9 +579,8 @@ public class JELIB extends LibraryFiles
 		}
 
 		// set main schematic cells
-		for (Iterator<Cell[]> git = groupLines.iterator(); git.hasNext(); )
+		for (Cell[] groupLine : groupLines)
 		{
-			Cell[] groupLine = (Cell[])git.next();
 			Cell firstCell = groupLine[0];
 			if (firstCell == null) continue;
 			if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
@@ -594,10 +591,10 @@ public class JELIB extends LibraryFiles
 		HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			String canonicName = TextUtils.canonicString(cell.getName());
 			Cell.CellGroup group = cell.getCellGroup();
-			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(canonicName);
+			Cell.CellGroup groupOfName = cellGroups.get(canonicName);
 			if (groupOfName == null)
 			{
 				cellGroups.put(canonicName, group);
@@ -611,7 +608,7 @@ public class JELIB extends LibraryFiles
 					// Join groups with like-names cells
 // 					for (Iterator cit = group.getCells(); cit.hasNext(); )
 // 					{
-// 						Cell cellInGroup = (Cell)cit.next();
+// 						Cell cellInGroup = cit.next();
 // 						cellInGroup.setCellGroup(groupOfName);
 // 					}
 				}
@@ -634,18 +631,16 @@ public class JELIB extends LibraryFiles
 
 // 		// count the number of lines that need to be processed
 // 		numToProcess = 0;
-// 		for(Iterator it = allCells.values().iterator(); it.hasNext(); )
+// 		for(CellContents cc : allCells.values())
 // 		{
-// 			CellContents cc = (CellContents)it.next();
 // 			numToProcess += cc.cellStrings.size();
 // 		}
 
 // 		// instantiate all cells recursively
 // 		numProcessed = 0;
-// 		for(Iterator it = allCells.keySet().iterator(); it.hasNext(); )
+// 		for(Cell cell : allCells.keySet())
 // 		{
-// 			Cell cell = (Cell)it.next();
-// 			CellContents cc = (CellContents)allCells.get(cell);
+// 			CellContents cc = allCells.get(cell);
 // 			if (cc.filledIn) continue;
 
 // 			instantiateCellContent(cell, cc);
@@ -658,7 +653,7 @@ public class JELIB extends LibraryFiles
 	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		if (scaledCellName != null) return;
-		CellContents cc = (CellContents)allCells.get(cell);
+		CellContents cc = allCells.get(cell);
 		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
 		cellsConstructed++;
@@ -682,7 +677,7 @@ public class JELIB extends LibraryFiles
 		// place all nodes
 		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)cc.cellStrings.get(line);
+			String cellString = cc.cellStrings.get(line);
 			char firstChar = cellString.charAt(0);
 			if (firstChar != 'N' && firstChar != 'I') continue;
 //			numProcessed++;
@@ -699,9 +694,9 @@ public class JELIB extends LibraryFiles
 					", Node instance needs " + numPieces + " fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = unQuote((String)pieces.get(0));
+			String protoName = unQuote(pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
+			String diskNodeName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -712,9 +707,9 @@ public class JELIB extends LibraryFiles
 					if (revision >= 1) nodeName = unQuote(nodeName);
 				}
 			}
-			String nameTextDescriptorInfo = (String)pieces.get(2);
-			double x = TextUtils.atof((String)pieces.get(3));
-			double y = TextUtils.atof((String)pieces.get(4));
+			String nameTextDescriptorInfo = pieces.get(2);
+			double x = TextUtils.atof(pieces.get(3));
+			double y = TextUtils.atof(pieces.get(4));
 
 			String prefixName = lib.getName();
 			NodeProto np = null;
@@ -770,26 +765,26 @@ public class JELIB extends LibraryFiles
 			String textDescriptorInfo = "";
 			if (firstChar == 'N' || revision < 1)
 			{
-				wid = TextUtils.atof((String)pieces.get(5));
+				wid = TextUtils.atof(pieces.get(5));
 				if (wid < 0 || wid == 0 && 1/wid < 0) {
                     if (revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-        					", Negative width " + (String)pieces.get(5) + " of cell instance", cell, -1);
+        					", Negative width " + pieces.get(5) + " of cell instance", cell, -1);
                     flipX = true;
                     wid = -wid;
                 }
-				hei = TextUtils.atof((String)pieces.get(6));
+				hei = TextUtils.atof(pieces.get(6));
 				if (hei < 0 || hei == 0 && 1/hei < 0) {
                     if (revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-        					", Negative height " + (String)pieces.get(5) + " of cell instance", cell, -1);
+        					", Negative height " + pieces.get(5) + " of cell instance", cell, -1);
                     flipY = true;
                     hei = -hei;
                 }
-				orientString = (String)pieces.get(7);
-				stateInfo = (String)pieces.get(8);
+				orientString = pieces.get(7);
+				stateInfo = pieces.get(8);
 				if (revision < 1)
-					textDescriptorInfo = (String)pieces.get(9);
+					textDescriptorInfo = pieces.get(9);
 			} else
 			{
 				if (np != null)
@@ -798,9 +793,9 @@ public class JELIB extends LibraryFiles
 					wid = bounds.getWidth();
 					hei = bounds.getHeight();
 				}
-				orientString = (String)pieces.get(5);
-				stateInfo = (String)pieces.get(6);
-				textDescriptorInfo = (String)pieces.get(7);
+				orientString = pieces.get(5);
+				stateInfo = pieces.get(6);
+				textDescriptorInfo = pieces.get(7);
 			}
 			int angle = 0;
 			for (int i = 0; i < orientString.length(); i++)
@@ -833,7 +828,7 @@ public class JELIB extends LibraryFiles
 				}
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
-				Rectangle2D bounds = (Rectangle2D)externalCells.get(pieces.get(0));
+				Rectangle2D bounds = externalCells.get(pieces.get(0));
 				if (bounds == null)
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -855,7 +850,7 @@ public class JELIB extends LibraryFiles
 // 			if (np instanceof Cell)
 // 			{
 // 				Cell subCell = (Cell)np;
-// 				CellContents subCC = (CellContents)allCells.get(subCell);
+// 				CellContents subCC = allCells.get(subCell);
 // 				if (subCC != null)
 // 				{
 // 					if (!subCC.filledIn)
@@ -915,7 +910,7 @@ public class JELIB extends LibraryFiles
 		// place all exports
 		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)cc.cellStrings.get(line);
+			String cellString = cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'E') continue;
 //			numProcessed++;
 //			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
@@ -929,27 +924,27 @@ public class JELIB extends LibraryFiles
 					", Export needs " + numPieces + " fields, has " + pieces.size() + ": " + cellString, cell, -1);
 				continue;
 			}
-			String exportName = unQuote((String)pieces.get(0));
-			String nodeName = revision >= 1 ? (String)pieces.get(2) : unQuote((String)pieces.get(2));
-			String portName = unQuote((String)pieces.get(3));
+			String exportName = unQuote(pieces.get(0));
+			String nodeName = revision >= 1 ? pieces.get(2) : unQuote(pieces.get(2));
+			String portName = unQuote(pieces.get(3));
 			Point2D pos = null;
 			if (revision < 1)
 			{
-				double x = TextUtils.atof((String)pieces.get(4));
-				double y = TextUtils.atof((String)pieces.get(5));
+				double x = TextUtils.atof(pieces.get(4));
+				double y = TextUtils.atof(pieces.get(5));
 				pos = new Point2D.Double(x, y);
 			}
 			PortInst pi = figureOutPortInst(cell, portName, nodeName, pos, diskName, cc.fileName, cc.lineNumber + line);
 			if (pi == null) continue;
 
 			// get text descriptor in field 1
-			String textDescriptorInfo = (String)pieces.get(1);
+			String textDescriptorInfo = pieces.get(1);
             TextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 			// parse state information in field 6
             boolean alwaysDrawn = false;
             boolean bodyOnly = false;
     		// parse state information in field 6
-            String userBits = (String)pieces.get(numPieces - 1);
+            String userBits = pieces.get(numPieces - 1);
             int slashPos = userBits.indexOf('/');
             if (slashPos >= 0) {
                 String extras = userBits.substring(slashPos);
@@ -982,7 +977,7 @@ public class JELIB extends LibraryFiles
 		// next place all arcs
 		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)cc.cellStrings.get(line);
+			String cellString = cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'A') continue;
 //			numProcessed++;
 //			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
@@ -995,7 +990,7 @@ public class JELIB extends LibraryFiles
 					", Arc instance needs 13 fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = unQuote((String)pieces.get(0));
+			String protoName = unQuote(pieces.get(0));
 			ArcProto ap = null;
 			if (protoName.indexOf(':') >= 0)
 				ap = ArcProto.findArcProto(protoName);
@@ -1007,7 +1002,7 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
-			String diskArcName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
+			String diskArcName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
 			String arcName = diskArcName;
 			if (arcName.charAt(0) == '"')
 			{
@@ -1018,24 +1013,24 @@ public class JELIB extends LibraryFiles
 					if (revision >= 1) arcName = unQuote(arcName);
 				}
 			}
-			double wid = TextUtils.atof((String)pieces.get(3));
+			double wid = TextUtils.atof(pieces.get(3));
 
-			String headNodeName = revision >= 1 ? (String)pieces.get(5) : unQuote((String)pieces.get(5));
-			String headPortName = unQuote((String)pieces.get(6));
-			double headX = TextUtils.atof((String)pieces.get(7));
-			double headY = TextUtils.atof((String)pieces.get(8));
+			String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
+			String headPortName = unQuote(pieces.get(6));
+			double headX = TextUtils.atof(pieces.get(7));
+			double headY = TextUtils.atof(pieces.get(8));
 			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, new Point2D.Double(headX, headY), diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
-			String tailNodeName = revision >= 1 ? (String)pieces.get(9) : unQuote((String)pieces.get(9));
-			String tailPortName = unQuote((String)pieces.get(10));
-			double tailX = TextUtils.atof((String)pieces.get(11));
-			double tailY = TextUtils.atof((String)pieces.get(12));
+			String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(pieces.get(9));
+			String tailPortName = unQuote(pieces.get(10));
+			double tailX = TextUtils.atof(pieces.get(11));
+			double tailY = TextUtils.atof(pieces.get(12));
 			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, new Point2D.Double(tailX, tailY), diskName, cc.fileName, cc.lineNumber + line);
 			if (tailPI == null) continue;
 
 			// parse state information in field 4
-			String stateInfo = (String)pieces.get(4);
+			String stateInfo = pieces.get(4);
 			boolean extended = true, directional = false, reverseEnds = false,
 				skipHead = false, skipTail = false,
 				tailNotExtended = false, headNotExtended = false,
@@ -1098,7 +1093,7 @@ public class JELIB extends LibraryFiles
 			flags = ImmutableArcInst.BODY_ARROWED.set(flags, bodyArrowed);
 
 			// get the ard name text descriptor
-			String nameTextDescriptorInfo = (String)pieces.get(2);
+			String nameTextDescriptorInfo = pieces.get(2);
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
@@ -1133,7 +1128,7 @@ public class JELIB extends LibraryFiles
 	 */
 	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, Point2D pos, HashMap<String,NodeInst> diskName, String fileName, int lineNumber)
 	{
-		NodeInst ni = (NodeInst)diskName.get(nodeName);
+		NodeInst ni = diskName.get(nodeName);
 		if (ni == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1198,7 +1193,7 @@ public class JELIB extends LibraryFiles
 		// a dummy cell: create a dummy export on it to fit this
 		if (pos == null)
 		{
-			pos = (Point2D)externalExports.get(subCell.getCellName().toString() + ":" + portName);
+			pos = externalExports.get(subCell.getCellName().toString() + ":" + portName);
 			if (pos == null) return null;
 		}
 		String name = portName;
@@ -1310,7 +1305,7 @@ public class JELIB extends LibraryFiles
 		int total = pieces.size();
 		for(int i=position; i<total; i++)
 		{
-			String piece = (String)pieces.get(i);
+			String piece = pieces.get(i);
 			int openPos = 0;
 			boolean inQuote = false;
 			for(; openPos < piece.length(); openPos++)
@@ -1485,7 +1480,7 @@ public class JELIB extends LibraryFiles
 	private TextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
 	{
         HashMap<String,TextDescriptor> parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
-        TextDescriptor td = (TextDescriptor)parsedDescriptors.get(varBits);
+        TextDescriptor td = parsedDescriptors.get(varBits);
         if (td != null) return td;
         
         boolean error = false;

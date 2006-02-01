@@ -89,10 +89,9 @@ public class HierarchyInfo {
 			                            Set compareListCells) {
 		List<CompareList> compareLists = CompareLists.getCompareLists(cc1, cc2);
 		cellsInSharedCellGroups = new HashSet<Cell>();
-		for (Iterator<CompareList> it=compareLists.iterator(); it.hasNext();) {
-			CompareList compareList = (CompareList) it.next();
+		for (CompareList compareList : compareLists) {
 			for (Iterator<CellContext> it2=compareList.iterator(); it2.hasNext();) {
-				Cell c = ((CellContext)it2.next()).cell;
+				Cell c = it2.next().cell;
 				if (!compareListCells.contains(c)) cellsInSharedCellGroups.add(c);
 			}
 		}
@@ -118,8 +117,7 @@ public class HierarchyInfo {
 	 * through them when comparing from higher levels in the hierarchy. */
 	public void purgeCurrentCompareList() {
 		purgeCurrentCompareList = true;
-		for (Iterator<Cell> it=cellsInCompareList.iterator(); it.hasNext();) {
-			Cell c = (Cell) it.next();
+		for (Cell c : cellsInCompareList) {
 			LayoutLib.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
 			cellToSubcktInfo.remove(c);
 		}

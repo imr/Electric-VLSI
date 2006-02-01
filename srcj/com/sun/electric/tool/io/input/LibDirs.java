@@ -192,7 +192,7 @@ public class LibDirs {
             if (usual.length != 0) alllibfiles.addAll(Arrays.asList(usual));
 
             for (Iterator<String> it = LibDirs.getLibDirs(); it.hasNext(); ) {
-                String str = (String)it.next();
+                String str = it.next();
                 File libdir = new File(str);
                 if (!libdir.exists()) continue;
                 if (!libdir.isDirectory()) continue;
@@ -206,7 +206,7 @@ public class LibDirs {
             }
             File [] all = new File[alllibfiles.size()];
             for (int i=0; i<alllibfiles.size(); i++) {
-                File f = (File)alllibfiles.get(i);
+                File f = alllibfiles.get(i);
                 all[i] = f;
             }
             return all;

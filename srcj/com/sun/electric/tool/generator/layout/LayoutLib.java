@@ -221,7 +221,7 @@ public class LayoutLib {
 		PortProto pp = port.getPortProto();
 		double maxWid = -1;
 		for (Iterator<ArcInst> arcs=getArcInstsOnPortInst(port); arcs.hasNext();) {
-			ArcInst ai = (ArcInst)arcs.next();
+			ArcInst ai = arcs.next();
 			maxWid = Math.max(maxWid, getArcInstWidth(ai));
 		}
 		if (pp instanceof Export) {
@@ -237,11 +237,11 @@ public class LayoutLib {
 		ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
 //		NodeInst ni = pi.getNodeInst();
 		for (Iterator<Connection> it=pi.getConnections(); it.hasNext();) {
-			Connection c = (Connection) it.next();
+			Connection c = it.next();
 			arcs.add(c.getArc());
 		}
 //		for (Iterator it=ni.getConnections(); it.hasNext();) {
-//			Connection c = (Connection) it.next();
+//			Connection c = it.next();
 //			if (c.getPortInst()==pi)  arcs.add(c.getArc());
 //		}
 		return arcs.iterator();
@@ -692,11 +692,11 @@ public class LayoutLib {
 	public static void abutLeftRight(double leftX, double originY,
 									 ArrayList<NodeInst> nodeInsts) {
 		for (int i=0; i<nodeInsts.size(); i++) {
-			NodeInst ni = (NodeInst) nodeInsts.get(i);
+			NodeInst ni = nodeInsts.get(i);
 			if (i==0) {
 				abutLeft(ni, leftX, originY);
 			} else {
-				abutLeftRight((NodeInst)nodeInsts.get(i-1), ni);
+				abutLeftRight(nodeInsts.get(i-1), ni);
 			}
 		}
 	}
@@ -724,8 +724,7 @@ public class LayoutLib {
 	 * @param nodeInsts the ArrayList of NodeInsts */
 	public static void abutLeftRight(ArrayList<NodeInst> nodeInsts) {
 		for (int i=1; i<nodeInsts.size(); i++) {
-			abutLeftRight((NodeInst)nodeInsts.get(i-1),
-						  (NodeInst)nodeInsts.get(i));
+			abutLeftRight(nodeInsts.get(i-1), nodeInsts.get(i));
 		}
 	}
 	
@@ -772,11 +771,11 @@ public class LayoutLib {
 	public static void abutBottomTop(double originX, double botY,
 									 ArrayList<NodeInst> nodeInsts) {
 		for (int i=0; i<nodeInsts.size(); i++) {
-			NodeInst ni = (NodeInst) nodeInsts.get(i);
+			NodeInst ni = nodeInsts.get(i);
 			if (i==0) {
 				abutBottom(ni, originX, botY);
 			} else {
-				abutBottomTop((NodeInst)nodeInsts.get(i-1), ni);
+				abutBottomTop(nodeInsts.get(i-1), ni);
 			}
 		}
 	}
@@ -789,8 +788,7 @@ public class LayoutLib {
 	 */
 	public static void abutBottomTop(ArrayList<NodeInst> nodeInsts) {
 		for (int i=1; i<nodeInsts.size(); i++) {
-			abutBottomTop((NodeInst)nodeInsts.get(i-1),
-						  (NodeInst)nodeInsts.get(i));
+			abutBottomTop(nodeInsts.get(i-1), nodeInsts.get(i));
 		}
 	}
 
@@ -809,7 +807,7 @@ public class LayoutLib {
 
         // get layer from nodes
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             AffineTransform trans = ni.rotateOut();
             Poly [] polys = tech.getShapeOfNode(ni, null, null, false, true, list);
             if (polys == null) continue;
@@ -827,7 +825,7 @@ public class LayoutLib {
         }
         // get layer from arcs
         for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-            ArcInst ai = (ArcInst)it.next();
+            ArcInst ai = it.next();
             Poly [] polys = tech.getShapeOfArc(ai, null, null, list);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {

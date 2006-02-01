@@ -92,8 +92,7 @@ public class MeasureListener
             Point2D end = dbPoint;
             Highlighter highlighter = wnd.getRulerHighlighter();
 
-            for (Iterator<Highlight2> it = lastHighlights.iterator(); it.hasNext(); ) {
-                Highlight2 h = it.next();
+            for (Highlight2 h : lastHighlights) {
                 highlighter.remove(h);
             }
 			lastHighlights.clear();
@@ -123,9 +122,8 @@ public class MeasureListener
         if (measuring)
 		{
             Highlighter highlighter = wnd.getRulerHighlighter();
-            for (Iterator<Highlight2> it = lastHighlights.iterator(); it.hasNext(); )
+            for (Highlight2 h : lastHighlights)
 			{
-                Highlight2 h = it.next();
                 highlighter.remove(h);
             }
             highlighter.finished();

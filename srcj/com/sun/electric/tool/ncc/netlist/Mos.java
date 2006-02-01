@@ -159,7 +159,7 @@ public class Mos extends Part {
 	
 	public synchronized Set<PinType> getPinTypes() {
 		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
-		Set<PinType> pinTypes = (Set<PinType>) PIN_TYPE_SETS.get(key);
+		Set<PinType> pinTypes = PIN_TYPE_SETS.get(key);
 		if (pinTypes==null) {
 			pinTypes = new HashSet<PinType>();
 			pinTypes.add(new DiffType(type, numSeries(), isCapacitor()));
@@ -175,7 +175,7 @@ public class Mos extends Part {
 	}
 	public synchronized PinType[] getPinTypeArray() {
 		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
-		PinType[] pinTypeArray = (PinType[]) TYPE_TO_PINTYPE_ARRAY.get(key);
+		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(key);
 		if (pinTypeArray==null) {
 			pinTypeArray = new PinType[pins.length];
 			TYPE_TO_PINTYPE_ARRAY.put(key, pinTypeArray);
@@ -205,7 +205,7 @@ public class Mos extends Part {
 		}
 		public static int[] getCoeffArray(int numPins) {
 			ensureListEntry(numPins);
-			int[] coeffArray = (int[]) coeffArrays.get(numPins);
+			int[] coeffArray = coeffArrays.get(numPins);
 			if (coeffArray==null) {
 				coeffArray = new int[numPins];
 				for (int i=0; i<(numPins+1)/2; i++) {
@@ -409,7 +409,7 @@ public class Mos extends Part {
 		// Use Set to remove duplicate Parts
 		Set<Mos> trans = new HashSet<Mos>();
 		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
-			Part p = (Part) it.next();
+			Part p = it.next();
 			if (p.isDeleted()) continue;
 			if (!(p instanceof Mos)) return false;
 			Mos t = (Mos) p;
@@ -420,8 +420,8 @@ public class Mos extends Part {
 		if (trans.size()!=2) return false;
 
 		Iterator<Mos> it = trans.iterator();
-		Mos ta = (Mos) it.next();
-		Mos tb = (Mos) it.next();
+		Mos ta = it.next();
+		Mos tb = it.next();
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if (!ta.isLike(tb))  return false;
 		if (ta.width!=tb.width)  return false;

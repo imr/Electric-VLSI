@@ -94,8 +94,7 @@ public class LENodable {
 
     protected LENodable copy() {
         LENodable copy = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
-        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next();
+        for (LEPin pin : pins) {
             copy.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
         return copy;
@@ -168,8 +167,7 @@ public class LENodable {
     protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister.NetlisterConstants constants) {
         LENodable instance = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
         // copy pins
-        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next();
+        for (LEPin pin : pins) {
             instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
         instantiate(instance, context, outputNetwork, mfactor, su, constants, false);
@@ -335,8 +333,7 @@ public class LENodable {
     }
 
     protected void printPins() {
-        for (Iterator<LEPin> it = pins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next();
+        for (LEPin pin : pins) {
             System.out.println("Pin "+pin.getName()+", le="+pin.getLE()+", dir="+pin.getDir()+" on network "+pin.getNetwork());
         }
     }

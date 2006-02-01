@@ -105,7 +105,7 @@ public class LESizer2 {
 
             // iterate through each instance
             for (Iterator<LENodable> lit = netlist.getSizeableNodables(); lit.hasNext(); ) {
-                LENodable leno = (LENodable)lit.next();
+                LENodable leno = lit.next();
                 // ignore it if not a sizeable gate
                 if (!leno.isLeGate()) continue;
                 LENetwork outputNet = leno.outputNetwork;
@@ -113,8 +113,7 @@ public class LESizer2 {
                 // find all drivers in same group, of same type (LEGATE or LEKEEPER)
                 List<LENodable> drivers = new ArrayList<LENodable>();
                 List<LENodable> arrayedDrivers = new ArrayList<LENodable>();
-                for (Iterator<LEPin> it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
-                    LEPin pin = (LEPin)it.next();
+                for (LEPin pin : outputNet.getAllPins()) {
                     // only interested in drivers
                     if (pin.getDir() != LEPin.Dir.OUTPUT) continue;
                     LENodable loopLeno = pin.getInstance();
@@ -152,8 +151,7 @@ public class LESizer2 {
                     float smallestX = 0;
 
                     // iterate over all drivers on net
-                    for (Iterator<LEPin> it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
-                        LEPin pin = (LEPin)it.next();
+                    for (LEPin pin : outputNet.getAllPins()) {
                         // only interested in drivers
                         if (pin.getDir() != LEPin.Dir.OUTPUT) continue;
                         LENodable loopLeno = pin.getInstance();
@@ -167,7 +165,7 @@ public class LESizer2 {
                                 if (loopLeno.leX < smallestX) smallestX = loopLeno.leX;
                             }
                             // add to group to sum up drive strength later
-                            ArrayList<LENodable> groupList = (ArrayList<LENodable>)drivingGroups.get(integer.toString());
+                            List<LENodable> groupList = drivingGroups.get(integer.toString());
                             if (groupList == null) {
                                 groupList = new ArrayList<LENodable>();
                                 drivingGroups.put(integer.toString(), groupList);
@@ -178,13 +176,12 @@ public class LESizer2 {
 
                     // find smallest total size of groups
                     Set<String> keys = drivingGroups.keySet();
-                    for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
-                        ArrayList<LENodable> groupList = (ArrayList<LENodable>)drivingGroups.get(it.next());
+                    for (String str : keys) {
+                        List<LENodable> groupList = drivingGroups.get(str);
                         if (groupList == null) continue;            // skip empty groups
                         // get size
                         float sizeX = 0;
-                        for (Iterator<LENodable> it2 = groupList.iterator(); it2.hasNext(); ) {
-                            LENodable loopLeno = (LENodable)it2.next();
+                        for (LENodable loopLeno : groupList) {
                             sizeX += loopLeno.leX;
                         }
                         // check size of group
@@ -218,8 +215,7 @@ public class LESizer2 {
                     int numLoads = 0;
                     //System.out.println("LENode "+leno.getName()+" drives: ");
                     //outputNet.print();
-                    for (Iterator<LEPin> it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
-                        LEPin pin = (LEPin)it.next();
+                    for (LEPin pin : outputNet.getAllPins()) {
                         LENodable loopLeno = pin.getInstance();
 
                         float load = loopLeno.leX * pin.getLE() * loopLeno.getMfactor();

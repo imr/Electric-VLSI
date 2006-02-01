@@ -100,7 +100,7 @@ public class LeafEquivRecords {
 		List<EquivRecord> newMatched = new ArrayList<EquivRecord>();
 		List<EquivRecord> newNotMatched = new ArrayList<EquivRecord>();
 		for (ListIterator<EquivRecord> it=notMatched.listIterator(); it.hasNext();) {
-			EquivRecord er = (EquivRecord) it.next();
+			EquivRecord er = it.next();
 			if (er.isLeaf()) {
 				LayoutLib.error(er.isMatched(), "notMatched list has matched");
 			} else {

@@ -146,12 +146,12 @@ public class ManualViewer extends EDialog
 		{
 			if (preference != null)
 			{
-				String prefFileName = (String)preferenceMap.get(preference);
+				String prefFileName = preferenceMap.get(preference);
 			    if (prefFileName == null) System.out.println("No help for preference " + preference); else
 				{
 					for(int i=0; i<theManual.pageSequence.size(); i++)
 					{
-						PageInfo pi = (PageInfo)theManual.pageSequence.get(i);
+						PageInfo pi = theManual.pageSequence.get(i);
 						if (pi.fileName.equals(prefFileName))
 						{
 							theManual.loadPage(i);
@@ -251,7 +251,7 @@ public class ManualViewer extends EDialog
         String prefFileName = null;
         if (preference != null)
         {
-            prefFileName = (String)preferenceMap.get(preference);
+            prefFileName = preferenceMap.get(preference);
 		    if (prefFileName == null) System.out.println("No help for preference " + preference);
         }
 
@@ -449,7 +449,7 @@ public class ManualViewer extends EDialog
 						if (backslashPos < 0) break;
 						commandName = commandName.substring(0, backslashPos) + commandName.substring(backslashPos+1);
 					}
-					String already = (String)menuMap.get(commandName);
+					String already = menuMap.get(commandName);
 					if (already != null && Job.getDebug())
 					{
 						System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
@@ -467,7 +467,7 @@ public class ManualViewer extends EDialog
 						continue;
 					}
 					String preferenceName = pageLine.substring(16, endPt).trim();
-					String already = (String)preferenceMap.get(preferenceName);
+					String already = preferenceMap.get(preferenceName);
 					if (already != null && Job.getDebug())
 					{
 						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
@@ -495,10 +495,9 @@ public class ManualViewer extends EDialog
 				checkMenu(menu, menu.getText() + "/", menuMapCheck);
 			}
 
-			for(Iterator<String> it = menuMapCheck.keySet().iterator(); it.hasNext(); )
+			for(String commandName : menuMapCheck.keySet())
 			{
-				String commandName = (String)it.next();
-				String fileName = (String)menuMapCheck.get(commandName);
+				String fileName = menuMapCheck.get(commandName);
 				System.out.println("Command " + commandName + " was mentioned in file " + fileName + " but does not exist");
 			}
 			menuMapCheck = null;
@@ -518,7 +517,7 @@ public class ManualViewer extends EDialog
 			} else
 			{
 				String commandName = cumulative + menuItem.getText();
-				String fileName = (String)menuMap.get(commandName);
+				String fileName = menuMap.get(commandName);
 				if (fileName == null && Job.getDebug())
 				{
 					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
@@ -553,7 +552,7 @@ public class ManualViewer extends EDialog
 				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());
 				helpMenu.add(helpMenuItem);
 				String commandName = cumulative + menuItem.getText();
-				String fileName = (String)menuMap.get(commandName);
+				String fileName = menuMap.get(commandName);
 				helpMenuItem.addActionListener(new HelpMenuActionListener(this, fileName));
 			}
 		}
@@ -581,7 +580,7 @@ public class ManualViewer extends EDialog
 			}
 			for(int i=0; i<dialog.pageSequence.size(); i++)
 			{
-				PageInfo pi = (PageInfo)dialog.pageSequence.get(i);
+				PageInfo pi = dialog.pageSequence.get(i);
 				if (pi.fileName.equals(fileName))
 				{
 					dialog.loadPage(i);
@@ -615,7 +614,7 @@ public class ManualViewer extends EDialog
 
 		currentIndex = index;
 		lastPageVisited = index;
-		PageInfo pi = (PageInfo)pageSequence.get(index);
+		PageInfo pi = pageSequence.get(index);
         if (pi.url == null) return; // error reading the html file
         
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
@@ -627,11 +626,11 @@ public class ManualViewer extends EDialog
 
 		int lastIndex = index - 1;
 		if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
-		PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+		PageInfo lastPi = pageSequence.get(lastIndex);
 		String lastFileName = lastPi.fileName;
 		int nextIndex = index + 1;
 		if (nextIndex >= pageSequence.size()) nextIndex = 0;
-		PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+		PageInfo nextPi = pageSequence.get(nextIndex);
 		String nextFileName = nextPi.fileName;
 		for(;;)
 		{
@@ -733,7 +732,7 @@ public class ManualViewer extends EDialog
 		int numFound = 0;
 		for(int index=0; index < pageSequence.size(); index++)
 		{
-			PageInfo pi = (PageInfo)pageSequence.get(index);
+			PageInfo pi = pageSequence.get(index);
 			InputStream stream = TextUtils.getURLStream(pi.url, null);
 			InputStreamReader is = new InputStreamReader(stream);
 			StringBuffer sb = new StringBuffer();
@@ -783,17 +782,17 @@ public class ManualViewer extends EDialog
 		printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");
 		for(int index=0; index < pageSequence.size(); index++)
 		{
-			PageInfo pi = (PageInfo)pageSequence.get(index);
+			PageInfo pi = pageSequence.get(index);
 			InputStream stream = TextUtils.getURLStream(pi.url, null);
 			InputStreamReader is = new InputStreamReader(stream);
 
 			int lastIndex = index - 1;
 			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
-			PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+			PageInfo lastPi = pageSequence.get(lastIndex);
 			String lastFileName = lastPi.fileName;
 			int nextIndex = index + 1;
 			if (nextIndex >= pageSequence.size()) nextIndex = 0;
-			PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+			PageInfo nextPi = pageSequence.get(nextIndex);
 			String nextFileName = nextPi.fileName;
 
 			for(;;)
@@ -874,7 +873,7 @@ public class ManualViewer extends EDialog
 		StringBuffer afterTOC = new StringBuffer();
 		for(int index=0; index < pageSequence.size(); index++)
 		{
-			PageInfo pi = (PageInfo)pageSequence.get(index);
+			PageInfo pi = pageSequence.get(index);
 			if (pi.chapterNumber <= 0)
 			{
 				InputStream stream = TextUtils.getURLStream(pi.url, null);
@@ -920,9 +919,9 @@ public class ManualViewer extends EDialog
 		printWriter.println("<CENTER><TABLE BORDER=\"1\">");
 		for(int i=0; i<chapters.size(); i += 2)
 		{
-			String leftSide = (String)chapters.get(i);
+			String leftSide = chapters.get(i);
 			String rightSide = "";
-			if (i+1 < chapters.size()) rightSide = (String)chapters.get(i+1);
+			if (i+1 < chapters.size()) rightSide = chapters.get(i+1);
 			printWriter.println("<TR><TD VALIGN=TOP>" + leftSide + "</TD>");
 			printWriter.println("<TD VALIGN=TOP>" + rightSide + "</TD></TR>");
 		}
@@ -939,7 +938,7 @@ public class ManualViewer extends EDialog
 
 		for(int index=0; index < pageSequence.size(); index++)
 		{
-			PageInfo pi = (PageInfo)pageSequence.get(index);
+			PageInfo pi = pageSequence.get(index);
 			if (pi.chapterNumber <= 0) continue;
 			InputStream stream = TextUtils.getURLStream(pi.url, null);
 			InputStreamReader is = new InputStreamReader(stream);
@@ -958,12 +957,12 @@ public class ManualViewer extends EDialog
 
 			int lastIndex = index - 1;
 			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
-			PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+			PageInfo lastPi = pageSequence.get(lastIndex);
 			String lastFileName = lastPi.fileName;
 			if (lastFileName.equals("title")) lastFileName = "index"; else lastFileName = "m" + lastFileName;
 			int nextIndex = index + 1;
 			if (nextIndex >= pageSequence.size()) nextIndex = 0;
-			PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+			PageInfo nextPi = pageSequence.get(nextIndex);
 			String nextFileName = nextPi.fileName;
 			if (nextFileName.equals("title")) nextFileName = "index"; else nextFileName = "m" + nextFileName;
 
@@ -1022,7 +1021,7 @@ public class ManualViewer extends EDialog
 	 */
 	private void edit()
 	{
-		PageInfo pi = (PageInfo)pageSequence.get(currentIndex);
+		PageInfo pi = pageSequence.get(currentIndex);
 		EditHTML dialog = new EditHTML(TopLevel.getCurrentJFrame(), pi.url, this);
 		dialog.setVisible(true);
 	}
@@ -1144,7 +1143,7 @@ public class ManualViewer extends EDialog
 					String desiredFile = desiredURL.getFile();
 			 		for(int i=0; i<dialog.pageSequence.size(); i++)
 			 		{
-			 			PageInfo pi = (PageInfo)dialog.pageSequence.get(i);
+			 			PageInfo pi = dialog.pageSequence.get(i);
 			 			if (pi.url.getFile().equals(desiredFile))
 			 			{
 			 				dialog.loadPage(i);
@@ -1367,7 +1366,7 @@ public class ManualViewer extends EDialog
 			if (nodeInfo instanceof Integer)
 			{
 				Integer index = (Integer)nodeInfo;
-				PageInfo pi = (PageInfo)dialog.pageSequence.get(index.intValue());
+				PageInfo pi = dialog.pageSequence.get(index.intValue());
 				String ret = pi.title;
 				if (pi.sectionNumber > 0) ret = pi.sectionNumber + ": " + ret;
 				return ret;

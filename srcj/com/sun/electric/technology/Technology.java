@@ -3878,7 +3878,40 @@ public class Technology implements Comparable<Technology>
     public Object[][] getNodesGrouped()
     {
         // Check if some metal layers are not used
-        if (nodeGroups == null) return null;
+        if (nodeGroups == null)
+        {
+        	// compute palette information automatically
+        	List<Object> things = new ArrayList<Object>();
+        	for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+        	{
+        		ArcProto ap = it.next();
+        		if (!ap.isNotUsed()) things.add(ap);
+        	}
+        	for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+        	{
+        		PrimitiveNode np = it.next();
+        		if (np.isNotUsed()) continue;
+        		if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
+        		things.add(np);
+        	}
+        	things.add("Pure");
+        	things.add("Misc.");
+        	things.add("Cell");
+        	int columns = (things.size()+13) / 14;
+        	int rows = (things.size() + columns-1) / columns;
+        	nodeGroups = new Object[rows][columns];
+        	int rowPos = 0, colPos = 0;
+        	for(Object obj : things)
+        	{
+        		nodeGroups[rowPos][colPos] = obj;
+        		rowPos++;
+        		if (rowPos >= rows)
+        		{
+        			rowPos = 0;
+        			colPos++;
+        		}
+        	}
+        }
         List <Object>list = new ArrayList<Object>(nodeGroups.length);
         for (int i = 0; i < nodeGroups.length; i++)
         {

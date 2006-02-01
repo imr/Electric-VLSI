@@ -95,10 +95,10 @@ public class Layout extends Constraints
         cellInfos.clear();
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
                 newCellInfo(cell);
 			}
 		}
@@ -112,17 +112,16 @@ public class Layout extends Constraints
 	{
         if (DEBUG) {
             System.out.println("Temporary rigid:");
-            for (Iterator<Map.Entry<ArcInst,Boolean>> it = tempRigid.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<ArcInst,Boolean> e = (Map.Entry<ArcInst,Boolean>)it.next();
+            for (Map.Entry<ArcInst,Boolean> e : tempRigid.entrySet()) {
                 System.out.println("\t" + e.getKey() + " --> " + e.getValue());
             }
         }
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
                 if (wasChangesQuiet) {
                     cell.getBounds();
                     continue;
@@ -243,7 +242,7 @@ public class Layout extends Constraints
      * @return true if the ArcInst is considered rigid in this batch.
      */
     static boolean isRigid(ArcInst ai) {
-        Boolean override = (Boolean)tempRigid.get(ai);
+        Boolean override = tempRigid.get(ai);
         return override != null ? override.booleanValue() : ai.isRigid();
     }
     
@@ -332,7 +331,7 @@ public class Layout extends Constraints
     }
     
     static LayoutCell getCellInfo(Cell cell) {
-        return (LayoutCell)cellInfos.get(cell.getCellIndex());
+        return cellInfos.get(cell.getCellIndex());
     }
     
 }

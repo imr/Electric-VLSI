@@ -79,7 +79,7 @@ public class LayersTab extends PreferencePanel
 		});
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			technology.addItem(tech.getTechName());
 		}
 		technology.addActionListener(new ActionListener()
@@ -103,10 +103,10 @@ public class LayersTab extends PreferencePanel
 		// make a map of all layers
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
+				Layer layer = lIt.next();
 				layerName.addItem(layer.getName());
                 ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
                 layerMap.put(layer, li);
@@ -164,7 +164,7 @@ public class LayersTab extends PreferencePanel
 		if (tech == null) return;
 
 		// report the map for the technology
-		Color [] map = (Color [])colorMapMap.get(tech);
+		Color [] map = colorMapMap.get(tech);
 		colorAndPatternPanel.setColorMap(map);
 
 		layerName.removeAllItems();
@@ -172,18 +172,17 @@ public class LayersTab extends PreferencePanel
 		// add all layers in the technology
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
-			Layer layer = (Layer)lIt.next();
+			Layer layer = lIt.next();
 			layerName.addItem(layer.getName());
 		}
 
 		// add special layer names
 		List<String> specialList = new ArrayList<String>();
-		for(Iterator<String> it = transAndSpecialMap.keySet().iterator(); it.hasNext(); )
-			specialList.add(it.next());
+		for(String name : transAndSpecialMap.keySet())
+			specialList.add(name);
 		Collections.sort(specialList, TextUtils.STRING_NUMBER_ORDER);
-		for(Iterator<String> it = specialList.iterator(); it.hasNext(); )
+		for(String name : specialList)
 		{
-			String name = (String)it.next();
 			layerName.addItem(name);
 		}
 
@@ -200,11 +199,11 @@ public class LayersTab extends PreferencePanel
 		if (tech == null) return;
 
 		String name = (String)layerName.getSelectedItem();
-		ColorPatternPanel.Info li = (ColorPatternPanel.Info)transAndSpecialMap.get(name);
+		ColorPatternPanel.Info li = transAndSpecialMap.get(name);
 		if (li == null)
 		{
 			Layer layer = tech.findLayer(name);
-			li = (ColorPatternPanel.Info)layerMap.get(layer);
+			li = layerMap.get(layer);
 		}
 		if (li == null) return;
 		colorAndPatternPanel.setColorPattern(li);
@@ -219,11 +218,11 @@ public class LayersTab extends PreferencePanel
 		boolean changed = false;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
-				ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
+				Layer layer = lIt.next();
+				ColorPatternPanel.Info li = layerMap.get(layer);
 				if (li.updateGraphics())
 					changed = true;
 			}
@@ -236,7 +235,7 @@ public class LayersTab extends PreferencePanel
 
 			// see if any colors changed
 			boolean mapChanged = false;
-			Color [] map = (Color [])colorMapMap.get(tech);
+			Color [] map = colorMapMap.get(tech);
 			for(int i=0; i<map.length; i++)
 				if (map[i].getRGB() != origMap[i].getRGB()) mapChanged = true;
 			if (mapChanged)
@@ -309,7 +308,7 @@ public class LayersTab extends PreferencePanel
 
 	public int specialMapColor(String title, int curColor)
 	{
-		ColorPatternPanel.Info li = (ColorPatternPanel.Info)transAndSpecialMap.get(title);
+		ColorPatternPanel.Info li = transAndSpecialMap.get(title);
 		if (li == null) return -1;
 		int newColor = (li.red << 16) | (li.green << 8) | li.blue;
 		if (newColor != curColor) return newColor;

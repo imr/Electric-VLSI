@@ -37,8 +37,8 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision: 1.1 $
- * $Date: 2005/06/29 06:44:46 $
+ * $Revision: 1.2 $
+ * $Date: 2005/11/14 22:15:22 $
  * $State: Exp $
  */
 package com.sun.electric.plugins.Java3D;
@@ -79,7 +79,7 @@ public class J3DQueryProperties {
                 String pattern = propList[i].substring(0, len-1);
                 it = keyList.iterator();
                 while (it.hasNext()) {
-                    key = (String)it.next();
+                    key = it.next();
                     if (key.startsWith(pattern) && !hs.contains(key)) {
                         System.out.println(key + " = " + map.get(key));
                         hs.add(key);
@@ -95,7 +95,7 @@ public class J3DQueryProperties {
         // Print out the values for those properties not already printed
         it = keyList.iterator();
         while (it.hasNext()) {
-            key = (String)it.next();
+            key = it.next();
             if (!hs.contains(key)) {
                 System.out.println(key + " = " + map.get(key));
             }

@@ -279,9 +279,8 @@ public class ManipulatePorts extends EDialog
 		public void reExportSelected()
 		{
 			List<PortInst> queuedExports = new ArrayList<PortInst>();
-			for(Iterator<PortEntry> it = ports.iterator(); it.hasNext(); )
+			for(PortEntry pe : ports)
 			{
-				PortEntry pe = it.next();
 				if (!pe.isSelected()) continue;
 				queuedExports.add(pe.getPort());
 			}
@@ -291,9 +290,8 @@ public class ManipulatePorts extends EDialog
 		public void unExportSelected()
 		{
 			List<Export> queuedExports = new ArrayList<Export>();
-			for(Iterator<PortEntry> it = ports.iterator(); it.hasNext(); )
+			for(PortEntry pe : ports)
 			{
-				PortEntry pe = it.next();
 				if (!pe.isSelected()) continue;
 				for(Iterator<Export> eIt = pe.getPort().getExports(); eIt.hasNext(); )
 				{
@@ -310,9 +308,8 @@ public class ManipulatePorts extends EDialog
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			if (wnd == null) return;
 			wnd.clearHighlighting();
-			for(Iterator<PortEntry> it = ports.iterator(); it.hasNext(); )
+			for(PortEntry pe : ports)
 			{
-				PortEntry pe = it.next();
 				if (!pe.isSelected()) continue;
 				wnd.addElectricObject(pe.getPort(), ni.getParent());
 			}
@@ -328,7 +325,7 @@ public class ManipulatePorts extends EDialog
 		/** Method to get a location in the table. */
 		public Object getValueAt(int rowIndex, int columnIndex) {
 
-			PortEntry pe = (PortEntry)ports.get(rowIndex);
+			PortEntry pe = ports.get(rowIndex);
 			if (pe == null) return null;
 
 			switch (columnIndex)
@@ -376,7 +373,7 @@ public class ManipulatePorts extends EDialog
 		/** Method to set a value. */
 		public void setValueAt(Object aValue, int row, int col)
 		{
-			PortEntry ve = (PortEntry)ports.get(row);
+			PortEntry ve = ports.get(row);
 			if (ve == null) return;
 
 			if (col != 0) return;

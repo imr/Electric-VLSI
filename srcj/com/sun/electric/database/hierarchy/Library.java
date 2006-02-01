@@ -192,10 +192,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (curLib == this)
 		{
 			// find another library
-			/*for(Library lib: libraries)*/
-			for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
+			for (Library lib : libraries.values())
 			{
-				Library lib = (Library)it.next();
 				if (lib == curLib) continue;
 				if (lib.isHidden()) continue;
 				newCurLib = lib;
@@ -221,17 +219,15 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
-		/*for(Library lib: libraries)*/
-		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
+		for (Library lib : libraries.values())
 		{
-			Library lib = (Library)it.next();
 			if (lib == this) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)nIt.next();
+					NodeInst ni = nIt.next();
 					if (ni.isCellInstance())
 					{
 						Cell subCell = (Cell)ni.getProto();
@@ -277,7 +273,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
 		// remove all cells in the library
         for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
-            Cell c = (Cell)it.next();
+            Cell c = it.next();
             c.kill();
         }
 		cells.clear();
@@ -343,16 +339,15 @@ public class Library extends ElectricObject implements Comparable<Library>
             d.startLib = lib;
             d.finalRefLib = this;
             Library startLib = lib;
-            for (Iterator<Library> itLib = libDependencies.iterator(); itLib.hasNext(); ) {
+            for (Library refLib : libDependencies) {
 
                 // startLib references refLib. Find out why
-                Library refLib = (Library)itLib.next();
                 boolean found = false;
                 // find a cell instance that creates dependency
                 for (Iterator<Cell> itCell = startLib.getCells(); itCell.hasNext(); ) {
-                    Cell c = (Cell)itCell.next();
+                    Cell c = itCell.next();
                     for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
-                        NodeInst ni = (NodeInst)it.next();
+                        NodeInst ni = it.next();
                         if (ni.isCellInstance()) {
                             Cell cc = (Cell)ni.getProto();
                             if (cc.getLibrary() == refLib) {
@@ -392,9 +387,9 @@ public class Library extends ElectricObject implements Comparable<Library>
         }
         boolean refFound = false;
         for (Iterator<Cell> itCell = getCells(); itCell.hasNext(); ) {
-            Cell c = (Cell)itCell.next();
+            Cell c = itCell.next();
             for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 if (ni.isCellInstance()) {
                     Cell cc = (Cell)ni.getProto();
                     if (cc.getLibrary() == lib) {
@@ -442,9 +437,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             }
             reflibsCopy.addAll(referencedLibs);
         }
-        for (Iterator<Library> it = reflibsCopy.iterator(); it.hasNext(); ) {
-            Library reflib = (Library)it.next();
-
+        for (Library reflib : reflibsCopy) {
             // if reflib already in dependency list, ignore
             if (libDepedencies.contains(reflib)) continue;
 
@@ -470,8 +463,8 @@ public class Library extends ElectricObject implements Comparable<Library>
             StringBuffer buf = new StringBuffer();
             buf.append(startLib + " depends on " + finalRefLib + " through the following references:\n");
             for (Iterator<Cell> it = dependencies.iterator(); it.hasNext(); ) {
-                Cell libCell = (Cell)it.next();
-                Cell instance = (Cell)it.next();
+                Cell libCell = it.next();
+                Cell instance = it.next();
                 buf.append("   " + libCell.libDescribe() + " instantiates " + instance.libDescribe() + "\n");
             }
             return buf.toString();
@@ -542,7 +535,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     public static Library inCurrentThread(LibId libId) {
         try {
-            return (Library)linkedLibs.get(libId.libIndex);
+            return linkedLibs.get(libId.libIndex);
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
@@ -679,7 +672,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		for(Iterator<Cell> it = getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			errorCount += cell.checkAndRepair(repair, errorLogger);
 		}
 		if (errorCount != 0)
@@ -712,9 +705,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
 		String protoName = null;
 		Cell.CellGroup cellGroup = null;
-		for(Iterator<Map.Entry<CellName,Cell>> it = cells.entrySet().iterator(); it.hasNext(); )
+		for(Map.Entry<CellName,Cell> e : cells.entrySet())
 		{
-			Map.Entry<CellName,Cell> e = (Map.Entry<CellName,Cell>)it.next();
 			CellName cn = (CellName)e.getKey();
 			Cell cell = (Cell)e.getValue();
 			assert cell.getCellName().equals(cn);
@@ -731,7 +723,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 		for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); )
 		{
-			cellGroup = (Cell.CellGroup)it.next();
+			cellGroup = it.next();
 			cellGroup.check();
 		}
 	}
@@ -750,9 +742,8 @@ public class Library extends ElectricObject implements Comparable<Library>
             CellId.checkInvariants();
             
 			TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-			for (Iterator<Map.Entry<String,Library>> it = libraries.entrySet().iterator(); it.hasNext(); )
+			for (Map.Entry<String,Library> e : libraries.entrySet())
 			{
-				Map.Entry<String,Library> e = (Map.Entry<String,Library>)it.next();
 				String libName = (String)e.getKey();
 				Library lib = (Library)e.getValue();
 				assert libName.equals(lib.d.libName) : libName + " " + lib;
@@ -848,9 +839,8 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     private void clearCellChanges()
     {
-		for (Iterator<Cell> it = cells.values().iterator(); it.hasNext();)
+		for (Cell c : cells.values())
 		{
-			Cell c = (Cell) it.next();
             c.clearModified();
 		}
     }
@@ -948,16 +938,13 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
 		TreeSet<Cell> set = new TreeSet<Cell>();
 
-		/*for (Library l: libraries)*/
-		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
+		for (Library l : libraries.values())
 		{
-			Library l = (Library)it.next();
 			// skip itself
 			if (l == elib) continue;
 
-			for (Iterator<Cell> cIt = l.cells.values().iterator(); cIt.hasNext(); )
+			for (Cell cell : l.cells.values())
 			{
-				Cell cell = (Cell) cIt.next();
 				cell.findReferenceInCell(elib, set);
 			}
 		}
@@ -972,13 +959,11 @@ public class Library extends ElectricObject implements Comparable<Library>
 	public static Library findLibrary(String libName)
 	{
 		if (libName == null) return null;
-		Library lib = (Library)libraries.get(libName);
+		Library lib = libraries.get(libName);
 		if (lib != null) return lib;
 
-		/*for (Library l: libraries)*/
-		for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
+		for (Library l : libraries.values())
 		{
-			Library l = (Library)it.next();
 			if (l.getName().equalsIgnoreCase(libName))
 				return l;
 		}
@@ -1014,10 +999,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
         synchronized(libraries) {
 			ArrayList<Library> visibleLibraries = new ArrayList<Library>();
-			/*for (Library lib: libraries)*/
-			for (Iterator<Library> it = libraries.values().iterator(); it.hasNext(); )
+			for (Library lib : libraries.values())
 			{
-				Library lib = (Library)it.next();
 				if (!lib.isHidden()) visibleLibraries.add(lib);
 			}
 			return visibleLibraries;
@@ -1080,7 +1063,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         curCellPref = null;
         setCurCell(curCell);
         for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
-            Cell cell = (Cell)it.next();
+            Cell cell = it.next();
             cell.expandStatusChanged();
         }
 	}
@@ -1188,9 +1171,9 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     public static void saveExpandStatus() throws BackingStoreException {
             for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
-                Library lib = (Library)lit.next();
+                Library lib = lit.next();
                 for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                    Cell cell = (Cell)it.next();
+                    Cell cell = it.next();
                     cell.saveExpandStatus();
                 }
                 lib.prefs.flush();
@@ -1201,10 +1184,10 @@ public class Library extends ElectricObject implements Comparable<Library>
     {
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
         {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();)
             {
-                Cell cell = (Cell)cIt.next();
+                Cell cell = cIt.next();
                 if (cell.getName().indexOf(name) != -1)
                 {
                     // Either first match in name or check that view matches
@@ -1226,13 +1209,12 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (name == null) return null;
 		CellName n = CellName.parseName(name);
 		if (n == null) return null;
-		Cell cell = (Cell)cells.get(n);
+		Cell cell = cells.get(n);
 		if (cell != null) return cell;
 
 		Cell onlyWithName = null;
-		for (Iterator<Cell> it = cells.values().iterator(); it.hasNext();)
+		for (Cell c : cells.values())
 		{
-			Cell c = (Cell) it.next();
 			if (!n.getName().equalsIgnoreCase(c.getName())) continue;
 			onlyWithName = c;
 			if (n.getView() != c.getView()) continue;

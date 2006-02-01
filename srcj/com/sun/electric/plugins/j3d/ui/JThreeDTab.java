@@ -128,9 +128,8 @@ public class JThreeDTab extends ThreeDTab
 		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
         transparencyMap = new HashMap<Layer,J3DAppearance>();
         // Sorted by Height to be consistent with LayersTab
-		for(Iterator<Layer> it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
+		for(Layer layer : curTech.getLayersSortedByHeight())
 		{
-			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			threeDLayerModel.addElement(layer.getName());
 			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
@@ -176,9 +175,8 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
         alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
-        for (Iterator<J3DTransparencyOption> it = modeMap.keySet().iterator(); it.hasNext();)
+        for (J3DTransparencyOption op : modeMap.keySet())
         {
-            J3DTransparencyOption op = (J3DTransparencyOption)it.next();
             transparencyMode.addItem(op);
         }
         // Add listener after creating the list
@@ -260,9 +258,8 @@ public class JThreeDTab extends ThreeDTab
             threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
             transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
-            for (Iterator<J3DTransparencyOption> it = modeMap.keySet().iterator(); it.hasNext();)
+            for (J3DTransparencyOption op : modeMap.keySet())
             {
-                J3DTransparencyOption op = (J3DTransparencyOption)it.next();
                 if (op.mode == ta.getTransparencyMode())
                 {
                     transparencyMode.setSelectedItem(op);
@@ -282,7 +279,7 @@ public class JThreeDTab extends ThreeDTab
 	{
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);

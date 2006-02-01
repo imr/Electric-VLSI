@@ -114,7 +114,7 @@ public class LayerInfo extends Info
 		NodeInst stippleNode = null, patClearNode = null, patInvertNode = null, patCopyNode = null, patPasteNode = null, patchNode = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			int opt = Manipulate.getOptionOnNode(ni);
 			if (ni.getProto() == Artwork.tech.filledBoxNode)
 			{
@@ -242,7 +242,7 @@ public class LayerInfo extends Info
 		Rectangle2D patternBounds = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
 			String str = getValueOnNode(ni);
@@ -260,9 +260,8 @@ public class LayerInfo extends Info
 						str = str.substring(0, commaPos);
 					}
 					List<Layer.Function> allFuncs = Layer.Function.getFunctions();
-					for(Iterator<Layer.Function> fIt = allFuncs.iterator(); fIt.hasNext(); )
+					for(Layer.Function fun : allFuncs)
 					{
-						Layer.Function fun = (Layer.Function)fIt.next();
 						if (fun.getName().equalsIgnoreCase(str))
 						{
 							li.fun = fun;
@@ -383,7 +382,7 @@ public class LayerInfo extends Info
 		int [] newPat = new int[16];
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;

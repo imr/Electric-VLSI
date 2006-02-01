@@ -105,14 +105,14 @@ class LayoutCell {
         if (computed) return;
         computed = true;
         for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext(); ) {
-            CellUsage u = (CellUsage)it.next();
+            CellUsage u = it.next();
             Layout.getCellInfo(u.getProto()).compute();
         }
         if (modified || exportsModified) {
             doCompute();
             if (exportsModified) {
                 for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); ) {
-                    CellUsage u = (CellUsage)it.next();
+                    CellUsage u = it.next();
                     Layout.getCellInfo(u.getParent()).modified = true;
                 }
             }
@@ -134,7 +134,7 @@ class LayoutCell {
         
         LinkedHashSet<NodeInst> modifiedInsts = new LinkedHashSet<NodeInst>();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             boolean portsModified;
             if (ni.isCellInstance()) {
                 LayoutCell subCell = Layout.getCellInfo((Cell)ni.getProto());
@@ -149,8 +149,7 @@ class LayoutCell {
             }
         }
         if (oldNodes != null) {
-            for (Iterator<Map.Entry<NodeInst,ImmutableNodeInst>> it = oldNodes.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<NodeInst,ImmutableNodeInst> e = (Map.Entry<NodeInst,ImmutableNodeInst>)it.next();
+            for (Map.Entry<NodeInst,ImmutableNodeInst> e : oldNodes.entrySet()) {
                 NodeInst ni = (NodeInst)e.getKey();
                 ImmutableNodeInst d = (ImmutableNodeInst)e.getValue();
                 if (d != null) {
@@ -160,8 +159,7 @@ class LayoutCell {
                 }
             }
         }
-        for (Iterator<NodeInst> it = modifiedInsts.iterator(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+        for (NodeInst ni : modifiedInsts) {
             if (ni.getNumExports() != 0)
                 exportsModified = true;
             ImmutableNodeInst d = getOldD(ni);
@@ -230,7 +228,7 @@ class LayoutCell {
 		List<ArcInst> interiorArcs = new ArrayList<ArcInst>();
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not within the node
@@ -242,9 +240,8 @@ class LayoutCell {
 		}
 
 		// look for arcs with both ends on this nodeinst
-		for(Iterator<ArcInst> it = interiorArcs.iterator(); it.hasNext(); )
+		for(ArcInst ai : interiorArcs)
 		{
-			ArcInst ai = (ArcInst)it.next();
 			if (!ai.isLinked()) continue;
 
 			// if arcinst has already been changed check its connectivity
@@ -283,7 +280,7 @@ class LayoutCell {
 		List<Connection> rigidArcs = new ArrayList<Connection>();
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not flexible
@@ -300,9 +297,8 @@ class LayoutCell {
 
 		// look for rigid arcs on this nodeinst
         HashSet<ArcInst> rigidModified = new HashSet<ArcInst>();
-		for(Iterator<Connection> it = rigidArcs.iterator(); it.hasNext(); )
+		for(Connection thisEnd : rigidArcs)
 		{
-            Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
 			if (!ai.isLinked()) continue;
 			if (Layout.DEBUG) System.out.println("  From " + ni + " Modifying Rigid "+ai);
@@ -395,9 +391,8 @@ class LayoutCell {
 		}
 
 		// re-scan rigid arcs and recursively modify arcs on other nodes
-		for(Iterator<Connection> it = rigidArcs.iterator(); it.hasNext(); )
+		for(Connection thisEnd : rigidArcs)
 		{
-            Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
 			if (!ai.isLinked()) continue;
 
@@ -425,7 +420,7 @@ class LayoutCell {
 		List<Connection> flexArcs = new ArrayList<Connection>();
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not flexible
@@ -441,9 +436,8 @@ class LayoutCell {
 		if (flexArcs.size() == 0) return;
 
 		// look at all of the flexible arcs on this nodeinst
-		for(Iterator<Connection> it = flexArcs.iterator(); it.hasNext(); )
+		for(Connection thisEnd : flexArcs)
 		{
-            Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
 			if (!ai.isLinked()) continue;
 			if (Layout.DEBUG) System.out.println("  Modifying fixed-angle "+ai);
@@ -651,7 +645,7 @@ class LayoutCell {
 		ArcInst bestAI = null;
 		for(Iterator<Connection> it = ono.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst oai = con.getArc();
 			if (oai == ai) continue;
 			if (oai.getLength() < bestDist) continue;
@@ -940,7 +934,7 @@ class LayoutCell {
     }
 //    
 //    private int getChangeClock(Geometric geom) {
-//        Integer i = (Integer)changeClock.get(geom);
+//        Integer i = changeClock.get(geom);
 //        return i != null ? i.intValue() : Integer.MIN_VALUE;
 //    }
   
@@ -1001,19 +995,19 @@ class LayoutCell {
     PortInst getOldOriginalPort(Export e) {
         if (oldExports == null || !oldExports.containsKey(e))
             return e.getOriginalPort();
-        return (PortInst)oldExports.get(e);
+        return oldExports.get(e);
     }
 
     ImmutableNodeInst getOldD(NodeInst ni) {
         if (oldNodes == null || !oldNodes.containsKey(ni))
             return ni.getD();
-        return (ImmutableNodeInst)oldNodes.get(ni);
+        return oldNodes.get(ni);
     }
     
     boolean arcMoved(ArcInst ai) {
         if (oldArcs == null || !oldArcs.containsKey(ai))
             return false;
-        ImmutableArcInst oldD = (ImmutableArcInst)oldArcs.get(ai);
+        ImmutableArcInst oldD = oldArcs.get(ai);
         if (oldD == null) return false;
         return ai.getHeadLocation() != oldD.headLocation || ai.getTailLocation() != oldD.tailLocation;
     }
@@ -1022,19 +1016,19 @@ class LayoutCell {
 //    private HashMap/*<NodeInst,RigidCluster>*/ makeRigidClusters() {
 //       TransitiveRelation rel = new TransitiveRelation();
 //       for (Iterator it = cell.getArcs(); it.hasNext(); ) {
-//           ArcInst ai = (ArcInst)it.next();
+//           ArcInst ai = it.next();
 //           if (Layout.isRigid(ai))
 //               rel.theseAreRelated(ai.getHeadPortInst().getNodeInst(), ai.getTailPortInst().getNodeInst());
 //       }
 //       HashMap/*<NodeInst,RigidCluster>*/ nodeClusters = new HashMap/*<NodeInst,RigidCluster>*/();
 //       for (Iterator it = cell.getNodes(); it.hasNext(); ) {
-//           NodeInst ni = (NodeInst)it.next();
+//           NodeInst ni = it.next();
 //           rel.theseAreRelated(ni, ni);
-//           RigidCluster rc = (RigidCluster)nodeClusters.get(ni);
+//           RigidCluster rc = nodeClusters.get(ni);
 //           if (rc == null) {
 //               rc = new RigidCluster();
 //               for (Iterator rIt = rel.getSetsOfRelatives(); rIt.hasNext(); ) {
-//                   NodeInst rNi = (NodeInst)rIt.next();
+//                   NodeInst rNi = rIt.next();
 //                   rc.add(rNi);
 //                   nodeClusters.put(rNi, rc);
 //               }

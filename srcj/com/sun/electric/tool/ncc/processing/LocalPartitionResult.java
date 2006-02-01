@@ -18,7 +18,7 @@ public class LocalPartitionResult {
 		private void appendNetObjsFromCircuit(ArrayList<NetObject>[] lists, EquivRecord er) {
 			int i=0;
 			for (Iterator<Circuit> itC=er.getCircuits(); itC.hasNext(); i++) {
-				Circuit ckt = (Circuit) itC.next();
+				Circuit ckt = itC.next();
 				for (Iterator<NetObject> itN=ckt.getNetObjs(); itN.hasNext();) {
 					lists[i].add(itN.next());
 				}
@@ -54,7 +54,7 @@ public class LocalPartitionResult {
     private List<EquivRecord> getNotBalancedEquivRecs(Iterator<EquivRecord> it) {
     	List<EquivRecord> notBalanced = new ArrayList<EquivRecord>();
     	while (it.hasNext()) {
-    		EquivRecord er = (EquivRecord) it.next();
+    		EquivRecord er = it.next();
         	if (!er.isBalanced())  notBalanced.add(er);
     	}
     	return notBalanced;
@@ -71,12 +71,12 @@ public class LocalPartitionResult {
 		int numPrint = 0;
 		for (Iterator<NetObject> it=notMatched.iterator(); it.hasNext(); numPrint++) {
 			if (numPrint>maxPrint)  break;
-			NetObject o = (NetObject) it.next();
+			NetObject o = it.next();
 			prln("      * "+o.fullDescription());
 		}
 		for (Iterator<NetObject> it=matched.iterator(); it.hasNext(); numPrint++) {
 			if (numPrint>maxPrint)  break;
-			NetObject o = (NetObject) it.next();
+			NetObject o = it.next();
 			prln("        "+o.fullDescription());
 		}
 	}
@@ -84,8 +84,8 @@ public class LocalPartitionResult {
     private void printBadRecord(EquivRecord r, String t) {
 		prln("    The "+t+" in this equivalence class share the following characteristics:");
 		List<String> reasons = r.getPartitionReasonsFromRootToMe();
-		for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
-			prln("      "+it.next());
+		for (String str : reasons) {
+			prln("      "+str);
 		}
 		List<NetObject> matched[] = getMatchedNetObjs(r);
 		List<NetObject> notMatched[] = getNotMatchedNetObjs(r);
@@ -96,8 +96,8 @@ public class LocalPartitionResult {
 	}
 
     private void printBadRecords(List<EquivRecord> badRecs, String t) {
-        for (Iterator<EquivRecord> it=badRecs.iterator(); it.hasNext();) {
-    		printBadRecord((EquivRecord) it.next(), t);			
+        for (EquivRecord er : badRecs) {
+    		printBadRecord(er, t);			
     	}
     }
 

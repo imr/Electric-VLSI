@@ -203,9 +203,8 @@ public class HSpiceOut extends Simulate
 					for(int i=1; i<keywords.length; i++)
 						measurementNames.add(keywords[i]);
 				}
-				for(Iterator<String> it = measurementNames.iterator(); it.hasNext(); )
+				for(String mName : measurementNames)
 				{
-					String mName = (String)it.next();
 					measurementData.put(mName, new ArrayList<Double>());
 				}
 				continue;
@@ -215,7 +214,7 @@ public class HSpiceOut extends Simulate
 			int index = 0;
 			for(int i=0; i<keywords.length; i++)
 			{
-				String mName = (String)measurementNames.get(index++);
+				String mName = measurementNames.get(index++);
 				List<Double> mData = measurementData.get(mName);
 				mData.add(new Double(TextUtils.atof(keywords[i])));
 			}
@@ -228,7 +227,7 @@ public class HSpiceOut extends Simulate
 				if (keywords[0].length() != 0) break;
 				for(int i=1; i<keywords.length; i++)
 				{
-					String mName = (String)measurementNames.get(index++);
+					String mName = measurementNames.get(index++);
 					List<Double> mData = measurementData.get(mName);
 					mData.add(new Double(TextUtils.atof(keywords[i])));
 				}
@@ -238,9 +237,8 @@ public class HSpiceOut extends Simulate
 
 		// convert this to a list of Measurements
 		List<AnalogSignal> measData = new ArrayList<AnalogSignal>();
-		for(Iterator<String> it = measurementNames.iterator(); it.hasNext(); )
+		for(String mName : measurementNames)
 		{
-			String mName = (String)it.next();
 			List<Double> mData = measurementData.get(mName);
 			AnalogSignal as = new AnalogSignal(an);
 			as.setSignalName(mName);
@@ -264,7 +262,7 @@ public class HSpiceOut extends Simulate
 			strings.add(part.trim());
 		}
 		String [] retVal = new String[strings.size()];
-		for(int i=0; i<strings.size(); i++) retVal[i] = (String)strings.get(i);
+		for(int i=0; i<strings.size(); i++) retVal[i] = strings.get(i);
 		return retVal;
 	}
 
@@ -529,9 +527,8 @@ public class HSpiceOut extends Simulate
 					paMissingWarned = true;
 				} else
 				{
-					for(Iterator<PALine> it = paList.iterator(); it.hasNext(); )
+					for(PALine paLine : paList)
 					{
-						PALine paLine = (PALine)it.next();
 						if (paLine.number == l) { foundPALine = paLine;   break; }
 					}
 				}
@@ -686,11 +683,11 @@ public class HSpiceOut extends Simulate
 			as.sigData = new float[theSweeps.size()][];
 			for(int sweepNum=0; sweepNum<theSweeps.size(); sweepNum++)
 			{
-	            List<float[]> allTheData = (List<float[]>)theSweeps.get(sweepNum);
+	            List<float[]> allTheData = theSweeps.get(sweepNum);
 				as.sigData[sweepNum] = new float[allTheData.size()];
 	            for (int eventNum = 0; eventNum < allTheData.size(); eventNum++)
 				{
-					float [] oneSetOfData = (float[])allTheData.get(eventNum);
+					float [] oneSetOfData = allTheData.get(eventNum);
 					as.sigData[sweepNum][eventNum] = oneSetOfData[sigNum+1];
 					if (sigNum == 0) an.setCommonTime(eventNum, sweepNum, oneSetOfData[0]);
 				}

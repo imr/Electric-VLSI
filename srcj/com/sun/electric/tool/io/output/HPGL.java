@@ -147,9 +147,8 @@ public class HPGL extends Output
 		// setup pens and create the mapping between Layers and HPGL pen numbers
 		penNumbers = new HashMap<Layer,Integer>();
 		int index = 1;
-		for(Iterator<Layer> cIt = layerSet.iterator(); cIt.hasNext(); )
+		for(Layer layer : layerSet)
 		{
-			Layer layer = (Layer)cIt.next();
 			penNumbers.put(layer, new Integer(index));
 
 			Color col;
@@ -179,13 +178,11 @@ public class HPGL extends Output
 		writeLine("SC" + makeCoord(printBounds.getMinX()) + ",1," + makeCoord(printBounds.getMinY()) + ",1,2;");
 
 		// write all geometry collected
-		for(Iterator<Layer> cIt = layerSet.iterator(); cIt.hasNext(); )
+		for(Layer layer : layerSet)
 		{
-			Layer layer = (Layer)cIt.next();
-			List<PolyBase> geoms = (List<PolyBase>)cellGeoms.get(layer);
-			for (Iterator<PolyBase> it = geoms.iterator(); it.hasNext();)
+			List<PolyBase> geoms = cellGeoms.get(layer);
+			for (PolyBase poly : geoms)
 			{
-				PolyBase poly = (PolyBase)it.next();
 				emitPoly(poly);
 			}
 		}
@@ -240,7 +237,7 @@ public class HPGL extends Output
 			// add nodes to cellGeom
 			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext();)
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				AffineTransform nodeTrans = ni.rotateOut(trans);
 				if (!ni.isCellInstance())
 				{
@@ -279,7 +276,7 @@ public class HPGL extends Output
 					int exportDisplayLevel = User.getExportDisplayLevel();
 					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 					{
-						Export e = (Export)eIt.next();
+						Export e = eIt.next();
 						Poly poly = e.getNamePoly();
 						List<PolyBase> layerList = getListForLayer(null);
 						if (exportDisplayLevel == 2)
@@ -305,7 +302,7 @@ public class HPGL extends Output
 			// add arcs to cellGeom
 			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();)
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				Technology tech = ap.getTechnology();
 				Poly [] polys = tech.getShapeOfArc(ai, wnd);
@@ -315,11 +312,11 @@ public class HPGL extends Output
 			// extract merged data and add it to overall geometry
 			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				List<PolyBase> layerList = getListForLayer(layer);
 				List<PolyBase> geom = merge.getMergedPoints(layer, true);
-				for(Iterator<PolyBase> gIt = geom.iterator(); gIt.hasNext(); )
-					layerList.add(gIt.next());
+				for(PolyBase poly : geom)
+					layerList.add(poly);
 			}
 		}
 
@@ -343,7 +340,7 @@ public class HPGL extends Output
 
 		private List<PolyBase> getListForLayer(Layer layer)
 		{
-			List<PolyBase> layerList = (List<PolyBase>)outGeom.cellGeoms.get(layer);
+			List<PolyBase> layerList = outGeom.cellGeoms.get(layer);
 			if (layerList == null)
 			{
 				layerList = new ArrayList<PolyBase>();
@@ -608,7 +605,7 @@ public class HPGL extends Output
 	 */
 	private int getPenNumber(Layer layer)
 	{
-		Integer ind = (Integer)penNumbers.get(layer);
+		Integer ind = penNumbers.get(layer);
 		if (ind == null) return 0;
 		return ind.intValue();
 	}

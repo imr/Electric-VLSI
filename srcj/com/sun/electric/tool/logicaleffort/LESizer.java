@@ -122,7 +122,7 @@ public class LESizer {
 			Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 
 			while (instancesIter.hasNext()) {
-				Instance instance = (Instance)instancesIter.next();
+				Instance instance = instancesIter.next();
 				String instanceName = instance.getName();
 				
 				// make sure it is a sizeable gate
@@ -134,7 +134,7 @@ public class LESizer {
                         // error
                         continue;
                     }
-                    Pin outputPin = (Pin)outputPins.get(0);                    
+                    Pin outputPin = outputPins.get(0);                    
                     Net net = outputPin.getNet();
                     
                     // now find all pins connected to this net
@@ -143,8 +143,7 @@ public class LESizer {
                     // find all drivers in same group, of same type (LEGATe or LEKEEPER)
                     List<Instance> drivers = new ArrayList<Instance>();
                     List<Instance> arrayedDrivers = new ArrayList<Instance>();
-                    for (Iterator<Pin> it = netpins.iterator(); it.hasNext(); ) {
-                        Pin pin = (Pin)it.next();
+                    for (Pin pin : netpins) {
                         // only interested in drivers
                         if (pin.getDir() != Pin.Dir.OUTPUT) continue;
                         Instance inst = pin.getInstance();
@@ -182,8 +181,7 @@ public class LESizer {
                         float smallestX = 0;
 
                         // iterate over all drivers on net
-                        for (Iterator<Pin> it = netpins.iterator(); it.hasNext(); ) {
-                            Pin pin = (Pin)it.next();
+                        for (Pin pin : netpins) {
                             // only interested in drivers
                             if (pin.getDir() != Pin.Dir.OUTPUT) continue;
                             Instance inst = pin.getInstance();
@@ -199,7 +197,7 @@ public class LESizer {
                                     if (inst.getLeX() < smallestX) smallestX = inst.getLeX();
                                 }
                                 // add to group to sum up drive strength later
-                                ArrayList<Instance> groupList = (ArrayList<Instance>)drivingGroups.get(integer.toString());
+                                List<Instance> groupList = drivingGroups.get(integer.toString());
                                 if (groupList == null) {
                                     groupList = new ArrayList<Instance>();
                                     drivingGroups.put(integer.toString(), groupList);
@@ -210,13 +208,12 @@ public class LESizer {
 
                         // find smallest total size of groups
                         Set<String> keys = drivingGroups.keySet();
-                        for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
-                            ArrayList<Instance> groupList = (ArrayList<Instance>)drivingGroups.get(it.next());
+                        for (String str : keys) {
+                            List<Instance> groupList = drivingGroups.get(str);
                             if (groupList == null) continue;            // skip empty groups
                             // get size
                             float sizeX = 0;
-                            for (Iterator<Instance> it2 = groupList.iterator(); it2.hasNext(); ) {
-                                Instance inst = (Instance)it2.next();
+                            for (Instance inst : groupList) {
                                 sizeX += inst.getLeX();
                             }
                             // check size of group
@@ -251,7 +248,7 @@ public class LESizer {
                         Iterator<Pin> netpinsIter = netpins.iterator();
                         int numLoads = 0;
                         while (netpinsIter.hasNext()) {
-                            Pin netpin = (Pin)netpinsIter.next();
+                            Pin netpin = netpinsIter.next();
                             Instance netpinInstance = netpin.getInstance();
                             float load = netpinInstance.getLeX() * netpin.getLE() * (float)netpinInstance.getMfactor();
                             if (netpin.getDir() == Pin.Dir.OUTPUT) load *= alpha;
@@ -341,7 +338,7 @@ public class LESizer {
 
         Iterator<Net> netIter = netlist.getAllNets().values().iterator();
         while (netIter.hasNext()) {
-            Net net = (Net)netIter.next();
+            Net net = netIter.next();
 
         }
         return null;
@@ -363,7 +360,7 @@ public class LESizer {
 		        
 		Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 		while (instancesIter.hasNext()) {
-			Instance instance = (Instance)instancesIter.next();
+			Instance instance = instancesIter.next();
 			String instanceName = instance.getName();
             StringBuffer buf = new StringBuffer();
 			out.println("\t"+instanceName+" ==> "+TextUtils.formatDouble(instance.getLeX(), 3)+"x");
@@ -372,7 +369,7 @@ public class LESizer {
 			// now print out pinname ==> netname
 			Iterator<Pin> pinsIter = pins.iterator();
 			while (pinsIter.hasNext()) {
-				Pin pin = (Pin)pinsIter.next();
+				Pin pin = pinsIter.next();
 				out.println("\t\t"+pin.getName()+" ==> "+pin.getNetName());
 			}
 		}
@@ -391,7 +388,7 @@ public class LESizer {
 			// iterate through all instances
 			Iterator<Instance> instancesIter = netlist.getAllInstances().values().iterator();
 			while (instancesIter.hasNext()) {
-				Instance instance = (Instance)instancesIter.next();
+				Instance instance = instancesIter.next();
 				String instanceName = instance.getName();
 				float leX = instance.getLeX();
 				fileWriter.write(instanceName+" "+leX+"\n"); // throws IOException

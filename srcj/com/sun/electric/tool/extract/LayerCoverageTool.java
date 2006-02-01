@@ -320,9 +320,9 @@ public class LayerCoverageTool extends Listener
                         // Need to detect if geometry was really modified
                         for(Iterator<Layer> it = tree.getKeyIterator(); it.hasNext(); )
                         {
-                            Layer layer = (Layer)it.next();
+                            Layer layer = it.next();
                             Collection<PolyBase> set = tree.getObjects(layer, !isMerge, true);
-                            Set polySet = (function == LCMode.IMPLANT) ? (Set)originalPolygons.get(layer) : null;
+                            Set polySet = (function == LCMode.IMPLANT) ? originalPolygons.get(layer) : null;
 
                             // Ready to create new implants.
                             for (Iterator<PolyBase> i = set.iterator(); i.hasNext(); )
@@ -369,9 +369,8 @@ public class LayerCoverageTool extends Listener
                             }
                         }
                         if (highlighter != null) highlighter.finished();
-                        for (Iterator<NodeInst> it = deleteList.iterator(); it.hasNext(); )
+                        for (NodeInst node : deleteList)
                         {
-                            NodeInst node = (NodeInst)it.next();
                             node.kill();
                         }
                         if (noNewNodes)
@@ -388,17 +387,15 @@ public class LayerCoverageTool extends Listener
                         List<Layer> list = new ArrayList<Layer>(tree.getKeySet());
                         Collections.sort(list, Layer.layerSort);
 
-                        for (Iterator<Layer> it = list.iterator(); it.hasNext(); )
+                        for (Layer layer : list)
                         {
-                            Layer layer = (Layer)it.next();
                             Collection<PolyBase> set = tree.getObjects(layer, false, true);
                             double layerArea = 0;
                             double perimeter = 0;
 
                             // Get all objects and sum the area
-                            for (Iterator<PolyBase> i = set.iterator(); i.hasNext(); )
+                            for (PolyBase poly : set)
                             {
-                                PolyBase poly = i.next();
                                 layerArea += poly.getArea();
                                 perimeter += poly.getPerimeter();
                             }
@@ -604,7 +601,7 @@ public class LayerCoverageTool extends Listener
             boolean found = (netSet == null);
             for (Iterator<Network> it = netlist.getNetworks(); !found && it.hasNext(); )
             {
-                Network aNet = (Network)it.next();
+                Network aNet = it.next();
                 Network parentNet = aNet;
                 HierarchyEnumerator.CellInfo cinfo = info;
                 boolean netFound = false;
@@ -620,7 +617,7 @@ public class LayerCoverageTool extends Listener
 
 			for (Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 			{
-				ArcInst arc = (ArcInst)it.next();
+				ArcInst arc = it.next();
 				int width = netlist.getBusWidth(arc);
                 found = (netSet == null);
 
@@ -678,7 +675,7 @@ public class LayerCoverageTool extends Listener
         {
             if (function != LCMode.IMPLANT) return;
             // For coverage implants
-            Set<PolyBase> polySet = (Set<PolyBase>)originalPolygons.get(layer);
+            Set<PolyBase> polySet = originalPolygons.get(layer);
             if (polySet == null)
             {
                 polySet = new HashSet<PolyBase>();
@@ -713,7 +710,7 @@ public class LayerCoverageTool extends Listener
 
 			for(Iterator<PortInst> pIt = node.getPortInsts(); !found && pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 				PortProto subPP = pi.getPortProto();
 				Network oNet = info.getNetlist().getNetwork(node, subPP, 0);
 				Network parentNet = oNet;
@@ -853,8 +850,8 @@ public class LayerCoverageTool extends Listener
 
             for (int i = 0; i < layers.size(); i++)
             {
-                Layer layer = (Layer)layers.get(i);
-                Double area = (Double)areas.get(i);
+                Layer layer = layers.get(i);
+                Double area = areas.get(i);
                 double percentage = area.doubleValue()/totalArea * 100;
                 double minV = layer.getAreaCoverage();
                 if (percentage < minV)
@@ -875,17 +872,16 @@ public class LayerCoverageTool extends Listener
             // nets is null for mode=AREA
             if (nets != null)
             {
-                for(Iterator<Network> it = nets.iterator(); it.hasNext(); )
+                for(Network net : nets)
                 {
-                    Network net = (Network)it.next();
                     System.out.println("For " + net + " in " + cell + ":");
                 }
             }
 
 	        for (int i=0; i<layers.size(); i++) {
-	            Layer layer = (Layer)layers.get(i);
-	            Double area = (Double)areas.get(i);
-	            Double halfperim = (Double)halfPerimeters.get(i);
+	            Layer layer = layers.get(i);
+	            Double area = areas.get(i);
+	            Double halfperim = halfPerimeters.get(i);
 
                 double layerArea = area.doubleValue();
 	            System.out.println("\tLayer " + layer.getName()

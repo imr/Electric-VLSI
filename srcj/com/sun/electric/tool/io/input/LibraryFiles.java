@@ -529,7 +529,7 @@ public abstract class LibraryFiles extends Input
         // try secondary library file locations
         for (Iterator<String> libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
         {
-			URL url = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
+			URL url = TextUtils.makeURLToFile(libIt.next() + File.separator + libFileName);
             exists = TextUtils.URLExists(url, errmsg);
             if (exists) return url;
             if (url != null) searchedURLs.put(url.getFile(), url.getFile());
@@ -578,9 +578,8 @@ public abstract class LibraryFiles extends Input
 
 		// Compute technology of new cells
 		Set<Cell> uncomputedCells = new HashSet<Cell>();
-		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+		for(LibraryFiles reader : libsBeingRead)
 		{
-			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
@@ -589,9 +588,8 @@ public abstract class LibraryFiles extends Input
 				uncomputedCells.add(cell);
 			}
 		}
-		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+		for(LibraryFiles reader : libsBeingRead)
 		{
-			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
@@ -604,9 +602,8 @@ public abstract class LibraryFiles extends Input
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
 		HashSet<Cell> markCellForNodes = new HashSet<Cell>();
-		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+		for(LibraryFiles reader : libsBeingRead)
 		{
-			LibraryFiles reader = (LibraryFiles)it.next();
 			totalCells += reader.nodeProtoCount;
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
@@ -625,9 +622,8 @@ public abstract class LibraryFiles extends Input
 		for(int i=0; i<20; i++)
 		{
 			boolean unchanged = true;
-			for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+			for(LibraryFiles reader : libsBeingRead)
 			{
-				LibraryFiles reader = (LibraryFiles)it.next();
 				for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 				{
 					Cell cell = reader.nodeProtoList[cellIndex];
@@ -645,9 +641,8 @@ public abstract class LibraryFiles extends Input
 			System.out.println("Finished computing scale factors");
 
 		// recursively create the cell contents
-		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+		for(LibraryFiles reader : libsBeingRead)
 		{
-			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
@@ -659,9 +654,8 @@ public abstract class LibraryFiles extends Input
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;
-		for(Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); )
+		for(LibraryFiles reader : libsBeingRead)
 		{
-			LibraryFiles reader = (LibraryFiles)it.next();
 			if (reader.scaledCells != null && reader.scaledCells.size() != 0)
 			{
 				if (first)
@@ -671,9 +665,8 @@ public abstract class LibraryFiles extends Input
 				}
 				StringBuffer sb = new StringBuffer();
 				sb.append("   Library " + reader.lib.getName() + ":");
-				for(Iterator<Cell> sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
+				for(Cell cell : reader.scaledCells)
 				{
-					Cell cell = (Cell)sIt.next();
 					sb.append(" " + cell.noLibDescribe());
 				}
 				System.out.println(sb.toString());
@@ -686,10 +679,9 @@ public abstract class LibraryFiles extends Input
 		// broadcast the library-read to all listeners
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
-			Listener listener = (Listener)it.next();
-			for(Iterator<LibraryFiles> lIt = libsBeingRead.iterator(); lIt.hasNext(); )
+			Listener listener = it.next();
+			for(LibraryFiles reader : libsBeingRead)
 			{
-				LibraryFiles reader = (LibraryFiles)lIt.next();
 				listener.readLibrary(reader.lib);
 			}
 		}
@@ -705,8 +697,7 @@ public abstract class LibraryFiles extends Input
 // 	}
 
 	protected LibraryFiles getReaderForLib(Library lib) {
-        for (Iterator<LibraryFiles> it = libsBeingRead.iterator(); it.hasNext(); ) {
-            LibraryFiles reader = (LibraryFiles)it.next();
+        for (LibraryFiles reader : libsBeingRead) {
             if (reader.lib == lib) return reader;
         }
         return null;

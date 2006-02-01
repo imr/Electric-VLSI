@@ -250,7 +250,11 @@ public abstract class Highlight2 implements Cloneable{
             } else if (h.isHighlightText())
             {
             	if (h.getVarKey() == Export.EXPORT_NAME) counts[2]++; else
+            	{
+            		if (h.getElectricObject() instanceof NodeInst)
+            			theNode = (NodeInst)h.getElectricObject();
                     counts[3]++;
+            	}
             } else if (h instanceof HighlightArea)
             {
                 counts[4]++;
@@ -557,9 +561,8 @@ class HighlightArea extends Highlight2
     void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
     {
         List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false, bounds, null);
-        for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+        for(Highlight2 ah : inArea)
         {
-            Highlight2 ah = ait.next();
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
             if (eobj instanceof ArcInst) {
@@ -586,9 +589,8 @@ class HighlightArea extends Highlight2
     {
         List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
                 bounds, null);
-        for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+        for(Highlight2 ah : inArea)
         {
-            Highlight2 ah = ait.next();
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
             if (eobj instanceof NodeInst)
@@ -602,9 +604,8 @@ class HighlightArea extends Highlight2
     {
         List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
                 bounds, null);
-        for(Iterator<Highlight2> ait = inArea.iterator(); ait.hasNext(); )
+        for(Highlight2 ah : inArea)
         {
-            Highlight2 ah = ait.next();
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
             if (eobj instanceof ArcInst)
@@ -976,7 +977,7 @@ class HighlightEOBJ extends Highlight2
 					boolean wired = false;
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
-						Connection con = (Connection)cIt.next();
+						Connection con = cIt.next();
 						if (con.getPortInst().getPortProto() == pp) { wired = true;   break; }
 					}
 					if (wired)
@@ -1033,7 +1034,7 @@ class HighlightEOBJ extends Highlight2
                     HashSet<Geometric> markObj = new HashSet<Geometric>();
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
-                        ArcInst ai = (ArcInst)it.next();
+                        ArcInst ai = it.next();
                         if (!netlist.sameNetwork(no, epp, ai)) continue;
 
                         markObj.add(ai);
@@ -1046,7 +1047,7 @@ class HighlightEOBJ extends Highlight2
                     g2.setStroke(dashedLine);
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
-                        ArcInst ai = (ArcInst)it.next();
+                        ArcInst ai = it.next();
                         if (!markObj.contains(ai)) continue;
                         Point c1 = wnd.databaseToScreen(ai.getHeadLocation());
                         Point c2 = wnd.databaseToScreen(ai.getTailLocation());
@@ -1057,7 +1058,7 @@ class HighlightEOBJ extends Highlight2
                     g2.setStroke(solidLine);
                     for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                     {
-                        NodeInst oNi = (NodeInst)it.next();
+                        NodeInst oNi = it.next();
                         if (oNi == originalNI) continue;
                         if (!markObj.contains(oNi))
                         {
@@ -1067,7 +1068,7 @@ class HighlightEOBJ extends Highlight2
                         		// could be connected by exports...check
                         		for(Iterator<PortProto> eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
                         		{
-                        			PortProto oPp = (PortProto)eIt.next();
+                        			PortProto oPp = eIt.next();
                         			if (netlist.sameNetwork(no, epp, oNi, oPp)) { connected = true;   break; }
                         		}
                         	}
@@ -1081,7 +1082,7 @@ class HighlightEOBJ extends Highlight2
                         Point2D nodeCenter = oNi.getTrueCenter();
                         for(Iterator<Connection> pIt = oNi.getConnections(); pIt.hasNext(); )
                         {
-                            Connection con = (Connection)pIt.next();
+                            Connection con = pIt.next();
                             ArcInst ai = con.getArc();
                             if (!markObj.contains(ai)) continue;
                             Point2D arcEnd = con.getLocation();
@@ -1135,7 +1136,7 @@ class HighlightEOBJ extends Highlight2
 //						boolean added = false;
 //						for(Iterator<Connection> aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
 //						{
-//							Connection con = (Connection)aIt.next();
+//							Connection con = aIt.next();
 //							ArcInst ai = con.getArc();
 //							int wid = netlist.getBusWidth(ai);
 //							for(int i=0; i<wid; i++)
@@ -1202,9 +1203,8 @@ class HighlightEOBJ extends Highlight2
             ElectricObject hObj = got.getElectricObject();
             ElectricObject hReal = hObj;
             if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
-            for(Iterator<Highlight2> sIt = highlighter.getHighlights().iterator(); sIt.hasNext(); )
+            for(Highlight2 alreadyDone : highlighter.getHighlights())
             {
-                Highlight2 alreadyDone = sIt.next();
                 if (!(alreadyDone instanceof HighlightEOBJ)) continue;
                 HighlightEOBJ alreadyHighlighted = (HighlightEOBJ)alreadyDone;
                 ElectricObject aHObj = alreadyHighlighted.getElectricObject();
@@ -1468,9 +1468,8 @@ class HighlightText extends Highlight2
             if (eobj != null)
             {
                 boolean found = false;
-                for(Iterator<Highlight2> fIt = getHighlights.iterator(); fIt.hasNext(); )
+                for(Highlight2 oH : getHighlights)
                 {
-                    Highlight2 oH = fIt.next();
                     if (!(oH instanceof HighlightEOBJ)) continue;
                     ElectricObject fobj = ((HighlightEOBJ)oH).eobj;
                     if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();

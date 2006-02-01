@@ -113,19 +113,17 @@ public class Maxwell extends Output
 
 	private void terminate()
 	{
-		for(Iterator<Integer> it = maxNetMap.keySet().iterator(); it.hasNext(); )
+		for(Integer index : maxNetMap.keySet())
 		{
-			Integer index = (Integer)it.next();
-			List<Integer> boxList = (List<Integer>)maxNetMap.get(index);
+			List<Integer> boxList = maxNetMap.get(index);
 			if (boxList.size() <= 1) continue;
 			printWriter.print("Unite {");
 			boolean first = true;
-			for(Iterator<Integer> lIt = boxList.iterator(); lIt.hasNext(); )
+			for(Integer boxNum : boxList)
 			{
-				Integer boxNum = (Integer)lIt.next();
 				if (first) first = false; else
 					printWriter.print(" ");
-				String boxName = (String)boxNames.get(boxNum);
+				String boxName = boxNames.get(boxNum);
 				printWriter.print("\"" + boxName + "\"");
 			}
 			printWriter.print("}\n");
@@ -147,7 +145,7 @@ public class Maxwell extends Output
 
 		// find this network object
 		Integer index = new Integer(globalNetNum);
-		List<Integer> boxList = (List<Integer>)maxNetMap.get(index);
+		List<Integer> boxList = maxNetMap.get(index);
 		if (boxList == null)
 		{
 			boxList = new ArrayList<Integer>();
@@ -184,7 +182,7 @@ public class Maxwell extends Output
 			Netlist netList = info.getNetlist();
 			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.isCellInstance()) continue;
 				AffineTransform transRot = ni.rotateOut();
 				Technology tech = ni.getProto().getTechnology();
@@ -208,7 +206,7 @@ public class Maxwell extends Output
 			// emit all arc polygons
 			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				Technology tech = ai.getProto().getTechnology();
 				Poly [] polyList = tech.getShapeOfArc(ai);
 				int tot = polyList.length;

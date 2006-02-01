@@ -122,9 +122,9 @@ public class IRSIM extends Output
 		}
 
 		// write the components
-		for(Iterator<Object> it = parasitics.iterator(); it.hasNext(); )
+		for(Object obj : parasitics)
 		{
-			ExtractedPBucket ci = (ExtractedPBucket)it.next();
+			ExtractedPBucket ci = (ExtractedPBucket)obj;
             String info = ci.getInfo(layoutTech);
             if (info != null && !info.equals("")) printWriter.println(info);
 		}
@@ -204,7 +204,7 @@ public class IRSIM extends Output
             {
                 for (Iterator<Connection> it = ni.getConnections(); it.hasNext();)
                 {
-                    Connection c = (Connection)it.next();
+                    Connection c = it.next();
                     Network net = netlist.getNetwork(c.getArc(), 0);
                     if (net1 == null)
                     {

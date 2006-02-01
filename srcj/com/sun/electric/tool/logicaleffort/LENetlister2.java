@@ -137,8 +137,7 @@ public class LENetlister2 extends LENetlister {
         firstPass.cleanup(disableCaching);
         System.out.println("Cached "+cellMap.size()+" cells");
         if (DEBUG_FIRSTPASS) {
-            for (Iterator<Map.Entry<Cell,CachedCell>> it = cellMap.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Cell,CachedCell> entry = (Map.Entry<Cell,CachedCell>)it.next();
+            for (Map.Entry<Cell,CachedCell> entry : cellMap.entrySet()) {
                 Cell acell = (Cell)entry.getKey();
                 CachedCell cc = (CachedCell)entry.getValue();
                 System.out.println("Cached "+acell);
@@ -152,8 +151,7 @@ public class LENetlister2 extends LENetlister {
                 PrintStream out2 = new PrintStream(bout);
                 // redirect stderr to the log file
                 //System.setErr(new PrintStream(bout, true));
-                for (Iterator<Map.Entry<Cell,CachedCell>> it = cellMap.entrySet().iterator(); it.hasNext(); ) {
-                    Map.Entry<Cell,CachedCell> entry = (Map.Entry<Cell,CachedCell>)it.next();
+                for (Map.Entry<Cell,CachedCell> entry : cellMap.entrySet()) {
                     Cell acell = (Cell)entry.getKey();
                     CachedCell cc = (CachedCell)entry.getValue();
                     cc.printContents("  ", out2);
@@ -194,7 +192,7 @@ public class LENetlister2 extends LENetlister {
                          List<NodeInst> nodes, List<VarContext> contexts) {
         // iterator over all LEGATEs
         for (Iterator<LENodable> cit = getSizeableNodables(); cit.hasNext(); ) {
-            LENodable leno = (LENodable)cit.next();
+            LENodable leno = cit.next();
             Nodable no = leno.getNodable();
             NodeInst ni = no.getNodeInst();
             if (ni != null) no = ni;
@@ -217,7 +215,7 @@ public class LENetlister2 extends LENetlister {
     public void updateSizes() {
         // iterator over all LEGATEs
         for (Iterator<LENodable> cit = getSizeableNodables(); cit.hasNext(); ) {
-            LENodable leno = (LENodable)cit.next();
+            LENodable leno = cit.next();
             Nodable no = leno.getNodable();
             NodeInst ni = no.getNodeInst();
             if (ni != null) no = ni;
@@ -258,7 +256,7 @@ public class LENetlister2 extends LENetlister {
     protected float getKeeperRatio() { return constants.keeperRatio; }
 
     private LENetwork getNetwork(int globalID, HierarchyEnumerator.CellInfo info) {
-        LENetwork net = (LENetwork)globalNetworks.get(new Integer(globalID));
+        LENetwork net = globalNetworks.get(new Integer(globalID));
         if (net == null) {
             String name = (info == null) ? null : info.getUniqueNetName(globalID, ".");
             net = new LENetwork(name);
@@ -296,7 +294,7 @@ public class LENetlister2 extends LENetlister {
                 netlister.aborted = true;
                 return false;
             }
-            CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
+            CachedCell cachedCell = netlister.cellMap.get(info.getCell());
             if (cachedCell == null) {
                 cachedCell = new CachedCell(info.getCell(), info.getNetlist());
                 if (netlister.cellMap.containsKey(info.getCell()))
@@ -313,7 +311,7 @@ public class LENetlister2 extends LENetlister {
                 HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
                 if (parentInfo != null) {
                     Cell parent = info.getParentInfo().getCell();
-                    CachedCell parentCached = (CachedCell)netlister.cellMap.get(parent);
+                    CachedCell parentCached = netlister.cellMap.get(parent);
                     Nodable no = info.getParentInst();
                     parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.constants);
                 }
@@ -322,7 +320,7 @@ public class LENetlister2 extends LENetlister {
         }
 
         public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
-            CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
+            CachedCell cachedCell = netlister.cellMap.get(info.getCell());
 
             if (ni.getNodeInst().isCellInstance())
                 if (DEBUG_FIRSTPASS) System.out.println(" === visiting "+ni.getName());
@@ -341,14 +339,14 @@ public class LENetlister2 extends LENetlister {
         }
 
         public void exitCell(HierarchyEnumerator.CellInfo info) {
-            CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
+            CachedCell cachedCell = netlister.cellMap.get(info.getCell());
 
             if (DEBUG_FIRSTPASS) System.out.println(" === exiting "+info.getCell());
             // add this to parent cached cell if any
             HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
             if (parentInfo != null) {
                 Cell parent = info.getParentInfo().getCell();
-                CachedCell parentCached = (CachedCell)netlister.cellMap.get(parent);
+                CachedCell parentCached = netlister.cellMap.get(parent);
                 Nodable no = info.getParentInst();
                 parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.constants);
             }
@@ -357,8 +355,7 @@ public class LENetlister2 extends LENetlister {
         protected void cleanup(boolean disableCaching) {
             // remove all cachedCells that contain sizeable gates or are not context free
             HashMap<Cell,CachedCell> cachedMap = new HashMap<Cell,CachedCell>();
-            for (Iterator<Map.Entry<Cell,CachedCell>> it = netlister.cellMap.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Cell,CachedCell> entry = (Map.Entry<Cell,CachedCell>)it.next();
+            for (Map.Entry<Cell,CachedCell> entry : netlister.cellMap.entrySet()) {
                 Cell cell = (Cell)entry.getKey();
                 CachedCell cachedCell = (CachedCell)entry.getValue();
                 if (cachedCell.isContextFree(netlister.constants)) {
@@ -403,12 +400,11 @@ public class LENetlister2 extends LENetlister {
 
         boolean enter = true;
         // if there is a cachedCell, do not enter
-        CachedCell cachedCell = (CachedCell)cellMap.get(info.getCell());
+        CachedCell cachedCell = cellMap.get(info.getCell());
         // if this was a cached cell, link cached networks into global network
         // note that a cached cell cannot by definition contain sizeable LE gates
         if ((cachedCell != null) && (leinfo.getMFactor() == 1f)) {
-            for (Iterator<Map.Entry<Network,LENetwork>> it = cachedCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Network,LENetwork> entry = (Map.Entry<Network,LENetwork>)it.next();
+            for (Map.Entry<Network,LENetwork> entry : cachedCell.getLocalNetworks().entrySet()) {
                 Network jnet = (Network)entry.getKey();
                 LENetwork subnet = (LENetwork)entry.getValue();
                 int globalID = info.getNetID(jnet);
@@ -445,7 +441,7 @@ public class LENetlister2 extends LENetlister {
     public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
         LECellInfo leinfo = (LECellInfo)info;
 
-        LENodable def = (LENodable)nodablesDefinitions.get(ni);
+        LENodable def = nodablesDefinitions.get(ni);
         if (def == null) return true;
         else {
             // create hierarchical unique instance from definition
@@ -464,8 +460,7 @@ public class LENetlister2 extends LENetlister {
                 sizableLENodables.add(uniqueLeno);
             allLENodables.add(uniqueLeno);
             // add pins to global networks
-            for (Iterator<LEPin> pit = uniqueLeno.getPins().iterator(); pit.hasNext(); ) {
-                LEPin pin = (LEPin)pit.next();
+            for (LEPin pin : uniqueLeno.getPins()) {
                 int globalID = info.getNetID(pin.getNetwork());
                 LENetwork net = getNetwork(globalID, info);
                 net.add(pin);
@@ -561,7 +556,7 @@ public class LENetlister2 extends LENetlister {
 
 		Netlist netlist = info.getNetlist();
 		for (Iterator<PortProto> ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
-			PortProto pp = (PortProto)ppIt.next();
+			PortProto pp = ppIt.next();
             // Note: default 'le' value should be one
             float le = getLE(ni, type, pp, info);
             Network jnet = netlist.getNetwork(ni, pp, 0);
@@ -651,8 +646,7 @@ public class LENetlister2 extends LENetlister {
         int numLEGates = 0;
         int numLEWires = 0;
         // iterator over all LEGATEs
-        for (Iterator<LENodable> cit = allLENodables.iterator(); cit.hasNext(); ) {
-            LENodable leno = (LENodable)cit.next();
+        for (LENodable leno : allLENodables) {
             // ignore it if not a sizeable gate
             if (leno.isLeGate()) {
                 numLEGates++;
@@ -671,8 +665,7 @@ public class LENetlister2 extends LENetlister {
     public float getTotalLESize() {
         float instsize = 0f;
         // iterator over all LEGATEs
-        for (Iterator<LENodable> cit = allLENodables.iterator(); cit.hasNext(); ) {
-            LENodable leno = (LENodable)cit.next();
+        for (LENodable leno : allLENodables) {
             // ignore it if not a sizeable gate
             if (leno.isLeGate()) {
                 instsize += leno.leX;
@@ -687,8 +680,7 @@ public class LENetlister2 extends LENetlister {
             no = Netlist.getNodableFor((NodeInst)no, 0);
         }
         LENodable leno = null;
-        for (Iterator<LENodable> it = allLENodables.iterator(); it.hasNext(); ) {
-            LENodable aleno = (LENodable)it.next();
+        for (LENodable aleno : allLENodables) {
             if (aleno.getNodable() == no) {
                 if (aleno.context.getInstPath(".").equals(context.getInstPath("."))) {
                     leno = aleno;
@@ -713,8 +705,7 @@ public class LENetlister2 extends LENetlister {
         ArrayList<LEPin> gatesFightingPins = new ArrayList<LEPin>();
 
         if (outputNet == null) return false;
-        for (Iterator<LEPin> it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next();
+        for (LEPin pin : outputNet.getAllPins()) {
             LENodable loopLeno = pin.getInstance();
             if (pin.getDir() == LEPin.Dir.INPUT) {
                 if (loopLeno.isGate()) gatesDrivenPins.add(pin);
@@ -733,20 +724,20 @@ public class LENetlister2 extends LENetlister {
 
         float totalLoad = 0f;
         System.out.println("  -------------------- Gates Driven ("+gatesDrivenPins.size()+") --------------------");
-        for (Iterator<LEPin> it = gatesDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
+        for (LEPin pin : gatesDrivenPins) {
+            totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Loads Driven ("+loadsDrivenPins.size()+") --------------------");
-        for (Iterator<LEPin> it = loadsDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
+        for (LEPin pin : loadsDrivenPins) {
+            totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Wires Driven ("+wiresDrivenPins.size()+") --------------------");
-        for (Iterator<LEPin> it = wiresDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
+        for (LEPin pin : wiresDrivenPins) {
+            totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Gates Fighting ("+gatesFightingPins.size()+") --------------------");
-        for (Iterator<LEPin> it = gatesFightingPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
+        for (LEPin pin : gatesFightingPins) {
+            totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("*** Total Load: "+TextUtils.formatDouble(totalLoad, 2));
         //msgs.setFont(oldFont);

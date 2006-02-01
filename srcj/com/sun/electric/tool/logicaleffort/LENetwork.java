@@ -51,8 +51,7 @@ public class LENetwork {
 
     protected List<LEPin> getAllPins() {
         List<LEPin> allpins = new ArrayList<LEPin>(pins);
-        for (Iterator<LENetwork> it = networks.iterator(); it.hasNext(); ) {
-            LENetwork net = (LENetwork)it.next();
+        for (LENetwork net : networks) {
             allpins.addAll(net.getAllPins());
         }
         return allpins;
@@ -64,13 +63,11 @@ public class LENetwork {
 
     protected void print(String header, PrintStream out) {
         out.println(header+"Network "+name+", connects to: ");
-        for (Iterator<LEPin> it = pins.iterator(); it.hasNext();) {
-            LEPin pin = (LEPin)it.next();
+        for (LEPin pin : pins) {
             LENodable leno = pin.getInstance();
             out.println(header+"  "+leno.printOneLine(""));
         }
-        for (Iterator<LENetwork> it = networks.iterator(); it.hasNext(); ) {
-            LENetwork net = (LENetwork)it.next();
+        for (LENetwork net : networks) {
             net.print(header+"  ", out);
         }
     }
