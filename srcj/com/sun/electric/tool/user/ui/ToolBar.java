@@ -662,16 +662,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             dist = 0.25;
         EditMenu.setGridAligment(dist);
         User.setAlignmentToGrid(dist);
-
-        // TODO Don't do this
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf != null)
-        {
-        	if (wf.getContent() instanceof EditWindow)
-        	{
-	        	((EditWindow)wf.getContent()).requestFocus();
-        	}
-        }
 	}
 
 	/**
