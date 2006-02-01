@@ -836,6 +836,7 @@ public class Pref
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
+            if (!pref.meaning.isValidOption()) continue;
 			if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
 			if (pref.cachedObj.equals(pref.factoryObj)) continue;
 //System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.ownerObj);

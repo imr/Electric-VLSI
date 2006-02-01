@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+BUG: (2/1/06, SMR) Regressions fail because of extra technology information.
+FIX: In Pref.getMeaningVariables(), ignore invalid options.
+
 IMP: (1/31/06, GVG) Move MessagesStream.messagesStream out of TopLevel (all regression scripts checked).
 More fixes in regressions.
  
