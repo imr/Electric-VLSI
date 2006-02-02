@@ -782,7 +782,7 @@ public class WindowFrame extends Observable
     public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
         synchronized(windowList) {
             if ((curWindowFrame == null) && makeNewFrame) {
-                for (WindowFramw wf: windowList) {
+                for (WindowFrame wf: windowList) {
                     // get last in list
                     curWindowFrame = wf;
                 }
