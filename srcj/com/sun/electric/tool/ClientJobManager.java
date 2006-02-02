@@ -36,6 +36,7 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -61,6 +62,7 @@ class ClientJobManager extends JobManager {
     
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
     /** Count of started Jobs. */               private static int numStarted;
+    private volatile boolean jobTreeChanged;
     private static Job clientJob;
     
     /** Creates a new instance of ClientJobManager */
@@ -158,9 +160,8 @@ class ClientJobManager extends JobManager {
             waitingJobs.add(0, ejob);
         else
             waitingJobs.add(ejob);
-        if (ejob.getJob().getDisplay()) {
-            WindowFrame.wantToRedoJobTree();
-        }
+        if (ejob.getJob().getDisplay())
+            jobTreeChanged = true;
         SwingUtilities.invokeLater(clientInvoke);
 //        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
         SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
@@ -188,7 +189,8 @@ class ClientJobManager extends JobManager {
         }
         //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
         if (j.getDisplay()) {
-            WindowFrame.wantToRedoJobTree();
+            jobTreeChanged = true;
+            SwingUtilities.invokeLater(clientInvoke);
         }
     }
     
@@ -298,6 +300,10 @@ class ClientJobManager extends JobManager {
             assert SwingUtilities.isEventDispatchThread();
             for (;;) {
                 logger.logp(Level.FINEST, CLASS_NAME, "run", "before get");
+                if (jobTreeChanged) {
+                    jobTreeChanged = false;
+                    JobTree.update();
+                }
                 int numGet = clientFifo.numGet;
                 Object o = clientFifo.get();
                 if (o == null) break;

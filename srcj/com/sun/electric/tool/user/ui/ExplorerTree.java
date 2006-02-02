@@ -90,6 +90,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -469,6 +471,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
 		int row, boolean hasFocus)
 	{
+        if (!(value instanceof DefaultMutableTreeNode))
+            return value.toString();
 		Object nodeInfo = ((DefaultMutableTreeNode)value).getUserObject();
 		if (nodeInfo instanceof Cell)
 		{
@@ -636,7 +640,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			// setIcon(icon)
 			//setToolTipText(value.toString());
 			setFont(plainFont);
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+            if (!(value instanceof DefaultMutableTreeNode))
+                return this;
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
 			Object nodeInfo = node.getUserObject();
 			if (nodeInfo instanceof Library)
 			{
@@ -933,10 +939,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (nodeObj instanceof Job)
+				if (nodeObj instanceof JobTree.JobTreeNode)
 				{
-					Job job = (Job)nodeObj;
-					System.out.println(job.getInfo());
+					System.out.println(((JobTree.JobTreeNode)nodeObj).getInfo());
 					return;
 				}
 
@@ -994,8 +999,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			tree.currentSelectedObjects = new Object[currentPaths.length];
 			for(int i=0; i<currentPaths.length; i++)
 			{
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
-				tree.currentSelectedObjects[i] = node.getUserObject();
+                Object obj = currentPaths[i].getLastPathComponent();
+                if (obj instanceof DefaultMutableTreeNode)
+                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
+                tree.currentSelectedObjects[i] = obj;
+//				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
+//				tree.currentSelectedObjects[i] = node.getUserObject();
 			}
 
 			// update highlighting to match this selection
@@ -1019,8 +1028,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			TreePath cp = tree.getPathForLocation(x, y);
 			if (cp != null)
 			{
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
-				Object obj = node.getUserObject();
+                Object obj = cp.getLastPathComponent();
+                if (obj instanceof DefaultMutableTreeNode)
+                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
+//                DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
+//                Object obj = node.getUserObject();
 				boolean selected = false;
 				for(int i=0; i<tree.currentSelectedObjects.length; i++)
 				{

@@ -34,8 +34,8 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.Point2D;
 
 import java.io.IOException;
@@ -404,7 +404,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
             }
             Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
-            WindowFrame.wantToRedoJobTree();
+            JobTree.update();
             TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
@@ -634,5 +634,6 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         public void exportPrefs() {
             System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
         }
+
 	}
 }

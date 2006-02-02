@@ -73,6 +73,7 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -541,7 +542,6 @@ public class WindowFrame extends Observable
 	//******************************** EXPLORER PART ********************************
 
 	private boolean wantToRedoLibraryTree = false;
-	private boolean wantToRedoJobTree = false;
 	private boolean wantToRedoErrorTree = false;
 	private boolean wantToRedoSignalTree = false;
 
@@ -588,7 +588,8 @@ public class WindowFrame extends Observable
 		// now recurse
 		for(int i=0; i<numChildren; i++)
 		{
-			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+            Object child = node.getChildAt(i);
+            if (!(child instanceof DefaultMutableTreeNode)) continue;
 			TreePath descentPath = path.pathByAddingChild(child);
 			if (descentPath == null) continue;
 			openLibraryInExplorerTree(library, descentPath, openLib);
@@ -604,22 +605,6 @@ public class WindowFrame extends Observable
 		{
 			WindowFrame wf = it.next();
 			wf.wantToRedoLibraryTree = true;
-            wf.redoExplorerTreeIfRequested();
-		}
-	}
-
-	public static void wantToRedoJobTree()
-	{
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() { wantToRedoJobTree(); }
-            });
-            return;
-        }
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			wf.wantToRedoJobTree = true;
             wf.redoExplorerTreeIfRequested();
 		}
 	}
@@ -656,7 +641,7 @@ public class WindowFrame extends Observable
 	private void redoExplorerTreeIfRequested()
 	{
         Job.checkSwingThread();
-		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
+		if (!wantToRedoLibraryTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
 		HashSet<Object> expanded = new HashSet<Object>();
@@ -665,11 +650,9 @@ public class WindowFrame extends Observable
 		// get the new library tree part
 		if (wantToRedoLibraryTree)
 			libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		if (wantToRedoJobTree)
-			jobExplorerNode = JobTree.getExplorerTree();
 		if (wantToRedoErrorTree)
 			errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		wantToRedoLibraryTree = wantToRedoJobTree = wantToRedoErrorTree = wantToRedoSignalTree = false;
+		wantToRedoLibraryTree = wantToRedoErrorTree = wantToRedoSignalTree = false;
 
 		// rebuild the tree
 		rootNode.removeAllChildren();
@@ -715,7 +698,8 @@ public class WindowFrame extends Observable
 		// now recurse
 		for(int i=0; i<numChildren; i++)
 		{
-			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+            TreeNode child = node.getChildAt(i);
+            if (!(child instanceof DefaultMutableTreeNode)) continue;
 			TreePath descentPath = path.pathByAddingChild(child);
 			if (descentPath == null) continue;
 			recursivelyCache(expanded, descentPath, cache);
@@ -798,7 +782,7 @@ public class WindowFrame extends Observable
     public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
         synchronized(windowList) {
             if ((curWindowFrame == null) && makeNewFrame) {
-                for (WindowFrame wf : windowList) {
+                for (WindowFramw wf: windowList) {
                     // get last in list
                     curWindowFrame = wf;
                 }
@@ -1071,6 +1055,12 @@ public class WindowFrame extends Observable
     }    
 
     /**
+     * Returns TreeModel of Explorer tree of this WindowFrame.
+     * @return TreeModel of Explorer tree of this WindowFrame.
+     */
+    DefaultTreeModel getTreeModel() { return treeModel; }
+    
+    /**
      * Returns true if this window frame or it's components generated
      * this event.
      * @param e the event generated
@@ -1238,7 +1228,7 @@ public class WindowFrame extends Observable
 
 		public void internalFrameClosing(InternalFrameEvent evt)
 		{
-			wf.get().finished();
+			(wf.get()).finished();
 		}
 
 		public void internalFrameActivated(InternalFrameEvent evt)

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04d: *********************************
 
+IMP: (2/1/06, DN) ExplorerTree isn't rebuilt completely on JobTree changes.
+
 BUG: (2/1/06, SMR) HSpice insists on having a ".tr0" file (Bug #805).
 FIX: In HSpiceOut.java, use more general method of finding file names.
 
