@@ -85,12 +85,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -102,12 +104,15 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 {
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
+	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
+	/** the error explorer part. */						private DefaultMutableTreeNode errorExplorerNode;
 	private Object [] currentSelectedObjects = new Object[0];
 
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
 	private static final int SHOWBYHIERARCHY    = 3;
 	private static int howToShow = SHOWBYCELLGROUP;
+    private static final String errorNode = "ERRORS";
 
 	private static class IconGroup
 	{
@@ -149,23 +154,19 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	}
 
 	/**
-	 * Method to create a new ExplorerTree.
-	 * @param treeModel the tree to display.
-	 * @return the newly created ExplorerTree.
+	 * Constructor to create a new ExplorerTree.
+	 * @param rootNode the tree to display.
 	 */
-	public static ExplorerTree CreateExplorerTree(DefaultMutableTreeNode rootNode)
+	ExplorerTree(List<MutableTreeNode> contentNodes)
 	{
-		ExplorerTree tree = new ExplorerTree(rootNode);
-		tree.handler = new TreeHandler(tree);
-		tree.addMouseListener(tree.handler);
-		tree.addTreeSelectionListener(tree.handler);
-		return tree;
-	}
-
-	private ExplorerTree(DefaultMutableTreeNode rootNode)
-	{
-		super(new MyTreeModel(rootNode));
-		this.rootNode = rootNode;
+		super((TreeModel)null);
+		rootNode = new DefaultMutableTreeNode("Explorer");
+		jobExplorerNode = JobTree.getExplorerTree();
+		rootNode.add(jobExplorerNode);
+        errorExplorerNode = new DefaultMutableTreeNode(errorNode);
+		ErrorLoggerTree.updateExplorerTree(errorExplorerNode);
+		rootNode.add(errorExplorerNode);
+        setModel(new MyTreeModel(rootNode, contentNodes));
 		this.treeModel = getTreeModel();
 
 		initDND();
@@ -183,19 +184,29 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		// register our own extended renderer for custom icons and tooltips
 		setCellRenderer(new MyRenderer());
+        handler = new TreeHandler();
+		addMouseListener(handler);
+		addTreeSelectionListener(handler);
 	}
 
 	/**
-	 * Method to return the currently selected object in the explorer tree.
-	 * @return the currently selected object in the explorer tree.
+	 * Method to return the currently selected objects in the explorer tree.
+	 * @return the currently selected objects in the explorer tree.
 	 */
 	public Object [] getCurrentlySelectedObject() { return currentSelectedObjects; }
 
 	/**
+	 * Method to return the number of currently selected objects in the explorer tree.
+	 * @return the number of currently selected objects in the explorer tree.
+	 */
+	public int numCurrentlySelectedObjects() { return currentSelectedObjects.length; }
+
+	/**
 	 * Method to return the currently selected object in the explorer tree.
+     * @param i index of currently selected object.
 	 * @return the currently selected object in the explorer tree.
 	 */
-	public DefaultTreeModel getTreeModel() { return (MyTreeModel)treeModel; }
+	public Object getCurrentlySelectedObject(int i) { return currentSelectedObjects[i]; }
 
 	/**
 	 * Method to set the currently selected object in the explorer tree.
@@ -205,6 +216,177 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	{
 		currentSelectedObjects = new Object[1];
 		currentSelectedObjects[0] = obj;
+	}
+
+	/**
+	 * Method to return the currently selected object in the explorer tree.
+	 * @return the currently selected object in the explorer tree.
+	 */
+	public DefaultTreeModel getTreeModel() { return (MyTreeModel)treeModel; }
+
+	/**
+	 * Method to force the explorer tree to show the current library or signals list.
+	 * @param openLib true to open the current library, false to open the signals list.
+	 */
+	void openLibraryInExplorerTree(boolean openLib) {
+			openLibraryInExplorerTree(Library.getCurrent(), new TreePath(rootNode), openLib);
+    }
+    
+	/**
+	 * Method to recursively scan the explorer tree and open the current library or signals list.
+     * @param library the library to open
+     * @param path the current position in the explorer tree.
+     * @param openLib true for libraries, false for waveforms
+     */
+	private void openLibraryInExplorerTree(Library library, TreePath path, boolean openLib)
+	{
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+		Object obj = node.getUserObject();
+		int numChildren = node.getChildCount();
+		if (numChildren == 0) return;
+
+		if (openLib && (obj instanceof Library))
+		{
+			Library lib = (Library)obj;
+			if (lib == library) expandPath(path);
+//            if (lib == Library.getCurrent())
+//                explorerTab.expandPath(path);
+		} else if (obj instanceof String)
+		{
+			String msg = (String)obj;
+			if ((msg.equalsIgnoreCase("libraries") && openLib) ||
+				(msg.equalsIgnoreCase("signals") && !openLib))
+					expandPath(path);
+		}
+
+		// now recurse
+		for(int i=0; i<numChildren; i++)
+		{
+            Object child = node.getChildAt(i);
+            if (!(child instanceof DefaultMutableTreeNode)) continue;
+			TreePath descentPath = path.pathByAddingChild(child);
+			if (descentPath == null) continue;
+			openLibraryInExplorerTree(library, descentPath, openLib);
+		}
+	}
+
+	void redoContentTrees(List<MutableTreeNode> contentNodes)
+	{
+        Job.checkSwingThread();
+
+		// remember the state of the tree
+		HashSet<Object> expanded = new HashSet<Object>();
+		recursivelyCache(expanded, new TreePath(rootNode), true);
+
+		// remove all children except errorExplorerNode and JobExplorerNode
+    	for (int i = rootNode.getChildCount()-3; i >= 0; i--) {
+            TreeNode childNode = rootNode.getChildAt(i);
+//            assert childNode != jobExplorerNode && childNode != errorExplorerNode;
+            rootNode.remove(i);
+        }
+        assert rootNode.getChildCount() == 2;
+
+		// get the new library tree part
+        for (MutableTreeNode node: contentNodes)
+            insertContentNode(node);
+        for (int i = 0; i < rootNode.getChildCount() - 2; i++)
+            getTreeModel().reload(rootNode.getChildAt(i));
+
+		recursivelyCache(expanded, new TreePath(rootNode), false);
+	}
+
+    static void updateJobTrees() {
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+            ExplorerTree t = wf.getExplorerTab();
+            t.getTreeModel().reload(t.jobExplorerNode);
+		}
+    }
+    
+    static void redoErrorTrees() {
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+            wf.getExplorerTab().redoErrorTree();
+		}
+    }
+
+    private void redoErrorTree()
+	{
+    		// remember the state of the tree
+        	HashSet<Object> expanded = new HashSet<Object>();
+            recursivelyCache(expanded, new TreePath(errorExplorerNode), true);
+			ErrorLoggerTree.updateExplorerTree(errorExplorerNode);
+            getTreeModel().reload(errorExplorerNode);
+    		recursivelyCache(expanded, new TreePath(errorExplorerNode), false);
+	}
+
+    /**
+     * Insert content-dependent subtree to expolorer tree.
+     * @param newChild root of subtree
+     */
+    private void insertContentNode(MutableTreeNode newChild) {
+        if (newChild != null)
+            rootNode.insert(newChild, rootNode.getChildCount() - 2);
+    }
+        
+	private void recursivelyCache(HashSet<Object> expanded, TreePath path, boolean cache)
+	{
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+		int numChildren = node.getChildCount();
+		if (numChildren == 0) return;
+
+		if (cache)
+		{
+			if (isExpanded(path))
+			{
+				Object obj = getProperTreeObject(node);
+				expanded.add(obj);
+			} else numChildren = 0;
+		} else
+		{
+			Object obj = getProperTreeObject(node);
+			if (expanded.contains(obj))
+			{
+				expandPath(path);
+			} else numChildren = 0;
+		}
+
+		// now recurse
+		for(int i=0; i<numChildren; i++)
+		{
+            TreeNode child = node.getChildAt(i);
+            if (!(child instanceof DefaultMutableTreeNode)) continue;
+			TreePath descentPath = path.pathByAddingChild(child);
+			if (descentPath == null) continue;
+			recursivelyCache(expanded, descentPath, cache);
+		}
+	}
+
+	/**
+	 * Method to get the object at a specific node in the explorer tree.
+	 * For String objects, a complete path to the top of the tree is built.
+	 * This is necessary because using the final name may not be unique.
+	 * @param node the tree node at that point in the tree.
+	 * @return the proper Object to describe that tree node.
+	 */
+	private Object getProperTreeObject(DefaultMutableTreeNode node)
+	{
+		Object obj = node.getUserObject();
+		if (obj instanceof String)
+		{
+			DefaultMutableTreeNode climb = node;
+			for(;;)
+			{
+				climb = (DefaultMutableTreeNode)climb.getParent();
+				if (climb == null) break;
+				Object parentObj = climb.getUserObject();
+				if (!(parentObj instanceof String)) break;
+				obj = ((String)parentObj) + "." + ((String)obj);
+			}
+		}
+		return obj;
 	}
 
 	/**
@@ -555,16 +737,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
-		if (currentSelectedObjects.length == 0) return;
+		if (numCurrentlySelectedObjects() == 0) return;
 
 		// handle signal dragging when in a WaveformWindow setting
-		if (currentSelectedObjects[0] instanceof Signal)
+		if (getCurrentlySelectedObject(0) instanceof Signal)
 		{
 			// Get the Transferable Object
 			StringBuffer buf = new StringBuffer();
-			for(int i=0; i<currentSelectedObjects.length; i++)
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Signal sSig = (Signal)currentSelectedObjects[i];
+				Signal sSig = (Signal)getCurrentlySelectedObject(i);
 				String sigName = sSig.getFullName();
 				if (sSig instanceof AnalogSignal)
 				{
@@ -584,17 +766,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			return;
 		}
 
-		if (currentSelectedObjects.length > 1)
+		if (numCurrentlySelectedObjects() > 1)
 		{
 			Job.getUserInterface().showErrorMessage("Can drag only one selected object", "Too Much Selected");
 			return;
 		}
 
 		// Drag cell name to edit window
-		if (currentSelectedObjects[0] instanceof Cell)
+		if (getCurrentlySelectedObject(0) instanceof Cell)
 		{
 			// make a Transferable Object
-			Cell cell = (Cell)currentSelectedObjects[0];
+			Cell cell = (Cell)getCurrentlySelectedObject(0);
 			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
 
 			// begin the drag
@@ -621,8 +803,110 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dropActionChanged (DragSourceDragEvent e) {}
 
 
-    private static class MyTreeModel extends DefaultTreeModel {
-        MyTreeModel(TreeNode root) { super(root); }
+    private class MyTreeModel extends DefaultTreeModel {
+        MyTreeModel(TreeNode root, List<MutableTreeNode> contentNodes) {
+            super(root);
+            rootNode = (DefaultMutableTreeNode)root;
+            for (MutableTreeNode node: contentNodes)
+                insertContentNode(node);
+        }
+
+       /**
+         * Returns the root of the tree.  Returns <code>null</code>
+         * only if the tree has no nodes.
+         *
+         * @return  the root of the tree
+         */
+        public Object getRoot() { return super.getRoot(); }
+        
+        
+        /**
+         * Returns the child of <code>parent</code> at index <code>index</code>
+         * in the parent's
+         * child array.  <code>parent</code> must be a node previously obtained
+         * from this data source. This should not return <code>null</code>
+         * if <code>index</code>
+         * is a valid index for <code>parent</code> (that is <code>index >= 0 &&
+         * index < getChildCount(parent</code>)).
+         *
+         * @param   parent  a node in the tree, obtained from this data source
+         * @return  the child of <code>parent</code> at index <code>index</code>
+         */
+        public Object getChild(Object parent, int index) { return super.getChild(parent, index); }
+        
+        
+        /**
+         * Returns the number of children of <code>parent</code>.
+         * Returns 0 if the node
+         * is a leaf or if it has no children.  <code>parent</code> must be a node
+         * previously obtained from this data source.
+         *
+         * @param   parent  a node in the tree, obtained from this data source
+         * @return  the number of children of the node <code>parent</code>
+         */
+        public int getChildCount(Object parent) { return super.getChildCount(parent); }
+        
+        
+        /**
+         * Returns <code>true</code> if <code>node</code> is a leaf.
+         * It is possible for this method to return <code>false</code>
+         * even if <code>node</code> has no children.
+         * A directory in a filesystem, for example,
+         * may contain no files; the node representing
+         * the directory is not a leaf, but it also has no children.
+         *
+         * @param   node  a node in the tree, obtained from this data source
+         * @return  true if <code>node</code> is a leaf
+         */
+        public boolean isLeaf(Object node) { return super.isLeaf(node); }
+        
+        /**
+         * Messaged when the user has altered the value for the item identified
+         * by <code>path</code> to <code>newValue</code>.
+         * If <code>newValue</code> signifies a truly new value
+         * the model should post a <code>treeNodesChanged</code> event.
+         *
+         * @param path path to the node that the user has altered
+         * @param newValue the new value from the TreeCellEditor
+         */
+        public void valueForPathChanged(TreePath path, Object newValue) { super.valueForPathChanged(path, newValue); }
+        
+        /**
+         * Returns the index of child in parent.  If either <code>parent</code>
+         * or <code>child</code> is <code>null</code>, returns -1.
+         * If either <code>parent</code> or <code>child</code> don't
+         * belong to this tree model, returns -1.
+         *
+         * @param parent a note in the tree, obtained from this data source
+         * @param child the node we are interested in
+         * @return the index of the child in the parent, or -1 if either
+         *    <code>child</code> or <code>parent</code> are <code>null</code>
+         *    or don't belong to this tree model
+         */
+        public int getIndexOfChild(Object parent, Object child) { return super.getIndexOfChild(parent, child); }
+        
+//
+//  Change Events
+//
+        
+        /**
+         * Adds a listener for the <code>TreeModelEvent</code>
+         * posted after the tree changes.
+         *
+         * @param   l       the listener to add
+         * @see     #removeTreeModelListener
+         */
+        public void addTreeModelListener(TreeModelListener l) { super.addTreeModelListener(l); }
+        
+        /**
+         * Removes a listener previously added with
+         * <code>addTreeModelListener</code>.
+         *
+         * @see     #addTreeModelListener
+         * @param   l       the listener to remove
+         */
+        public void removeTreeModelListener(TreeModelListener l) { super.removeTreeModelListener(l); }
+        
     }
     
 	private class MyRenderer extends DefaultTreeCellRenderer
@@ -834,16 +1118,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		}
 	}
 
-	private static class TreeHandler implements MouseListener, MouseMotionListener, TreeSelectionListener
+	private class TreeHandler implements MouseListener, MouseMotionListener, TreeSelectionListener
 	{
-		private ExplorerTree tree;
 		private Cell originalCell;
 		private boolean draggingCell;
 		private MouseEvent currentMouseEvent;
 		private TreePath [] currentPaths;
 		private TreePath [] originalPaths;
-
-		TreeHandler(ExplorerTree tree) { this.tree = tree;}
 
 		public void mouseClicked(MouseEvent e) {}
 
@@ -874,11 +1155,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				// handle things that can accomodate multiple selections
 				boolean didSomething = false;
-				for(int i=0; i<tree.currentSelectedObjects.length; i++)
+				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					if (tree.currentSelectedObjects[i] instanceof Signal)
+					if (getCurrentlySelectedObject(i) instanceof Signal)
 					{
-						Signal sig = (Signal)tree.currentSelectedObjects[i];
+						Signal sig = (Signal)getCurrentlySelectedObject(i);
 						if (wf.getContent() instanceof WaveformWindow)
 						{
 							WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -887,9 +1168,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						didSomething = true;
 					}
 	
-					if (tree.currentSelectedObjects[i] instanceof SweepSignal)
+					if (getCurrentlySelectedObject(i) instanceof SweepSignal)
 					{
-						SweepSignal ss = (SweepSignal)tree.currentSelectedObjects[i];
+						SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 						if (ss == null) return;
 						ss.setIncluded(!ss.isIncluded());
 						didSomething = true;
@@ -898,12 +1179,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (didSomething) return;
 
 				// must have only 1 selection
-				if (tree.currentSelectedObjects.length != 1)
+				if (numCurrentlySelectedObjects() != 1)
 				{
 					Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 					return;
 				}
-				Object nodeObj = tree.currentSelectedObjects[0];
+				Object nodeObj = getCurrentlySelectedObject(0);
 
 				if (nodeObj instanceof CellAndCount)
 				{
@@ -936,8 +1217,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					for(int i=0; i<currentPaths.length; i++)
 					{
-						if (tree.isExpanded(currentPaths[i])) tree.collapsePath(currentPaths[i]); else
-							tree.expandPath(currentPaths[i]);
+						if (isExpanded(currentPaths[i])) collapsePath(currentPaths[i]); else
+							expandPath(currentPaths[i]);
 					}
 					return;
 				}
@@ -987,34 +1268,34 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			if (!draggingCell) return;
 			cacheEvent(e);
-			tree.clearSelection();
+			clearSelection();
 			for(int i=0; i<originalPaths.length; i++)
-				tree.addSelectionPath(originalPaths[i]);
+				addSelectionPath(originalPaths[i]);
 			for(int i=0; i<currentPaths.length; i++)
-				tree.addSelectionPath(currentPaths[i]);
-			tree.updateUI();
+				addSelectionPath(currentPaths[i]);
+			updateUI();
 		}
 
 		public void valueChanged(TreeSelectionEvent e)
 		{
-			currentPaths = tree.getSelectionPaths();
+			currentPaths = getSelectionPaths();
 			if (currentPaths == null) currentPaths = new TreePath[0];
-			tree.currentSelectedObjects = new Object[currentPaths.length];
+			currentSelectedObjects = new Object[currentPaths.length];
 			for(int i=0; i<currentPaths.length; i++)
 			{
                 Object obj = currentPaths[i].getLastPathComponent();
                 if (obj instanceof DefaultMutableTreeNode)
                     obj = ((DefaultMutableTreeNode)obj).getUserObject();
-                tree.currentSelectedObjects[i] = obj;
+                currentSelectedObjects[i] = obj;
 //				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
-//				tree.currentSelectedObjects[i] = node.getUserObject();
+//				currentSelectedObjects[i] = node.getUserObject();
 			}
 
 			// update highlighting to match this selection
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = it.next();
-				if (wf.getExplorerTab() == tree)
+				if (wf.getExplorerTab() == ExplorerTree.this)
 				{
 					// initiate crossprobing from WaveformWindow 
 					if (wf.getContent() instanceof WaveformWindow)
@@ -1028,7 +1309,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		
 		private void selectTreeElement(int x, int y)
 		{
-			TreePath cp = tree.getPathForLocation(x, y);
+			TreePath cp = getPathForLocation(x, y);
 			if (cp != null)
 			{
                 Object obj = cp.getLastPathComponent();
@@ -1037,34 +1318,34 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 //                DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
 //                Object obj = node.getUserObject();
 				boolean selected = false;
-				for(int i=0; i<tree.currentSelectedObjects.length; i++)
+				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					if (tree.currentSelectedObjects[i] == obj) { selected = true;   break; }
+					if (getCurrentlySelectedObject(i) == obj) { selected = true;   break; }
 				}
 				if (!selected)
 				{
-					tree.currentSelectedObjects = new Object[1];
-					tree.currentSelectedObjects[0] = obj;
-					tree.clearSelection();
-					tree.addSelectionPath(cp);
-					tree.updateUI();
+					currentSelectedObjects = new Object[1];
+					currentSelectedObjects[0] = obj;
+					clearSelection();
+					addSelectionPath(cp);
+					updateUI();
 				}
 			}
 		}
 
 		private void cacheEvent(MouseEvent e)
 		{
-//			currentPath = tree.getPathForLocation(e.getX(), e.getY());
-//			if (currentPath == null) { tree.currentSelectedObject = null;   return; }
-//			tree.setSelectionPath(currentPath);
+//			currentPath = getPathForLocation(e.getX(), e.getY());
+//			if (currentPath == null) { currentSelectedObject = null;   return; }
+//			setSelectionPath(currentPath);
 //			for(int i=0; i<currentPaths.length; i++)
 //			{
 //				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
-//				if (i == 0) tree.selectedNode = node;
+//				if (i == 0) selectedNode = node;
 //				Object newSelection = node.getUserObject();
-//				if (newSelection != tree.currentSelectedObject)
+//				if (newSelection != currentSelectedObject)
 //				{
-//					tree.currentSelectedObject = newSelection;
+//					currentSelectedObject = newSelection;
 //					// update highlighting to match this selection
 //					for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //					{
@@ -1091,12 +1372,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			// see what is selected
 			Object selectedObject = null;
-			for(int i=0; i<tree.currentSelectedObjects.length; i++)
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				if (selectedObject == null) selectedObject = tree.currentSelectedObjects[i]; else
+				if (selectedObject == null) selectedObject = getCurrentlySelectedObject(i); else
 				{
 					Class clz = selectedObject.getClass();
-					if (!clz.isInstance(tree.currentSelectedObjects[i]))
+					if (!clz.isInstance(getCurrentlySelectedObject(i)))
 					{
 						Job.getUserInterface().showErrorMessage("All selected entries must be of the same type", "Incorrect Selection");
 						return;
@@ -1142,7 +1423,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			}
 
 			// restricted set of options when multiple things are selected
-			if (tree.currentSelectedObjects.length > 1)
+			if (numCurrentlySelectedObjects() > 1)
 			{
 				if (selectedObject instanceof CellAndCount)
 				{
@@ -1173,7 +1454,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			}
 
 			// restrict to a single selection
-			if (tree.currentSelectedObjects.length != 1)
+			if (numCurrentlySelectedObjects() != 1)
 			{
 				Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 				return;
@@ -1215,34 +1496,34 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						menuItem = new JMenuItem("Check Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Check In...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)getCurrentlySelectedObject(0)); } });
 
 						menuItem = new JMenuItem("Rollback and Release Check-Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.NOTMANAGED)
 					{
 						menuItem = new JMenuItem("Add To Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)getCurrentlySelectedObject(0)); } });
 					} else
 					{
 						menuItem = new JMenuItem("Show History of This Cell...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Remove From Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)tree.currentSelectedObjects[0]); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)getCurrentlySelectedObject(0)); } });
 					}
 				}
 
@@ -1367,7 +1648,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					menuItem = new JMenuItem("Add to Project Management Repository");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)tree.currentSelectedObjects[0]); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)getCurrentlySelectedObject(0)); } });
 				}
 
 				menu.addSeparator();
@@ -1558,7 +1839,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void openAction()
 		{
 			for(int i=0; i<currentPaths.length; i++)
-				tree.expandPath(currentPaths[i]);
+				expandPath(currentPaths[i]);
 		}
 
 		private void recursiveOpenAction()
@@ -1569,7 +1850,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void recursivelyOpen(TreePath path)
 		{
-			tree.expandPath(path);
+			expandPath(path);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
 			int numChildren = node.getChildCount();
 			for(int i=0; i<numChildren; i++)
@@ -1596,12 +1877,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				TreePath descentPath = path.pathByAddingChild(child);
 				recursivelyClose(descentPath);
 			}
-			tree.collapsePath(path);
+			collapsePath(path);
 		}
 
 		private void setCurLibAction()
 		{
-			Library lib = (Library)tree.currentSelectedObjects[0];
+			Library lib = (Library)getCurrentlySelectedObject(0);
 			lib.setCurrent();
 			WindowFrame.wantToRedoTitleNames();
             WindowFrame.wantToRedoLibraryTree();
@@ -1610,30 +1891,30 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void renameLibraryAction()
 		{
-			Library lib = (Library)tree.currentSelectedObjects[0];
+			Library lib = (Library)getCurrentlySelectedObject(0);
 			CircuitChanges.renameLibrary(lib);
 		}
 
         private void saveLibraryAction()
 		{
-			Library lib = (Library)tree.currentSelectedObjects[0];
+			Library lib = (Library)getCurrentlySelectedObject(0);
 			FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
 		}
 
 		private void closeLibraryAction()
 		{
-			Library lib = (Library)tree.currentSelectedObjects[0];
+			Library lib = (Library)getCurrentlySelectedObject(0);
 			FileMenu.closeLibraryCommand(lib);
 		}
 
 		private void renameGroupAction()
 		{
-			Cell.CellGroup cellGroup = (Cell.CellGroup)tree.currentSelectedObjects[0];
+			Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
 			String defaultName = "";
 			if (cellGroup.getNumCells() > 0)
 				defaultName = (cellGroup.getCells().next()).getName();
 		
-			String response = JOptionPane.showInputDialog(tree, "New name for cells in this group", defaultName);
+			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for cells in this group", defaultName);
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}
@@ -1642,12 +1923,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Cell cell = null;
 			int pageNo = 1;
-			if (tree.currentSelectedObjects[0] instanceof Cell)
+			if (getCurrentlySelectedObject(0) instanceof Cell)
 			{
-				cell = (Cell)tree.currentSelectedObjects[0];
-			} else if (tree.currentSelectedObjects[0] instanceof MultiPageCell)
+				cell = (Cell)getCurrentlySelectedObject(0);
+			} else if (getCurrentlySelectedObject(0) instanceof MultiPageCell)
 			{
-				MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObjects[0];
+				MultiPageCell mpc = (MultiPageCell)getCurrentlySelectedObject(0);
 				cell = mpc.cell;
 				pageNo = mpc.pageNo;
 			}
@@ -1669,7 +1950,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void newCellInstanceAction()
 		{
-			Cell cell = (Cell)tree.currentSelectedObjects[0];
+			Cell cell = (Cell)getCurrentlySelectedObject(0);
 			if (cell == null) return;
 			PaletteFrame.placeInstance(cell, null, false);
 		}
@@ -1686,10 +1967,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 			if (!(wf.getContent() instanceof WaveformWindow)) return;
 			WaveformWindow ww = (WaveformWindow)wf.getContent();
-			Signal [] sigs = new Signal[tree.currentSelectedObjects.length];
-			for(int i=0; i<tree.currentSelectedObjects.length; i++)
+			Signal [] sigs = new Signal[numCurrentlySelectedObjects()];
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Signal sig = (Signal)tree.currentSelectedObjects[i];
+				Signal sig = (Signal)getCurrentlySelectedObject(i);
 				sigs[i] = sig;
 			}
 			ww.showSignals(sigs, newPanel);
@@ -1697,9 +1978,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void setSweepAction(boolean include)
 		{
-			for(int i=0; i<tree.currentSelectedObjects.length; i++)
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				SweepSignal ss = (SweepSignal)tree.currentSelectedObjects[i];
+				SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 				if (ss == null) continue;
 				ss.setIncluded(include);
 			}
@@ -1707,9 +1988,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void highlightSweepAction()
 		{
-			for(int i=0; i<tree.currentSelectedObjects.length; i++)
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				SweepSignal ss = (SweepSignal)tree.currentSelectedObjects[i];
+				SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 				if (ss == null) continue;
 				ss.highlight();
 			}
@@ -1732,22 +2013,22 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void newCellVersionAction()
 		{
-			Cell cell = (Cell)tree.currentSelectedObjects[0];
+			Cell cell = (Cell)getCurrentlySelectedObject(0);
 			CircuitChanges.newVersionOfCell(cell);
 		}
 
 		private void duplicateCellAction()
 		{
-			Cell cell = (Cell)tree.currentSelectedObjects[0];
+			Cell cell = (Cell)getCurrentlySelectedObject(0);
             CellMenu.duplicateCell(cell);
 		}
 
 		private void deleteCellAction()
 		{
 			List<Cell> cellsToDelete = new ArrayList<Cell>();
-			for(int i=0; i<tree.currentSelectedObjects.length; i++)
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Cell cell = (Cell)tree.currentSelectedObjects[i];
+				Cell cell = (Cell)getCurrentlySelectedObject(i);
 				cellsToDelete.add(cell);
 			}
 			for(Cell cell : cellsToDelete)
@@ -1758,8 +2039,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void renameCellAction()
 		{
-			Cell cell = (Cell)tree.currentSelectedObjects[0];
-			String response = JOptionPane.showInputDialog(tree, "New name for " + cell, cell.getName());
+			Cell cell = (Cell)getCurrentlySelectedObject(0);
+			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for " + cell, cell.getName());
 			if (response == null) return;
 			CircuitChanges.renameCellInJob(cell, response);
 		}
@@ -1772,9 +2053,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (newView != null)
 			{
 				List<Cell> cellsToReview = new ArrayList<Cell>();
-				for(int i=0; i<tree.currentSelectedObjects.length; i++)
+				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					Cell cell = (Cell)tree.currentSelectedObjects[i];
+					Cell cell = (Cell)getCurrentlySelectedObject(i);
 					cellsToReview.add(cell);
 				}
 				for(Cell cell : cellsToReview)
@@ -1786,13 +2067,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void makeCellMainSchematic()
 		{
-            Cell cell = (Cell)tree.currentSelectedObjects[0];
+            Cell cell = (Cell)getCurrentlySelectedObject(0);
             if (cell == null) return;
             cell.getCellGroup().setMainSchematics(cell);
 		}
 
         private void changeCellGroupAction() {
-            Cell cell = (Cell)tree.currentSelectedObjects[0];
+            Cell cell = (Cell)getCurrentlySelectedObject(0);
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
             if (!Job.BATCHMODE) dialog.setVisible(true);
@@ -1800,7 +2081,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void makeNewSchematicPage()
         {
-        	MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObjects[0];
+        	MultiPageCell mpc = (MultiPageCell)getCurrentlySelectedObject(0);
             Cell cell = mpc.cell;
          	if (!cell.isMultiPage())
         	{
@@ -1815,7 +2096,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void deleteSchematicPage()
         {
-        	MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObjects[0];
+        	MultiPageCell mpc = (MultiPageCell)getCurrentlySelectedObject(0);
             Cell cell = mpc.cell;
          	if (!cell.isMultiPage()) return;
         	int numPages = cell.getNumMultiPages();
@@ -1847,7 +2128,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void searchAction()
         {
-            String name = JOptionPane.showInputDialog(tree, "Name of cell to search","");
+            String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");
 			if (name == null) return;
             System.out.println("Searching cell name like " + name);
             Cell cell = Library.findCellInLibraries(name, null);

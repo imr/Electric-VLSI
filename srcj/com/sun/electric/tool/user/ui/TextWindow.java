@@ -24,16 +24,13 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText;
@@ -41,7 +38,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -60,7 +56,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +70,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -247,9 +242,9 @@ public class TextWindow
 		dirty = true;
 	}
 
-	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
-        wf.loadDefaultExplorerTree(rootNode);
+        return wf.loadDefaultExplorerTree();
 	}
 
 	/**

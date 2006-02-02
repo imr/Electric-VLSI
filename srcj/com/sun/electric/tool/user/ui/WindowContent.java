@@ -27,14 +27,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.FindText;
-
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JPanel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 
 /**
  * This class defines the right-side of a windowframe (the contents, as opposed to the explorer tree).
@@ -94,7 +93,7 @@ public interface WindowContent
 	public abstract void bottomScrollChanged(int e);
 	public abstract void rightScrollChanged(int e);
 	public abstract void fireCellHistoryStatus();
-	public abstract void loadExplorerTree(DefaultMutableTreeNode rootNode);
+	public abstract List<MutableTreeNode> loadExplorerTrees();
 	public abstract boolean cellHistoryCanGoBack();
 	public abstract boolean cellHistoryCanGoForward();
 	public abstract void cellHistoryGoBack();

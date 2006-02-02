@@ -97,11 +97,7 @@ public class JobTree extends DefaultMutableTreeNode {
                 jobs.add(new JobTreeNode(j));
             }
         }
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-            wf.getTreeModel().reload(wf.jobExplorerNode);
-		}
+        ExplorerTree.updateJobTrees();
     }
 
     private static class JobMenuActionListener implements ActionListener {

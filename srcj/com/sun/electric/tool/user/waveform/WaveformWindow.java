@@ -62,9 +62,7 @@ import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -127,6 +125,7 @@ import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -136,14 +135,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
 
 	/** the window that this lives in */					private WindowFrame wf;
-	/** the generic signal explorer part. */                private DefaultMutableTreeNode genSignalExplorerNode;
-	/** the transient signal explorer part. */              private DefaultMutableTreeNode transSignalExplorerNode;
-	/** the transient sweep explorer part. */               private DefaultMutableTreeNode transSweepExplorerNode;
-	/** the DC signal explorer part. */                     private DefaultMutableTreeNode dcSignalExplorerNode;
-	/** the DC sweep explorer part. */                  	private DefaultMutableTreeNode dcSweepExplorerNode;
-	/** the AC signal explorer part. */                     private DefaultMutableTreeNode acSignalExplorerNode;
-	/** the AC sweep explorer part. */                      private DefaultMutableTreeNode acSweepExplorerNode;
-	/** the measurement explorer part. */                   private DefaultMutableTreeNode measurementExplorerNode;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
 	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
@@ -1547,47 +1538,38 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* THE EXPLORER TREE *************************************
 
-	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
-		wf.libraryExplorerNode = null;
+        ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
 
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
 			if (an.getAnalysisType() == Analysis.ANALYSIS_SIGNALS)
 			{
-				genSignalExplorerNode = getSignalsForExplorer(an, "SIGNALS");
-				wf.insertContentNode(genSignalExplorerNode);
+				nodes.add(getSignalsForExplorer(an, "SIGNALS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
 			{
-				transSignalExplorerNode = getSignalsForExplorer(an, "TRANS SIGNALS");
-				wf.insertContentNode(transSignalExplorerNode);
-				transSweepExplorerNode = getSweepsForExplorer(an, "TRANS SWEEPS");
-				wf.insertContentNode(transSweepExplorerNode);
+				nodes.add(getSignalsForExplorer(an, "TRANS SIGNALS"));
+				nodes.add(getSweepsForExplorer(an, "TRANS SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_AC)
 			{
-				acSignalExplorerNode = getSignalsForExplorer(an, "AC SIGNALS");
-				wf.insertContentNode(acSignalExplorerNode);
-				acSweepExplorerNode = getSweepsForExplorer(an, "AC SWEEPS");
-				wf.insertContentNode(acSweepExplorerNode);
+				nodes.add(getSignalsForExplorer(an, "AC SIGNALS"));
+				nodes.add(getSweepsForExplorer(an, "AC SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_DC)
 			{
-				dcSignalExplorerNode = getSignalsForExplorer(an, "DC SIGNALS");
-				wf.insertContentNode(dcSignalExplorerNode);
-				dcSweepExplorerNode = getSweepsForExplorer(an, "DC SWEEPS");
-				wf.insertContentNode(dcSweepExplorerNode);
+				nodes.add(getSignalsForExplorer(an, "DC SIGNALS"));
+				nodes.add(getSweepsForExplorer(an, "DC SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_MEAS)
 			{
-				measurementExplorerNode = getSignalsForExplorer(an, "MEASUREMENTS");
-				wf.insertContentNode(measurementExplorerNode);
+				nodes.add(getSignalsForExplorer(an, "MEASUREMENTS"));
 			}
 		}
 
-//		// show standard things in the explorer (jobs, errors)
-//		wf.jobExplorerNode = JobTree.getExplorerTree();
-//		rootNode.add(wf.jobExplorerNode);
-//		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-//		rootNode.add(wf.errorExplorerNode);
+        // clean possible nulls
+        while (nodes.remove(null));
+        
+        return nodes;
 	}
     
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, String analysis)

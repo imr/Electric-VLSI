@@ -54,8 +54,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventListener;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
@@ -71,11 +71,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -94,11 +90,6 @@ public class WindowFrame extends Observable
 	/** the explorer tab */								private ExplorerTree explorerTab;
 	/** the component tab */							private PaletteFrame paletteTab;
 	/** the layers tab */								private LayerTab layersTab;
-	/** the explorer part of a frame. */				public DefaultMutableTreeNode rootNode;
-	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
-	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
-	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
-	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
     /** true if this window is finished */              private boolean finished = false;
 
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
@@ -154,7 +145,7 @@ public class WindowFrame extends Observable
             {
                 public void run()
                 {
-                    frame.openLibraryInExplorerTree(cell.getLibrary(), new TreePath(frame.rootNode), true);
+                    frame.explorerTab.openLibraryInExplorerTree(true);
                 }
             });
         }
@@ -252,28 +243,18 @@ public class WindowFrame extends Observable
         }
     }
 
-    public void loadDefaultExplorerTree(DefaultMutableTreeNode rootNode)
+    public List<MutableTreeNode> loadDefaultExplorerTree()
     {
-        libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		insertContentNode(libraryExplorerNode);
+        MutableTreeNode libraryExplorerNode = ExplorerTree.makeLibraryTree();
+        return Collections.singletonList(libraryExplorerNode);
     }
 
-    private static String errorNode = "ERRORS";
 	private Dimension buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
 		this.content = content;
 
 		// the left half: an explorer tree in a scroll pane
-		rootNode = new DefaultMutableTreeNode("Explorer");
-		jobExplorerNode = JobTree.getExplorerTree();
-		rootNode.add(jobExplorerNode);
-        errorExplorerNode = new DefaultMutableTreeNode(errorNode);
-		ErrorLoggerTree.updateExplorerTree(errorExplorerNode);
-		rootNode.add(errorExplorerNode);
-
-        content.loadExplorerTree(rootNode);
-		explorerTab = ExplorerTree.CreateExplorerTree(rootNode);
-        treeModel = explorerTab.getTreeModel();
+		explorerTab = new ExplorerTree(content.loadExplorerTrees());
 		JScrollPane scrolledTree = new JScrollPane(explorerTab);
 
 		// make a tabbed list of panes on the left
@@ -536,45 +517,7 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-			wf.openLibraryInExplorerTree(Library.getCurrent(), new TreePath(wf.rootNode), openLib);
-		}
-	}
-
-	/**
-	 * Method to recursively scan the explorer tree and open the current library or signals list.
-     * @param library the library to open
-     * @param path the current position in the explorer tree.
-     * @param openLib true for libraries, false for waveforms
-     */
-	public void openLibraryInExplorerTree(Library library, TreePath path, boolean openLib)
-	{
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-		Object obj = node.getUserObject();
-		int numChildren = node.getChildCount();
-		if (numChildren == 0) return;
-
-		if (openLib && (obj instanceof Library))
-		{
-			Library lib = (Library)obj;
-			if (lib == library) explorerTab.expandPath(path);
-//            if (lib == Library.getCurrent())
-//                explorerTab.expandPath(path);
-		} else if (obj instanceof String)
-		{
-			String msg = (String)obj;
-			if ((msg.equalsIgnoreCase("libraries") && openLib) ||
-				(msg.equalsIgnoreCase("signals") && !openLib))
-					explorerTab.expandPath(path);
-		}
-
-		// now recurse
-		for(int i=0; i<numChildren; i++)
-		{
-            Object child = node.getChildAt(i);
-            if (!(child instanceof DefaultMutableTreeNode)) continue;
-			TreePath descentPath = path.pathByAddingChild(child);
-			if (descentPath == null) continue;
-			openLibraryInExplorerTree(library, descentPath, openLib);
+			wf.explorerTab.openLibraryInExplorerTree(openLib);
 		}
 	}
 
@@ -586,7 +529,7 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-            wf.redoContentTrees();
+            wf.explorerTab.redoContentTrees(wf.content.loadExplorerTrees());
 		}
 	}
 
@@ -598,17 +541,7 @@ public class WindowFrame extends Observable
             });
             return;
         }
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-            
-    		// remember the state of the tree
-        	HashSet<Object> expanded = new HashSet<Object>();
-            wf.recursivelyCache(expanded, new TreePath(wf.errorExplorerNode), true);
-			ErrorLoggerTree.updateExplorerTree(wf.errorExplorerNode);
-            wf.treeModel.reload(wf.errorExplorerNode);
-    		wf.recursivelyCache(expanded, new TreePath(wf.errorExplorerNode), false);
-		}
+        ExplorerTree.redoErrorTrees();
 	}
 
 	public void wantToRedoSignalTree()
@@ -619,98 +552,7 @@ public class WindowFrame extends Observable
             });
             return;
         }
-		redoContentTrees();
-	}
-
-	private void redoContentTrees()
-	{
-        Job.checkSwingThread();
-
-		// remember the state of the tree
-		HashSet<Object> expanded = new HashSet<Object>();
-		recursivelyCache(expanded, new TreePath(rootNode), true);
-
-		// remove all children except errorExplorerNode and JobExplorerNode
-    	for (int i = rootNode.getChildCount()-3; i >= 0; i--) {
-            TreeNode childNode = rootNode.getChildAt(i);
-            assert childNode != jobExplorerNode && childNode != errorExplorerNode;
-            rootNode.remove(i);
-        }
-        assert rootNode.getChildCount() == 2;
-
-		// get the new library tree part
-        content.loadExplorerTree(rootNode);
-        for (int i = 0; i < rootNode.getChildCount() - 2; i++)
-            treeModel.reload(rootNode.getChildAt(i));
-
-		recursivelyCache(expanded, new TreePath(rootNode), false);
-	}
-
-    /**
-     * Insert content-dependent subtree to expolorer tree.
-     * @param newChild root of subtree
-     */
-    public void insertContentNode(MutableTreeNode newChild) {
-        if (newChild != null)
-            rootNode.insert(newChild, rootNode.getChildCount() - 2);
-    }
-    
-	private void recursivelyCache(HashSet<Object> expanded, TreePath path, boolean cache)
-	{
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-		int numChildren = node.getChildCount();
-		if (numChildren == 0) return;
-
-		if (cache)
-		{
-			if (explorerTab.isExpanded(path))
-			{
-				Object obj = getProperTreeObject(node);
-				expanded.add(obj);
-			} else numChildren = 0;
-		} else
-		{
-			Object obj = getProperTreeObject(node);
-			if (expanded.contains(obj))
-			{
-				explorerTab.expandPath(path);
-			} else numChildren = 0;
-		}
-
-		// now recurse
-		for(int i=0; i<numChildren; i++)
-		{
-            TreeNode child = node.getChildAt(i);
-            if (!(child instanceof DefaultMutableTreeNode)) continue;
-			TreePath descentPath = path.pathByAddingChild(child);
-			if (descentPath == null) continue;
-			recursivelyCache(expanded, descentPath, cache);
-		}
-	}
-
-	/**
-	 * Method to get the object at a specific node in the explorer tree.
-	 * For String objects, a complete path to the top of the tree is built.
-	 * This is necessary because using the final name may not be unique.
-	 * @param node the tree node at that point in the tree.
-	 * @return the proper Object to describe that tree node.
-	 */
-	private Object getProperTreeObject(DefaultMutableTreeNode node)
-	{
-		Object obj = node.getUserObject();
-		if (obj instanceof String)
-		{
-			DefaultMutableTreeNode climb = node;
-			for(;;)
-			{
-				climb = (DefaultMutableTreeNode)climb.getParent();
-				if (climb == null) break;
-				Object parentObj = climb.getUserObject();
-				if (!(parentObj instanceof String)) break;
-				obj = ((String)parentObj) + "." + ((String)obj);
-			}
-		}
-		return obj;
+		explorerTab.redoContentTrees(content.loadExplorerTrees());
 	}
 
 	public static void setSideBarLocation(boolean onLeft)
@@ -1036,12 +878,6 @@ public class WindowFrame extends Observable
         return null;
     }    
 
-    /**
-     * Returns TreeModel of Explorer tree of this WindowFrame.
-     * @return TreeModel of Explorer tree of this WindowFrame.
-     */
-    DefaultTreeModel getTreeModel() { return treeModel; }
-    
     /**
      * Returns true if this window frame or it's components generated
      * this event.

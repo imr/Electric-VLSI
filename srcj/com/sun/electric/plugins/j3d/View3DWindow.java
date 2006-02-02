@@ -43,7 +43,6 @@ import com.sun.electric.plugins.j3d.utils.J3DCanvas3D;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
@@ -70,7 +69,6 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Point;
@@ -113,7 +111,7 @@ import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
@@ -606,11 +604,10 @@ public class View3DWindow extends JPanel
 
 	/**
 	 *
-	 * @param rootNode
 	 */
-	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
-        wf.loadDefaultExplorerTree(rootNode);
+        return wf.loadDefaultExplorerTree();
 	}
 
 	/**

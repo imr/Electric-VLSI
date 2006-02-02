@@ -126,6 +126,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 
 /**
  * This class defines an editing window for displaying circuitry.
@@ -1035,9 +1036,9 @@ public class EditWindow extends JPanel
 	 */
 	public PixelDrawing getOffscreen() { return offscreen; }
 
-	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
-        wf.loadDefaultExplorerTree(rootNode);
+        return wf.loadDefaultExplorerTree();
 	}
 
 	/**
