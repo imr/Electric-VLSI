@@ -285,6 +285,10 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		 */
 		public static final Function PRESIST =    new Function("poly-resistor", "pres", "PRESIST");
 		/**
+		 * Describes a well resistor.
+		 */
+		public static final Function WRESIST =    new Function("well-resistor", "wres", "WRESIST");
+        /**
 		 * Describes a capacitor.
 		 */
 		public static final Function CAPAC =     new Function("capacitor", "cap", "CAPAC");

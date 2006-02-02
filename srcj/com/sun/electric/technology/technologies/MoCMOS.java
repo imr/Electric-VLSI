@@ -58,6 +58,12 @@ public class MoCMOS extends Technology
 {
 	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = new MoCMOS();
 
+    // Depending on
+//    private static MoCMOS initilizeMoCMOS()
+//    {
+//
+//    }
+
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
 	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
 	/** Value for deep rules. */				public static final int DEEPRULES  = 2;
@@ -92,7 +98,8 @@ public class MoCMOS extends Technology
     /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes = new PrimitiveNode[2];
     /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
-    /** RPO poly resistors */                   private PrimitiveNode[] rpoResistorNodes = new PrimitiveNode[2];
+    /** RPO poly resistors */                   private PrimitiveNode[] polyResistorNodes = new PrimitiveNode[2];
+    /** RPO poly resistors */                   private PrimitiveNode[] wellResistorNodes = new PrimitiveNode[2];
 	/** Metal-1-Node */							private PrimitiveNode metal1Node_node;
 	/** Metal-2-Node */							private PrimitiveNode metal2Node_node;
 	/** Metal-3-Node */							private PrimitiveNode metal3Node_node;
@@ -693,121 +700,121 @@ public class MoCMOS extends Technology
 		/** metal-1 layer */
 		metalLayers[0] = Layer.newInstance(this, "Metal-1",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+			new int[] { 0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000}));//
 
 		/** metal-2 layer */
 		metalLayers[1] = Layer.newInstance(this, "Metal-2",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** metal-3 layer */
 		metalLayers[2] = Layer.newInstance(this, "Metal-3",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+			new int[] { 0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000}));//
 
 		/** metal-4 layer */
 		metalLayers[3] = Layer.newInstance(this, "Metal-4",
 			new EGraphics(true, true, null, 0, 150,150,255, 0.5,true,
 			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000}));//                 
+						0x0000}));//
 
 		/** metal-5 layer */
 		metalLayers[4] = Layer.newInstance(this, "Metal-5",
 			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,190,6, 0.4,true,
-			new int[] { 0x8888,   // X   X   X   X   
+			new int[] { 0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444}));//  X   X   X   X  
+						0x2222,   //   X   X   X   X
+						0x4444}));//  X   X   X   X
 
 		/** metal-6 layer */
 		metalLayers[5] = Layer.newInstance(this, "Metal-6",
 			new EGraphics(true, true, null, 0, 0,255,255, 0.3,true,
-			new int[] { 0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+			new int[] { 0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111}));//    X   X   X   X
 
 		/** poly layer */
@@ -834,102 +841,102 @@ public class MoCMOS extends Technology
 		Layer poly2_lay = Layer.newInstance(this, "Polysilicon-2",
 			new EGraphics(true, true, null, 0, 255,190,6, 1,true,
 			new int[] { 0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
 						0x8888}));// X   X   X   X
 
         Layer[] activeLayers = new Layer[2];
 		/** P active layer */
 		activeLayers[P_TYPE] = Layer.newInstance(this, "P-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** N active layer */
 		activeLayers[N_TYPE] = Layer.newInstance(this, "N-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
 						0x3030}));//   XX      XX
 
         Layer[] selectLayers = new Layer[2];
 		/** P Select layer */
 		selectLayers[P_TYPE] = Layer.newInstance(this, "P-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** N Select layer */
 		selectLayers[N_TYPE] = Layer.newInstance(this, "N-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
 			new int[] { 0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
+						0x0000,   //
+						0x1010,   //    X       X
 						0x0000}));//
 
         Layer[] wellLayers = new Layer[2];
@@ -937,42 +944,42 @@ public class MoCMOS extends Technology
 		/** P Well layer */
 		wellLayers[P_TYPE] = Layer.newInstance(this, "P-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X 
+			new int[] { 0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010,   //    X       X
+						0x0808,   //     X       X
+						0x0404,   //      X       X
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404}));//      X       X  
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010,   //    X       X
+						0x0808,   //     X       X
+						0x0404}));//      X       X
 
 		/** N Well implant */
 		wellLayers[N_TYPE] = Layer.newInstance(this, "N-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000}));//                 
+			new int[] { 0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000}));//
 
 		/** poly cut layer */
 		Layer polyCutLayer = Layer.newInstance(this, "Poly-Cut",
@@ -980,12 +987,12 @@ public class MoCMOS extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** active cut layer */
-		Layer activeCut_lay = Layer.newInstance(this, "Active-Cut",
+		Layer activeCutLayer = Layer.newInstance(this, "Active-Cut",
 			new EGraphics(false, false, null, 0, 100,100,100, 1,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via1 layer */
-		Layer via1_lay = Layer.newInstance(this, "Via1", 
+		Layer via1_lay = Layer.newInstance(this, "Via1",
 			new EGraphics(false, false, null, 0, 180,180,180, 1,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -1012,22 +1019,22 @@ public class MoCMOS extends Technology
 		/** passivation layer */
 		Layer passivation_lay = Layer.newInstance(this, "Passivation",
 			new EGraphics(true, true, null, 0, 100,100,100, 1,true,
-			new int[] { 0x1C1C,   //    XXX     XXX  
-						0x3E3E,   //   XXXXX   XXXXX 
-						0x3636,   //   XX XX   XX XX 
-						0x3E3E,   //   XXXXX   XXXXX 
-						0x1C1C,   //    XXX     XXX  
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000,   //                 
-						0x1C1C,   //    XXX     XXX  
-						0x3E3E,   //   XXXXX   XXXXX 
-						0x3636,   //   XX XX   XX XX 
-						0x3E3E,   //   XXXXX   XXXXX 
-						0x1C1C,   //    XXX     XXX  
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000}));//                 
+			new int[] { 0x1C1C,   //    XXX     XXX
+						0x3E3E,   //   XXXXX   XXXXX
+						0x3636,   //   XX XX   XX XX
+						0x3E3E,   //   XXXXX   XXXXX
+						0x1C1C,   //    XXX     XXX
+						0x0000,   //
+						0x0000,   //
+						0x0000,   //
+						0x1C1C,   //    XXX     XXX
+						0x3E3E,   //   XXXXX   XXXXX
+						0x3636,   //   XX XX   XX XX
+						0x3E3E,   //   XXXXX   XXXXX
+						0x1C1C,   //    XXX     XXX
+						0x0000,   //
+						0x0000,   //
+						0x0000}));//
 
 		/** poly/trans layer */
 		transistorPoly_lay = Layer.newInstance(this, "Transistor-Poly",
@@ -1057,43 +1064,26 @@ public class MoCMOS extends Technology
 		/** P act well layer */
 		Layer pActiveWell_lay = Layer.newInstance(this, "P-Active-Well",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,false,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** Silicide block */
         /** Resist Protection Oxide (RPO) Same graphics as in 90nm tech */
-		Layer silicideBlock_lay = Layer.newInstance(this, "Silicide-Block",
-//			new EGraphics(true, true, null, 0, 230,230,230, 1,false,
-//			new int[] { 0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000}));//
+		Layer silicideBlockLayer = Layer.newInstance(this, "Silicide-Block",
             new EGraphics(true, true, null, EGraphics.TRANSPARENT_2, 192,255,255, 1,true,
             new int[] { 0x1010,  /*    X       X     */
                         0x2828,   /*   X X     X X    */
@@ -1112,144 +1102,164 @@ public class MoCMOS extends Technology
                         0x0000,   /*                  */
                         0x0000}));/*                  */
 
+        /** Dummy layer for NWELL resistors */
+        Layer rwdummyLayer = Layer.newInstance(this, "RWDUMMY",
+            new EGraphics(true, true, null, EGraphics.TRANSPARENT_2, 0,255,255, 1,true,
+            new int[] { 0x1010,  /*    X       X     */
+                        0x2828,   /*   X X     X X    */
+                        0x4444,   /*  X   X   X   X   */
+                        0x8282,   /* X     X X     X  */
+                        0x0101,   /*        X       X */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x1010,   /*    X       X     */
+                        0x2828,   /*   X X     X X    */
+                        0x4444,   /*  X   X   X   X   */
+                        0x8282,   /* X     X X     X  */
+                        0x0101,   /*        X       X */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x0000}));/*
+
 		/** Thick active */
 		Layer thickActive_lay = Layer.newInstance(this, "Thick-Active",
 			new EGraphics(true, true, null, 0, 0,0,0, 1,false,
-			new int[] { 0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020}));//   X       X     
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020}));//   X       X
 
 		/** pseudo metal 1 */
 		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255, 1,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+			new int[] { 0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000}));//
 
 		/** pseudo metal-2 */
 		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 224,95,255, 1,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** pseudo metal-3 */
 		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 247,251,20, 1,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** pseudo metal-4 */
 		Layer pseudoMetal4_lay = Layer.newInstance(this, "Pseudo-Metal-4",
 			new EGraphics(true, true, null, 0, 150,150,255, 1,true,
 			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //                 
+						0x0000,   //
 						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000}));//                 
+						0x0000}));//
 
 		/** pseudo metal-5 */
 		Layer pseudoMetal5_lay = Layer.newInstance(this, "Pseudo-Metal-5",
 			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,190,6, 1,true,
-			new int[] { 0x8888,   // X   X   X   X   
+			new int[] { 0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444,   //  X   X   X   X  
-						0x8888,   // X   X   X   X   
+						0x2222,   //   X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x8888,   // X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X 
-						0x4444}));//  X   X   X   X  
+						0x2222,   //   X   X   X   X
+						0x4444}));//  X   X   X   X
 
 		/** pseudo metal-6 */
 		Layer pseudoMetal6_lay = Layer.newInstance(this, "Pseudo-Metal-6",
 			new EGraphics(true, true, null, 0, 0,255,255, 1,true,
-			new int[] { 0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+			new int[] { 0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111}));//    X   X   X   X
 
 		/** pseudo poly layer */
@@ -1264,7 +1274,7 @@ public class MoCMOS extends Technology
 						0x1111,   //    X   X   X   X
 						0x5555,   //  X X X X X X X X
 						0x1111,   //    X   X   X   X
-						0xFFFF,   // XXXXXXXXXXXXXXXX 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
 						0x5555,   //  X X X X X X X X
 						0x1111,   //    X   X   X   X
@@ -1276,140 +1286,140 @@ public class MoCMOS extends Technology
 		Layer pseudoPoly2_lay = Layer.newInstance(this, "Pseudo-Electrode",
 			new EGraphics(true, true, null, 0, 255,190,6, 1,true,
 			new int[] { 0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888,   // X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888,   // X   X   X   X
 						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X   
-						0xFAFA,   // XXXXX X XXXXX X 
-						0x8888}));// X   X   X   X   
+						0x8888,   // X   X   X   X
+						0xFAFA,   // XXXXX X XXXXX X
+						0x8888}));// X   X   X   X
 
 		/** pseudo P active */
 		Layer pseudoPActive_lay = Layer.newInstance(this, "Pseudo-P-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** pseudo N active */
 		Layer pseudoNActive_lay = Layer.newInstance(this, "Pseudo-N-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** pseudo P Select */
 		Layer pseudoPSelect_lay = Layer.newInstance(this, "Pseudo-P-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** pseudo N Select */
 		Layer pseudoNSelect_lay = Layer.newInstance(this, "Pseudo-N-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
 			new int[] { 0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000,   //                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000,   //
 						0x0101,   //        X       X
-						0x0000,   //                 
-						0x1010,   //    X       X    
-						0x0000}));//                 
+						0x0000,   //
+						0x1010,   //    X       X
+						0x0000}));//
 
 		/** pseudo P Well */
 		Layer pseudoPWell_lay = Layer.newInstance(this, "Pseudo-P-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X 
+			new int[] { 0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010,   //    X       X
+						0x0808,   //     X       X
+						0x0404,   //      X       X
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404}));//      X       X  
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010,   //    X       X
+						0x0808,   //     X       X
+						0x0404}));//      X       X
 
 		/** pseudo N Well */
 		Layer pseudoNWell_lay = Layer.newInstance(this, "Pseudo-N-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
-						0x0000,   //                 
-						0x0202,   //       X       X 
-						0x0000,   //                 
-						0x2020,   //   X       X     
+			new int[] { 0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
+						0x0000,   //
+						0x0202,   //       X       X
+						0x0000,   //
+						0x2020,   //   X       X
 						0x0000}));//
 
 		/** pad frame */
@@ -1433,7 +1443,7 @@ public class MoCMOS extends Technology
 		wellLayers[P_TYPE].setFunction(Layer.Function.WELLP);									// P-Well
 		wellLayers[N_TYPE].setFunction(Layer.Function.WELLN);									// N-Well
 		polyCutLayer.setFunction(Layer.Function.CONTACT1, Layer.Function.CONPOLY);		// Poly-Cut
-		activeCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);		// Active-Cut
+		activeCutLayer.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);		// Active-Cut
 		via1_lay.setFunction(Layer.Function.CONTACT2, Layer.Function.CONMETAL);			// Via-1
 		via2_lay.setFunction(Layer.Function.CONTACT3, Layer.Function.CONMETAL);			// Via-2
 		via3_lay.setFunction(Layer.Function.CONTACT4, Layer.Function.CONMETAL);			// Via-3
@@ -1443,7 +1453,7 @@ public class MoCMOS extends Technology
 		transistorPoly_lay.setFunction(Layer.Function.GATE);							// Transistor-Poly
 		polyCap_lay.setFunction(Layer.Function.CAP);									// Poly-Cap
 		pActiveWell_lay.setFunction(Layer.Function.DIFFP);								// P-Active-Well
-		silicideBlock_lay.setFunction(Layer.Function.ART);								// Silicide-Block
+		silicideBlockLayer.setFunction(Layer.Function.ART);								// Silicide-Block
 		thickActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.THICK);			// Thick-Active
 		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
 		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
@@ -1477,7 +1487,7 @@ public class MoCMOS extends Technology
 		wellLayers[P_TYPE].setFactoryCIFLayer("CWP");				// P-Well
 		wellLayers[N_TYPE].setFactoryCIFLayer("CWN");				// N-Well
 		polyCutLayer.setFactoryCIFLayer("CCC");				// Poly-Cut
-		activeCut_lay.setFactoryCIFLayer("CCC");			// Active-Cut
+		activeCutLayer.setFactoryCIFLayer("CCC");			// Active-Cut
 		via1_lay.setFactoryCIFLayer("CVA");					// Via-1
 		via2_lay.setFactoryCIFLayer("CVS");					// Via-2
 		via3_lay.setFactoryCIFLayer("CVT");					// Via-3
@@ -1487,7 +1497,7 @@ public class MoCMOS extends Technology
 		transistorPoly_lay.setFactoryCIFLayer("CPG");		// Transistor-Poly
 		polyCap_lay.setFactoryCIFLayer("CPC");				// Poly-Cap
 		pActiveWell_lay.setFactoryCIFLayer("CAA");			// P-Active-Well
-		silicideBlock_lay.setFactoryCIFLayer("CSB");		// Silicide-Block
+		silicideBlockLayer.setFactoryCIFLayer("CSB");		// Silicide-Block
 		thickActive_lay.setFactoryCIFLayer("CTA");			// Thick-Active
 		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
@@ -1539,8 +1549,8 @@ public class MoCMOS extends Technology
         wellLayers[N_TYPE].setFactoryGDSLayer("2", Foundry.Type.TSMC.name());					// N-Well
 		polyCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Poly-Cut
         polyCutLayer.setFactoryGDSLayer("15", Foundry.Type.TSMC.name());				// Poly-Cut
-		activeCut_lay.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Active-Cut
-		activeCut_lay.setFactoryGDSLayer("15", Foundry.Type.TSMC.name());				// Active-Cut
+		activeCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Active-Cut
+		activeCutLayer.setFactoryGDSLayer("15", Foundry.Type.TSMC.name());				// Active-Cut
 		via1_lay.setFactoryGDSLayer("50", Foundry.Type.MOSIS.name());					// Via-1
         via1_lay.setFactoryGDSLayer("17", Foundry.Type.TSMC.name());					// Via-1
 		via2_lay.setFactoryGDSLayer("61", Foundry.Type.MOSIS.name());					// Via-2
@@ -1555,8 +1565,8 @@ public class MoCMOS extends Technology
         passivation_lay.setFactoryGDSLayer("19", Foundry.Type.TSMC.name());			// Passivation
 		polyCap_lay.setFactoryGDSLayer("28", Foundry.Type.MOSIS.name());				// Poly-Cap
         polyCap_lay.setFactoryGDSLayer("28", Foundry.Type.TSMC.name());				// Poly-Cap
-		silicideBlock_lay.setFactoryGDSLayer("29", Foundry.Type.MOSIS.name());			// Silicide-Block
-        silicideBlock_lay.setFactoryGDSLayer("34", Foundry.Type.TSMC.name());			// Silicide-Block
+		silicideBlockLayer.setFactoryGDSLayer("29", Foundry.Type.MOSIS.name());			// Silicide-Block
+        silicideBlockLayer.setFactoryGDSLayer("34", Foundry.Type.TSMC.name());			// Silicide-Block
 		thickActive_lay.setFactoryGDSLayer("60", Foundry.Type.MOSIS.name());			// Thick-Active
         thickActive_lay.setFactoryGDSLayer("4", Foundry.Type.TSMC.name());			// Thick-Active
 		pseudoMetal1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-1
@@ -1591,7 +1601,7 @@ public class MoCMOS extends Technology
 		wellLayers[P_TYPE].setFactorySkillLayer("pwell");			// P-Well
 		wellLayers[N_TYPE].setFactorySkillLayer("nwell");			// N-Well
 		polyCutLayer.setFactorySkillLayer("pcont");			// Poly-Cut
-		activeCut_lay.setFactorySkillLayer("acont");		// Active-Cut
+		activeCutLayer.setFactorySkillLayer("acont");		// Active-Cut
 		via1_lay.setFactorySkillLayer("via");				// Via-1
 		via2_lay.setFactorySkillLayer("via2");				// Via-2
 		via3_lay.setFactorySkillLayer("via3");				// Via-3
@@ -1601,7 +1611,7 @@ public class MoCMOS extends Technology
 		transistorPoly_lay.setFactorySkillLayer("poly");	// Transistor-Poly
 		polyCap_lay.setFactorySkillLayer("");				// Poly-Cap
 		pActiveWell_lay.setFactorySkillLayer("aa");			// P-Active-Well
-		silicideBlock_lay.setFactorySkillLayer("");			// Silicide-Block
+		silicideBlockLayer.setFactorySkillLayer("");			// Silicide-Block
 		thickActive_lay.setFactorySkillLayer("");			// Thick-Active
 		pseudoMetal1_lay.setFactorySkillLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactorySkillLayer("");			// Pseudo-Metal-2
@@ -1671,11 +1681,11 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
 
 		polyCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-poly1_lay.getDepth(), poly1_lay.getDepth());				// Poly-Cut between poly and metal1
-		activeCut_lay.setFactory3DInfo(metalLayers[0].getDistance()-activeLayers[N_TYPE].getDepth(), activeLayers[N_TYPE].getDepth());				// Active-Cut betweent active and metal1
+		activeCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-activeLayers[N_TYPE].getDepth(), activeLayers[N_TYPE].getDepth());				// Active-Cut betweent active and metal1
 
 		// Other layers
 		passivation_lay.setFactory3DInfo(PASS_LAYER, metalLayers[5].getDepth());			// Passivation
-		silicideBlock_lay.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
+		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
 		padFrame_lay.setFactory3DInfo(0, passivation_lay.getDepth());				// Pad-Frame
 
 		pseudoPoly1_lay.setFactory3DInfo(0, poly1_lay.getDistance());			// Pseudo-Polysilicon-1
@@ -1703,7 +1713,7 @@ public class MoCMOS extends Technology
 		wellLayers[P_TYPE].setFactoryParasitics(0, 0, 0);				// P-Well
 		wellLayers[N_TYPE].setFactoryParasitics(0, 0, 0);				// N-Well
 		polyCutLayer.setFactoryParasitics(2.2, 0, 0);			// Poly-Cut
-		activeCut_lay.setFactoryParasitics(2.5, 0, 0);			// Active-Cut
+		activeCutLayer.setFactoryParasitics(2.5, 0, 0);			// Active-Cut
 		via1_lay.setFactoryParasitics(1.0, 0, 0);				// Via-1
 		via2_lay.setFactoryParasitics(0.9, 0, 0);				// Via-2
 		via3_lay.setFactoryParasitics(0.8, 0, 0);				// Via-3
@@ -1713,7 +1723,7 @@ public class MoCMOS extends Technology
 		transistorPoly_lay.setFactoryParasitics(2.5, 0.09, 0);	// Transistor-Poly
 		polyCap_lay.setFactoryParasitics(0, 0, 0);				// Poly-Cap
 		pActiveWell_lay.setFactoryParasitics(0, 0, 0);			// P-Active-Well
-		silicideBlock_lay.setFactoryParasitics(0, 0, 0);		// Silicide-Block
+		silicideBlockLayer.setFactoryParasitics(0, 0, 0);		// Silicide-Block
 		thickActive_lay.setFactoryParasitics(0, 0, 0);			// Thick-Active
 		pseudoMetal1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-2
@@ -2077,7 +2087,7 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX,Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -2097,7 +2107,7 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -2292,10 +2302,10 @@ public class MoCMOS extends Technology
 					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
 				new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
-				new Technology.NodeLayer(activeCut_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
 			});
@@ -2338,10 +2348,10 @@ public class MoCMOS extends Technology
 					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
 				new Technology.NodeLayer(wellLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
-				new Technology.NodeLayer(activeCut_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
 			});
@@ -2452,49 +2462,59 @@ public class MoCMOS extends Technology
 		metalContactNodes[4].setNotUsed();
 		metalContactNodes[4].setMinSize(8, 8, "29.3, 30.3");
 
-		/** Metal-1-P-Well Contact */
-		metalWellContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
-				new Technology.NodeLayer(pActiveWell_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(selectLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
-			});
-		metalWellContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalWellContactNodes[P_TYPE], new ArcProto[] {metalArcs[0], active_arc}, "metal-1-well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
-			});
-		metalWellContactNodes[P_TYPE].setFunction(PrimitiveNode.Function.WELL);
-		metalWellContactNodes[P_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
-		metalWellContactNodes[P_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metalWellContactNodes[P_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
+        /**************************************************************************
+         * Metal-1-P-Well Contact/Metal-1-N-Well Contact
+        **************************************************************************/
+        for (int i = 0; i < metalWellContactNodes.length; i++)
+        {
+            PrimitiveNode.Function func = (i==P_TYPE) ? PrimitiveNode.Function.WELL : PrimitiveNode.Function.SUBSTRATE;
+            Layer active = (i==P_TYPE) ? pActiveWell_lay : activeLayers[N_TYPE];
+            metalWellContactNodes[i] = PrimitiveNode.newInstance(metalLayers[0].getName()+"-"+wellLayers[i].getName()+"-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+                new Technology.NodeLayer []
+                {
+                    new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
+                    new Technology.NodeLayer(active, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+                    new Technology.NodeLayer(wellLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+                    new Technology.NodeLayer(selectLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
+                    new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+                });
+            metalWellContactNodes[i].addPrimitivePorts(new PrimitivePort []
+                {
+                    PrimitivePort.newInstance(this, metalWellContactNodes[i], new ArcProto[] {metalArcs[0], active_arc},
+                            ((i==P_TYPE)?"metal-1-well":"metal-1-substrate"),
+                            0,180, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
+                });
+            metalWellContactNodes[i].setFunction(func);
+            metalWellContactNodes[i].setSpecialType(PrimitiveNode.MULTICUT);
+            metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+            metalWellContactNodes[i].setMinSize(17, 17, "4.2, 6.2, 7.3");
+        }
 
 		/** Metal-1-N-Well Contact */
-		metalWellContactNodes[N_TYPE] = PrimitiveNode.newInstance("Metal-1-N-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
-				new Technology.NodeLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(selectLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
-			});
-		metalWellContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalWellContactNodes[N_TYPE], new ArcProto[] {metalArcs[0], active_arc}, "metal-1-substrate", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
-			});
-		metalWellContactNodes[N_TYPE].setFunction(PrimitiveNode.Function.SUBSTRATE);
-		metalWellContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
-		metalWellContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metalWellContactNodes[N_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
+//		metalWellContactNodes[N_TYPE] = PrimitiveNode.newInstance("Metal-1-N-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
+//				new Technology.NodeLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+//				new Technology.NodeLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+//				new Technology.NodeLayer(selectLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+//			});
+//		metalWellContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalWellContactNodes[N_TYPE], new ArcProto[] {metalArcs[0], active_arc}, "metal-1-substrate", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
+//			});
+//		metalWellContactNodes[N_TYPE].setFunction(PrimitiveNode.Function.SUBSTRATE);
+//		metalWellContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalWellContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+//		metalWellContactNodes[N_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
 
-        /********************** RPO Resistor-Node ********************************/
+        /**************************************************************************
+         * RPO Resistor-Node
+        **************************************************************************/
         double polySelectOffX = 1.8; /* NP.C.3 */
-//        double rpoViaOffX = 2.2 /* RPO.C.2 */;
         double polyCutSize = 2.2; /* page 28 */
         double resistorViaOff = 1.0; /* page 28 */
         double resistorConW = polyCutSize + 2*resistorViaOff /*contact width viaW + 2*viaS = (2.2 + 2*1). It must be 1xN */;
@@ -2503,11 +2523,6 @@ public class MoCMOS extends Technology
         double resistorW = 20 + 2*resistorOffX;
         double resistorOffY = 2.2 /* RPO.C.2*/;
         double resistorH = 2*resistorOffY + resistorConH;
-
-//        double resistorM1Off = 0.5 /*poly surround in poly contact */;
-//        double resistorPolyOffX = 2.2; /* page 28 */
-//        double resistorV2OffX = -polyCutSize - 0.7 + resistorPolyX + resistorConW;
-//        double resistorPortOffX = resistorPolyX + (resistorConW-polyCutSize)/2; // for the port
         double resistorM1Off = resistorViaOff - 0.6; // 0.6 = M.E.2
         double resistorM1W = resistorConW-2*resistorM1Off;
         double resistorM1OffX = resistorM1Off + polySelectOffX;
@@ -2515,18 +2530,18 @@ public class MoCMOS extends Technology
         double resistorV1OffX = resistorViaOff + polySelectOffX;
         double resistorV1OffY = resistorOffY + (resistorConH-polyCutSize)/2;
 
-        rpoResistorNodes = new PrimitiveNode[2];
+        polyResistorNodes = new PrimitiveNode[2];
 
-        for (int i = 0; i < rpoResistorNodes.length; i++)
+        for (int i = 0; i < polyResistorNodes.length; i++)
         {
-            rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i].toUpperCase()+"-Poly-RPO-Resistor", this, resistorW, resistorH,
+            polyResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i].toUpperCase()+"-Poly-RPO-Resistor", this, resistorW, resistorH,
                     new SizeOffset(resistorOffX, resistorOffX, resistorOffY, resistorOffY),
 				new Technology.NodeLayer []
 				{
                     new Technology.NodeLayer(poly1_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(polySelectOffX), EdgeV.fromBottom(resistorOffY)),
 						new Technology.TechPoint(EdgeH.fromRight(polySelectOffX), EdgeV.fromTop(resistorOffY))}),
-                    new Technology.NodeLayer(silicideBlock_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                    new Technology.NodeLayer(silicideBlockLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(resistorOffX), EdgeV.makeBottomEdge()),
 						new Technology.TechPoint(EdgeH.fromRight(resistorOffX), EdgeV.makeTopEdge())}),
                     new Technology.NodeLayer(selectLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -2549,20 +2564,95 @@ public class MoCMOS extends Technology
 						new Technology.TechPoint(EdgeH.fromRight(resistorV1OffX+polyCutSize), EdgeV.fromBottom(resistorV1OffY)),
 						new Technology.TechPoint(EdgeH.fromRight(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY+polyCutSize))})
 				});
-            rpoResistorNodes[i].addPrimitivePorts(new PrimitivePort []
+            polyResistorNodes[i].addPrimitivePorts(new PrimitivePort []
 			{
                 // left port
-				PrimitivePort.newInstance(this, rpoResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "left-rpo", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, polyResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "left-rpo", 0,180, 0, PortCharacteristic.UNKNOWN,
                         EdgeH.fromLeft(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromLeft(resistorV1OffX+polyCutSize), EdgeV.fromTop(resistorV1OffY)),
                 // right port
-                PrimitivePort.newInstance(this, rpoResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "right-rpo", 0,180, 1, PortCharacteristic.UNKNOWN,
+                PrimitivePort.newInstance(this, polyResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "right-rpo", 0,180, 1, PortCharacteristic.UNKNOWN,
                         EdgeH.fromRight(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromRight(resistorV1OffX+polyCutSize), EdgeV.fromTop(resistorV1OffY))
 			});
-            rpoResistorNodes[i].setFunction(PrimitiveNode.Function.PRESIST);
-			rpoResistorNodes[i].setHoldsOutline();
-			rpoResistorNodes[i].setSpecialType(PrimitiveNode.POLYGONAL);
+            polyResistorNodes[i].setFunction(PrimitiveNode.Function.PRESIST);
+			polyResistorNodes[i].setHoldsOutline();
+			polyResistorNodes[i].setSpecialType(PrimitiveNode.POLYGONAL);
         }
 
+        /**************************************************************************
+         * NWELL Resistor-Node
+        **************************************************************************/
+        wellResistorNodes = new PrimitiveNode[2];
+
+        double activeToRPO = 2.2; // 0.22 NWR.C.2
+        double wellToActive = 10.0;  // 1.0 NWR.E.1
+        double wellToCo = 3.0; // 0.3 NWR.E.2
+        double rpoToPort = activeToRPO + wellToActive + wellToCo;
+        double wellToRpo = activeToRPO + wellToActive;
+        double selectToActive = 1.0; // 0.1 PP/NP.C.2
+        double selectToRPO = selectToActive + activeToRPO;
+        double wellToSelect = 1.2; // 0.12 OD.C.1(NWell)/OD.C.5(PWell)
+        double dummyToRPO = 4.0; // 0.4 NWR.O.1
+        double rpoToCut = 3.0; // 0.3 NWR.C.3
+        double viaCut = 2.2; // 0.22 CO.W.1
+        double spaceCut = 2.8; // 0.28 CO.S.2
+        double wellOffsetX = dummyToRPO + rpoToCut + 2* viaCut + spaceCut +
+                wellToCo + wellToRpo;
+        resistorW = 50 + 2 * wellOffsetX;
+        resistorH = 50 + 2 * wellToRpo; // for now
+        double cutFromEdge = wellToRpo+wellToCo;
+        double minH = 2 * (wellToRpo + wellToCo) + viaCut;
+        double minWellWidth = 21; // NW.W.2 2.1
+        double minW = minWellWidth + 2 * wellOffsetX;
+
+        for (int i = 0; i < wellResistorNodes.length; i++)
+        {
+            wellResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i].toUpperCase()+"-Well-RPO-Resistor", this, resistorW, resistorH,
+                    new SizeOffset(wellOffsetX, wellOffsetX, wellToRpo, wellToRpo),
+				new Technology.NodeLayer []
+				{
+                    new Technology.NodeLayer(silicideBlockLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())}),
+                    new Technology.NodeLayer(activeLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(activeToRPO), EdgeV.fromBottom(activeToRPO)),
+						new Technology.TechPoint(EdgeH.fromRight(activeToRPO), EdgeV.fromTop(activeToRPO))}),
+                    new Technology.NodeLayer(wellLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(wellToRpo), EdgeV.fromBottom(wellToRpo)),
+						new Technology.TechPoint(EdgeH.fromRight(wellToRpo), EdgeV.fromTop(wellToRpo))}),
+                    // Left select
+                    new Technology.NodeLayer(selectLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(selectToRPO), EdgeV.fromBottom(selectToRPO)),
+						new Technology.TechPoint(EdgeH.fromLeft(wellOffsetX), EdgeV.fromTop(selectToRPO))}),
+                    // Left cuts
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(cutFromEdge), EdgeV.fromBottom(cutFromEdge)),
+						new Technology.TechPoint(EdgeH.fromLeft(cutFromEdge+viaCut), EdgeV.fromBottom(cutFromEdge+viaCut))}),
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(cutFromEdge+viaCut+spaceCut), EdgeV.fromBottom(cutFromEdge)),
+						new Technology.TechPoint(EdgeH.fromLeft(cutFromEdge+viaCut+spaceCut+viaCut), EdgeV.fromBottom(cutFromEdge+viaCut))}),
+                    // Right select
+                    new Technology.NodeLayer(selectLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromRight(wellOffsetX), EdgeV.fromBottom(selectToRPO)),
+						new Technology.TechPoint(EdgeH.fromRight(selectToRPO), EdgeV.fromTop(selectToRPO))}),
+				});
+            wellResistorNodes[i].addPrimitivePorts(new PrimitivePort []
+			{
+                // left port
+				PrimitivePort.newInstance(this, wellResistorNodes[i], new ArcProto[] {metalArcs[0]}, "left-well-resistor", 0,180, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromLeft(rpoToPort), EdgeV.fromBottom(rpoToPort), EdgeH.fromLeft(rpoToPort), EdgeV.fromTop(rpoToPort)),
+                // right port
+                PrimitivePort.newInstance(this, wellResistorNodes[i], new ArcProto[] {metalArcs[0]}, "right-well-resistor", 0,180, 1, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromRight(rpoToPort), EdgeV.fromBottom(rpoToPort), EdgeH.fromRight(rpoToPort), EdgeV.fromTop(rpoToPort))
+			});
+            wellResistorNodes[i].setFunction(PrimitiveNode.Function.WRESIST);
+			wellResistorNodes[i].setHoldsOutline();
+			wellResistorNodes[i].setSpecialType(PrimitiveNode.POLYGONAL);
+            wellResistorNodes[i].setMinSize(minW, minH, "See Doc");
+        }
+
+        /**************************************************************************
+         * Metal Nodes
+        **************************************************************************/
 		/** Metal-1-Node */
 		metal1Node_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
@@ -2765,7 +2855,7 @@ public class MoCMOS extends Technology
 		activeCutNode_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		activeCutNode_node.addPrimitivePorts(new PrimitivePort []
 			{
@@ -2962,7 +3052,7 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node = PrimitiveNode.newInstance("Silicide-Block-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(silicideBlock_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(silicideBlockLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		silicideBlockNode_node.addPrimitivePorts(new PrimitivePort []
 			{
@@ -3004,7 +3094,7 @@ public class MoCMOS extends Technology
 		wellLayers[P_TYPE].setPureLayerNode(pWellNode_node);						// P-Well
 		wellLayers[N_TYPE].setPureLayerNode(nWellNode_node);						// N-Well
 		polyCutLayer.setPureLayerNode(polyCutNode_node);					// Poly-Cut
-		activeCut_lay.setPureLayerNode(activeCutNode_node);				// Active-Cut
+		activeCutLayer.setPureLayerNode(activeCutNode_node);				// Active-Cut
 		via1_lay.setPureLayerNode(via1Node_node);						// Via-1
 		via2_lay.setPureLayerNode(via2Node_node);						// Via-2
 		via3_lay.setPureLayerNode(via3Node_node);						// Via-3
@@ -3014,7 +3104,7 @@ public class MoCMOS extends Technology
 		transistorPoly_lay.setPureLayerNode(polyTransistorNode_node);	// Transistor-Poly
 		polyCap_lay.setPureLayerNode(polyCapNode_node);					// Poly-Cap
 		pActiveWell_lay.setPureLayerNode(pActiveWellNode_node);			// P-Active-Well
-		silicideBlock_lay.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
+		silicideBlockLayer.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
 		thickActive_lay.setPureLayerNode(thickActiveNode_node);			// Thick-Active
 		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
 
@@ -3032,7 +3122,7 @@ public class MoCMOS extends Technology
             String tmpVar = shortNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
-            tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));            
+            tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             nodeGroups[count][i+1] = tmp;
         }
 
@@ -3046,11 +3136,12 @@ public class MoCMOS extends Technology
         }
 
         // RPO resistors
-        for (int i = 0; i < rpoResistorNodes.length; i++)
+        for (int i = 0; i < polyResistorNodes.length; i++)
         {
             String tmpVar = shortNames[i]+"R";
             tmp = new ArrayList<NodeInst>(1);
-            tmp.add(makeNodeInst(rpoResistorNodes[i], rpoResistorNodes[i].getFunction(), 0, true, tmpVar, 10));
+            tmp.add(makeNodeInst(polyResistorNodes[i], polyResistorNodes[i].getFunction(), 0, true, tmpVar, 10));
+            tmp.add(makeNodeInst(wellResistorNodes[i], wellResistorNodes[i].getFunction(), 0, true, tmpVar, 10));
             nodeGroups[i][0] = tmp;
         }
 
@@ -3111,6 +3202,7 @@ public class MoCMOS extends Technology
 //                node = metalWellContactNodes[i].getLayers()[2]; // Well 3 is not guarantee during construction!
 //                node.setPoints(Technology.TechPoint.makeIndented(3));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
+                // 2.8 -> CO.S.2, 2.2 -> CO.W.1
                  // to have 4.3 between well and active NP.E.4
             }
 
@@ -3530,7 +3622,7 @@ public class MoCMOS extends Technology
 		NodeProto prototype = ni.getProto();
 		if (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE])
             return getShapeOfNodeScalable(ni, wnd, context, reasonable);
-        else if (prototype == rpoResistorNodes[P_TYPE] || prototype == rpoResistorNodes[N_TYPE])
+        else if (prototype == polyResistorNodes[P_TYPE] || prototype == polyResistorNodes[N_TYPE])
             return getShapeOfNodeResistor(ni, wnd, context, electrical, reasonable);
 
         // Default
@@ -3570,7 +3662,7 @@ public class MoCMOS extends Technology
             }
         }
         if (polyV == null || polyH == null || rpoH == null)
-            throw new Error("Error finding poly/rpo layers in " + rpoResistorNodes);
+            throw new Error("Error finding poly/rpo layers in " + polyResistorNodes);
 
         double polyOffX = Math.abs(polyH.getAdder());
         double polyOffY = Math.abs(polyV.getAdder());
@@ -3597,7 +3689,7 @@ public class MoCMOS extends Technology
         }
 
         if (cutTemplate == null)
-            throw new Error("No cut template found for " + rpoResistorNodes);
+            throw new Error("No cut template found for " + polyResistorNodes);
 
         // creating the cuts now
         double anchorX = polyConX/2;
@@ -3821,13 +3913,9 @@ public class MoCMOS extends Technology
 	public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
         List<DRCTemplate> theRules = foundry.getRules();
-//        if (deckRules != null)
-//            theRules = deckRules;
 
 		MOSRules rules = new MOSRules(this);
 
-        // doesn't load rules that
-        //DRCTemplate.DRCCheckMode foundry = getFoundry();
         if (foundry == null) foundry = getSelectedFoundry();
 
         // Resize primitives according to the foundry
@@ -3858,9 +3946,15 @@ public class MoCMOS extends Technology
                     // One of the 2 is present. Absence means rule is valid for both
 
                     if ((when&Foundry.Type.MOSIS.mode()) != 0 && foundry.getType() == Foundry.Type.TSMC)
+                    {
+                        System.out.println("SHould I see this case?");
                         continue;
+                    }
                     else if ((when&Foundry.Type.TSMC.mode()) != 0 && foundry.getType() == Foundry.Type.MOSIS)
+                    {
+                        System.out.println("SHould I see this case?");
                         continue; // skipping this rule
+                    }
                 }
 
                 boolean goodrule = true;
