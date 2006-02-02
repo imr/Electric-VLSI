@@ -102,7 +102,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 {
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
-	private DefaultTreeModel treeModel;
 	private Object [] currentSelectedObjects = new Object[0];
 
 	private static final int SHOWALPHABETICALLY = 1;
@@ -154,20 +153,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	 * @param treeModel the tree to display.
 	 * @return the newly created ExplorerTree.
 	 */
-	public static ExplorerTree CreateExplorerTree(DefaultMutableTreeNode rootNode, DefaultTreeModel treeModel)
+	public static ExplorerTree CreateExplorerTree(DefaultMutableTreeNode rootNode)
 	{
-		ExplorerTree tree = new ExplorerTree(rootNode, treeModel);
+		ExplorerTree tree = new ExplorerTree(rootNode);
 		tree.handler = new TreeHandler(tree);
 		tree.addMouseListener(tree.handler);
 		tree.addTreeSelectionListener(tree.handler);
 		return tree;
 	}
 
-	private ExplorerTree(DefaultMutableTreeNode rootNode, DefaultTreeModel treeModel)
+	private ExplorerTree(DefaultMutableTreeNode rootNode)
 	{
-		super(treeModel);
+		super(new MyTreeModel(rootNode));
 		this.rootNode = rootNode;
-		this.treeModel = treeModel;
+		this.treeModel = getTreeModel();
 
 		initDND();
 
@@ -196,7 +195,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	 * Method to return the currently selected object in the explorer tree.
 	 * @return the currently selected object in the explorer tree.
 	 */
-	public DefaultTreeModel getTreeModel() { return treeModel; }
+	public DefaultTreeModel getTreeModel() { return (MyTreeModel)treeModel; }
 
 	/**
 	 * Method to set the currently selected object in the explorer tree.
@@ -622,6 +621,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dropActionChanged (DragSourceDragEvent e) {}
 
 
+    private static class MyTreeModel extends DefaultTreeModel {
+        MyTreeModel(TreeNode root) { super(root); }
+    }
+    
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
 		private Font plainFont, boldFont, italicFont;

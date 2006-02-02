@@ -136,6 +136,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
 
 	/** the window that this lives in */					private WindowFrame wf;
+	/** the generic signal explorer part. */                private DefaultMutableTreeNode genSignalExplorerNode;
+	/** the transient signal explorer part. */              private DefaultMutableTreeNode transSignalExplorerNode;
+	/** the transient sweep explorer part. */               private DefaultMutableTreeNode transSweepExplorerNode;
+	/** the DC signal explorer part. */                     private DefaultMutableTreeNode dcSignalExplorerNode;
+	/** the DC sweep explorer part. */                  	private DefaultMutableTreeNode dcSweepExplorerNode;
+	/** the AC signal explorer part. */                     private DefaultMutableTreeNode acSignalExplorerNode;
+	/** the AC sweep explorer part. */                      private DefaultMutableTreeNode acSweepExplorerNode;
+	/** the measurement explorer part. */                   private DefaultMutableTreeNode measurementExplorerNode;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
 	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
@@ -1548,40 +1556,40 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			Analysis an = it.next();
 			if (an.getAnalysisType() == Analysis.ANALYSIS_SIGNALS)
 			{
-				wf.genSignalExplorerNode = getSignalsForExplorer(an, "SIGNALS");
-				if (wf.genSignalExplorerNode != null) rootNode.add(wf.genSignalExplorerNode);
+				genSignalExplorerNode = getSignalsForExplorer(an, "SIGNALS");
+				wf.insertContentNode(genSignalExplorerNode);
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
 			{
-				wf.transSignalExplorerNode = getSignalsForExplorer(an, "TRANS SIGNALS");
-				if (wf.transSignalExplorerNode != null) rootNode.add(wf.transSignalExplorerNode);
-				wf.transSweepExplorerNode = getSweepsForExplorer(an, "TRANS SWEEPS");
-				if (wf.transSweepExplorerNode != null) rootNode.add(wf.transSweepExplorerNode);
+				transSignalExplorerNode = getSignalsForExplorer(an, "TRANS SIGNALS");
+				wf.insertContentNode(transSignalExplorerNode);
+				transSweepExplorerNode = getSweepsForExplorer(an, "TRANS SWEEPS");
+				wf.insertContentNode(transSweepExplorerNode);
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_AC)
 			{
-				wf.acSignalExplorerNode = getSignalsForExplorer(an, "AC SIGNALS");
-				if (wf.acSignalExplorerNode != null) rootNode.add(wf.acSignalExplorerNode);
-				wf.acSweepExplorerNode = getSweepsForExplorer(an, "AC SWEEPS");
-				if (wf.acSweepExplorerNode != null) rootNode.add(wf.acSweepExplorerNode);
+				acSignalExplorerNode = getSignalsForExplorer(an, "AC SIGNALS");
+				wf.insertContentNode(acSignalExplorerNode);
+				acSweepExplorerNode = getSweepsForExplorer(an, "AC SWEEPS");
+				wf.insertContentNode(acSweepExplorerNode);
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_DC)
 			{
-				wf.dcSignalExplorerNode = getSignalsForExplorer(an, "DC SIGNALS");
-				if (wf.dcSignalExplorerNode != null) rootNode.add(wf.dcSignalExplorerNode);
-				wf.dcSweepExplorerNode = getSweepsForExplorer(an, "DC SWEEPS");
-				if (wf.dcSweepExplorerNode != null) rootNode.add(wf.dcSweepExplorerNode);
+				dcSignalExplorerNode = getSignalsForExplorer(an, "DC SIGNALS");
+				wf.insertContentNode(dcSignalExplorerNode);
+				dcSweepExplorerNode = getSweepsForExplorer(an, "DC SWEEPS");
+				wf.insertContentNode(dcSweepExplorerNode);
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_MEAS)
 			{
-				wf.measurementExplorerNode = getSignalsForExplorer(an, "MEASUREMENTS");
-				if (wf.measurementExplorerNode != null) rootNode.add(wf.measurementExplorerNode);
+				measurementExplorerNode = getSignalsForExplorer(an, "MEASUREMENTS");
+				wf.insertContentNode(measurementExplorerNode);
 			}
 		}
 
-		// show standard things in the explorer (jobs, errors)
-		wf.jobExplorerNode = JobTree.getExplorerTree();
-		rootNode.add(wf.jobExplorerNode);
-		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		rootNode.add(wf.errorExplorerNode);
+//		// show standard things in the explorer (jobs, errors)
+//		wf.jobExplorerNode = JobTree.getExplorerTree();
+//		rootNode.add(wf.jobExplorerNode);
+//		wf.errorExplorerNode = ErrorLoggerTree.getExplorerTree();
+//		rootNode.add(wf.errorExplorerNode);
 	}
-
+    
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, String analysis)
 	{
 		List<Signal> signals = an.getSignals();

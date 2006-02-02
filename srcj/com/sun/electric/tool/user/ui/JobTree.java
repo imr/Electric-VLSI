@@ -57,12 +57,13 @@ public class JobTree extends DefaultMutableTreeNode {
     }
     
     /** popup menu when user right-clicks on job in explorer tree */
-    public static JPopupMenu getPopupStatus(JobTreeNode job) {
+    public static JPopupMenu getPopupStatus(JobTreeNode jobNode) {
         JPopupMenu popup = new JPopupMenu();
+        ActionListener a = new JobMenuActionListener(jobNode.job);
         JMenuItem m;
-        m = new JMenuItem("Get Info"); m.addActionListener(job); popup.add(m);
-        m = new JMenuItem("Abort"); m.addActionListener(job); popup.add(m);
-        m = new JMenuItem("Delete"); m.addActionListener(job); popup.add(m);
+        m = new JMenuItem("Get Info"); m.addActionListener(a); popup.add(m);
+        m = new JMenuItem("Abort"); m.addActionListener(a); popup.add(m);
+        m = new JMenuItem("Delete"); m.addActionListener(a); popup.add(m);
         return popup;
     }
 
@@ -103,7 +104,29 @@ public class JobTree extends DefaultMutableTreeNode {
 		}
     }
 
-    public static class JobTreeNode implements TreeNode, ActionListener
+    private static class JobMenuActionListener implements ActionListener {
+        private final Job job;
+        
+        JobMenuActionListener(Job job) { this.job = job; }
+        
+        /** respond to menu item command */
+        public void actionPerformed(ActionEvent e) {
+            JMenuItem source = (JMenuItem)e.getSource();
+            // extract library and cell from string
+            if (source.getText().equals("Get Info"))
+                System.out.println(job.getInfo());
+            if (source.getText().equals("Abort"))
+                job.abort();
+            if (source.getText().equals("Delete")) {
+                if (!job.remove()) {  // the job is out of databaseChangesThread inside Job.remove()
+                    System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
+                    return;
+                }
+            }
+        }
+    }
+        
+    public static class JobTreeNode implements TreeNode
     {
         private Job job;
 
@@ -165,23 +188,6 @@ public class JobTree extends DefaultMutableTreeNode {
         
         public String toString() { return job.toString(); }
 
-        /** Get info on Job */
         public String getInfo() { return job.getInfo(); }
-        
-        /** respond to menu item command */
-        public void actionPerformed(ActionEvent e) {
-            JMenuItem source = (JMenuItem)e.getSource();
-            // extract library and cell from string
-            if (source.getText().equals("Get Info"))
-                System.out.println(job.getInfo());
-            if (source.getText().equals("Abort"))
-                job.abort();
-            if (source.getText().equals("Delete")) {
-                if (!job.remove()) {  // the job is out of databaseChangesThread inside Job.remove()
-                    System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
-                    return;
-                }
-            }
-        }
     }
 }

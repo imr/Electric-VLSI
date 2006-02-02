@@ -25,8 +25,6 @@ public class ErrorLoggerTree {
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */
-    private static String errorNode = "ERRORS";
-
     public static JPopupMenu getPopupMenu(ErrorLoggerTreeNode log) {
         JPopupMenu p = new JPopupMenu();
         JMenuItem m;
@@ -91,9 +89,9 @@ public class ErrorLoggerTree {
         }
     }
 
-    public static DefaultMutableTreeNode getExplorerTree()
+    public static void updateExplorerTree(DefaultMutableTreeNode explorerTree)
     {
-        DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
+        explorerTree.removeAllChildren();
         ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
         synchronized(ErrorLogger.getAllErrors()) {
             loggersCopy.addAll(ErrorLogger.getAllErrors());
@@ -127,7 +125,6 @@ public class ErrorLoggerTree {
             }
             explorerTree.add(loggerNode);
         }
-        return explorerTree;
     }
 
     public static void deleteAllLoggers()

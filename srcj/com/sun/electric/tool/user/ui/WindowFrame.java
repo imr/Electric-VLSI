@@ -73,6 +73,7 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
@@ -97,14 +98,6 @@ public class WindowFrame extends Observable
 	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
 	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
-	/** the generic signal explorer part. */			public DefaultMutableTreeNode genSignalExplorerNode;
-	/** the transient signal explorer part. */			public DefaultMutableTreeNode transSignalExplorerNode;
-	/** the transient sweep explorer part. */			public DefaultMutableTreeNode transSweepExplorerNode;
-	/** the DC signal explorer part. */					public DefaultMutableTreeNode dcSignalExplorerNode;
-	/** the DC sweep explorer part. */					public DefaultMutableTreeNode dcSweepExplorerNode;
-	/** the AC signal explorer part. */					public DefaultMutableTreeNode acSignalExplorerNode;
-	/** the AC sweep explorer part. */					public DefaultMutableTreeNode acSweepExplorerNode;
-	/** the measurement explorer part. */				public DefaultMutableTreeNode measurementExplorerNode;
 	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
     /** true if this window is finished */              private boolean finished = false;
 
@@ -262,32 +255,25 @@ public class WindowFrame extends Observable
     public void loadDefaultExplorerTree(DefaultMutableTreeNode rootNode)
     {
         libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		rootNode.add(libraryExplorerNode);
-		jobExplorerNode = JobTree.getExplorerTree();
-		rootNode.add(jobExplorerNode);
-		errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		rootNode.add(errorExplorerNode);
-
-		// no simulation data
-		genSignalExplorerNode = null;
-		transSignalExplorerNode = null;
-		transSweepExplorerNode = null;
-		acSignalExplorerNode = null;
-		acSweepExplorerNode = null;
-		dcSignalExplorerNode = null;
-		dcSweepExplorerNode = null;
-		measurementExplorerNode = null;
+		insertContentNode(libraryExplorerNode);
     }
 
+    private static String errorNode = "ERRORS";
 	private Dimension buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
 		this.content = content;
 
 		// the left half: an explorer tree in a scroll pane
 		rootNode = new DefaultMutableTreeNode("Explorer");
-		content.loadExplorerTree(rootNode);
-		treeModel = new DefaultTreeModel(rootNode);
-		explorerTab = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
+		jobExplorerNode = JobTree.getExplorerTree();
+		rootNode.add(jobExplorerNode);
+        errorExplorerNode = new DefaultMutableTreeNode(errorNode);
+		ErrorLoggerTree.updateExplorerTree(errorExplorerNode);
+		rootNode.add(errorExplorerNode);
+
+        content.loadExplorerTree(rootNode);
+		explorerTab = ExplorerTree.CreateExplorerTree(rootNode);
+        treeModel = explorerTab.getTreeModel();
 		JScrollPane scrolledTree = new JScrollPane(explorerTab);
 
 		// make a tabbed list of panes on the left
@@ -541,10 +527,6 @@ public class WindowFrame extends Observable
 
 	//******************************** EXPLORER PART ********************************
 
-	private boolean wantToRedoLibraryTree = false;
-	private boolean wantToRedoErrorTree = false;
-	private boolean wantToRedoSignalTree = false;
-
 	/**
 	 * Method to force the explorer tree to show the current library or signals list.
 	 * @param openLib true to open the current library, false to open the signals list.
@@ -604,8 +586,7 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-			wf.wantToRedoLibraryTree = true;
-            wf.redoExplorerTreeIfRequested();
+            wf.redoContentTrees();
 		}
 	}
 
@@ -620,8 +601,13 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-            wf.wantToRedoErrorTree = true;
-            wf.redoExplorerTreeIfRequested();
+            
+    		// remember the state of the tree
+        	HashSet<Object> expanded = new HashSet<Object>();
+            wf.recursivelyCache(expanded, new TreePath(wf.errorExplorerNode), true);
+			ErrorLoggerTree.updateExplorerTree(wf.errorExplorerNode);
+            wf.treeModel.reload(wf.errorExplorerNode);
+    		wf.recursivelyCache(expanded, new TreePath(wf.errorExplorerNode), false);
 		}
 	}
 
@@ -633,46 +619,42 @@ public class WindowFrame extends Observable
             });
             return;
         }
-        wantToRedoSignalTree = true;
-		content.loadExplorerTree(rootNode);
-		redoExplorerTreeIfRequested();
+		redoContentTrees();
 	}
 
-	private void redoExplorerTreeIfRequested()
+	private void redoContentTrees()
 	{
         Job.checkSwingThread();
-		if (!wantToRedoLibraryTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
 		HashSet<Object> expanded = new HashSet<Object>();
 		recursivelyCache(expanded, new TreePath(rootNode), true);
 
+		// remove all children except errorExplorerNode and JobExplorerNode
+    	for (int i = rootNode.getChildCount()-3; i >= 0; i--) {
+            TreeNode childNode = rootNode.getChildAt(i);
+            assert childNode != jobExplorerNode && childNode != errorExplorerNode;
+            rootNode.remove(i);
+        }
+        assert rootNode.getChildCount() == 2;
+
 		// get the new library tree part
-		if (wantToRedoLibraryTree)
-			libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		if (wantToRedoErrorTree)
-			errorExplorerNode = ErrorLoggerTree.getExplorerTree();
-		wantToRedoLibraryTree = wantToRedoErrorTree = wantToRedoSignalTree = false;
+        content.loadExplorerTree(rootNode);
+        for (int i = 0; i < rootNode.getChildCount() - 2; i++)
+            treeModel.reload(rootNode.getChildAt(i));
 
-		// rebuild the tree
-		rootNode.removeAllChildren();
-		if (libraryExplorerNode != null) rootNode.add(libraryExplorerNode);
-		if (genSignalExplorerNode != null) rootNode.add(genSignalExplorerNode);
-		if (transSignalExplorerNode != null) rootNode.add(transSignalExplorerNode);
-		if (transSweepExplorerNode != null) rootNode.add(transSweepExplorerNode);
-		if (acSignalExplorerNode != null) rootNode.add(acSignalExplorerNode);
-		if (acSweepExplorerNode != null) rootNode.add(acSweepExplorerNode);
-		if (dcSignalExplorerNode != null) rootNode.add(dcSignalExplorerNode);
-		if (dcSweepExplorerNode != null) rootNode.add(dcSweepExplorerNode);
-		if (measurementExplorerNode != null) rootNode.add(measurementExplorerNode);
-		rootNode.add(jobExplorerNode);
-		rootNode.add(errorExplorerNode);
-
-		explorerTab.treeDidChange();
-		treeModel.reload();
 		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
 
+    /**
+     * Insert content-dependent subtree to expolorer tree.
+     * @param newChild root of subtree
+     */
+    public void insertContentNode(MutableTreeNode newChild) {
+        if (newChild != null)
+            rootNode.insert(newChild, rootNode.getChildCount() - 2);
+    }
+    
 	private void recursivelyCache(HashSet<Object> expanded, TreePath path, boolean cache)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
@@ -1244,18 +1226,10 @@ public class WindowFrame extends Observable
 
         private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
 
-        private void updateLibraryTrees() {
-            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-                WindowFrame frame = it.next();
-                frame.wantToRedoLibraryTree = true;
-                frame.redoExplorerTreeIfRequested();
-            }
-        }
-
         public void databaseChanged(DatabaseChangeEvent e)
         {
             if (e.cellTreeChanged())
-                updateLibraryTrees();
+                wantToRedoLibraryTree();
         }
 
 //         public void databaseEndChangeBatch(Undo.ChangeBatch batch)
