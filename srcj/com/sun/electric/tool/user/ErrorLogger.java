@@ -468,7 +468,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	            int prev = i-1;
     	            if (i == 0) prev = points.length-1;
     	            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
-    	            	new EPoint(points[i].getX(), points[i].getY()), false));
+    	            	new EPoint(points[i].getX(), points[i].getY()), true));
     	        }
     		}
     	}

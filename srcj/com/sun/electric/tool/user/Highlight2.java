@@ -6,7 +6,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -269,14 +268,15 @@ public abstract class Highlight2 implements Cloneable{
     /**
 	 * Method to draw an array of points as highlighting.
 	 * @param wnd the window in which drawing is happening.
-	 * @param g the Graphics for the window.
-	 * @param points the array of points being drawn.
-	 * @param offX the X offset of the drawing.
-	 * @param offY the Y offset of the drawing.
-	 * @param opened true if the points are drawn "opened".
-	 * False to close the polygon.
-	 */
-	public static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened, Point2D thickCenter)
+     @param g the Graphics for the window.
+     @param points the array of points being drawn.
+     @param offX the X offset of the drawing.
+     @param offY the Y offset of the drawing.
+     @param opened true if the points are drawn "opened".
+     @param thickLine
+     */
+	public static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D[] points, int offX, int offY,
+                                             boolean opened, boolean thickLine)
 	{
 //        Dimension screen = wnd.getScreenSize();
 		boolean onePoint = true;
@@ -300,12 +300,12 @@ public abstract class Highlight2 implements Cloneable{
 
 		// find the center
 		int cX = 0, cY = 0;
-		if (thickCenter != null)
-		{
-			Point lp = wnd.databaseToScreen(thickCenter.getX(), thickCenter.getY());
-			cX = lp.x;
-			cY = lp.y;
-		}
+//		if (thickCenter != null)
+//		{
+//			Point lp = wnd.databaseToScreen(thickCenter.getX(), thickCenter.getY());
+//			cX = lp.x;
+//			cY = lp.y;
+//		}
 
 		for(int i=0; i<points.length; i++)
 		{
@@ -320,7 +320,7 @@ public abstract class Highlight2 implements Cloneable{
 			int fX = lp.x + offX;   int fY = lp.y + offY;
 			int tX = p.x + offX;    int tY = p.y + offY;
 			drawLine(g, wnd, fX, fY, tX, tY);
-			if (thickCenter != null)
+			if (thickLine)
 			{
 				if (fX < cX) fX--; else fX++;
 				if (fY < cY) fY--; else fY++;
@@ -472,7 +472,7 @@ class HighlightPoly extends Highlight2
         }
         // draw outline of poly
         boolean opened = (polygon.getStyle() == Poly.Type.OPENED);
-        drawOutlineFromPoints(wnd, g, polygon.getPoints(), highOffX, highOffY, opened, null);
+        drawOutlineFromPoints(wnd, g, polygon.getPoints(), highOffX, highOffY, opened, false);
         // switch back to old color if switched
         if (oldColor != null)
             g.setColor(oldColor);
@@ -498,7 +498,7 @@ class HighlightLine extends Highlight2
         Point2D [] points = new Point2D.Double[2];
         points[0] = new Point2D.Double(start.getX(), start.getY());
         points[1] = new Point2D.Double(end.getX(), end.getY());
-        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, center);
+        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
     }
 
     Rectangle2D getHighlightedArea(EditWindow wnd)
@@ -555,7 +555,7 @@ class HighlightArea extends Highlight2
         points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
         points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
         points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, null);
+        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, false);
     }
 
     void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
@@ -734,7 +734,7 @@ class HighlightEOBJ extends Highlight2
                 // construct the polygons that describe the basic arc
                 Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
                 if (poly == null) return;
-                drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
+                drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, false);
 
                 if (onlyHighlight)
                 {
@@ -938,7 +938,7 @@ class HighlightEOBJ extends Highlight2
             if ((offX == 0 && offY == 0) || point < 0)
             {
             	Point2D [] points = niPoly.getPoints();
-            	drawOutlineFromPoints(wnd, g, points, offX, offY, niOpened, null);
+            	drawOutlineFromPoints(wnd, g, points, offX, offY, niOpened, false);
             }
 
 			// draw the selected port
@@ -967,7 +967,7 @@ class HighlightEOBJ extends Highlight2
 					poly.transform(ni.rotateOut());
 					points = poly.getPoints();
 				}
-				drawOutlineFromPoints(wnd, g, points, offX, offY, opened, null);
+				drawOutlineFromPoints(wnd, g, points, offX, offY, opened, false);
 //				g.setColor(mainColor);
 
                 // show name of port
@@ -1333,7 +1333,7 @@ class HighlightText extends Highlight2
         {
             linePoints[0] = points[i];
             linePoints[1] = points[i+1];
-            drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, null);
+            drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, false);
         }
         if (onlyHighlight)
         {

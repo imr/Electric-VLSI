@@ -3,7 +3,11 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
-      
+
+BUG: (2/2/06, GVG) New highligh doesn't draw thick lines.
+FIX: Solution allows lines from PolyBase to became thick lines and Highlight.drawOutlineFromPoints
+doesn't depend on thickCenter.
+
 BUG: (1/30/06, GVG) ErrorLogger XML couldn't read cellName if string contains libraryName
 IMP: Parsing also library name.
 
