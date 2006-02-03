@@ -26,11 +26,11 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import java.io.ObjectStreamException;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -137,6 +137,10 @@ public class VarContext implements Serializable
         this.cache = caching ? new ValueCache() : null;
 	}
 
+    private Object readResolve() throws ObjectStreamException {
+        return prev != this ? this : globalContext;
+    }
+    
     private void throwNotFound(String name) throws EvalException {
         throw new EvalException(name.replaceFirst("ATTR_", "")+" not found");
     }
