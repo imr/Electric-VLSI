@@ -609,7 +609,7 @@ public class Technology implements Comparable<Technology>
         foundries = new ArrayList<Foundry>();
 	}
 
-	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
+	private static final String [] extraTechnologies = {"tsmc.TSMC90"};
 
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
@@ -675,7 +675,7 @@ public class Technology implements Comparable<Technology>
     	tsmcCached = true;
 		try
 		{
-			Class tsmc90Class = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90");
+			Class tsmc90Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[0]);
 			java.lang.reflect.Field techField = tsmc90Class.getDeclaredField("tech");
 			tsmc90 = (Technology) techField.get(null);
  		} catch (Exception e)
@@ -1423,18 +1423,6 @@ public class Technology implements Comparable<Technology>
         PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length));
         return size;
     }
-
-//    public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
-//    {
-//        if (ni.isCellInstance()) return null;
-//        SizeOffset so = ni.getSizeOffset();
-//        double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//        double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-//
-//        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(height));
-//        return size;
-//    }
-
     
     /**
      * Method to return length of active reqion. This will be used for
@@ -3303,6 +3291,8 @@ public class Technology implements Comparable<Technology>
             if (t.name().equalsIgnoreCase(foundryName))
                 return f;
         }
+        if (foundries.size() > 0) return foundries.get(0);
+        System.out.println("No default foundry selected in " + this);
         return null;
     }
 

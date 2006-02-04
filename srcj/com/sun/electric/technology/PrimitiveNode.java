@@ -111,7 +111,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
          * Method to tell whether this function describes a resistor (normal or poly resistor).
          * @return true if this function describes a resistor (normal or poly resistor).
          */
-        public boolean isResistor() {return (this == RESIST || this == PRESIST);}
+        public boolean isResistor() {return (this == RESIST || this == PRESIST || this == WRESIST);}
 
 		/**
 		 * Method to tell whether this function describes a transistor.

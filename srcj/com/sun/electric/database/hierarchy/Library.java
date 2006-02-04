@@ -1180,21 +1180,28 @@ public class Library extends ElectricObject implements Comparable<Library>
             }
     }
 
-    public static Cell findCellInLibraries(String name, View view)
+    public static Cell findCellInLibraries(String cellName, View view, String libraryName)
     {
+        if (libraryName != null)
+        {
+            Library lib = findLibrary(libraryName);
+            if (lib != null)
+            {
+                Cell cell = lib.findNodeProto(cellName);
+                // Either first match in name or check that view matches
+                if (cell != null && (view == null || cell.getView() == view))
+                    return cell;
+            }
+            // search in other libraries if no library is found with given name
+        }
+
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
         {
             Library lib = it.next();
-            for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();)
-            {
-                Cell cell = cIt.next();
-                if (cell.getName().indexOf(name) != -1)
-                {
-                    // Either first match in name or check that view matches
-                    if (view == null || cell.getView() == view)
-                        return cell;
-                }
-            }
+            Cell cell = lib.findNodeProto(cellName);
+            // Either first match in name or check that view matches
+            if (cell != null && (view == null || cell.getView() == view))
+                return cell;
         }
         return null;
     }

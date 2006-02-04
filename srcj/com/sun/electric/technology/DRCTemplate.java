@@ -314,10 +314,16 @@ public class DRCTemplate
         }
     }
 
-    public static DRCXMLParser importDRCDeck(String fileName)
+    /**
+     * Method to import DRC deck from a file provided by URL. Note: it has to be URL otherwise
+     * it won't file the file in Electric jar file.
+     * @param fileURL
+     * @return
+     */
+    public static DRCXMLParser importDRCDeck(URL fileURL)
     {
         DRCXMLParser parser = new DRCXMLParser();
-        parser.process(TextUtils.makeURLToFile(fileName));
+        parser.process(fileURL);
         return parser;
     }
 

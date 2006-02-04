@@ -139,7 +139,7 @@ public class TechnologyTab extends PreferencePanel
         //Tabs for extra technologies if available
         try
         {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90Tab");
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
             extraTechClass.getMethod("openTechnologyTab", new Class[]{JPanel.class}).invoke(null, new Object[]{jPanel3});
         } catch (Exception e)
         {
@@ -318,7 +318,7 @@ public class TechnologyTab extends PreferencePanel
         //Tabs for extra technologies if available
         try
         {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90Tab");
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
             extraTechClass.getMethod("closeTechnologyTab", new Class[]{}).invoke(null, new Object[]{});
         } catch (Exception e)
         {

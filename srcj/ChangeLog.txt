@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/3/06, GVG) NWell resistors in TSMC180.
+IMP: (2/3/06, GVG) TSMC180 as subclass of MoCMOS to isolate rules in plugins. Renaming tsmc90 plugin
+to just tsmc.
+
 BUG: (2/2/06, GVG) New highligh doesn't draw thick lines.
 FIX: Solution allows lines from PolyBase to became thick lines and Highlight.drawOutlineFromPoints
 doesn't depend on thickCenter.

@@ -185,9 +185,9 @@
         	<exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
             <exclude name="com/sun/electric/plugins/Java3D/*.*" unless="Java3D"/>
             <exclude name="**/*.java" unless="source"/>
@@ -223,9 +223,9 @@
 	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>

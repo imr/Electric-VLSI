@@ -1067,7 +1067,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
                 if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !lineTypeBody) return;
 
-                String cellName = null, geomName = null, viewName = null;
+                String cellName = null, geomName = null, viewName = null, libraryName = null;
                 EPoint p1 = null, p2 = null;
 
                 for (int i = 0; i < attributes.getLength(); i++)
@@ -1085,6 +1085,13 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                         String[] names = TextUtils.parseLine(attributes.getValue(i), "{}");
                         cellName = names[0];
                         viewName = names[1];
+                        // cellName might contain library name
+                        names = TextUtils.parseLine(cellName, ":");
+                        if (names.length > 1)
+                        {
+                            libraryName = names[0];
+                            cellName = names[1];
+                        }
                     }
                     else if (attributes.getQName(i).startsWith("geom"))
                         geomName = attributes.getValue(i);
@@ -1112,7 +1119,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                         new Error("Invalid attribute in XMLParser");
                 }
                 View view = View.findView(viewName);
-                curCell = Library.findCellInLibraries(cellName, view);
+                curCell = Library.findCellInLibraries(cellName, view, libraryName);
                 if (curCell == null || !curCell.isLinked())
                 {
                 	if (!badCellNames.contains(cellName))

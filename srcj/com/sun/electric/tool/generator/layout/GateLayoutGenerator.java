@@ -228,7 +228,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		{
     		try
 			{
-				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.gates90nm.TSMC90Generator");
+				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
 				Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
 				Method makeGateMethod = tsmc90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
 				c = (Cell)makeGateMethod.invoke(null, new Object[] {pNm, new Double(x), stdCell});

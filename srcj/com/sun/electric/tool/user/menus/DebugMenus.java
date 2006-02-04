@@ -1237,7 +1237,7 @@ public class DebugMenus
 	{
 		try
 		{
-			Class tsmc90FillGeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.fill90nm.FillGenerator90");
+			Class tsmc90FillGeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.FillGenerator90");
 			Class [] parameterTypes = new Class[] {};
 			Method testMethod = tsmc90FillGeneratorClass.getDeclaredMethod("test", parameterTypes);
 			testMethod.invoke(null, new Object[] {});

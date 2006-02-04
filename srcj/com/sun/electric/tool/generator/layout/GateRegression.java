@@ -79,7 +79,7 @@ public class GateRegression extends Job {
             // invoke the TSMC90 generator by reflection because it may not exist
     		try
 			{
-				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.gates90nm.TSMC90Generator");
+				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
 				Class [] parameterTypes = new Class[] {Double.class, StdCellParams.class};
 				Method generateMethod = tsmc90GeneratorClass.getDeclaredMethod("generateAllGates", parameterTypes);
 				generateMethod.invoke(null, new Object[] {new Double(x), stdCell});
