@@ -514,6 +514,7 @@ public class VectorDrawing
 		} catch (AbortRenderingException e)
 		{
 		}
+        topVD = null;
 
 		if (takingLongTime)
 		{

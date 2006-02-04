@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -138,11 +139,12 @@ public class TextWindow
 		}
 	}
 
-	private static PropertyChangeListener undoListener, redoListener;
+	private static WeakReferences<PropertyChangeListener> undoListeners = new WeakReferences<PropertyChangeListener>();
+    private static WeakReferences<PropertyChangeListener> redoListeners = new WeakReferences<PropertyChangeListener>();
 
-	public static void addTextUndoListener(PropertyChangeListener l) { undoListener = l; }
+	public static void addTextUndoListener(PropertyChangeListener l) { undoListeners.add(l); }
 
-	public static void addTextRedoListener(PropertyChangeListener l) { redoListener = l; }
+	public static void addTextRedoListener(PropertyChangeListener l) { redoListeners.add(l); }
 
 	private void updateUndoRedo()
 	{
@@ -154,8 +156,10 @@ public class TextWindow
 			tl.getToolBar().propertyChange(un);
 			tl.getToolBar().propertyChange(re);
 		}
-		if (undoListener != null) undoListener.propertyChange(un);
-		if (redoListener != null) redoListener.propertyChange(re);
+        for (Iterator<PropertyChangeListener> it = undoListeners.reverseIterator(); it.hasNext(); )
+            it.next().propertyChange(un);
+        for (Iterator<PropertyChangeListener> it = redoListeners.reverseIterator(); it.hasNext(); )
+            it.next().propertyChange(un);
 	}
 
 	/**

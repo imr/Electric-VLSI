@@ -245,7 +245,7 @@ public class WindowFrame extends Observable
 
     public List<MutableTreeNode> loadDefaultExplorerTree()
     {
-        MutableTreeNode libraryExplorerNode = ExplorerTree.makeLibraryTree();
+        MutableTreeNode libraryExplorerNode = ExplorerTreeModel.makeLibraryTree();
         return Collections.singletonList(libraryExplorerNode);
     }
 

@@ -380,6 +380,7 @@ public class MenuBar extends JMenuBar
     /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
     /** For logging menu activiations */        private static MenuLogger menuLogger = new MenuLogger();
     /** For the "Repeat Last Action" command */ public static final RepeatLastCommandListener repeatLastCommandListener = new RepeatLastCommandListener();
+    JMenuItem moveFull, moveHalf, moveQuarter;
 
     /**
      * See MenuBar(String name). This creates a MenuBar belonging

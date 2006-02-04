@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import java.util.Map;
  * Class to dump JVM heap.
  */
 public class DumpHeap {
+    private static final boolean SOFT_REFERENCES = false;
     
     private int[] objHash = new int[1];
     private ArrayList<Object> objs = (new ArrayList<Object>());
@@ -159,6 +161,8 @@ public class DumpHeap {
 
                 for (int i = 0; i < cd.fields.length; i++) {
                     Field f = cd.fields[i];
+                    if (SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent") && cls != SoftReference.class)
+                        continue;
                     handler(f.get(obj));
                 }
                 if (obj instanceof Class) {
@@ -286,6 +290,10 @@ public class DumpHeap {
 
                 for (int i = 0; i < cd.fields.length; i++) {
                     Field f = cd.fields[i];
+                    if (SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent") && cls != SoftReference.class) {
+                        out.writeInt(handler0(null));
+                        continue;
+                    }
                     out.writeInt(handler0(f.get(obj)));
                 }
                 if (obj instanceof Class) {
@@ -313,12 +321,18 @@ public class DumpHeap {
             Class superCls = cls.getSuperclass();
             if (superCls != null)
                 fieldList.addAll(Arrays.asList(classDescriptorOf(superCls).fields));
-            Field[] flds = cls.getDeclaredFields();
+            Field[] flds;
+            try {
+                flds = cls.getDeclaredFields();
+            } catch (NoClassDefFoundError e) {
+                System.out.println("Can't getDeclaredFields in " + cls);
+                flds = new Field[0];
+            }
             for (int i = 0; i < flds.length; i++) {
                 Field f = flds[i];
                 Class tf = f.getType();
                 if (tf.isPrimitive()) continue;
-                if (Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
+                if (!SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
                     continue;
                 f.setAccessible(true);
                 int fm = f.getModifiers();

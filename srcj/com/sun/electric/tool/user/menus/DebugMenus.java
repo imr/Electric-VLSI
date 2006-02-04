@@ -73,6 +73,7 @@ import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.Main;
+import com.sun.electric.database.text.WeakReferences;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -81,6 +82,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
@@ -221,9 +223,8 @@ public class DebugMenus
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
-//        if (Job.CLIENT)
-//            dimaMenu.addMenuItem("Replay snapshot", null,
-//                new ActionListener() { public void actionPerformed(ActionEvent e) { Snapshot.updateSnapshot(); } });
+	    dimaMenu.addMenuItem("Test weak references", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { testWeakReferences(); } });
 	    dimaMenu.addMenuItem("Show memory usage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes"); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
@@ -1598,6 +1599,32 @@ public class DebugMenus
 
 	// ---------------------- Dima's Stuff MENU -----------------
 
+    private static void testWeakReferences() {
+        ArrayList<SoftReference<Object>> softs = new ArrayList<SoftReference<Object>>();
+        WeakReferences<Object> pool = new WeakReferences<Object>();
+        for (int i = 0; i < 100; i++) {
+            Object o = new int[100000000];
+            softs.add(new SoftReference<Object>(o));
+            pool.add(o);
+        }
+        countReferences("Before", pool);
+        System.gc();
+        System.runFinalization();
+        try {
+            Thread.currentThread().sleep(1000);
+        } catch (InterruptedException e) {}
+        countReferences("After", pool);
+    }
+    
+    private static void countReferences(String msg, WeakReferences<Object> pool) {
+        int count = 0;
+        for (Iterator<Object> it = pool.iterator(); it.hasNext(); ) {
+            it.next();
+            count++;
+        }
+        System.out.println(msg + " " + count);
+    }
+    
 	private static int[] objs;
 	private static int[] vobjs;
 	private static int[] vobjs1;

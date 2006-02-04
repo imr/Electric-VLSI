@@ -49,6 +49,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.ImageIcon;
@@ -404,6 +405,19 @@ public class TopLevel extends JFrame
             wf.setCursor(cursor);
         }
 	}
+    
+    public static synchronized Iterator<MenuBar> getMenuBars() {
+        ArrayList<MenuBar> menuBars = new ArrayList<MenuBar>();
+        if (mode == Mode.MDI) {
+            menuBars.add(topLevel.getTheMenuBar());
+        } else {
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+                WindowFrame wf = it.next();
+                menuBars.add(wf.getFrame().getTheMenuBar());
+            }
+        }
+        return menuBars.iterator();
+    }
 
     /**
      * The busy cursor overrides any other cursor.

@@ -151,6 +151,8 @@ public class AnalyzeHeap {
         visited.add(obj);
         for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
             Link l = (Link)it.next();
+//            if (l.field.name.equals("referent") && l.from.cls.className.equals("java.lang.ref.WeakReference"))
+//                continue;
             garbageCollect(l.to, visited);
         }
     }

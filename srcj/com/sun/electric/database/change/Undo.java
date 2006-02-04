@@ -37,6 +37,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -666,8 +667,8 @@ public class Undo
 	private static List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
 	private static HashSet<Cell> changedCells = new HashSet<Cell>();
 
-	/** List of all DatabaseChangeListeners */          private static List<DatabaseChangeListener> changeListeners = new ArrayList<DatabaseChangeListener>();
-	/** List of all PropertyChangeListeners */          private static List<PropertyChangeListener> propertyChangeListeners = new ArrayList<PropertyChangeListener>();
+	/** List of all DatabaseChangeListeners */          private static WeakReferences<DatabaseChangeListener> changeListeners = new WeakReferences<DatabaseChangeListener>();
+	/** List of all PropertyChangeListeners */          private static WeakReferences<PropertyChangeListener> propertyChangeListeners = new WeakReferences<PropertyChangeListener>();
 
 	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
@@ -801,9 +802,8 @@ public class Undo
 
 	private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue)
 	{
-		for (Iterator<PropertyChangeListener> it = propertyChangeListeners.iterator(); it.hasNext(); )
-		{
-			PropertyChangeListener l = (PropertyChangeListener)it.next();
+		for (Iterator<PropertyChangeListener> it = propertyChangeListeners.reverseIterator(); it.hasNext(); ) {
+			PropertyChangeListener l = it.next();
 			PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
 				new Boolean(oldValue), new Boolean(newValue));
 			SwingUtilities.invokeLater(new PropertyChangeThread(l, e));
@@ -865,11 +865,8 @@ public class Undo
      * @param e DatabaseChangeEvent.
      */
     public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
-        Object[] listenersCopy = changeListeners.toArray();
-        for (Object o: listenersCopy) {
-            DatabaseChangeListener l = (DatabaseChangeListener)o;
-            l.databaseChanged(e);
-        }
+        for (Iterator<DatabaseChangeListener> it = changeListeners.reverseIterator(); it.hasNext(); )
+            it.next().databaseChanged(e);
     }
    
     private static void broadcastStart(boolean undoRedo) {

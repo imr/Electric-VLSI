@@ -63,6 +63,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.ExplorerTreeModel;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -124,7 +125,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
@@ -147,7 +147,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from signals to entries in "SIGNALS" tree */private HashMap<Signal,DefaultMutableTreeNode> treeNodeFromSignal;
+	/** mapping from signals to entries in "SIGNALS" tree */private HashMap<Signal,TreePath> treePathFromSignal;
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -1538,8 +1538,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* THE EXPLORER TREE *************************************
 
-	public List<MutableTreeNode> loadExplorerTrees()
+    public List<MutableTreeNode> loadExplorerTrees()
 	{
+        TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
         ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
 
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
@@ -1547,22 +1548,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			Analysis an = it.next();
 			if (an.getAnalysisType() == Analysis.ANALYSIS_SIGNALS)
 			{
-				nodes.add(getSignalsForExplorer(an, "SIGNALS"));
+				nodes.add(getSignalsForExplorer(an, rootPath, "SIGNALS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
 			{
-				nodes.add(getSignalsForExplorer(an, "TRANS SIGNALS"));
+				nodes.add(getSignalsForExplorer(an, rootPath, "TRANS SIGNALS"));
 				nodes.add(getSweepsForExplorer(an, "TRANS SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_AC)
 			{
-				nodes.add(getSignalsForExplorer(an, "AC SIGNALS"));
+				nodes.add(getSignalsForExplorer(an, rootPath, "AC SIGNALS"));
 				nodes.add(getSweepsForExplorer(an, "AC SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_DC)
 			{
-				nodes.add(getSignalsForExplorer(an, "DC SIGNALS"));
+				nodes.add(getSignalsForExplorer(an, rootPath, "DC SIGNALS"));
 				nodes.add(getSweepsForExplorer(an, "DC SWEEPS"));
 			} else if (an.getAnalysisType() == Analysis.ANALYSIS_MEAS)
 			{
-				nodes.add(getSignalsForExplorer(an, "MEASUREMENTS"));
+				nodes.add(getSignalsForExplorer(an, rootPath, "MEASUREMENTS"));
 			}
 		}
 
@@ -1572,17 +1573,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         return nodes;
 	}
     
-	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, String analysis)
+	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, TreePath parentPath, String analysis)
 	{
 		List<Signal> signals = an.getSignals();
 		if (signals.size() == 0) return null;
-		treeNodeFromSignal = new HashMap<Signal,DefaultMutableTreeNode>();
+		treePathFromSignal = new HashMap<Signal,TreePath>();
         if (an instanceof EpicAnalysis) {
-            return ((EpicAnalysis)an).getSignalsForExplorer(analysis, treeNodeFromSignal);
+            return ((EpicAnalysis)an).getSignalsForExplorer(analysis, parentPath, treePathFromSignal);
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
-		HashMap<String,DefaultMutableTreeNode> contextMap = new HashMap<String,DefaultMutableTreeNode>();
-		contextMap.put("", signalsExplorerTree);
+        TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
+		HashMap<String,TreePath> contextMap = new HashMap<String,TreePath>();
+		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
 
 
@@ -1599,12 +1601,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Signal sSig : signals)
 		{
 			if (!(sSig instanceof TimedSignal)) continue;
-			DefaultMutableTreeNode thisTree = signalsExplorerTree;
+			TreePath thisTree = analysisPath;
 			if (sSig.getSignalContext() != null)
 				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 			DefaultMutableTreeNode sigLeaf = new DefaultMutableTreeNode(sSig);
-			thisTree.add(sigLeaf);
-			treeNodeFromSignal.put(sSig, sigLeaf);
+			((DefaultMutableTreeNode)thisTree.getLastPathComponent()).add(sigLeaf);
+			treePathFromSignal.put(sSig, thisTree.pathByAddingChild(sigLeaf));
 		}
 		return signalsExplorerTree;
 	}
@@ -1613,12 +1615,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Recursive method to locate and create branches in the Signal Explorer tree.
 	 * @param branchName the name of a branch to find/create.
 	 * The name has dots in it to separate levels of the hierarchy.
-	 * @param contextMap a HashMap of branch names to tree nodes.
-	 * @return the tree node for the requested branch name.
+	 * @param contextMap a HashMap of branch names to tree paths.
+	 * @return the tree path for the requested branch name.
 	 */
-	private DefaultMutableTreeNode makeContext(String branchName, HashMap<String,DefaultMutableTreeNode> contextMap, char separatorChar)
+	private TreePath makeContext(String branchName, HashMap<String,TreePath> contextMap, char separatorChar)
 	{
-		DefaultMutableTreeNode branchTree = (DefaultMutableTreeNode)contextMap.get(branchName);
+		TreePath branchTree = contextMap.get(branchName);
 		if (branchTree != null) return branchTree;
 
 		// split the branch name into a leaf and parent
@@ -1631,11 +1633,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			leaf = leaf.substring(dotPos+1);
 		}
 
-		DefaultMutableTreeNode parentBranch = makeContext(parent, contextMap, separatorChar);
+		TreePath parentBranch = makeContext(parent, contextMap, separatorChar);
 		DefaultMutableTreeNode thisTree = new DefaultMutableTreeNode(leaf);
-		parentBranch.add(thisTree);
-		contextMap.put(branchName, thisTree);
-		return thisTree;
+		((DefaultMutableTreeNode)parentBranch.getLastPathComponent()).add(thisTree);
+        TreePath thisPath = parentBranch.pathByAddingChild(thisTree);
+		contextMap.put(branchName, thisPath);
+		return thisPath;
 	}
 
 	/**
@@ -2106,20 +2109,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// show only one in the "Signals" tree
 		Collections.sort(found, new SignalsByName());
-		DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
 		for(Signal sSig : found)
 		{
-			Object treeNode = treeNodeFromSignal.get(sSig);
-			if (treeNode != null)
-			{
-				if (treeNode instanceof DefaultMutableTreeNode)
-				{
-					DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode)treeNode;
-					TreePath selTP = new TreePath(model.getPathToRoot(dmtn));
-					tree.setSelectionPath(selTP);
-					break;
-				}
-			}
+			TreePath treePath = treePathFromSignal.get(sSig);
+			if (treePath != null)
+                tree.setSelectionPath(treePath);
 		}
 	}
 

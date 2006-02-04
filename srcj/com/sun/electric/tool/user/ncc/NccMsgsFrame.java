@@ -77,7 +77,7 @@ public class NccMsgsFrame {
 		{
             public void keyPressed(KeyEvent event)
             {
-                if (WindowMenu.getCloseWindow().getAccelerator() == KeyStroke.getKeyStrokeForEvent(event))
+                if (WindowMenu.getCloseWindowAccelerator() == KeyStroke.getKeyStrokeForEvent(event))
                     frame.setVisible(false);
             }
 

@@ -63,9 +63,9 @@ import javax.swing.KeyStroke;
  * Class to handle the commands in the "Window" pulldown menu.
  */
 public class WindowMenu {
-    private static MenuBar.MenuItem closeWindow = null;
+    private static KeyStroke closeWindowAccelerator = null;
 
-    public static MenuBar.MenuItem getCloseWindow() {return closeWindow;}
+    public static KeyStroke getCloseWindowAccelerator() {return closeWindowAccelerator;}
 
     protected static void addWindowMenu(MenuBar menuBar) {
         MenuBar.MenuItem m;
@@ -155,8 +155,8 @@ public class WindowMenu {
         windowPartitionSubMenu.addMenuItem("_Cascade", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
 
-        closeWindow = windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { closeWindowCommand(); }});
+        closeWindowAccelerator = windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { closeWindowCommand(); }}).getAccelerator();
 
 		if (!TopLevel.isMDIMode()) {
 			windowMenu.addSeparator();
