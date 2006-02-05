@@ -109,10 +109,15 @@ public class EditMenu {
     {
         for (Iterator<MenuBar> it = TopLevel.getMenuBars(); it.hasNext(); ) {
             MenuBar menuBar = it.next();
-            if (ad == 1.0) menuBar.moveFull.setSelected(true); else
-            if (ad == 0.5) menuBar.moveHalf.setSelected(true); else
-            if (ad == 0.25) menuBar.moveQuarter.setSelected(true);
+            setGridAlignment(menuBar, ad);
         }
+    }
+
+    private static void setGridAlignment(MenuBar menuBar, double ad)
+    {
+        if (ad == 1.0) menuBar.moveFull.setSelected(true); else
+        if (ad == 0.5) menuBar.moveHalf.setSelected(true); else
+        if (ad == 0.25) menuBar.moveQuarter.setSelected(true);
     }
 
 	protected static void addEditMenu(MenuBar menuBar) {
@@ -332,7 +337,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.arrowDistanceCommand(ToolBar.ArrowDistance.HALF); } });
 		menuBar.moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, null, // do not put shortcut in here! Too dangerous!!
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.arrowDistanceCommand(ToolBar.ArrowDistance.QUARTER); } });
-        setGridAligment(User.getAlignmentToGrid());
+        setGridAlignment(menuBar, User.getAlignmentToGrid());
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
 		MenuBar.Menu modeSubMenuSelect = MenuBar.makeMenu("_Select");

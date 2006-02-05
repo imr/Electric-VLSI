@@ -41,6 +41,7 @@ import java.util.List;
  * Class to analyze dump of JVM heap.
  */
 public class AnalyzeHeap {
+    private static final boolean REFERENCES = true;
     
     ArrayList<MyObject> objs = new ArrayList<MyObject>();
     
@@ -151,8 +152,8 @@ public class AnalyzeHeap {
         visited.add(obj);
         for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
             Link l = (Link)it.next();
-//            if (l.field.name.equals("referent") && l.from.cls.className.equals("java.lang.ref.WeakReference"))
-//                continue;
+            if (!REFERENCES && l.field.referent)
+                continue;
             garbageCollect(l.to, visited);
         }
     }
@@ -184,12 +185,18 @@ public class AnalyzeHeap {
     
     private void makePaths() {
         for (int k = 0; k < 100; k++) {
-            int named = stepPath(true, false);
+            int named = stepPath(true, false, false);
             if (named == 0) break;
+        }
+        if (REFERENCES) {
+            for (int k = 0; k < 100; k++) {
+                int named = stepPath(true, true, false);
+                if (named == 0) break;
+            }
         }
 //        stepPath(true, false);
 //        for (int k = 0; k < 100; k++) {
-//            int named = stepPath(false, true);
+//            int named = stepPath(false, false, true);
 //            if (named == 0) break;
 //        }
         countUnnamed();
@@ -212,7 +219,7 @@ public class AnalyzeHeap {
         countUnnamed();
     }
     
-    private int stepPath(boolean doMaps, boolean verbose) {
+    private int stepPath(boolean doMaps, boolean trackReferents, boolean verbose) {
         HashSet<MyObject> named = new HashSet<MyObject>();
         for (int h = 1; h < objs.size(); h++) {
             MyObject obj = (MyObject)objs.get(h);
@@ -222,6 +229,7 @@ public class AnalyzeHeap {
             for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
                 Link l = (Link)it.next();
                 if (l.to == null || l.to.pathLink != null) continue;
+                if (!trackReferents && l.field.referent) continue;
                 boolean single = l.to.isSingleOwned();
                 if (doAll || single) {
                     l.to.pathLink = l;
@@ -331,10 +339,15 @@ class MyClass extends MyObject {
         this.mode = mode;
         staticFields = new MyField[staticFieldList.size()];
         for (int i = 0; i < staticFields.length; i++)
-            staticFields[i] = new MyField(i, MyField.STATICFIELD, (String)staticFieldList.get(i));
+            staticFields[i] = new MyField(i, MyField.STATICFIELD, staticFieldList.get(i));
         fields = new MyField[fieldList.size()];
-        for (int i = 0; i < fields.length; i++)
-            fields[i] = new MyField(i, MyField.FIELD, (String)fieldList.get(i));
+        for (int i = 0; i < fields.length; i++) {
+            String fieldName = fieldList.get(i);
+            MyField f = new MyField(i, MyField.FIELD, fieldName);
+            if (fieldName.equals("referent") && className.startsWith("java.lang.ref."))
+                f.referent = true;
+            fields[i] = f;
+        }
     }
     
     public String toString() {
@@ -360,6 +373,7 @@ class MyField {
     int index;
     int mode;
     String name;
+    boolean referent;
     
     static final ArrayList<MyField> elems = new ArrayList<MyField>();
     static final ArrayList<MyField> keys = new ArrayList<MyField>();

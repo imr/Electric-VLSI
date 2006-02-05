@@ -45,7 +45,7 @@ import java.util.Map;
  * Class to dump JVM heap.
  */
 public class DumpHeap {
-    private static final boolean SOFT_REFERENCES = false;
+    private static final boolean REFERENCES = false;
     
     private int[] objHash = new int[1];
     private ArrayList<Object> objs = (new ArrayList<Object>());
@@ -161,8 +161,6 @@ public class DumpHeap {
 
                 for (int i = 0; i < cd.fields.length; i++) {
                     Field f = cd.fields[i];
-                    if (SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent") && cls != SoftReference.class)
-                        continue;
                     handler(f.get(obj));
                 }
                 if (obj instanceof Class) {
@@ -290,10 +288,6 @@ public class DumpHeap {
 
                 for (int i = 0; i < cd.fields.length; i++) {
                     Field f = cd.fields[i];
-                    if (SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent") && cls != SoftReference.class) {
-                        out.writeInt(handler0(null));
-                        continue;
-                    }
                     out.writeInt(handler0(f.get(obj)));
                 }
                 if (obj instanceof Class) {
@@ -332,7 +326,7 @@ public class DumpHeap {
                 Field f = flds[i];
                 Class tf = f.getType();
                 if (tf.isPrimitive()) continue;
-                if (!SOFT_REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
+                if (!REFERENCES && Reference.class.isAssignableFrom(cls) && f.getName().equals("referent"))
                     continue;
                 f.setAccessible(true);
                 int fm = f.getModifiers();

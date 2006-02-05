@@ -7,6 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (2/3/06, DN) WindowFrame together with contents remains in memory after close.
 FIX: Use new class WeakReferences for storing Listeners.
      Don't use static fields EditMenu.moveFull, EditMenu.moveHals, EdiitMenu.moveQuarter, WindowMenu.closeWindow.
+     Added TopLevel.removeFromDesktop, toolBar.setUI(null), menuBar.setUI(null),
 
 IMP: (2/3/06, GVG) NWell resistors in TSMC180.
 IMP: (2/3/06, GVG) TSMC180 as subclass of MoCMOS to isolate rules in plugins. Renaming tsmc90 plugin

@@ -669,6 +669,7 @@ public class MenuBar extends JMenuBar
             if (menu == null) continue;
             disposeofMenu(menu);
         }
+		setUI(null);
     }
 
     private void disposeofMenu(JMenu menu)

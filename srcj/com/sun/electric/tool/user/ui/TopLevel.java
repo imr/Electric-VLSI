@@ -383,6 +383,15 @@ public class TopLevel extends JFrame
         }
     }
 
+	/**
+	 * Method to add an internal frame to the desktop.
+	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
+	 * @param jif the internal frame to add.
+	 */
+	public static void removeFromDesktop(JInternalFrame jif) {
+        desktop.remove(jif);
+    }
+
 	public static JDesktopPane getDesktop() { return desktop; }
 
 	public static Cursor getCurrentCursor() { return cursor; }
@@ -478,7 +487,7 @@ public class TopLevel extends JFrame
         // clean up menubar
         setJMenuBar(null);
         // TODO: figure out why Swing still sends events to finished menuBars
-        //menuBar.finished(); menuBar = null;
+        menuBar.finished(); menuBar = null;
         // clean up toolbar
         Container container = getContentPane();
         if (container != null) container.remove(toolBar);

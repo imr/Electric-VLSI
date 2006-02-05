@@ -435,6 +435,8 @@ public class WindowFrame extends Observable
 			jif.removeInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			// TopLevel.removeFromDesktop(jif);
 			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
+			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
+            TopLevel.removeFromDesktop(jif);
 		} else {
 			jf.getContentPane().remove(js);
 			jf.removeWindowListener(windowsEvents);
