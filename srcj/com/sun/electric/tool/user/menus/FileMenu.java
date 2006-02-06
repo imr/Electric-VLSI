@@ -41,6 +41,7 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.project.CheckInJob;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -231,7 +232,7 @@ public class FileMenu {
 		projectSubMenu.addMenuItem("Check _Out This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOutThisCell(); } });
 		projectSubMenu.addMenuItem("Check _In This Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInThisCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CheckInJob.checkInThisCell(); } });
 		projectSubMenu.addSeparator();
 		projectSubMenu.addMenuItem("Roll_back and Release Check-Out", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOutThisCell(); } });

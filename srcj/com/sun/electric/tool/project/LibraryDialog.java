@@ -25,11 +25,13 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -58,15 +60,13 @@ import javax.swing.ListSelectionModel;
  */
 public class LibraryDialog extends EDialog
 {
-	private ProjectDB pdb;
 	private JList libList;
 	private DefaultListModel libModel;
 
-	LibraryDialog(ProjectDB pdb)
+	LibraryDialog(File [] filesInDir)
 	{
 		super(null, true);
-		this.pdb = pdb;
-		initComponents();
+		initComponents(filesInDir);
 		setVisible(true);
 	}
 
@@ -78,12 +78,12 @@ public class LibraryDialog extends EDialog
 		{
 			int index = libList.getSelectedIndex();
 			String libName = (String)libModel.getElementAt(index);
-			new RetrieveLibraryFromRepositoryJob(pdb, libName);
+			new RetrieveLibraryFromRepositoryJob(libName);
 		}
 		dispose();
 	}
 
-	private void initComponents()
+	private void initComponents(File [] filesInDir)
 	{
 		getContentPane().setLayout(new GridBagLayout());
 
@@ -109,20 +109,27 @@ public class LibraryDialog extends EDialog
 		});
 
 		// consider the files in the repository, too
-		String dirName = Project.getRepositoryLocation();
-		File dir = new File(dirName);
-		File [] filesInDir = dir.listFiles();
-		List<String> libNames = new ArrayList<String>();
-		for(int i=0; i<filesInDir.length; i++)
+//		String dirName = Project.getRepositoryLocation();
+//		File dir = new File(dirName);
+//		File [] filesInDir = dir.listFiles();
+//		if (filesInDir == null && dirName.length() == 0)
+//		{
+//			Job.getUserInterface().showInformationMessage("No repository location is set.  Use the 'Project Management' Preferences to set it.", "Warning");
+//		}
+//		if (filesInDir != null)
 		{
-			File subFile = filesInDir[i];
-			if (subFile.isDirectory())
-				libNames.add(subFile.getName());
-		}
-		Collections.sort(libNames, new TextUtils.ObjectsByToString());
-		for(String libName : libNames)
-		{
-			libModel.addElement(libName);
+			List<String> libNames = new ArrayList<String>();
+			for(int i=0; i<filesInDir.length; i++)
+			{
+				File subFile = filesInDir[i];
+				if (subFile.isDirectory())
+					libNames.add(subFile.getName());
+			}
+			Collections.sort(libNames, new TextUtils.ObjectsByToString());
+			for(String libName : libNames)
+			{
+				libModel.addElement(libName);
+			}
 		}
 
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -168,10 +175,10 @@ public class LibraryDialog extends EDialog
 		private ProjectDB pdb;
 		private String libName;
 
-		private RetrieveLibraryFromRepositoryJob(ProjectDB pdb, String libName)
+		private RetrieveLibraryFromRepositoryJob(String libName)
 		{
 			super("Retrieve Library from Repository", Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
+			this.pdb = Project.projectDB;
 			this.libName = libName;
 			startJob();
 		}
@@ -206,6 +213,15 @@ public class LibraryDialog extends EDialog
 				lastName = name;
 			}
 
+//System.out.println("BEFORE:================================");
+//for(ProjectLibrary pll : pdb.getProjectLibraries())
+//{
+//	for(Iterator<ProjectCell> it = pll.getProjectCells(); it.hasNext(); )
+//	{
+//		ProjectCell pc = it.next();
+//		System.out.println("PL="+pll.getLibrary().getName()+" PC="+pc.describe());
+//	}
+//}
 			// check them out
 			String userName = Project.getCurrentUserName();
 			for(ProjectCell pc : cellsToGet)
@@ -229,8 +245,27 @@ public class LibraryDialog extends EDialog
 			// allow changes
 			Project.setChangeStatus(false);
 
+//System.out.println("AFTER:================================");
+//for(ProjectLibrary pll : pdb.getProjectLibraries())
+//{
+//	for(Iterator<ProjectCell> it = pll.getProjectCells(); it.hasNext(); )
+//	{
+//		ProjectCell pc = it.next();
+//		System.out.println("PL="+pll.getLibrary().getName()+" PC="+pc.describe());
+//	}
+//}
 			System.out.println("Library " + lib.getName() + " has been retrieved from the repository");
+			fieldVariableChanged("pdb");
 			return true;
 		}
+
+	    public void terminateIt(Throwable je)
+        {
+        	// take the new version of the project database from the server
+			Project.projectDB = pdb;
+
+			// update explorer tree
+			WindowFrame.wantToRedoLibraryTree();
+        }
 	}
 }

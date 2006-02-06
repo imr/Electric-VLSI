@@ -98,10 +98,5 @@ public class ExportMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showPorts(); } });
         exportMenu.addMenuItem("Manip_ulate Ports on Node...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ManipulatePorts.showDialog(); } });
-
-        exportMenu.addSeparator();
-
-        exportMenu.addMenuItem("_Add Exports from Library...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.synchronizeLibrary(); } });
     }
 }

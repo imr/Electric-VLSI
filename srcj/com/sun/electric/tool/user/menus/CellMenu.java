@@ -35,6 +35,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -69,7 +70,7 @@ public class CellMenu {
 
         /****************************** THE CELL MENU ******************************/
 
-		// mnemonic keys available:  B     H J      Q       YZ
+		// mnemonic keys available:        H J      Q       YZ
         MenuBar.Menu cellMenu = MenuBar.makeMenu("_Cell");
         menuBar.add(cellMenu);
 
@@ -104,6 +105,14 @@ public class CellMenu {
 
         cellMenu.addMenuItem("_Cross-Library Copy...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
+
+        // mnemonic keys available:  BCDEFGHIJKLMNOPQ STUVWXYZ
+        MenuBar.Menu mergeLibrarySubMenu = MenuBar.makeMenu("Merge Li_braries");
+        cellMenu.add(mergeLibrarySubMenu);
+        mergeLibrarySubMenu.addMenuItem("_Add Exports from Library...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.synchronizeLibrary(); } });
+        mergeLibrarySubMenu.addMenuItem("_Replace Cells from Library...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.replaceFromOtherLibrary(); }});
 
         cellMenu.addSeparator();
 

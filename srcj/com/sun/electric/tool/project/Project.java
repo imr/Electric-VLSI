@@ -30,7 +30,6 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -41,10 +40,8 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -55,7 +52,6 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,7 +102,7 @@ public class Project extends Listener
 	/** nonzero if the system is active */		private static boolean pmActive;
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
 	/** check modules */						private static List<FCheck>    fCheckList = new ArrayList<FCheck>();
-	/** the database describing the project */	private static ProjectDB projectDB = new ProjectDB();
+	/** the database describing the project */	        static ProjectDB projectDB = new ProjectDB();
 
 	/**
 	 * Each combination of cell and change-batch is queued by one of these objects.
@@ -197,35 +193,11 @@ public class Project extends Listener
 		// make sure there is a valid user name
 		if (needUserName()) return;
 
-		new UpdateJob(projectDB);
+		new UpdateJob();
 		pmActive = true;
 	}
 
-	/**
-	 * Method to check the currently edited cell back into the repository.
-	 */
-	public static void checkInThisCell()
-	{
-		UserInterface ui = Job.getUserInterface();
-		Cell cell = ui.needCurrentCell();
-		if (cell == null) return;
-		checkIn(cell);
-	}
-
-	/**
-	 * Method to check a cell back into the repository.
-	 * @param cell the Cell to check back in.
-	 */
-	public static void checkIn(Cell cell)
-	{
-		pmActive = true;
-		HashMap<Cell,MutableInteger> cellsMarked = markRelatedCells(cell);
-
-		// make sure there is a valid user name
-		if (needUserName()) return;
-
-		new CheckInJob(projectDB, cell.getLibrary(), cellsMarked);
-	}
+	static String lastComment = null;
 
 	/**
 	 * Method to check the currently edited cell out of the repository.
@@ -253,8 +225,7 @@ public class Project extends Listener
 		List<Cell> oneCell = new ArrayList<Cell>();
 		oneCell.add(cell);
 
-		new CheckOutJob(projectDB, oneCell);
-
+		new CheckOutJob(oneCell, false);
 	}
 
 	/**
@@ -283,7 +254,57 @@ public class Project extends Listener
 			"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
 		if (!response) return;
 
-		new CancelCheckOutJob(projectDB, cell);
+		ProjectCell cancelled = null;
+		ProjectCell former = null;
+		Library lib = cell.getLibrary();
+		ProjectLibrary pl = projectDB.findProjectLibrary(lib);
+		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+		{
+			ProjectCell pc = it.next();
+			if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
+			{
+				if (pc.getVersion() >= cell.getVersion())
+				{
+					if (pc.getOwner().length() > 0)
+					{
+						if (pc.getOwner().equals(getCurrentUserName()))
+						{
+							cancelled = pc;
+						} else
+						{
+							pl.releaseProjectFileLock(true);
+							Job.getUserInterface().showErrorMessage(
+								"This cell is not checked out to you.  Only user '" + pc.getOwner() + "' can cancel the check-out.",
+								"Cannot Cancel Checkout");
+							return;
+						}
+					}
+				} else
+				{
+					// find most recent former version
+					if (former != null && former.getVersion() < pc.getVersion()) former = null;
+					if (former == null) former = pc;
+				}
+			}
+		}
+
+		if (cancelled == null)
+		{
+			pl.releaseProjectFileLock(true);
+			Job.getUserInterface().showErrorMessage("This cell is not checked out.",
+				"Cannot Cancel Checkout");
+			return;
+		}
+
+		if (former == null)
+		{
+			pl.releaseProjectFileLock(true);
+			Job.getUserInterface().showErrorMessage("Cannot find former version to restore.",
+				"Cannot Cancel Checkout");
+			return;
+		}
+
+		new CancelCheckOutJob(cancelled, former);
 	}
 
 	/**
@@ -362,7 +383,19 @@ public class Project extends Listener
 	public static void getALibrary()
 	{
 		pmActive = true;
-		new LibraryDialog(projectDB);
+
+		// find a list of files (libraries) in the repository
+		String dirName = Project.getRepositoryLocation();
+		File dir = new File(dirName);
+		File [] filesInDir = dir.listFiles();
+		if (filesInDir == null && dirName.length() == 0)
+		{
+			Job.getUserInterface().showInformationMessage("No repository location is set.  Use the 'Project Management' Preferences to set it.", "Warning");
+			return;
+		}
+
+		// choose one and read it in
+		new LibraryDialog(filesInDir);
 	}
 
 	/**
@@ -782,87 +815,9 @@ public class Project extends Listener
 			} else
 			{
 				// change allowed: check-out necessary cells
-				new AutoCheckoutJob(projectDB, cellsThatChanged);
+				new CheckOutJob(cellsThatChanged, true);
 			}
 		}
-	}
-
-	/**
-	 * This class checks out cells from Project Management to allow changes that have been made.
-	 */
-	private static class AutoCheckoutJob extends Job
-	{
-		private ProjectDB pdb;
-		private List<Cell> cellsThatChanged;
-		private HashMap<Cell,Cell> newCells;
-
-		private AutoCheckoutJob(ProjectDB pdb, List<Cell> cellsThatChanged)
-		{
-			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
-			this.cellsThatChanged = cellsThatChanged;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// make a set of project libraries that are affected
-			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
-			for(Cell oldVers : cellsThatChanged)
-			{
-				Library lib = oldVers.getLibrary();
-				ProjectLibrary pl = pdb.findProjectLibrary(lib);
-				projectLibs.add(pl);
-			}
-
-			// lock access to the project files (throws JobException on error)
-			ProjectLibrary.lockManyProjectFiles(projectLibs);
-
-			// check out the cell
-			try
-			{
-				preCheckOutCells(pdb, cellsThatChanged);
-			} catch (JobException e)
-			{
-				ProjectLibrary.releaseManyProjectFiles(projectLibs);
-				throw e;
-			}
-
-			// prevent tools (including this one) from seeing the changes
-			setChangeStatus(true);
-
-			// make new version
-			newCells = new HashMap<Cell,Cell>();
-			for(Cell oldVers : cellsThatChanged)
-			{
-				// change version information (throws JobException on error)
-				Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
-				if (newVers != null)
-				{
-					// update records for the changed cells
-		        	bumpRecordVersions(pdb, oldVers, newVers);
-
-		        	newCells.put(oldVers, newVers);
-				}
-			}
-
-			setChangeStatus(false);
-			fieldVariableChanged("newCells");
-			return true;
-		}
-
-		public void terminateIt(JobException je)
-        {
-        	// update user interface for the changed cells
-			for(Cell oldVers : newCells.keySet())
-			{
-				Cell newVers = newCells.get(oldVers);
-		        	updateUI(oldVers, newVers);
-			}
-
-			// update explorer tree
-			WindowFrame.wantToRedoLibraryTree();
-        }
 	}
 
 	/**
@@ -971,618 +926,16 @@ public class Project extends Listener
 	/****************************** PROJECT CONTROL CLASSES ******************************/
 
 	/**
-	 * This class checks out a cell from Project Management.
-	 * It involves updating the project database and making a new version of the cell.
-	 */
-	private static class CheckOutJob extends Job
-	{
-		private ProjectDB pdb;
-		private List<Cell> checkOutCells;
-		private HashMap<Cell, Cell> createdCells;
-
-		private CheckOutJob(ProjectDB pdb, List<Cell> checkOutCells)
-		{
-			super("Check out cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
-			this.checkOutCells = checkOutCells;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// make a set of project libraries that are affected
-			Set<ProjectLibrary> projectLibs = new HashSet<ProjectLibrary>();
-			for(Cell oldVers : checkOutCells)
-			{
-				Library lib = oldVers.getLibrary();
-				ProjectLibrary pl = pdb.findProjectLibrary(lib);
-				projectLibs.add(pl);
-			}
-
-			// lock access to the project files (throws JobException on error)
-			ProjectLibrary.lockManyProjectFiles(projectLibs);
-
-			// check out the cell
-			try
-			{
-				preCheckOutCells(pdb, checkOutCells);
-			} catch (JobException e)
-			{
-				ProjectLibrary.releaseManyProjectFiles(projectLibs);
-				throw e;
-			}
-
-			// prevent tools (including this one) from seeing the changes
-			setChangeStatus(true);
-
-			// make new version
-			createdCells = new HashMap<Cell,Cell>();
-			for(Cell oldVers : checkOutCells)
-			{
-				// change version information (throws JobException on error)
-				Cell newVers = bumpVersion(oldVers);		// CHANGES DATABASE
-				if (newVers != null)
-				{
-					// update records for the changed cells
-		        	bumpRecordVersions(pdb, oldVers, newVers);
-
-		        	createdCells.put(oldVers, newVers);
-				}
-			}
-
-			setChangeStatus(false);
-
-			ProjectLibrary.releaseManyProjectFiles(projectLibs);
-
-			fieldVariableChanged("createdCells");
-			return true;
-		}
-
-        public void terminateIt(JobException je)
-        {
-        	// update user interface for the changed cells
-			for(Cell oldVers : createdCells.keySet())
-			{
-				Cell newVers = createdCells.get(oldVers);
-	        	updateUI(oldVers, newVers);
-			}
-
-			// update explorer tree
-			WindowFrame.wantToRedoLibraryTree();
-
-			if (je == null)
-			{
-				// if it worked, print dependencies and display
-				if (createdCells != null && createdCells.size() > 0)
-				{
-					StringBuffer cellNames = new StringBuffer();
-					int numCells = 0;
-					for(Cell oldVers : createdCells.keySet())
-					{
-						Cell newVers = createdCells.get(oldVers);
-						if (cellNames.length() > 0) cellNames.append(", ");
-						cellNames.append(newVers.describe(false));
-						numCells++;
-					}
-					if (numCells > 1) System.out.println("Cells " + cellNames + " checked out for your use"); else
-						System.out.println("Cell " + cellNames + " checked out for your use");
-					Cell newVers = (Cell)createdCells.get(0);
-
-					// advise of possible problems with other checkouts higher up in the hierarchy
-					HashMap<Cell,MutableInteger> cellsMarked = new HashMap<Cell,MutableInteger>();
-					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-					{
-						Library oLib = it.next();
-						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-						{
-							Cell cell = cIt.next();
-							cellsMarked.put(cell, new MutableInteger(0));
-						}
-					}
-					MutableInteger miNewVers = (MutableInteger)cellsMarked.get(newVers);
-					miNewVers.setValue(1);
-					boolean propagated = true;
-					while (propagated)
-					{
-						propagated = false;
-						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-						{
-							Library oLib = it.next();
-							for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-							{
-								Cell cell = cIt.next();
-								MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-								if (val.intValue() == 1)
-								{
-									propagated = true;
-									val.setValue(2);
-									for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
-									{
-										NodeInst ni = nIt.next();
-										MutableInteger pVal = (MutableInteger)cellsMarked.get(ni.getParent());
-										if (pVal.intValue() == 0) pVal.setValue(1);
-									}
-								}
-							}
-						}
-					}
-					miNewVers.setValue(0);
-					int total = 0;
-					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-					{
-						Library oLib = it.next();
-						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-						{
-							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-							if (val.intValue() == 0) continue;
-							if (getCellStatus(cell) == CHECKEDOUTTOOTHERS)
-							{
-								val.setValue(3);
-								total++;
-							}
-						}
-					}
-					if (total != 0)
-					{
-						System.out.println("*** Warning: the following cells are above this in the hierarchy");
-						System.out.println("*** and are checked out to others.  This may cause problems");
-						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-						{
-							Library oLib = it.next();
-							for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-							{
-								Cell cell = cIt.next();
-								MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-								if (val.intValue() != 3) continue;
-								System.out.println("    " + cell + " is checked out to " + getCellOwner(cell));
-							}
-						}
-					}
-
-					// advise of possible problems with other checkouts lower down in the hierarchy
-					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-					{
-						Library oLib = it.next();
-						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-						{
-							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-							val.setValue(0);
-						}
-					}
-					miNewVers.setValue(1);
-					propagated = true;
-					while(propagated)
-					{
-						propagated = false;
-						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-						{
-							Library oLib = it.next();
-							for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-							{
-								Cell cell = cIt.next();
-								MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-								if (val.intValue() == 1)
-								{
-									propagated = true;
-									val.setValue(2);
-									for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
-									{
-										NodeInst ni = nIt.next();
-										if (!ni.isCellInstance()) continue;
-										MutableInteger subVal = (MutableInteger)cellsMarked.get(ni.getProto());
-										if (subVal.intValue() == 0) subVal.setValue(1);
-									}
-								}
-							}
-						}
-					}
-					miNewVers.setValue(0);
-					total = 0;
-					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-					{
-						Library oLib = it.next();
-						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-						{
-							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-							if (val.intValue() == 0) continue;
-							String owner = getCellOwner(cell);
-							if (owner.length() == 0) continue;
-							if (!owner.equals(getCurrentUserName()))
-							{
-								val.setValue(3);
-								total++;
-							}
-						}
-					}
-					if (total != 0)
-					{
-						System.out.println("*** Warning: the following cells are below this in the hierarchy");
-						System.out.println("*** and are checked out to others.  This may cause problems");
-						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-						{
-							Library oLib = it.next();
-							for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-							{
-								Cell cell = cIt.next();
-								MutableInteger val = (MutableInteger)cellsMarked.get(cell);
-								if (val.intValue() != 3) continue;
-								String owner = getCellOwner(cell);
-								System.out.println("    " + cell + " is checked out to " + owner);
-							}
-						}
-					}
-				}
-			}
-        }
-	}
-
-	/**
-	 * Method to check out a list of Cells.
-	 * @param cellsToCheckOut the List of Cells to check out.
-	 * Throws JobException on error.
-	 */
-	private static void preCheckOutCells(ProjectDB pdb, List<Cell> cellsToCheckOut)
-		throws JobException
-	{
-		// examine each cell being checked out
-		for(Cell oldVers : cellsToCheckOut)
-		{
-			// see if there is a newer version of a cell
-			ProjectLibrary pl = pdb.findProjectLibrary(oldVers.getLibrary());
-			ProjectCell newestProjectCell = null;
-			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
-			{
-				ProjectCell pc = it.next();
-				if (pc.getCellName().equals(oldVers.getName()) && pc.getView() == oldVers.getView())
-				{
-					if (pc.getVersion() > oldVers.getVersion())
-					{
-						if (newestProjectCell == null || newestProjectCell.getVersion() < pc.getVersion())
-							newestProjectCell = pc;
-					}
-				}
-			}
-			if (newestProjectCell != null)
-			{
-				if (newestProjectCell.getOwner().length() == 0)
-				{
-					throw new JobException(
-						"A more recent version of cell " + oldVers.describe(false) + " is in the repository.  Do an update first.");
-				}
-				if (newestProjectCell.getOwner().equals(getCurrentUserName()))
-				{
-					throw new JobException(
-						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.");
-				} else
-				{
-					throw new JobException(
-						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.getOwner() + "'");
-				}
-			}
-
-			// find this cell in the project file
-			ProjectCell pc = pl.findProjectCell(oldVers);
-			if (pc == null)
-			{
-				throw new JobException(
-					"Cell " + oldVers.describe(false) + " is not in the project.  You must add it to the project before being able to check it out and in.");
-			}
-
-			// see if it is available
-			if (pc.getOwner().length() != 0)
-			{
-				if (pc.getOwner().equals(getCurrentUserName()))
-				{
-					markLocked(oldVers, false);		// CHANGES DATABASE
-					throw new JobException(
-						"Cell " + oldVers.describe(false) + " is already checked out to you.");
-				} else
-				{
-					throw new JobException(
-						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.getOwner() + "'");
-				}
-			}
-
-			// make sure we have the latest version
-			if (pc.getVersion() > oldVers.getVersion())
-			{
-				throw new JobException(
-					"Cannot check out cell " + oldVers.describe(false) +
-					" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
-					pc.getVersion() + ").  Do an 'update' first");
-			}
-		}
-	}
-
-	/**
-	 * Method to "bump" the version of a Cell by duplicating it.
-	 * The cell then has a new version number.  The new Cell replaces
-	 * the old Cell, and the old one is deleted.
-	 * @param oldVers the old Cell.
-	 * @return the new Cell (null on error).
-	 */
-	private static Cell bumpVersion(Cell oldVers)
-		throws JobException
-	{
-		Library lib = oldVers.getLibrary();
-		Cell newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
-		if (newVers == null)
-			throw new JobException("Error making new version of cell " + oldVers.describe(false));
-
-		// replace former usage with new version
-		if (useNewestVersion(oldVers, newVers))		// CHANGES DATABASE
-			throw new JobException("Error replacing instances of cell " + oldVers.describe(false));
-		markLocked(newVers, false);		// CHANGES DATABASE
-		lib.setChanged();
-		return newVers;
-	}
-
-	/**
-	 * Method to update the project databases to account for cell replacements.
-	 * @param newCells a map from old cells to new cells.
-	 */
-	private static void bumpRecordVersions(ProjectDB pdb, Cell oldVers, Cell newVers)
-	{
-		// find the old ProjectCell
-		ProjectLibrary pl = pdb.findProjectLibrary(oldVers.getLibrary());
-		ProjectCell oldPC = pl.findProjectCell(oldVers);
-
-		// make the new ProjectCell
-		ProjectCell newPC = new ProjectCell(newVers, pl);
-		newPC.setLibType(oldPC.getLibType());
-		newPC.setComment("CHECKED OUT");
-		newPC.setOwner(getCurrentUserName());
-
-		pl.linkProjectCellToCell(oldPC, null);
-		pl.linkProjectCellToCell(newPC, newVers);
-	}
-
-	/**
-	 * Method to fix the user interface to account for cell replacements.
-	 * @param newCells a map from old cells to new cells.
-	 */
-	private static void updateUI(Cell oldVers, Cell newVers)
-	{
-		// redraw windows that showed the old cell
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			if (wf.getContent().getCell() != oldVers) continue;
-			double scale = 1;
-			Point2D offset = null;
-			if (wf.getContent() instanceof EditWindow_)
-			{
-				EditWindow_ wnd = (EditWindow_)wf.getContent();
-				scale = wnd.getScale();
-				offset = wnd.getOffset();
-			}
-			wf.getContent().setCell(newVers, VarContext.globalContext);
-			if (wf.getContent() instanceof EditWindow_)
-			{
-				EditWindow_ wnd = (EditWindow_)wf.getContent();
-				wnd.setScale(scale);
-				wnd.setOffset(offset);
-			}
-		}
-	}
-
-	/**
-	 * This class checks in cells to Project Management.
-	 * It involves updating the project database and saving the current cells to disk.
-	 */
-	private static class CancelCheckOutJob extends Job
-	{
-		private ProjectDB pdb;
-		private Cell cell, newCell, oldCell;
-
-		private CancelCheckOutJob(ProjectDB pdb, Cell cell)
-		{
-			super("Cancel Check-out " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
-			this.cell = cell;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Library lib = cell.getLibrary();
-			ProjectLibrary pl = pdb.findProjectLibrary(lib);
-
-			// lock access to the project files (throws JobException on error)
-			pl.lockProjectFile();
-
-			ProjectCell cancelled = null;
-			ProjectCell former = null;
-			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
-			{
-				ProjectCell pc = it.next();
-				if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
-				{
-					if (pc.getVersion() >= cell.getVersion())
-					{
-						if (pc.getOwner().length() > 0)
-						{
-							if (pc.getOwner().equals(getCurrentUserName()))
-							{
-								cancelled = pc;
-							} else
-							{
-								pl.releaseProjectFileLock(true);
-								throw new JobException(
-									"This cell is not checked out to you.  Only user '" + pc.getOwner() + "' can cancel the check-out.");
-							}
-						}
-					} else
-					{
-						// find most recent former version
-						if (former != null && former.getVersion() < pc.getVersion()) former = null;
-						if (former == null) former = pc;
-					}
-				}
-			}
-
-			if (cancelled == null)
-			{
-				pl.releaseProjectFileLock(true);
-				throw new JobException("This cell is not checked out.");
-			}
-
-			if (former == null)
-			{
-				pl.releaseProjectFileLock(true);
-				throw new JobException("Cannot find former version to restore.");
-			}
-			oldCell = cancelled.getCell();
-
-			// prevent tools (including this one) from seeing the change
-			setChangeStatus(true);
-
-			// replace former usage with new version
-			getCellFromRepository(pdb, former, lib, false, false);		// CHANGES DATABASE
-			newCell = former.getCell();
-			if (newCell == null)
-			{
-				setChangeStatus(false);
-				pl.releaseProjectFileLock(true);
-				throw new JobException("Error bringing in former version (" + former.getVersion() + ")");
-			}
-
-			if (useNewestVersion(oldCell, newCell))		// CHANGES DATABASE
-			{
-				setChangeStatus(false);
-				pl.releaseProjectFileLock(true);
-				throw new JobException("Error replacing instances of former " + oldCell);
-			}
-
-			pl.removeProjectCell(cancelled);
-			if (cancelled.getCell() != null)
-			{
-				markLocked(cancelled.getCell(), true);		// CHANGES DATABASE
-			}
-			former.setLatestVersion(true);
-
-			// restore change broadcast
-			setChangeStatus(false);
-
-			// relase project file lock
-			pl.releaseProjectFileLock(true);
-			return true;
-		}
-
-        public void terminateOK()
-        {
-        	updateUI(oldCell, newCell);
-
-        	// update explorer tree
-        	WindowFrame.wantToRedoLibraryTree();
-        }
-	}
-
-	/**
-	 * This class checks in cells to Project Management.
-	 * It involves updating the project database and saving the current cells to disk.
-	 */
-	private static class CheckInJob extends Job
-	{
-		private ProjectDB pdb;
-		private Library lib;
-		private HashMap<Cell,MutableInteger> cellsMarked;
-
-		protected CheckInJob(ProjectDB pdb, Library lib, HashMap<Cell,MutableInteger> cellsMarked)
-		{
-			super("Check in cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
-			this.lib = lib;
-			this.cellsMarked = cellsMarked;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			ProjectLibrary pl = pdb.findProjectLibrary(lib);
-
-			// lock access to the project files (throws JobException on error)
-			pl.lockProjectFile();
-
-			// prevent tools (including this one) from seeing the change
-			setChangeStatus(true);
-
-			// check in the requested cells
-			String cellNames = "";
-			for(Cell cell : cellsMarked.keySet())
-			{
-				MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
-				if (mi.intValue() == 0) continue;
-				if (cellNames.length() > 0) cellNames += ", ";
-				cellNames += cell.describe(false);
-			}
-
-			String comment = null;
-			String error = null;
-			for(Cell cell : cellsMarked.keySet())
-			{
-				MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
-				if (mi.intValue() == 0) continue;
-
-				// find this in the project file
-				ProjectCell pc = pdb.findProjectCell(cell);
-				if (pc == null)
-				{
-					error = "Cell " + cell.describe(true) + " is not in the project.  Add it before checking it in or out.";
-				} else
-				{
-					// see if it is available
-					if (!pc.getOwner().equals(getCurrentUserName()))
-					{
-						error = "You cannot check-in " + cell + " because it is checked out to '" + pc.getOwner() + "', not you.";
-					} else
-					{
-						if (comment == null)
-							comment = Job.getUserInterface().askForInput("Reason for checking-in " + cellNames, "", null);
-						if (comment == null) break;
-
-						// write the cell out there
-						if (writeCell(cell, pc))		// CHANGES DATABASE
-						{
-							error = "Error writing " + cell;
-						} else
-						{
-							pc.setOwner("");
-							pc.setLastOwner(getCurrentUserName());
-							pc.setVersion(cell.getVersion());
-							pc.setComment(comment);
-							markLocked(cell, true);		// CHANGES DATABASE
-							System.out.println("Cell " + cell.describe(true) + " checked in");
-						}
-					}
-				}
-			}
-
-			// restore change broadcast
-			setChangeStatus(false);
-
-			// relase project file lock
-			pl.releaseProjectFileLock(true);
-			if (error != null) throw new JobException(error);
-
-			return true;
-		}
-	}
-
-	/**
 	 * This class updates cells from the Project Management repository.
 	 */
 	private static class UpdateJob extends Job
 	{
 		private ProjectDB pdb;
 
-		private UpdateJob(ProjectDB pdb)
+		private UpdateJob()
 		{
 			super("Update all Cells from Repository", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.pdb = pdb;
+			this.pdb = projectDB;
 			startJob();
 		}
 
@@ -1657,7 +1010,7 @@ public class Project extends Listener
 			return true;
 		}
 
-		public void terminateIt(JobException je)
+		public void terminateIt(Throwable je)
         {
 			// update explorer tree
 			WindowFrame.wantToRedoLibraryTree();
@@ -1983,65 +1336,6 @@ public class Project extends Listener
 		Undo.changesQuiet(quiet);
 	}
 
-	private static void ensureUserList()
-	{
-		if (usersMap == null)
-		{
-			usersMap = new HashMap<String,String>();
-			String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
-			URL url = TextUtils.makeURLToFile(userFile);
-			try
-			{
-				URLConnection urlCon = url.openConnection();
-				InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-				LineNumberReader lnr = new LineNumberReader(is);
-
-				for(;;)
-				{
-					String userLine = lnr.readLine();
-					if (userLine == null) break;
-					int colonPos = userLine.indexOf(':');
-					if (colonPos < 0)
-					{
-						System.out.println("Missing ':' in user file: " + userLine);
-						break;
-					}
-					String userName = userLine.substring(0, colonPos);
-					String encryptedPassword = userLine.substring(colonPos+1);
-					usersMap.put(userName, encryptedPassword);
-				}
-
-				lnr.close();
-			} catch (IOException e)
-			{
-				System.out.println("Creating new user database");
-			}
-		}
-	}
-
-	private static void saveUserList()
-	{
-		// write the file back
-		String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
-		try
-		{
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(userFile)));
-
-			for(String userName : usersMap.keySet())
-			{
-				String encryptedPassword = (String)usersMap.get(userName);
-				printWriter.println(userName + ":" + encryptedPassword);
-			}
-
-			printWriter.close();
-			System.out.println("Wrote " + userFile);
-		} catch (IOException e)
-		{
-			System.out.println("Error writing " + userFile);
-			return;
-		}
-	}
-
 	private static void validateLocks(ProjectDB pdb, Library lib)
 	{
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
@@ -2102,163 +1396,6 @@ public class Project extends Listener
 				}
 			}
 		}
-	}
-
-	/**
-	 * Method to determine what other cells need to be checked-in with a given Cell.
-	 * @param cell the Cell being checked-in.
-	 * @return a Map of Cells to check-in (if an entry in the map, associated with a Cell,
-	 * is not null, that Cell should be checked-in).
-	 */
-	private static HashMap<Cell,MutableInteger> markRelatedCells(Cell cell)
-	{
-		// mark the cell to be checked-in
-		HashMap<Cell,MutableInteger> cellsMarked1 = new HashMap<Cell,MutableInteger>();
-		HashMap<Cell,MutableInteger> cellsMarked2 = new HashMap<Cell,MutableInteger>();
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library oLib = it.next();
-			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-			{
-				Cell oCell = cIt.next();
-				cellsMarked1.put(oCell, new MutableInteger(0));
-				cellsMarked2.put(oCell, new MutableInteger(0));
-			}
-		}
-		MutableInteger mi = (MutableInteger)cellsMarked1.get(cell);
-		mi.setValue(1);
-
-		// look for cells above this one that must also be checked in
-		mi = (MutableInteger)cellsMarked2.get(cell);
-		mi.setValue(1);
-		boolean propagated = true;
-		while (propagated)
-		{
-			propagated = false;
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library oLib = it.next();
-				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-				{
-					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked2.get(oCell);
-					if (mi.intValue() == 1)
-					{
-						propagated = true;
-						mi.setValue(2);
-						for(Iterator<NodeInst> nIt = oCell.getInstancesOf(); nIt.hasNext(); )
-						{
-							NodeInst ni = nIt.next();
-							mi = (MutableInteger)cellsMarked2.get(ni.getParent());
-							if (mi.intValue() == 0) mi.setValue(1);
-						}
-					}
-				}
-			}
-		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
-		mi.setValue(0);
-		int total = 0;
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library oLib = it.next();
-			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-			{
-				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
-				if (mi.intValue() == 0) continue;
-				String owner = getCellOwner(oCell);
-				if (owner.length() == 0) continue;
-				if (owner.equals(getCurrentUserName()))
-				{
-					mi = (MutableInteger)cellsMarked1.get(oCell);
-					mi.setValue(1);
-					total++;
-				}
-			}
-		}
-
-		// look for cells below this one that must also be checked in
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library oLib = it.next();
-			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-			{
-				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
-				mi.setValue(0);
-			}
-		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
-		mi.setValue(1);
-		propagated = true;
-		while (propagated)
-		{
-			propagated = false;
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library oLib = it.next();
-				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-				{
-					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked2.get(oCell);
-					if (mi.intValue() == 1)
-					{
-						propagated = true;
-						mi.setValue(2);
-						for(Iterator<NodeInst> nIt = oCell.getNodes(); nIt.hasNext(); )
-						{
-							NodeInst ni = nIt.next();
-							if (!ni.isCellInstance()) continue;
-							mi = (MutableInteger)cellsMarked2.get(ni.getProto());
-							if (mi.intValue() == 0) mi.setValue(1);
-						}
-					}
-				}
-			}
-		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
-		mi.setValue(0);
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library oLib = it.next();
-			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-			{
-				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
-				if (mi.intValue() == 0) continue;
-				String owner = getCellOwner(oCell);
-				if (owner.length() == 0) continue;
-				if (owner.equals(getCurrentUserName()))
-				{
-					mi = (MutableInteger)cellsMarked1.get(oCell);
-					mi.setValue(1);
-					total++;
-				}
-			}
-		}
-
-		// advise of additional cells that must be checked-in
-		if (total > 0)
-		{
-			total = 0;
-			StringBuffer infstr = new StringBuffer();
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library oLib = it.next();
-				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
-				{
-					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked1.get(oCell);
-					if (oCell == cell || mi.intValue() == 0) continue;
-					if (total > 0) infstr.append(", ");
-					infstr.append(oCell.describe(true));
-					total++;
-				}
-			}
-			System.out.println("Also checking in related cell(s): " + infstr.toString());
-		}
-		return cellsMarked1;
 	}
 
 	/**
@@ -2599,7 +1736,7 @@ public class Project extends Listener
 		return total;
 	}
 
-	private static boolean useNewestVersion(Cell oldCell, Cell newCell)
+	static boolean useNewestVersion(Cell oldCell, Cell newCell)
 	{
 		// replace all instances
 		List<NodeInst> instances = new ArrayList<NodeInst>();
@@ -2615,27 +1752,27 @@ public class Project extends Listener
 			}
 		}
 
-		// redraw windows that showed the old cell
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			if (wf.getContent().getCell() != oldCell) continue;
-			double scale = 1;
-			Point2D offset = null;
-			if (wf.getContent() instanceof EditWindow_)
-			{
-				EditWindow_ wnd = (EditWindow_)wf.getContent();
-				scale = wnd.getScale();
-				offset = wnd.getOffset();
-			}
-			wf.getContent().setCell(newCell, VarContext.globalContext);
-			if (wf.getContent() instanceof EditWindow_)
-			{
-				EditWindow_ wnd = (EditWindow_)wf.getContent();
-				wnd.setScale(scale);
-				wnd.setOffset(offset);
-			}
-		}
+//		// redraw windows that showed the old cell
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = it.next();
+//			if (wf.getContent().getCell() != oldCell) continue;
+//			double scale = 1;
+//			Point2D offset = null;
+//			if (wf.getContent() instanceof EditWindow_)
+//			{
+//				EditWindow_ wnd = (EditWindow_)wf.getContent();
+//				scale = wnd.getScale();
+//				offset = wnd.getOffset();
+//			}
+//			wf.getContent().setCell(newCell, VarContext.globalContext);
+//			if (wf.getContent() instanceof EditWindow_)
+//			{
+//				EditWindow_ wnd = (EditWindow_)wf.getContent();
+//				wnd.setScale(scale);
+//				wnd.setOffset(offset);
+//			}
+//		}
 
 		// replace library references
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -2656,7 +1793,7 @@ public class Project extends Listener
 	 * @param pc the ProjectCell record associated with the Cell.
 	 * @return true on error.
 	 */
-	private static boolean writeCell(Cell cell, ProjectCell pc)
+	static boolean writeCell(Cell cell, ProjectCell pc)
 	{
 		String dirName = pc.getProjectLibrary().getProjectDirectory() + File.separator + cell.getName();
 		File dir = new File(dirName);
@@ -2769,6 +1906,89 @@ public class Project extends Listener
 		return cellName;
 	}
 
+	/************************ USER SUPPORT ***********************/
+
+	/**
+	 * Method to ensuer that there is a valid user name.
+	 * @return true if there is NO valid user name (also displays error message).
+	 */
+	static boolean needUserName()
+	{
+		Project.pmActive = true;
+		if (getCurrentUserName().length() == 0)
+		{
+			if (LOWSECURITY)
+			{
+				setCurrentUserName(System.getProperty("user.name"));
+				return false;
+			}
+			Job.getUserInterface().showErrorMessage(
+				"You must select a user first (in the 'Project Management' panel of the Preferences dialog)",
+				"No Valid User Name");
+			return true;
+		}
+		return false;
+	}
+
+	private static void ensureUserList()
+	{
+		if (usersMap == null)
+		{
+			usersMap = new HashMap<String,String>();
+			String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
+			URL url = TextUtils.makeURLToFile(userFile);
+			try
+			{
+				URLConnection urlCon = url.openConnection();
+				InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+				LineNumberReader lnr = new LineNumberReader(is);
+
+				for(;;)
+				{
+					String userLine = lnr.readLine();
+					if (userLine == null) break;
+					int colonPos = userLine.indexOf(':');
+					if (colonPos < 0)
+					{
+						System.out.println("Missing ':' in user file: " + userLine);
+						break;
+					}
+					String userName = userLine.substring(0, colonPos);
+					String encryptedPassword = userLine.substring(colonPos+1);
+					usersMap.put(userName, encryptedPassword);
+				}
+
+				lnr.close();
+			} catch (IOException e)
+			{
+				System.out.println("Creating new user database");
+			}
+		}
+	}
+
+	private static void saveUserList()
+	{
+		// write the file back
+		String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
+		try
+		{
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(userFile)));
+
+			for(String userName : usersMap.keySet())
+			{
+				String encryptedPassword = (String)usersMap.get(userName);
+				printWriter.println(userName + ":" + encryptedPassword);
+			}
+
+			printWriter.close();
+			System.out.println("Wrote " + userFile);
+		} catch (IOException e)
+		{
+			System.out.println("Error writing " + userFile);
+			return;
+		}
+	}
+
 	private static final int ROTORSZ = 256;		/* a power of two */
 	private static final int MASK =   (ROTORSZ-1);
 	/**
@@ -2851,27 +2071,6 @@ public class Project extends Listener
 			deck[k] = deck[ic];
 			deck[ic] = (char)temp;
 		}
-	}
-
-	/**
-	 * Method to ensuer that there is a valid user name.
-	 * @return true if there is NO valid user name (also displays error message).
-	 */
-	private static boolean needUserName()
-	{
-		if (getCurrentUserName().length() == 0)
-		{
-			if (LOWSECURITY)
-			{
-				setCurrentUserName(System.getProperty("user.name"));
-				return false;
-			}
-			Job.getUserInterface().showErrorMessage(
-				"You must select a user first (in the 'Project Management' panel of the Preferences dialog)",
-				"No Valid User Name");
-			return true;
-		}
-		return false;
 	}
 
 	/************************ PREFERENCES ***********************/

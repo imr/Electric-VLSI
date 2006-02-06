@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -55,7 +56,7 @@ import java.util.Set;
 /**
  * Class to describe libraries checked into the Project Management system.
  */
-public class ProjectLibrary
+public class ProjectLibrary implements Serializable
 {
 	/** the project directory */				private String                     projDirectory;
 	/** Library associated with project file */	private Library                    lib;
@@ -63,6 +64,20 @@ public class ProjectLibrary
 	/** cell records by Cell in the project */	private HashMap<Cell,ProjectCell>  byCell;
 	/** I/O channel for project file */			private transient RandomAccessFile raf;
 	/** Lock on file when updating it */		private transient FileLock         lock;
+
+//	void validate()
+//	{
+//		for(ProjectCell pc : allCells)
+//		{
+//			Cell c = pc.getCell();
+//			if (c != null && !c.isLinked()) System.out.println("HEY! "+c+" IS NOT LINKED");
+//		}
+//		for(Iterator<Cell> it = byCell.keySet().iterator(); it.hasNext(); )
+//		{
+//			Cell c = it.next();
+//			if (c != null && !c.isLinked()) System.out.println("HEY! "+c+" IS NOT LINKED IN BYCELLS");
+//		}
+//	}
 
 	private ProjectLibrary()
 	{
@@ -161,7 +176,14 @@ public class ProjectLibrary
 	 */
 	void removeProjectCell(ProjectCell pc)
 	{
-		allCells.remove(pc);
+		for(ProjectCell c : allCells)
+		{
+			if (!c.getCellName().equals(pc.getCellName())) continue;
+			if (c.getVersion() != pc.getVersion()) continue;
+			if (c.getView() != pc.getView()) continue;
+			allCells.remove(c);
+			break;
+		}
 		if (pc.getCell() != null) byCell.remove(pc.getCell());
 		Collections.sort(allCells, new OrderedProjectCells());
 	}
@@ -171,7 +193,7 @@ public class ProjectLibrary
 		if (cell == null)
 		{
 			pc.setLatestVersion(false);
-			byCell.remove(cell);
+			byCell.remove(pc.getCell());
 		} else
 		{
 			byCell.put(cell, pc);
@@ -483,7 +505,7 @@ public class ProjectLibrary
 			}
 
 			// link it in
-			allCells.add(pc);
+//			allCells.add(pc);
 		}
 
 		// determine the most recent views

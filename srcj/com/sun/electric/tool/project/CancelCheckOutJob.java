@@ -1,0 +1,124 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: CancelCheckOutJob.java
+ * Project management tool: Cancel the checkout of a cell
+ * Written by: Steven M. Rubin
+ *
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.project;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.util.ArrayList;
+
+/**
+ * This class cancels the checkout of a cell from the Project Management repository.
+ */
+public class CancelCheckOutJob extends Job
+{
+	private ProjectCell cancelled, former;
+	private ProjectDB pdb;
+	private DisplayedCells displayedCells;
+
+	CancelCheckOutJob(ProjectCell cancelled, ProjectCell former)
+	{
+		super("Cancel Check-out", Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+		this.cancelled = cancelled;
+		this.former = former;
+
+		this.pdb = Project.projectDB;
+
+		// save the current window configuration
+		displayedCells = new DisplayedCells();
+		ArrayList<Cell> justOne = new ArrayList<Cell>();
+		justOne.add(cancelled.getCell());
+		displayedCells.setCellsToBeChanged(justOne);
+		startJob();
+	}
+
+	public boolean doIt() throws JobException
+	{
+		ProjectLibrary pl = cancelled.getProjectLibrary();
+
+		// lock access to the project files (throws JobException on error)
+		pl.lockProjectFile();
+
+		// prevent tools (including this one) from seeing the change
+		Project.setChangeStatus(true);
+
+		// pull in the former cell from the repository
+		Project.getCellFromRepository(pdb, former, pl.getLibrary(), false, false);		// CHANGES DATABASE
+
+		Cell oldCell = cancelled.getCell();
+		Cell newCell = former.getCell();
+		if (newCell == null)
+		{
+			Project.setChangeStatus(false);
+			pl.releaseProjectFileLock(true);
+			throw new JobException("Error bringing in former version (" + former.getVersion() + ")");
+		}
+
+		if (Project.useNewestVersion(oldCell, newCell))		// CHANGES DATABASE
+		{
+			Project.setChangeStatus(false);
+			pl.releaseProjectFileLock(true);
+			throw new JobException("Error replacing instances of former " + oldCell);
+		}
+
+		// record that cells changed so that displays get updated
+    	displayedCells.swap(oldCell, newCell);
+//System.out.println("BEFORE:====================");
+//for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+//{
+//	ProjectCell c = it.next();
+//	System.out.println("PC="+c.getCellName()+";"+c.getVersion()+"{"+c.getView().getAbbreviation()+"}");
+//}
+		pl.removeProjectCell(cancelled);
+		if (cancelled.getCell() != null)
+		{
+			Project.markLocked(cancelled.getCell(), true);		// CHANGES DATABASE
+		}
+		former.setLatestVersion(true);
+
+		// restore change broadcast
+		Project.setChangeStatus(false);
+
+		// relase project file lock
+		pl.releaseProjectFileLock(true);
+
+		fieldVariableChanged("pdb");
+		fieldVariableChanged("displayedCells");
+		return true;
+	}
+
+    public void terminateOK()
+    {
+    	// redisplay windows to show current versions
+    	displayedCells.updateWindows();
+
+    	// update explorer tree
+    	WindowFrame.wantToRedoLibraryTree();
+    }
+
+}

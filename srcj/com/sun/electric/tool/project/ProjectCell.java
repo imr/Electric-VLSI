@@ -29,11 +29,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.io.FileType;
 
+import java.io.Serializable;
+
 
 /**
  * Class to describe cells checked into the Project Management system.
  */
-public class ProjectCell
+public class ProjectCell implements Serializable
 {
 	/** the actual cell (if known) */					private Cell     cell;
 	/** name of the cell */								private String   cellName;

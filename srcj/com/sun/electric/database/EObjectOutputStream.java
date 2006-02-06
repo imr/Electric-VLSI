@@ -207,6 +207,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         int cellIndex;
         
         private ECell(Cell cell) {
+        	if (!cell.isLinked()) System.out.println("Cannot serialize "+cell+" which is not linked");
             assert cell.isLinked();
             cellIndex = cell.getCellIndex();
         }

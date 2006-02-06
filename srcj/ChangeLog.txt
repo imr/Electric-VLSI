@@ -10,12 +10,16 @@ FIX: Use new class WeakReferences for storing Listeners.
      Added TopLevel.removeFromDesktop, toolBar.setUI(null), menuBar.setUI(null),
 
 IMP: (2/3/06, GVG) NWell resistors in TSMC180.
-IMP: (2/3/06, GVG) TSMC180 as subclass of MoCMOS to isolate rules in plugins. Renaming tsmc90 plugin
-to just tsmc.
+IMP: (2/3/06, GVG) TSMC180 as subclass of MoCMOS to isolate rules in plugins.
+     Renaming tsmc90 plugin to just tsmc.
+
+IMP: (2/2/06, SMR) Created new submenu "Cell / Merge Libraries" and moved
+     "Export / Add Exports from Library..." there.  Also added "Replace Cells from Library..."
+     which replaces instances in the current cell with like-names ones from another library.
 
 BUG: (2/2/06, GVG) New highligh doesn't draw thick lines.
 FIX: Solution allows lines from PolyBase to became thick lines and Highlight.drawOutlineFromPoints
-doesn't depend on thickCenter.
+     doesn't depend on thickCenter.
 
 BUG: (1/30/06, GVG) ErrorLogger XML couldn't read cellName if string contains libraryName
 IMP: Parsing also library name.

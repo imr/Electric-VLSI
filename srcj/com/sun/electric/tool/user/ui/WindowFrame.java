@@ -91,7 +91,9 @@ public class WindowFrame extends Observable
 	/** the component tab */							private PaletteFrame paletteTab;
 	/** the layers tab */								private LayerTab layersTab;
     /** true if this window is finished */              private boolean finished = false;
+    /** the index of this window */						private int index;
 
+    /** the unique index number of all windows */		private static int windowIndexCounter = 0;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List<WindowFrame> windowList = new ArrayList<WindowFrame>();
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
@@ -107,9 +109,10 @@ public class WindowFrame extends Observable
 	//******************************** CONSTRUCTION ********************************
 
 	// constructor
-//	private WindowFrame()
-//	{
-//	}
+	public WindowFrame()
+	{
+		index = windowIndexCounter++;
+	}
 
 	/**
 	 * Method to create a new circuit-editing window on the screen that displays a Cell.
@@ -152,7 +155,25 @@ public class WindowFrame extends Observable
 		return frame;
 	}
 
-    /**
+	/**
+	 * Method to get the unique index number of this WindowFrame.
+	 * @return the unique index number of this WindowFrame.
+	 */
+	public int getIndex() { return index; }
+
+	/**
+	 * Method to find the WindowFrame associated with an index number.
+	 * @param index the index number.
+	 * @return the associated WindowFrame (null if none found).
+	 */
+	public static WindowFrame findFromIndex(int index)
+	{
+        for (WindowFrame wf: windowList)
+        	if (wf.index == index) return wf;
+		return null;
+	}
+
+	/**
      * Method to finish with frame pointers.
      */
     public void finishWindowFrameInformation(WindowContent wnd, Cell cell)

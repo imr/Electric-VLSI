@@ -28,15 +28,30 @@ package com.sun.electric.tool.project;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
  * This is the Project Management tool database.
  */
-public class ProjectDB
+public class ProjectDB implements Serializable
 {
 	/** all libraries read in */	private HashMap<Library,ProjectLibrary> libraryProjectInfo = new HashMap<Library,ProjectLibrary>();
+
+	List<ProjectLibrary> getProjectLibraries()
+	{
+		List<ProjectLibrary> pLibs = new ArrayList<ProjectLibrary>();
+		for(Iterator<Library> it = libraryProjectInfo.keySet().iterator(); it.hasNext(); )
+		{
+			Library lib = it.next();
+			pLibs.add(libraryProjectInfo.get(lib));
+		}
+		return pLibs;
+	}
 
 	/**
 	 * Method to ensure that there is project information for a given library.

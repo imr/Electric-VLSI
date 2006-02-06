@@ -27,6 +27,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;

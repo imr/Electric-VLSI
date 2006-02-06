@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.project.CheckInJob;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
@@ -1073,7 +1074,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						menuItem = new JMenuItem("Check In...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckInJob.checkIn((Cell)getCurrentlySelectedObject(0)); } });
 
 						menuItem = new JMenuItem("Rollback and Release Check-Out");
 						menu.add(menuItem);

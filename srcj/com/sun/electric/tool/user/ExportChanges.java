@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -1264,7 +1265,7 @@ public final class ExportChanges
 		List<Library> libs = Library.getVisibleLibraries();
 		Library curLib = Library.getCurrent();
 		int otherLibraries = libs.size() - 1;
-		if (otherLibraries <= 1)
+		if (otherLibraries < 1)
 		{
 			System.out.println("There must be an other library (not the current one) from which to copy exports.");
 			return;
@@ -1354,6 +1355,93 @@ public final class ExportChanges
 	    		}
 	    	}
 	    	System.out.println("Created " + newPorts + " new exports in current " + curLib);
+			return true;
+		}
+	}
+
+	/****************************** REPLACING CELL INSTANCES FROM ANOTHER LIBRARY ******************************/
+
+	/**
+	 * Method to replace all cell instances in the current cell with like-named
+	 * ones from another library.
+	 */
+	public static void replaceFromOtherLibrary()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+		List<Library> libs = Library.getVisibleLibraries();
+		Library curLib = Library.getCurrent();
+		int otherLibraries = libs.size() - 1;
+		if (otherLibraries < 1)
+		{
+			System.out.println("There must be an other library (not the current one) from which to replace cells.");
+			return;
+		}
+		String [] libNames = new String[otherLibraries];
+		int i=0;
+		for (Library oLib : libs)
+		{
+			if (oLib == curLib) continue;
+			libNames[i++] = oLib.getName();
+		}
+        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+        	"Choose another library from which to replace cell instances", "Choose a Library",
+			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
+        if (chosen == null) return;
+        Library oLib = Library.findLibrary(chosen);
+        if (oLib == null) return;
+
+        // now run the replacement
+        new ReplaceFromOtherLibrary(curCell, oLib);
+	}
+
+	/**
+	 * Class to replace all cell instances in the current cell with like-named
+	 * ones from another library.
+	 */
+	private static class ReplaceFromOtherLibrary extends Job
+	{
+		private Cell cell;
+		private Library oLib;
+
+		private ReplaceFromOtherLibrary(Cell cell, Library oLib)
+		{
+			super("Replace Cell Instances From Another Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.oLib = oLib;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+	        HashMap<NodeInst,Cell> cellsToReplace = new HashMap<NodeInst,Cell>();
+	        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+	        {
+	        	NodeInst ni = it.next();
+	        	if (!ni.isCellInstance()) continue;
+        		if (ni.getXSize() != 0 || ni.getYSize() != 0) continue;
+	        	Cell oldType = (Cell)ni.getProto();
+	        	if (oldType.getLibrary() == oLib) continue;
+	        	
+        		String nameToFind = oldType.getName();
+        		if (oldType.getView() != View.UNKNOWN) nameToFind += "{" + oldType.getView().getAbbreviation() + "}";
+        		Cell newType = oLib.findNodeProto(nameToFind);
+        		if (newType != null)
+        		{
+        			cellsToReplace.put(ni, newType);
+	        	}
+	        }
+	        System.out.println("Changing " + cellsToReplace.size() + " cell instances...");
+	        int replacements = 0;
+	        for(Iterator <NodeInst> it = cellsToReplace.keySet().iterator(); it.hasNext(); )
+	        {
+	        	NodeInst ni = it.next();
+	        	Cell newType = cellsToReplace.get(ni);
+    			ni.replace(newType, true, true);
+    			replacements++;
+    		}
+	        System.out.println("Changed " + replacements + " cell instances");
 			return true;
 		}
 	}
