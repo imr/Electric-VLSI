@@ -41,8 +41,15 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.project.AddCellJob;
+import com.sun.electric.tool.project.AddLibraryJob;
+import com.sun.electric.tool.project.CancelCheckOutJob;
 import com.sun.electric.tool.project.CheckInJob;
-import com.sun.electric.tool.project.Project;
+import com.sun.electric.tool.project.CheckOutJob;
+import com.sun.electric.tool.project.DeleteCellJob;
+import com.sun.electric.tool.project.HistoryDialog;
+import com.sun.electric.tool.project.LibraryDialog;
+import com.sun.electric.tool.project.UpdateJob;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -228,27 +235,27 @@ public class FileMenu {
 		MenuBar.Menu projectSubMenu = MenuBar.makeMenu("Project Management");
 		fileMenu.add(projectSubMenu);
 		projectSubMenu.addMenuItem("_Update", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.updateProject(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UpdateJob.updateProject(); } });
 		projectSubMenu.addMenuItem("Check _Out This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOutThisCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CheckOutJob.checkOutThisCell(); } });
 		projectSubMenu.addMenuItem("Check _In This Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CheckInJob.checkInThisCell(); } });
 		projectSubMenu.addSeparator();
 		projectSubMenu.addMenuItem("Roll_back and Release Check-Out", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOutThisCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CancelCheckOutJob.cancelCheckOutThisCell(); } });
 		projectSubMenu.addMenuItem("_Add This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AddCellJob.addThisCell(); } });
 		projectSubMenu.addMenuItem("_Remove This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeThisCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DeleteCellJob.removeThisCell(); } });
 		projectSubMenu.addMenuItem("Show _History of This Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineThisHistory(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { HistoryDialog.examineThisHistory(); } });
 		projectSubMenu.addSeparator();
 		projectSubMenu.addMenuItem("Get Library From Repository...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.getALibrary(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { LibraryDialog.getALibrary(); } });
 		projectSubMenu.addMenuItem("Add Current _Library To Repository", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisLibrary(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AddLibraryJob.addThisLibrary(); } });
 		projectSubMenu.addMenuItem("Ad_d All Libraries To Repository", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addAllLibraries(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AddLibraryJob.addAllLibraries(); } });
 
         fileMenu.addSeparator();
 

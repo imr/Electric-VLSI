@@ -28,6 +28,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.project.Project;
+import com.sun.electric.tool.project.Users;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -70,7 +71,7 @@ public class ProjectManagementTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
-		if (Project.LOWSECURITY)
+		if (Users.LOWSECURITY)
 		{
 	        projectManagement.remove(usersPanelMidSecurity);
 	        repositoryPanel.remove(midWarning);
@@ -98,7 +99,7 @@ public class ProjectManagementTab extends PreferencePanel
 		initialRepository = Project.getRepositoryLocation();
 		repositoryTextArea.setText(initialRepository);
 		initialUserName = Project.getCurrentUserName();
-		if (Project.LOWSECURITY)
+		if (Users.LOWSECURITY)
 		{
 			if (initialUserName.length() == 0) initialUserName = System.getProperty("user.name");
 			userName.setText(initialUserName);
@@ -113,7 +114,7 @@ public class ProjectManagementTab extends PreferencePanel
 			userListPane.setViewportView(userList);
 			userList.clearSelection();
 			userModel.clear();
-			for(Iterator<String> it = Project.getUsers(); it.hasNext(); )
+			for(Iterator<String> it = Users.getUsers(); it.hasNext(); )
 			{
 				String user = (String)it.next();
 				userModel.addElement(user);
@@ -131,7 +132,7 @@ public class ProjectManagementTab extends PreferencePanel
 		String currRepository = repositoryTextArea.getText();
 		if (!currRepository.equals(initialRepository))
 			Project.setRepositoryLocation(currRepository);
-		if (Project.LOWSECURITY)
+		if (Users.LOWSECURITY)
 		{
 			String uName = userName.getText();
 			if (!uName.equals(initialUserName))
@@ -191,7 +192,7 @@ public class ProjectManagementTab extends PreferencePanel
 							userNameField.selectAll();
 							return;
 						}
-						if (Project.isExistingUser(name))
+						if (Users.isExistingUser(name))
 						{
 							JOptionPane.showMessageDialog(this, "User " + name + " already exists.  Choose another name",
 								"User Name Exists", JOptionPane.ERROR_MESSAGE);
@@ -212,8 +213,8 @@ public class ProjectManagementTab extends PreferencePanel
 					case CHANGEPASSWORD:
 						// validate the dialog
 						String givenPassword = new String(oldPassword.getPassword()).trim();
-						String encryptedPassword = Project.getEncryptedPassword(userName);
-						String encryptedGivenPassword = Project.encryptPassword(givenPassword);
+						String encryptedPassword = Users.getEncryptedPassword(userName);
+						String encryptedGivenPassword = Users.encryptPassword(givenPassword);
 						if (!encryptedGivenPassword.equals(encryptedPassword))
 						{
 							JOptionPane.showMessageDialog(this, "Incorrect password given for user " + userName,
@@ -235,8 +236,8 @@ public class ProjectManagementTab extends PreferencePanel
 					case LOGINUSER:
 						// validate the dialog
 						givenPassword = new String(password.getPassword()).trim();
-						encryptedPassword = Project.getEncryptedPassword(userName);
-						encryptedGivenPassword = Project.encryptPassword(givenPassword);
+						encryptedPassword = Users.getEncryptedPassword(userName);
+						encryptedGivenPassword = Users.encryptPassword(givenPassword);
 						if (!encryptedGivenPassword.equals(encryptedPassword))
 						{
 							JOptionPane.showMessageDialog(this, "Incorrect password given for user " + userName,
@@ -547,7 +548,7 @@ public class ProjectManagementTab extends PreferencePanel
 	private void reloadUsers()
 	{
 		userModel.clear();
-		for(Iterator<String> it = Project.getUsers(); it.hasNext(); )
+		for(Iterator<String> it = Users.getUsers(); it.hasNext(); )
 		{
 			String userName = (String)it.next();
 			userModel.addElement(userName);
@@ -859,7 +860,7 @@ public class ProjectManagementTab extends PreferencePanel
 		if (pwd.cancelled()) return;
 
 		// delete the user and redisplay
-		Project.deleteUser(user);
+		Users.deleteUser(user);
 		reloadUsers();
 	}//GEN-LAST:event_deleteButtonActionPerformed
 
@@ -911,8 +912,8 @@ public class ProjectManagementTab extends PreferencePanel
 
 		// create the user and redisplay
 		String userName = pwd.getUserName();
-		String encryptedPassword = Project.encryptPassword(pwd.getPassword());
-		Project.addUser(userName, encryptedPassword);
+		String encryptedPassword = Users.encryptPassword(pwd.getPassword());
+		Users.addUser(userName, encryptedPassword);
 		reloadUsers();
 	}//GEN-LAST:event_addButtonActionPerformed
 
@@ -932,8 +933,8 @@ public class ProjectManagementTab extends PreferencePanel
 		if (pwd.cancelled()) return;
 
 		// make the change
-		String encryptedPassword = Project.encryptPassword(pwd.getPassword());
-		Project.changeEncryptedPassword(userName, encryptedPassword);
+		String encryptedPassword = Users.encryptPassword(pwd.getPassword());
+		Users.changeEncryptedPassword(userName, encryptedPassword);
 	}//GEN-LAST:event_passwordButtonActionPerformed
 
 	private void loginButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_loginButtonActionPerformed

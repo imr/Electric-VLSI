@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -66,10 +67,31 @@ public class HistoryDialog extends EDialog
 	private TableModel dataModel;
 	private JTable table;
 
-	HistoryDialog(ProjectDB pdb, Cell cell)
+	/**
+	 * Method to examine the history of the currently edited cell.
+	 */
+	public static void examineThisHistory()
+	{
+		UserInterface ui = Job.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
+		examineHistory(cell);
+	}
+
+	/**
+	 * Method to examine the history of a cell.
+	 * @param cell the Cell to examine.
+	 */
+	public static void examineHistory(Cell cell)
+	{
+		Project.pmActive = true;
+		new HistoryDialog(cell);
+	}
+
+	HistoryDialog(Cell cell)
 	{
 		super(null, true);
-		this.pdb = pdb;
+		this.pdb = Project.projectDB;
 		this.cell = cell;
 		initComponents();
 		setVisible(true);

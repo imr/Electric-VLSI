@@ -63,6 +63,28 @@ public class LibraryDialog extends EDialog
 	private JList libList;
 	private DefaultListModel libModel;
 
+	/**
+	 * Method to prompt for all libraries in the repository and
+	 * choose one to retrieve.
+	 */
+	public static void getALibrary()
+	{
+		Project.pmActive = true;
+
+		// find a list of files (libraries) in the repository
+		String dirName = Project.getRepositoryLocation();
+		File dir = new File(dirName);
+		File [] filesInDir = dir.listFiles();
+		if (filesInDir == null && dirName.length() == 0)
+		{
+			Job.getUserInterface().showInformationMessage("No repository location is set.  Use the 'Project Management' Preferences to set it.", "Warning");
+			return;
+		}
+
+		// choose one and read it in
+		new LibraryDialog(filesInDir);
+	}
+
 	LibraryDialog(File [] filesInDir)
 	{
 		super(null, true);

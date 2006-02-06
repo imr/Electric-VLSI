@@ -23,15 +23,20 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.project.AddCellJob;
+import com.sun.electric.tool.project.AddLibraryJob;
+import com.sun.electric.tool.project.CancelCheckOutJob;
 import com.sun.electric.tool.project.CheckInJob;
+import com.sun.electric.tool.project.CheckOutJob;
+import com.sun.electric.tool.project.DeleteCellJob;
+import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.Project;
+import com.sun.electric.tool.project.UpdateJob;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
@@ -43,10 +48,7 @@ import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.tecEdit.ArcInfo;
-import com.sun.electric.tool.user.tecEdit.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
-import com.sun.electric.tool.user.tecEdit.NodeInfo;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -74,7 +76,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1068,7 +1069,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						menuItem = new JMenuItem("Check Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckOutJob.checkOut((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.CHECKEDOUTTOYOU)
 					{
@@ -1078,24 +1079,24 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 						menuItem = new JMenuItem("Rollback and Release Check-Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CancelCheckOutJob.cancelCheckOut((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.NOTMANAGED)
 					{
 						menuItem = new JMenuItem("Add To Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AddCellJob.addCell((Cell)getCurrentlySelectedObject(0)); } });
 					} else
 					{
 						menuItem = new JMenuItem("Show History of This Cell...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { HistoryDialog.examineHistory((Cell)getCurrentlySelectedObject(0)); } });
 					}
 					if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Remove From Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { DeleteCellJob.removeCell((Cell)getCurrentlySelectedObject(0)); } });
 					}
 				}
 
@@ -1215,12 +1216,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					menuItem = new JMenuItem("Update from Repository");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.updateProject(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { UpdateJob.updateProject(); } });
 				} else
 				{
 					menuItem = new JMenuItem("Add to Project Management Repository");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)getCurrentlySelectedObject(0)); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AddLibraryJob.addLibrary((Library)getCurrentlySelectedObject(0)); } });
 				}
 
 				menu.addSeparator();

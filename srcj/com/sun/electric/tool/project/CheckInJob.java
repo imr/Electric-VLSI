@@ -45,8 +45,65 @@ public class CheckInJob extends Job
 	private Library lib;
 	private HashMap<Cell,MutableInteger> cellsMarked;
 	private String comment;
+	private static String lastComment = null;
 
-	CheckInJob(ProjectDB pdb, Library lib, HashMap<Cell,MutableInteger> cellsMarked, String comment)
+	/**
+	 * Method to check the currently edited cell back into the repository.
+	 */
+	public static void checkInThisCell()
+	{
+		UserInterface ui = Job.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
+		checkIn(cell);
+	}
+
+	/**
+	 * Method to check a cell back into the repository.
+	 * @param cell the Cell to check back in.
+	 */
+	public static void checkIn(Cell cell)
+	{
+		// make sure there is a valid user name
+		if (Users.needUserName()) return;
+	
+		// determine all of the cells to write
+		HashMap<Cell,MutableInteger> cellsMarked = markRelatedCells(cell);
+	
+		// check the cells for validity
+		for(Cell aCell : cellsMarked.keySet())
+		{
+			MutableInteger mi = (MutableInteger)cellsMarked.get(aCell);
+			if (mi.intValue() == 0) continue;
+	
+			// find this in the project file
+			ProjectCell pc = Project.projectDB.findProjectCell(aCell);
+			if (pc == null)
+			{
+				Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
+					" is not in the project.  Add it before checking it in or out.", "Check-In Error");
+				return;
+			} else
+			{
+				// see if it is available
+				if (!pc.getOwner().equals(Project.getCurrentUserName()))
+				{
+					Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
+						"You cannot check-in " + aCell + " because it is checked out to '" + pc.getOwner() + "', not you.", "Check-In Error");
+					return;
+				}
+			}
+		}
+	
+		String comment = Job.getUserInterface().askForInput("Reason for checking-in " + cell.describe(true),
+			"Describe the Change", lastComment);
+		if (comment == null) return;
+		lastComment = comment;
+	
+		new CheckInJob(Project.projectDB, cell.getLibrary(), cellsMarked, comment);
+	}
+
+	private CheckInJob(ProjectDB pdb, Library lib, HashMap<Cell,MutableInteger> cellsMarked, String comment)
 	{
 		super("Check in cells", Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 		this.pdb = pdb;
@@ -120,61 +177,6 @@ public class CheckInJob extends Job
 		if (error != null) throw new JobException(error);
 
 		return true;
-	}
-
-	/**
-	 * Method to check a cell back into the repository.
-	 * @param cell the Cell to check back in.
-	 */
-	public static void checkIn(Cell cell)
-	{
-		// make sure there is a valid user name
-		if (Project.needUserName()) return;
-	
-		// determine all of the cells to write
-		HashMap<Cell,MutableInteger> cellsMarked = markRelatedCells(cell);
-	
-		// check the cells for validity
-		for(Cell aCell : cellsMarked.keySet())
-		{
-			MutableInteger mi = (MutableInteger)cellsMarked.get(aCell);
-			if (mi.intValue() == 0) continue;
-	
-			// find this in the project file
-			ProjectCell pc = Project.projectDB.findProjectCell(aCell);
-			if (pc == null)
-			{
-				Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
-					" is not in the project.  Add it before checking it in or out.", "Check-In Error");
-				return;
-			} else
-			{
-				// see if it is available
-				if (!pc.getOwner().equals(Project.getCurrentUserName()))
-				{
-					Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
-						"You cannot check-in " + aCell + " because it is checked out to '" + pc.getOwner() + "', not you.", "Check-In Error");
-					return;
-				}
-			}
-		}
-	
-		String comment = Job.getUserInterface().askForInput("Reason for checking-in " + cell.describe(true),
-			"Describe the Change", Project.lastComment);
-		if (comment == null) return;
-	
-		new CheckInJob(Project.projectDB, cell.getLibrary(), cellsMarked, comment);
-	}
-
-	/**
-	 * Method to check the currently edited cell back into the repository.
-	 */
-	public static void checkInThisCell()
-	{
-		UserInterface ui = Job.getUserInterface();
-		Cell cell = ui.needCurrentCell();
-		if (cell == null) return;
-		CheckInJob.checkIn(cell);
 	}
 
 	/**

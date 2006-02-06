@@ -26,11 +26,14 @@
 package com.sun.electric.tool.project;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class cancels the checkout of a cell from the Project Management repository.
@@ -41,7 +44,84 @@ public class CancelCheckOutJob extends Job
 	private ProjectDB pdb;
 	private DisplayedCells displayedCells;
 
-	CancelCheckOutJob(ProjectCell cancelled, ProjectCell former)
+	/**
+	 * Method to cancel the check-out of the currently edited cell.
+	 */
+	public static void cancelCheckOutThisCell()
+	{
+		UserInterface ui = Job.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
+		cancelCheckOut(cell);
+	}
+
+	/**
+	 * Method to cancel the check-out of a cell.
+	 * @param cell the Cell whose check-out should be cancelled.
+	 */
+	public static void cancelCheckOut(Cell cell)
+	{
+		// make sure there is a valid user name
+		if (Users.needUserName()) return;
+	
+		boolean response = Job.getUserInterface().confirmMessage(
+			"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
+		if (!response) return;
+	
+		ProjectCell cancelled = null;
+		ProjectCell former = null;
+		Library lib = cell.getLibrary();
+		ProjectLibrary pl = Project.projectDB.findProjectLibrary(lib);
+		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+		{
+			ProjectCell pc = it.next();
+			if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
+			{
+				if (pc.getVersion() >= cell.getVersion())
+				{
+					if (pc.getOwner().length() > 0)
+					{
+						if (pc.getOwner().equals(Project.getCurrentUserName()))
+						{
+							cancelled = pc;
+						} else
+						{
+							pl.releaseProjectFileLock(true);
+							Job.getUserInterface().showErrorMessage(
+								"This cell is not checked out to you.  Only user '" + pc.getOwner() + "' can cancel the check-out.",
+								"Cannot Cancel Checkout");
+							return;
+						}
+					}
+				} else
+				{
+					// find most recent former version
+					if (former != null && former.getVersion() < pc.getVersion()) former = null;
+					if (former == null) former = pc;
+				}
+			}
+		}
+	
+		if (cancelled == null)
+		{
+			pl.releaseProjectFileLock(true);
+			Job.getUserInterface().showErrorMessage("This cell is not checked out.",
+				"Cannot Cancel Checkout");
+			return;
+		}
+	
+		if (former == null)
+		{
+			pl.releaseProjectFileLock(true);
+			Job.getUserInterface().showErrorMessage("Cannot find former version to restore.",
+				"Cannot Cancel Checkout");
+			return;
+		}
+	
+		new CancelCheckOutJob(cancelled, former);
+	}
+
+	private CancelCheckOutJob(ProjectCell cancelled, ProjectCell former)
 	{
 		super("Cancel Check-out", Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 		this.cancelled = cancelled;

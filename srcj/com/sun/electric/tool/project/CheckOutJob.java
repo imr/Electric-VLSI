@@ -29,10 +29,12 @@ import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,6 +50,33 @@ public class CheckOutJob extends Job
 	private ProjectDB pdb;
 	private DisplayedCells displayedCells;
 	private boolean autoCheckout;
+
+	/**
+	 * Method to check the currently edited cell out of the repository.
+	 */
+	public static void checkOutThisCell()
+	{
+		UserInterface ui = Job.getUserInterface();
+		Cell cell = ui.needCurrentCell();
+		if (cell == null) return;
+		checkOut(cell);
+	}
+
+	/**
+	 * Method to check a cell out of the repository.
+	 * @param cell the Cell to check-out.
+	 */
+	public static void checkOut(Cell cell)
+	{	
+		// make sure there is a valid user name
+		if (Users.needUserName()) return;
+	
+		// make a list of just this cell
+		List<Cell> oneCell = new ArrayList<Cell>();
+		oneCell.add(cell);
+	
+		new CheckOutJob(oneCell, false);
+	}
 
 	/**
 	 * Constructor to make a "check out cells" job.
