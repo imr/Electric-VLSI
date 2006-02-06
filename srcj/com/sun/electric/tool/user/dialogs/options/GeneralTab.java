@@ -83,6 +83,8 @@ public class GeneralTab extends PreferencePanel
 		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		generalMaxMem.setText(Long.toString(User.getMemorySize()));
+		generalUseTwoJVMs.setSelected(User.isUseTwoJVMs());
+		generalLogClientServer.setSelected(User.isLogClientServer());
 	}
 
 	/**
@@ -156,6 +158,14 @@ public class GeneralTab extends PreferencePanel
             User.setMaxUndoHistory(currInt);
             Undo.setHistoryListSize(currInt);
         }
+
+		currBoolean = generalUseTwoJVMs.isSelected();
+		if (currBoolean != User.isUseTwoJVMs())
+			User.setUseTwoJVMs(currBoolean);
+
+		currBoolean = generalLogClientServer.isSelected();
+		if (currBoolean != User.isLogClientServer())
+			User.setLogClientServer(currBoolean);
 	}
 
 	/** This method is called from within the constructor to
@@ -175,6 +185,8 @@ public class GeneralTab extends PreferencePanel
         jLabel61 = new javax.swing.JLabel();
         generalMemoryUsage = new javax.swing.JLabel();
         jLabel62 = new javax.swing.JLabel();
+        generalUseTwoJVMs = new javax.swing.JCheckBox();
+        generalLogClientServer = new javax.swing.JCheckBox();
         display = new javax.swing.JPanel();
         generalShowCursorCoordinates = new javax.swing.JCheckBox();
         sideBarOnRight = new javax.swing.JCheckBox();
@@ -219,7 +231,7 @@ public class GeneralTab extends PreferencePanel
 
         memory.setLayout(new java.awt.GridBagLayout());
 
-        memory.setBorder(new javax.swing.border.TitledBorder("Memory"));
+        memory.setBorder(javax.swing.BorderFactory.createTitledBorder("Memory"));
         jLabel60.setText("Maximum memory:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -262,6 +274,26 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         memory.add(jLabel62, gridBagConstraints);
 
+        generalUseTwoJVMs.setText("Use two JVMs (Client and Server)");
+        generalUseTwoJVMs.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        generalUseTwoJVMs.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        memory.add(generalUseTwoJVMs, gridBagConstraints);
+
+        generalLogClientServer.setText("Log Client / Server interactions");
+        generalLogClientServer.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        generalLogClientServer.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        memory.add(generalLogClientServer, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -270,7 +302,7 @@ public class GeneralTab extends PreferencePanel
 
         display.setLayout(new java.awt.GridBagLayout());
 
-        display.setBorder(new javax.swing.border.TitledBorder("Display"));
+        display.setBorder(javax.swing.BorderFactory.createTitledBorder("Display"));
         generalShowCursorCoordinates.setText("Show hierarchical cursor coordinates in status bar");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -384,7 +416,7 @@ public class GeneralTab extends PreferencePanel
 
         IO.setLayout(new java.awt.GridBagLayout());
 
-        IO.setBorder(new javax.swing.border.TitledBorder("I/O"));
+        IO.setBorder(javax.swing.BorderFactory.createTitledBorder("I/O"));
         generalIncludeDateAndVersion.setText("Include date and version in output files");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -426,7 +458,7 @@ public class GeneralTab extends PreferencePanel
 
         jobs.setLayout(new java.awt.GridBagLayout());
 
-        jobs.setBorder(new javax.swing.border.TitledBorder("Jobs"));
+        jobs.setBorder(javax.swing.BorderFactory.createTitledBorder("Jobs"));
         generalBeepAfterLongJobs.setText("Beep after long jobs");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -502,8 +534,7 @@ public class GeneralTab extends PreferencePanel
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void generalVerboseModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generalVerboseModeActionPerformed
 // TODO add your handling code here:
@@ -525,6 +556,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JTextField generalGreekCellLimit;
     private javax.swing.JTextField generalGreekLimit;
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
+    private javax.swing.JCheckBox generalLogClientServer;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
     private javax.swing.JCheckBox generalOlderDisplayAlgorithm;
@@ -533,6 +565,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JCheckBox generalUseGreekImages;
+    private javax.swing.JCheckBox generalUseTwoJVMs;
     private javax.swing.JCheckBox generalVerboseMode;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

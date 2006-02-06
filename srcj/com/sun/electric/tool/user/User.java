@@ -2119,6 +2119,36 @@ public class User extends Listener
 	 */
 	public static void setMemorySize(int limit) { cacheMemorySize.setInt(limit); }
 
+	private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
+	/**
+	 * Method to tell whether to use two JVMs when running Electric.
+	 * When using two JVMs, there is a client and a server, in separate memory spaces.
+	 * The default is "false".
+	 * @return true to use two JVMs when running Electric.
+	 */
+	public static boolean isUseTwoJVMs() { return cacheUseTwoJVMs.getBoolean(); }
+	/**
+	 * Method to set whether to use two JVMs when running Electric.
+	 * When using two JVMs, there is a client and a server, in separate memory spaces.
+	 * @param on true to use two JVMs when running Electric.
+	 */
+	public static void setUseTwoJVMs(boolean on) { cacheUseTwoJVMs.setBoolean(on); }
+
+	private static Pref cacheLogClientServer = Pref.makeBooleanPref("LogClientServer", tool.prefs, false);
+	/**
+	 * Method to tell whether to log the interactions between client and server.
+	 * This is used for debugging.
+	 * The default is "false".
+	 * @return true to use log the interactions between client and server.
+	 */
+	public static boolean isLogClientServer() { return cacheLogClientServer.getBoolean(); }
+	/**
+	 * Method to set whether to log the interactions between client and server.
+	 * This is used for debugging.
+	 * @param on true to log the interactions between client and server.
+	 */
+	public static void setLogClientServer(boolean on) { cacheLogClientServer.setBoolean(on); }
+
 	private static Pref cacheAutoTechnologySwitch = Pref.makeBooleanPref("AutoTechnologySwitch", tool.prefs, true);
 	/**
 	 * Method to tell whether to switch technologies automatically when changing the current Cell.
