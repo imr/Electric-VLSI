@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/7/06, DN) When User.useClientServer option is on in GeneralPreferences dialog,
+     Electric tests snapshots and job serialization.
+
 BUG: (2/7/06, SMR) Crossprobing between waveform and edit window is bad.
 FIX: Cleaned up highlighting and crossprobing.
 

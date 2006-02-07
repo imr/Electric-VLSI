@@ -69,18 +69,19 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean runningChangeJob;
     private boolean jobTreeChanged;
     private boolean signalledEThread;
-    private boolean useClientServer = User.isUseClientServer();
-
+    private final boolean useSnapshots;
     
     private Snapshot currentSnapshot = new Snapshot();
     
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {
+        useSnapshots = User.isUseClientServer();
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
     }
     
     ServerJobManager(int recommendedNumThreads, int socketPort) {
+        useSnapshots = true;
         maxNumThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
         try {
@@ -196,7 +197,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         Job job = ejob.getJob();
         job.startTime = System.currentTimeMillis();
 
-        if (useClientServer && ejob.connection == null && ejob.jobType != Job.Type.EXAMINE && ejob.jobType != Job.Type.REMOTE_EXAMINE) {
+        if (useSnapshots && ejob.connection == null && ejob.jobType != Job.Type.EXAMINE && ejob.jobType != Job.Type.REMOTE_EXAMINE) {
             Throwable e = ejob.serialize();
             if (e == null)
                 e = ejob.deserialize();
@@ -240,7 +241,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 thread.setCanComputeNetlist(false);
                 thread.setJob(null);
                 thread.setUserInterface(Job.currentUI);
-                if (Job.threadMode == Job.Mode.SERVER)
+                if (useSnapshots)
                     updateSnapshot();
 			}
 		}
