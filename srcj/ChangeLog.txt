@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/6/06, DN) Can't select wires once waveform viewer is open (Bug #811).
+FIX: In WaveformWindow use getCurrentlySelectedObject(0).
+
+BUG: (2/6/06, DN) Exception when opening spice waveform window (Bug #810).
+FIX: In Simulate.ReadSimulationOutputJob open window in treminateOK().
+
 BUG: (2/3/06, DN) WindowFrame together with contents remains in memory after close.
 FIX: Use new class WeakReferences for storing Listeners.
      Don't use static fields EditMenu.moveFull, EditMenu.moveHals, EdiitMenu.moveQuarter, WindowMenu.closeWindow.

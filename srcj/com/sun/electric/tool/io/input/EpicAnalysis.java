@@ -160,45 +160,6 @@ public class EpicAnalysis extends Analysis {
     }
 
     /**
-     * Public method to build tree of DefaultMutableTreeNodes.
-     * The size of tree is number of all signals.
-     * @param analysis name of root DefaultMutableTreeNode.
-     * @param parentPath path to parent of analysis tree.
-     * @param treePathFromSignal map from Signal to TreePath.
-     * @return root DefaultMutableTreeNode of the tree.
-     */
-    public DefaultMutableTreeNode getSignalsForExplorer(String analysis, TreePath parentPath, HashMap<Signal,TreePath> treePathFromSignal) {
-        DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
-        TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-        getSignalsForExplorer(rootContext, analysisPath, 0, treePathFromSignal);
-        return signalsExplorerTree;
-    }
-    
-    /**
-     * Method to build DefaultMutableTreeNodes subtree with given root context.
-     * @param parentContex root context.
-     * @param parentPath tree path to root context.
-     * @param sigIndex starting index of Signals in this instance of parentContext.
-     * @param treeNodeFromSignal map from Signal to DefaultMutableTreeNode.
-     */
-    private void getSignalsForExplorer(Context parentContext, TreePath parentPath, int sigIndex,
-            HashMap<Signal,TreePath> treePathFromSignal) {
-        for (EpicTreeNode etn: parentContext.sortedNodes) {
-            DefaultMutableTreeNode treeNode;
-            if (etn.isLeaf()) {
-                Signal signal = signalsUnmodifiable.get(sigIndex + etn.nodeOffset);
-                treeNode = new DefaultMutableTreeNode(signal);
-                treePathFromSignal.put(signal, parentPath.pathByAddingChild(treeNode));
-            } else {
-                treeNode = new DefaultMutableTreeNode(etn.name);
-                getSignalsForExplorer(etn.context, parentPath.pathByAddingChild(treeNode), sigIndex + etn.nodeOffset, treePathFromSignal);
-                
-            }
-            ((DefaultMutableTreeNode)parentPath.getLastPathComponent()).add(treeNode);
-        }
-    }
-            
-    /**
      * Public method to build tree of EpicTreeNodes.
      * Root of the tree us EpicRootTreeNode objects.
      * Deeper nodes are EpicTreeNode objects.
@@ -227,8 +188,10 @@ public class EpicAnalysis extends Analysis {
         for (; i < path.length; i++) {
             EpicTreeNode tn = (EpicTreeNode)path[i];
             index += tn.nodeOffset;
+            if (tn.isLeaf())
+                return (EpicSignal)an.signalsUnmodifiable.get(index);
         }
-        return (EpicSignal)an.signalsUnmodifiable.get(index);
+        return null;
     }
     
 	/**
@@ -300,30 +263,6 @@ public class EpicAnalysis extends Analysis {
             sb.append(separator);
             index -= tn.nodeOffset;
             context = subContext;
-        }
-    }
-    
-    /**
-     * Extends TreePath from TreePath of EpicAnalyis to specified Signal.
-     * TreePath is extended by EpicTreeNodes.
-     * @param rootTreePath TreePath of EpicAnalysis.
-     * @paran s target Signal for the TreePath.
-     * @return TreePath to the Signal.
-     */
-    public TreePath getTreePath(TreePath rootTreePath, Signal s) {
-        TreePath treePath = rootTreePath;
-        assert ((EpicRootTreeNode)treePath.getLastPathComponent()).an == this;
-        assert s.getAnalysis() == this;
-        int index = ((EpicSignal)s).index;
-        Context context = rootContext;
-        for (;;) {
-            int localIndex = context.localSearch(index);
-            EpicTreeNode tn = context.nodes[localIndex];
-            treePath = treePath.pathByAddingChild(tn);
-            if (tn.context.isLeaf())
-                return treePath;
-            index -= tn.nodeOffset;
-            context = tn.context;
         }
     }
     

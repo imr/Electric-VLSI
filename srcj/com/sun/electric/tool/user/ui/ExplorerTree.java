@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;
@@ -101,9 +102,12 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class ExplorerTree extends JTree implements DragGestureListener, DragSourceListener
 {
-	private TreeHandler handler = null;
+    private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
+    
+    private TreeHandler handler = null;
 	private final String rootNode;
-	private Object [] currentSelectedObjects = new Object[0];
+	private Object [] currentSelectedObjects = NULL_TREE_PATH_ARRAY;
+    private TreePath [] currentSelectedPaths = new TreePath[0];
 
 	private static class IconGroup
 	{
@@ -165,29 +169,46 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	 * Method to return the currently selected objects in the explorer tree.
 	 * @return the currently selected objects in the explorer tree.
 	 */
-	public Object [] getCurrentlySelectedObject() { return currentSelectedObjects; }
+	public Object [] getCurrentlySelectedObject() {
+        Object[] selectedObjects = new Object[numCurrentlySelectedObjects()];
+        for (int i = 0; i < selectedObjects.length; i++)
+            selectedObjects[i] = getCurrentlySelectedObject(i);
+        return selectedObjects;
+    }
 
 	/**
 	 * Method to return the number of currently selected objects in the explorer tree.
 	 * @return the number of currently selected objects in the explorer tree.
 	 */
-	public int numCurrentlySelectedObjects() { return currentSelectedObjects.length; }
+	public int numCurrentlySelectedObjects() { return currentSelectedPaths.length; }
 
 	/**
 	 * Method to return the currently selected object in the explorer tree.
      * @param i index of currently selected object.
 	 * @return the currently selected object in the explorer tree.
 	 */
-	public Object getCurrentlySelectedObject(int i) { return currentSelectedObjects[i]; }
+	public Object getCurrentlySelectedObject(int i) {
+        if (i >= currentSelectedPaths.length) return null;
+        TreePath treePath = currentSelectedPaths[i];
+        if (treePath == null) return null;
+        Object obj = treePath.getLastPathComponent();
+        if (obj instanceof DefaultMutableTreeNode)
+            return ((DefaultMutableTreeNode)obj).getUserObject();
+        if (obj instanceof EpicAnalysis.EpicTreeNode) {
+            Signal sig = EpicAnalysis.getSignal(treePath);
+            if (sig != null)
+                return sig;
+        }
+        return obj;
+    }
 
 	/**
 	 * Method to set the currently selected object in the explorer tree.
 	 * param obj the currently selected object in the explorer tree.
 	 */
-	public void setCurrentlySelectedObject(Object obj)
+	public void clearCurrentlySelectedObjects()
 	{
-		currentSelectedObjects = new Object[1];
-		currentSelectedObjects[0] = obj;
+		currentSelectedPaths = NULL_TREE_PATH_ARRAY;
 	}
 
 	/**
@@ -844,13 +865,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			currentPaths = getSelectionPaths();
 			if (currentPaths == null) currentPaths = new TreePath[0];
-			currentSelectedObjects = new Object[currentPaths.length];
+			currentSelectedPaths = new TreePath[currentPaths.length];
 			for(int i=0; i<currentPaths.length; i++)
 			{
-                Object obj = currentPaths[i].getLastPathComponent();
-                if (obj instanceof DefaultMutableTreeNode)
-                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
-                currentSelectedObjects[i] = obj;
+                currentSelectedPaths[i] = currentPaths[i];
+//                Object obj = currentPaths[i].getLastPathComponent();
+//                if (obj instanceof DefaultMutableTreeNode)
+//                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
+//                currentSelectedObjects[i] = obj;
 //				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
 //				currentSelectedObjects[i] = node.getUserObject();
 			}
@@ -888,8 +910,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				}
 				if (!selected)
 				{
-					currentSelectedObjects = new Object[1];
-					currentSelectedObjects[0] = obj;
+					currentSelectedPaths = new TreePath[1];
+					currentSelectedPaths[0] = cp;
 					clearSelection();
 					addSelectionPath(cp);
 					updateUI();

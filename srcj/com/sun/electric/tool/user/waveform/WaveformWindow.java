@@ -126,6 +126,7 @@ import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -147,7 +148,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from signals to entries in "SIGNALS" tree */private HashMap<Signal,TreePath> treePathFromSignal;
+    /** mapping from analysis to entries in "SIGNALS" tree*/private HashMap<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -1419,7 +1420,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// also include what is in the SIGNALS tree
 		ExplorerTree sigTree = wf.getExplorerTab();
-		Object nodeInfo = sigTree.getCurrentlySelectedObject();
+		Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
 		if (nodeInfo != null && nodeInfo instanceof Signal)
 		{
 			Signal sig = (Signal)nodeInfo;
@@ -1460,7 +1461,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// also include what is in the SIGNALS tree
 		ExplorerTree sigTree = wf.getExplorerTab();
-		Object nodeInfo = sigTree.getCurrentlySelectedObject();
+		Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
 		if (nodeInfo != null && nodeInfo instanceof Signal)
 		{
 			Signal sig = (Signal)nodeInfo;
@@ -1542,7 +1543,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
         TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
         ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
-
+        
+        treePathFromAnalysis.clear();
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
@@ -1577,12 +1579,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		List<Signal> signals = an.getSignals();
 		if (signals.size() == 0) return null;
-		treePathFromSignal = new HashMap<Signal,TreePath>();
         if (an instanceof EpicAnalysis) {
-            return ((EpicAnalysis)an).getSignalsForExplorer(analysis, parentPath, treePathFromSignal);
+            DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
+            treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
+            return analysisNode;
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
         TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
+        treePathFromAnalysis.put(an, analysisPath);
 		HashMap<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
@@ -1606,7 +1610,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 			DefaultMutableTreeNode sigLeaf = new DefaultMutableTreeNode(sSig);
 			((DefaultMutableTreeNode)thisTree.getLastPathComponent()).add(sigLeaf);
-			treePathFromSignal.put(sSig, thisTree.pathByAddingChild(sigLeaf));
 		}
 		return signalsExplorerTree;
 	}
@@ -2084,7 +2087,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// also clear "Signals" tree highlighting
 		ExplorerTree tree = wf.getExplorerTab();
 		tree.setSelectionPath(null);
-		tree.setCurrentlySelectedObject(null);
+		tree.clearCurrentlySelectedObjects();
 
 		// find the signal to show in the waveform window
 		List<Signal> found = findSelectedSignals(which, loc.getContext());
@@ -2111,12 +2114,53 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Collections.sort(found, new SignalsByName());
 		for(Signal sSig : found)
 		{
-			TreePath treePath = treePathFromSignal.get(sSig);
-			if (treePath != null)
+            TreePath treePath = treePathFromSignal(sSig);
+			if (treePath != null) {
                 tree.setSelectionPath(treePath);
+                break;
+            }
 		}
 	}
 
+    private TreePath treePathFromSignal(Signal sig) {
+        Analysis an = sig.getAnalysis();
+        TreePath treePath = treePathFromAnalysis.get(an);
+        if (treePath == null) return null;
+        String fullName = sig.getFullName();
+        char separator = an.getStimuli().getSeparatorChar();
+        int sBeg = 0;
+        while (sBeg < fullName.length()) {
+            int sEnd = fullName.indexOf(separator, sBeg);
+            if (sEnd < 0) sEnd = fullName.length();
+            String s = fullName.substring(sBeg, sEnd);
+            TreeNode parentNode = (TreeNode)treePath.getLastPathComponent();
+            TreeNode child = findChild(parentNode, s);
+            if (child == null) return null;
+            treePath = treePath.pathByAddingChild(child);
+            sBeg = sEnd + 1;
+        }
+        return sBeg == fullName.length() + 1 ? treePath : null;
+    }
+    
+    private static TreeNode findChild(TreeNode parent, String name) {
+        for (int i = 0, numChilds = parent.getChildCount(); i < numChilds; i++) {
+            TreeNode child = parent.getChildAt(i);
+            String s;
+            if (child instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
+                Object o = node.getUserObject();
+                if (o instanceof Signal)
+                    s = ((Signal)o).getSignalName();
+                else
+                    s = o.toString();
+            } else {
+                s = child.toString();
+            }
+            if (name.equals(s)) return child;
+        }
+        return null;
+    }
+    
 	/**
 	 * Method to return a list of signals that are selected in an EditWindow.
 	 * @param h a Highlighter with a selection in an EditWindow.
@@ -2283,7 +2327,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// also highlight anything selected in the "SIGNALS" tree
 			ExplorerTree sigTree = wf.getExplorerTab();
-			Object nodeInfo = sigTree.getCurrentlySelectedObject();
+			Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
 			if (nodeInfo != null && nodeInfo instanceof Signal)
 			{
 				Signal sig = (Signal)nodeInfo;
@@ -2559,8 +2603,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						(ws.getSignal().getBussedSignals() != null && ws.getSignal().getBussedSignals().size() == 0))
 					{
 						redoPanel = true;
-if (wp.getSignalButtons() != null)
-						wp.removeSignal(ws.getButton());
+                        if (wp.getSignalButtons() != null)
+                            wp.removeSignal(ws.getButton());
 						break;
 					}
 				}

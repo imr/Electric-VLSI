@@ -174,6 +174,8 @@ public class Simulate extends Input
 
 	/**
 	 * Class to read simulation output in a new thread.
+     * This job is examine job, so it contain non-serializable fields.
+     * However, showSimulationData should be shown in GUI thread (in terminateOK).
 	 */
 	private static class ReadSimulationOutput extends Job
 	{
@@ -182,6 +184,7 @@ public class Simulate extends Input
 		private URL fileURL;
 		private Cell cell;
 		private WaveformWindow ww;
+        private Stimuli sd;
 
 		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
@@ -198,12 +201,12 @@ public class Simulate extends Input
 		{
 			try
 			{
-				Stimuli sd = is.readSimulationOutput(fileURL, cell);
+				sd = is.readSimulationOutput(fileURL, cell);
 				if (sd != null)
 				{
 					sd.setDataType(type);
 					sd.setFileURL(fileURL);
-					Simulation.showSimulationData(sd, ww);
+//					Simulation.showSimulationData(sd, ww);
 				}
 			} catch (IOException e)
 			{
@@ -211,6 +214,11 @@ public class Simulate extends Input
 			}
 			return true;
 		}
+        
+        public void terminateOK() {
+            if (sd != null)
+                Simulation.showSimulationData(sd, ww);
+        }
 	}
 
 	/**
