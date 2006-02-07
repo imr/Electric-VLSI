@@ -638,6 +638,46 @@ public class Pref
 	public void setSideEffect() {}
 
 	/**
+	 * Method to start accumulation of Pref changes.
+	 * All changes to preferences after this call are gathered,
+	 * and not actually implemented.
+	 * Call "getPrefChanges()" to get the gathered changes, and call
+	 * "implementPrefChanges()" to actually make the changes.
+	 */
+	public static void gatherPrefChanges()
+	{
+	}
+
+	/**
+	 * Method to get the accumulated Pref changes.
+	 * In order to make preference changes on the server,
+	 * it is necessary to gather them on the client, and send
+	 * the changes to the server for actual change.
+	 * This method runs on the client and gets a serializable
+	 * object that can be sent to the server.
+	 * @return a collection of changes to preferences that have
+	 * been made since the call to "gatherPrefChanges()".
+	 * Call "implementPrefChanges()" with the returned collection
+	 * to actually make the changes.
+	 */
+	public static Object getPrefChanges()
+	{
+		return null;
+	}
+
+	/**
+	 * Method to make a collection of preference changes.
+	 * In order to make preference changes on the server,
+	 * it is necessary to gather them on the client, and send
+	 * the changes to the server for actual change.
+	 * This method runs on the server.
+	 * @param obj the collection of preference changes.
+	 */
+	static void implementPrefChanges(Object obj)
+	{
+	}
+
+	/**
 	 * Method to delay the saving of preferences to disk.
 	 * Since individual saving is time-consuming, batches of preference
 	 * changes are wrapped with this, and "resumePrefFlushing()".

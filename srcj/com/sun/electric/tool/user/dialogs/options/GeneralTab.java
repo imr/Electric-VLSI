@@ -279,19 +279,19 @@ public class GeneralTab extends PreferencePanel
         generalUseTwoJVMs.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         memory.add(generalUseTwoJVMs, gridBagConstraints);
 
-        generalLogClientServer.setText("Log Client / Server interactions");
+        generalLogClientServer.setText("Use Client / Server interactions");
         generalLogClientServer.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         generalLogClientServer.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         memory.add(generalLogClientServer, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

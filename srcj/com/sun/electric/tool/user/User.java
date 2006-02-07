@@ -2134,20 +2134,18 @@ public class User extends Listener
 	 */
 	public static void setUseTwoJVMs(boolean on) { cacheUseTwoJVMs.setBoolean(on); }
 
-	private static Pref cacheLogClientServer = Pref.makeBooleanPref("LogClientServer", tool.prefs, false);
+	private static Pref cacheUseClientServer = Pref.makeBooleanPref("UseClientServer", tool.prefs, true);
 	/**
-	 * Method to tell whether to log the interactions between client and server.
-	 * This is used for debugging.
-	 * The default is "false".
-	 * @return true to use log the interactions between client and server.
+	 * Method to tell whether to use a separate client and server for Electric.
+	 * The default is "true".
+	 * @return true to use a separate client and server for Electric
 	 */
-	public static boolean isLogClientServer() { return cacheLogClientServer.getBoolean(); }
+	public static boolean isUseClientServer() { return cacheUseClientServer.getBoolean(); }
 	/**
-	 * Method to set whether to log the interactions between client and server.
-	 * This is used for debugging.
-	 * @param on true to log the interactions between client and server.
+	 * Method to set whether to use a separate client and server for Electric
+	 * @param on true to use a separate client and server for Electric
 	 */
-	public static void setLogClientServer(boolean on) { cacheLogClientServer.setBoolean(on); }
+	public static void setUseClientServer(boolean on) { cacheUseClientServer.setBoolean(on); }
 
 	private static Pref cacheAutoTechnologySwitch = Pref.makeBooleanPref("AutoTechnologySwitch", tool.prefs, true);
 	/**
