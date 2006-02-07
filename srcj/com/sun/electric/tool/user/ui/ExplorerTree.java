@@ -256,15 +256,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         expandCachedPaths(expanded);
 	}
 
-    static void updateJobTrees() {
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-            ExplorerTree t = wf.getExplorerTab();
-            t.model().reload(t.model().jobPath);
-		}
-    }
-    
     static void redoErrorTrees() {
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{

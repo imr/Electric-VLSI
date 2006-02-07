@@ -8,22 +8,65 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * Class defines Job information in the explorer tree.
  */
 public class JobTree extends DefaultMutableTreeNode {
 
-    private static Vector<JobTreeNode> jobs = new Vector<JobTreeNode>();
+    /**
+     * A static object is used so that its open/closed tree state can be maintained.
+     */
+    private static final String jobNodeName = "JOBS";
+    private static final JobTree jobTree = new JobTree();
+    private static final TreePath jobPath = (new TreePath(ExplorerTreeModel.rootNode)).pathByAddingChild(jobTree);
     
-    private JobTree(String name) {
-        super(name);
-        children = jobs;
+    private final Vector<JobTreeNode> jobNodes = new Vector<JobTreeNode>();
+    
+    // array of ints
+    private int[] indices = new int[1];
+    private int indicesCount = 0;
+    
+    private JobTree() {
+        super(jobNodeName);
+        children = jobNodes;
     }
 
+    /** Build Job explorer tree */
+    public static DefaultMutableTreeNode getExplorerTree() { return jobTree; }
+    
+    /**
+     * Update Job Tree to given list of Jobs.
+     * @param jobs given list of jobs. 
+     */
+    public static void update(List<Job> jobs) {
+        jobTree.updateJobs(jobs);
+    }
+
+    /** popup menu when user right-clicks on job in explorer tree */
+    public static JPopupMenu getPopupStatus(JobTreeNode jobNode) {
+        JPopupMenu popup = new JPopupMenu();
+        ActionListener a = new JobMenuActionListener(jobNode.job);
+        JMenuItem m;
+        m = new JMenuItem("Get Info"); m.addActionListener(a); popup.add(m);
+        m = new JMenuItem("Abort"); m.addActionListener(a); popup.add(m);
+        m = new JMenuItem("Delete"); m.addActionListener(a); popup.add(m);
+        return popup;
+    }
+
+    // TreeNode overrides 
+    
+    public boolean isLeaf() { return false; }
+    public boolean getAllowsChildren() { return true; }
+    public void insert(MutableTreeNode newChild, int childIndex) { throw new UnsupportedOperationException(); }
+    public void remove(int childIndex) { throw new UnsupportedOperationException(); }
+    
     /**
      * Returns the index of the specified child in this node's child array.
      * If the specified node is not a child of this node, returns
@@ -40,7 +83,7 @@ public class JobTree extends DefaultMutableTreeNode {
     public int getIndex(TreeNode aChild) {
         try {
             JobTreeNode tn = (JobTreeNode)aChild;
-            return jobs.indexOf(tn);
+            return jobNodes.indexOf(tn);
         } catch (Exception e) {
             if (aChild == null)
                 throw new IllegalArgumentException("argument is null");
@@ -48,58 +91,81 @@ public class JobTree extends DefaultMutableTreeNode {
         return -1;
     }
     
-    public void insert(MutableTreeNode newChild, int childIndex) {
-        throw new UnsupportedOperationException();
-    }
-    
-    public void remove(int childIndex) {
-        throw new UnsupportedOperationException();
-    }
-    
-    /** popup menu when user right-clicks on job in explorer tree */
-    public static JPopupMenu getPopupStatus(JobTreeNode jobNode) {
-        JPopupMenu popup = new JPopupMenu();
-        ActionListener a = new JobMenuActionListener(jobNode.job);
-        JMenuItem m;
-        m = new JMenuItem("Get Info"); m.addActionListener(a); popup.add(m);
-        m = new JMenuItem("Abort"); m.addActionListener(a); popup.add(m);
-        m = new JMenuItem("Delete"); m.addActionListener(a); popup.add(m);
-        return popup;
-    }
-
-    /**
-     * A static object is used so that its open/closed tree state can be maintained.
-     */
-    private static String jobNode = "JOBS";
-
-    /** Build Job explorer tree */
-    public static DefaultMutableTreeNode getExplorerTree() {
-        return new JobTree(jobNode);
-//        DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-//        for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
-//            Job j = (Job)it.next();
-//            if (j.getDisplay()) {
-//                DefaultMutableTreeNode node = new DefaultMutableTreeNode(new JobTreeNode(j));
-////                    j.myNode.setUserObject(null);       // remove reference to job on old node
-////                    j.myNode = node;                    // get rid of old node, point to new node
-//                explorerTree.add(node);
-//            }
-//        }
-//        return explorerTree;
-    }
-    
-    public static void update() {
-        assert SwingUtilities.isEventDispatchThread();
-        jobs.clear();
-        for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
-            Job j = it.next();
-            if (j.getDisplay()) {
-                jobs.add(new JobTreeNode(j));
+    private void updateJobs(List<Job> newJobs) {
+        Job.checkSwingThread();
+        indicesClear();
+        int newJ = 0;
+        for (int oldJ = 0; oldJ < jobNodes.size(); oldJ++) {
+            JobTreeNode node = jobNodes.get(oldJ);
+            int k;
+            for (k = newJ; k < newJobs.size() && newJobs.get(k) != node.job; k++);
+            if (k == newJobs.size())
+                indicesAdd(oldJ);
+            else
+                newJ = k + 1;
+        }
+        if (indicesCount != 0) {
+            int[] childIndices = new int[indicesCount];
+            Object[] children = new Object[indicesCount];
+            for (int i = indicesCount - 1; i >= 0; i--) {
+                childIndices[i] = indices[i];
+                children[i] = jobNodes.remove(indices[i]);
+            }
+            ExplorerTreeModel.fireTreeNodesRemoved(jobTree, jobPath, childIndices, children);
+        }
+        
+        indicesClear();
+        for (int i = 0; i < newJobs.size(); i++) {
+            Job job = newJobs.get(i);
+            if (i < jobNodes.size() && jobNodes.get(i).job == job)
+                continue;
+            jobNodes.add(i, new JobTreeNode(job));
+            indicesAdd(i);
+        }
+        if (indicesCount != 0) {
+            int[] childIndices = new int[indicesCount];
+            Object[] children = new Object[indicesCount];
+            for (int i = 0; i < indicesCount; i++) {
+                childIndices[i] = indices[i];
+                children[i] = jobNodes.get(indices[i]);
+            }
+            ExplorerTreeModel.fireTreeNodesInserted(jobTree, jobPath, childIndices, children);
+        }
+        if (newJobs.size() != jobNodes.size())
+        assert newJobs.size() == jobNodes.size();
+        
+        indicesClear();
+        for (int i = 0; i < jobNodes.size(); i++) {
+            JobTreeNode node = jobNodes.get(i);
+            assert node.job == newJobs.get(i);
+            String s = node.toString();
+            if (!node.jobString.equals(s)) {
+                node.jobString = s;
+                indicesAdd(i);
             }
         }
-        ExplorerTree.updateJobTrees();
+        if (indicesCount != 0) {
+            int[] childIndices = new int[indicesCount];
+            Object[] children = new Object[indicesCount];
+            for (int i = 0; i < indicesCount; i++) {
+                childIndices[i] = indices[i];
+                children[i] = jobNodes.get(indices[i]);
+            }
+            ExplorerTreeModel.fireTreeNodesChanged(jobTree, jobPath, childIndices, children);
+        }
     }
-
+    
+    void indicesClear() { indicesCount = 0; }
+    
+    void indicesAdd(int index) {
+        if (indicesCount >= indices.length) {
+            int[] newIndices = new int[indices.length*2];
+            System.arraycopy(indices, 0, newIndices, 0, indices.length);
+            indices = newIndices; 
+        }
+        indices[indicesCount++] = index;
+    }
+    
     private static class JobMenuActionListener implements ActionListener {
         private final Job job;
         
@@ -125,10 +191,12 @@ public class JobTree extends DefaultMutableTreeNode {
     public static class JobTreeNode implements TreeNode
     {
         private Job job;
+        private String jobString;
 
-        JobTreeNode(Job log)
+        JobTreeNode(Job job)
         {
-            this.job = log;
+            this.job = job;
+            jobString = job.toString();
         }
 
         /**

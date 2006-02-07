@@ -31,12 +31,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.tecEdit.ArcInfo;
 import com.sun.electric.tool.user.tecEdit.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.NodeInfo;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -50,7 +50,7 @@ import javax.swing.tree.TreePath;
 public class ExplorerTreeModel extends DefaultTreeModel {
     public static final String rootNode = "Explorer";
     private static final String errorNode = "ERRORS";
-    private static final WeakReferences<TreeModelListener> treeModelListeners = new WeakReferences<TreeModelListener>();
+    private static final WeakReferences<TreeModelListener> allListeners = new WeakReferences<TreeModelListener>();
 
     private final ArrayList<MutableTreeNode> contentExplorerNodes = new ArrayList<MutableTreeNode>();
     /** the job explorer part. */						final DefaultMutableTreeNode jobExplorerNode;
@@ -119,8 +119,8 @@ public class ExplorerTreeModel extends DefaultTreeModel {
      */
     public Object getChild(Object parent, int index) {
         if (parent == rootNode) {
-            if (index == contentExplorerNodes.size()) return jobExplorerNode;
-            if (index == contentExplorerNodes.size() + 1) return errorExplorerNode;
+            if (index == contentExplorerNodes.size()) return errorExplorerNode;
+            if (index == contentExplorerNodes.size() + 1) return jobExplorerNode;
             return contentExplorerNodes.get(index);
         }
         return super.getChild(parent, index);
@@ -185,8 +185,8 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (child == null)
             throw new IllegalArgumentException("argument is null");
         if (parent == rootNode) {
-            if (child == jobExplorerNode) return contentExplorerNodes.size();
-            if (child == errorExplorerNode) return contentExplorerNodes.size() + 1;
+            if (child == errorExplorerNode) return contentExplorerNodes.size() ;
+            if (child == jobExplorerNode) return contentExplorerNodes.size() + 1;
             return contentExplorerNodes.indexOf(child);
         }
         return super.getIndexOfChild(parent, child);
@@ -205,7 +205,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
      */
     public void addTreeModelListener(TreeModelListener l) {
 //        System.out.println("addTreeModelListener " + l);
-        treeModelListeners.add(l);
+        allListeners.add(l);
         super.addTreeModelListener(l);
     }
     
@@ -218,8 +218,66 @@ public class ExplorerTreeModel extends DefaultTreeModel {
      */
     public void removeTreeModelListener(TreeModelListener l) {
 //        System.out.println("removeTreeModelListener " + l);
-        treeModelListeners.remove(l);
+        allListeners.remove(l);
         super.removeTreeModelListener(l);
+    }
+    
+    /**
+     * Notifies all listeners that have registered interest for notification on this event type.
+     * @param source source of event
+     * @param path the path to the root node
+     * @param childIndices the indices of the changeed elements
+     * @param children the changed elements
+     */
+    static void fireTreeNodesChanged(Object source, TreePath treePath, int[] childIndices, Object[] children) {
+        TreeModelEvent e = new TreeModelEvent(source, treePath, childIndices, children);
+        for (Iterator<TreeModelListener> it = allListeners.reverseIterator(); it.hasNext(); ) {
+            TreeModelListener l = it.next();
+            l.treeNodesChanged(e);
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for notification on this event type.
+     * @param source source of event
+     * @param path the path to the root node
+     * @param childIndices the indices of the inserted elements
+     * @param children the inserted elements
+     */
+    static void fireTreeNodesInserted(Object source, TreePath treePath, int[] childIndices, Object[] children) {
+        TreeModelEvent e = new TreeModelEvent(source, treePath, childIndices, children);
+        for (Iterator<TreeModelListener> it = allListeners.reverseIterator(); it.hasNext(); ) {
+            TreeModelListener l = it.next();
+            l.treeNodesInserted(e);
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for notification on this event type.
+     * @param source source of event
+     * @param path the path to the root node
+     * @param childIndices the indices of the removed elements
+     * @param children the removed elements
+     */
+    static void fireTreeNodesRemoved(Object source, TreePath treePath, int[] childIndices, Object[] children) {
+        TreeModelEvent e = new TreeModelEvent(source, treePath, childIndices, children);
+        for (Iterator<TreeModelListener> it = allListeners.reverseIterator(); it.hasNext(); ) {
+            TreeModelListener l = it.next();
+            l.treeNodesRemoved(e);
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for notification on this event type.
+     * @param source source of event
+     * @param treePath tree path to root mode.
+     */
+    static void fireTreeStructureChanged(Object source, TreePath treePath) {
+        TreeModelEvent e = new TreeModelEvent(source, treePath, null, null);
+        for (Iterator<TreeModelListener> it = allListeners.reverseIterator(); it.hasNext(); ) {
+            TreeModelListener l = it.next();
+            l.treeStructureChanged(e);
+        }
     }
     
     /**

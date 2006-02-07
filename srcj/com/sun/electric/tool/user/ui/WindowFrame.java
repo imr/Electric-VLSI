@@ -838,6 +838,7 @@ public class WindowFrame extends Observable
 
         // tell EditWindow it's finished
         content.finished();
+		explorerTab.setModel(null);
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it

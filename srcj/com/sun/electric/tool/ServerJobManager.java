@@ -404,7 +404,14 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
             }
             Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
-            JobTree.update();
+            ArrayList<Job> jobs = new ArrayList<Job>();
+            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
+                Job j = it.next();
+                if (j.getDisplay()) {
+                    jobs.add(j);
+                }
+            }
+            JobTree.update(jobs);
             TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");

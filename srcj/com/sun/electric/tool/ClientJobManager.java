@@ -302,8 +302,15 @@ class ClientJobManager extends JobManager {
                 logger.logp(Level.FINEST, CLASS_NAME, "run", "before get");
                 if (jobTreeChanged) {
                     jobTreeChanged = false;
-                    JobTree.update();
-                }
+                    ArrayList<Job> jobs = new ArrayList<Job>();
+                    for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
+                        Job j = it.next();
+                        if (j.getDisplay()) {
+                            jobs.add(j);
+                        }
+                    }
+                    JobTree.update(jobs);
+              }
                 int numGet = clientFifo.numGet;
                 Object o = clientFifo.get();
                 if (o == null) break;
