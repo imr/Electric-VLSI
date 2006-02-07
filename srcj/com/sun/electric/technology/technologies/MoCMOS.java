@@ -4095,7 +4095,7 @@ public class MoCMOS extends Technology
 
 	/******************** OPTIONS ********************/
 
-    private static Pref cacheNumberOfMetalLayers = TechPref.makeIntPref(tech, "MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
+    private static Pref cacheNumberOfMetalLayers = TechPref.makeIntPref(tech, "MoCMOSNumberOfMetalLayers", 4);
     static { cacheNumberOfMetalLayers.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Number of Metal Layers"); }
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.

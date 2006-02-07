@@ -38,11 +38,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
@@ -199,22 +201,27 @@ public class Pref
 	/** The value for double options. */		public static final int DOUBLE  = 3;
 	/** The value for string options. */		public static final int STRING  = 4;
 
-	private   String      name;
+	private   final String      name;
 	private   int         type;
-	private   Preferences prefs;
+	private   final Preferences prefs;
 	private   Meaning     meaning;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
 
 	private static List<Pref> allPrefs = new ArrayList<Pref>();
 	private static boolean doFlushing = true;
+    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
 
 	/**
 	 * The constructor for the Pref.
+	 * @param name the name of this Pref.
 	 */
-	protected Pref() {}
-
+	protected Pref(Preferences prefs, String name) {
+        this.name = name;
+        this.prefs = prefs;
+    }
+    
     /**
      * Method used in regressions so it has to be public.
      * @param fileName
@@ -356,14 +363,11 @@ public class Pref
 	 * Factory methods to create a boolean Pref objects.
 	 * The proper way to create a boolean Pref is with makeBooleanPref;
 	 * use of this method is only for subclasses.
-	 * @param name the name of this Pref.
 	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	protected void initBoolean(String name, Preferences prefs, boolean factory)
+	protected void initBoolean(boolean factory)
 	{
-		this.name = name;
-		this.prefs = prefs;
 		this.type = BOOLEAN;
 		this.meaning = null;
 		this.factoryObj = new Integer(factory ? 1 : 0);
@@ -380,8 +384,8 @@ public class Pref
 	 */
 	public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
 	{
-		Pref pref = new Pref();
-		pref.initBoolean(name, prefs, factory);
+		Pref pref = new Pref(prefs, name);
+		pref.initBoolean(factory);
 		return pref;
 	}
 
@@ -389,14 +393,10 @@ public class Pref
 	 * Factory methods to create an integer Pref objects.
 	 * The proper way to create an integer Pref is with makeIntPref;
 	 * use of this method is only for subclasses.
-	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	protected void initInt(String name, Preferences prefs, int factory)
+	protected void initInt(int factory)
 	{
-		this.name = name;
-		this.prefs = prefs;
 		this.type = INTEGER;
 		this.meaning = null;
 		this.factoryObj = new Integer(factory);
@@ -413,8 +413,8 @@ public class Pref
 	 */
 	public static Pref makeIntPref(String name, Preferences prefs, int factory)
 	{
-		Pref pref = new Pref();
-		pref.initInt(name, prefs, factory);
+		Pref pref = new Pref(prefs, name);
+		pref.initInt(factory);
 		return pref;
 	}
 
@@ -422,14 +422,10 @@ public class Pref
 	 * Factory methods to create a long Pref objects.
 	 * The proper way to create a long Pref is with makeLongPref;
 	 * use of this method is only for subclasses.
-	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	protected void initLong(String name, Preferences prefs, long factory)
+	protected void initLong(long factory)
 	{
-		this.name = name;
-		this.prefs = prefs;
 		this.type = LONG;
 		this.meaning = null;
 		this.factoryObj = new Long(factory);
@@ -446,8 +442,8 @@ public class Pref
 	 */
 	public static Pref makeLongPref(String name, Preferences prefs, long factory)
 	{
-		Pref pref = new Pref();
-		pref.initLong(name, prefs, factory);
+		Pref pref = new Pref(prefs, name);
+		pref.initLong(factory);
 		return pref;
 	}
 
@@ -455,14 +451,10 @@ public class Pref
 	 * Factory methods to create a double Pref objects.
 	 * The proper way to create a double Pref is with makeDoublePref;
 	 * use of this method is only for subclasses.
-	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	protected void initDouble(String name, Preferences prefs, double factory)
+	protected void initDouble(double factory)
 	{
-		this.name = name;
-		this.prefs = prefs;
 		this.type = DOUBLE;
 		this.meaning = null;
 		this.factoryObj = new Double(factory);
@@ -479,8 +471,8 @@ public class Pref
 	 */
 	public static Pref makeDoublePref(String name, Preferences prefs, double factory)
 	{
-		Pref pref = new Pref();
-		pref.initDouble(name, prefs, factory);
+		Pref pref = new Pref(prefs, name);
+		pref.initDouble(factory);
 		return pref;
 	}
 
@@ -488,14 +480,10 @@ public class Pref
 	 * Factory methods to create a string Pref objects.
 	 * The proper way to create a string Pref is with makeStringPref;
 	 * use of this method is only for subclasses.
-	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	protected void initString(String name, Preferences prefs, String factory)
+	protected void initString(String factory)
 	{
-		this.name = name;
-		this.prefs = prefs;
 		this.type = STRING;
 		this.meaning = null;
 		this.factoryObj = new String(factory);
@@ -512,8 +500,8 @@ public class Pref
 	 */
 	public static Pref makeStringPref(String name, Preferences prefs, String factory)
 	{
-		Pref pref = new Pref();
-		pref.initString(name, prefs, factory);
+		Pref pref = new Pref(prefs, name);
+		pref.initString(factory);
 		return pref;
 	}
 
@@ -640,6 +628,17 @@ public class Pref
 
 	public static class PrefChangeBatch implements Serializable
 	{
+        private HashMap<String,HashMap<String,Object>> changesForNodes = new HashMap<String,HashMap<String,Object>>();
+        
+        private void add(Pref pref, Object newValue) {
+            String nodeName = pref.prefs.absolutePath();
+            HashMap<String,Object> changesForTheNode = changesForNodes.get(nodeName);
+            if (changesForTheNode == null) {
+                changesForTheNode = new HashMap<String,Object>();
+                changesForNodes.put(nodeName, changesForTheNode);
+            }
+            changesForTheNode.put(pref.name, newValue);
+        }
 	}
 
 	/**
@@ -678,7 +677,7 @@ public class Pref
 	 * This method runs on the server.
 	 * @param batch the collection of preference changes.
 	 */
-	public static void implementPrefChanges(PrefChangeBatch batch)
+	public static void implementPrefChanges(PrefChangeBatch obj)
 	{
 	}
 

@@ -3265,7 +3265,7 @@ public class Technology implements Comparable<Technology>
      */
     protected void setFactoryPrefFoundry(String factoryName)
     {
-        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName.toUpperCase());
+        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, factoryName.toUpperCase());
         prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
     }
 
@@ -4049,8 +4049,9 @@ public class Technology implements Comparable<Technology>
 	{
         private Technology tech;
 
-		private TechPref(Technology tech)
+		private TechPref(Technology tech, String name)
         {
+            super(Technology.prefs, name);
             this.tech = tech;
         }
 
@@ -4064,24 +4065,24 @@ public class Technology implements Comparable<Technology>
 			ui.repaintAllEditWindows();
 		}
 
-		public static Pref makeBooleanPref(Technology tech, String name, Preferences prefs, boolean factory)
+		public static Pref makeBooleanPref(Technology tech, String name, boolean factory)
 		{
-			TechPref pref = new TechPref(tech);
-			pref.initBoolean(name, prefs, factory);
+			TechPref pref = new TechPref(tech, name);
+			pref.initBoolean(factory);
 			return pref;
 		}
 
-		public static Pref makeIntPref(Technology tech, String name, Preferences prefs, int factory)
+		public static Pref makeIntPref(Technology tech, String name, int factory)
 		{
-			TechPref pref = new TechPref(tech);
-			pref.initInt(name, prefs, factory);
+			TechPref pref = new TechPref(tech, name);
+			pref.initInt(factory);
 			return pref;
 		}
 
-        public static Pref makeStringPref(Technology tech, String name, Preferences prefs, String factory)
+        public static Pref makeStringPref(Technology tech, String name, String factory)
 		{
-			TechPref pref = new TechPref(tech);
-			pref.initString(name, prefs, factory);
+			TechPref pref = new TechPref(tech, name);
+			pref.initString(factory);
 			return pref;
 		}
 	}

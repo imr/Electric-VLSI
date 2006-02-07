@@ -64,6 +64,7 @@ public abstract class Job implements Serializable {
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
     private static int socketPort = 35742; // socket port for client/server
+    static final int PROTOCOL_VERSION = 0;
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case

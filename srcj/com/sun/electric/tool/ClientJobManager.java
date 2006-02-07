@@ -88,6 +88,11 @@ class ClientJobManager extends JobManager {
             Socket socket = new Socket((String)null, port);
             reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
             clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            int protocolVersion = reader.in.readInt();
+            if (protocolVersion != Job.PROTOCOL_VERSION) {
+                System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
+                System.exit(1);
+            }
             System.out.println("Connected");
         } catch (IOException e) {
             e.printStackTrace();

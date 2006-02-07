@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
@@ -68,6 +69,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean runningChangeJob;
     private boolean jobTreeChanged;
     private boolean signalledEThread;
+    private boolean useClientServer = User.isUseClientServer();
 
     
     private Snapshot currentSnapshot = new Snapshot();
@@ -194,7 +196,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         Job job = ejob.getJob();
         job.startTime = System.currentTimeMillis();
 
-        if (job.getDebug() && ejob.connection == null && ejob.jobType != Job.Type.EXAMINE && ejob.jobType != Job.Type.REMOTE_EXAMINE) {
+        if (useClientServer && ejob.connection == null && ejob.jobType != Job.Type.EXAMINE && ejob.jobType != Job.Type.REMOTE_EXAMINE) {
             Throwable e = ejob.serialize();
             if (e == null)
                 e = ejob.deserialize();

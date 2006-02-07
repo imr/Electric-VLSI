@@ -102,6 +102,7 @@ public class ServerConnection extends Thread {
     public void run() {
         try {
             writer = new SnapshotWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            writer.out.writeInt(Job.PROTOCOL_VERSION); 
             writeSnapshot(initialSnapshot);
             initialSnapshot = null;
             for (;;) {
