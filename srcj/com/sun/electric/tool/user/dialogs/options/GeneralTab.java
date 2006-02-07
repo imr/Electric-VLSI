@@ -84,7 +84,8 @@ public class GeneralTab extends PreferencePanel
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		generalMaxMem.setText(Long.toString(User.getMemorySize()));
 		generalUseTwoJVMs.setSelected(User.isUseTwoJVMs());
-		generalLogClientServer.setSelected(User.isLogClientServer());
+		generalUseTwoJVMs.setEnabled(false);
+		generalLogClientServer.setSelected(User.isUseClientServer());
 	}
 
 	/**
@@ -164,8 +165,8 @@ public class GeneralTab extends PreferencePanel
 			User.setUseTwoJVMs(currBoolean);
 
 		currBoolean = generalLogClientServer.isSelected();
-		if (currBoolean != User.isLogClientServer())
-			User.setLogClientServer(currBoolean);
+		if (currBoolean != User.isUseClientServer())
+			User.setUseClientServer(currBoolean);
 	}
 
 	/** This method is called from within the constructor to
