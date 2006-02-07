@@ -62,14 +62,18 @@ public class DeleteCellJob extends Job
 	 */
 	public static void removeCell(Cell cell)
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 
 		// make sure the cell is not being used
 		HashSet<Cell> markedCells = new HashSet<Cell>();
 		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
+			Cell parent = ni.getParent();
+			int status = Project.getCellStatus(parent);
+			if (status == Project.NOTMANAGED || status == Project.OLDVERSION) continue;
 			markedCells.add(ni.getParent());
 		}
 		StringBuffer err = new StringBuffer();
@@ -90,6 +94,47 @@ public class DeleteCellJob extends Job
 		{
 			Job.getUserInterface().showErrorMessage("Cannot delete " + cell + " because it is still being used by: " +
 				err.toString(), "Delete Cell Error");
+			return;
+		}
+
+		// make sure the user has no cells checked-out
+		boolean youOwn = false;
+		Library lib = cell.getLibrary();
+		ProjectLibrary pl = Project.projectDB.findProjectLibrary(lib);
+		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+		{
+			ProjectCell pc = it.next();
+			if (pc.getOwner().equals(Project.getCurrentUserName())) { youOwn = true;   break; }
+		}
+		if (youOwn)
+		{
+			StringBuffer infstr = new StringBuffer();
+			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+			{
+				ProjectCell pc = it.next();
+				if (!pc.getOwner().equals(Project.getCurrentUserName())) continue;
+				if (infstr.length() > 0) infstr.append(", ");
+				infstr.append(pc.describe());
+			}
+			Job.getUserInterface().showErrorMessage("Before deleting a cell from the repository, you must check-in all of your work. " +
+				"This is because the deletion may be dependent upon changes recently made. " +
+				"These cells are checked out to you: " + infstr.toString(), "Cell Deletion Error");
+			return;
+		}
+
+		boolean found = false;
+		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+		{
+			ProjectCell pc = it.next();
+			if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			Job.getUserInterface().showErrorMessage("This cell is not in the repository", "Cell Deletion Error");
 			return;
 		}
 
@@ -114,74 +159,42 @@ public class DeleteCellJob extends Job
 		// lock access to the project files (throws JobException on error)
 		pl.lockProjectFile();
 
-		// make sure the user has no cells checked-out
-		boolean youOwn = false;
-		String error = null;
+		// find this in the project file
+		List<ProjectCell> copyList = new ArrayList<ProjectCell>();
 		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+			copyList.add(it.next());
+		for(ProjectCell pc : copyList)
 		{
-			ProjectCell pc = it.next();
-			if (pc.getOwner().equals(Project.getCurrentUserName())) { youOwn = true;   break; }
-		}
-		if (youOwn)
-		{
-			StringBuffer infstr = new StringBuffer();
-			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
+			if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
 			{
-				ProjectCell pc = it.next();
-				if (!pc.getOwner().equals(Project.getCurrentUserName())) continue;
-				if (infstr.length() > 0) infstr.append(", ");
-				infstr.append(pc.describe());
-			}
-			error = "Before deleting a cell from the repository, you must check-in all of your work. " +
-				"This is because the deletion may be dependent upon changes recently made. " +
-				"These cells are checked out to you: " + infstr.toString();
-		} else
-		{
-			// find this in the project file
-			List<ProjectCell> copyList = new ArrayList<ProjectCell>();
-			for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
-			{
-				ProjectCell pc = it.next();
-				copyList.add(pc);
-			}
-			boolean found = false;
-			for(ProjectCell pc : copyList)
-			{
-				if (pc.getCellName().equals(cell.getName()) && pc.getView() == cell.getView())
-				{
-					// unlink it
-					pl.removeProjectCell(pc);
+				// unlink it
+				pl.removeProjectCell(pc);
 
-					// disable change broadcast
-					Project.setChangeStatus(true);
+				// disable change broadcast
+				Project.setChangeStatus(true);
 
-					// mark this cell unlocked
-					Project.markLocked(cell, false);		// CHANGES DATABASE
+				// mark this cell unlocked
+				Project.markLocked(cell, false);		// CHANGES DATABASE
 
-					// restore change broadcast
-					Project.setChangeStatus(false);
-					found = true;
-				}
-			}
-			if (found)
-			{
+				// restore change broadcast
+				Project.setChangeStatus(false);
 				System.out.println("Cell " + cell.describe(true) + " deleted from the repository");
-			} else
-			{
-				error = "This cell is not in the repository";
 			}
 		}
 
 		// relase project file lock
 		pl.releaseProjectFileLock(true);
 
-		if (error != null) throw new JobException(error);
+		fieldVariableChanged("pdb");
 		return true;
 	}
 
     public void terminateOK()
     {
-		// update explorer tree
+    	// take the new version of the project database from the server
+    	Project.projectDB = pdb;
+
+    	// update explorer tree
     	WindowFrame.wantToRedoLibraryTree();
     }
 

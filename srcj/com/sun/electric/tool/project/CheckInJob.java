@@ -64,8 +64,9 @@ public class CheckInJob extends Job
 	 */
 	public static void checkIn(Cell cell)
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 	
 		// determine all of the cells to write
 		HashMap<Cell,MutableInteger> cellsMarked = markRelatedCells(cell);

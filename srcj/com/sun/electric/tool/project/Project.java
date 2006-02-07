@@ -41,7 +41,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -51,15 +50,8 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.PrintWriter;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -502,6 +494,18 @@ public class Project extends Listener
 
 	/************************ SUPPORT ***********************/
 
+	static boolean ensureRepository()
+	{
+		if (Project.getRepositoryLocation().length() == 0)
+		{
+			Job.getUserInterface().showInformationMessage(
+				"Before entering a library, set a repository location in the 'Project Management' tab under General Preferences",
+				"Must Setup Project Management");
+			return true;
+		}
+		return false;
+	}
+
 	static void setChangeStatus(boolean quiet)
 	{
 		if (quiet) ignoreChanges = quiet;
@@ -686,28 +690,6 @@ public class Project extends Listener
 				return true;
 			}
 		}
-
-//		// redraw windows that showed the old cell
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent().getCell() != oldCell) continue;
-//			double scale = 1;
-//			Point2D offset = null;
-//			if (wf.getContent() instanceof EditWindow_)
-//			{
-//				EditWindow_ wnd = (EditWindow_)wf.getContent();
-//				scale = wnd.getScale();
-//				offset = wnd.getOffset();
-//			}
-//			wf.getContent().setCell(newCell, VarContext.globalContext);
-//			if (wf.getContent() instanceof EditWindow_)
-//			{
-//				EditWindow_ wnd = (EditWindow_)wf.getContent();
-//				wnd.setScale(scale);
-//				wnd.setOffset(offset);
-//			}
-//		}
 
 		// replace library references
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )

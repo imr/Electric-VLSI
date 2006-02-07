@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 /**
  * This class adds a cell to the Project Management repository.
@@ -55,8 +56,9 @@ public class AddCellJob extends Job
 	 */
 	public static void addCell(Cell cell)
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 
 		if (cell.getNewestVersion() != cell)
 		{
@@ -64,6 +66,14 @@ public class AddCellJob extends Job
 			return;
 		}
 
+		Library lib = cell.getLibrary();
+		ProjectLibrary pl = Project.projectDB.findProjectLibrary(lib);
+		ProjectCell foundPC = pl.findProjectCellByNameView(cell.getName(), cell.getView());
+		if (foundPC != null)
+		{
+			Job.getUserInterface().showErrorMessage("This cell is already in the repository", "Error Adding to Repository");
+			return;
+		}
 		new AddCellJob(cell);
 	}
 
@@ -86,32 +96,24 @@ public class AddCellJob extends Job
 		// prevent tools (including this one) from seeing the change
 		Project.setChangeStatus(true);
 
-		// find this in the project file
-		ProjectCell foundPC = pl.findProjectCellByNameView(cell.getName(), cell.getView());
+		// create new entry for this cell
+		ProjectCell pc = new ProjectCell(cell, pl);
+		pc.setLastOwner(Project.getCurrentUserName());
+		pc.setComment("Initial checkin");
+
 		String error = null;
-		if (foundPC != null)
+		if (Project.writeCell(cell, pc))		// CHANGES DATABASE
 		{
-			error = "This cell is already in the repository";
+			error = "Error writing the cell to the repository";
 		} else
 		{
-			// create new entry for this cell
-			ProjectCell pc = new ProjectCell(cell, pl);
-			pc.setLastOwner(Project.getCurrentUserName());
-			pc.setComment("Initial checkin");
+			// link it in
+			pl.linkProjectCellToCell(pc, cell);
 
-			if (Project.writeCell(cell, pc))		// CHANGES DATABASE
-			{
-				error = "Error writing the cell to the repository";
-			} else
-			{
-				// link it in
-				pl.linkProjectCellToCell(pc, cell);
+			// mark this cell "checked in" and locked
+			Project.markLocked(cell, true);		// CHANGES DATABASE
 
-				// mark this cell "checked in" and locked
-				Project.markLocked(cell, true);		// CHANGES DATABASE
-
-				System.out.println("Cell " + cell.describe(true) + " added to the project");
-			}
+			System.out.println("Cell " + cell.describe(true) + " added to the project");
 		}
 
 		// restore change broadcast
@@ -121,6 +123,16 @@ public class AddCellJob extends Job
 		pl.releaseProjectFileLock(true);
 
 		if (error != null) throw new JobException(error);
+		fieldVariableChanged("pdb");
 		return true;
+	}
+
+	public void terminateOK()
+	{
+    	// take the new version of the project database from the server
+    	Project.projectDB = pdb;
+
+    	// update explorer tree
+		WindowFrame.wantToRedoLibraryTree();
 	}
 }

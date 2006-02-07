@@ -58,8 +58,9 @@ public class UpdateJob extends Job
 	 */
 	public static void updateProject()
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 
 		new UpdateJob();
 	}
@@ -71,7 +72,6 @@ public class UpdateJob extends Job
 
 		// save the current window configuration
 		displayedCells = new DisplayedCells();
-//		displayedCells.setCellsToBeChanged(checkOutCells);
 		startJob();
 	}
 
@@ -143,6 +143,9 @@ public class UpdateJob extends Job
 		// summarize
 		if (total == 0) System.out.println("Project is up-to-date"); else
 			System.out.println("Updated " + total + " cells");
+
+		fieldVariableChanged("pdb");
+		fieldVariableChanged("displayedCells");
 		return true;
 	}
 
@@ -282,9 +285,6 @@ public class UpdateJob extends Job
 				String cellName = Project.describeFullCellName(cur);
 				newCell = Cell.copyNodeProtoUsingMapping(cur, lib, cellName, nodePrototypes);
 				if (newCell == null) System.out.println("Cannot copy " + cur + " from new library");
-
-				// record that cells changed so that displays get updated
-	        	displayedCells.swap(cur, newCell);
 			}
 
 			// kill the library
@@ -302,9 +302,13 @@ public class UpdateJob extends Job
 					System.out.println("Error replacing instances of new " + oldCell);
 				} else
 				{
+					ProjectCell oldPC = pl.findProjectCell(oldCell);
+					pl.linkProjectCellToCell(oldPC, null);
+
+					// record that cells changed so that displays get updated
+		        	displayedCells.swap(oldCell, newCell);
 					System.out.println("Updated " + newCell);
 				}
-				pl.ignoreCell(oldCell);
 			} else
 			{
 				System.out.println("Added new " + newCell);

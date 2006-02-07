@@ -68,8 +68,9 @@ public class CheckOutJob extends Job
 	 */
 	public static void checkOut(Cell cell)
 	{	
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 	
 		// make a list of just this cell
 		List<Cell> oneCell = new ArrayList<Cell>();

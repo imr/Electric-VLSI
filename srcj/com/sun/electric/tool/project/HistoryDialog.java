@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -55,7 +56,6 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-
 
 /**
  * Class to display a cell history dialog.
@@ -105,6 +105,25 @@ public class HistoryDialog extends EDialog
 		{
 			int index = table.getSelectedRow();
 			int version = TextUtils.atoi((String)dataModel.getValueAt(index, 0));
+			Library lib = cell.getLibrary();
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+
+			String cellName = cell.getName() + ";" + version;
+			if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
+			Cell exists = cell.getLibrary().findNodeProto(cellName);
+			if (exists != null)
+			{
+				Job.getUserInterface().showErrorMessage("Version " + version + " of cell " + cell.getName() +
+					" is already in your library", "Version Retrieval Error");
+				return;
+			}
+
+			ProjectCell foundPC = pl.findProjectCellByNameViewVersion(cell.getName(), cell.getView(), version);
+			if (foundPC == null)
+			{
+				Job.getUserInterface().showErrorMessage("Can't find that version in the repository!", "Version Retrieval Error");
+				return;
+			}
 			new GetOldVersionJob(pdb, cell, version);
 		} else
 		{
@@ -260,7 +279,7 @@ public class HistoryDialog extends EDialog
 		private Cell cell;
 		private int version;
 
-		protected GetOldVersionJob(ProjectDB pdb, Cell cell, int version)
+		private GetOldVersionJob(ProjectDB pdb, Cell cell, int version)
 		{
 			super("Update " + cell, Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pdb = pdb;
@@ -271,23 +290,12 @@ public class HistoryDialog extends EDialog
 
 		public boolean doIt() throws JobException
 		{
-			Library lib = cell.getLibrary();
-			ProjectLibrary pl = pdb.findProjectLibrary(lib);
-
-			String cellName = cell.getName() + ";" + version;
-			if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
-			Cell exists = cell.getLibrary().findNodeProto(cellName);
-			if (exists != null)
-				throw new JobException("Version " + version + " of cell " + cell.getName() +
-					" is already in your library");
-
-			ProjectCell foundPC = pl.findProjectCellByNameViewVersion(cell.getName(), cell.getView(), version);
-			if (foundPC == null)
-				throw new JobException("Can't find that version in the repository!");
-
 			// prevent tools (including this one) from seeing the change
 			Project.setChangeStatus(true);
 
+			Library lib = cell.getLibrary();
+			ProjectLibrary pl = pdb.findProjectLibrary(lib);
+			ProjectCell foundPC = pl.findProjectCellByNameViewVersion(cell.getName(), cell.getView(), version);
 			Project.getCellFromRepository(pdb, foundPC, lib, false, false);		// CHANGES DATABASE
 			if (foundPC.getCell() == null)
 			{
@@ -300,7 +308,17 @@ public class HistoryDialog extends EDialog
 			Project.setChangeStatus(false);
 
 			System.out.println("Cell " + foundPC.getCell().describe(true) + " is now in this library");
+			fieldVariableChanged("pdb");
 			return true;
+		}
+
+		public void terminateOK()
+		{
+	    	// take the new version of the project database from the server
+	    	Project.projectDB = pdb;
+
+	    	// update explorer tree
+			WindowFrame.wantToRedoLibraryTree();
 		}
 	}
 	

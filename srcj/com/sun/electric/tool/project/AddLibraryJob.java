@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,9 +53,6 @@ public class AddLibraryJob extends Job
 	 */
 	public static void addThisLibrary()
 	{
-		// make sure there is a valid user name
-		if (Users.needUserName()) return;
-
 		addLibrary(Library.getCurrent());
 	}
 
@@ -65,16 +63,9 @@ public class AddLibraryJob extends Job
 	 */
 	public static void addLibrary(Library lib)
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
-
-		if (Project.getRepositoryLocation().length() == 0)
-		{
-			Job.getUserInterface().showInformationMessage(
-				"Before entering a library, set a repository location in the 'Project Management' tab under General Preferences",
-				"Must Setup Project Management");
-			return;
-		}
+		if (Project.ensureRepository()) return;
 
 		// verify that project is to be built
 		boolean response = Job.getUserInterface().confirmMessage(
@@ -98,8 +89,9 @@ public class AddLibraryJob extends Job
 	 */
 	public static void addAllLibraries()
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 
 		if (Project.getRepositoryLocation().length() == 0)
 		{
@@ -142,12 +134,19 @@ public class AddLibraryJob extends Job
 
 			addLibraryNow(aLib, pl);		// CHANGES DATABASE
 		}
+		fieldVariableChanged("pdb");
 		return true;
 	}
 
     public void terminateOK()
     {
-		// advise the user of these libraries
+    	// take the new version of the project database from the server
+    	Project.projectDB = pdb;
+
+		// update explorer tree
+		WindowFrame.wantToRedoLibraryTree();
+
+    	// advise the user of these libraries
 		Job.getUserInterface().showInformationMessage(
 			"Libraries have been checked-into the repository and marked appropriately.",
 			"Libraries Added");
@@ -240,7 +239,6 @@ public class AddLibraryJob extends Job
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = it.next();
-
 			ProjectCell pc = new ProjectCell(cell, pl);
 			pc.setLastOwner(Project.getCurrentUserName());
 			pc.setComment("Initial checkin");

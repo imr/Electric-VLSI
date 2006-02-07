@@ -101,7 +101,7 @@ public class DisplayedCells implements Serializable
 	 */
 	public void swap(Cell oldVers, Cell newVers)
 	{
-		// rearrange displayed cells so show the new one
+		// keep track of displayed cells to show the new one
 		for(int i=0; i<formerCellsInWindows.size(); i++)
 		{
 			if (formerCellsInWindows.get(i) == oldVers)

@@ -61,8 +61,9 @@ public class CancelCheckOutJob extends Job
 	 */
 	public static void cancelCheckOut(Cell cell)
 	{
-		// make sure there is a valid user name
+		// make sure there is a valid user name and repository
 		if (Users.needUserName()) return;
+		if (Project.ensureRepository()) return;
 	
 		boolean response = Job.getUserInterface().confirmMessage(
 			"Cancel all changes to the checked-out " + cell + " and revert to the checked-in version?");
