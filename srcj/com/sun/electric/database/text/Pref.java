@@ -33,6 +33,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -637,6 +638,10 @@ public class Pref
 	 */
 	public void setSideEffect() {}
 
+	public static class PrefChangeBatch implements Serializable
+	{
+	}
+
 	/**
 	 * Method to start accumulation of Pref changes.
 	 * All changes to preferences after this call are gathered,
@@ -660,7 +665,7 @@ public class Pref
 	 * Call "implementPrefChanges()" with the returned collection
 	 * to actually make the changes.
 	 */
-	public static Object getPrefChanges()
+	public static PrefChangeBatch getPrefChanges()
 	{
 		return null;
 	}
@@ -671,9 +676,9 @@ public class Pref
 	 * it is necessary to gather them on the client, and send
 	 * the changes to the server for actual change.
 	 * This method runs on the server.
-	 * @param obj the collection of preference changes.
+	 * @param batch the collection of preference changes.
 	 */
-	static void implementPrefChanges(Object obj)
+	public static void implementPrefChanges(PrefChangeBatch batch)
 	{
 	}
 
