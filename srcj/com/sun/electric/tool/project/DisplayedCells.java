@@ -44,7 +44,6 @@ import java.util.Set;
  */
 public class DisplayedCells implements Serializable
 {
-//	/** the list of windows being displayed. */		private transient List<WindowFrame> formerWindows;
 	/** the list of windows being displayed. */		private List<Integer> formerWindows;
 	/** the list of cells in the window */			private List<Cell> formerCellsInWindows;
 	/** the list of cells that were created */		private Set<Cell> createdCells;

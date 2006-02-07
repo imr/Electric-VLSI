@@ -1180,9 +1180,10 @@ class HighlightEOBJ extends Highlight2
 
     public Geometric getGeometric()
     {
-        if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-        if (eobj instanceof Geometric) return (Geometric)eobj;
-        return null;
+    	Geometric retVal = null;
+        if (eobj instanceof PortInst) retVal = ((PortInst)eobj).getNodeInst(); else
+        	if (eobj instanceof Geometric) retVal = (Geometric)eobj;
+        return retVal;
     }
 
     boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter)

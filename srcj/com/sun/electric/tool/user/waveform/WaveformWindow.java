@@ -178,6 +178,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** default height of a digital panel */				private static int panelSizeDigital = 25;
 	/** default height of an analog panel */				private static int panelSizeAnalog  = 75;
 	/** lock for crossprobing */							private static boolean freezeWaveformHighlighting = false;
+	/** lock for crossprobing */							private static boolean freezeEditWindowHighlighting = false;
 	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
 	/** Font for all text in the window */					private static Font waveWindowFont;
 	/** For rendering text */								private static FontRenderContext waveWindowFRC;
@@ -2078,6 +2079,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Locator loc = new Locator(wnd, this);
 		if (loc.getWaveformWindow() != this) return;
 
+		freezeEditWindowHighlighting = true;
+
 		// start by removing all highlighting in the waveform
 		for(Panel wp : wavePanels)
 		{
@@ -2120,6 +2123,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 break;
             }
 		}
+		freezeEditWindowHighlighting = false;
 	}
 
     private TreePath treePathFromSignal(Signal sig) {
@@ -2241,8 +2245,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void crossProbeWaveformToEditWindow()
 	{
-		// highlight the net in any associated edit windows
+		// check double-crossprobe locks
+		if (freezeEditWindowHighlighting) return;
 		freezeWaveformHighlighting = true;
+
+		// highlight the net in any associated edit windows
 		for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
 		{
 			WindowFrame wfr = wIt.next();
@@ -2259,6 +2266,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (netlist == null)
 			{
 				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+				freezeWaveformHighlighting = false;
 				return;
 			}
 
@@ -3667,12 +3675,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			EditWindow wnd = (EditWindow)highWF.getContent();
 
 			// loop through all windows, looking for waveform windows
-			for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
+			if (which == wnd.getHighlighter())
 			{
-				WindowFrame wf = wIt.next();
-				if (!(wf.getContent() instanceof WaveformWindow)) continue;
-				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				ww.crossProbeEditWindowToWaveform(wnd, which);
+				for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
+				{
+					WindowFrame wf = wIt.next();
+					if (!(wf.getContent() instanceof WaveformWindow)) continue;
+					WaveformWindow ww = (WaveformWindow)wf.getContent();
+					ww.crossProbeEditWindowToWaveform(wnd, which);
+				}
 			}
 		}
 
