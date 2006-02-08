@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.io.FileType;
@@ -66,7 +67,7 @@ public class VerilogTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Verilog"; }
 
-	private HashMap<Cell,Pref> initialVerilogBehaveFiles;
+	private HashMap<Cell,TempPref> initialVerilogBehaveFiles;
 	private JList verilogCellList;
 	private DefaultListModel verilogCellListModel;
 
@@ -80,7 +81,7 @@ public class VerilogTab extends PreferencePanel
 		verDefWireTrireg.setSelected(Simulation.getVerilogUseTrireg());
 
 		// gather all existing behave file information
-		initialVerilogBehaveFiles = new HashMap<Cell,Pref>();
+		initialVerilogBehaveFiles = new HashMap<Cell,TempPref>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
@@ -91,7 +92,7 @@ public class VerilogTab extends PreferencePanel
 				String behaveFile = "";
 				Variable var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
 				if (var != null) behaveFile = var.getObject().toString();
-				initialVerilogBehaveFiles.put(cell, Pref.makeStringPref(null, null, behaveFile));
+				initialVerilogBehaveFiles.put(cell, TempPref.makeStringPref(behaveFile));
 			}
 		}
 
@@ -163,7 +164,7 @@ public class VerilogTab extends PreferencePanel
 			String cellName = (String)dialog.verilogCellList.getSelectedValue();
 			Cell cell = lib.findNodeProto(cellName);
 			if (cell == null) return;
-			Pref pref = (Pref)dialog.initialVerilogBehaveFiles.get(cell);
+			TempPref pref = dialog.initialVerilogBehaveFiles.get(cell);
 			if (pref == null) return;
 
 			// get the typed value
@@ -211,7 +212,7 @@ public class VerilogTab extends PreferencePanel
 		String cellName = (String)verilogCellList.getSelectedValue();
 		Cell cell = lib.findNodeProto(cellName);
 		if (cell == null) return;
-		Pref pref = (Pref)initialVerilogBehaveFiles.get(cell);
+		TempPref pref = initialVerilogBehaveFiles.get(cell);
 		if (pref == null) return;
 		String behaveFile = pref.getString();
 		if (behaveFile.length() == 0)
@@ -260,7 +261,7 @@ public class VerilogTab extends PreferencePanel
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				Pref pref = (Pref)initialVerilogBehaveFiles.get(cell);
+				TempPref pref = initialVerilogBehaveFiles.get(cell);
 				if (pref == null) continue;
 				if (!pref.getStringFactoryValue().equals(pref.getString()))
 				{

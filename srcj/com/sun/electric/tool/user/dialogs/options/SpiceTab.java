@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
@@ -75,8 +75,8 @@ public class SpiceTab extends PreferencePanel
 
 	private JList spiceCellList;
 	private DefaultListModel spiceCellListModel;
-	private HashMap<Cell,Pref> spiceCellModelOptions;
-	private HashMap<Cell,Pref> initialSpiceModelFiles;
+	private HashMap<Cell,TempPref> spiceCellModelOptions;
+	private HashMap<Cell,TempPref> initialSpiceModelFiles;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -178,7 +178,7 @@ public class SpiceTab extends PreferencePanel
 
 		// the last section has cell overrides
 		// gather all existing behave file information
-		initialSpiceModelFiles = new HashMap<Cell,Pref>();
+		initialSpiceModelFiles = new HashMap<Cell,TempPref>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = lIt.next();
@@ -189,12 +189,12 @@ public class SpiceTab extends PreferencePanel
 				String behaveFile = "";
 				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY);
 				if (var != null) behaveFile = var.getObject().toString();
-				initialSpiceModelFiles.put(cell, Pref.makeStringPref(null, null, behaveFile));
+				initialSpiceModelFiles.put(cell, TempPref.makeStringPref(behaveFile));
 			}
 		}
 
 		// make list of libraries
-		spiceCellModelOptions = new HashMap<Cell,Pref>();
+		spiceCellModelOptions = new HashMap<Cell,TempPref>();
 		for(Library lib : Library.getVisibleLibraries())
 		{
 			spiceModelLibrary.addItem(lib.getName());
@@ -205,7 +205,7 @@ public class SpiceTab extends PreferencePanel
 				String modelFile = "";
 				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY, String.class);
 				if (var != null) modelFile = (String)var.getObject();
-				spiceCellModelOptions.put(cell, Pref.makeStringPref(null, null, modelFile));
+				spiceCellModelOptions.put(cell, TempPref.makeStringPref(modelFile));
 			}
 		}
 		spiceModelLibrary.addActionListener(new ActionListener()
@@ -288,7 +288,7 @@ public class SpiceTab extends PreferencePanel
 		Cell cell = lib.findNodeProto(cellName);
 		if (cell == null) return;
 
-		Pref pref = (Pref)spiceCellModelOptions.get(cell);
+		TempPref pref = spiceCellModelOptions.get(cell);
 		String modelFile = pref.getString();
 		spiceModelFileChanging = true;
 		boolean hasModelFile = false;
@@ -335,7 +335,7 @@ public class SpiceTab extends PreferencePanel
 		Cell cell = lib.findNodeProto(cellName);
 		if (cell == null) return;
 
-		Pref pref = (Pref)spiceCellModelOptions.get(cell);
+		TempPref pref = spiceCellModelOptions.get(cell);
 		String typedString = spiceModelCell.getText();
 		if (spiceDeriveModelFromCircuit.isSelected()) typedString = "-----" + typedString;
 		pref.setString(typedString);
@@ -467,7 +467,7 @@ public class SpiceTab extends PreferencePanel
 			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 			{
 				Cell cell = it.next();
-				Pref pref = (Pref)spiceCellModelOptions.get(cell);
+				TempPref pref = spiceCellModelOptions.get(cell);
 				if (pref == null) continue;
 				if (!pref.getStringFactoryValue().equals(pref.getString()))
 				{

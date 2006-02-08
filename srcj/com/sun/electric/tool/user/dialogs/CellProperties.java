@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -62,26 +63,26 @@ public class CellProperties extends EDialog
 
 	private static class PerCellValues
 	{
-        Pref disAllMod;
-        Pref disInstMod;
-        Pref inCellLib;
-        Pref useTechEditor;
-        Pref defExpanded;
-        Pref charX, charY;
-        Pref frameSize;
-        Pref designerName;
-        Pref technologyName;
-        Pref textCellFont;
-        Pref textCellSize;
+        TempPref disAllMod;
+        TempPref disInstMod;
+        TempPref inCellLib;
+        TempPref useTechEditor;
+        TempPref defExpanded;
+        TempPref charX, charY;
+        TempPref frameSize;
+        TempPref designerName;
+        TempPref technologyName;
+        TempPref textCellFont;
+        TempPref textCellSize;
 
         private PerCellValues(Cell cell) {
 
             // remember the cell's toggle flags
-            disAllMod = Pref.makeBooleanPref(null, null, cell.isAllLocked());
-            disInstMod = Pref.makeBooleanPref(null, null, cell.isInstancesLocked());
-            inCellLib = Pref.makeBooleanPref(null, null, cell.isInCellLibrary());
-            useTechEditor = Pref.makeBooleanPref(null, null, cell.isInTechnologyLibrary());
-            defExpanded = Pref.makeBooleanPref(null, null, cell.isWantExpanded());
+            disAllMod = TempPref.makeBooleanPref(cell.isAllLocked());
+            disInstMod = TempPref.makeBooleanPref(cell.isInstancesLocked());
+            inCellLib = TempPref.makeBooleanPref(cell.isInCellLibrary());
+            useTechEditor = TempPref.makeBooleanPref(cell.isInTechnologyLibrary());
+            defExpanded = TempPref.makeBooleanPref(cell.isWantExpanded());
 
             // remember the characteristic spacing
             double cX = 0, cY = 0;
@@ -91,34 +92,34 @@ public class CellProperties extends EDialog
                 cX = spacing.getWidth();
                 cY = spacing.getHeight();
             }
-            charX = Pref.makeDoublePref(null, null, cX);
-            charY = Pref.makeDoublePref(null, null, cY);
+            charX = TempPref.makeDoublePref(cX);
+            charY = TempPref.makeDoublePref(cY);
 
             // remember the frame size
             String fSize = "";
             Variable var = cell.getVar(User.FRAME_SIZE, String.class);
             if (var != null) fSize = (String)var.getObject();
-            frameSize = Pref.makeStringPref(null, null, fSize);
+            frameSize = TempPref.makeStringPref(fSize);
 
             // remember the designer name
             String dName = "";
             var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
             if (var != null) dName = (String)var.getObject();
-            designerName = Pref.makeStringPref(null, null, dName);
+            designerName = TempPref.makeStringPref(dName);
 
             // remember the technology
             String tName = cell.getTechnology().getTechName();
-            technologyName = Pref.makeStringPref(null, null, tName);
+            technologyName = TempPref.makeStringPref(tName);
 
             // remember text cell font/size
             String fontName = "DEFAULT FONT";
             var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
             if (var != null) fontName = (String)var.getObject();
-            textCellFont = Pref.makeStringPref(null, null, fontName);
+            textCellFont = TempPref.makeStringPref(fontName);
             int fontSize = User.getDefaultTextCellSize();
             var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
             if (var != null) fontSize = ((Integer)var.getObject()).intValue();
-            textCellSize = Pref.makeIntPref(null, null, fontSize);
+            textCellSize = TempPref.makeIntPref(fontSize);
         }
 	}
 

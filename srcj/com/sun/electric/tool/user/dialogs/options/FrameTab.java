@@ -24,14 +24,13 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.User;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -57,9 +56,9 @@ public class FrameTab extends PreferencePanel
 
 	private static class LibraryFrameInfo
 	{
-		Pref companyName;
-		Pref designerName;
-		Pref projectName;
+		TempPref companyName;
+		TempPref designerName;
+		TempPref projectName;
 	}
 	private HashMap<Library,LibraryFrameInfo> frameLibInfo;
 	private boolean frameInfoUpdating = false;
@@ -86,9 +85,9 @@ public class FrameTab extends PreferencePanel
 			if (var != null) designer = (String)var.getObject();
 			var = lib.getVar(User.FRAME_PROJECT_NAME, String.class);
 			if (var != null) project = (String)var.getObject();
-			lfi.companyName = Pref.makeStringPref(null, null, company);
-			lfi.designerName = Pref.makeStringPref(null, null, designer);
-			lfi.projectName = Pref.makeStringPref(null, null, project);
+			lfi.companyName = TempPref.makeStringPref(company);
+			lfi.designerName = TempPref.makeStringPref(designer);
+			lfi.projectName = TempPref.makeStringPref(project);
 
 			frameLibInfo.put(lib, lfi);
 			frameLibrary.addItem(lib.getName());

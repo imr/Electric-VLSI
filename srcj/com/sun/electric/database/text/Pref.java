@@ -81,6 +81,16 @@ import java.util.prefs.Preferences;
  */
 public class Pref
 {
+    public static class Group {
+        private Preferences prefs;
+        Group(Preferences prefs) { this.prefs = prefs; }
+    }
+    
+    public static Group groupForPackage(Class classFromPackage) {
+        Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
+        return new Group(prefs);
+    }
+    
 	/**
 	 * This class provides extra information for "meaning" options.
 	 */
@@ -212,14 +222,18 @@ public class Pref
 	private static boolean doFlushing = true;
     private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
+    private static boolean allPreferencesCreated = false;
 
 	/**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Preferences prefs, String name) {
+//        if (allPreferencesCreated)
+//            throw new IllegalStateException("no more preferences");
         this.name = name;
         this.prefs = prefs;
+        allPrefs.add(this);
     }
     
     /**
@@ -373,7 +387,6 @@ public class Pref
 		this.factoryObj = new Integer(factory ? 1 : 0);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
 			this.cachedObj = new Integer(factory ? 1 : 0);
-		allPrefs.add(this);
 	}
 
 	/**
@@ -389,6 +402,10 @@ public class Pref
 		return pref;
 	}
 
+    public static Pref makeBooleanPref(String name, Group group, boolean factory) {
+        return makeBooleanPref(name, group.prefs, factory);
+    }
+    
 	/**
 	 * Factory methods to create an integer Pref objects.
 	 * The proper way to create an integer Pref is with makeIntPref;
@@ -402,7 +419,6 @@ public class Pref
 		this.factoryObj = new Integer(factory);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
 			this.cachedObj = new Integer(factory);
-		allPrefs.add(this);
 	}
 
 	/**
@@ -418,6 +434,10 @@ public class Pref
 		return pref;
 	}
 
+	public static Pref makeIntPref(String name, Group group, int factory) {
+        return makeIntPref(name, group.prefs, factory);
+    }
+    
 	/**
 	 * Factory methods to create a long Pref objects.
 	 * The proper way to create a long Pref is with makeLongPref;
@@ -431,7 +451,6 @@ public class Pref
 		this.factoryObj = new Long(factory);
 		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
 			this.cachedObj = new Long(factory);
-		allPrefs.add(this);
 	}
 
 	/**
@@ -447,6 +466,10 @@ public class Pref
 		return pref;
 	}
 
+	public static Pref makeLongPref(String name, Group group, long factory) {
+        return makeLongPref(name, group.prefs, factory);
+    }
+    
 	/**
 	 * Factory methods to create a double Pref objects.
 	 * The proper way to create a double Pref is with makeDoublePref;
@@ -460,7 +483,6 @@ public class Pref
 		this.factoryObj = new Double(factory);
 		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
 			this.cachedObj = new Double(factory);
-		allPrefs.add(this);
 	}
 
 	/**
@@ -476,6 +498,10 @@ public class Pref
 		return pref;
 	}
 
+	public static Pref makeDoublePref(String name, Group group, double factory) {
+        return makeDoublePref(name, group.prefs, factory);
+    }
+    
 	/**
 	 * Factory methods to create a string Pref objects.
 	 * The proper way to create a string Pref is with makeStringPref;
@@ -489,7 +515,6 @@ public class Pref
 		this.factoryObj = new String(factory);
 		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
 			this.cachedObj = new String(factory);
-		allPrefs.add(this);
 	}
 
 	/**
@@ -505,55 +530,44 @@ public class Pref
 		return pref;
 	}
 
+	public static Pref makeStringPref(String name, Group group, String factory) {
+        return makeStringPref(name, group.prefs, factory);
+    }
+    
 	/**
 	 * Method to get the boolean value on this Pref object.
 	 * The object must have been created as "boolean".
 	 * @return the boolean value on this Pref object.
 	 */
-	public boolean getBoolean() {
-        checkExamine();
-        return ((Integer)cachedObj).intValue() != 0;
-    }
+	public boolean getBoolean() { return ((Integer)cachedObj).intValue() != 0; }
 
 	/**
 	 * Method to get the integer value on this Pref object.
 	 * The object must have been created as "integer".
 	 * @return the integer value on this Pref object.
 	 */
-	public int getInt() {
-        checkExamine();
-        return ((Integer)cachedObj).intValue();
-    }
+	public int getInt() { return ((Integer)cachedObj).intValue(); }
 
 	/**
 	 * Method to get the long value on this Pref object.
 	 * The object must have been created as "long".
 	 * @return the long value on this Pref object.
 	 */
-	public long getLong() {
-        checkExamine();
-        return ((Long)cachedObj).longValue();
-    }
+	public long getLong() { return ((Long)cachedObj).longValue(); }
 
 	/**
 	 * Method to get the double value on this Pref object.
 	 * The object must have been created as "double".
 	 * @return the double value on this Pref object.
 	 */
-	public double getDouble() {
-        checkExamine();
-        return ((Double)cachedObj).doubleValue();
-    }
+	public double getDouble() { return ((Double)cachedObj).doubleValue(); }
 
 	/**
 	 * Method to get the string value on this Pref object.
 	 * The object must have been created as "string".
 	 * @return the string value on this Pref object.
 	 */
-	public String getString() {
-        checkExamine();
-        return (String)cachedObj;
-    }
+	public String getString() { return (String)cachedObj; }
 
 	/**
 	 * Method to get the factory-default value of this Pref object.
@@ -1005,7 +1019,56 @@ public class Pref
         new Technology.ResetDefaultWidthJob(null);
     }
 
-	/****************************** private methods ******************************/
+    public static void allPreferencesCreated() {
+        allPreferencesCreated = true;
+    }
+
+    private static int numStrings;
+    private static int lenStrings;
+    private static int numValueStrings = 0;
+    private static int lenValueStrings = 0;
+    
+    public static void printAllPrefs() {
+        TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
+        for (Pref pref: allPrefs)
+            sortedPrefs.put(pref.prefs.absolutePath() + "/" + pref.name, pref);
+        Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
+        numStrings = lenStrings = 0;
+        try {
+            gatherPrefs(0, rootNode, null);
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
+        System.out.println(lenStrings + " chars in " + numStrings + " strings");
+        System.out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
+//        int  i = 0;
+//        for (Pref pref: sortedPrefs.values())
+//            System.out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj);
+    }
+
+    private static void gatherPrefs(int level, Preferences topNode, List<String> ks) throws BackingStoreException {
+        for (int i = 0; i < level; i++) System.out.print("  ");
+        String[] keys = topNode.keys();
+        for (int i = 0; i < keys.length; i++) {
+            numStrings++;
+            lenStrings += keys.length;
+            String value = topNode.get(keys[i], null);
+            numValueStrings++;
+            lenValueStrings += value.length();
+        }
+        System.out.println(topNode.name() + " " + keys.length);
+        if (topNode.absolutePath().equals("/com/sun/electric/database/hierarchy")) return;
+        String[] children = topNode.childrenNames();
+        for (int i = 0; i < children.length; i++) {
+            String childName = children[i];
+            numStrings++;
+            lenStrings += children[i].length();
+            Preferences childNode = topNode.node(childName);
+            gatherPrefs(level + 1, childNode, ks);
+        }
+    }
+
+    /****************************** private methods ******************************/
 
 	/**
 	 * Method to force all Preferences to be saved.
@@ -1022,14 +1085,4 @@ public class Pref
             }
 		}
 	}
-    
-	/**
-	 * Method to check whether examining of Prefs is allowed.
-	 */
-    private void checkExamine() {
-//        if (!Job.preferencesAccessible() && meaning == null)
-//            (new IllegalStateException("Access to preference <" + name + "> in change job")).printStackTrace(System.out);
-    }
-    
-
 }

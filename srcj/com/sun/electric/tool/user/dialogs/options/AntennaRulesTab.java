@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.erc.ERC;
 
@@ -63,7 +63,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 	private JList antennaArcList;
 	private DefaultListModel antennaArcListModel;
-	private HashMap<ArcProto,Pref> antennaOptions;
+	private HashMap<ArcProto,TempPref> antennaOptions;
 	private boolean antennaRatioChanging = false;
 	private boolean empty;
 
@@ -83,7 +83,7 @@ public class AntennaRulesTab extends PreferencePanel
 		});
 		antMaxRatio.getDocument().addDocumentListener(new AntennaRatioDocumentListener(this));
 
-		antennaOptions = new HashMap<ArcProto,Pref>();
+		antennaOptions = new HashMap<ArcProto,TempPref>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
@@ -94,7 +94,7 @@ public class AntennaRulesTab extends PreferencePanel
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
 				double ratio = ERC.getERCTool().getAntennaRatio(ap); //ap.getAntennaRatio();
-				Pref pref = Pref.makeDoublePref(null, null, ratio);
+				TempPref pref = TempPref.makeDoublePref(ratio);
 				antennaOptions.put(ap, pref);
 			}
 		}
@@ -115,7 +115,7 @@ public class AntennaRulesTab extends PreferencePanel
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			Pref pref = antennaOptions.get(ap);
+			TempPref pref = antennaOptions.get(ap);
 			if (pref == null) continue;
 			antennaArcListModel.addElement(ap.getName() + " (" + pref.getDouble() + ")");
 			empty = false;
@@ -139,7 +139,7 @@ public class AntennaRulesTab extends PreferencePanel
 		ArcProto ap = tech.findArcProto(arcName);
 		if (ap != null)
 		{
-			Pref pref = antennaOptions.get(ap);
+			TempPref pref = antennaOptions.get(ap);
 			if (pref == null) return;
 			antennaRatioChanging = true;
 			antMaxRatio.setText(TextUtils.formatDouble(pref.getDouble()));
@@ -159,7 +159,7 @@ public class AntennaRulesTab extends PreferencePanel
 		if (spacePos >= 0) arcName = arcName.substring(0, spacePos);
 		ArcProto ap = tech.findArcProto(arcName);
 		if (ap == null) return;
-		Pref pref = antennaOptions.get(ap);
+		TempPref pref = antennaOptions.get(ap);
 		if (pref == null) return;
 		double ratio = TextUtils.atof(antMaxRatio.getText());
 		pref.setDouble(ratio);
@@ -193,7 +193,7 @@ public class AntennaRulesTab extends PreferencePanel
 	{
 		for(ArcProto ap : antennaOptions.keySet())
 		{
-			Pref pref = antennaOptions.get(ap);
+			TempPref pref = antennaOptions.get(ap);
 			if (pref.getDoubleFactoryValue() != pref.getDouble())
 				ERC.getERCTool().setAntennaRatio(ap, pref.getDouble());
 		}

@@ -27,7 +27,7 @@ import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 
 import javax.swing.*;
@@ -47,11 +47,11 @@ import java.awt.event.MouseEvent;
  */
 public class ParasiticTab extends PreferencePanel {
 
-	private HashMap<Layer,Pref> layerResistanceOptions;
-	private HashMap<Layer,Pref> layerCapacitanceOptions;
-	private HashMap<Layer,Pref> layerEdgeCapacitanceOptions;
-	private HashMap<Technology,Pref> techMinResistance, techMinCapacitance, techGateLengthShrink;
-	private HashMap<Technology,Pref> techIncludeGateInResistance, techIncludeGroundNetwork;
+	private HashMap<Layer,TempPref> layerResistanceOptions;
+	private HashMap<Layer,TempPref> layerCapacitanceOptions;
+	private HashMap<Layer,TempPref> layerEdgeCapacitanceOptions;
+	private HashMap<Technology,TempPref> techMinResistance, techMinCapacitance, techGateLengthShrink;
+	private HashMap<Technology,TempPref> techIncludeGateInResistance, techIncludeGroundNetwork;
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private boolean changing;
@@ -84,30 +84,30 @@ public class ParasiticTab extends PreferencePanel {
 			public void mouseClicked(MouseEvent evt) { layerListClick(); }
 		});
 
-		layerResistanceOptions = new HashMap<Layer,Pref>();
-		layerCapacitanceOptions = new HashMap<Layer,Pref>();
-		layerEdgeCapacitanceOptions = new HashMap<Layer,Pref>();
-		techMinResistance = new HashMap<Technology,Pref>();
-		techMinCapacitance = new HashMap<Technology,Pref>();
-		techGateLengthShrink = new HashMap<Technology,Pref>();
-		techIncludeGateInResistance = new HashMap<Technology,Pref>();
-		techIncludeGroundNetwork = new HashMap<Technology,Pref>();
+		layerResistanceOptions = new HashMap<Layer,TempPref>();
+		layerCapacitanceOptions = new HashMap<Layer,TempPref>();
+		layerEdgeCapacitanceOptions = new HashMap<Layer,TempPref>();
+		techMinResistance = new HashMap<Technology,TempPref>();
+		techMinCapacitance = new HashMap<Technology,TempPref>();
+		techGateLengthShrink = new HashMap<Technology,TempPref>();
+		techIncludeGateInResistance = new HashMap<Technology,TempPref>();
+		techIncludeGroundNetwork = new HashMap<Technology,TempPref>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			techSelection.addItem(tech.getTechName());
-			techMinResistance.put(tech, Pref.makeDoublePref(null, null, tech.getMinResistance()));
-			techMinCapacitance.put(tech, Pref.makeDoublePref(null, null, tech.getMinCapacitance()));
-			techGateLengthShrink.put(tech, Pref.makeDoublePref(null, null, tech.getGateLengthSubtraction()));
-			techIncludeGateInResistance.put(tech, Pref.makeBooleanPref(null, null, tech.isGateIncluded()));
-			techIncludeGroundNetwork.put(tech, Pref.makeBooleanPref(null, null, tech.isGroundNetIncluded()));
+			techMinResistance.put(tech, TempPref.makeDoublePref(tech.getMinResistance()));
+			techMinCapacitance.put(tech, TempPref.makeDoublePref(tech.getMinCapacitance()));
+			techGateLengthShrink.put(tech, TempPref.makeDoublePref(tech.getGateLengthSubtraction()));
+			techIncludeGateInResistance.put(tech, TempPref.makeBooleanPref(tech.isGateIncluded()));
+			techIncludeGroundNetwork.put(tech, TempPref.makeBooleanPref(tech.isGroundNetIncluded()));
 
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
-				layerResistanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getResistance()));
-				layerCapacitanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getCapacitance()));
-				layerEdgeCapacitanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getEdgeCapacitance()));
+				layerResistanceOptions.put(layer, TempPref.makeDoublePref(layer.getResistance()));
+				layerCapacitanceOptions.put(layer, TempPref.makeDoublePref(layer.getCapacitance()));
+				layerEdgeCapacitanceOptions.put(layer, TempPref.makeDoublePref(layer.getEdgeCapacitance()));
 			}
 		}
 		techSelection.addActionListener(new ActionListener()
@@ -156,16 +156,16 @@ public class ParasiticTab extends PreferencePanel {
 		if (tech == null) return;
 
 		changing = true;
-		Pref pref = (Pref)techMinResistance.get(tech);
+		TempPref pref = techMinResistance.get(tech);
 		minResistance.setText(TextUtils.formatDouble(pref.getDouble()));
-		pref = (Pref)techMinCapacitance.get(tech);
+		pref = techMinCapacitance.get(tech);
 		minCapacitance.setText(TextUtils.formatDouble(pref.getDouble()));
-		pref = (Pref)techGateLengthShrink.get(tech);
+		pref = techGateLengthShrink.get(tech);
 		gateLengthSubtraction.setText(TextUtils.formatDouble(pref.getDouble()));
 
-		pref = (Pref)techIncludeGateInResistance.get(tech);
+		pref = techIncludeGateInResistance.get(tech);
 		includeGate.setSelected(pref.getBoolean());
-		pref = (Pref)techIncludeGroundNetwork.get(tech);
+		pref = techIncludeGroundNetwork.get(tech);
 		includeGround.setSelected(pref.getBoolean());
 
 		layerListModel.clear();
@@ -190,11 +190,11 @@ public class ParasiticTab extends PreferencePanel {
 		Layer layer = tech.findLayer(layerName);
 		if (layer != null)
 		{
-			Pref resistancePref = (Pref)layerResistanceOptions.get(layer);
+			TempPref resistancePref = layerResistanceOptions.get(layer);
 			resistance.setText(TextUtils.formatDouble(resistancePref.getDouble()));
-			Pref capacitancePref = (Pref)layerCapacitanceOptions.get(layer);
+			TempPref capacitancePref = layerCapacitanceOptions.get(layer);
 			capacitance.setText(TextUtils.formatDouble(capacitancePref.getDouble()));
-			Pref edgeCapacitancePref = (Pref)layerEdgeCapacitanceOptions.get(layer);
+			TempPref edgeCapacitancePref = layerEdgeCapacitanceOptions.get(layer);
 			edgeCapacitance.setText(TextUtils.formatDouble(edgeCapacitancePref.getDouble()));
 		}
 		changing = false;
@@ -207,16 +207,16 @@ public class ParasiticTab extends PreferencePanel {
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
 
-		Pref pref = (Pref)techMinResistance.get(tech);
+		TempPref pref = techMinResistance.get(tech);
 		pref.setDouble(TextUtils.atof(minResistance.getText()));
-		pref = (Pref)techMinCapacitance.get(tech);
+		pref = techMinCapacitance.get(tech);
 		pref.setDouble(TextUtils.atof(minCapacitance.getText()));
-		pref = (Pref)techGateLengthShrink.get(tech);
+		pref = techGateLengthShrink.get(tech);
 		pref.setDouble(TextUtils.atof(gateLengthSubtraction.getText()));
 
-		pref = (Pref)techIncludeGateInResistance.get(tech);
+		pref = techIncludeGateInResistance.get(tech);
 		pref.setBoolean(includeGate.isSelected());
-		pref = (Pref)techIncludeGroundNetwork.get(tech);
+		pref = techIncludeGroundNetwork.get(tech);
 		pref.setBoolean(includeGround.isSelected());
 	}
 
@@ -226,9 +226,9 @@ public class ParasiticTab extends PreferencePanel {
 	private static class ParasiticLayerDocumentListener implements DocumentListener
 	{
 		private ParasiticTab dialog;
-		private HashMap<Layer,Pref> map;
+		private HashMap<Layer,TempPref> map;
 
-		ParasiticLayerDocumentListener(HashMap<Layer,Pref> map, ParasiticTab dialog)
+		ParasiticLayerDocumentListener(HashMap<Layer,TempPref> map, ParasiticTab dialog)
 		{
 			this.dialog = dialog;
 			this.map = map;
@@ -254,7 +254,7 @@ public class ParasiticTab extends PreferencePanel {
 			{
 				text = doc.getText(0, len);
 			} catch (BadLocationException ex) { return; }
-			Pref pref = (Pref)map.get(layer);
+			TempPref pref = map.get(layer);
 			double v = TextUtils.atof(text);
 
 			// update the option
@@ -295,33 +295,33 @@ public class ParasiticTab extends PreferencePanel {
 		{
 			Technology tech = (Technology)it.next();
 
-			Pref pref = (Pref)techMinResistance.get(tech);
+			TempPref pref = techMinResistance.get(tech);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
 				tech.setMinResistance(pref.getDouble());
-			pref = (Pref)techMinCapacitance.get(tech);
+			pref = techMinCapacitance.get(tech);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
 				tech.setMinCapacitance(pref.getDouble());
-			pref = (Pref)techGateLengthShrink.get(tech);
+			pref = techGateLengthShrink.get(tech);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
 				tech.setGateLengthSubtraction(pref.getDouble());
 
-			pref = (Pref)techIncludeGateInResistance.get(tech);
+			pref = techIncludeGateInResistance.get(tech);
 			if (pref != null && pref.getBooleanFactoryValue() != pref.getBoolean())
 				tech.setGateIncluded(pref.getBoolean());
-			pref = (Pref)techIncludeGroundNetwork.get(tech);
+			pref = techIncludeGroundNetwork.get(tech);
 			if (pref != null && pref.getBooleanFactoryValue() != pref.getBoolean())
 				tech.setGroundNetIncluded(pref.getBoolean());
 			
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
-				Pref resistancePref = (Pref)layerResistanceOptions.get(layer);
+				TempPref resistancePref = layerResistanceOptions.get(layer);
 				if (resistancePref != null && resistancePref.getDoubleFactoryValue() != resistancePref.getDouble())
 					layer.setResistance(resistancePref.getDouble());
-				Pref capacitancePref = (Pref)layerCapacitanceOptions.get(layer);
+				TempPref capacitancePref = layerCapacitanceOptions.get(layer);
 				if (capacitancePref != null && capacitancePref.getDoubleFactoryValue() != capacitancePref.getDouble())
 					layer.setCapacitance(capacitancePref.getDouble());
-				Pref edgeCapacitancePref = (Pref)layerEdgeCapacitanceOptions.get(layer);
+				TempPref edgeCapacitancePref = layerEdgeCapacitanceOptions.get(layer);
 				if (edgeCapacitancePref != null && edgeCapacitancePref.getDoubleFactoryValue() != edgeCapacitancePref.getDouble())
 					layer.setEdgeCapacitance(edgeCapacitancePref.getDouble());
 			}
