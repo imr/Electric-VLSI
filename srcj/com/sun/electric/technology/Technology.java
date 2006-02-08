@@ -3180,8 +3180,8 @@ public class Technology implements Comparable<Technology>
 	{
 		this.scaleRelevant = scaleRelevant;
 		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Technology/Scale tab", getTechShortName() + " scale", factory);
-//		Pref.Meaning meaning = prefScale.attachToObject(this, "Technology/Scale tab", getTechShortName() + " scale");
-//		meaning.setValidOption(isScaleRelevant());
+		Pref.Meaning meaning = prefScale.getMeaning();
+		meaning.setValidOption(isScaleRelevant());
 	}
 
 	/**

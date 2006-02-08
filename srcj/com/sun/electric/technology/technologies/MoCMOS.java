@@ -4079,11 +4079,11 @@ public class MoCMOS extends Technology
 
 	private static Pref cacheRuleSet = TechPref.makeIntSetting("MoCMOSRuleSet", getTechnologyPreferences(), tech,
 		"Technology/Technology tab", "MOSIS CMOS rule set", 1);
-//    static
-//    {
-//    	Pref.Meaning meaning = cacheRuleSet.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS rule set");
-//    	meaning.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
-//	}
+    static
+    {
+    	Pref.Meaning meaning = cacheRuleSet.getMeaning();
+    	meaning.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
+	}
 	/**
 	 * Method to tell the current rule set for this Technology if Mosis is the foundry.
 	 * @return the current rule set for this Technology:<BR>
