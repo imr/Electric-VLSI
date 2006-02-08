@@ -147,6 +147,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		initDND();
 
+        // Starting Job explorer tree expanded
+        expandPath(new TreePath(model().jobPath));
+
 		// arbitrary selection in the explorer
 		getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
