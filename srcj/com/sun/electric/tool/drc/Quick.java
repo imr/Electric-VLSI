@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -101,6 +102,7 @@ import java.util.Set;
 public class Quick
 {
 	private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
+    /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
     private static enum DRCErrorType
     {
@@ -490,6 +492,16 @@ public class Quick
 		}
 
 		cellsMap.put(cell, cell);
+
+        // Check if cell doesn't have special annotation
+        Variable drcVar = cell.getVar(DRC_ANNOTATION_KEY);
+        if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
+        {
+            // Skipping this one
+//            System.out.println("Annotation found");
+            return totalMsgFound;
+        }
+
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
