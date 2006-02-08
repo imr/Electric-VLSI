@@ -75,7 +75,7 @@ public class LayerCoverageTool extends Listener
     // Default value is in um to be technology independent
     private static final double defaultSize = 50000;
     private static Pref cacheDeltaX = Pref.makeDoublePref("DeltaX", tool.prefs, defaultSize);
-    static { cacheDeltaX.attachToObject(tool, "Tools/Coverage tab", "Delta along X to sweep bounding box"); }
+//    static { cacheDeltaX.attachToObject(tool, "Tools/Coverage tab", "Delta along X to sweep bounding box"); }
 	/**
 	 * Method to get user preference for deltaX.
 	 * The default is 50 mm.
@@ -95,7 +95,7 @@ public class LayerCoverageTool extends Listener
     }
 
     private static Pref cacheDeltaY = Pref.makeDoublePref("DeltaY", tool.prefs, defaultSize);
-    static { cacheDeltaY.attachToObject(tool, "Tools/Coverage tab", "Delta along Y to sweep bounding box"); }
+//    static { cacheDeltaY.attachToObject(tool, "Tools/Coverage tab", "Delta along Y to sweep bounding box"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -115,7 +115,7 @@ public class LayerCoverageTool extends Listener
     }
 
     private static Pref cacheWidth = Pref.makeDoublePref("Width", tool.prefs, defaultSize);
-    static { cacheWidth.attachToObject(tool, "Tools/Coverage tab", "Bounding box width"); }
+//    static { cacheWidth.attachToObject(tool, "Tools/Coverage tab", "Bounding box width"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -135,7 +135,7 @@ public class LayerCoverageTool extends Listener
     }
 
     private static Pref cacheHeight = Pref.makeDoublePref("Height", tool.prefs, defaultSize);
-    static { cacheHeight.attachToObject(tool, "Tools/Coverage tab", "Bounding box height"); }
+//    static { cacheHeight.attachToObject(tool, "Tools/Coverage tab", "Bounding box height"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.

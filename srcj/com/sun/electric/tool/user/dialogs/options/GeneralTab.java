@@ -58,7 +58,6 @@ public class GeneralTab extends PreferencePanel
         generalVerboseMode.setSelected(User.isJobVerboseMode());
 		generalShowFileDialog.setSelected(User.isShowFileSelectionForNetlists());
 		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
-		generalIncludeDateAndVersion.setSelected(User.isIncludeDateAndVersionInOutput());
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
 		generalPromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 		generalOlderDisplayAlgorithm.setSelected(User.isUseOlderDisplayAlgorithm());
@@ -109,10 +108,6 @@ public class GeneralTab extends PreferencePanel
 		currBoolean = generalShowCursorCoordinates.isSelected();
 		if (currBoolean != User.isShowHierarchicalCursorCoordinates())
 			User.setShowHierarchicalCursorCoordinates(currBoolean);
-
-		currBoolean = generalIncludeDateAndVersion.isSelected();
-		if (currBoolean != User.isIncludeDateAndVersionInOutput())
-			User.setIncludeDateAndVersionInOutput(currBoolean);
 
 		currBoolean = sideBarOnRight.isSelected();
 		if (currBoolean != User.isSideBarOnRight())
@@ -203,7 +198,6 @@ public class GeneralTab extends PreferencePanel
         jLabel7 = new javax.swing.JLabel();
         generalUseGreekImages = new javax.swing.JCheckBox();
         IO = new javax.swing.JPanel();
-        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         workingDirComboBox = new javax.swing.JComboBox();
@@ -418,19 +412,10 @@ public class GeneralTab extends PreferencePanel
         IO.setLayout(new java.awt.GridBagLayout());
 
         IO.setBorder(javax.swing.BorderFactory.createTitledBorder("I/O"));
-        generalIncludeDateAndVersion.setText("Include date and version in output files");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        IO.add(generalIncludeDateAndVersion, gridBagConstraints);
-
         generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -439,14 +424,14 @@ public class GeneralTab extends PreferencePanel
         jLabel3.setText("Working directory:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         IO.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         IO.add(workingDirComboBox, gridBagConstraints);
@@ -556,7 +541,6 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JTextField generalErrorLimit;
     private javax.swing.JTextField generalGreekCellLimit;
     private javax.swing.JTextField generalGreekLimit;
-    private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JCheckBox generalLogClientServer;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;

@@ -2,9 +2,9 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DXFTab.java
+ * File: VerilogTab.java
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,61 +21,55 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs.options;
+package com.sun.electric.tool.user.dialogs.projsettings;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.Frame;
 
 import javax.swing.JPanel;
 
 /**
- * Class to handle the "DXF" tab of the Preferences dialog.
+ * Class to handle the "Verilog" tab of the Project Settings dialog.
  */
-public class DXFTab extends PreferencePanel
+public class VerilogTab extends ProjSettingsPanel
 {
-	private Layer artworkLayer;
-	private String initialNames;
-	private TextUtils.UnitScale [] scales;
-
-	/** Creates new form DXFTab */
-	public DXFTab(Frame parent, boolean modal)
+	/** Creates new form VerilogTab */
+	public VerilogTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return dxf; }
+	public JPanel getPanel() { return verilog; }
 
 	/** return the name of this preferences tab. */
-	public String getName() { return "DXF"; }
+	public String getName() { return "Verilog"; }
 
 	/**
 	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the DXF tab.
+	 * Caches current values and displays them in the Verilog tab.
 	 */
 	public void init()
 	{
-		dxfInputFlattensHierarchy.setSelected(IOTool.isDXFInputFlattensHierarchy());
-		dxfInputReadsAllLayers.setSelected(IOTool.isDXFInputReadsAllLayers());
+		verUseAssign.setSelected(Simulation.getVerilogUseAssign());
+		verDefWireTrireg.setSelected(Simulation.getVerilogUseTrireg());
 	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the DXF tab.
+	 * Updates any changed fields in the Verilog tab.
 	 */
 	public void term()
 	{
-		boolean currentValue = dxfInputFlattensHierarchy.isSelected();
-		if (currentValue != IOTool.isDXFInputFlattensHierarchy())
-			IOTool.setDXFInputFlattensHierarchy(currentValue);
+		boolean currBoolean = verUseAssign.isSelected();
+		if (currBoolean != Simulation.getVerilogUseAssign())
+			Simulation.setVerilogUseAssign(currBoolean);
 
-		currentValue = dxfInputReadsAllLayers.isSelected();
-		if (currentValue != IOTool.isDXFInputReadsAllLayers())
-			IOTool.setDXFInputReadsAllLayers(currentValue);
+		currBoolean = verDefWireTrireg.isSelected();
+		if (currBoolean != Simulation.getVerilogUseTrireg())
+			Simulation.setVerilogUseTrireg(currBoolean);
 	}
 
 	/** This method is called from within the constructor to
@@ -88,13 +82,14 @@ public class DXFTab extends PreferencePanel
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        dxf = new javax.swing.JPanel();
-        dxfInputFlattensHierarchy = new javax.swing.JCheckBox();
-        dxfInputReadsAllLayers = new javax.swing.JCheckBox();
+        verilogModel = new javax.swing.ButtonGroup();
+        verilog = new javax.swing.JPanel();
+        verUseAssign = new javax.swing.JCheckBox();
+        verDefWireTrireg = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("IO Options");
+        setTitle("Tool Options");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -104,26 +99,25 @@ public class DXFTab extends PreferencePanel
             }
         });
 
-        dxf.setLayout(new java.awt.GridBagLayout());
+        verilog.setLayout(new java.awt.GridBagLayout());
 
-        dxfInputFlattensHierarchy.setText("Input flattens hierarchy");
+        verUseAssign.setText("Use ASSIGN Construct");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        dxf.add(dxfInputFlattensHierarchy, gridBagConstraints);
+        verilog.add(verUseAssign, gridBagConstraints);
 
-        dxfInputReadsAllLayers.setText("Input reads all layers");
+        verDefWireTrireg.setText("Default wire is Trireg");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        dxf.add(dxfInputReadsAllLayers, gridBagConstraints);
+        verilog.add(verDefWireTrireg, gridBagConstraints);
 
-        getContentPane().add(dxf, new java.awt.GridBagConstraints());
+        getContentPane().add(verilog, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -136,9 +130,10 @@ public class DXFTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel dxf;
-    private javax.swing.JCheckBox dxfInputFlattensHierarchy;
-    private javax.swing.JCheckBox dxfInputReadsAllLayers;
+    private javax.swing.JCheckBox verDefWireTrireg;
+    private javax.swing.JCheckBox verUseAssign;
+    private javax.swing.JPanel verilog;
+    private javax.swing.ButtonGroup verilogModel;
     // End of variables declaration//GEN-END:variables
 
 }

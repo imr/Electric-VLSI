@@ -34,7 +34,6 @@ import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
 import com.sun.electric.tool.user.dialogs.options.CompactionTab;
-import com.sun.electric.tool.user.dialogs.options.CopyrightTab;
 import com.sun.electric.tool.user.dialogs.options.CoverageTab;
 import com.sun.electric.tool.user.dialogs.options.DEFTab;
 import com.sun.electric.tool.user.dialogs.options.DRCTab;
@@ -49,7 +48,6 @@ import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
 import com.sun.electric.tool.user.dialogs.options.IconTab;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.electric.tool.user.dialogs.options.LibraryTab;
-import com.sun.electric.tool.user.dialogs.options.LogicalEffortTab;
 import com.sun.electric.tool.user.dialogs.options.NCCTab;
 import com.sun.electric.tool.user.dialogs.options.NetworkTab;
 import com.sun.electric.tool.user.dialogs.options.NewArcsTab;
@@ -61,7 +59,6 @@ import com.sun.electric.tool.user.dialogs.options.PrintingTab;
 import com.sun.electric.tool.user.dialogs.options.ProjectManagementTab;
 import com.sun.electric.tool.user.dialogs.options.RoutingTab;
 import com.sun.electric.tool.user.dialogs.options.SUETab;
-import com.sun.electric.tool.user.dialogs.options.ScaleTab;
 import com.sun.electric.tool.user.dialogs.options.SelectionTab;
 import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
 import com.sun.electric.tool.user.dialogs.options.SimulatorsTab;
@@ -257,10 +254,6 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(lit);
 		ioSet.add(new DefaultMutableTreeNode(lit.getName()));
 
-		CopyrightTab cot = new CopyrightTab(parent, modal);
-		optionPanes.add(cot);
-		ioSet.add(new DefaultMutableTreeNode(cot.getName()));
-
 
 		// the "Tools" section of the Preferences
 		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools ");
@@ -285,10 +278,6 @@ public class PreferencesFrame extends EDialog
 		FastHenryTab fht = new FastHenryTab(parent, modal);
 		optionPanes.add(fht);
 		toolSet.add(new DefaultMutableTreeNode(fht.getName()));
-
-		LogicalEffortTab let = new LogicalEffortTab(parent, modal);
-		optionPanes.add(let);
-		toolSet.add(new DefaultMutableTreeNode(let.getName()));
 
 		NCCTab nct = new NCCTab(parent, modal);
 		optionPanes.add(nct);
@@ -342,10 +331,6 @@ public class PreferencesFrame extends EDialog
 		UnitsTab ut = new UnitsTab(parent, modal);
 		optionPanes.add(ut);
 		techSet.add(new DefaultMutableTreeNode(ut.getName()));
-
-		ScaleTab scat = new ScaleTab(parent, modal);
-		optionPanes.add(scat);
-		techSet.add(new DefaultMutableTreeNode(scat.getName()));
 
 		IconTab ict = new IconTab(parent, modal);
 		optionPanes.add(ict);

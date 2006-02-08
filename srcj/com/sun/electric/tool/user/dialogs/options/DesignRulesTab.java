@@ -24,22 +24,18 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Foundry;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.*;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -53,7 +49,6 @@ public class DesignRulesTab extends PreferencePanel
 	DesignRulesPanel rulesPanel;
 	private DRCRules drRules;
 	private boolean designRulesFactoryReset = false;
-	private Foundry.Type foundry;
 
 	/** Creates new form DesignRulesTab */
 	public DesignRulesTab(Frame parent, boolean modal)
@@ -101,43 +96,15 @@ public class DesignRulesTab extends PreferencePanel
 		}
 
         drRules = rules;
-		foundry = curTech.getSelectedFoundry().getType();
+        Foundry.Type foundry = curTech.getSelectedFoundry().getType();
         rulesPanel.init(curTech, foundry, drRules);
 
 		// load the dialog
         String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
 		drTechName.setText(text);
 
-        // Foundry
-        String selectedFoundry = curTech.getPrefFoundry();
-        for (Foundry factory : curTech.getFoundries())
-        {
-            Foundry.Type type = factory.getType();
-            defaultFoundryPulldown.addItem(type);
-            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
-        }
-        defaultFoundryPulldown.setEnabled(foundry != Foundry.Type.NONE);
-        defaultFoundryPulldown.setSelectedItem(foundry);
-        defaultFoundryPulldown.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-            {
-                Foundry.Type mode = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
-                for (Foundry f : curTech.getFoundries())
-                {
-                    if (f.getType() != mode) continue;
-                    // Foundry found
-                    drRules = curTech.getFactoryDesignRules(f);
-                    rulesPanel.init(curTech, mode, drRules);
-                    break;
-                }
-            }
-		});
-
         // Resolution
 		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
-
-//        pack();
 	}
 
 	private void factoryResetDRCActionPerformed(ActionEvent evt)
@@ -155,46 +122,6 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        Foundry.Type foundry = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
-        if (foundry == null) return; // technology without design rules.
-        
-        int val = -1;
-
-        if (!foundry.name().equalsIgnoreCase(curTech.getPrefFoundry()))
-        {
-            // only valid for 180nm so far
-            if (curTech == MoCMOS.tech)
-            {
-                String [] messages = {
-                    "Primitives in database might be resized according to values provided by " + foundry + ".",
-                    "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
-                    "If you cancel the operation, the foundry will not be changed.",
-                    "Do you want to resize the database?"};
-                Object [] options = {"Yes", "No", "Cancel"};
-                val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-                    "Resize Primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-                }
-            if (val != 2)
-            {
-                curTech.setPrefFoundry(foundry.name());
-                // primitive arcs have to be modified.
-                if (val == 0)
-                    new Technology.ResetDefaultWidthJob(null);
-                // Primitives cached must be redrawn
-                // recache display information for all cells that use this
-                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-                {
-                    Library lib = (Library)lIt.next();
-                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-                    {
-                        Cell cell = (Cell)cIt.next();
-                        if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);
-                    }
-                }
-            }
-        }
-
 		double currentResolution = TextUtils.atof(drResolutionValue.getText());
 		if (currentResolution != curTech.getResolution())
 			curTech.setResolution(currentResolution);
@@ -217,13 +144,12 @@ public class DesignRulesTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents()
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
         designRules = new javax.swing.JPanel();
-        defaultFoundryLabel = new javax.swing.JLabel();
-        defaultFoundryPulldown = new javax.swing.JComboBox();
         drResolutionLabel = new javax.swing.JLabel();
         drResolutionValue = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
@@ -244,28 +170,11 @@ public class DesignRulesTab extends PreferencePanel
 
         designRules.setLayout(new java.awt.GridBagLayout());
 
-        designRules.setBorder(new javax.swing.border.TitledBorder(""));
-        defaultFoundryLabel.setText("Foundry:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(defaultFoundryLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(defaultFoundryPulldown, gridBagConstraints);
-
+        designRules.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         drResolutionLabel.setText("Min. resolution:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(drResolutionLabel, gridBagConstraints);
@@ -273,7 +182,7 @@ public class DesignRulesTab extends PreferencePanel
         drResolutionValue.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(drResolutionValue, gridBagConstraints);
@@ -281,7 +190,7 @@ public class DesignRulesTab extends PreferencePanel
         jLabel6.setText("(use 0 to ignore resolution check)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(jLabel6, gridBagConstraints);
@@ -290,7 +199,6 @@ public class DesignRulesTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(factoryReset, gridBagConstraints);
 
@@ -304,7 +212,7 @@ public class DesignRulesTab extends PreferencePanel
         getContentPane().add(designRules, new java.awt.GridBagConstraints());
 
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -314,8 +222,6 @@ public class DesignRulesTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel defaultFoundryLabel;
-    private javax.swing.JComboBox defaultFoundryPulldown;
     private javax.swing.JPanel designRules;
     private javax.swing.JLabel drResolutionLabel;
     private javax.swing.JTextField drResolutionValue;

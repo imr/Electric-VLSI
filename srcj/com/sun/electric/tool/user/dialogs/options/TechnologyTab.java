@@ -25,23 +25,18 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
@@ -53,7 +48,7 @@ import javax.swing.event.DocumentListener;
 public class TechnologyTab extends PreferencePanel
 {
 	/** Creates new form TechnologyTab */
-	public TechnologyTab(java.awt.Frame parent, boolean modal)
+	public TechnologyTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -76,33 +71,8 @@ public class TechnologyTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// MOCMOS
-		int initialTechRules = MoCMOS.getRuleSet();
-		if (initialTechRules == MoCMOS.SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
-			if (initialTechRules == MoCMOS.SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
-				techMOCMOSDeepRules.setSelected(true);
-
-		techMOCMOSMetalLayers.addItem("2 Layers");
-		techMOCMOSMetalLayers.addItem("3 Layers");
-		techMOCMOSMetalLayers.addItem("4 Layers");
-		techMOCMOSMetalLayers.addItem("5 Layers");
-		techMOCMOSMetalLayers.addItem("6 Layers");
-		techMOCMOSMetalLayers.setSelectedIndex(MoCMOS.getNumMetal()-2);
-		techMOCMOSSecondPoly.setSelected(MoCMOS.isSecondPolysilicon());
-		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.isDisallowStackedVias());
-		techMOCMOSAlternateContactRules.setSelected(MoCMOS.isAlternateActivePolyRules());
-
 		// Artwork
 		techArtworkArrowsFilled.setSelected(Artwork.isFilledArrowHeads());
-
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			technologyPopup.addItem(tech.getTechName());
-            defaultTechPulldown.addItem(tech.getTechName());
-		}
-		// Schematics
-		technologyPopup.setSelectedItem(User.getSchematicTechnology().getTechName());
 
 		// build the layers list
 		schemPrimModel = new DefaultListModel();
@@ -131,20 +101,7 @@ public class TechnologyTab extends PreferencePanel
 		vhdlNegatedName.getDocument().addDocumentListener(new SchemPrimDocumentListener(this));
 		schemClickPrim();
 
-		// Default technology
-        defaultTechPulldown.setSelectedItem(User.getDefaultTechnology());
-
 		techSchematicsNegatingSize.setText(TextUtils.formatDouble(Schematics.getNegatingBubbleSize()));
-
-        //Tabs for extra technologies if available
-        try
-        {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
-            extraTechClass.getMethod("openTechnologyTab", new Class[]{JPanel.class}).invoke(null, new Object[]{jPanel3});
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies");
-        }
 	}
 
 	private String makeLine(PrimitiveNode np, String vhdlName)
@@ -221,57 +178,7 @@ public class TechnologyTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean redrawPalette = false;
 		boolean redrawWindows = false;
-
-		// MOCMOS
-		int currentNumMetals = techMOCMOSMetalLayers.getSelectedIndex() + 2;
-		int currentRules = MoCMOS.SCMOSRULES;
-		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
-			if (techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
-
-		switch (currentNumMetals)
-		{
-			// cannot use deep rules if less than 5 layers of metal
-			case 2:
-			case 3:
-			case 4:
-				if (currentRules == MoCMOS.DEEPRULES)
-				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
-					currentRules = MoCMOS.SUBMRULES;
-				}
-				break;
-
-			// cannot use scmos rules if more than 4 layers of metal
-			case 5:
-			case 6:
-				if (currentRules == MoCMOS.SCMOSRULES)
-				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
-					currentRules = MoCMOS.SUBMRULES;
-				}
-				break;
-		}
-
-		if (currentNumMetals != MoCMOS.getNumMetal())
-			MoCMOS.setNumMetal(currentNumMetals);
-		if (currentRules != MoCMOS.getRuleSet())
-			MoCMOS.setRuleSet(currentRules);
-
-		boolean currentSecondPolys = techMOCMOSSecondPoly.isSelected();
-		if (currentSecondPolys != MoCMOS.isSecondPolysilicon())
-			MoCMOS.setSecondPolysilicon(currentSecondPolys);
-
-		boolean currentNoStackedVias = techMOCMOSDisallowStackedVias.isSelected();
-		if (currentNoStackedVias != MoCMOS.isDisallowStackedVias())
-			MoCMOS.setDisallowStackedVias(currentNoStackedVias);
-
-		boolean currentAlternateContact = techMOCMOSAlternateContactRules.isSelected();
-		if (currentAlternateContact != MoCMOS.isAlternateActivePolyRules())
-			MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
 
 		// Artwork
 		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
@@ -280,17 +187,6 @@ public class TechnologyTab extends PreferencePanel
 			Artwork.setFilledArrowHeads(currentArrowsFilled);
 			redrawWindows = true;
 		}
-
-		// Schematics
-		String currentTechName = (String)technologyPopup.getSelectedItem();
-		Technology currentTech = Technology.findTechnology(currentTechName);
-		if (currentTech != User.getSchematicTechnology() && currentTech != null)
-			User.setSchematicTechnology(currentTech);
-
-        // Getting default tech
-        String defaultTech = (String)defaultTechPulldown.getSelectedItem();
-		if (!defaultTech.equals(User.getDefaultTechnology()))
-			User.setDefaultTechnology(defaultTech);
 
 		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
 		if (currentNegatingBubbleSize != Schematics.getNegatingBubbleSize())
@@ -314,24 +210,7 @@ public class TechnologyTab extends PreferencePanel
 				Schematics.setVHDLNames(np, newVHDLname);
 		}
 
-
-        //Tabs for extra technologies if available
-        try
-        {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
-            extraTechClass.getMethod("closeTechnologyTab", new Class[]{}).invoke(null, new Object[]{});
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
-        }
-
-
 		// update the display
-		if (redrawPalette)
-		{
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-		}
 		if (redrawWindows)
 		{
 			EditWindow.repaintAllContents();
@@ -343,33 +222,18 @@ public class TechnologyTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents()
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
         techMOCMOSRules = new javax.swing.ButtonGroup();
         technology = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        defaultTechLabel = new javax.swing.JLabel();
-        defaultTechPulldown = new javax.swing.JComboBox();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel49 = new javax.swing.JLabel();
-        techMOCMOSMetalLayers = new javax.swing.JComboBox();
-        techMOCMOSSCMOSRules = new javax.swing.JRadioButton();
-        techMOCMOSSubmicronRules = new javax.swing.JRadioButton();
-        techMOCMOSDeepRules = new javax.swing.JRadioButton();
-        techMOCMOSSecondPoly = new javax.swing.JCheckBox();
-        techMOCMOSDisallowStackedVias = new javax.swing.JCheckBox();
-        techMOCMOSAlternateContactRules = new javax.swing.JCheckBox();
-        jPanel4 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         techArtworkArrowsFilled = new javax.swing.JCheckBox();
         jPanel10 = new javax.swing.JPanel();
         techSchematicsNegatingSize = new javax.swing.JTextField();
         jLabel52 = new javax.swing.JLabel();
-        jLabel59 = new javax.swing.JLabel();
-        technologyPopup = new javax.swing.JComboBox();
         vhdlPrimPane = new javax.swing.JScrollPane();
         jLabel1 = new javax.swing.JLabel();
         vhdlName = new javax.swing.JTextField();
@@ -390,118 +254,9 @@ public class TechnologyTab extends PreferencePanel
 
         technology.setLayout(new java.awt.GridBagLayout());
 
-        jPanel3.setLayout(new javax.swing.BoxLayout(jPanel3, javax.swing.BoxLayout.Y_AXIS));
-
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jPanel2.setBorder(new javax.swing.border.TitledBorder("Default Technology for Startup/IO Reading"));
-        defaultTechLabel.setText("Technology:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(defaultTechLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(defaultTechPulldown, gridBagConstraints);
-
-        jPanel3.add(jPanel2);
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jPanel1.setBorder(new javax.swing.border.TitledBorder("MOSIS CMOS"));
-        jLabel49.setText("Metal layers:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel49, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSMetalLayers, gridBagConstraints);
-
-        techMOCMOSRules.add(techMOCMOSSCMOSRules);
-        techMOCMOSSCMOSRules.setText("SCMOS rules (4 metal or less)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel1.add(techMOCMOSSCMOSRules, gridBagConstraints);
-
-        techMOCMOSRules.add(techMOCMOSSubmicronRules);
-        techMOCMOSSubmicronRules.setText("Submicron rules");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel1.add(techMOCMOSSubmicronRules, gridBagConstraints);
-
-        techMOCMOSRules.add(techMOCMOSDeepRules);
-        techMOCMOSDeepRules.setText("Deep rules (5 metal or more)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel1.add(techMOCMOSDeepRules, gridBagConstraints);
-
-        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSSecondPoly, gridBagConstraints);
-
-        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
-
-        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSAlternateContactRules, gridBagConstraints);
-
-        jPanel3.add(jPanel1);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        technology.add(jPanel3, gridBagConstraints);
-
-        jPanel4.setLayout(new javax.swing.BoxLayout(jPanel4, javax.swing.BoxLayout.Y_AXIS));
-
         jPanel9.setLayout(new java.awt.GridBagLayout());
 
-        jPanel9.setBorder(new javax.swing.border.TitledBorder("Artwork"));
+        jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("Artwork"));
         techArtworkArrowsFilled.setText("Arrows filled");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -510,11 +265,15 @@ public class TechnologyTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel9.add(techArtworkArrowsFilled, gridBagConstraints);
 
-        jPanel4.add(jPanel9);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        technology.add(jPanel9, gridBagConstraints);
 
         jPanel10.setLayout(new java.awt.GridBagLayout());
 
-        jPanel10.setBorder(new javax.swing.border.TitledBorder("Schematics"));
+        jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Schematics"));
         techSchematicsNegatingSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -531,26 +290,11 @@ public class TechnologyTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(jLabel52, gridBagConstraints);
 
-        jLabel59.setText("Use scale values from this technology:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel10.add(jLabel59, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel10.add(technologyPopup, gridBagConstraints);
-
         vhdlPrimPane.setMinimumSize(new java.awt.Dimension(22, 100));
         vhdlPrimPane.setPreferredSize(new java.awt.Dimension(22, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -559,7 +303,7 @@ public class TechnologyTab extends PreferencePanel
         jLabel1.setText("VHDL for primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(jLabel1, gridBagConstraints);
@@ -567,14 +311,14 @@ public class TechnologyTab extends PreferencePanel
         vhdlName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(vhdlName, gridBagConstraints);
 
         jLabel2.setText("VHDL for negated primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(jLabel2, gridBagConstraints);
@@ -582,21 +326,20 @@ public class TechnologyTab extends PreferencePanel
         vhdlNegatedName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(vhdlNegatedName, gridBagConstraints);
 
-        jPanel4.add(jPanel10);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        technology.add(jPanel4, gridBagConstraints);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        technology.add(jPanel10, gridBagConstraints);
 
         getContentPane().add(technology, new java.awt.GridBagConstraints());
 
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -606,31 +349,15 @@ public class TechnologyTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel defaultTechLabel;
-    private javax.swing.JComboBox defaultTechPulldown;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel52;
-    private javax.swing.JLabel jLabel59;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JCheckBox techArtworkArrowsFilled;
-    private javax.swing.JCheckBox techMOCMOSAlternateContactRules;
-    private javax.swing.JRadioButton techMOCMOSDeepRules;
-    private javax.swing.JCheckBox techMOCMOSDisallowStackedVias;
-    private javax.swing.JComboBox techMOCMOSMetalLayers;
     private javax.swing.ButtonGroup techMOCMOSRules;
-    private javax.swing.JRadioButton techMOCMOSSCMOSRules;
-    private javax.swing.JCheckBox techMOCMOSSecondPoly;
-    private javax.swing.JRadioButton techMOCMOSSubmicronRules;
     private javax.swing.JTextField techSchematicsNegatingSize;
     private javax.swing.JPanel technology;
-    private javax.swing.JComboBox technologyPopup;
     private javax.swing.JTextField vhdlName;
     private javax.swing.JTextField vhdlNegatedName;
     private javax.swing.JScrollPane vhdlPrimPane;

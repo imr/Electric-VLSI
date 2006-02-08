@@ -24,6 +24,9 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -228,48 +231,34 @@ public class OptionReconcile extends EDialog
 
 	public void termDialog()
 	{
-        List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
-		for(JRadioButton cb : changedOptions.keySet())
-		{
-			if (!cb.isSelected()) continue;
-			Pref.Meaning meaning = changedOptions.get(cb);
-            meaningsToReconcile.add(meaning);
-		}
-        Pref.finishPrefReconcilation(meaningsToReconcile);
-//		DoReconciliation job = new DoReconciliation(changedOptions);
+		new DoReconciliation(changedOptions);
 	}
 
-//	/**
-//	 * Class to apply changes to tool options in a new thread.
-//	 */
-//	private static class DoReconciliation extends Job
-//	{
-//		HashMap<JRadioButton,Pref.Meaning> changedOptions;
-//
-//    	public DoReconciliation() {}
-//
-//		protected DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
-//		{
-//			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			this.changedOptions = changedOptions;
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
-//
-//			for(Iterator<JRadioButton> it = changedOptions.keySet().iterator(); it.hasNext(); )
-//			{
-//				JRadioButton cb = it.next();
-//				if (!cb.isSelected()) continue;
-//				Pref.Meaning meaning = changedOptions.get(cb);
-//                meaningsToReconcile.add(meaning);
-//			}
-//            Pref.finishPrefReconcilation(meaningsToReconcile);
-//			return true;
-//		}
-//	}
+	/**
+	 * Class to apply changes to tool options in a new thread.
+	 */
+	private static class DoReconciliation extends Job
+	{
+		private DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
+		{
+			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+
+            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
+            for(JRadioButton cb : changedOptions.keySet())
+			{
+				if (!cb.isSelected()) continue;
+				Pref.Meaning meaning = changedOptions.get(cb);
+                meaningsToReconcile.add(meaning);
+			}
+            Pref.finishPrefReconcilation(meaningsToReconcile);
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			return true;
+		}
+	}
  
 	/** This method is called from within the constructor to
 	 * initialize the form.

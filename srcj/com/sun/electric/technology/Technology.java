@@ -2663,22 +2663,22 @@ public class Technology implements Comparable<Technology>
 
 	/****************************** PARASITICS ******************************/
 
-	private Pref getParasiticPref(String what, Pref pref, double factory)
+	private Pref getParasiticSetting(String what, Pref pref, double factory)
 	{
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref(what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tools/Parasitic tab", getTechShortName() + " " + what);
+			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this, "Tools/Parasitic tab",
+				getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
 
-    private Pref getParasiticPref(String what, Pref pref, boolean factory)
+    private Pref getParasiticSetting(String what, Pref pref, boolean factory)
 	{
 		if (pref == null)
 		{
-			pref = Pref.makeBooleanPref(what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tools/Parasitic tab", getTechShortName() + " " + what);
+			pref = Pref.makeBooleanSetting(what + "IN" + getTechName(), prefs, this, "Tools/Parasitic tab",
+				getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
@@ -2699,7 +2699,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinResistance()
 	{
-		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, 10.0);
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, 10.0);
 		return prefMinResistance.getDouble();
 	}
 
@@ -2709,7 +2709,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinResistance(double minResistance)
 	{
-		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, minResistance);
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
 		prefMinResistance.setDouble(minResistance);
 	}
 
@@ -2721,7 +2721,7 @@ public class Technology implements Comparable<Technology>
 	public double getMinCapacitance()
 	{
         // 0.0 is the default value
-		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, 0.0);
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, 0.0);
 		return prefMinCapacitance.getDouble();
 	}
 
@@ -2731,7 +2731,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinCapacitance(double minCapacitance)
 	{
-		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, minCapacitance);
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
 		prefMinCapacitance.setDouble(minCapacitance);
 	}
 
@@ -2742,7 +2742,7 @@ public class Technology implements Comparable<Technology>
 	public boolean isGateIncluded()
 	{
         // False is the default
-		prefIncludeGate = getParasiticPref("Gate Inclusion", prefIncludeGate, false);
+		prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, false);
 		return prefIncludeGate.getBoolean();
 	}
 
@@ -2752,7 +2752,7 @@ public class Technology implements Comparable<Technology>
      */
     public void setGateIncluded(boolean set)
     {
-        prefIncludeGate = getParasiticPref("Gate Inclusion", prefIncludeGate, set);
+        prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, set);
         prefIncludeGate.setBoolean(set);
     }
 
@@ -2762,7 +2762,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGroundNetIncluded(boolean set)
 	{
-		prefIncludeGnd = getParasiticPref("Ground Net Inclusion", prefIncludeGnd, set);
+		prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, set);
 		prefIncludeGnd.setBoolean(set);
 	}
 
@@ -2773,7 +2773,7 @@ public class Technology implements Comparable<Technology>
     public boolean isGroundNetIncluded()
     {
         // False is the default
-        prefIncludeGnd = getParasiticPref("Ground Net Inclusion", prefIncludeGnd, false);
+        prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, false);
         return prefIncludeGnd.getBoolean();
     }
 
@@ -2785,7 +2785,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getGateLengthSubtraction()
     {
-        prefGateLengthSubtraction = getParasiticPref("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
+        prefGateLengthSubtraction = getParasiticSetting("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
         return prefGateLengthSubtraction.getDouble();
     }
 
@@ -2809,29 +2809,29 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, minResistance);
-		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, minCapacitance);
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
 	}
 	
 	
 
 
-	private Pref getLEPref(String what, Pref pref, double factory)
+	private Pref getLESetting(String what, Pref pref, double factory)
 	{
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref(what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tools/Logical Effort tab", getTechShortName() + " " + what);
+			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
+				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
 
-	private Pref getLEPref(String what, Pref pref, int factory)
+	private Pref getLESetting(String what, Pref pref, int factory)
 	{
 		if (pref == null)
 		{
-			pref = Pref.makeIntPref(what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tools/Logical Effort tab", getTechShortName() + " " + what);
+			pref = Pref.makeIntSetting(what + "IN" + getTechName(), prefs, this,
+				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
@@ -2843,7 +2843,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getGlobalFanout()
 	{
-		cacheGlobalFanout = getLEPref("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
 		return cacheGlobalFanout.getDouble();
 	}
 	/**
@@ -2852,7 +2852,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGlobalFanout(double fo)
 	{
-		cacheGlobalFanout = getLEPref("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
 		cacheGlobalFanout.setDouble(fo);
 	}
 
@@ -2863,7 +2863,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getConvergenceEpsilon()
 	{
-		cacheConvergenceEpsilon = getLEPref("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
 		return cacheConvergenceEpsilon.getDouble();
 	}
 	/**
@@ -2872,7 +2872,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setConvergenceEpsilon(double ep)
 	{
-		cacheConvergenceEpsilon = getLEPref("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
 		cacheConvergenceEpsilon.setDouble(ep);
 	}
 
@@ -2883,7 +2883,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public int getMaxIterations()
 	{
-		cacheMaxIterations = getLEPref("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
 		return cacheMaxIterations.getInt();
 	}
 	/**
@@ -2892,7 +2892,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMaxIterations(int it)
 	{
-		cacheMaxIterations = getLEPref("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
 		cacheMaxIterations.setInt(it);
 	}
 
@@ -2903,7 +2903,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getGateCapacitance()
 	{
-		cacheGateCapacitance = getLEPref("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
 		return cacheGateCapacitance.getDouble();
 	}
 	/**
@@ -2912,7 +2912,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGateCapacitance(double gc)
 	{
-		cacheGateCapacitance = getLEPref("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
 		cacheGateCapacitance.setDouble(gc);
 	}
 
@@ -2923,7 +2923,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getWireRatio()
 	{
-		cacheWireRatio = getLEPref("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
 		return cacheWireRatio.getDouble();
 	}
 	/**
@@ -2932,7 +2932,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setWireRatio(double wr)
 	{
-		cacheWireRatio = getLEPref("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
 		cacheWireRatio.setDouble(wr);
 	}
 
@@ -2943,7 +2943,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getDiffAlpha()
 	{
-		cacheDiffAlpha = getLEPref("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
 		return cacheDiffAlpha.getDouble();
 	}
 	/**
@@ -2952,7 +2952,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setDiffAlpha(double da)
 	{
-		cacheDiffAlpha = getLEPref("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
 		cacheDiffAlpha.setDouble(da);
 	}
 
@@ -2963,7 +2963,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getKeeperRatio()
 	{
-		cacheKeeperRatio = getLEPref("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+		cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
 		return cacheKeeperRatio.getDouble();
 	}
 	/**
@@ -2972,7 +2972,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setKeeperRatio(double kr)
 	{
-		cacheKeeperRatio = getLEPref("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+		cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
 		cacheKeeperRatio.setDouble(kr);
 	}
 
@@ -3179,9 +3179,9 @@ public class Technology implements Comparable<Technology>
 	protected void setFactoryScale(double factory, boolean scaleRelevant)
 	{
 		this.scaleRelevant = scaleRelevant;
-		prefScale = Pref.makeDoublePref(getScaleVariableName(), prefs, factory);
-		Pref.Meaning meaning = prefScale.attachToObject(this, "Technology/Scale tab", getTechShortName() + " scale");
-		meaning.setValidOption(isScaleRelevant());
+		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Technology/Scale tab", getTechShortName() + " scale", factory);
+//		Pref.Meaning meaning = prefScale.attachToObject(this, "Technology/Scale tab", getTechShortName() + " scale");
+//		meaning.setValidOption(isScaleRelevant());
 	}
 
 	/**
@@ -3265,8 +3265,8 @@ public class Technology implements Comparable<Technology>
      */
     protected void setFactoryPrefFoundry(String factoryName)
     {
-        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, factoryName.toUpperCase());
-        prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
+        prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName, this,
+        	"Technology/Design Rules (" + techName + ") tab", techName + " foundry", factoryName.toUpperCase());
     }
 
     /**
@@ -4049,7 +4049,7 @@ public class Technology implements Comparable<Technology>
 	{
         private Technology tech;
 
-		private TechPref(Technology tech, String name)
+		private TechPref(Technology tech, Object ownerObj, String location, String description, String name)
         {
             super(Technology.prefs, name);
             this.tech = tech;
@@ -4065,23 +4065,23 @@ public class Technology implements Comparable<Technology>
 			ui.repaintAllEditWindows();
 		}
 
-		public static Pref makeBooleanPref(Technology tech, String name, boolean factory)
+		public static Pref makeBooleanSetting(Technology tech, String name, Object ownerObj, String location, String description, boolean factory)
 		{
-			TechPref pref = new TechPref(tech, name);
+			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
 			pref.initBoolean(factory);
 			return pref;
 		}
 
-		public static Pref makeIntPref(Technology tech, String name, int factory)
+		public static Pref makeIntSetting(Technology tech, String name, Object ownerObj, String location, String description, int factory)
 		{
-			TechPref pref = new TechPref(tech, name);
+			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
 			pref.initInt(factory);
 			return pref;
 		}
 
-        public static Pref makeStringPref(Technology tech, String name, String factory)
+        public static Pref makeStringSetting(Technology tech, String name, Object ownerObj, String location, String description, String factory)
 		{
-			TechPref pref = new TechPref(tech, name);
+			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
 			pref.initString(factory);
 			return pref;
 		}

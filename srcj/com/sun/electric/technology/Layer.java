@@ -672,7 +672,7 @@ public class Layer
 	 */
 	public void setDimmed(boolean dimmed) { this.dimmed = dimmed; }
 
-	private Pref getLayerPref(String what, HashMap<String,Pref> map, String factory)
+	private Pref getLayerSetting(String what, HashMap<String,Pref> map, String factory)
 	{
         String techName = tech.getTechName();
         String key = name + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
@@ -680,21 +680,20 @@ public class Layer
 		if (pref == null)
 		{
 			if (factory == null) factory = "";
-			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + techName, Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "IO/" + what + " in " + techName + " tab",
-                    what + " for layer " + name + " in technology " + techName);
+			pref = Pref.makeStringSetting(what + "LayerFor" + name + "IN" + techName, Technology.getTechnologyPreferences(), tech,
+				"IO/" + what + " in " + techName + " tab", what + " for layer " + name + " in technology " + techName, factory);
 			map.put(key, pref);
 		}
 		return pref;
 	}
 
-	private Pref getParasiticPref(String what, HashMap<Layer,Pref> map, double factory)
+	private Pref getParasiticSetting(String what, HashMap<Layer,Pref> map, double factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref(what + "ParasiticFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "Tools/Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name);
+			pref = Pref.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(),
+				tech, "Tools/Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -838,19 +837,19 @@ public class Layer
 	 * Method to set the factory-default CIF name of this Layer.
 	 * @param cifLayer the factory-default CIF name of this Layer.
 	 */
-	public void setFactoryCIFLayer(String cifLayer) { getLayerPref("CIF", cifLayerPrefs, cifLayer); }
+	public void setFactoryCIFLayer(String cifLayer) { getLayerSetting("CIF", cifLayerPrefs, cifLayer); }
 
 	/**
 	 * Method to set the CIF name of this Layer.
 	 * @param cifLayer the CIF name of this Layer.
 	 */
-	public void setCIFLayer(String cifLayer) { getLayerPref("CIF", cifLayerPrefs, this.cifLayer).setString(cifLayer); }
+	public void setCIFLayer(String cifLayer) { getLayerSetting("CIF", cifLayerPrefs, this.cifLayer).setString(cifLayer); }
 
 	/**
 	 * Method to return the CIF name of this layer.
 	 * @return the CIF name of this layer.
 	 */
-	public String getCIFLayer() { return getLayerPref("CIF", cifLayerPrefs, cifLayer).getString(); }
+	public String getCIFLayer() { return getLayerSetting("CIF", cifLayerPrefs, cifLayer).getString(); }
 
     /**
      * Generate key name for GDS value depending on the foundry
@@ -870,7 +869,7 @@ public class Layer
     {
         // Getting rid of spaces
         String value = factoryDefault.replaceAll(", ", ",");
-        getLayerPref(getGDSPrefName(foundry), gdsLayerPrefs, value);
+        getLayerSetting(getGDSPrefName(foundry), gdsLayerPrefs, value);
     }
 
 	/**
@@ -879,7 +878,7 @@ public class Layer
 	 */
 	public void setGDSLayer(String gdsLayer)
     {
-        getLayerPref(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
+		getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
 
 	/**
 	 * Method to return the GDS name of this layer.
@@ -887,44 +886,44 @@ public class Layer
 	 */
 	public String getGDSLayer()
     {
-        return getLayerPref(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, gdsLayer).getString();
+        return getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, gdsLayer).getString();
     }
 
 	/**
 	 * Method to set the factory-default DXF name of this Layer.
 	 * @param dxfLayer the factory-default DXF name of this Layer.
 	 */
-	public void setFactoryDXFLayer(String dxfLayer) { getLayerPref("DXF", dxfLayerPrefs, dxfLayer); }
+	public void setFactoryDXFLayer(String dxfLayer) { getLayerSetting("DXF", dxfLayerPrefs, dxfLayer); }
 
 	/**
 	 * Method to set the DXF name of this Layer.
 	 * @param dxfLayer the DXF name of this Layer.
 	 */
-	public void setDXFLayer(String dxfLayer) { getLayerPref("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer); }
+	public void setDXFLayer(String dxfLayer) { getLayerSetting("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer); }
 
 	/**
 	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.
 	 */
-	public String getDXFLayer() { return getLayerPref("DXF", dxfLayerPrefs, dxfLayer).getString(); }
+	public String getDXFLayer() { return getLayerSetting("DXF", dxfLayerPrefs, dxfLayer).getString(); }
 
 	/**
 	 * Method to set the factory-default Skill name of this Layer.
 	 * @param skillLayer the factory-default Skill name of this Layer.
 	 */
-	public void setFactorySkillLayer(String skillLayer) { getLayerPref("Skill", skillLayerPrefs, skillLayer); }
+	public void setFactorySkillLayer(String skillLayer) { getLayerSetting("Skill", skillLayerPrefs, skillLayer); }
 
 	/**
 	 * Method to set the Skill name of this Layer.
 	 * @param skillLayer the Skill name of this Layer.
 	 */
-	public void setSkillLayer(String skillLayer) { getLayerPref("Skill", skillLayerPrefs, this.skillLayer).setString(skillLayer); }
+	public void setSkillLayer(String skillLayer) { getLayerSetting("Skill", skillLayerPrefs, this.skillLayer).setString(skillLayer); }
 
 	/**
 	 * Method to return the Skill name of this layer.
 	 * @return the Skill name of this layer.
 	 */
-	public String getSkillLayer() { return getLayerPref("Skill", skillLayerPrefs, skillLayer).getString(); }
+	public String getSkillLayer() { return getLayerSetting("Skill", skillLayerPrefs, skillLayer).getString(); }
 
 	/**
 	 * Method to set the Spice parasitics for this Layer.
@@ -937,9 +936,9 @@ public class Layer
 	 */
 	public void setFactoryParasitics(double resistance, double capacitance, double edgeCapacitance)
 	{
-		getParasiticPref("Resistance", resistanceParasiticPrefs, this.resistance = resistance);
-		getParasiticPref("Capacitance", capacitanceParasiticPrefs, this.capacitance = capacitance);
-		getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance = edgeCapacitance);
+		getParasiticSetting("Resistance", resistanceParasiticPrefs, this.resistance = resistance);
+		getParasiticSetting("Capacitance", capacitanceParasiticPrefs, this.capacitance = capacitance);
+		getParasiticSetting("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance = edgeCapacitance);
 	}
 
     /**
@@ -947,11 +946,11 @@ public class Layer
      */
     public void resetToFactoryParasitics()
     {
-        Pref pref = getParasiticPref("Resistance", resistanceParasiticPrefs, resistance);
+        Pref pref = getParasiticSetting("Resistance", resistanceParasiticPrefs, resistance);
         double res = pref.getDoubleFactoryValue();
-        pref = getParasiticPref("Capacitance", capacitanceParasiticPrefs, capacitance);
+        pref = getParasiticSetting("Capacitance", capacitanceParasiticPrefs, capacitance);
         double cap = pref.getDoubleFactoryValue();
-        pref = getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance);
+        pref = getParasiticSetting("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance);
         double edgecap = pref.getDoubleFactoryValue();
         setResistance(res);
         setCapacitance(cap);
@@ -962,40 +961,40 @@ public class Layer
 	 * Method to return the resistance for this layer.
 	 * @return the resistance for this layer.
 	 */
-	public double getResistance() { return getParasiticPref("Resistance", resistanceParasiticPrefs, resistance).getDouble(); }
+	public double getResistance() { return getParasiticSetting("Resistance", resistanceParasiticPrefs, resistance).getDouble(); }
 
 	/**
 	 * Method to set the resistance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param resistance the new resistance for this Layer.
 	 */
-	public void setResistance(double resistance) { getParasiticPref("Resistance", resistanceParasiticPrefs, this.resistance).setDouble(resistance); }
+	public void setResistance(double resistance) { getParasiticSetting("Resistance", resistanceParasiticPrefs, this.resistance).setDouble(resistance); }
 
 	/**
 	 * Method to return the capacitance for this layer.
 	 * @return the capacitance for this layer.
 	 */
-	public double getCapacitance() { return getParasiticPref("Capacitance", capacitanceParasiticPrefs, capacitance).getDouble(); }
+	public double getCapacitance() { return getParasiticSetting("Capacitance", capacitanceParasiticPrefs, capacitance).getDouble(); }
 
 	/**
 	 * Method to set the capacitance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param capacitance the new capacitance for this Layer.
 	 */
-	public void setCapacitance(double capacitance) { getParasiticPref("Capacitance", capacitanceParasiticPrefs, this.capacitance).setDouble(capacitance); }
+	public void setCapacitance(double capacitance) { getParasiticSetting("Capacitance", capacitanceParasiticPrefs, this.capacitance).setDouble(capacitance); }
 
 	/**
 	 * Method to return the edge capacitance for this layer.
 	 * @return the edge capacitance for this layer.
 	 */
-	public double getEdgeCapacitance() { return getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance).getDouble(); }
+	public double getEdgeCapacitance() { return getParasiticSetting("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance).getDouble(); }
 
     /**
      * Method to set the edge capacitance for this Layer.
      * Also saves this information in the permanent options.
      * @param edgeCapacitance the new edge capacitance for this Layer.
      */
-    public void setEdgeCapacitance(double edgeCapacitance) { getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance).setDouble(edgeCapacitance); }
+    public void setEdgeCapacitance(double edgeCapacitance) { getParasiticSetting("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance).setDouble(edgeCapacitance); }
 
     /**
 	 * Method to set the minimum area to cover with this Layer in a particular cell.

@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref.Group;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
@@ -208,8 +209,7 @@ public class IOTool extends Listener
 
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
-	private static Pref cacheUseCopyrightMessage = Pref.makeBooleanPref("UseCopyrightMessage", IOTool.tool.prefs, false);
-    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "General/Copyright tab", "Use copyright message"); }
+	private static Pref cacheUseCopyrightMessage = Pref.makeBooleanSetting("UseCopyrightMessage", IOTool.tool.prefs, IOTool.tool, "General/Copyright tab", "Use copyright message", false);
 	/**
 	 * Method to tell whether to add the copyright message to output decks.
 	 * The default is "false".
@@ -222,8 +222,7 @@ public class IOTool extends Listener
 	 */
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 
-	private static Pref cacheCopyrightMessage = Pref.makeStringPref("CopyrightMessage", IOTool.tool.prefs, "");
-    static { cacheCopyrightMessage.attachToObject(IOTool.tool, "General/Copyright tab", "Copyright message"); }
+	private static Pref cacheCopyrightMessage = Pref.makeStringSetting("CopyrightMessage", IOTool.tool.prefs, IOTool.tool, "General/Copyright tab", "Copyright message", "");
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".
@@ -295,9 +294,7 @@ public class IOTool extends Listener
 
 	/****************************** CIF PREFERENCES ******************************/
 
-	private static Pref cacheCIFOutMimicsDisplay = Pref.makeBooleanPref("CIFMimicsDisplay", IOTool.tool.prefs, false);
-    static { cacheCIFOutMimicsDisplay.attachToObject(IOTool.tool, "IO/CIF tab", "CIF output mimics display"); }
-
+	private static Pref cacheCIFOutMimicsDisplay = Pref.makeBooleanSetting("CIFMimicsDisplay", IOTool.tool.prefs, IOTool.tool, "IO/CIF tab", "CIF output mimics display", false);
 	/**
 	 * Method to tell whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
@@ -314,8 +311,7 @@ public class IOTool extends Listener
 	 */
 	public static void setCIFOutMimicsDisplay(boolean on) { cacheCIFOutMimicsDisplay.setBoolean(on); }
 
-	private static Pref cacheCIFOutMergesBoxes = Pref.makeBooleanPref("CIFMergesBoxes", IOTool.tool.prefs, false);
-    static { cacheCIFOutMergesBoxes.attachToObject(IOTool.tool, "IO/CIF tab", "CIF output merges boxes"); }
+	private static Pref cacheCIFOutMergesBoxes = Pref.makeBooleanSetting("CIFMergesBoxes", IOTool.tool.prefs, IOTool.tool, "IO/CIF tab", "CIF output merges boxes", false);
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -330,8 +326,7 @@ public class IOTool extends Listener
 	 */
 	public static void setCIFOutMergesBoxes(boolean on) { cacheCIFOutMergesBoxes.setBoolean(on); }
 
-	private static Pref cacheCIFOutInstantiatesTopLevel = Pref.makeBooleanPref("CIFInstantiatesTopLevel", IOTool.tool.prefs, true);
-    static { cacheCIFOutInstantiatesTopLevel.attachToObject(IOTool.tool, "IO/CIF tab", "CIF output instantiates top level"); }
+	private static Pref cacheCIFOutInstantiatesTopLevel = Pref.makeBooleanSetting("CIFInstantiatesTopLevel", IOTool.tool.prefs, IOTool.tool, "IO/CIF tab", "CIF output instantiates top level", true);
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
 	 * When this happens, a CIF "call" to the top cell is emitted.
@@ -404,8 +399,7 @@ public class IOTool extends Listener
 
 	/****************************** GDS PREFERENCES ******************************/
 
-	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanPref("GDSMergesBoxes", IOTool.tool.prefs, false);
-    static { cacheGDSOutMergesBoxes.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output merges boxes"); }
+	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanSetting("GDSMergesBoxes", IOTool.tool.prefs, IOTool.tool, "IO/GDS tab", "GDS output merges boxes", false);
 	/**
 	 * Method to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -420,8 +414,7 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSOutMergesBoxes(boolean on) { cacheGDSOutMergesBoxes.setBoolean(on); }
 
-	private static Pref cacheGDSOutWritesExportPins = Pref.makeBooleanPref("GDSWritesExportPins", IOTool.tool.prefs, false);
-    static { cacheGDSOutWritesExportPins.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output writes export pins"); }
+	private static Pref cacheGDSOutWritesExportPins = Pref.makeBooleanSetting("GDSWritesExportPins", IOTool.tool.prefs, IOTool.tool, "IO/GDS tab", "GDS output writes export pins", false);
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
@@ -436,8 +429,7 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSOutWritesExportPins(boolean on) { cacheGDSOutWritesExportPins.setBoolean(on); }
 
-	private static Pref cacheGDSOutUpperCase = Pref.makeBooleanPref("GDSOutputUpperCase", IOTool.tool.prefs, false);
-    static { cacheGDSOutUpperCase.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output all upper-case"); }
+	private static Pref cacheGDSOutUpperCase = Pref.makeBooleanSetting("GDSOutputUpperCase", IOTool.tool.prefs, IOTool.tool, "IO/GDS tab", "GDS output all upper-case", false);
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
@@ -452,8 +444,7 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSOutUpperCase(boolean on) { cacheGDSOutUpperCase.setBoolean(on); }
 
-	private static Pref cacheGDSOutDefaultTextLayer = Pref.makeIntPref("GDSDefaultTextLayer", IOTool.tool.prefs, 230);
-    static { cacheGDSOutDefaultTextLayer.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output default text layer"); }
+	private static Pref cacheGDSOutDefaultTextLayer = Pref.makeIntSetting("GDSDefaultTextLayer", IOTool.tool.prefs, IOTool.tool, "IO/GDS tab", "GDS output default text layer", 230);
 	/**
 	 * Method to tell the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.
@@ -470,8 +461,7 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSOutDefaultTextLayer(int num) { cacheGDSOutDefaultTextLayer.setInt(num); }
 
-    private static Pref cacheGDSOutputConvertsBracketsInExports = Pref.makeBooleanPref("GDSOutputConvertsBracketsInExports", IOTool.tool.prefs, true);
-    static { cacheGDSOutputConvertsBracketsInExports.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output converts brackets in exports"); }
+    private static Pref cacheGDSOutputConvertsBracketsInExports = Pref.makeBooleanSetting("GDSOutputConvertsBracketsInExports", IOTool.tool.prefs, IOTool.tool, "IO/GDS tab", "GDS output converts brackets in exports", true);
     /**
      * Method to get the state of whether the GDS writer converts brackets
      * to underscores in export names.
@@ -556,7 +546,8 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
 
-    private static Pref cacheGDSCellNameLenMax = Pref.makeIntPref("GDSCellNameLenMax", IOTool.tool.prefs, 32);
+    private static Pref cacheGDSCellNameLenMax = Pref.makeIntSetting("GDSCellNameLenMax", IOTool.tool.prefs, IOTool.tool,
+    	"IO/GDS tab", "GDS name length limit", 32);
     /**
      * Get the maximum length (number of chars) for Cell names in the GDS output file
      * @return the number of chars
@@ -918,7 +909,8 @@ public class IOTool extends Listener
 	 */
 	public static void setDXFInputReadsAllLayers(boolean a) { cacheDXFInputReadsAllLayers.setBoolean(a); }
 
-	private static Pref cacheDXFScale = Pref.makeIntPref("DXFScale", IOTool.tool.prefs, 2);
+	private static Pref cacheDXFScale = Pref.makeIntSetting("DXFScale", IOTool.tool.prefs, IOTool.tool,
+		"IO/DXF tab", "DXF scale factor", 2);
 	/**
 	 * Method to tell the DXF scale.
 	 * The DXF scale is:

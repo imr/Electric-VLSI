@@ -4,7 +4,7 @@
  *
  * File: LogicalEffortTab.java
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs.options;
+package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -47,9 +47,9 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 /**
- * Class to handle the "Logical Effort" tab of the Preferences dialog.
+ * Class to handle the "Logical Effort" tab of the Project Settings dialog.
  */
-public class LogicalEffortTab extends PreferencePanel
+public class LogicalEffortTab extends ProjSettingsPanel
 {
 	/** Creates new form LogicalEffortTab */
 	public LogicalEffortTab(java.awt.Frame parent, boolean modal)

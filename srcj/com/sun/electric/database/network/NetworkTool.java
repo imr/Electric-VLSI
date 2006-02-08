@@ -661,8 +661,8 @@ public class NetworkTool extends Listener
 //	 */
 //	public static void setUnifyLikeNamedNets(boolean u) { cacheUnifyLikeNamedNets.setBoolean(u); }
 
-	private static Pref cacheIgnoreResistors = Pref.makeBooleanPref("IgnoreResistors", NetworkTool.tool.prefs, false);
-    static { cacheIgnoreResistors.attachToObject(NetworkTool.tool, "Tools/Network tab", "Networks ignore Resistors"); }
+	private static Pref cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
+		"Tools/Network tab", "Networks ignore Resistors", false);
 	/**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
@@ -711,8 +711,8 @@ public class NetworkTool extends Listener
 //	 */
 //	public static void setBusBaseZero(boolean z) { cacheBusBaseZero.setBoolean(z); }
 
-	private static Pref cacheBusAscending = Pref.makeBooleanPref("BusAscending", NetworkTool.tool.prefs, false);
-    static { cacheBusAscending.attachToObject(NetworkTool.tool, "Tools/Network tab", "Default busses are ascending"); }
+	private static Pref cacheBusAscending = Pref.makeBooleanSetting("BusAscending", NetworkTool.tool.prefs, NetworkTool.tool,
+		"Tools/Network tab", "Default busses are ascending", false);
 	/**
 	 * Method to tell whether unnamed busses should be numbered ascending.
 	 * The alternative is descending.

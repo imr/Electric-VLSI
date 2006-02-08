@@ -4,7 +4,7 @@
  *
  * File: ScaleTab.java
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs.options;
+package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -39,12 +40,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * Class to handle the "Scale" tab of the Preferences dialog.
+ * Class to handle the "Scale" tab of the Project Settings dialog.
  */
-public class ScaleTab extends PreferencePanel
+public class ScaleTab extends ProjSettingsPanel
 {
 	/** Creates new form ScaleTab */
-	public ScaleTab(java.awt.Frame parent, boolean modal)
+	public ScaleTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();

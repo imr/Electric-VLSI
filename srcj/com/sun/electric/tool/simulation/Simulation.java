@@ -1060,8 +1060,8 @@ public class Simulation extends Listener
 
 	/****************************** VERILOG OPTIONS ******************************/
 
-	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", tool.prefs, false);
-    static { cacheVerilogUseAssign.attachToObject(tool, "Tools/Verilog tab", "Verilog uses Assign construct"); }
+	private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
+		"Tools/Verilog tab", "Verilog uses Assign construct", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
@@ -1074,8 +1074,8 @@ public class Simulation extends Listener
 	 */
 	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
-	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", tool.prefs, false);
-    static { cacheVerilogUseTrireg.attachToObject(tool, "Tools/Verilog tab", "Verilog presumes wire is Trireg"); }
+	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanSetting("VerilogUseTrireg", tool.prefs, tool,
+		"Tools/Verilog tab", "Verilog presumes wire is Trireg", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.

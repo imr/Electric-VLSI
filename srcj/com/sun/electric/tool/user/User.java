@@ -1684,8 +1684,8 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-	private static Pref cacheDefaultTechnology = Pref.makeStringPref("DefaultTechnology", tool.prefs, "mocmos");
-	static { cacheDefaultTechnology.attachToObject(tool, "Technology/Technology tab", "Default Technology for editing"); }
+	private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
+		"Technology/Technology tab", "Default Technology for editing", "mocmos");
 	/**
 	 * Method to get default technique in Tech Palette.
 	 * The default is "mocmos".
@@ -1698,9 +1698,9 @@ public class User extends Listener
 	 */
 	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
 
-	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", tool.prefs, "mocmos");
+	private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
+		"Technology/Technology tab", "Schematics use scale values from this technology", "mocmos");
 	private static Technology schematicTechnologyCache = null;
-	static { cacheSchematicTechnology.attachToObject(tool, "Technology/Technology tab", "Schematics use scale values from this technology"); }
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -1958,8 +1958,8 @@ public class User extends Listener
 	 */
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
-	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanPref("IncludeDateAndVersionInOutput", tool.prefs, true);
-    static { cacheIncludeDateAndVersionInOutput.attachToObject(tool, "General/General tab", "Include date and version in output"); }
+	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanSetting("IncludeDateAndVersionInOutput", tool.prefs, tool,
+		"General/General tab", "Include date and version in output", true);
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".

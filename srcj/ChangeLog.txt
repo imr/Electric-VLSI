@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/8/06, SMR) Split "Preferences" into "Preferences" and "Project Settings".
+
 BUG: (2/8/06, GVG) Preferences tree didn't expand correctly if Technology->Technology
 was selected
 FIX: Search for identical string "Technology"), not "Technology ".

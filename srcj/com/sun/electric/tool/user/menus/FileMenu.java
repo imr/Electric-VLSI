@@ -59,6 +59,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -111,7 +112,7 @@ public class FileMenu {
 
 		/****************************** THE FILE MENU ******************************/
 
-		// mnemonic keys available:    D     J         T  WXYZ
+		// mnemonic keys available:    D               T  WXYZ
 		MenuBar.Menu fileMenu = MenuBar.makeMenu("_File");
         menuBar.add(fileMenu);
 
@@ -267,6 +268,8 @@ public class FileMenu {
 		fileMenu.addSeparator();
 		fileMenu.addMenuItem("P_references...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
+		fileMenu.addMenuItem("Pro_ject Settings...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ProjectSettingsFrame.projectSettingsCommand(); } });
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
