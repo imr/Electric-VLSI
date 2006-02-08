@@ -63,7 +63,7 @@ public class FindText extends EDialog
 		}
 		public String toString() {return descriptionOfObjectFound;}
 	}
-	private static Preferences prefs = Preferences.userNodeForPackage(FindText.class);
+	private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
 	private static Pref
 		prefCaseSensitive = Pref.makeBooleanPref("FindText_caseSensitive", prefs, false),
 		prefFindTextMessage = Pref.makeStringPref("FindText_findTextMessage", prefs, ""),
