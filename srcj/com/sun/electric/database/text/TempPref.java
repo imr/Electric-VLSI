@@ -33,7 +33,7 @@ public class TempPref {
     /** Creates a new instance of TempPref */
     private TempPref(Object factoryObj) {
         this.factoryObj = factoryObj;
-        this.cachedObj = cachedObj;
+        this.cachedObj = factoryObj;
     }
     
 	/**
