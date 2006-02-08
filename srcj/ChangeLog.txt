@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/8/06, GVG) Preferences tree didn't expand correctly if Technology->Technology
+was selected
+FIX: Search for identical string "Technology"), not "Technology ".
+
 IMP: (2/7/06, GVG) DRC annotation to skip std cell.
 
 IMP: (2/7/06, GVG) First version of ESD devices. TSMC180 devices not in palette

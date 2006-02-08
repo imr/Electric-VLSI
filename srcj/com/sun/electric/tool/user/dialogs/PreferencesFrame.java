@@ -452,7 +452,7 @@ public class PreferencesFrame extends EDialog
         {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
             Object o = node.getUserObject();
-            if (o.toString().indexOf(currentTabName) != -1)
+            if (o.toString().equals(currentTabName))//indexOf(currentTabName) != -1)
             {
                 optionTree.scrollPathToVisible(new TreePath(node.getPath()));
                 return true;
