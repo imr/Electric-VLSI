@@ -28,6 +28,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
@@ -37,6 +38,7 @@ import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
 import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
 import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
 import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
+import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
 import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
 import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
 import com.sun.electric.tool.user.help.ManualViewer;
@@ -143,12 +145,12 @@ public class ProjectSettingsFrame extends EDialog
 		optionPanes.add(scat);
 		rootNode.add(new DefaultMutableTreeNode(scat.getName()));
 
-//		if (IOTool.hasSkill())
-//		{
-//			SkillTab skt = new SkillTab(parent, modal);
-//			optionPanes.add(skt);
-//			rootNode.add(new DefaultMutableTreeNode(skt.getName()));
-//		}
+		if (IOTool.hasSkill())
+		{
+			SkillTab skt = new SkillTab(parent, modal);
+			optionPanes.add(skt);
+			rootNode.add(new DefaultMutableTreeNode(skt.getName()));
+		}
 
 		TechnologyTab tect = new TechnologyTab(parent, modal);
 		optionPanes.add(tect);
