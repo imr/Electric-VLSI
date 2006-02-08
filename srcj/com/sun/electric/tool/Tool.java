@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.compaction.Compaction;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
@@ -63,7 +63,7 @@ public class Tool implements Comparable
 	private static List<Listener> listeners = new ArrayList<Listener>();
 	private static int toolNumber = 0;
 
-	/** Preferences for this Tool */                        public Preferences prefs;
+	/** Preferences for this Tool */                        public Pref.Group prefs;
     
 	/** set if tool is on */								private static final int TOOLON =             01;
 	/** set if tool is running in background */				private static final int TOOLBG =             02;
@@ -84,7 +84,7 @@ public class Tool implements Comparable
 		this.toolIndex = toolNumber++;
 		assert findTool(toolName) == null;
 		tools.put(toolName, this);
-        prefs = Preferences.userNodeForPackage(this.getClass());  // per-package namespace for preferences
+        prefs = Pref.groupForPackage(this.getClass());  // per-package namespace for preferences
 	}
 
 	private void updateListeners()

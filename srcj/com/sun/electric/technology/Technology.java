@@ -529,7 +529,7 @@ public class Technology implements Comparable<Technology>
 	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
-	/** preferences for all technologies */					private static Preferences prefs = null;
+	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
@@ -599,7 +599,7 @@ public class Technology implements Comparable<Technology>
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
-		if (prefs == null) prefs = Preferences.userNodeForPackage(Schematics.class);
+		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
 
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
@@ -2690,7 +2690,7 @@ public class Technology implements Comparable<Technology>
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	public static Preferences getTechnologyPreferences() { return prefs; }
+	public static Pref.Group getTechnologyPreferences() { return prefs; }
 
 	/**
 	 * Returns the minimum resistance of this Technology.

@@ -816,7 +816,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		}
 	}
 
-	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(AbstractTextDescriptor.class);
+	/** preferences for all descriptors */	private static final Pref.Group prefs = Pref.groupForPackage(AbstractTextDescriptor.class);
 
     AbstractTextDescriptor() {}
     

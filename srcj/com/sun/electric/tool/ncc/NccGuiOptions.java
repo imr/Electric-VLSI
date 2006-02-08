@@ -32,7 +32,7 @@ import com.sun.electric.database.text.Pref;
 public class NccGuiOptions {
 	public static NccGuiOptions tool = new NccGuiOptions();
 	// per-package namespace for preferences
-	private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+	private Pref.Group prefs = Pref.groupForPackage(this.getClass());
 
 	private static Pref checkSizes = 
 		Pref.makeBooleanPref("CheckSizes", NccGuiOptions.tool.prefs, false);

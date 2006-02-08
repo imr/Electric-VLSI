@@ -236,6 +236,18 @@ public class Pref
         allPrefs.add(this);
     }
     
+	/**
+	 * The constructor for the Pref.
+	 * @param name the name of this Pref.
+	 */
+	protected Pref(Group group, String name) {
+//        if (allPreferencesCreated)
+//            throw new IllegalStateException("no more preferences");
+        this.name = name;
+        this.prefs = group.prefs;
+        allPrefs.add(this);
+    }
+    
     /**
      * Method used in regressions so it has to be public.
      * @param fileName
@@ -392,18 +404,28 @@ public class Pref
 	/**
 	 * Factory methods to create a boolean Pref objects.
 	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
-	{
-		Pref pref = new Pref(prefs, name);
+    public static Pref makeBooleanPref(String name, Group group, boolean factory) {
+		Pref pref = new Pref(group.prefs, name);
 		pref.initBoolean(factory);
 		return pref;
 	}
-
-    public static Pref makeBooleanPref(String name, Group group, boolean factory) {
-        return makeBooleanPref(name, group.prefs, factory);
+    
+	/**
+	 * Factory methods to create a boolean project setting objects.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param ownerObj the Object to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeBooleanSetting(String name, Group group, Object ownerObj, String location, String description, boolean factory) {
+        Pref pref = makeBooleanPref(name, group, factory);
+        pref.attachToObject(ownerObj, location, description);
+        return pref;
     }
     
 	/**
@@ -424,18 +446,28 @@ public class Pref
 	/**
 	 * Factory methods to create an integer Pref objects.
 	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	public static Pref makeIntPref(String name, Preferences prefs, int factory)
-	{
-		Pref pref = new Pref(prefs, name);
+	public static Pref makeIntPref(String name, Group group, int factory) {
+		Pref pref = new Pref(group.prefs, name);
 		pref.initInt(factory);
 		return pref;
 	}
 
-	public static Pref makeIntPref(String name, Group group, int factory) {
-        return makeIntPref(name, group.prefs, factory);
+	/**
+	 * Factory methods to create an integerproject setting objects.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param ownerObj the Object to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeIntSetting(String name, Group group, Object ownerObj, String location, String description, int factory) {
+        Pref pref = makeIntPref(name, group, factory);
+        pref.attachToObject(ownerObj, location, description);
+        return pref;
     }
     
 	/**
@@ -456,18 +488,28 @@ public class Pref
 	/**
 	 * Factory methods to create a long Pref objects.
 	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	public static Pref makeLongPref(String name, Preferences prefs, long factory)
-	{
-		Pref pref = new Pref(prefs, name);
+	public static Pref makeLongPref(String name, Group group, long factory) {
+		Pref pref = new Pref(group.prefs, name);
 		pref.initLong(factory);
 		return pref;
 	}
 
-	public static Pref makeLongPref(String name, Group group, long factory) {
-        return makeLongPref(name, group.prefs, factory);
+	/**
+	 * Factory methods to create a long project setting objects.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param ownerObj the Object to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeLongSetting(String name, Group group, Object ownerObj, String location, String description, long factory) {
+        Pref pref = makeLongPref(name, group, factory);
+        pref.attachToObject(ownerObj, location, description);
+        return pref;
     }
     
 	/**
@@ -488,18 +530,28 @@ public class Pref
 	/**
 	 * Factory methods to create a double Pref objects.
 	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	public static Pref makeDoublePref(String name, Preferences prefs, double factory)
-	{
-		Pref pref = new Pref(prefs, name);
+	public static Pref makeDoublePref(String name, Group group, double factory) {
+		Pref pref = new Pref(group.prefs, name);
 		pref.initDouble(factory);
 		return pref;
 	}
 
-	public static Pref makeDoublePref(String name, Group group, double factory) {
-        return makeDoublePref(name, group.prefs, factory);
+	/**
+	 * Factory methods to create a double project setting objects.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param ownerObj the Object to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeDoubleSetting(String name, Group group, Object ownerObj, String location, String description, double factory) {
+        Pref pref = makeDoublePref(name, group, factory);
+        pref.attachToObject(ownerObj, location, description);
+        return pref;
     }
     
 	/**
@@ -520,18 +572,34 @@ public class Pref
 	/**
 	 * Factory methods to create a string Pref objects.
 	 * @param name the name of this Pref.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-	public static Pref makeStringPref(String name, Preferences prefs, String factory)
-	{
-		Pref pref = new Pref(prefs, name);
+	public static Pref makeStringPref(String name, Group group, String factory) {
+		Pref pref = new Pref(group.prefs, name);
 		pref.initString(factory);
 		return pref;
 	}
 
-	public static Pref makeStringPref(String name, Group group, String factory) {
-        return makeStringPref(name, group.prefs, factory);
+	public static Pref makeStringPref(String name, Preferences prefs, String factory) {
+		Pref pref = new Pref(prefs, name);
+		pref.initString(factory);
+		return pref;
+    }
+    
+	/**
+	 * Factory methods to create a string project setting objects.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param ownerObj the Object to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeStringSetting(String name, Group group, Object ownerObj, String location, String description, String factory) {
+        Pref pref = makeStringPref(name, group, factory);
+        pref.attachToObject(ownerObj, location, description);
+        return pref;
     }
     
 	/**
