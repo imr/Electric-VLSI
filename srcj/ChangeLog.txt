@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/7/06, GVG) First version of ESD devices.
+
 IMP: (2/7/06, DN) When User.useClientServer option is on in GeneralPreferences dialog,
      Electric tests snapshots and job serialization.
 

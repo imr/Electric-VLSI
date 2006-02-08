@@ -108,10 +108,16 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
         public boolean isCapacitor() {return (this == CAPAC || this == ECAPAC);}
 
         /**
-         * Method to tell whether this function describes a resistor (normal or poly resistor).
-         * @return true if this function describes a resistor (normal or poly resistor).
+         * Method to tell whether this function describes a resistor (normal, poly or nwell resistor).
+         * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
         public boolean isResistor() {return (this == RESIST || this == PRESIST || this == WRESIST);}
+
+        /**
+         * Method to tell whether this function describes an ESD device.
+         * @return true if this function describes an ESD device.
+         */
+        public boolean isESDDevice() {return this == ESDDEVICE;}
 
 		/**
 		 * Method to tell whether this function describes a transistor.
@@ -288,6 +294,10 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		 * Describes a well resistor.
 		 */
 		public static final Function WRESIST =    new Function("well-resistor", "wres", "WRESIST");
+        /**
+		 * Describes an esd device
+		 */
+		public static final Function ESDDEVICE =    new Function("esd-device", "esdd", "ESDDEVICE");
         /**
 		 * Describes a capacitor.
 		 */
