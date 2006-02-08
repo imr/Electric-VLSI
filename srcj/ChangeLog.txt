@@ -6,7 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (2/7/06, GVG) DRC annotation to skip std cell.
 
-IMP: (2/7/06, GVG) First version of ESD devices.
+IMP: (2/7/06, GVG) First version of ESD devices. TSMC180 devices not in palette
+if MOSIS is the foundry.
 
 IMP: (2/7/06, DN) When User.useClientServer option is on in GeneralPreferences dialog,
      Electric tests snapshots and job serialization.

@@ -309,6 +309,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                for (int j = 0; j < menuY; j++)
 	                {
 	                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
+                        item = getInUsed(item);
 	                    inPalette.add(item);
 	                }
 	            }
@@ -326,6 +327,24 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         synchronized(this) { paletteImageStale = true; }
 
         return size;
+    }
+
+    /**
+     * Method to determine if item is in used or not. Null if not.
+     */
+    private static Object getInUsed(Object item)
+    {
+        if (item != null)
+        {
+            // checkinf if node is in used
+            if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
+            {
+                PrimitiveNode p = (PrimitiveNode)((NodeInst)item).getProto();
+                if (p.isNotUsed())
+                    item = null;
+            }
+        }
+        return item;
     }
 
     /**
@@ -393,12 +412,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							List<Object> subList = (List<Object>)item;
 							for (Object subItem : subList)
 							{
+                                subItem = getInUsed(subItem);
+                                if (subItem == null) continue;
 								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
                                 menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, subItem, list, subList));
 							}
 						}
                         else
 						{
+                            item = getInUsed(item);
+                            if (item == null) continue;
 							menu.add(menuItem = new JMenuItem(getItemName(item, true)));
                             menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, item, list, null));
 						}

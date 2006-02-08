@@ -1382,15 +1382,24 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * Method to set this PrimitiveNode so that it is not used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
-	 */
-	public void setNotUsed() { checkChanging(); userBits |= NNOTUSED; }
+     * @param set
+     */
+	public void setNotUsed(boolean set)
+    {
+        checkChanging();
+        if (set)
+            userBits |= NNOTUSED;
+        else
+            userBits &= ~NNOTUSED; // clear
+
+    }
 
 	/**
 	 * Method to set this PrimitiveNode so that it is used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
 	 */
-	public void clearNotUsed() { checkChanging(); userBits &= ~NNOTUSED; }
+//	public void clearNotUsed() { checkChanging(); userBits &= ~NNOTUSED; }
 
 	/**
 	 * Method to tell if this PrimitiveNode is used.

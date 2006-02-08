@@ -539,15 +539,21 @@ public class ArcProto implements Comparable<ArcProto>
 	 * Method to set this ArcProto so that it is not used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
-	 */
-	public void setNotUsed() { /* checkChanging();*/ userBits |= ANOTUSED; }
+     * @param set
+     */
+	public void setNotUsed(boolean set)
+    {
+        /* checkChanging();*/
+        if (set) userBits |= ANOTUSED;
+        else userBits &= ~ANOTUSED;
+    }
 
 	/**
 	 * Method to set this ArcProto so that it is used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 */
-	public void clearNotUsed() { /*checkChanging();*/ userBits &= ~ANOTUSED; }
+//	public void clearNotUsed() { /*checkChanging();*/ userBits &= ~ANOTUSED; }
 
 	/**
 	 * Method to tell if this ArcProto is used.
