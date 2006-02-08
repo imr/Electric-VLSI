@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.change;
 
+import java.util.EventListener;
+
 
 /**
  * The database changes its state in transactional manner.
@@ -44,7 +46,7 @@ package com.sun.electric.database.change;
 //  * so care must be taken when the database thread generats event that will cause modification
 //  * of Swing objects.  Otherwise, deadlock is possible.
 //  */
-public interface DatabaseChangeListener {
+public interface DatabaseChangeListener extends EventListener {
 
     /**
      * Invoked in the java AWT Event thread when the database state changes.

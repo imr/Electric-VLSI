@@ -60,6 +60,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
 /**
  * This interface defines changes that are made to the database.
  */
@@ -667,8 +668,8 @@ public class Undo
 	private static List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
 	private static HashSet<Cell> changedCells = new HashSet<Cell>();
 
-	/** List of all DatabaseChangeListeners */          private static WeakReferences<DatabaseChangeListener> changeListeners = new WeakReferences<DatabaseChangeListener>();
-	/** List of all PropertyChangeListeners */          private static WeakReferences<PropertyChangeListener> propertyChangeListeners = new WeakReferences<PropertyChangeListener>();
+    /** Listeners. */
+    private static EventListenerList listenerList = new EventListenerList();
 
 	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
@@ -761,13 +762,13 @@ public class Undo
 	 */
 	public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l)
 	{
-		changeListeners.add(l);
+        listenerList.add(DatabaseChangeListener.class, l);
 	}
 
 	/** Remove a DatabaseChangeListener. */
 	public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l)
 	{
-		changeListeners.remove(l);
+        listenerList.remove(DatabaseChangeListener.class, l);
 	}
 
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch, boolean undo)
@@ -791,31 +792,43 @@ public class Undo
 	/** Add a property change listener. This generates Undo and Redo enabled property changes */
 	public static synchronized void addPropertyChangeListener(PropertyChangeListener l)
 	{
-		propertyChangeListeners.add(l);
+		listenerList.add(PropertyChangeListener.class, l);
 	}
 
 	/** Remove a property change listener. */
 	public static synchronized void removePropertyChangeListener(PropertyChangeListener l)
 	{
-		propertyChangeListeners.remove(l);
+		listenerList.remove(PropertyChangeListener.class, l);
 	}
 
-	private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue)
-	{
-		for (Iterator<PropertyChangeListener> it = propertyChangeListeners.reverseIterator(); it.hasNext(); ) {
-			PropertyChangeListener l = it.next();
-			PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
-				new Boolean(oldValue), new Boolean(newValue));
-			SwingUtilities.invokeLater(new PropertyChangeThread(l, e));
-		}
-	}
+    private static synchronized void firePropertyChange(PropertyChangeEvent e) {
+        Object[] listeners;
+        synchronized (Undo.class) {
+            listeners = listenerList.getListenerList();
+        }
+        // Process the listeners last to first, notifying those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i] == PropertyChangeListener.class)
+                ((PropertyChangeListener)listeners[i+1]).propertyChange(e);
+        }
+    }
+
+	private static class PropertyChangeRun implements Runnable {
+		private PropertyChangeEvent e;
+		private PropertyChangeRun(PropertyChangeEvent e) { this.e = e; }
+		public void run() { firePropertyChange(e); }
+    }
 
 	private static synchronized void setUndoEnabled(boolean enabled)
 	{
 		if (enabled != undoEnabled)
 		{
-			firePropertyChange(propUndoEnabled, undoEnabled, enabled);
+            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, propUndoEnabled, undoEnabled, enabled);
 			undoEnabled = enabled;
+            if (SwingUtilities.isEventDispatchThread())
+                firePropertyChange(e);
+            else
+                SwingUtilities.invokeLater(new PropertyChangeRun(e));
 		}
 	}
 
@@ -823,8 +836,12 @@ public class Undo
 	{
 		if (enabled != redoEnabled)
 		{
-			firePropertyChange(propRedoEnabled, redoEnabled, enabled);
+            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, propRedoEnabled, redoEnabled, enabled);
 			redoEnabled = enabled;
+            if (SwingUtilities.isEventDispatchThread())
+                firePropertyChange(e);
+            else
+                SwingUtilities.invokeLater(new PropertyChangeRun(e));
 		}
 	}
 
@@ -842,14 +859,6 @@ public class Undo
 	 */
 	public static synchronized boolean getRedoEnabled() { return redoEnabled; }
 
-	private static class PropertyChangeThread implements Runnable
-	{
-		private PropertyChangeListener l;
-		private PropertyChangeEvent e;
-		private PropertyChangeThread(PropertyChangeListener l, PropertyChangeEvent e) { this.l = l; this.e = e; }
-		public void run() { l.propertyChange(e); }
-	}
-
 	private static class DatabaseChangeRun implements Runnable
 	{
 		private DatabaseChangeEvent event;
@@ -859,14 +868,20 @@ public class Undo
         }
 	}
 
-   
     /**
      * Fire DatabaseChangeEvent to DatabaseChangeListeners.
      * @param e DatabaseChangeEvent.
      */
     public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
-        for (Iterator<DatabaseChangeListener> it = changeListeners.reverseIterator(); it.hasNext(); )
-            it.next().databaseChanged(e);
+        Object[] listeners;
+        synchronized (Undo.class) {
+            listeners = listenerList.getListenerList();
+        }
+        // Process the listeners last to first, notifying those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i] == DatabaseChangeListener.class)
+                ((DatabaseChangeListener)listeners[i+1]).databaseChanged(e);
+        }
     }
    
     private static void broadcastStart(boolean undoRedo) {
