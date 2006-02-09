@@ -1169,7 +1169,7 @@ public class JELIB extends LibraryFiles
 					pi = null;
 			}
 		}
-		if (pi != null) return pi;
+		if (pi != null || !ni.isCellInstance()) return pi;
 
 		// see if this is a dummy cell
 		Cell subCell = (Cell)ni.getProto();
