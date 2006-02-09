@@ -318,6 +318,15 @@ public class RouteElementArc extends RouteElement {
                 thisWidth = arcProto.getDefaultWidth();
             ArcInst newAi = ArcInst.makeInstance(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
+
+            // for zero-length arcs, ensure that the angle is sensible
+            if (headPoint.getX() == tailPoint.getX() && headPoint.getY() == tailPoint.getY() && arcAngle == 0)
+            {
+            	Rectangle2D headRect = headPi.getNodeInst().getBounds();
+            	Rectangle2D tailRect = tailPi.getNodeInst().getBounds();
+            	if (Math.abs(headRect.getCenterX() - tailRect.getCenterX()) < Math.abs(headRect.getCenterY() - tailRect.getCenterY()))
+            		arcAngle = 900;
+            }
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
             if ((arcName != null) && (arcNameDescriptor != null)) {
