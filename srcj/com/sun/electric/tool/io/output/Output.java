@@ -914,7 +914,7 @@ public class Output
 
         public boolean doIt() throws JobException
         {
-            boolean success = false;
+            boolean error = false;
             try
             {
             	if (newName != null)
@@ -923,12 +923,12 @@ public class Output
 	                lib.setLibFile(libURL);
 	                lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
             	}
-                success = Output.writeLibrary(lib, FileType.JELIB, false, false);
+                error = Output.writeLibrary(lib, FileType.JELIB, false, false);
             } catch (Exception e)
             {
             	throw new JobException("Exception caught when saving library: " + e.getMessage());
             }
-            return success;
+            return !error;
         }
     }
 }
