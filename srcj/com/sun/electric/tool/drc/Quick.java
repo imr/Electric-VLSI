@@ -2641,41 +2641,20 @@ public class Quick
         errorFound = errorLogger.getNumErrors();
         
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
-        QuickAreaEnumerator quickArea1 = new QuickAreaEnumerator(cp.netlist, selectMerge, notExportedNodes, checkedNodes,
+        QuickAreaEnumerator quickArea = new QuickAreaEnumerator(cp.netlist, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
-        quickArea1.setPreProcessFlag(false);
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea1);
-//            quickArea.mainMerge.postProcess(true);
+        quickArea.setPreProcessFlag(false);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
 
         // Job aborted
         if (job != null && job.checkAbort()) return 0;
 
         errorFound = errorLogger.getNumErrors() - errorFound;
 
-//		for(Iterator<Network> netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
-//		{
-//			Network net = netIt.next();
-//			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(cp.netlist, net, selectMerge, notExportedNodes, checkedNodes,
-//                    mergeMode);
-//            quickArea.setPreProcessFlag(true);
-//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-//            quickArea.setPreProcessFlag(false);
-//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-////            quickArea.mainMerge.postProcess(true);
-//
-//			// Job aborted
-//			if (job != null && job.checkAbort()) return 0;
-//
-////			for(Iterator<Layer> it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
-////			{
-////				Layer layer = it.next();
-////				errorFound += checkMinAreaLayer(quickArea.mainMerge, cell, layer, true,
-////                        quickArea.minAreaLayerMapDone, quickArea.enclosedAreaLayerMapDone);
-////			}
-//		}
-
-		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
-		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, mergeMode);
+		// Checking nodes not exported down in the hierarchy. Probably good enough not to collect networks first
+        // Maybe it would be better to check notExportNodes with respect to local cells. No need of checking
+        // the entire hierarchy again!
+		quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, mergeMode);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
@@ -4381,6 +4360,7 @@ public class Quick
         private GeometryHandler.GHMode mode; // geometrical merge algorithm
         private boolean preProcess = false;
         private boolean doneAll = false;
+        private boolean doingNonExport = false;
         private List<QuickAreaBucket> buckets = new ArrayList<QuickAreaBucket>();
 
         /**
@@ -4494,6 +4474,19 @@ public class Quick
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
             this.mode = mode;
+            this.doingNonExport = true;
+
+            for (NodeInst ni : notExportedNodes.keySet())
+            {
+                Cell cell = ni.getParent();
+                CheckProto cp = getCheckProto(cell);
+                for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext();)
+                {
+                    PortInst pi = itP.next();
+                    Network net = cp.netlist.getNetwork(pi);
+                    buckets.add(new QuickAreaBucket(net));
+                }
+            }
 //            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);     // case 2
 //            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
@@ -4557,11 +4550,12 @@ public class Quick
             QuickAreaCellInfo areaInfo = (QuickAreaCellInfo)info;
             List<QuickAreaBucket> theseBuckets = areaInfo.getValidNetworks();
 
-            if (theseBuckets.size() == 0)
-                System.out.println("Should this be empty?");
+//            if (theseBuckets.size() == 0)
+//                System.out.println("Should this be empty?");
 
-			// Check Arcs too if network is not null
-			if (theseBuckets.size() > 0)
+			// Check Arcs too if network is not null. They can belong to an inner network (not exported up in the
+            // hierarchy
+//			if (theseBuckets.size() > 0)
 			{
                 List<QuickAreaBucket> onlyTheseBuckets = new ArrayList<QuickAreaBucket>();
 
@@ -4670,8 +4664,17 @@ public class Quick
 
             if (doneAll) return false; // done!
 
-			Cell cell = info.getCell();
+            // Facet or special elements
 			NodeInst ni = no.getNodeInst();
+            if (NodeInst.isSpecialNode(ni)) return (false);
+
+            if (doingNonExport && !notExportedNodes.containsKey(ni))
+            {
+//                System.out.println("Skipping this one");
+                return false;
+            }
+
+			Cell cell = info.getCell();
 			AffineTransform trans = ni.rotateOut();
 			NodeProto np = ni.getProto();
 			AffineTransform root = info.getTransformToRoot();
@@ -4687,9 +4690,6 @@ public class Quick
             QuickAreaCellInfo areaInfo = (QuickAreaCellInfo)info;
             List<QuickAreaBucket> theseBuckets = areaInfo.getValidNetworks();
 
-            if (theseBuckets.size() == 0)
-                System.out.println("when?");
-
 			if (theseBuckets.size() > 0) //jNet != null)
 			{
 				boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
@@ -4701,61 +4701,59 @@ public class Quick
 
 				boolean notExported = false;
 				Network thisNet = null;
+                boolean found = false;
 
-//                for (QuickAreaBucket bucket : buckets)
+                for(Iterator<PortInst> pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
                 {
-                    boolean found = false;
-
-                    for(Iterator<PortInst> pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
-                    {
-                        PortInst pi = pIt.next();
-                        PortProto pp = pi.getPortProto();
-                        boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
-                        thisNet = info.getNetlist().getNetwork(pi);
-                        QuickAreaBucket thisBucket = null;
+                    PortInst pi = pIt.next();
+                    PortProto pp = pi.getPortProto();
+                    boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
+                    thisNet = info.getNetlist().getNetwork(pi);
+                    QuickAreaBucket thisBucket = null;
 //                        for (QuickAreaBucket bucket : buckets)
-                        for (QuickAreaBucket bucket : theseBuckets)
-                        {
-                            found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, bucket.jNet);
-                            if (found)
-                            {
-                                thisBucket = bucket;
-                                break;
-                            }
-                        }
-                        if (thisBucket != null) onlyTheseBuckets.add(thisBucket);
-                        if (!isExported) notExported = true;
-                    }
-                    // Substrate layers are special so we must check node regardless network
-                    notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
-                    if (!found && !forceChecking)
+                    for (QuickAreaBucket bucket : theseBuckets)
                     {
-                        if (notExportedNodes != null && notExported)
+                        found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, bucket.jNet);
+                        if (found)
                         {
-                            //addNodeInst(ni, pNp, forceChecking, null, trans, nonExportedMerge, nonExportedMerge);
-                            notExportedNodes.put(ni, ni);
+                            thisBucket = bucket;
+                            break;
                         }
-                        //else
-//                        continue;
-                            return (false);
                     }
+                    if (thisBucket != null) onlyTheseBuckets.add(thisBucket);
+                    if (!isExported) notExported = true;
                 }
+
+                // Substrate layers are special so we must check node regardless network
+                notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
+                if (!found && !forceChecking)
+                {
+                    if (notExportedNodes != null && notExported)
+                    {
+                        assert(!doingNonExport);
+                        //addNodeInst(ni, pNp, forceChecking, null, trans, nonExportedMerge, nonExportedMerge);
+                        notExportedNodes.put(ni, ni);
+                    }
+                    //else
+//                        continue;
+                        return (false);
+                }
+
 				// Removing node if it was found included in a network
 				notExportedNodes.remove(ni);
 				checkedNodes.put(ni, ni);
 			}
 			else
 			{
-                new Error("Not implemented");
-                assert(false); // not re-implemented
-				if (!notExportedNodes.containsKey(ni))
-					return (false); // not to consider
+                if (doingNonExport) return false;
+
+                if (notExportedNodes.containsKey(ni))
+                    System.out.println("NI " + ni + " in " + cell);
+                notExportedNodes.put(ni, ni);
 				if (checkedNodes.containsKey(ni))
 					return (false);
+                return false;
 			}
-
-//            if (!theseBuckets.containsAll(onlyTheseBuckets))
-//                System.out.println("SHould it happen?");
 
             if (onlyTheseBuckets.size() == 0)
             {
