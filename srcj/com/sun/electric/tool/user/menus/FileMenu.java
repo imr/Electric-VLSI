@@ -266,10 +266,13 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
 		fileMenu.addSeparator();
+
 		fileMenu.addMenuItem("P_references...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
 		fileMenu.addMenuItem("Pro_ject Settings...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ProjectSettingsFrame.projectSettingsCommand(); } });
+
+		fileMenu.addSeparator();
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{

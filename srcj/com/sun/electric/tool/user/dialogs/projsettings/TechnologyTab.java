@@ -317,13 +317,13 @@ public class TechnologyTab extends ProjSettingsPanel
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Default Technologies"));
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Technology and Foundry"));
         defaultTechLabel.setText("Startup technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(defaultTechLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -331,7 +331,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(defaultTechPulldown, gridBagConstraints);
 
         jLabel59.setText("Layout technology to use for Schematics:");
@@ -339,7 +339,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(jLabel59, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -347,15 +347,15 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(technologyPopup, gridBagConstraints);
 
-        defaultFoundryLabel.setText("Foundry:");
+        defaultFoundryLabel.setText("Current foundry:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(defaultFoundryLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -364,7 +364,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(defaultFoundryPulldown, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -402,7 +402,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel1.add(techMOCMOSSCMOSRules, gridBagConstraints);
 
         techMOCMOSRules.add(techMOCMOSSubmicronRules);
@@ -412,7 +412,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(techMOCMOSSubmicronRules, gridBagConstraints);
 
         techMOCMOSRules.add(techMOCMOSDeepRules);
@@ -422,7 +422,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel1.add(techMOCMOSDeepRules, gridBagConstraints);
 
         techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
@@ -431,7 +431,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel1.add(techMOCMOSSecondPoly, gridBagConstraints);
 
         techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
@@ -440,7 +440,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
 
         techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
@@ -449,7 +449,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel1.add(techMOCMOSAlternateContactRules, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

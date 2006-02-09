@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
@@ -56,10 +57,10 @@ public class GDSTab extends ProjSettingsPanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for this Project Settings tab. */
 	public JPanel getPanel() { return gds; }
 
-	/** return the name of this preferences tab. */
+	/** return the name of this Project Settings tab. */
 	public String getName() { return "GDS"; }
 
 	private JList gdsLayersList;
@@ -124,6 +125,13 @@ public class GDSTab extends ProjSettingsPanel
 		String techName = (String)technologySelection.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
+
+		// set the foundries for the technology
+		Foundry f = tech.getSelectedFoundry();
+		if (f == null) gdsFoundryName.setText(""); else
+			gdsFoundryName.setText("Foundry: " + f.getType().name());
+
+		// show the list of layers in the technology
 		gdsLayersModel.clear();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
@@ -364,6 +372,7 @@ public class GDSTab extends ProjSettingsPanel
         gdsCellNameLenMax = new javax.swing.JTextField();
         technologySelection = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
+        gdsFoundryName = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -384,9 +393,9 @@ public class GDSTab extends ProjSettingsPanel
         gdsLayerList.setPreferredSize(new java.awt.Dimension(200, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 10;
+        gridBagConstraints.gridheight = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -478,6 +487,7 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(jLabel9, gridBagConstraints);
 
         gdsDefaultTextLayer.setColumns(8);
@@ -485,7 +495,7 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(gdsDefaultTextLayer, gridBagConstraints);
 
         jLabel29.setText("Negative layer values generate no GDS");
@@ -493,6 +503,7 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gds.add(jLabel29, gridBagConstraints);
 
         gdsOutputConvertsBracketsInExports.setText("Output converts brackets in exports");
@@ -566,15 +577,25 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         gds.add(technologySelection, gridBagConstraints);
 
         jLabel4.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         gds.add(jLabel4, gridBagConstraints);
+
+        gdsFoundryName.setText("Foundry:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gds.add(gdsFoundryName, gridBagConstraints);
 
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
@@ -596,6 +617,7 @@ public class GDSTab extends ProjSettingsPanel
     private javax.swing.JPanel gds;
     private javax.swing.JTextField gdsCellNameLenMax;
     private javax.swing.JTextField gdsDefaultTextLayer;
+    private javax.swing.JLabel gdsFoundryName;
     private javax.swing.JScrollPane gdsLayerList;
     private javax.swing.JTextField gdsLayerNumber;
     private javax.swing.JTextField gdsLayerType;
