@@ -354,7 +354,13 @@ public class GDS extends Input
 					Integer lay = new Integer(lVal.intValue());
 					if (layerNames.get(lay) == null) layerNames.put(lay, layer);
 				}
-				if (gdsl.getPinLayer() != -1) pinLayers.add(new Integer(gdsl.getPinLayer()));
+				if (gdsl.getPinLayer() != -1)
+				{
+					pinLayers.add(new Integer(gdsl.getPinLayer()));
+					layerNames.put(new Integer(gdsl.getPinLayer()), layer);
+				}
+				if (gdsl.getTextLayer() != -1)
+					layerNames.put(new Integer(gdsl.getTextLayer()), layer);
 				valid = true;
 			}
 		}
@@ -1165,10 +1171,10 @@ public class GDS extends Input
 
 		// set the text size and orientation
 		MutableTextDescriptor td = ni.getMutableTextDescriptor(NodeInst.NODE_NAME);
-		int size = (int)scale;
-		if (size <= 0) size = 8;
-		if (size > TextDescriptor.Size.TXTMAXPOINTS) size = TextDescriptor.Size.TXTMAXPOINTS;
-		td.setAbsSize(size);
+		double size = scale;
+		if (size <= 0) size = 2;
+		if (size > TextDescriptor.Size.TXTMAXQGRID) size = TextDescriptor.Size.TXTMAXQGRID;
+		td.setRelSize(size);
 
 		// determine the presentation
 		td.setPos(TextDescriptor.Position.CENT);
