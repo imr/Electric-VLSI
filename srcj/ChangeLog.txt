@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/9/06, SMR) GDS input no longer complains about text layers, creates good size text.
+
+IMP: (2/9/06, SMR) Fixed "RouteElementArc.doAction()" to make zero-length arcs go
+     in the right direction.
+
 IMP: (2/8/06, SMR) Split "Preferences" into "Preferences" and "Project Settings".
 
 BUG: (2/8/06, GVG) Preferences tree didn't expand correctly if Technology->Technology
