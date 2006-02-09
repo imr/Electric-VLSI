@@ -253,18 +253,21 @@ public class EvalJavaBsh
     /** Run a Java Bean Shell script */
     public static void runScript(String script) {
         runScriptJob job = new runScriptJob(script);
+        job.startJob();
+    }
+
+    /** Run a Java Bean Shell script */
+    public static Job runScriptJob(String script) {
+        return new runScriptJob(script);
     }
 
     private static class runScriptJob extends Job
 	{
         String script;
-//        EvalJavaBsh evaluator;
 
         protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
-//            evaluator = new EvalJavaBsh();
-            this.startJob();
         }
 
         public boolean doIt() throws JobException {
