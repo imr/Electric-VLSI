@@ -105,12 +105,12 @@ public class Connectivity
 			System.out.println("Must be editing a cell with pure layer nodes.");
 			return;
 		}
-		ExtractJob job = new ExtractJob(curCell, recursive);
+		new ExtractJob(curCell, recursive);
 	}
 
 	private static class ExtractJob extends Job
 	{
-		private Cell cell;
+		private Cell cell, newCell;
 		private boolean recursive;
 
 		private ExtractJob(Cell cell, boolean recursive)
@@ -124,8 +124,26 @@ public class Connectivity
 		public boolean doIt() throws JobException
 		{
 			Connectivity c = new Connectivity(cell.getTechnology());
-			c.doExtract(cell, recursive, true);
-			return false;
+			newCell = c.doExtract(cell, recursive, true);
+			fieldVariableChanged("newCell");
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			// show the new version
+			UserInterface ui = Job.getUserInterface();
+			ui.displayCell(newCell);
+	
+			// highlight pure layer nodes
+			EditWindow_ wnd = ui.displayCell(newCell);
+			for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				PrimitiveNode.Function fun = ni.getFunction();
+				if (fun == PrimitiveNode.Function.NODE)
+					wnd.addElectricObject(ni, newCell);
+			}
 		}
 	}
 
@@ -195,7 +213,7 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private void doExtract(Cell oldCell, boolean recursive, boolean top)
+	private Cell doExtract(Cell oldCell, boolean recursive, boolean top)
 	{
 		if (recursive)
 		{
@@ -221,7 +239,7 @@ public class Connectivity
 		if (newCell == null)
 		{
 			System.out.println("Cannot create new cell: " + newCellName);
-			return;
+			return null;
 		}
 		convertedCells.put(oldCell, newCell);
 		exportNumbers.put(newCell, new GenMath.MutableInteger(1));
@@ -268,7 +286,7 @@ public class Connectivity
 				if (newNi == null)
 				{
 					System.out.println("Problem creating new instance of " + ni.getProto());
-					return;
+					return null;
 				}
 				newNodes.put(ni, newNi);
 
@@ -380,24 +398,7 @@ public class Connectivity
 		}
 		AutoStitch.runAutoStitch(newCell, nodesToStitch, arcsToStitch, originalMerge, null, false, Routing.getPreferredRoutingArcProto());
 		System.out.println("done.");
-
-		// if top level, display results
-		if (top)
-		{
-			// show the new version
-			UserInterface ui = Job.getUserInterface();
-			ui.displayCell(newCell);
-
-			// highlight pure layer nodes
-			EditWindow_ wnd = ui.displayCell(newCell);
-			for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				PrimitiveNode.Function fun = ni.getFunction();
-				if (fun == PrimitiveNode.Function.NODE)
-					wnd.addElectricObject(ni, newCell);
-			}
-		}
+		return newCell;
 	}
 
 	/**
