@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.tool.Regression;
 import com.sun.electric.tool.user.User;
 
 import java.net.URL;
@@ -61,22 +62,27 @@ public final class Launcher
             }
         }
 
+        String program = null;
+		String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.startsWith("linux") || osName.startsWith("solaris") ||
+                osName.startsWith("sunos") || osName.startsWith("mac")) {
+            program = "java";
+        } else if (osName.startsWith("windows")) {
+            program = "javaw";
+        }
+
+        if (args.length >= 1 && args[0].equals("-regression")) {
+            invokeRegression(args, program);
+            return;
+        }
+        
 		// launching is different on different computers
 		try{
-			String osName = System.getProperty("os.name").toLowerCase();
-			if (osName.startsWith("linux") || osName.startsWith("solaris") ||
-				osName.startsWith("sunos") || osName.startsWith("mac"))
-			{
-				// able to "exec" a new JVM: do it with the proper memory limit
-				invokeElectric(args, "java");
-			} else if (osName.startsWith("windows"))
-			{
-				invokeElectric(args, "javaw");
-			} else
-			{
+            if (program != null)
+                invokeElectric(args, program);
+            else
 				// not able to relaunch a JVM: just start Electric
 				Main.main(args);
-			}
 		} catch (Exception e)
 		{
 			// problem figuring out what computer this is: just start Electric
@@ -130,4 +136,30 @@ public final class Launcher
 			Main.main(args);
 		}
 	}
+    
+    private static void invokeRegression(String[] args, String program) {
+        String jarfile = "electric.jar";
+        URL electric = Launcher.class.getResource("Main.class");
+       if (electric.getProtocol().equals("jar")) {
+            String file = electric.getFile();
+            file = file.replaceAll("file:", "");
+            file = file.replaceAll("!.*", "");
+            jarfile = file;
+        }
+        
+        String script = args[1];
+        String command = program;
+        for (int i = 2; i < args.length; i++)
+            command += " " + args[i];
+        command += " -jar " + jarfile + " -batch";
+        System.out.println("exec: " + command);
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            runtime.exec(command);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+        Regression.runScript(script);
+    }
 }

@@ -143,6 +143,7 @@ class EJob {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            jobException.getStackTrace();
             out.writeObject(jobException);
             out.writeInt(0);
             out.close();
@@ -204,6 +205,7 @@ class EJob {
 
         // for now, just save highlights in current window
         UserInterface ui = Job.getUserInterface();
+        if (ui == null) return;
         EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd == null) return;
 
