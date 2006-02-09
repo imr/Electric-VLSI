@@ -84,7 +84,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         private final String message;
         final CellId logCellId;                // cell associated with log (not really used)
         private final int    sortKey;
-        private ErrorHighlight[] highlights;
+        private final ErrorHighlight[] highlights;
         protected int    index;
 
         public MessageLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) {

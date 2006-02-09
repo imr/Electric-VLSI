@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
+import java.io.ObjectStreamException;
 
 
 
@@ -52,6 +53,13 @@ public final class ExportId implements PortProtoId
     ExportId(CellId parentId, int chronIndex) {
         this.parentId = parentId;
         this.chronIndex = chronIndex;
+    }
+    
+    /*
+     * Resolve method for deserialization.
+     */
+    private Object readResolve() throws ObjectStreamException {
+        return parentId.getExportIdByChronIndex(chronIndex);
     }
     
 	/**

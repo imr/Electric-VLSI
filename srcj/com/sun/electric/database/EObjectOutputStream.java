@@ -374,15 +374,17 @@ public class EObjectOutputStream extends ObjectOutputStream {
     
     private static class ENetwork implements Serializable {
         int cellIndex, netIndex;
+        boolean shortResistors;
         
         private ENetwork(Network net) {
             cellIndex = net.getParent().getCellIndex();
             netIndex = net.getNetIndex();
+            shortResistors = net.getNetlist().getShortResistors();
         }
         
         private Object readResolve() throws ObjectStreamException {
             Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            Netlist netlist = cell.getUserNetlist();
+            Netlist netlist = cell.getNetlist(shortResistors);
             Network net = netlist.getNetwork(netIndex);
             // It is necessary to check that it is the same Netlist
             if (net == null) throw new InvalidObjectException("Network");

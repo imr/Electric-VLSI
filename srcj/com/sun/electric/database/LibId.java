@@ -24,6 +24,9 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Library;
+
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
@@ -32,7 +35,7 @@ import java.util.ArrayList;
  * It differs from Library objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method.
  */
-public final class LibId
+public final class LibId implements Serializable
 {
     /** Unique index of this lib in the database. */
     public final int libIndex;
@@ -49,6 +52,13 @@ public final class LibId
             libIndex = libIds.size();
             libIds.add(this);
         }
+    }
+    
+    /*
+     * Resolve method for deserialization.
+     */
+    private Object readResolve() throws ObjectStreamException {
+        return getByIndex(libIndex);
     }
     
     /**

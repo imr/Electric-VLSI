@@ -592,6 +592,8 @@ public class Netlist
 		return netCell.getBusWidth(ai);
 	}
 
+    public boolean getShortResistors() { return shortResistors; }
+    
 	/**
 	 * Returns a printable version of this Netlist.
 	 * @return a printable version of this Netlist.

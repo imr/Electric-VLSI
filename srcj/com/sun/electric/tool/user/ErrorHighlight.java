@@ -11,15 +11,16 @@ import com.sun.electric.database.topology.ArcInst;
 
 import java.io.PrintStream;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
 /**
  * Class to define Highlighted errors.
  */
-public abstract class ErrorHighlight {
+public abstract class ErrorHighlight implements Serializable {
     static final ErrorHighlight[] NULL_ARRAY = {};
 
     private final CellId cellId;
-    VarContext  context; // Yet do be immutable
+    private final VarContext  context; // Yet do be immutable
 
     ErrorHighlight(Cell c, VarContext con)
     {
@@ -29,7 +30,7 @@ public abstract class ErrorHighlight {
 
     Cell getCell() { return cellId != null ? (Cell)cellId.inCurrentThread() : null; }
 
-    VarContext getVarContext(){ return context; }
+    VarContext getVarContext() { return context; }
 
     boolean containsObject(Cell cell, Object obj) { return false; }
 

@@ -181,9 +181,7 @@ public class SnapshotReader {
         int chronIndex = in.readInt();
         if (nodeProtoId instanceof CellId) {
             CellId cellId = (CellId)nodeProtoId;
-            while (chronIndex >= cellId.numExportIds())
-               cellId.newExportId();
-            return cellId.getExportId(chronIndex);
+            return cellId.getExportIdByChronIndex(chronIndex);
         } else {
             PrimitiveNode pn = (PrimitiveNode)nodeProtoId;
             return (PrimitivePort)pn.getPort(chronIndex);

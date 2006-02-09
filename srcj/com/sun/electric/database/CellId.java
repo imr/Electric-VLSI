@@ -27,6 +27,9 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
+import java.io.ObjectStreamException;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
@@ -35,7 +38,7 @@ import java.util.ArrayList;
  * It differs from Cell objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
-public final class CellId implements NodeProtoId
+public final class CellId implements NodeProtoId, Serializable
 {
     /** Unique index of this cell in the database. */
     public final int cellIndex;
@@ -43,7 +46,7 @@ public final class CellId implements NodeProtoId
      * Usages of other proto subcells in this parent cell.
      * CellUsages are in chronological order by time of their creation.
      */
-    private volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
+    private transient volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
     /**
 	 * Hash of usagesIn.
 	 * The size of nonempty hash is a prime number.
@@ -52,25 +55,25 @@ public final class CellId implements NodeProtoId
 	 * Invariant hashUsagesIn.length >= usagesIn.length*2 + 1 guaranties that there is at least one empty entry
 	 * in the search sequence. 
 	 */
-    private volatile CellUsage[] hashUsagesIn = EMPTY_HASH;
+    private transient volatile CellUsage[] hashUsagesIn = EMPTY_HASH;
     
     /** 
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
-    private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
+    private transient volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
     
-    private volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
+    private transient volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
     
     /**
      * Number of nodeIds returned by newNodeId.
      **/
-    private volatile int numNodeIds = 0;
+    private transient volatile int numNodeIds = 0;
     
     /**
      * Number of arcIds returned by newArcId.
      **/
-    private volatile int numArcIds = 0;
+    private transient volatile int numArcIds = 0;
     
     /** List of CellIds created so far. */
     private static final ArrayList<CellId> cellIds = new ArrayList<CellId>();
@@ -86,6 +89,13 @@ public final class CellId implements NodeProtoId
             cellIndex = cellIds.size();
             cellIds.add(this);
         }
+    }
+    
+    /*
+     * Resolve method for deserialization.
+     */
+    private Object readResolve() throws ObjectStreamException {
+        return getByIndex(cellIndex);
     }
     
     /**
@@ -172,6 +182,12 @@ public final class CellId implements NodeProtoId
     public ExportId getExportId(int chronIndex) {
         // synchronized because exportIds is volatile and its entries are final.
         return exportIds[chronIndex];
+    }
+    
+    ExportId getExportIdByChronIndex(int chronIndex) {
+        while (chronIndex >= numExportIds())
+            newExportId();
+        return getExportId(chronIndex);
     }
     
     /**
