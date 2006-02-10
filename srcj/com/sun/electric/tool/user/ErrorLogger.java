@@ -1073,7 +1073,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                     if (attributes.getQName(i).equals("errorSystem"))
                     {
                         // Ignore the rest of the attribute and generate the logger
-                        logger = ErrorLogger.newInstance(attributes.getValue(i), true);
+                        logger = ErrorLogger.newInstance(attributes.getValue(i), false);
                         return;
                     }
                     else if (attributes.getQName(i).startsWith("message"))
