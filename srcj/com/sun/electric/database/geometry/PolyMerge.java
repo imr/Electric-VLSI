@@ -23,18 +23,14 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -394,87 +390,90 @@ public class PolyMerge
 	 */
     public static List<PolyBase> getAreaPoints(Area area, Layer layer, boolean simple)
     {
-		List<PolyBase> polyList = new ArrayList<PolyBase>();
-		double [] coords = new double[6];
-		List<Point2D> pointList = new ArrayList<Point2D>();
-		Point2D lastMoveTo = null;
-		boolean isSingular = area.isSingular();
-		List<PolyBase> toDelete = new ArrayList<PolyBase>();
+        return PolyBase.getPointsInArea(area, layer, simple, true, null);
+//		List<PolyBase> polyList = new ArrayList<PolyBase>();
+//		double [] coords = new double[6];
+//		List<Point2D> pointList = new ArrayList<Point2D>();
+//		Point2D lastMoveTo = null;
+//		boolean isSingular = area.isSingular();
+//		List<PolyBase> toDelete = new ArrayList<PolyBase>();
+//
+//		// Gilda: best practice note: System.arraycopy
+//		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
+//		{
+//			int type = pIt.currentSegment(coords);
+//			if (type == PathIterator.SEG_CLOSE)
+//			{
+//				if (lastMoveTo != null) pointList.add(lastMoveTo);
+//				Point2D [] points = new Point2D[pointList.size()];
+//				int i = 0;
+//				for(Point2D pt : pointList)
+//					points[i++] = pt;
+//				PolyBase poly = new PolyBase(points);
+//				poly.setLayer(layer);
+//				poly.setStyle(Poly.Type.FILLED);
+//				lastMoveTo = null;
+//				toDelete.clear();
+//				if (!simple && !isSingular)
+//				{
+//					Iterator<PolyBase> it = polyList.iterator();
+//					while (it.hasNext())
+//					{
+//						PolyBase pn = it.next();
+//						if (pn.contains((Point2D)pointList.get(0)) ||
+//						    poly.contains(pn.getPoints()[0]))
+//						/*
+//						if (pn.contains(poly.getBounds2D()) ||
+//						    poly.contains(pn.getBounds2D()))
+//						    */
+//						{
+//							points = pn.getPoints();
+//							for (i = 0; i < points.length; i++)
+//								pointList.add(points[i]);
+//							Point2D[] newPoints = new Point2D[pointList.size()];
+//							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
+//							poly = new PolyBase(newPoints);
+//							toDelete.add(pn);
+//							//break;
+//						}
+//					}
+//				}
+//				if (poly != null)
+//					polyList.add(poly);
+//				polyList.removeAll(toDelete);
+//				pointList.clear();
+//			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+//			{
+//				Point2D pt = new Point2D.Double(coords[0], coords[1]);
+//				pointList.add(pt);
+//				if (type == PathIterator.SEG_MOVETO) lastMoveTo = pt;
+//			}
+//			pIt.next();
+//		}
 
-		// Gilda: best practice note: System.arraycopy
-		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
-		{
-			int type = pIt.currentSegment(coords);
-			if (type == PathIterator.SEG_CLOSE)
-			{
-				if (lastMoveTo != null) pointList.add(lastMoveTo);
-				Point2D [] points = new Point2D[pointList.size()];
-				int i = 0;
-				for(Point2D pt : pointList)
-					points[i++] = pt;
-				PolyBase poly = new PolyBase(points);
-				poly.setLayer(layer);
-				poly.setStyle(Poly.Type.FILLED);
-				lastMoveTo = null;
-				toDelete.clear();
-				if (!simple && !isSingular)
-				{
-					Iterator<PolyBase> it = polyList.iterator();
-					while (it.hasNext())
-					{
-						PolyBase pn = it.next();
-						if (pn.contains((Point2D)pointList.get(0)) ||
-						    poly.contains(pn.getPoints()[0]))
-						/*
-						if (pn.contains(poly.getBounds2D()) ||
-						    poly.contains(pn.getBounds2D()))
-						    */
-						{
-							points = pn.getPoints();
-							for (i = 0; i < points.length; i++)
-								pointList.add(points[i]);
-							Point2D[] newPoints = new Point2D[pointList.size()];
-							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
-							poly = new PolyBase(newPoints);
-							toDelete.add(pn);
-							//break;
-						}
-					}
-				}
-				if (poly != null)
-					polyList.add(poly);
-				polyList.removeAll(toDelete);
-				pointList.clear();
-			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
-			{
-				Point2D pt = new Point2D.Double(coords[0], coords[1]);
-				pointList.add(pt);
-				if (type == PathIterator.SEG_MOVETO) lastMoveTo = pt;
-			}
-			pIt.next();
-		}
-        if (Job.LOCALDEBUGFLAG)
-        {
-            List newList = PolyBase.getPointsInArea(area, layer, simple, true, null);
 
-            if (newList.size() != polyList.size())
-                System.out.println("Error in getPointsInArea");
-            else
-            {
-                boolean foundError = false;
-                for (PolyBase poly : polyList)
-                {
-                    boolean found = false;
-                    for (PolyBase poly1 : polyList)
-                    {
-                       if (poly1.polySame(poly)) { found = true; break;};
-                    }
-                    if (!found) {foundError=true; break;}
-                }
-                if (foundError)
-                    System.out.println("Error in getPointsInArea");
-            }
-        }
-		return polyList;
+//        if (Job.LOCALDEBUGFLAG)
+//        {
+//            List newList = PolyBase.getPointsInArea(area, layer, simple, true, null);
+//
+//            if (newList.size() != polyList.size())
+//                System.out.println("Error in getPointsInArea");
+//            else
+//            {
+//                boolean foundError = false;
+//                for (PolyBase poly : polyList)
+//                {
+//                    boolean found = false;
+//                    for (PolyBase poly1 : polyList)
+//                    {
+//                       if (poly1.polySame(poly)) { found = true; break;};
+//                    }
+//                    if (!found) {foundError=true; break;}
+//                }
+//                if (foundError)
+//                    System.out.println("Error in getPointsInArea");
+//            }
+//        }
+//		return polyList;
 	}
 }
