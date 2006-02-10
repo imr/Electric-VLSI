@@ -80,7 +80,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.prefs.Preferences;
 
 /**
  * Technology is the base class for all of the specific technologies in Electric.
