@@ -966,26 +966,28 @@ public class CompileVHDL
 
 	/**
 	 * Method to generate a QUISC (silicon compiler) netlist.
+     * @param destLib destination library.
 	 * @return a List of strings with the netlist.
 	 */
-	public List<String> getQUISCNetlist()
+	public List<String> getQUISCNetlist(Library destLib)
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
-		List<String> netlistStrings = genQuisc();
+		List<String> netlistStrings = genQuisc(destLib);
 		return netlistStrings;
 	}
 
 	/**
 	 * Method to generate an ALS (simulation) netlist.
+     * @param destLib destination library.
 	 * @return a List of strings with the netlist.
 	 */
-	public List<String> getALSNetlist()
+	public List<String> getALSNetlist(Library destLib)
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
 		Library behaveLib = null;
-		List<String> netlistStrings = genALS(behaveLib);
+		List<String> netlistStrings = genALS(destLib, behaveLib);
 		return netlistStrings;
 	}
 
@@ -5294,9 +5296,11 @@ public class CompileVHDL
 	/**
 	 * Method to generate ALS target output for the created parse tree.
 	 * Assume parse tree is semantically correct.
+     * @param destLib destination library.
+     * @param behaveLib behaviour library.
 	 * @return a list of strings that has the netlist.
 	 */
-	private List<String> genALS(Library behaveLib)
+	private List<String> genALS(Library destLib, Library behaveLib)
 	{
 		Cell basenp = vhdlCell;
 
@@ -5331,8 +5335,8 @@ public class CompileVHDL
 			total++;
 			String gate = uList.interfacef;
 
-			// first see if this is a reference to a cell in the current library
-			if (addNetlist(Library.getCurrent(), gate, netlist))
+			// first see if this is a reference to a cell in the destination library
+			if (addNetlist(destLib, gate, netlist))
 			{
 				uList.numRef = 0;
 				total--;
@@ -5340,7 +5344,7 @@ public class CompileVHDL
 			}
 
 			// next see if this is a reference to the behavior library
-			if (behaveLib != null && behaveLib != Library.getCurrent())
+			if (behaveLib != null && behaveLib != destLib)
 			{
 				if (addNetlist(behaveLib, gate, netlist))
 				{
@@ -5819,9 +5823,10 @@ public class CompileVHDL
 	/**
 	 * Method to generate QUISC target output for the created parse tree.
 	 * Assume parse tree is semantically correct.
+     * @param destLib destination library.
 	 * @return a list of strings that has the netlist.
 	 */
-	private List<String> genQuisc()
+	private List<String> genQuisc(Library destLib)
 	{
 		List<String> netlist = new ArrayList<String>();
 
@@ -5853,9 +5858,9 @@ public class CompileVHDL
 		int total = 0;
 		for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
 		{
-			// see if this is a reference to a cell in the current library
+			// see if this is a reference to a cell in the destination library
 			boolean found = false;
-			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = destLib.getCells(); it.hasNext(); )
 			{
 				Cell np = (Cell)it.next();
 				StringBuffer sb = new StringBuffer();

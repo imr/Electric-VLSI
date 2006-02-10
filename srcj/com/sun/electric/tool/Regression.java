@@ -89,7 +89,7 @@ public class Regression {
                 switch (tag) {
                     case 1:
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                        System.out.println("Snapshot received");
+//                        System.out.println("Snapshot received");
                         break;
                     case 2:
                         Integer jobId = Integer.valueOf(reader.in.readInt());
@@ -101,7 +101,7 @@ public class Regression {
                         break;
                     case 3:
                         String str = reader.in.readUTF();
-                        System.out.println(str);
+                        System.out.print("#" + str);
                         break;
                     default:
                         System.out.println("Bad tag " + tag);

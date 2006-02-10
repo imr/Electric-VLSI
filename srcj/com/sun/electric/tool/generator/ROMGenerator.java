@@ -104,17 +104,18 @@ public class ROMGenerator
 		if (romFile == null) return;
 
 		// build the ROM (in a separate Job thread)
-		new DoROM(romFile);
+		new DoROM(Library.getCurrent(), romFile);
 	}
 
 	/**
 	 * Method to generate a ROM from a given ROM file.
+     * @param destLib destination library.
 	 * @param romFile the file to use.
 	 */
-	public static void generateROM(String romFile)
+	public static void generateROM(Library destLib, String romFile)
 	{
 		// build the ROM (in a separate Job thread)
-		new DoROM(romFile);
+		new DoROM(destLib, romFile);
 	}
 
 	/**
@@ -122,12 +123,14 @@ public class ROMGenerator
 	 */
 	private static class DoROM extends Job
 	{
+        private Library destLib;
 		private String romfile;
 		private Cell topLevel;
 
-		private DoROM(String romfile)
+		private DoROM(Library destLib, String romfile)
 		{
 			super("ROM Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.destLib = destLib;
 			this.romfile = romfile;
 			startJob();
 		}
@@ -138,7 +141,7 @@ public class ROMGenerator
 			String romcell = "ROMCELL";
 
 			// build the ROM
-			topLevel = makeAROM(romfile, romcell);
+			topLevel = makeAROM(destLib, romfile, romcell);
 			fieldVariableChanged("topLevel");
 			return true;
 		}
@@ -152,11 +155,12 @@ public class ROMGenerator
 
 	/**
 	 * Main method to build a ROM.
+     * @param destLib destination library.
 	 * @param romfile the disk file with the ROM personality.
 	 * @param romcell the root name of all ROM cells.
 	 * @return the top-level cell.
 	 */
-	public static Cell makeAROM(String romfile, String romcell)
+	public static Cell makeAROM(Library destLib, String romfile, String romcell)
 	{
 		NodeInst ap1, ap2, ap3, ap4;
 		PortProto apport1, apport2, apport3, apport4;
@@ -182,7 +186,7 @@ public class ROMGenerator
 		{
 			romarray = romfold(romarray);
 		}
-		romplane(lambda, romarray, rp);
+		romplane(destLib, lambda, romarray, rp);
 
 		int bits =
 			(new Double(Math.ceil(Math.log(globalbits)/Math.log((double)2.0)))).intValue();
@@ -194,16 +198,16 @@ public class ROMGenerator
 		boolean bot = false;
 
 		// make subcells
-		decoderpmos(lambda, bits, dpr, top);
-		decodernmos(lambda, bits, dnr, top);
-		inverterplane(lambda, romarray.length, folds, ip);
-		ininverterplane(lambda, bits, invt, top, bits);
+		decoderpmos(destLib, lambda, bits, dpr, top);
+		decodernmos(destLib, lambda, bits, dnr, top);
+		inverterplane(destLib, lambda, romarray.length, folds, ip);
+		ininverterplane(destLib, lambda, bits, invt, top, bits);
 
 		ArcProto m1arc = tech.findArcProto("Metal-1");
 		ArcProto m2arc = tech.findArcProto("Metal-2");
 
 		////////////// decoderpmos	
-		Cell decp = (Cell)Cell.findNodeProto(dpr+"{lay}");
+		Cell decp = (Cell)destLib.findNodeProto(dpr+"{lay}");
 		Rectangle2D decpBounds = decp.getBounds();
 		PortProto[] decpin = new PortProto[words];
 		PortProto[] decpout = new PortProto[words];
@@ -222,7 +226,7 @@ public class ROMGenerator
 		}
 
 		////////////// decodernmos	
-		Cell decn = (Cell)Cell.findNodeProto(dnr+"{lay}");
+		Cell decn = (Cell)destLib.findNodeProto(dnr+"{lay}");
 		Rectangle2D decnBounds = decn.getBounds();
 	 	PortProto[] decnout = new PortProto[words];
 	 	PortProto[] decnin = new PortProto[words];
@@ -240,7 +244,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// romplane
-		Cell romp = (Cell)Cell.findNodeProto(rp+"{lay}");
+		Cell romp = (Cell)destLib.findNodeProto(rp+"{lay}");
 		Rectangle2D rompBounds = romp.getBounds();
 		PortProto[] rompin = new PortProto[globalbits];
 		PortProto[] rompout = new PortProto[romarray.length];
@@ -261,7 +265,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// inverterplane
-		Cell invp = (Cell)Cell.findNodeProto(ip+"{lay}");
+		Cell invp = (Cell)destLib.findNodeProto(ip+"{lay}");
 		Rectangle2D invpBounds = invp.getBounds();
 		PortProto[] invin = new PortProto[romarray.length];
 		PortProto[] invout = new PortProto[romarray.length];
@@ -286,7 +290,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// ininverterplane top
-		Cell ininvtp = (Cell)Cell.findNodeProto(invt+"{lay}");
+		Cell ininvtp = (Cell)destLib.findNodeProto(invt+"{lay}");
 		Rectangle2D ininvtpBounds = ininvtp.getBounds();
 		PortProto[] ivttop  = new PortProto[bits];
 		PortProto[] ivtbot = new PortProto[bits];
@@ -300,8 +304,8 @@ public class ROMGenerator
 			ivtbar[i] = ininvtp.findPortProto("in_b"+i);
 		}
 	
-		// create new layout named "rom{lay}" in current library
-		Cell rom = Cell.newInstance(Library.getCurrent(), romname+"{lay}");
+		// create new layout named "rom{lay}" in destination library
+		Cell rom = Cell.newInstance(destLib, romname+"{lay}");
 	
 		////////// calculate pplane offset
 		double offset = (2*bits*(8*lambda)) + (16*lambda);
@@ -527,13 +531,13 @@ public class ROMGenerator
 		// begin (folds > 1)
 		if (folds > 1)
 		{
-			decoderpmos(lambda, foldbits, dpm, bot);
-			decodernmos(lambda, foldbits, dnm, bot);
-			ininverterplane(lambda, foldbits, invb, bot, bits);
-			muxplane(lambda, folds, romarray.length, mp);
+			decoderpmos(destLib, lambda, foldbits, dpm, bot);
+			decodernmos(destLib, lambda, foldbits, dnm, bot);
+			ininverterplane(destLib, lambda, foldbits, invb, bot, bits);
+			muxplane(destLib, lambda, folds, romarray.length, mp);
 	
 			////////////// decodernmosmux
-			Cell decpmux = (Cell)Cell.findNodeProto(dpm+"{lay}");
+			Cell decpmux = (Cell)destLib.findNodeProto(dpm+"{lay}");
 			Rectangle2D decpmuxBounds = decpmux.getBounds();
 		 	PortProto[] decpmuxin = new PortProto[folds];
 		 	PortProto[] decpmuxout = new PortProto[folds];
@@ -553,7 +557,7 @@ public class ROMGenerator
 			}
 	
 			////////////// decoderpmosmux
-			Cell decnmux = (Cell)Cell.findNodeProto(dnm+"{lay}");
+			Cell decnmux = (Cell)destLib.findNodeProto(dnm+"{lay}");
 			Rectangle2D decnmuxBounds = decnmux.getBounds();
 		 	PortProto[] decnmuxout = new PortProto[folds];
 		 	PortProto[] decnmuxin = new PortProto[folds];
@@ -570,7 +574,7 @@ public class ROMGenerator
 			}
 			
 			////////////////////// muxplane
-			Cell muxp = (Cell)Cell.findNodeProto(mp+"{lay}");
+			Cell muxp = (Cell)destLib.findNodeProto(mp+"{lay}");
 			Rectangle2D muxpBounds = muxp.getBounds();
 			PortProto[] muxin = new PortProto[romarray.length];
 			PortProto[] muxout = new PortProto[romarray.length/folds];
@@ -589,7 +593,7 @@ public class ROMGenerator
 			}
 	
 			////////////////////// ininverterplane bottom
-			Cell ininvbp = (Cell)Cell.findNodeProto(invb+"{lay}");
+			Cell ininvbp = (Cell)destLib.findNodeProto(invb+"{lay}");
 			Rectangle2D ininvbpBounds = ininvbp.getBounds();
 			PortProto[] ivbtop  = new PortProto[foldbits];
 			PortProto[] ivbbot = new PortProto[foldbits];
@@ -852,7 +856,7 @@ public class ROMGenerator
 
 	/**
 	 */
-	private static void romplane(double lambda, int romarray[][], String rp)
+	private static void romplane(Library destLib, double lambda, int romarray[][], String rp)
 	{
 		int i, m, o;
 		double x, y;
@@ -1014,8 +1018,8 @@ public class ROMGenerator
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
 		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
-		// create a cell called "romplane{lay}" in the current library
-		Cell romplane = Cell.newInstance(Library.getCurrent(), rp+"{lay}");
+		// create a cell called "romplane{lay}" in the destination library
+		Cell romplane = Cell.newInstance(destLib, rp+"{lay}");
 	
 		NodeInst pwellnode = makeCStyleNodeInst(pwnode,-4*lambda,(8*lambda*(inputs+2)),
 										-4*lambda,3*8*lambda*(wordlines)/2,0,0,romplane);
@@ -1529,7 +1533,7 @@ public class ROMGenerator
 
 	/**
 	 */
-	private static void decodernmos(double lambda, int bits, String cellname, boolean top)
+	private static void decodernmos(Library destLib, double lambda, int bits, String cellname, boolean top)
 	{
 		int[][] romplane = generateplane(bits);
 		int i, m, o;
@@ -1660,8 +1664,8 @@ public class ROMGenerator
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
 		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
-		// create a cell called cellname+"{lay}" in the current library
-		Cell decn = Cell.newInstance(Library.getCurrent(), cellname+"{lay}");
+		// create a cell called cellname+"{lay}" in the destination library
+		Cell decn = Cell.newInstance(destLib, cellname+"{lay}");
 
 		NodeProto nsnode = tech.findNodeProto("N-Select-Node");
 		int nselectx = 8; 
@@ -2002,7 +2006,7 @@ public class ROMGenerator
 
 	/**
 	 */
-	private static void decoderpmos(double lambda, int bits, String cellname, boolean top)
+	private static void decoderpmos(Library destLib, double lambda, int bits, String cellname, boolean top)
 	{
 		int[][] romplane = generateplane(bits);
 		int i, m, o;
@@ -2128,8 +2132,8 @@ public class ROMGenerator
 			 -pwnode.getDefHeight()/2-lambda/2,
 			 pwnode.getDefHeight()/2+lambda/2};
 	
-		// create a cell called cellname+"{lay}" in the current library
-		Cell decp = Cell.newInstance(Library.getCurrent(), cellname+"{lay}");
+		// create a cell called cellname+"{lay}" in the destination library
+		Cell decp = Cell.newInstance(destLib, cellname+"{lay}");
 		
 		NodeProto psnode = tech.findNodeProto("P-Select-Node");
 		int pselectx = 8; 
@@ -2502,7 +2506,7 @@ public class ROMGenerator
 	
 	/**
 	 */
-	private static void muxplane(double lambda, int folds, int romoutputs, String mp)
+	private static void muxplane(Library destLib, double lambda, int folds, int romoutputs, String mp)
 	{
 		int[][] muxarray = generatemuxarray(folds,romoutputs);
 		int muxnumber = folds;
@@ -2612,8 +2616,8 @@ public class ROMGenerator
 			 -pwnode.getDefHeight()/2-lambda/2,
 			 pwnode.getDefHeight()/2+lambda/2};
 
-		// create a cell called "muxplane{lay}" in the current library
-		Cell muxplane = Cell.newInstance(Library.getCurrent(), mp+"{lay}");
+		// create a cell called "muxplane{lay}" in the destination library
+		Cell muxplane = Cell.newInstance(destLib, mp+"{lay}");
 	
 		NodeInst pwellnode =
 			makeCStyleNodeInst(pwnode,-8*lambda,lambda*8*(folds+1),
@@ -2828,7 +2832,7 @@ public class ROMGenerator
 		
 	/**
 	 */
-	private static void inverterplane(double lambda, int outs, int folds, String ip)
+	private static void inverterplane(Library destLib, double lambda, int outs, int folds, String ip)
 	{		
 		int i, m, o;
 		double x, y;
@@ -2975,8 +2979,8 @@ public class ROMGenerator
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
 		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
-		// create a cell called "inverterplane{lay}" in the current library
-		Cell invp = Cell.newInstance(Library.getCurrent(), ip+"{lay}");
+		// create a cell called "inverterplane{lay}" in the destination library
+		Cell invp = Cell.newInstance(destLib, ip+"{lay}");
 	
 		NodeInst pwellnode =
 			makeCStyleNodeInst(pwnode,-32*lambda,(3*lambda*8*outs/2)+8*lambda,
@@ -3476,7 +3480,7 @@ public class ROMGenerator
 
 	/**
 	 */
-	private static void ininverterplane(double lambda, int outs, String layoutname, boolean top,
+	private static void ininverterplane(Library destLib, double lambda, int outs, String layoutname, boolean top,
 						   int lengthbits)
 	{	
 		int i, m, o;
@@ -3630,8 +3634,8 @@ public class ROMGenerator
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
 		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
-		// create a cell called layoutname+lay}" in the current library
-		Cell ininvp = Cell.newInstance(Library.getCurrent(), layoutname+"{lay}");
+		// create a cell called layoutname+lay}" in the destination library
+		Cell ininvp = Cell.newInstance(destLib, layoutname+"{lay}");
 	
 		NodeInst pwellnode =
 			makeCStyleNodeInst(pwnode,-8*lambda,(4*lambda*8*lengthbits)+24*lambda,

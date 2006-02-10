@@ -170,7 +170,7 @@ public class Maker
 	 *   o  Routing Power and Ground buses
 	 *   o  Creation in Electric's database
 	 */
-	public Object makeLayout(GetNetlist gnl)
+	public Object makeLayout(Library destLib, GetNetlist gnl)
 	{
 		// check if working in a cell
 		if (gnl.curSCCell == null) return "No cell selected";
@@ -187,7 +187,7 @@ public class Maker
 		MakerData makeData = setUp(gnl.curSCCell);
 
 		// create actual layout
-		Object result = createLayout(makeData);
+		Object result = createLayout(destLib, makeData);
 		if (result instanceof String) return result;
 
 		return result;
@@ -614,9 +614,10 @@ public class Maker
 	/**
 	 * Method to create the actual layout in the associated VLSI layout tool using
 	 * the passed layout data.
+     * @param destLib destination library.
 	 * @param data pointer to layout data.
 	 */
-	private Object createLayout(MakerData data)
+	private Object createLayout(Library destLib, MakerData data)
 	{
 		double rowToTrack = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
 		double trackToTtrack = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
@@ -625,7 +626,7 @@ public class Maker
 		if (err != null) return err;
 
 		// create new cell
-		Cell bCell = Cell.makeInstance(Library.getCurrent(), data.cell.name + "{lay}");
+		Cell bCell = Cell.makeInstance(destLib, data.cell.name + "{lay}");
 		if (bCell == null) return "Cannot create leaf cell '" + data.cell.name + "{lay}' in MAKER";
 
 		// create instances for cell

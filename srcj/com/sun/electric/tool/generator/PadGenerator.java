@@ -79,40 +79,44 @@ public class PadGenerator
 	/**
 	 * Method to generate a pad frame from an array file.
 	 * Schedules a change job to generate the pad frame.
+     * @param destLib destination library.
 	 * @param fileName the array file name.
 	 */
-    public static void makePadFrame(String fileName)
+    public static void makePadFrame(Library destLib, String fileName)
 	{
         if (fileName == null) return;
-		new MakePadFrame(fileName);
+		new MakePadFrame(destLib, fileName);
     }
 
 	/**
 	 * Method to generate a pad frame from an array file.
 	 * Presumes that it is being run from inside a change job.
+     * @param destLib destination library.
 	 * @param fileName the array file name.
 	 */
-	public static Cell makePadFrameNoJob(String fileName)
+	public static Cell makePadFrameNoJob(Library destLib, String fileName)
 	{
-		PadGenerator pg = new PadGenerator(fileName);
+		PadGenerator pg = new PadGenerator(destLib, fileName);
 		return pg.MakePadFrame();
 	}
 
 	private static class MakePadFrame extends Job
 	{
+        private Library destLib;
         private String fileName;
         private Cell frameCell;
 
-		private MakePadFrame(String fileName)
+		private MakePadFrame(Library destLib, String fileName)
 		{
             super("Pad Frame Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.destLib = destLib;
             this.fileName = fileName;
             startJob();
         }
 
         public boolean doIt() throws JobException
 		{
-			frameCell = makePadFrameNoJob(fileName);
+			frameCell = makePadFrameNoJob(destLib, fileName);
 			fieldVariableChanged("frameCell");
 			return true;
 		}
@@ -125,6 +129,7 @@ public class PadGenerator
         }
 	}
 
+    private Library destLib;                        // destination library
 	private String fileName;						// name of file with pad array instructions
 	private String padframename;                    // name of pad frame cell
 	private String corename;                        // core cell to stick in pad frame
@@ -182,9 +187,10 @@ public class PadGenerator
         String exportName;
     }
 
-	private PadGenerator(String fileName)
+	private PadGenerator(Library destLib, String fileName)
 	{
-		this.fileName = fileName;
+        this.destLib = destLib;
+        this.fileName = fileName;
         alignments = new HashMap<String,ArrayAlign>();
         exports = new HashMap<String,PadExports>();
         views = new ArrayList<View>();
@@ -299,13 +305,13 @@ public class PadGenerator
                 FileType style = FileType.DEFAULTLIB;
                 if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
                 if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
-                Library saveLib = Library.getCurrent();
+//                Library saveLib = Library.getCurrent();
                 cellLib = LibraryFiles.readLibrary(fileURL, null, style, false);
                 if (cellLib == null) {
                     err("cannot read library " + keyWord);
                     return false;
                 }
-                saveLib.setCurrent();
+//                saveLib.setCurrent();
             }
         }
 
@@ -615,7 +621,7 @@ public class PadGenerator
 	        }
 		}
 
-        Cell framecell = Cell.makeInstance(Library.getCurrent(), name);
+        Cell framecell = Cell.makeInstance(destLib, name);
         if (framecell == null) {
             System.out.println("Could not create pad frame Cell: " + name);
             return null;
@@ -663,7 +669,7 @@ public class PadGenerator
 			{
 				Cell existing = cell;
 				cell = null;
-				for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+				for(Iterator<Cell> cIt = destLib.getCells(); cIt.hasNext(); )
 				{
 					Cell thereCell = cIt.next();
 					if (thereCell.getName().equals(existing.getName()) && thereCell.getView() == existing.getView())
@@ -674,7 +680,7 @@ public class PadGenerator
 				}
 				if (cell == null)
 				{
-					cell = CellChangeJobs.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true, null);
+					cell = CellChangeJobs.copyRecursively(existing, destLib, false, false, false, true, true, null);
 	                if (cell == null)
 					{
 	                    err("Could not copy in pad Cell " + cellname);
@@ -857,7 +863,7 @@ public class PadGenerator
             if (view != null) {
                 corenameview = corename + "{" + view.getAbbreviation() + "}";
             }
-            Cell corenp = (Cell) Cell.findNodeProto(corenameview);
+            Cell corenp = (Cell) destLib.findNodeProto(corenameview);
             if (corenp == null) {
                 System.out.println("Line " + lineno + ": cannot find core cell " + corenameview);
             } else {
@@ -906,7 +912,7 @@ public class PadGenerator
 
             // create the new icon cell
             String iconCellName = framecell.getName() + "{ic}";
-            Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
+            Cell iconCell = Cell.makeInstance(destLib, iconCellName);
             if (iconCell == null) {
             	Job.getUserInterface().showErrorMessage("Cannot create Icon cell " + iconCellName,
                     "Icon creation failed");

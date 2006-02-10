@@ -25,6 +25,7 @@ package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -202,6 +203,7 @@ public class Simulation extends Listener
 
 		public boolean doIt() throws JobException
 		{
+            Library destLib = cell.getLibrary();
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
 			if ((activities&CONVERT_TO_VHDL) != 0)
@@ -239,7 +241,7 @@ public class Simulation extends Listener
 				{
 					throw new JobException("ERRORS during compilation, no netlist produced");
 				}
-				List<String> netlistStrings = c.getALSNetlist();
+				List<String> netlistStrings = c.getALSNetlist(destLib);
 				if (netlistStrings == null)
 				{
 					throw new JobException("No netlist produced");

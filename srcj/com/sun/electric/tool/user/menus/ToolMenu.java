@@ -1293,7 +1293,7 @@ public class ToolMenu {
         String fileName = OpenFile.chooseInputFile(FileType.PADARR, null);
         if (fileName != null)
         {
-            PadGenerator.makePadFrame(fileName);
+            PadGenerator.makePadFrame(Library.getCurrent(), fileName);
         }
     }
 
@@ -1448,6 +1448,7 @@ public class ToolMenu {
 
 		public boolean doIt() throws JobException
 		{
+            Library destLib = cell.getLibrary();
 			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
@@ -1482,7 +1483,7 @@ public class ToolMenu {
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
 					throw new JobException("ERRORS during compilation, no netlist produced");
-				List<String> netlistStrings = c.getQUISCNetlist();
+				List<String> netlistStrings = c.getQUISCNetlist(destLib);
 				if (netlistStrings == null)
 					throw new JobException("No netlist produced");
 
@@ -1527,7 +1528,7 @@ public class ToolMenu {
 				// generate the results
 				System.out.println("Generating layout");
 				Maker maker = new Maker();
-				Object result = maker.makeLayout(gnl);
+				Object result = maker.makeLayout(destLib, gnl);
 				if (result instanceof String)
 				{
 					System.out.println((String)result);

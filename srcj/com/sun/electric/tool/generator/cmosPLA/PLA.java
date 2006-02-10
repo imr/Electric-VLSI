@@ -123,12 +123,13 @@ public class PLA
 		SetupPLAGen dialog = new SetupPLAGen();
 		if (dialog.failed()) return;
 
-		generate(dialog.getCellName(), dialog.getAndFileName(), dialog.getOrFileName(),
+		generate(Library.getCurrent(), dialog.getCellName(), dialog.getAndFileName(), dialog.getOrFileName(),
 			dialog.isInputsOnTop(), dialog.isOutputsOnBottom());
 	}
 
 	/**
 	 * Method called to generate a CMOS PLA, given all options.
+     * @param destLib library where create PLA cells.
 	 * @param cellName the name of the PLA cell to generate.
 	 * @param andFileName the disk file with the AND plane.
 	 * @param orFileName the disk file with the OR plane.
@@ -136,7 +137,7 @@ public class PLA
 	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
 	 * @param completion runnable to invoke when the generation has finished.
 	 */
-	public static void generate(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
+	public static void generate(Library destLib, String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
 	{
 		// make sure the standard cell library is read in
 		String libName = "pla_mocmos";
@@ -145,7 +146,7 @@ public class PLA
             // start a job to read the PLA support library
 			new ReadPLALibraryJob(libName);
 		}
-		new GeneratePLAJob(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+		new GeneratePLAJob(destLib, cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
 	}
 
 	/**
@@ -177,6 +178,7 @@ public class PLA
 	 */
 	private static class GeneratePLAJob extends Job
 	{
+        private Library destLib;
 		private String cellName;
 		private String andFileName;
 		private String orFileName;
@@ -184,10 +186,11 @@ public class PLA
 		private boolean outputsOnBottom;
 		private Cell newCell;
 
-		protected GeneratePLAJob(String cellName, String andFileName, String orFileName,
+		protected GeneratePLAJob(Library destLib, String cellName, String andFileName, String orFileName,
 			boolean inputsOnTop, boolean outputsOnBottom)
 		{
 			super("Generate MOSIS CMOS PLA", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.destLib = destLib;
 			this.cellName = cellName;
 			this.andFileName = andFileName;
 			this.orFileName = orFileName;
@@ -199,7 +202,7 @@ public class PLA
 		public boolean doIt() throws JobException
 		{
 			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
-			newCell = pla.doStep();
+			newCell = pla.doStep(destLib);
 			fieldVariableChanged("newCell");
 			return true;
 		}
@@ -223,34 +226,34 @@ public class PLA
 		dec = new Decode(this);
 	}
 
-	private Cell doStep()
+	private Cell doStep(Library lib)
 		throws JobException
 	{
 		initialize();
 
 		// generate the AND plane (Decode unit of a ROM)
 		String thisCellName = cellName + "_p_cell{lay}";
-		pmosCell = pg.pmosGrid(Library.getCurrent(), andFileName, thisCellName);
+		pmosCell = pg.pmosGrid(lib, andFileName, thisCellName);
 		if (pmosCell == null) return null;
 
 		thisCellName = cellName + "_n_cell{lay}";
-		nmosCell = ng.nmosGrid(Library.getCurrent(), andFileName, thisCellName);
+		nmosCell = ng.nmosGrid(lib, andFileName, thisCellName);
 		if (nmosCell == null) return null;
 
 		thisCellName = cellName + "_decode{lay}";
-		decodeCell = dec.decodeGen(Library.getCurrent(), pmosCell, nmosCell, thisCellName, inputsOnTop);
+		decodeCell = dec.decodeGen(lib, pmosCell, nmosCell, thisCellName, inputsOnTop);
 		if (decodeCell == null) return null;
 
 		// Generate the OR plane
 		thisCellName = cellName + "_or_cell{lay}";
-		orCell = ng.nmosGrid(Library.getCurrent(), orFileName, thisCellName);
+		orCell = ng.nmosGrid(lib, orFileName, thisCellName);
 		if (orCell == null) return null;
 
 		thisCellName = cellName + "_or_plane{lay}";
-		orPlaneCell = makeOrPlane(Library.getCurrent(), thisCellName, outputsOnBottom);
+		orPlaneCell = makeOrPlane(lib, thisCellName, outputsOnBottom);
 		if (orPlaneCell == null) return null;
 
-		Cell plaCell = makePLA(Library.getCurrent(), cellName + "{lay}");
+		Cell plaCell = makePLA(lib, cellName + "{lay}");
 		return plaCell;
 	}
 

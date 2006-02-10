@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/9/06, DN) Fixes in Compaction and Generation regressions to run in client/server mode.
+
 IMP: (2/9/06, SMR) GDS input no longer complains about text layers, creates good size text.
 
 IMP: (2/9/06, SMR) Fixed "RouteElementArc.doAction()" to make zero-length arcs go
