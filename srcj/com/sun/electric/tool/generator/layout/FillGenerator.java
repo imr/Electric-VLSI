@@ -1540,13 +1540,13 @@ public class FillGenerator implements Serializable {
             this.lastMetal = last;
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
+            this.log = ErrorLogger.newInstance("Fill", true);
+
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-            log = ErrorLogger.newInstance("Fill", true);
-
             // Searching common power/gnd connections and skip the ones are in the same network
             Set<PortInst> portList = new HashSet<PortInst>();
 

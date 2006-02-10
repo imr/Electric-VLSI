@@ -676,7 +676,7 @@ public class MoCMOS extends Technology
 
         // Reading Mosis rules stored in Mosis.xml
         URL fileURL = MOSRules.class.getResource("Mosis180.xml");
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL);
+        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
         assert(parser.rulesList.size() == 1);
         mosis.setRules(parser.rulesList.get(0).drcRules);
         setFactoryPrefFoundry(Foundry.Type.MOSIS.name());  // default

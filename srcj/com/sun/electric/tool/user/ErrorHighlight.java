@@ -47,7 +47,7 @@ class ErrorHighExport extends ErrorHighlight {
 
     private final ExportId      pp;
 
-    public ErrorHighExport(Cell c, VarContext con, Export p)
+    public ErrorHighExport(VarContext con, Export p)
     {
         super((Cell)p.getParent(), con);
         this.pp = (ExportId)p.getId();

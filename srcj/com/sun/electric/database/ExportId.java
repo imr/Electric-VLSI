@@ -28,6 +28,7 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 
 
@@ -36,7 +37,7 @@ import java.io.ObjectStreamException;
  * It differs from Export objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method .
  */
-public final class ExportId implements PortProtoId
+public final class ExportId implements PortProtoId, Serializable
 {
     /** Empty ExportId array for initialization. */
     public static final ExportId[] NULL_ARRAY = {};

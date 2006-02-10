@@ -1607,7 +1607,7 @@ public class ToolMenu {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Open XML DRC deck", false);
         if (fileName == null) return;
         Technology tech = Technology.getCurrent();
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName));
+        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName), true);
 
         for (DRCTemplate.DRCXMLBucket bucket : parser.rulesList)
         {

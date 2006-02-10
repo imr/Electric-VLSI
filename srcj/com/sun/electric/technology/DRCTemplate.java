@@ -318,12 +318,13 @@ public class DRCTemplate
      * Method to import DRC deck from a file provided by URL. Note: it has to be URL otherwise
      * it won't file the file in Electric jar file.
      * @param fileURL
+     * @param verbose
      * @return
      */
-    public static DRCXMLParser importDRCDeck(URL fileURL)
+    public static DRCXMLParser importDRCDeck(URL fileURL, boolean verbose)
     {
         DRCXMLParser parser = new DRCXMLParser();
-        parser.process(fileURL);
+        parser.process(fileURL, verbose);
         return parser;
     }
 
@@ -517,7 +518,7 @@ public class DRCTemplate
         public List<DRCXMLBucket> rulesList = new ArrayList<DRCXMLBucket>();
         private DRCXMLBucket current = null;
 
-        public void process(URL fileURL)
+        protected void process(URL fileURL, boolean verbose)
         {
             try
             {
@@ -529,10 +530,12 @@ public class DRCTemplate
                 SAXParser parser = factory.newSAXParser();
                 URLConnection urlCon = fileURL.openConnection();
                 InputStream inputStream = urlCon.getInputStream();
-                System.out.println("Parsing XML file \"" + fileURL + "\"");
+
+                if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
+
                 parser.parse(inputStream, new DRCXMLHandler());
 
-                System.out.println("End Parsing XML file ...");
+                if (verbose) System.out.println("End Parsing XML file ...");
             }
             catch (Exception e)
             {

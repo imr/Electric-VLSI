@@ -352,14 +352,13 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      * Factory method to log an error message.
      * @param message the string to display.
      * @param pp the Export to display
-     * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      */
     public synchronized void logError(String message, Export pp, int sortKey)
     {
         Cell cell = (Cell)pp.getParent();
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(new ErrorHighExport(cell, null, pp));
+        h.add(new ErrorHighExport(null, pp));
     	logAnError(message, cell, sortKey, h);
     }
 
@@ -418,7 +417,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (exportList != null)
     	{
     		for(Export e : exportList)
-                h.add(new ErrorHighExport(cell, null, e));
+                h.add(new ErrorHighExport(null, e));
     	}
     	logAnError(message, cell, sortKey, h);
     }
@@ -446,7 +445,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (exportList != null)
     	{
     		for(Export e : exportList)
-                h.add(new ErrorHighExport(cell, null, e));
+                h.add(new ErrorHighExport(null, e));
     	}
     	if (lineList != null)
     	{
@@ -514,9 +513,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     /**
      * Factory method to log a warning message.
      * @param message the string to display.
-     * @param geom a node or arc to display.
      * @param cell the cell in which this message applies.
-     * @param context the VarContext of the Cell.
      * @param sortKey the sorting order of this message.
      */
     public synchronized void logWarning(String message, Cell cell, int sortKey)
@@ -551,7 +548,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void logWarning(String message, Export pp, Cell cell, VarContext context, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(new ErrorHighExport(cell, context, pp));
+        h.add(new ErrorHighExport(context, pp));
     	logAWarning(message, cell, sortKey, h);
     }
 
@@ -578,7 +575,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (exportList != null)
     	{
     		for(Export e : exportList)
-                h.add(new ErrorHighExport(cell, null, e));
+                h.add(new ErrorHighExport(null, e));
     	}
     	if (lineList != null)
     	{
@@ -987,7 +984,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
     public static class XMLParser
     {
-        public void process(URL fileURL)
+        public void process(URL fileURL, boolean verbose)
         {
             try
             {
@@ -999,10 +996,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 SAXParser parser = factory.newSAXParser();
                 URLConnection urlCon = fileURL.openConnection();
                 InputStream inputStream = urlCon.getInputStream();
-                System.out.println("Parsing XML file \"" + fileURL + "\"");
+                if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
                 parser.parse(inputStream, new XMLHandler());
-
-                System.out.println("End Parsing XML file ...");
+                if (verbose) System.out.println("End Parsing XML file ...");
             }
             catch (Exception e)
             {
@@ -1112,8 +1108,6 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                     else if (attributes.getQName(i).startsWith("center"))
                     {
                         String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
-                        double x = Double.parseDouble(points[0]);
-                        double y = Double.parseDouble(points[1]);
                     }
                     else
                         new Error("Invalid attribute in XMLParser");
@@ -1131,12 +1125,12 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 }
                 if (errorLogBody)
                 {
-                    int sortLayer = curCell.hashCode();
+//                    int sortLayer = curCell.hashCode();
                 	highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (warnLogBody)
                 {
-                    int sortLayer = curCell.hashCode();
+//                    int sortLayer = curCell.hashCode();
                     highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (geoTypeBody)

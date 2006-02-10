@@ -40,7 +40,7 @@ public class ErrorLoggerTree {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
         try {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
-            parser.process(TextUtils.makeURLToFile(fileName));
+            parser.process(TextUtils.makeURLToFile(fileName), true);
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);
