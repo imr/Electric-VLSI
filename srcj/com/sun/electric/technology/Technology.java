@@ -4052,6 +4052,7 @@ public class Technology implements Comparable<Technology>
         {
             super(Technology.prefs, name);
             this.tech = tech;
+            attachToObject(tech, location, description);
         }
 
 		public void setSideEffect()

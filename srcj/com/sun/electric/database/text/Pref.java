@@ -395,7 +395,7 @@ public class Pref
 	protected void initBoolean(boolean factory)
 	{
 		this.type = BOOLEAN;
-		this.meaning = null;
+//		this.meaning = null;
 		this.factoryObj = new Integer(factory ? 1 : 0);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
 			this.cachedObj = new Integer(factory ? 1 : 0);
@@ -437,7 +437,7 @@ public class Pref
 	protected void initInt(int factory)
 	{
 		this.type = INTEGER;
-		this.meaning = null;
+//		this.meaning = null;
 		this.factoryObj = new Integer(factory);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
 			this.cachedObj = new Integer(factory);
@@ -479,7 +479,7 @@ public class Pref
 	protected void initLong(long factory)
 	{
 		this.type = LONG;
-		this.meaning = null;
+//		this.meaning = null;
 		this.factoryObj = new Long(factory);
 		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
 			this.cachedObj = new Long(factory);
@@ -521,7 +521,7 @@ public class Pref
 	protected void initDouble(double factory)
 	{
 		this.type = DOUBLE;
-		this.meaning = null;
+//		this.meaning = null;
 		this.factoryObj = new Double(factory);
 		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
 			this.cachedObj = new Double(factory);
@@ -563,7 +563,7 @@ public class Pref
 	protected void initString(String factory)
 	{
 		this.type = STRING;
-		this.meaning = null;
+//		this.meaning = null;
 		this.factoryObj = new String(factory);
 		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
 			this.cachedObj = new String(factory);
@@ -1109,9 +1109,9 @@ public class Pref
         }
         System.out.println(lenStrings + " chars in " + numStrings + " strings");
         System.out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
-//        int  i = 0;
-//        for (Pref pref: sortedPrefs.values())
-//            System.out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj);
+        int  i = 0;
+        for (Pref pref: sortedPrefs.values())
+            System.out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj + " " + (pref.meaning != null));
     }
 
     private static void gatherPrefs(int level, Preferences topNode, List<String> ks) throws BackingStoreException {

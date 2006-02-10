@@ -268,14 +268,14 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         return logger;
     }
 
-    void addMessages(List<MessageLog> messages) {
+    public void addMessages(List<MessageLog> messages) {
         for (MessageLog m: messages) {
             if (m instanceof WarningLog)
                 allWarnings.add((WarningLog)m);
             else
                 allErrors.add(m);
         }
-	if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
     }
     
     private static void addErrorLogger(ErrorLogger logger)

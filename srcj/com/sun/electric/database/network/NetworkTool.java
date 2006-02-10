@@ -636,14 +636,16 @@ public class NetworkTool extends Listener
     
     private static Cell currentErrorCell;
     private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
+    private static ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
     
     static void startErrorLogging(Cell cell) {
         currentErrorCell = cell;
         errorHighlights.clear();
+        errors.clear();
     }
 
     static void pushHighlight(Export e) {
-        assert e.getParent() == currentErrorCell;
+//        assert e.getParent() == currentErrorCell;
         errorHighlights.add(ErrorHighlight.newInstance(e));
     }
     
@@ -665,17 +667,20 @@ public class NetworkTool extends Listener
     }
     
     static void logError(String message, int sortKey) {
-        new ErrorLogger.MessageLog(message, currentErrorCell, sortKey, errorHighlights);
+        errors.add(new ErrorLogger.MessageLog(message, currentErrorCell, sortKey, errorHighlights));
         errorHighlights.clear();
     }
     
     static void logWarning(String message, int sortKey) {
-        new ErrorLogger.WarningLog(message, currentErrorCell, sortKey, errorHighlights);
+        errors.add(new ErrorLogger.WarningLog(message, currentErrorCell, sortKey, errorHighlights));
         errorHighlights.clear();
     }
     
     static void finishErrorLogging() {
         NetworkTool.errorLogger.clearLogs(currentErrorCell);
+        NetworkTool.errorLogger.addMessages(errors);
+        errorHighlights.clear();
+        errors.clear();
     }
     
 	/****************************** OPTIONS ******************************/

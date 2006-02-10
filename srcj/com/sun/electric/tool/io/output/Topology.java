@@ -886,7 +886,7 @@ public abstract class Topology extends Output
 
 		public int compare(CellSignal cs1, CellSignal cs2)
 		{
-			if (aggregateNamesSupported && (cs1.pp == null) != (cs2.pp == null))
+			if ((aggregateNamesSupported || separateInputAndOutput) && (cs1.pp == null) != (cs2.pp == null))
 			{
 				// one is exported and the other isn't...sort accordingly
 				return cs1.pp == null ? 1 : -1;

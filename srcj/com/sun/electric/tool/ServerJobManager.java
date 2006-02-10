@@ -525,7 +525,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         }
         
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
-            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
+//            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
         };
 		public void alignToGrid(Point2D pt) {
             System.out.println("UserInterface.alignToGrid was called from DatabaseChangesThread");
