@@ -97,7 +97,7 @@ public class Regression {
                         int len = reader.in.readInt();
                         byte[] bytes = new byte[len];
                         reader.in.readFully(bytes);
-                        System.out.println("Job " + jobId + " terminated " + bytes.length);
+//                        System.out.println("Job " + jobId + " terminated " + bytes.length);
                         break;
                     case 3:
                         String str = reader.in.readUTF();
