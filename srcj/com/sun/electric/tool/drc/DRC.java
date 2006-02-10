@@ -46,10 +46,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 /**
@@ -724,7 +721,7 @@ public class DRC extends Listener
                     cleanDRCDate.put(cell, cell);
             }
         }
-        new DRC.UpdateDRCDates(0, new HashMap<Cell,Date>(), cleanDRCDate);
+        new DRCUpdate(0, null, cleanDRCDate, null);
     }
 
     /**
@@ -936,43 +933,62 @@ public class DRC extends Listener
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
 
     /**
-	 * Class to save good DRC dates in a new thread.
+	 * Class to save good Layout DRC dates in a new thread or add new variables in Schematic DRC
 	 */
-	public static class UpdateDRCDates extends Job
+	public static class DRCUpdate extends Job
 	{
 		HashMap<Cell,Date> goodDRCDate;
 		HashMap<Cell,Cell> cleanDRCDate;
+        HashMap<NodeInst,List<Variable>> newVariables = new HashMap<NodeInst,List<Variable>>();
         int activeBits;
 
-		public UpdateDRCDates(int bits, HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate)
+		public DRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate, HashMap<NodeInst, List<Variable>> newVariables)
 		{
-			super("Remember DRC Successes and/or Delete Obsolete Dates", tool, Type.CHANGE, null, null, Priority.USER);
+			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
             this.goodDRCDate = goodDRCDate;
 			this.cleanDRCDate = cleanDRCDate;
+            this.newVariables = newVariables;
             this.activeBits = bits;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				Date now = goodDRCDate.get(cell);
-                if (!cell.isLinked())
-                    System.out.println("Cell '" + cell + "' is invalid to update DRC date");
-                else
-				    setLastDRCDateAndBits(cell, now, activeBits);
-			}
+            if (goodDRCDate != null)
+            {
+                for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+                {
+                    Cell cell = it.next();
+                    Date now = goodDRCDate.get(cell);
+                    if (!cell.isLinked())
+                        System.out.println("Cell '" + cell + "' is invalid to update DRC date");
+                    else
+                        setLastDRCDateAndBits(cell, now, activeBits);
+                }
+            }
 
-			for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-                if (!cell.isLinked())
-                    System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
-                else
-				    cleanDRCDateAndBits(cell);
-			}
+            if (cleanDRCDate != null)
+            {
+                for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
+                {
+                    Cell cell = it.next();
+                    if (!cell.isLinked())
+                        System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
+                    else
+                        cleanDRCDateAndBits(cell);
+                }
+            }
+
+            // Update variables in Schematics DRC
+            if (newVariables != null)
+            {
+                for (NodeInst ni : newVariables.keySet())
+                {
+                    List<Variable> list = newVariables.get(ni);
+                    for (Variable var : list)
+                        ni.addVar(var);
+                }
+            }
 			return true;
 		}
 	}

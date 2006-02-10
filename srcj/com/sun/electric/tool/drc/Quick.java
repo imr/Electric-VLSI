@@ -455,7 +455,7 @@ public class Quick
         // This is only going to happen if job was not aborted.
 	    if ((job == null || !job.checkAbort()) && (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0))
 	    {
-		    new DRC.UpdateDRCDates(activeBits, goodDRCDate, cleanDRCDate);
+		    new DRC.DRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
 	    }
 
         return errorLogger;

@@ -48,10 +48,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to do schematic design-rule checking.
@@ -59,18 +56,20 @@ import java.util.List;
  */
 public class Schematic
 {
-	private static HashSet<Cell> cellsChecked;
+	private static HashSet<Cell> cellsChecked = new HashSet<Cell>();
     private static ErrorLogger errorLogger = null;
+    private static HashMap<NodeInst,List<Variable>> newVariables = new HashMap<NodeInst,List<Variable>>();
 
 	public static ErrorLogger doCheck(Cell cell, Geometric[] geomsToCheck)
 	{
-		cellsChecked = new HashSet<Cell>();
+		cellsChecked.clear();
+        newVariables.clear();
 
         if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
-		cellsChecked = null;
+        new DRC.DRCUpdate(0, null, null, newVariables);
 		return(errorLogger);
 	}
 
@@ -177,6 +176,24 @@ public class Schematic
 			System.out.println(indent + thisErrors + " errors found");
 		if (justThis) errorLogger.termLogging(true);
 	}
+
+    /**
+     * Method to add all variables of a given NodeInst that must be added after Schematics DRC job is done.
+     * @param ni
+     * @param var
+     */
+    private static void addVariable(NodeInst ni, Variable var)
+    {
+        List<Variable> list = newVariables.get(ni);
+
+        if (list == null) // first time
+        {
+            list = new ArrayList<Variable>();
+            newVariables.put(ni, list);
+        }
+
+        list.add(var);
+    }
 
 	/**
 	 * Method to check schematic object "geom".
@@ -311,7 +328,8 @@ public class Schematic
 							String trueVarName = var.getTrueName();
 							errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 								" had incorrect units (now fixed)", geom, cell, null, 0);
-							ni.addVar(var.withUnit(foundVar.getUnit()));
+//							ni.addVar(var.withUnit(foundVar.getUnit()));
+                            addVariable(ni, var.withUnit(foundVar.getUnit()));
 //							var.setUnit(foundVar.getUnit());
 						}
 
@@ -323,7 +341,8 @@ public class Schematic
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should not be visible (now fixed)", geom, cell, null, 0);
-                                ni.addVar(var.withDisplay(false));
+//                                ni.addVar(var.withDisplay(false));
+                                addVariable(ni, var.withDisplay(false));
 //								var.setDisplay(false);
 							}
 						} else
@@ -333,7 +352,8 @@ public class Schematic
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should be visible (now fixed)", geom, cell, null, 0);
-                                ni.addVar(var.withDisplay(true));
+//                                ni.addVar(var.withDisplay(true));
+                                addVariable(ni, var.withDisplay(true));
 //								var.setDisplay(true);
 							}
 						}
