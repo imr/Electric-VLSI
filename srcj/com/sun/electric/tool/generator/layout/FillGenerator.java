@@ -32,7 +32,6 @@ import java.io.Serializable;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -1540,13 +1539,15 @@ public class FillGenerator implements Serializable {
             this.lastMetal = last;
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
-            this.log = ErrorLogger.newInstance("Fill", true);
 
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+            // logger must be created in server otherwise it won't return the elements.
+            log = ErrorLogger.newInstance("Fill", true);
+
             // Searching common power/gnd connections and skip the ones are in the same network
             Set<PortInst> portList = new HashSet<PortInst>();
 
