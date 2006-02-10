@@ -37,7 +37,6 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -58,8 +57,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
@@ -178,7 +175,7 @@ public final class Main
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
             runMode = Job.Mode.CLIENT;
         }
-        Job.setThreadMode(runMode, runMode != Job.Mode.BATCH ? new UserInterfaceMain() : new UserInterfaceDummy());
+        Job.setThreadMode(runMode, (runMode != Job.Mode.BATCH ? new UserInterfaceMain() : new UserInterfaceDummy()));
 
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
