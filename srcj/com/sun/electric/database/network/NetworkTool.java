@@ -31,7 +31,9 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -45,7 +47,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
@@ -627,6 +632,50 @@ public class NetworkTool extends Listener
                 netCell.setNetworksDirty();
         }
         redoNetworkNumbering(false);
+    }
+    
+    private static Cell currentErrorCell;
+    private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
+    
+    static void startErrorLogging(Cell cell) {
+        currentErrorCell = cell;
+        errorHighlights.clear();
+    }
+
+    static void pushHighlight(Export e) {
+        assert e.getParent() == currentErrorCell;
+        errorHighlights.add(ErrorHighlight.newInstance(e));
+    }
+    
+    static void pushHighlight(Geometric geom) {
+        assert geom.getParent() == currentErrorCell;
+        errorHighlights.add(ErrorHighlight.newInstance(null, geom));
+    }
+    
+    static void pushHighlight(PortInst pi) {
+        Poly poly = pi.getPoly();
+        Point2D [] points = poly.getPoints();
+        for(int i=0; i<points.length; i++)
+        {
+            int prev = i - 1;
+            if (i == 0) prev = points.length - 1;
+            errorHighlights.add(ErrorHighlight.newInstance(currentErrorCell, points[prev], points[i]));
+        }
+        
+    }
+    
+    static void logError(String message, int sortKey) {
+        new ErrorLogger.MessageLog(message, currentErrorCell, sortKey, errorHighlights);
+        errorHighlights.clear();
+    }
+    
+    static void logWarning(String message, int sortKey) {
+        new ErrorLogger.WarningLog(message, currentErrorCell, sortKey, errorHighlights);
+        errorHighlights.clear();
+    }
+    
+    static void finishErrorLogging() {
+        NetworkTool.errorLogger.clearLogs(currentErrorCell);
     }
     
 	/****************************** OPTIONS ******************************/

@@ -6,6 +6,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 
@@ -17,7 +18,7 @@ import java.io.Serializable;
  * Class to define Highlighted errors.
  */
 public abstract class ErrorHighlight implements Serializable {
-    static final ErrorHighlight[] NULL_ARRAY = {};
+    public static final ErrorHighlight[] NULL_ARRAY = {};
 
     private final CellId cellId;
     private final VarContext  context; // Yet do be immutable
@@ -28,7 +29,7 @@ public abstract class ErrorHighlight implements Serializable {
         this.context = con;
     }
 
-    Cell getCell() { return cellId != null ? (Cell)cellId.inCurrentThread() : null; }
+    public Cell getCell() { return cellId != null ? (Cell)cellId.inCurrentThread() : null; }
 
     VarContext getVarContext() { return context; }
 
@@ -41,6 +42,22 @@ public abstract class ErrorHighlight implements Serializable {
     boolean isValid() { return cellId == null || getCell() != null; } // Still have problems with minAre DRC errors
 
     void addToHighlighter(Highlighter h) {;}
+    
+    public static ErrorHighlight newInstance(VarContext context, Geometric geom) {
+        if (geom instanceof NodeInst)
+            return new ErrorHighNode(context, (NodeInst)geom);
+        else
+            return new ErrorHighArc(context, (ArcInst)geom);
+    }
+    
+    public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {
+        return new ErrorHighLine(cell, EPoint.snap(p1), EPoint.snap(p2), false);
+    }
+
+    public static ErrorHighlight newInstance(Export e) {
+        return new ErrorHighExport(null, e);
+    }
+    
 }
 
 class ErrorHighExport extends ErrorHighlight {

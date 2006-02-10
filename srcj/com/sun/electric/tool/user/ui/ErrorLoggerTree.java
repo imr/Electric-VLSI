@@ -22,6 +22,13 @@ import java.io.IOException;
 
 public class ErrorLoggerTree {
 
+    /** Delete ErrorLogger from explorer tree
+     * @param errorLogger ErrorLogger to delete.
+     */
+    public void delete(ErrorLogger errorLogger) {
+        errorLogger.delete();
+    }
+    
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */

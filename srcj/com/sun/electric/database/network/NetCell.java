@@ -43,6 +43,7 @@ import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.ArrayList;
@@ -231,7 +232,8 @@ class NetCell
 			if (ni.getNameKey().isBus()) {
 				String msg = "Network: Layout " + cell + " has arrayed " + ni;
                 System.out.println(msg);
-                NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNodes);
+                NetworkTool.pushHighlight(ni);
+                NetworkTool.logError(msg, NetworkTool.errorSortNodes);
             }
             ErrorLogger.MessageLog log = null;
             NodeProto np = ni.getProto();
@@ -255,10 +257,9 @@ class NetCell
                     " " + np.describe(true) + " nodes";
             System.out.println(msg);
             List<Geometric> niList = new ArrayList<Geometric>();
-            for (int i = 0, numNodes = nodesOfType.size(); i < numNodes; i++) {
-                niList.add(nodesOfType.get(i));
-            }
-            NetworkTool.errorLogger.logError(msg, niList, null, cell, NetworkTool.errorSortNodes);
+            for (NodeInst ni: nodesOfType)
+                NetworkTool.pushHighlight(ni);
+            NetworkTool.logError(msg, NetworkTool.errorSortNodes);
         }
 	}
 
@@ -437,7 +438,8 @@ class NetCell
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
-                        NetworkTool.errorLogger.logError(msg, pi.getPoly(), cell, NetworkTool.errorSortNodes);
+                        NetworkTool.pushHighlight(pi);
+                        NetworkTool.logError(msg, NetworkTool.errorSortNodes);
                     }
 					continue;
 				}
@@ -464,10 +466,9 @@ class NetCell
                 String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
                 System.out.println(msg);
                 List<Geometric> geomList = new ArrayList<Geometric>();
-                for (int i = 0, numPins = pinsOfType.size(); i < numPins; i++) {
-                    geomList.add(pinsOfType.get(i));
-                }
-                NetworkTool.errorLogger.logWarning(msg, geomList, null, null, null, null, cell, NetworkTool.errorSortNodes);
+                for (NodeInst ni: pinsOfType)
+                    NetworkTool.pushHighlight(ni);
+                NetworkTool.logWarning(msg, NetworkTool.errorSortNodes);
             }
         }
 		// showDrawns();
@@ -526,7 +527,8 @@ class NetCell
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
-                NetworkTool.errorLogger.logError(msg, ai, cell, null, NetworkTool.errorSortNetworks);
+                NetworkTool.pushHighlight(ai);
+                NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
             }
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
@@ -655,22 +657,18 @@ class NetCell
             System.out.println(msg);
             // because this should be an infrequent event that the user will fix, let's
             // put all the work here
-            int numPorts = cell.getNumPorts();
-            List<Export> ppList = new ArrayList<Export>();
-            for (int i = 0; i < numPorts; i++) {
+            for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
                 Export e = (Export)cell.getPort(i);
                 if (e.getName().equals(name.toString()))
-                	ppList.add((Export)cell.getPort(i));
+                    NetworkTool.pushHighlight((Export)cell.getPort(i));
             }
-            int numArcs = cell.getNumArcs();
-            List<Geometric> aiList = new ArrayList<Geometric>();
-            for (int i = 0; i < numArcs; i++) {
+            for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
                 if (ai.getName().equals(name.toString()))
-                	aiList.add(ai);
+                	NetworkTool.pushHighlight(ai);
             }
-            NetworkTool.errorLogger.logError(msg, aiList, ppList, cell, NetworkTool.errorSortNetworks);
+            NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
         }
 		else
 			netNamesToNet[nn.index] = network;
@@ -742,9 +740,6 @@ class NetCell
 	{
 		if ((flags & VALID) != 0) return;
 
-        // clear errors for cell
-        NetworkTool.errorLogger.clearLogs(cell);
-
 		// redo descendents
 		for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext();)
 		{
@@ -771,12 +766,19 @@ class NetCell
 		// Mark this netcell changed
 		modCount++;
 
-		makeDrawns();
-		// Gather port and arc names
-		initNetnames();
+        // clear errors for cell
+        NetworkTool.startErrorLogging(cell);
+        try {
 
-		if (redoNetworks1())
-			setInvalid(false, true);
+    		makeDrawns();
+        	// Gather port and arc names
+            initNetnames();
+
+            if (redoNetworks1())
+                setInvalid(false, true);
+        } finally {
+            NetworkTool.finishErrorLogging();
+        }
 		flags |= (LOCALVALID|VALID);
 	}
 

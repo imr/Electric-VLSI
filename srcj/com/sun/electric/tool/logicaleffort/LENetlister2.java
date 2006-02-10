@@ -115,7 +115,8 @@ public class LENetlister2 extends LENetlister {
         disableCaching = !useCaching;
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
-        if (errorLogger != null) errorLogger.delete();
+        assert errorLogger == null;
+//        if (errorLogger != null) errorLogger.delete();
         errorLogger = ErrorLogger.newInstance("LE Netlister");
 
 //        Netlist netlist = cell.getNetlist(true);

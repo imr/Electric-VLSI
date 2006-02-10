@@ -185,7 +185,8 @@ class NetSchem extends NetCell {
 					String msg = "Network: " + cell + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + key.getName();
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, shared[i].nodeInst, cell, null, NetworkTool.errorSortNodes);
+                    NetworkTool.pushHighlight(shared[i].nodeInst);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNodes);
 				}
 			}
 			return var;
@@ -213,7 +214,8 @@ class NetSchem extends NetCell {
                     String msg = "Network: " + cell + " has multipart icon <" + getName() +
                         "> with ambigouos definition of parameter " + key;
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, shared[i].nodeInst, cell, null, NetworkTool.errorSortNodes);
+                    NetworkTool.pushHighlight(shared[i].nodeInst);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNodes);
                 }
             }
             return var;
@@ -320,7 +322,8 @@ class NetSchem extends NetCell {
                     String msg = "Network: " + cell + " has multipart icon <" + getName() +
                         "> with ambigouos definition of variable " + v.getKey().getName();
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, shared[i].nodeInst, cell, null, NetworkTool.errorSortNodes);
+                    NetworkTool.pushHighlight(shared[i].nodeInst);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNodes);
                 }
             }
             return allParameters.values().iterator();
@@ -403,7 +406,8 @@ class NetSchem extends NetCell {
 			if (equivIndex < 0) {
 				String msg = cell + ": Icon port <"+e.getNameKey()+"> has no equivalent port";
 				System.out.println(msg);
-				NetworkTool.errorLogger.logError(msg, e, NetworkTool.errorSortPorts);
+                NetworkTool.pushHighlight(e);
+				NetworkTool.logError(msg, NetworkTool.errorSortPorts);
 			}
 		}
 		if (!cell.isMultiPartIcon() && c != null && numPorts != c.getNumPorts()) {
@@ -412,7 +416,8 @@ class NetSchem extends NetCell {
 				if (e.getEquivalentPort(cell) == null) {
 					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell;
 					System.out.println(msg);
-					NetworkTool.errorLogger.logError(msg, e, NetworkTool.errorSortPorts);
+                    NetworkTool.pushHighlight(e);
+					NetworkTool.logError(msg, NetworkTool.errorSortPorts);
 				}
 			}
 		}
@@ -609,7 +614,8 @@ class NetSchem extends NetCell {
 				if (ni.getNameKey().hasDuplicates()) {
 					String msg = cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames";
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNodes);
+                    NetworkTool.pushHighlight(ni);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNodes);
                 }
 				nodeOffsets[i] = ~nodeProxiesOffset;
 				nodeProxiesOffset += ni.getNameKey().busWidth();
@@ -617,7 +623,8 @@ class NetSchem extends NetCell {
 				if (ni.getNameKey().isBus()) {
 					String msg = cell + ": Array name <"+ni.getNameKey()+"> can be assigned only to icon nodes";
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNodes);
+                    NetworkTool.pushHighlight(ni);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNodes);
                 }
 				nodeOffsets[i] = 0;
 			}
@@ -662,7 +669,7 @@ class NetSchem extends NetCell {
 					if (errorMsg != null) {
 						String msg = "Network: " + cell + " has globals with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
+                        NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
                         // TODO: what to highlight?
                         // log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
@@ -681,7 +688,8 @@ class NetSchem extends NetCell {
 							String msg = "Network: " + cell + " has global " + g.getName() +
 								" with unknown characteristic bits";
                             System.out.println(msg);
-                            NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNetworks);
+                            NetworkTool.pushHighlight(ni);
+                            NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
 							characteristic = PortCharacteristic.UNKNOWN;
 						}
 					}
@@ -689,7 +697,7 @@ class NetSchem extends NetCell {
 					if (errorMsg != null) {
 						String msg = "Network: " + cell + " has global with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
+                        NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
                         //log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
 				}
@@ -750,16 +758,16 @@ class NetSchem extends NetCell {
 								String msg = "Network: " + cell + " has instances of " + iconCell +
 									" with same name <" + name + ">";
                                 System.out.println(msg);
-                                NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNodes);
+                                NetworkTool.pushHighlight(ni);
+                                NetworkTool.logError(msg, NetworkTool.errorSortNodes);
 							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
 								NetworkTool.getNetCell(namedIconCell).getSchem() != netSchem) {
 								String msg = "Network: " + cell + " has instances of " + iconCell + " and " +
 									namedIconCell + " with same name <" + name + ">";
                                 System.out.println(msg);
-                                List<Geometric> niList = new ArrayList<Geometric>();
-                                niList.add(ni);
-                                niList.add(namedProxy.nodeInst);
-                                NetworkTool.errorLogger.logError(msg, niList, null, cell, NetworkTool.errorSortNodes);
+                                NetworkTool.pushHighlight(ni);
+                                NetworkTool.pushHighlight(namedProxy.nodeInst);
+                                NetworkTool.logError(msg, NetworkTool.errorSortNodes);
 							} else {
 								proxy = namedProxy;
 								proxy.addMulti(ni, i);
@@ -904,7 +912,8 @@ class NetSchem extends NetCell {
 					String msg = "Network: Schematic " + cell + " has net <" +
 						drawnNames[drawn] + "> with width conflict in connection " + pi.describe(true);
                     System.out.println(msg);
-                    NetworkTool.errorLogger.logError(msg, pi.getPoly(), cell, NetworkTool.errorSortNetworks);
+                    NetworkTool.pushHighlight(pi);
+                    NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
                 }
 			}
 		}
@@ -926,13 +935,11 @@ class NetSchem extends NetCell {
                            firstname + "> and <" + badname + ">";
         System.out.println(msg);
 
-        List<Geometric> geomList = new ArrayList<Geometric>();
-        List<Export> eList = new ArrayList<Export>();
         boolean originalFound = false;
         for (int i = 0; i < numPorts; i++) {
             String name = cell.getPort(i).getName();
             if (name.equals(firstname)) {
-            	eList.add((Export)cell.getPort(i));
+                NetworkTool.pushHighlight((Export)cell.getPort(i));
                 originalFound = true;
                 break;
             }
@@ -941,14 +948,14 @@ class NetSchem extends NetCell {
             for (int i = 0; i < numArcs; i++) {
                 String name = cell.getArc(i).getName();
                 if (name.equals(firstname)) {
-                    geomList.add(cell.getArc(i));
+                    NetworkTool.pushHighlight(cell.getArc(i));
                     break;
                 }
             }
         }
-        if (ai != null) geomList.add(ai);
-        if (pp != null) eList.add(pp);
-        NetworkTool.errorLogger.logError(msg, geomList, eList, cell, NetworkTool.errorSortNetworks);
+        if (ai != null) NetworkTool.pushHighlight(ai);
+        if (pp != null) NetworkTool.pushHighlight(pp);
+        NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
     }
 
 	void addNetNames(Name name) {
@@ -1075,7 +1082,8 @@ class NetSchem extends NetCell {
 				String msg = "Network: Schematic " + cell + " has connector " + ni +
 					" which merges more than two arcs";
                 System.out.println(msg);
-                NetworkTool.errorLogger.logError(msg, ni, cell, null, NetworkTool.errorSortNetworks);
+                NetworkTool.pushHighlight(ni);
+                NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
 				return;
 			}
 		}

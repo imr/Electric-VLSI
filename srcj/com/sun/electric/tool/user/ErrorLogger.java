@@ -206,7 +206,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public static class WarningLog extends MessageLog
     {
-       private WarningLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) { super(message, cell, sortKey, highlights); }
+       public WarningLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) { super(message, cell, sortKey, highlights); }
     }
 
     /** Current Logger */               private static ErrorLogger currentLogger;
@@ -268,6 +268,16 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         return logger;
     }
 
+    void addMessages(List<MessageLog> messages) {
+        for (MessageLog m: messages) {
+            if (m instanceof WarningLog)
+                allWarnings.add((WarningLog)m);
+            else
+                allErrors.add(m);
+        }
+	if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+    }
+    
     private static void addErrorLogger(ErrorLogger logger)
     {
         synchronized(allLoggers) {
@@ -344,7 +354,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void logError(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(newErrorHighlight(context, geom));
+        h.add(ErrorHighlight.newInstance(context, geom));
     	logAnError(message, cell, sortKey, h);
     }
 
@@ -391,8 +401,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         {
             int prev = i-1;
             if (i == 0) prev = points.length-1;
-            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
-            	new EPoint(points[i].getX(), points[i].getY()), false));
+            h.add(ErrorHighlight.newInstance(cell, points[prev], points[i]));
         }
     	logAnError(message, cell, sortKey, h);
     }
@@ -412,7 +421,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-    	        h.add(newErrorHighlight(null, geom));
+    	        h.add(ErrorHighlight.newInstance(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -440,7 +449,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-                h.add(newErrorHighlight(null, geom));
+                h.add(ErrorHighlight.newInstance(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -533,7 +542,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public synchronized void logWarning(String message, Geometric geom, Cell cell, VarContext context, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-        h.add(newErrorHighlight(context, geom));
+        h.add(ErrorHighlight.newInstance(context, geom));
     	logAWarning(message, cell, sortKey, h);
     }
 
@@ -570,7 +579,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     	if (geomList != null)
     	{
     		for(Geometric geom : geomList)
-                h.add(newErrorHighlight(null, geom));
+                h.add(ErrorHighlight.newInstance(null, geom));
     	}
     	if (exportList != null)
     	{
@@ -602,13 +611,6 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     		}
     	}
     	logAWarning(message, cell, sortKey, h);
-    }
-
-    private static ErrorHighlight newErrorHighlight(VarContext context, Geometric geom) {
-        if (geom instanceof NodeInst)
-            return new ErrorHighNode(context, (NodeInst)geom);
-        else
-            return new ErrorHighArc(context, (ArcInst)geom);
     }
 
 	/**
@@ -1138,7 +1140,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                     Geometric geom = curCell.findNode(geomName);
                     if (geom == null) // try arc instead
                         geom = curCell.findArc(geomName);
-                    highlights.add(newErrorHighlight(null, geom));
+                    highlights.add(ErrorHighlight.newInstance(null, geom));
                 }
                 else if (lineTypeBody)
                 {
