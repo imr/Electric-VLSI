@@ -1938,6 +1938,7 @@ public class Quick
 			nodeBounds.getMinY() - worstInteractionDistance,
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
+
 		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
@@ -1950,6 +1951,7 @@ public class Quick
 				continue;
 			}
 			NodeInst oNi = (NodeInst)geom;
+
 			if (oNi.getProto() instanceof PrimitiveNode)
 			{
 				// found a primitive node: check it against the instance contents
@@ -1984,10 +1986,15 @@ public class Quick
 		Technology tech = null;
 		Poly [] nodeInstPolyList = null;
 		AffineTransform trans = DBMath.MATID;
+
 		if (geom instanceof NodeInst)
 		{
 			// get all of the polygons on this node
 			NodeInst oNi = (NodeInst)geom;
+
+            if (NodeInst.isSpecialNode(oNi))
+                return false; // Nov 16, no need for checking pins or other special nodes;
+
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
 			nodeInstPolyList = tech.getShapeOfNode(oNi, null, null, true, ignoreCenterCuts, null);
@@ -2120,15 +2127,11 @@ public class Quick
 			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
 				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
-// 				thisII.rot1 == dii.rot1 && thisII.rot2 == dii.rot2 &&
-// 				thisII.mirrorX1 == dii.mirrorX1 && thisII.mirrorX2 == dii.mirrorX2 &&
-// 				thisII.mirrorY1 == dii.mirrorY1 && thisII.mirrorY2 == dii.mirrorY2 &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
                 thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
             {
                 if (dii.triggerNi == thisII.triggerNi)
                 {
-//                    System.out.println("NEW case");
                     return true;
                 }
             }
