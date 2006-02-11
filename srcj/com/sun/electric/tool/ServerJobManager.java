@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
@@ -67,7 +68,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private int numThreads;
     private final int maxNumThreads;
     private boolean runningChangeJob;
-    private boolean jobTreeChanged;
+    private boolean guiChanged;
     private boolean signalledEThread;
     private final boolean useSnapshots;
     
@@ -128,9 +129,9 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                     setEJobState(ejob, EJob.State.CLIENT_DONE, null);
                 case CLIENT_DONE:
                     finishedJobs.remove(j.ejob);
-                    if (Job.threadMode != Job.Mode.BATCH && !jobTreeChanged)
+                    if (Job.threadMode != Job.Mode.BATCH && !guiChanged)
                         SwingUtilities.invokeLater(this);
-                    jobTreeChanged = true;
+                    guiChanged = true;
                     break;
             }
         } finally {
@@ -276,11 +277,20 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         return null;
     }
     
-    private boolean jobTreeChanged() {
+    void wantUpdateGui() {
         lock();
         try {
-            boolean b = this.jobTreeChanged;
-            this.jobTreeChanged = false;
+            this.guiChanged = true;
+        } finally {
+            unlock();
+        }
+    }
+    
+    private boolean guiChanged() {
+        lock();
+        try {
+            boolean b = this.guiChanged;
+            this.guiChanged = false;
             return b;
         } finally {
             unlock();
@@ -344,9 +354,9 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         EJob.Event event = ejob.newEvent();
         for (ServerConnection conn: serverConnections)
             conn.sendEJobEvent(event);
-        if (Job.threadMode != Job.Mode.BATCH && !jobTreeChanged)
+        if (Job.threadMode != Job.Mode.BATCH && !guiChanged)
             SwingUtilities.invokeLater(this);
-        jobTreeChanged = true;
+        guiChanged = true;
         Job.logger.exiting(CLASS_NAME, "setJobState");
     }
     
@@ -396,7 +406,16 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     public void run() {
         assert Job.threadMode != Job.Mode.BATCH;
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "ENTER");
-        while (jobTreeChanged()) {
+        while (guiChanged()) {
+            ArrayList<Job> jobs = new ArrayList<Job>();
+            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
+                Job j = it.next();
+                if (j.getDisplay()) {
+                    jobs.add(j);
+                }
+            }
+            JobTree.update(jobs);
+            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
             for (;;) {
                 EJob ejob = selectTerminateIt();
                 if (ejob == null) break;
@@ -407,15 +426,6 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
             }
             Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
-            ArrayList<Job> jobs = new ArrayList<Job>();
-            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
-                Job j = it.next();
-                if (j.getDisplay()) {
-                    jobs.add(j);
-                }
-            }
-            JobTree.update(jobs);
-            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
     }
@@ -537,14 +547,9 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
             return null;
         }
 
-		public void wantToRedoErrorTree() {
-//            System.out.println("UserInterface.wantToRedoErrorTree was called from DatabaseChangesThread");
-            Job.currentUI.wantToRedoErrorTree();
-        }
-
         public void termLogging(final ErrorLogger logger, boolean explain) {
-            System.out.println("UserInterface.termLogging was called from DatabaseChangesThread");
             Job.currentUI.termLogging(logger, explain);
+            // transmit to client
         }
 
         /**

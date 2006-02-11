@@ -1,9 +1,16 @@
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.*;
@@ -14,6 +21,9 @@ import java.awt.event.ActionEvent;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * Class to define a collection of highlighted errors in the Explorer tree.
@@ -22,13 +32,237 @@ import java.io.IOException;
 
 public class ErrorLoggerTree {
 
-    /** Delete ErrorLogger from explorer tree
-     * @param errorLogger ErrorLogger to delete.
+    /** Top of error tree */            private static final DefaultMutableTreeNode errorTree = new DefaultMutableTreeNode("ERRORS");
+    /** Path to error tree */           private static final TreePath errorPath = (new TreePath(ExplorerTreeModel.rootNode)).pathByAddingChild(errorTree);
+    /** Current Logger */               static DefaultMutableTreeNode currentLogger;
+    
+    private static final ErrorLogger networkErrorLogger = ErrorLogger.newInstance("Network Errors");
+    private static final ErrorLogger drcErrorLogger = ErrorLogger.newInstance("DRC (incremental)");
+    private static DefaultMutableTreeNode networkTree;
+    private static DefaultMutableTreeNode drcTree;
+
+    // public methods called from any thread
+    
+    public static void addLogger(ErrorLogger logger) {
+        logger.termLogging_();
+        if (logger.getNumLogs() == 0) return;
+        SwingUtilities.invokeLater(new AddLogger(logger));
+    };
+    
+    public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        SwingUtilities.invokeLater(new UpdateNetwork((CellId)cell.getId(), errors));
+    }
+
+    public static void updateDrcErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        SwingUtilities.invokeLater(new UpdateDrc((CellId)cell.getId(), errors));
+    }
+
+    // public methods called from GUI thread
+    
+    public static DefaultMutableTreeNode getExplorerTree() { return errorTree; }
+    
+    /**
+     * Method to advance to the next error and report it.
      */
-    public void delete(ErrorLogger errorLogger) {
-        errorLogger.delete();
+    public static String reportNextMessage() {
+        if (currentLogger == null) return "No errors to report";
+        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportNextMessage_(true);
+    }
+
+    /**
+     * Method to back up to the previous error and report it.
+     */
+    public static String reportPrevMessage() {
+        if (currentLogger == null) return "No errors to report";
+        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportPrevMessage_();
+    }
+
+    private static class AddLogger implements Runnable {
+        private ErrorLogger logger;
+        AddLogger(ErrorLogger logger) { this.logger = logger; }
+        public void run() { addLogger(errorTree.getChildCount(), logger); }
     }
     
+    private static class UpdateNetwork implements Runnable {
+        private CellId cellId;
+        private ArrayList<ErrorLogger.MessageLog> errors;
+        UpdateNetwork(CellId cellId, List<ErrorLogger.MessageLog> errors) {
+            this.cellId = cellId;
+            this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
+        }
+        public void run() {
+            Cell cell = (Cell)cellId.inCurrentThread();
+            if (cell == null) return;
+            boolean changed = networkErrorLogger.clearLogs(cell) || !errors.isEmpty();
+            networkErrorLogger.addMessages(errors);
+            if (!changed) return;
+            networkErrorLogger.termLogging_();
+            if (networkErrorLogger.getNumLogs() == 0) {
+                removeLogger(0);
+                return;
+            }
+            if (networkTree == null)
+                networkTree = addLogger(0, networkErrorLogger);
+            updateTree(networkTree);
+            setCurrent(0);
+        }
+    }
+            
+    private static class UpdateDrc implements Runnable {
+        private CellId cellId;
+        private ArrayList<ErrorLogger.MessageLog> errors;
+        UpdateDrc(CellId cellId, List<ErrorLogger.MessageLog> errors) {
+            this.cellId = cellId;
+            this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
+        }
+        public void run() {
+            Cell cell = (Cell)cellId.inCurrentThread();
+            if (cell == null) return;
+            boolean changed = drcErrorLogger.clearLogs(cell) || !errors.isEmpty();
+            drcErrorLogger.addMessages(errors);
+            if (!changed) return;
+            drcErrorLogger.termLogging_();
+            int index = networkTree != null ? 1 : 0;
+            if (drcErrorLogger.getNumLogs() == 0) {
+                removeLogger(index);
+                return;
+            }
+            if (drcTree == null)
+                drcTree = addLogger(index, networkErrorLogger);
+            updateTree(networkTree);
+            setCurrent(index);
+        }
+    }
+            
+    private static DefaultMutableTreeNode addLogger(int index, ErrorLogger logger) {
+        ErrorLoggerTreeNode tn = new ErrorLoggerTreeNode(logger);
+        Undo.addDatabaseChangeListener(tn);
+        DefaultMutableTreeNode newNode = new ErrorLoggerDefaultMutableTreeNode(tn);
+        int[] childIndices = new int[] { index };
+        DefaultMutableTreeNode[] children = new DefaultMutableTreeNode[] { newNode };
+        setCurrent(-1);
+        errorTree.insert(newNode, index);
+        currentLogger = newNode;
+        ExplorerTreeModel.fireTreeNodesInserted(errorTree, errorPath, childIndices, children);
+        updateTree(newNode);
+        return newNode;
+    }
+    
+    private static void removeLogger(int index) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)errorTree.getChildAt(index);
+        Undo.removeDatabaseChangeListener((ErrorLoggerTreeNode)node.getUserObject());
+        if (node == networkTree) networkTree = null;
+        if (node == drcTree) drcTree = null;
+        if (node == currentLogger) currentLogger = null;
+        int[] childIndices = new int[] { index };
+        DefaultMutableTreeNode[] children = new DefaultMutableTreeNode[] { node };
+        errorTree.remove(index);
+        ExplorerTreeModel.fireTreeNodesRemoved(errorTree, errorPath, childIndices, children);
+    }
+    
+    private static void updateTree(DefaultMutableTreeNode loggerNode) {
+        TreePath loggerPath = errorPath.pathByAddingChild(loggerNode);
+        int oldChildCount = loggerNode.getChildCount();
+        if (oldChildCount != 0) {
+            int[] childIndex = new int[oldChildCount];
+            DefaultMutableTreeNode[] children = new DefaultMutableTreeNode[oldChildCount];
+            for (int i = 0; i < oldChildCount; i++) {
+                childIndex[i] = i;
+                children[i] = (DefaultMutableTreeNode)loggerNode.getChildAt(i);
+            }
+            loggerNode.removeAllChildren();
+            ExplorerTreeModel.fireTreeNodesRemoved(errorTree, loggerPath, childIndex, children);
+        }
+        ErrorLogger logger = ((ErrorLoggerTreeNode)loggerNode.getUserObject()).logger;
+        if (logger.getNumLogs() == 0) return;
+        DefaultMutableTreeNode groupNode = loggerNode;
+        int currentSortKey = -1;
+        for (Iterator<ErrorLogger.MessageLog> it = logger.getLogs(); it.hasNext();) {
+            ErrorLogger.MessageLog el = it.next();
+            // by default, groupNode is entire loggerNode
+            // but, groupNode could be sub-node:
+            if (logger.getSortKeyToGroupNames() != null) {
+                if (currentSortKey != el.getSortKey()) {
+                    // create new sub-tree node
+                    currentSortKey = el.getSortKey();
+                    String groupName = logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
+                    if (groupName != null) {
+                        groupNode = new DefaultMutableTreeNode(groupName);
+                        loggerNode.add(groupNode);
+                    } else {
+                        // not found, put in loggerNode
+                        groupNode = loggerNode;
+                    }
+                }
+            }
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
+            groupNode.add(node);
+        }
+        int newChildCount = loggerNode.getChildCount();
+        int[] childIndex = new int[newChildCount];
+        DefaultMutableTreeNode[] children = new DefaultMutableTreeNode[newChildCount];
+        for (int i = 0; i < newChildCount; i++) {
+            childIndex[i] = i;
+            children[i] = (DefaultMutableTreeNode)loggerNode.getChildAt(i);
+        }
+        ExplorerTreeModel.fireTreeNodesInserted(errorTree, loggerPath, childIndex, children);
+    }
+    
+    private static void setCurrent(int index) {
+        int oldIndex = currentLogger != null ? indexOf((ErrorLoggerTreeNode)currentLogger.getUserObject()) : -1;
+        if (index == oldIndex) return;
+        currentLogger = index >= 0 ? (DefaultMutableTreeNode)errorTree.getChildAt(index) : null;
+        int l = 0;
+        if (oldIndex >= 0) l++;
+        if (index >= 0) l++;
+        int[] childIndex = new int[l];
+        TreeNode[] children = new TreeNode[l];
+        l = 0;
+        if (oldIndex >= 0 && oldIndex < index) {
+            childIndex[l] = oldIndex;
+            children[l] = errorTree.getChildAt(oldIndex);
+            l++;
+        }
+        if (index >= 0) {
+            childIndex[l] = index;
+            children[l] = errorTree.getChildAt(index);
+            l++;
+        }
+        if (oldIndex >= 0 && oldIndex > index) {
+            childIndex[l] = oldIndex;
+            children[l] = errorTree.getChildAt(oldIndex);
+            l++;
+        }
+        ExplorerTreeModel.fireTreeNodesChanged(errorTree, errorPath, childIndex, children);
+    }
+    
+    /** Delete this logger */
+    private static void delete(ErrorLoggerTreeNode node) {
+        int index = indexOf(node);
+        if (index < 0) return;
+//        if (node.logger == networkErrorLogger || node.logger == drcErrorLogger) {
+//            // just clear errors
+//            for (int i = node.logger.getNumLogs() - 1; i >= 0; i--)
+//                node.logger.deleteLog(i);
+//            node.currentLogNumber = -1;
+//            updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
+//            return;
+//        }
+        removeLogger(index);
+        if (currentLogger != null && ((ErrorLoggerTreeNode)currentLogger.getUserObject()) == node) {
+            if (errorTree.getChildCount() != 0)
+                currentLogger = (DefaultMutableTreeNode)errorTree.getChildAt(0);
+            else
+                currentLogger = null;
+        }
+    }
+    
+    private static int indexOf(ErrorLoggerTreeNode tn) {
+        for (int i = 0, numLoggers = errorTree.getChildCount(); i < numLoggers; i++)
+            if (((DefaultMutableTreeNode)errorTree.getChildAt(i)).getUserObject() == tn) return i;
+        return -1;
+    }
+        
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */
@@ -47,7 +281,9 @@ public class ErrorLoggerTree {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
         try {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
-            parser.process(TextUtils.makeURLToFile(fileName), true);
+            ErrorLogger logger = parser.process(TextUtils.makeURLToFile(fileName), true);
+            if (logger != null)
+                addLogger(logger);
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);
@@ -55,9 +291,15 @@ public class ErrorLoggerTree {
 		}
     }
 
-    public static class ErrorLoggerTreeNode implements ActionListener
+    public static class ErrorLoggerDefaultMutableTreeNode extends DefaultMutableTreeNode {
+        ErrorLoggerDefaultMutableTreeNode(ErrorLoggerTreeNode tn) { super(tn); }
+        public boolean isLeaf() { return false; }
+    }
+    
+    public static class ErrorLoggerTreeNode implements DatabaseChangeListener, ActionListener
     {
         private ErrorLogger logger;
+        private int currentLogNumber;
 
         ErrorLoggerTreeNode(ErrorLogger log)
         {
@@ -66,83 +308,96 @@ public class ErrorLoggerTree {
 
         public ErrorLogger getLogger() { return logger; }
 
+        public String reportNextMessage_(boolean showHigh) {
+            if (currentLogNumber < logger.getNumLogs()-1) {
+                currentLogNumber++;
+            } else {
+                if (logger.getNumLogs() <= 0) return "No "+logger.getSystem()+" errors";
+                currentLogNumber = 0;
+            }
+            return reportLog(currentLogNumber, showHigh);
+        }
+        
+        public String reportPrevMessage_() {
+            if (currentLogNumber > 0) {
+                currentLogNumber--;
+            } else {
+                if (logger.getNumLogs() <= 0) return "No "+logger.getSystem()+" errors";
+                currentLogNumber = logger.getNumLogs() - 1;
+            }
+            return reportLog(currentLogNumber, true);
+        }
+        
+        /**
+         * Report an error
+         */
+        private String reportLog(int logNumber, boolean showHigh) {
+            
+            if (logNumber < 0 || (logNumber >= logger.getNumLogs())) {
+                return logger.getSystem() + ": no such error or warning "+(logNumber+1)+", only "+logger.getNumLogs()+" errors.";
+            }
+            
+            ErrorLogger.MessageLog el = logger.getLog(logNumber);
+            String extraMsg = null;
+            if (logNumber < logger.getNumErrors()) {
+                extraMsg = " error " + (logNumber+1) + " of " + logger.getNumErrors();
+            } else {
+                extraMsg = " warning " + (logNumber+1-logger.getNumErrors()) + " of " + logger.getNumWarnings();
+            }
+            String message = Job.getUserInterface().reportLog(el, showHigh, null);
+            return (logger.getSystem() + extraMsg + ": " + message);
+        }
+        
+        public void databaseChanged(DatabaseChangeEvent e) {
+            // check if any errors need to be deleted
+            boolean changed = false;
+            for (int i = logger.getNumLogs() - 1; i >= 0; i--) {
+                MessageLog err = logger.getLog(i);
+                if (!err.isValid()) {
+                    logger.deleteLog(i);
+                    if (i < currentLogNumber)
+                        currentLogNumber--;
+                    else if (i == currentLogNumber)
+                        currentLogNumber = 0;
+                    changed = true;
+                }
+            }
+            if (!changed) return;
+            int index = indexOf(this);
+            if (index < 0) return;
+            if (logger.getNumLogs() == 0)
+                removeLogger(index);
+            else
+                updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
+        }
+        
         public void actionPerformed(ActionEvent e) {
+            int index = indexOf(this);
             if (e.getSource() instanceof JMenuItem) {
                 JMenuItem m = (JMenuItem)e.getSource();
-                if (m.getText().equals("Delete")) logger.delete();
-                else if (m.getText().equals("Save"))
-                {
+                if (m.getText().equals("Delete")) removeLogger(index);
+                else if (m.getText().equals("Save")) {
                     String filePath = null;
-
-                    try
-                    {
+                    
+                    try {
                         filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
                         if (filePath == null) return; // cancel operation
                         PrintStream buffWriter = new PrintStream(new FileOutputStream(filePath));
                         logger.save(buffWriter);
-                    } catch (IOException se)
-                    {
+                    } catch (IOException se) {
                         System.out.println("Error creating " + filePath);
                     }
-                }
-                else if (m.getText().equals("Get Info")) {
+                } else if (m.getText().equals("Get Info")) {
                     System.out.println("ErrorLogger Information: " +  logger.getInfo());
-                }
-                else if (m.getText().equals("Set Current")) {
-                    synchronized(ErrorLogger.getAllErrors()) { ErrorLogger.setCurrentLogger(logger); }
-                    WindowFrame.wantToRedoErrorTree();
+                } else if (m.getText().equals("Set Current")) {
+                    setCurrent(index);
                 }
             }
         }
     }
-
-    public static void updateExplorerTree(DefaultMutableTreeNode explorerTree)
-    {
-        explorerTree.removeAllChildren();
-        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
-        synchronized(ErrorLogger.getAllErrors()) {
-            loggersCopy.addAll(ErrorLogger.getAllErrors());
-        }
-        for (ErrorLogger logger : loggersCopy) {
-            if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
-            DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(new ErrorLoggerTreeNode(logger));
-            DefaultMutableTreeNode groupNode = loggerNode;
-            int currentSortKey = -1;
-            for (Iterator<ErrorLogger.MessageLog> it = logger.getLogs(); it.hasNext();)
-            {
-                ErrorLogger.MessageLog el = it.next();
-                // by default, groupNode is entire loggerNode
-                // but, groupNode could be sub-node:
-                if (logger.getSortKeyToGroupNames() != null) {
-                    if (currentSortKey != el.getSortKey()) {
-                        // create new sub-tree node
-                        currentSortKey = el.getSortKey();
-                        String groupName = logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
-                        if (groupName != null) {
-                            groupNode = new DefaultMutableTreeNode(groupName);
-                            loggerNode.add(groupNode);
-                        } else {
-                            // not found, put in loggerNode
-                            groupNode = loggerNode;
-                        }
-                    }
-                }
-                DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
-                groupNode.add(node);
-            }
-            explorerTree.add(loggerNode);
-        }
-    }
-
-    public static void deleteAllLoggers()
-    {
-        ArrayList<ErrorLogger> loggersCopy = new ArrayList<ErrorLogger>();
-        synchronized(ErrorLogger.getAllErrors()) {
-            loggersCopy.addAll(ErrorLogger.getAllErrors());
-        }
-        for (ErrorLogger log : loggersCopy)
-        {
-            log.delete();
-        }
+    
+    public static void deleteAllLoggers() {
+        for (int i = errorTree.getChildCount() - 1; i >= 0; i--)
+            removeLogger(i);
     }
 }

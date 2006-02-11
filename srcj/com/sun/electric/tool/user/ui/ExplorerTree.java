@@ -142,7 +142,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		super((TreeModel)null);
         setModel(new ExplorerTreeModel());
         rootNode = model().rootNode;
-		ErrorLoggerTree.updateExplorerTree(model().errorExplorerNode);
+//		ErrorLoggerTree.updateExplorerTree(model().errorExplorerNode);
         redoContentTrees(contentNodes);
 
 		initDND();
@@ -280,23 +280,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         expandCachedPaths(expanded);
 	}
 
-    static void redoErrorTrees() {
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-            wf.getExplorerTab().redoErrorTree();
-		}
-    }
-    
-    private void redoErrorTree() {
-        // remember the state of the tree
-        ArrayList<TreePath> expanded = new ArrayList<TreePath>();
-        recursivelyCacheExpandedPaths(expanded, new TreePath(model().errorPath));
-        ErrorLoggerTree.updateExplorerTree(model().errorExplorerNode);
-        model().reload(model().errorPath);
-        expandCachedPaths(expanded);
-    }
-    
     /**
      * Recursively
      */
@@ -401,7 +384,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
             ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)nodeInfo;
 			ErrorLogger el = (ErrorLogger)node.getLogger();
-			return el.describe();
+			String s = el.getSystem();
+            if (ErrorLoggerTree.currentLogger != null && node == ErrorLoggerTree.currentLogger.getUserObject())
+                s += " [Current]";
+            return s;
 		}
         if (nodeInfo instanceof ErrorLogger.MessageLog)
         {

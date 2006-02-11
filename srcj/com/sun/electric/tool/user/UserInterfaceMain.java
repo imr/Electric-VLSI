@@ -81,9 +81,6 @@ public class UserInterfaceMain implements UserInterface
 
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
 
-    /** Related to ExplorerTree */
-    public void wantToRedoErrorTree() { WindowFrame.wantToRedoErrorTree(); }
-
 	public EditWindow_ displayCell(Cell cell)
 	{
 		WindowFrame wf = WindowFrame.createEditWindow(cell);
@@ -94,7 +91,9 @@ public class UserInterfaceMain implements UserInterface
     // ErrorLogger functions
     public void termLogging(final ErrorLogger logger, boolean explain)
     {
-        if (logger.getNumLogs() > 0 && explain)
+        if (logger.getNumLogs() == 0) return;
+
+        if (explain)
         {
 //            if (!alreadyExplained)
             {
@@ -121,9 +120,7 @@ public class UserInterfaceMain implements UserInterface
             }
         }
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {WindowFrame.wantToRedoErrorTree(); }
-        });
+        ErrorLoggerTree.addLogger(logger);
     }
 
     /**

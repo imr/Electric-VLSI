@@ -46,5 +46,7 @@ abstract class JobManager {
     abstract void removeJob(Job j);
     abstract void setProgress(EJob ejob, String progress);
     abstract Iterator<Job> getAllJobs();
+    abstract void wantUpdateGui();
+    
 }
     

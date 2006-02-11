@@ -121,7 +121,9 @@ public class NetworkTool extends Listener
 	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
 	/** Mutex object */								private static Object mutex = new Object();
 
-    /** The logger for logging Network errors */    public static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
+    /** The cell for logging network errors */      private static Cell currentErrorCell;
+    /** buffer of highlights for next error */      private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
+    /** list of errors for current cell */          private static ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
                                                     static final int errorSortNodes = 1;
                                                     static final int errorSortPorts = 2;
@@ -634,10 +636,6 @@ public class NetworkTool extends Listener
         redoNetworkNumbering(false);
     }
     
-    private static Cell currentErrorCell;
-    private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
-    private static ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
-    
     static void startErrorLogging(Cell cell) {
         currentErrorCell = cell;
         errorHighlights.clear();
@@ -677,8 +675,7 @@ public class NetworkTool extends Listener
     }
     
     static void finishErrorLogging() {
-        NetworkTool.errorLogger.clearLogs(currentErrorCell);
-        NetworkTool.errorLogger.addMessages(errors);
+        Job.updateNetworkErrors(currentErrorCell, errors);
         errorHighlights.clear();
         errors.clear();
     }

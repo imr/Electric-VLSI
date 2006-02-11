@@ -173,6 +173,11 @@ class ClientJobManager extends JobManager {
         return;
     }
     
+    void wantUpdateGui() {
+        jobTreeChanged = true;
+        SwingUtilities.invokeLater(clientInvoke);
+    }
+    
     /** Remove job from list of jobs */
     void removeJob(Job j) { // synchronization !!!
         if (j.started) {

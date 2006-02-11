@@ -556,17 +556,6 @@ public class WindowFrame extends Observable
 		}
 	}
 
-	public static void wantToRedoErrorTree()
-	{
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() { wantToRedoErrorTree(); }
-            });
-            return;
-        }
-        ExplorerTree.redoErrorTrees();
-	}
-
 	public void wantToRedoSignalTree()
 	{
         if (!SwingUtilities.isEventDispatchThread()) {

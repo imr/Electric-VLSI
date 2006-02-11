@@ -277,9 +277,9 @@ public final class Main
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }
 
-		public void wantToRedoErrorTree() { ; }
-
-        public void termLogging(final ErrorLogger logger, boolean explain) {;}
+        public void termLogging(final ErrorLogger logger, boolean explain) {
+            System.out.println(logger.getInfo());
+        }
 
         /**
          * Method to return the error message associated with the current error.

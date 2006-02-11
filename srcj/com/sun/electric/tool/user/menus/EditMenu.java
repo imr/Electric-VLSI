@@ -1195,7 +1195,7 @@ public class EditMenu {
 	 */
 	public static void showNextErrorCommand()
 	{
-		String msg = ErrorLogger.reportNextMessage();
+		String msg = ErrorLoggerTree.reportNextMessage();
 		System.out.println(msg);
 	}
 
@@ -1205,7 +1205,7 @@ public class EditMenu {
 	 */
 	public static void showPrevErrorCommand()
 	{
-		String msg = ErrorLogger.reportPrevMessage();
+		String msg = ErrorLoggerTree.reportPrevMessage();
 		System.out.println(msg);
 	}
 

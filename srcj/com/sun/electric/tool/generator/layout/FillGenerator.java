@@ -1546,7 +1546,7 @@ public class FillGenerator implements Serializable {
 		public boolean doIt() throws JobException
 		{
             // logger must be created in server otherwise it won't return the elements.
-            log = ErrorLogger.newInstance("Fill", false);
+            log = ErrorLogger.newInstance("Fill");
 
             // Searching common power/gnd connections and skip the ones are in the same network
             Set<PortInst> portList = new HashSet<PortInst>();

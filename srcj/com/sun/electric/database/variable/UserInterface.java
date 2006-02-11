@@ -90,12 +90,9 @@ public interface UserInterface
 	 */
 	public EditWindow_ displayCell(Cell cell);
 
-    // Related to ExplorerTree
-    public void wantToRedoErrorTree();
-
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain);
-
+    
     /**
      * Method to return the error message associated with the current error.
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"

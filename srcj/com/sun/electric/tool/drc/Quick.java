@@ -432,7 +432,7 @@ public class Quick
 			if (validity == null)
 			{
 				// not a quiet DRC, so it must be incremental
-				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
+				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
 				errorLoggerIncremental.clearLogs(cell);
 				errorLogger = errorLoggerIncremental;
                 logsFound = errorLoggerIncremental.getNumLogs();

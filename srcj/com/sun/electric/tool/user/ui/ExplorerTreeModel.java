@@ -49,7 +49,6 @@ import javax.swing.tree.TreePath;
  */
 public class ExplorerTreeModel extends DefaultTreeModel {
     public static final String rootNode = "Explorer";
-    private static final String errorNode = "ERRORS";
     private static final WeakReferences<TreeModelListener> allListeners = new WeakReferences<TreeModelListener>();
 
     private final ArrayList<MutableTreeNode> contentExplorerNodes = new ArrayList<MutableTreeNode>();
@@ -88,7 +87,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
     ExplorerTreeModel() {
         super(null);
         jobExplorerNode = JobTree.getExplorerTree();
-        errorExplorerNode = new DefaultMutableTreeNode(errorNode);
+        errorExplorerNode = ErrorLoggerTree.getExplorerTree();
         rootPath = new Object[] { rootNode };
         jobPath = new Object[] { rootNode, jobExplorerNode };
         errorPath = new Object[] { rootNode, errorExplorerNode };

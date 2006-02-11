@@ -28,12 +28,15 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 
 import java.awt.Toolkit;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -636,6 +639,18 @@ public abstract class Job implements Serializable {
             Exception e = new Exception("Job.checkSwingThread is not in the AWT Event Thread, it is in Thread "+Thread.currentThread());
             ActivityLogger.logException(e);
         }
+    }
+
+    public static void wantUpdateGui() {
+        jobManager.wantUpdateGui();
+    }
+    
+    public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        ErrorLoggerTree.updateNetworkErrors(cell, errors);
+    }
+    
+    public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        ErrorLoggerTree.updateNetworkErrors(cell, errors);
     }
 
 	//-------------------------------JOB UI--------------------------------

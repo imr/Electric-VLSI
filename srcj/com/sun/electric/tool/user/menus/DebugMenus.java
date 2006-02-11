@@ -967,7 +967,7 @@ public class DebugMenus
      */
     private static void testBash()
     {
-        System.out.println("Num Log" + Input.errorLogger.getNumLogs() + NetworkTool.errorLogger.getNumLogs());
+        System.out.println("Num Log" + Input.errorLogger.getNumLogs()/* + NetworkTool.errorLogger.getNumLogs()*/);
 //        String regressionname = "sportTop";
 //String testname = "sportTop";
 //String testpath = "sport/correctedData/";

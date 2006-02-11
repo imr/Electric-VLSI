@@ -75,7 +75,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * <p>Various methods for adding highlights to errorLog:
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger implements DatabaseChangeListener, Serializable
+public class ErrorLogger implements Serializable
 {
     /**
      * Create a Log of a single message.
@@ -209,23 +209,15 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
        public WarningLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) { super(message, cell, sortKey, highlights); }
     }
 
-    /** Current Logger */               private static ErrorLogger currentLogger;
-    /** List of all loggers */          private static List<ErrorLogger> allLoggers = new ArrayList<ErrorLogger>();
-
 //	private boolean alreadyExplained;
     private int errorLimit;
     private List<MessageLog> allErrors;
 	private List<WarningLog> allWarnings;
-    private int currentLogNumber;
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
-    private boolean persistent; // cannot be deleted
+//    private boolean persistent; // cannot be deleted
     private HashMap<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
-
-    public static List<ErrorLogger> getAllErrors() { return allLoggers; }
-
-    public static void setCurrentLogger(ErrorLogger log) { currentLogger = log; }
 
     public HashMap<Integer,String> getSortKeyToGroupNames() { return sortKeysToGroupNames; }
 
@@ -234,37 +226,21 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     public ErrorLogger() {}
 
     /**
-     * Create a new ErrorLogger instance, with persistent set false, so
-     * it can be deleted from tree
-     */
-    public static synchronized ErrorLogger newInstance(String system)
-    {
-        return newInstance(system, false);
-    }
-
-    /**
-     * Create a new ErrorLogger instance. If persistent is true, it cannot be
-     * delete from the explorer tree (although deletes will clear it, thereby removing
-     * it until another error is logged to it). This is useful for tools that report
-     * errors incrementally, such as the Network tool.
-     * @param system the name of the system logging errors
-     * @param persistent if true, this error tree cannot be deleted
+     * Create a new ErrorLogger instance.
      * @return a new ErrorLogger for logging errors
      */
-    public static ErrorLogger newInstance(String system, boolean persistent)
+    public static ErrorLogger newInstance(String system)
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList<MessageLog>();
 	    logger.allWarnings = new ArrayList<WarningLog>();
         logger.limitExceeded = false;
-        logger.currentLogNumber = -1;
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
-        logger.persistent = persistent;
+//        logger.persistent = persistent;
 //        logger.alreadyExplained = false;
         logger.sortKeysToGroupNames = null;
-        addErrorLogger(logger);
         return logger;
     }
 
@@ -275,18 +251,9 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
             else
                 allErrors.add(m);
         }
-        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+//        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
     }
     
-    private static void addErrorLogger(ErrorLogger logger)
-    {
-        synchronized(allLoggers) {
-            if (currentLogger == null) currentLogger = logger;
-            allLoggers.add(logger);
-        }
-        Undo.addDatabaseChangeListener(logger);
-    }
-
     /**
      * Factory method to create an error message and log.
      * with the given text "message" applying to cell "cell".
@@ -294,7 +261,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     private synchronized MessageLog logAnError(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
-        if (terminated && !persistent) {
+        if (terminated) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
         }
 
@@ -316,7 +283,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         allErrors.add(el);
 //        currentLogNumber = allErrors.size()-1;
 
-        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+//        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -491,7 +458,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     private synchronized MessageLog logAWarning(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
-        if (terminated && !persistent) {
+        if (terminated) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new warning");
         }
 
@@ -515,7 +482,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         // add the ErrorLog into the global list
         allWarnings.add(el);
 
-        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+//        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
         return el;
     }
 
@@ -642,61 +609,38 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 		return (false);
 	}
 
-    /** Get the current logger */
-    public static ErrorLogger getCurrent() {
-        synchronized(allLoggers) {
-            if (currentLogger == null) return newInstance("Unknown");
-            return currentLogger;
-        }
-    }
-
     /**
      * Removes all errors associated with Cell cell.
      * @param cell the cell for which errors will be removed
+     * @return true if some logs were removed.
      */
-    public synchronized void clearLogs(Cell cell) {
+    public synchronized boolean clearLogs(Cell cell) {
         CellId cellId = (CellId)cell.getId();
         ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
+        boolean removed = false;
         for (MessageLog log : allErrors) {
-            if (log.logCellId != cellId) errLogs.add(log);
+            if (log.logCellId != cellId)
+                errLogs.add(log);
+            else
+                removed = true;
         }
         allErrors = errLogs;
 
 	    ArrayList<WarningLog> warndLogs = new ArrayList<WarningLog>();
         // Warnings
         for (WarningLog log : allWarnings) {
-            if (log.logCellId != cellId) warndLogs.add(log);
+            if (log.logCellId != cellId)
+                warndLogs.add(log);
+            else
+                removed = true;
         }
         allWarnings = warndLogs;
-        currentLogNumber = getNumLogs()-1;
+        
+        return removed;
     }
 
-    /** Delete this logger */
-    public synchronized void delete() {
-
-        if (persistent) {
-            // just clear errors
-            allErrors.clear();
-			allWarnings.clear();
-            currentLogNumber = -1;
-            Job.getUserInterface().wantToRedoErrorTree();
-            return;
-        }
-
-        synchronized(allLoggers) {
-            allLoggers.remove(this);
-            if (currentLogger == this) {
-                if (allLoggers.size() > 0) currentLogger = allLoggers.get(0);
-                else currentLogger = null;
-            }
-        }
-        Undo.removeDatabaseChangeListener(this);
-
-        Job.getUserInterface().wantToRedoErrorTree();
-    }
-
-    public void save(PrintStream buffWriter)
+     public void save(PrintStream buffWriter)
     {
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -742,13 +686,6 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         buffWriter.println("</" + className + ">");
     }
 
-    public String describe() {
-        synchronized(allLoggers) {
-            if (currentLogger == this) return errorSystem + " [Current]";
-        }
-        return errorSystem;
-    }
-
     /**
      * Set a group name for a sortKey.  Doing so causes all errors with
      * this sort key to be put in a sub-tree of the error tree with
@@ -768,6 +705,13 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public synchronized void termLogging(boolean explain)
     {
+        termLogging_();
+        Job.getUserInterface().termLogging(this, explain);
+//        alreadyExplained = true;
+    }
+
+    public synchronized void termLogging_()
+    {
         // enumerate the errors
         int errs = 0;
         for(MessageLog el : allErrors)
@@ -778,28 +722,6 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         {
             el.index = ++errs;
         }
-
-        // Set as assigned before removing it
-        synchronized(allLoggers) {
-            currentLogger = this;
-        }
-
-        if (Job.BATCHMODE)
-        {
-            System.out.println(getInfo());
-            terminated = true;
-            return;
-        }
-
-        if (errs == 0) {
-            delete();
-            return;
-        }
-
-//		if (db_errorchangedroutine != 0) (*db_errorchangedroutine)();
-
-        Job.getUserInterface().termLogging(this, explain);
-//        alreadyExplained = true;
         terminated = true;
     }
 
@@ -823,94 +745,11 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
     }
 
     /**
-     * Method to advance to the next error and report it.
-     */
-    public static String reportNextMessage()
-    {
-        return reportNextMessage(true, null);
-    }
-
-    /**
-     * Method to advance to the next error and report it.
-     */
-    private static String reportNextMessage(boolean showhigh, Geometric [] gPair)
-    {
-        ErrorLogger logger;
-        synchronized(allLoggers) {
-            if (currentLogger == null) return "No errors to report";
-            logger = currentLogger;
-        }
-        return logger.reportNextMessage_(showhigh, gPair);
-    }
-
-    private synchronized String reportNextMessage_(boolean showHigh, Geometric [] gPair) {
-        if (currentLogNumber < getNumLogs()-1)
-        {
-            currentLogNumber++;
-        } else
-        {
-            if (getNumLogs() <= 0) return "No "+errorSystem+" errors";
-            currentLogNumber = 0;
-        }
-        return reportLog(currentLogNumber, showHigh, gPair);
-    }
-
-    /**
-     * Method to back up to the previous error and report it.
-     */
-    public static String reportPrevMessage()
-    {
-        ErrorLogger logger;
-        synchronized(allLoggers) {
-            if (currentLogger == null) return "No errors to report";
-            logger = currentLogger;
-        }
-        return logger.reportPrevMessage_();
-    }
-
-    private synchronized String reportPrevMessage_() {
-        if (currentLogNumber > 0)
-        {
-            currentLogNumber--;
-        } else
-        {
-            if (getNumLogs() <= 0) return "No "+errorSystem+" errors";
-            currentLogNumber = getNumLogs() - 1;
-        }
-        return reportLog(currentLogNumber, true, null);
-    }
-
-    /**
-     * Report an error
-     */
-    private synchronized String reportLog(int logNumber, boolean showHigh, Geometric [] gPair) {
-
-        if (logNumber < 0 || (logNumber >= getNumLogs())) {
-            return errorSystem + ": no such error or warning "+(logNumber+1)+", only "+getNumLogs()+" errors.";
-        }
-
-        MessageLog el = null;
-        String extraMsg = null;
-        if (logNumber < getNumErrors())
-        {
-            el = allErrors.get(logNumber);
-            extraMsg = " error " + (logNumber+1) + " of " + allErrors.size();
-        }
-        else
-        {
-            el = allWarnings.get(logNumber-allErrors.size());
-            extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
-        }
-        String message = Job.getUserInterface().reportLog(el, showHigh, gPair);
-        return (errorSystem + extraMsg + ": " + message);
-    }
-
-    /**
      * Method to tell the number of logged errors.
      * @return the number of "ErrorLog" objects logged.
      */
     public synchronized int getNumErrors() { return allErrors.size(); }
-
+    
     /**
      * Method to tell the number of logged errors.
      * @return the number of "ErrorLog" objects logged.
@@ -923,6 +762,10 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
      */
     public synchronized int getNumLogs() { return getNumWarnings() + getNumErrors(); }
 
+    public MessageLog getLog(int i) {
+        return i < allErrors.size() ? allErrors.get(i) : allWarnings.get(i - allErrors.size());
+    }
+    
     /**
      * Method to list all logged errors and warnings.
      * @return an Iterator over all of the "ErrorLog" objects.
@@ -938,31 +781,14 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
         return copy.iterator();
     }
 
-    private synchronized void deleteLog(MessageLog error) {
-       boolean found = allErrors.remove(error);
-
-        found = (!found) ? allWarnings.remove(error) : found;
-        if (!found) {
-            System.out.println(errorSystem+ ": Does not contain error/warning to delete");
-        }
-        if (currentLogNumber >= getNumLogs()) currentLogNumber = 0;
+    public synchronized void deleteLog(int i) {
+        if (i < allErrors.size())
+            allErrors.remove(i);
+        else
+            allWarnings.remove(i - allErrors.size());
     }
 
     // ----------------------------- Explorer Tree Stuff ---------------------------
-
-    public void databaseChanged(DatabaseChangeEvent e) {
-        // check if any errors need to be deleted
-        boolean changed = false;
-        for (Iterator<MessageLog> it = getLogs(); it.hasNext(); ) {
-            MessageLog err = it.next();
-            if (!err.isValid()) {
-                deleteLog(err);
-                changed = true;
-            }
-        }
-        if (changed) Job.getUserInterface().wantToRedoErrorTree();
-
-    }
 
 //     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
 //         // check if any errors need to be deleted
@@ -986,7 +812,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
 
     public static class XMLParser
     {
-        public void process(URL fileURL, boolean verbose)
+        public ErrorLogger process(URL fileURL, boolean verbose)
         {
             try
             {
@@ -999,12 +825,15 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                 URLConnection urlCon = fileURL.openConnection();
                 InputStream inputStream = urlCon.getInputStream();
                 if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
-                parser.parse(inputStream, new XMLHandler());
+                XMLHandler handler = new XMLHandler();
+                parser.parse(inputStream, handler);
                 if (verbose) System.out.println("End Parsing XML file ...");
+                return handler.logger;
             }
             catch (Exception e)
             {
                 e.printStackTrace();
+                return null;
             }
         }
 
@@ -1073,7 +902,7 @@ public class ErrorLogger implements DatabaseChangeListener, Serializable
                     if (attributes.getQName(i).equals("errorSystem"))
                     {
                         // Ignore the rest of the attribute and generate the logger
-                        logger = ErrorLogger.newInstance(attributes.getValue(i), false);
+                        logger = ErrorLogger.newInstance(attributes.getValue(i));
                         return;
                     }
                     else if (attributes.getQName(i).startsWith("message"))

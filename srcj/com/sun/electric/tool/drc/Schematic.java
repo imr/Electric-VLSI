@@ -65,7 +65,7 @@ public class Schematic
 		cellsChecked.clear();
         newVariables.clear();
 
-        if (errorLogger != null) errorLogger.delete();
+ //       if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
