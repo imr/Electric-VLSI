@@ -124,6 +124,7 @@ public class NetworkTool extends Listener
     /** The cell for logging network errors */      private static Cell currentErrorCell;
     /** buffer of highlights for next error */      private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
     /** list of errors for current cell */          private static ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
+    /** total number of errors for statistics */    public static int totalNumErrors = 0;
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
                                                     static final int errorSortNodes = 1;
                                                     static final int errorSortPorts = 2;
@@ -677,6 +678,7 @@ public class NetworkTool extends Listener
     static void finishErrorLogging() {
         Job.updateNetworkErrors(currentErrorCell, errors);
         errorHighlights.clear();
+        totalNumErrors += errors.size();
         errors.clear();
     }
     
