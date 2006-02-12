@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -170,7 +171,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         super(parent, modal);
         initComponents();
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
         // make the list

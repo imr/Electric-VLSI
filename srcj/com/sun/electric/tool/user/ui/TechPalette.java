@@ -45,6 +45,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.LayoutText;
@@ -894,7 +895,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             // create an EditWindow for rendering nodes and arcs
             // ?if (wnd != null) wnd.finished();
             EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
-            Undo.removeDatabaseChangeListener(wnd.getHighlighter());
+            UserInterfaceMain.removeDatabaseChangeListener(wnd.getHighlighter());
             wnd.setScreenSize(new Dimension(entrySize, entrySize));
 
             Graphics2D g = (Graphics2D)image.getGraphics();

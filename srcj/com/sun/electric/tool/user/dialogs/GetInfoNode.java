@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -55,6 +54,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -189,7 +189,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);

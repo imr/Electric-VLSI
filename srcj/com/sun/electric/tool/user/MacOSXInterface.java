@@ -21,14 +21,14 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric;
+package com.sun.electric.tool.user;
 
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
+import com.sun.electric.*;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
@@ -99,7 +99,8 @@ class MacOSXInterface extends ApplicationAdapter
         String filename = ae.getFilename();
 
         // First open
-        if (initJob == null || !initJob.isFinished())
+        if (!UserInterfaceMain.initializationFinished)
+//        if (initJob == null || !initJob.isFinished())
         {
             argsList.add(filename);
         }

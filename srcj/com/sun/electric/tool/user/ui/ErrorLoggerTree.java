@@ -3,7 +3,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -11,6 +10,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.*;
@@ -136,7 +136,7 @@ public class ErrorLoggerTree {
             
     private static DefaultMutableTreeNode addLogger(int index, ErrorLogger logger) {
         ErrorLoggerTreeNode tn = new ErrorLoggerTreeNode(logger);
-        Undo.addDatabaseChangeListener(tn);
+        UserInterfaceMain.addDatabaseChangeListener(tn);
         DefaultMutableTreeNode newNode = new ErrorLoggerDefaultMutableTreeNode(tn);
         int[] childIndices = new int[] { index };
         DefaultMutableTreeNode[] children = new DefaultMutableTreeNode[] { newNode };
@@ -150,7 +150,7 @@ public class ErrorLoggerTree {
     
     private static void removeLogger(int index) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)errorTree.getChildAt(index);
-        Undo.removeDatabaseChangeListener((ErrorLoggerTreeNode)node.getUserObject());
+        UserInterfaceMain.removeDatabaseChangeListener((ErrorLoggerTreeNode)node.getUserObject());
         if (node == networkTree) networkTree = null;
         if (node == drcTree) drcTree = null;
         if (node == currentLogger) currentLogger = null;

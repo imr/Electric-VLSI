@@ -64,8 +64,7 @@ class EJob {
     byte[] serializedResult;
     Job serverJob;
     Job clientJob;
-    /** list of saved Highlights */             List<Object> savedHighlights;
-    /** saved Highlight offset */               Point2D savedHighlightsOffset;
+    /** list of saved Highlights */             int savedHighlights = -1;
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
     
     /** Creates a new instance of EJob */
@@ -83,9 +82,6 @@ class EJob {
         this.jobName = jobName;
         state = State.CLIENT_WAITING;
         serverJob = clientJob = job;
-        savedHighlights = new ArrayList<Object>();
-        if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
-            saveHighlights();
     }
     
     Job getJob() { return clientJob != null ? clientJob : serverJob; }
@@ -197,20 +193,6 @@ class EJob {
             }
         }
         return null;
-    }
-
-    /** Save current Highlights */
-    private void saveHighlights() {
-        savedHighlights.clear();
-
-        // for now, just save highlights in current window
-        UserInterface ui = Job.getUserInterface();
-        if (ui == null) return;
-        EditWindow_ wnd = ui.getCurrentEditWindow_();
-        if (wnd == null) return;
-
-        savedHighlights = wnd.saveHighlightList();
-        savedHighlightsOffset = wnd.getHighlightOffset();
     }
 
     Event newEvent() { return new Event(state); }

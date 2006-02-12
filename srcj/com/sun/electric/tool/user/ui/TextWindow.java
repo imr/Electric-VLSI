@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.WeakReferences;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
@@ -146,11 +146,15 @@ public class TextWindow
 
 	public static void addTextRedoListener(PropertyChangeListener l) { redoListeners.add(l); }
 
+	public static void removeTextUndoListener(PropertyChangeListener l) { undoListeners.remove(l); }
+
+	public static void removeTextRedoListener(PropertyChangeListener l) { redoListeners.remove(l); }
+
 	private void updateUndoRedo()
 	{
 		TopLevel tl = TopLevel.getCurrentJFrame();
-		PropertyChangeEvent un = new PropertyChangeEvent(tl, Undo.propUndoEnabled, null, new Boolean(undo.canUndo()));
-		PropertyChangeEvent re = new PropertyChangeEvent(tl, Undo.propRedoEnabled, null, new Boolean(undo.canRedo()));
+		PropertyChangeEvent un = new PropertyChangeEvent(tl, UserInterfaceMain.propUndoEnabled, null, new Boolean(undo.canUndo()));
+		PropertyChangeEvent re = new PropertyChangeEvent(tl, UserInterfaceMain.propRedoEnabled, null, new Boolean(undo.canRedo()));
 		if (tl != null)
 		{
 			tl.getToolBar().propertyChange(un);

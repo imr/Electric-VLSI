@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -36,31 +35,23 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.ui.KeyBindings;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.DefaultListModel;
 import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.JList;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 
 
@@ -91,7 +82,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		super(parent, modal);
 		initComponents();
 		getRootPane().setDefaultButton(done);
-		Undo.addDatabaseChangeListener(this);
+		UserInterfaceMain.addDatabaseChangeListener(this);
 
         switch (what)
 		{

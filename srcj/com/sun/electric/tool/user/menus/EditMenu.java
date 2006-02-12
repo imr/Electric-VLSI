@@ -144,17 +144,17 @@ public class EditMenu {
 
 		MenuBar.MenuItem undo = editMenu.addMenuItem("_Undo", KeyStroke.getKeyStroke('Z', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
-		PropertyChangeListener undoLis = new MenuCommands.MenuEnabler(undo, Undo.propUndoEnabled);
-        Undo.addPropertyChangeListener(undoLis);
-		TextWindow.addTextUndoListener(undoLis);
-        undo.setEnabled(Undo.getUndoEnabled());
+		menuBar.undoLis = new MenuCommands.MenuEnabler(undo, UserInterfaceMain.propUndoEnabled);
+        UserInterfaceMain.addUndoRedoListener(menuBar.undoLis);
+		TextWindow.addTextUndoListener(menuBar.undoLis);
+        undo.setEnabled(UserInterfaceMain.getUndoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
 		MenuBar.MenuItem redo = editMenu.addMenuItem("Re_do", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
-		PropertyChangeListener redoLis = new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled);
-        Undo.addPropertyChangeListener(redoLis);
-		TextWindow.addTextRedoListener(redoLis);
-        redo.setEnabled(Undo.getRedoEnabled());
+		menuBar.redoLis = new MenuCommands.MenuEnabler(redo, UserInterfaceMain.propRedoEnabled);
+        UserInterfaceMain.addUndoRedoListener(menuBar.redoLis);
+		TextWindow.addTextRedoListener(menuBar.redoLis);
+        redo.setEnabled(UserInterfaceMain.getRedoEnabled());
         editMenu.addMenuItem("Sho_w Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		// TODO: figure out how to remove this property change listener for correct garbage collection
@@ -510,6 +510,7 @@ public class EditMenu {
 	 */
 	private static class UndoCommand extends Job
 	{
+        private int restoreHighlights = -1;
 		private UndoCommand()
 		{
 			super("Undo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
@@ -518,10 +519,19 @@ public class EditMenu {
 
 		public boolean doIt() throws JobException
 		{
-			if (Undo.undoABatch() == null)
+            fieldVariableChanged("restoreHighlights");
+            Undo.ChangeBatch batch = Undo.undoABatch(getSavedHighlights());
+			if (batch == null)
 				System.out.println("Undo failed!");
+            else {
+                restoreHighlights = batch.getStartingHighlights();
+            }
 			return true;
 		}
+        
+        public void terminateOK() {
+            Job.getUserInterface().restoreHighlights(restoreHighlights);
+        }
 	}
 
     public static void redoCommand()
@@ -544,6 +554,8 @@ public class EditMenu {
 	 */
 	private static class RedoCommand extends Job
 	{
+        private int preUndoHighlights;
+        
 		private RedoCommand()
 		{
 			super("Redo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
@@ -552,10 +564,19 @@ public class EditMenu {
 
 		public boolean doIt() throws JobException
 		{
-			if (!Undo.redoABatch())
+            fieldVariableChanged("preUndoHighlights");
+            Undo.ChangeBatch batch = Undo.redoABatch();
+			if (batch == null)
 				System.out.println("Redo failed!");
+            else {
+                preUndoHighlights = batch.getPreUndoHighlights();
+            }
 			return true;
 		}
+        
+        public void terminateOK() {
+            Job.getUserInterface().restoreHighlights(preUndoHighlights);
+        }
 	}
 
 	/**

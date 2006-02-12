@@ -23,31 +23,131 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.tool.Job;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
 
 /**
  * Class to build the UserInterface for the main GUI version of the user interface.
  */
 public class UserInterfaceMain implements UserInterface
 {
-	public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
+    /**
+     * Describe the windowing mode.  The current modes are MDI and SDI.
+     */
+    public static enum Mode { MDI, SDI };
+
+	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
+	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
+    
+    static volatile boolean initializationFinished = false;
+    private static volatile boolean undoEnabled = false;
+    private static volatile boolean redoEnabled = false;
+    private static final EventListenerList undoRedoListenerList = new EventListenerList();
+    
+    private static EventListenerList listenerList = new EventListenerList();
+    
+    Class osXClass = null;
+    Method osXRegisterMethod = null/*, osXSetJobMethod = null*/;
+    SplashWindow sw = null;
+ 
+    public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
+ 		// see if there is a Mac OS/X interface
+        if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
+            try {
+                osXClass = Class.forName("com.sun.electric.MacOSXInterface");
+                
+                // find the necessary methods on the Mac OS/X class
+                try {
+                    osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
+//                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+                } catch (NoSuchMethodException e) {
+                    osXRegisterMethod = /*osXSetJobMethod =*/ null;
+                }
+                if (osXRegisterMethod != null) {
+                    try {
+                        osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
+                    } catch (Exception e) {
+                        System.out.println("Error initializing Mac OS/X interface");
+                    }
+                }
+            } catch (ClassNotFoundException e) {}
+        }
+        //		MacOSXInterface.registerMacOSXApplication(argsList);
+        
+        //runThreadStatusTimer();
+        new EventProcessor();
+        
+        if (showSplash)
+            sw = new SplashWindow();
+        
+        TopLevel.OSInitialize(mode);
+    }
+    
+    /**
+     * Method is called when initialization was finished.
+     */
+    public void finishInitialization() {
+        initializationFinished = true;
+//        if (osXRegisterMethod != null) {
+//            // tell the Mac OS/X system of the initialization job
+//            try {
+//                osXSetJobMethod.invoke(osXClass, new Object[] {job});
+//            } catch (Exception e) {
+//                System.out.println("Error initializing Mac OS/X interface");
+//            }
+//        }
+        
+        if (sw != null) {
+            sw.removeNotify();
+            sw = null;
+        }
+        TopLevel.InitializeWindows();
+        WindowFrame.wantToOpenCurrentLibrary(true);
+    }
+    
+    public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
 
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }
 
@@ -110,7 +210,7 @@ public class UserInterfaceMain implements UserInterface
                         {
                             System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
                         }
-                        if (logger.getNumErrors() > 0 && !Job.BATCHMODE)
+                        if (logger.getNumErrors() > 0)
                         {
                             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
                                 logger.getSystem() + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
@@ -121,6 +221,14 @@ public class UserInterfaceMain implements UserInterface
         }
 
         ErrorLoggerTree.addLogger(logger);
+    }
+
+    public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        ErrorLoggerTree.updateNetworkErrors(cell, errors);
+    }
+    
+    public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+        ErrorLoggerTree.updateNetworkErrors(cell, errors);
     }
 
     /**
@@ -318,4 +426,258 @@ public class UserInterfaceMain implements UserInterface
 
         Pref.exportPrefs(fileName);
     }
+    
+    /**
+     * Save current state of highlights and return its ID.
+     */
+    public int saveHighlights() {
+        EditWindow_ wnd = getCurrentEditWindow_();
+        if (wnd == null) return -1;
+
+        SavedHighlights sh = new SavedHighlights(lastId++, wnd);
+        while (savedHighlights.size() >= User.getMaxUndoHistory() && !savedHighlights.isEmpty())
+            savedHighlights.remove(0);
+        savedHighlights.add(sh);
+        return sh.id;
+    }
+    
+    /**
+     * Restore state of highlights by its ID.
+     */
+    public void restoreHighlights(int highlightsId) {
+        for (SavedHighlights sh: savedHighlights) {
+            if (sh.id == highlightsId) {
+                sh.restore();
+                break;
+            }
+        }
+    }
+    
+    /**
+     * Show status of undo/redo buttons
+     * @param newUndoEnabled new status of undo button.
+     * @param newRedoEnabled new status of redo button.
+     */
+    public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {
+        if (undoEnabled != newUndoEnabled) {
+            PropertyChangeEvent e = new PropertyChangeEvent(this, propUndoEnabled, undoEnabled, newUndoEnabled);
+            undoEnabled = newUndoEnabled;
+            SwingUtilities.invokeLater(new PropertyChangeRun(e));
+        }
+        if (redoEnabled != newRedoEnabled) {
+            PropertyChangeEvent e = new PropertyChangeEvent(this, propRedoEnabled, redoEnabled, newRedoEnabled);
+            redoEnabled = newRedoEnabled;
+            SwingUtilities.invokeLater(new PropertyChangeRun(e));
+        }
+    }
+    
+	/**
+	 * Method to tell whether undo can be done.
+	 * This is used by the tool bar to determine whether the undo button should be available.
+	 * @return true if undo can be done.
+	 */
+	public static boolean getUndoEnabled() { return undoEnabled; }
+
+	/**
+	 * Method to tell whether redo can be done.
+	 * This is used by the tool bar to determine whether the undo button should be available.
+	 * @return true if redo can be done.
+	 */
+	public static boolean getRedoEnabled() { return redoEnabled; }
+
+	/** Add a property change listener. This generates Undo and Redo enabled property changes */
+	public static void addUndoRedoListener(PropertyChangeListener l)
+	{
+        assert SwingUtilities.isEventDispatchThread();
+		undoRedoListenerList.add(PropertyChangeListener.class, l);
+	}
+
+	/** Remove a property change listener. */
+	public static void removeUndoRedoListener(PropertyChangeListener l)
+	{
+        assert SwingUtilities.isEventDispatchThread();
+		undoRedoListenerList.remove(PropertyChangeListener.class, l);
+	}
+
+    private static void firePropertyChange(PropertyChangeEvent e) {
+        assert SwingUtilities.isEventDispatchThread();
+        Object[] listeners;
+        synchronized (Undo.class) {
+            listeners = undoRedoListenerList.getListenerList();
+        }
+        // Process the listeners last to first, notifying those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i] == PropertyChangeListener.class)
+                ((PropertyChangeListener)listeners[i+1]).propertyChange(e);
+        }
+    }
+
+	private static class PropertyChangeRun implements Runnable {
+		private PropertyChangeEvent e;
+		private PropertyChangeRun(PropertyChangeEvent e) { this.e = e; }
+		public void run() { firePropertyChange(e); }
+    }
+
+    /** Add a DatabaseChangeListener. It will be notified when
+     * state of the database changes.
+     * @param l the listener
+     */
+    public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l) {
+        listenerList.add(DatabaseChangeListener.class, l);
+    }
+    
+    /** Remove a DatabaseChangeListener. */
+    public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l) {
+        listenerList.remove(DatabaseChangeListener.class, l);
+    }
+    
+    /**
+     * Fire DatabaseChangeEvent to DatabaseChangeListeners.
+     * @param e DatabaseChangeEvent.
+     */
+    public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
+        Object[] listeners;
+        synchronized (Undo.class) {
+            listeners = listenerList.getListenerList();
+        }
+        // Process the listeners last to first, notifying those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i] == DatabaseChangeListener.class)
+                ((DatabaseChangeListener)listeners[i+1]).databaseChanged(e);
+        }
+    }
+   
+    private int lastId = 0;
+    private ArrayList<SavedHighlights> savedHighlights = new ArrayList<SavedHighlights>();
+    
+    private static class SavedHighlights {
+        /** id of this saved state */               private final int id;
+        /** EditWindow_ of highlights */            private final EditWindow_ wnd;
+        /** list of saved Highlights */             private final List<Highlight2> savedHighlights;
+        /** saved Highlight offset */               private final Point2D savedHighlightsOffset;
+        
+        private SavedHighlights(int id, EditWindow_ wnd) {
+            this.id = id;
+            this.wnd = wnd;
+            savedHighlights = wnd.saveHighlightList();
+            savedHighlightsOffset = wnd.getHighlightOffset();
+        }
+        
+        private void restore() {
+			wnd.restoreHighlightList(savedHighlights);
+			wnd.setHighlightOffset((int)savedHighlightsOffset.getX(), (int)savedHighlightsOffset.getY());
+			wnd.finishedHighlighting();
+        }
+    }
+    
+	/**
+	 * Class to display a Splash Screen at the start of the program.
+	 */
+	private static class SplashWindow extends JFrame
+	{
+		public SplashWindow()
+		{
+			super();
+			setUndecorated(true);
+			setTitle("Electric Splash");
+			setIconImage(TopLevel.getFrameIcon().getImage());
+
+			JPanel whole = new JPanel();
+			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
+			whole.setLayout(new BorderLayout());
+
+			JLabel l = new JLabel(Resources.getResource(TopLevel.class, "SplashImage.gif"));
+			whole.add(l, BorderLayout.CENTER);
+			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
+			whole.add(v, BorderLayout.SOUTH);
+			Font font = new Font(User.getDefaultFont(), Font.BOLD, 24);
+			v.setFont(font);
+			v.setForeground(Color.BLACK);
+			v.setBackground(Color.WHITE);
+
+			getContentPane().add(whole, BorderLayout.SOUTH);
+			pack();
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			Dimension labelSize = getPreferredSize();
+			setLocation(screenSize.width/2 - (labelSize.width/2),
+				screenSize.height/2 - (labelSize.height/2));
+			WindowsEvents windowsEvents = new WindowsEvents(this);
+			addWindowListener(windowsEvents);
+			setVisible(true);
+		}
+	}
+
+	/**
+	 * This class handles deactivation of the splash screen and forces it back to the top.
+	 */
+	private static class WindowsEvents implements WindowListener
+	{
+		SplashWindow sw;
+
+		WindowsEvents(SplashWindow sw)
+		{
+			super();
+			this.sw = sw;
+		}
+
+		public void windowActivated(WindowEvent e) {}
+		public void windowClosed(WindowEvent e) {}
+		public void windowClosing(WindowEvent e) {}
+		public void windowDeiconified(WindowEvent e) {}
+		public void windowIconified(WindowEvent e) {}
+		public void windowOpened(WindowEvent e) {}
+
+		public void windowDeactivated(WindowEvent e)
+		{
+			sw.toFront();
+		}
+	}
+
+	/**
+     * Places a custom event processor on the event queue in order to
+     * catch all exceptions generated by event processing.
+     */
+    private static class EventProcessor extends EventQueue
+    {
+		private EventProcessor() {
+            Toolkit kit = Toolkit.getDefaultToolkit();
+            kit.getSystemEventQueue().push(this);
+        }
+
+        protected void dispatchEvent(AWTEvent e) {
+            try {
+                super.dispatchEvent(e);
+            }
+            catch(Throwable ex) {
+                ex.printStackTrace(System.err);
+                ActivityLogger.logException(ex);
+                if (ex instanceof Error) throw (Error)ex;
+            }
+        }
+    }
+
+//    private static void runThreadStatusTimer() {
+//        int delay = 1000*60*10; // milliseconds
+//        Timer timer = new Timer(delay, new ThreadStatusTask());
+//        timer.start();
+//    }
+//
+//    private static class ThreadStatusTask implements ActionListener {
+//        public void actionPerformed(ActionEvent e) {
+//            Thread t = Thread.currentThread();
+//            ThreadGroup group = t.getThreadGroup();
+//            // get the top level group
+//            while (group.getParent() != null)
+//                group = group.getParent();
+//            Thread [] threads = new Thread[200];
+//            int numThreads = group.enumerate(threads, true);
+//            StringBuffer buf = new StringBuffer();
+//            for (int i=0; i<numThreads; i++) {
+//                buf.append("Thread["+i+"] "+threads[i]+": alive: "+threads[i].isAlive()+", interrupted: "+threads[i].isInterrupted()+"\n");
+//            }
+//            ActivityLogger.logThreadMessage(buf.toString());
+//        }
+//    }
+
+
 }

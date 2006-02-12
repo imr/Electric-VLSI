@@ -25,11 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.CellMenu;
 
 import java.awt.BorderLayout;
@@ -78,7 +77,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         library = null;
         viewPortMap = new HashMap<Library,Rectangle>();
         initComponents(preferredSize);
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
     }
 
     /**

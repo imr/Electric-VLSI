@@ -1544,18 +1544,13 @@ public class ToolMenu {
 
         public void terminateOK()
         {
-        	if (!Job.BATCHMODE)
-        	{
-	        	for(Cell cell : textCellsToRedraw)
-	        	{
-	        		TextWindow.updateText(cell);
-	        	}
-				if ((activities&SHOW_CELL) != 0)
-				{
-					// show the cell
-					WindowFrame.createEditWindow(cell);
-				}
-			}
+            for(Cell cell : textCellsToRedraw) {
+                TextWindow.updateText(cell);
+            }
+            if ((activities&SHOW_CELL) != 0) {
+                // show the cell
+                WindowFrame.createEditWindow(cell);
+            }
         }
 	}
 

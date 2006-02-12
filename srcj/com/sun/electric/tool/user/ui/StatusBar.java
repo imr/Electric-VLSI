@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -39,6 +38,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -106,7 +106,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         } else if (frame.getContent().getHighlighter() != null) {
             Highlighter.addHighlightListener(this);
         }
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
 	}
 
 	private void addField(JLabel field, int x, int y, int width)
@@ -455,7 +455,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
     public void finished() {
         if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
             Highlighter.removeHighlightListener(this);
-        Undo.removeDatabaseChangeListener(this);
+        UserInterfaceMain.removeDatabaseChangeListener(this);
     }
 
     public void databaseChanged(DatabaseChangeEvent e) {

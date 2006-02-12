@@ -41,6 +41,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -963,7 +964,7 @@ public class MimicStitch
 			// save what is highlighted
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
-			List<Object> saveHighlights = wnd.saveHighlightList();
+			List<Highlight2> saveHighlights = wnd.saveHighlightList();
 
 			// show the wires to be created/deleted
 			wnd.clearHighlighting();
@@ -1007,14 +1008,14 @@ public class MimicStitch
 		private int count;
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
-		private List<Object> saveHighlights;
+		private List<Highlight2> saveHighlights;
 		private EditWindow_ wnd;
 		private int nextSituationNumber;
 		private List<PossibleArc> possibleArcs;
 		private Cell cell;
 		private double prefX, prefY;
 
-		private MimicDialog(Frame parent, int count, List<Route> allRoutes, List<ArcInst> allKills, List<Object> saveHighlights,
+		private MimicDialog(Frame parent, int count, List<Route> allRoutes, List<ArcInst> allKills, List<Highlight2> saveHighlights,
 			EditWindow_ wnd, int nextSituationNumber, List<PossibleArc> possibleArcs, Cell cell, double prefX, double prefY)
 		{
 			super(parent, false);

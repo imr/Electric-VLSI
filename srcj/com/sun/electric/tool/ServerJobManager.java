@@ -56,7 +56,7 @@ import javax.swing.SwingUtilities;
 /**
  *
  */
-class ServerJobManager extends JobManager implements Observer, Runnable {
+public class ServerJobManager extends JobManager implements Observer, Runnable {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
@@ -70,19 +70,16 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean runningChangeJob;
     private boolean guiChanged;
     private boolean signalledEThread;
-    private final boolean useSnapshots;
     
     private Snapshot currentSnapshot = new Snapshot();
     
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {
-        useSnapshots = User.isUseClientServer();
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
     }
     
     ServerJobManager(int recommendedNumThreads, int socketPort) {
-        useSnapshots = true;
         maxNumThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
         try {
@@ -129,7 +126,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                     setEJobState(ejob, EJob.State.CLIENT_DONE, null);
                 case CLIENT_DONE:
                     finishedJobs.remove(j.ejob);
-                    if (Job.threadMode != Job.Mode.BATCH && !guiChanged)
+                    if (!Job.BATCHMODE && !guiChanged)
                         SwingUtilities.invokeLater(this);
                     guiChanged = true;
                     break;
@@ -198,7 +195,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         Job job = ejob.getJob();
         job.startTime = System.currentTimeMillis();
 
-        if (useSnapshots && ejob.connection == null && ejob.jobType != Job.Type.EXAMINE && ejob.jobType != Job.Type.REMOTE_EXAMINE) {
+        if (ejob.connection == null && !ejob.isExamine()) {
             Throwable e = ejob.serialize();
             if (e == null)
                 e = ejob.deserialize();
@@ -219,7 +216,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 thread.setUserInterface(redirectInterface);
             }
 			if (ejob.jobType == Job.Type.CHANGE)	{
-                Undo.startChanges(job.tool, ejob.jobName, ejob.savedHighlights, ejob.savedHighlightsOffset);
+                Undo.startChanges(job.tool, ejob.jobName, ejob.savedHighlights);
             }
             try {
                 if (!serverJob.doIt())
@@ -242,8 +239,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
                 thread.setCanComputeNetlist(false);
                 thread.setJob(null);
                 thread.setUserInterface(Job.currentUI);
-                if (useSnapshots)
-                    updateSnapshot();
+                updateSnapshot();
 			}
 		}
         if (jobException == null)
@@ -354,7 +350,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         EJob.Event event = ejob.newEvent();
         for (ServerConnection conn: serverConnections)
             conn.sendEJobEvent(event);
-        if (Job.threadMode != Job.Mode.BATCH && !guiChanged)
+        if (!Job.BATCHMODE && !guiChanged)
             SwingUtilities.invokeLater(this);
         guiChanged = true;
         Job.logger.exiting(CLASS_NAME, "setJobState");
@@ -404,7 +400,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
      * This method is executed in Swing thread.
      */
     public void run() {
-        assert Job.threadMode != Job.Mode.BATCH;
+        assert !Job.BATCHMODE;
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "ENTER");
         while (guiChanged()) {
             ArrayList<Job> jobs = new ArrayList<Job>();
@@ -429,6 +425,12 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
     }
+    
+    public static void setUndoRedoStatus(boolean undoEnabled, boolean redoEnabled) {
+        assert Job.jobManager instanceof ServerJobManager;
+        Job.currentUI.showUndoRedoStatus(undoEnabled, redoEnabled);
+        // transmit to connection
+    } 
     
 	/**
 	 * Thread which execute all database change Jobs.
@@ -530,9 +532,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
             }
             return curCell;
 		}
-		public void repaintAllEditWindows() {
-            System.out.println("UserInterface.repaintAllEditWindow was called from DatabaseChangesThread");
-        }
+		public void repaintAllEditWindows() { throw new IllegalStateException(); }
         
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
 //            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
@@ -542,15 +542,16 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
-		public EditWindow_ displayCell(Cell cell) {
-            System.out.println("UserInterface.displayCell was called from DatabaseChangesThread");
-            return null;
-        }
+		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
         public void termLogging(final ErrorLogger logger, boolean explain) {
             Job.currentUI.termLogging(logger, explain);
             // transmit to client
         }
+
+        public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
+    
+        public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
 
         /**
          * Method to return the error message associated with the current error.
@@ -604,12 +605,8 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
          * @param defaultChoice the default choice.
          * @return the index into the choices array that was selected.
          */
-        public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
-        {
-            System.out.println("UserInterface.askForChoice was called from DatabaseChangesThread");
-        	System.out.println(message + " CHOOSING " + defaultChoice);
-        	for(int i=0; i<choices.length; i++) if (choices[i].equals(defaultChoice)) return i;
-        	return 0;
+        public int askForChoice(Object message, String title, String [] choices, String defaultChoice) {
+            throw new IllegalStateException();
         }
 
         /**
@@ -619,10 +616,7 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
          * @param def the default response.
          * @return the string (null if cancelled).
          */
-        public String askForInput(Object message, String title, String def) {
-            System.out.println("UserInterface.askForInput was called from DatabaseChangesThread");
-            return def;
-        }
+        public String askForInput(Object message, String title, String def) { throw new IllegalStateException(); }
 
         /** For Pref */
         public void restoreSavedBindings(boolean initialCall) {
@@ -650,5 +644,28 @@ class ServerJobManager extends JobManager implements Observer, Runnable {
             System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
         }
 
-	}
+        /**
+         * Save current state of highlights and return its ID.
+         */
+        public int saveHighlights() { return -1; }
+        
+        /**
+         * Restore state of highlights by its ID.
+         * @param highlightsId id of saved highlights.
+         */
+        public void restoreHighlights(int highlightsId) {}
+
+        /**
+         * Show status of undo/redo buttons
+         * @param newUndoEnabled new status of undo button.
+         * @param newRedoEnabled new status of redo button.
+         */
+        public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
+
+        /**
+         * Method is called when initialization was finished.
+         */
+        public void finishInitialization() {}
+    }
+    
 }

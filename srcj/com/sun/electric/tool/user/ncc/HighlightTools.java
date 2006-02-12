@@ -101,7 +101,8 @@ public class HighlightTools {
             jf.setState(Frame.NORMAL);
             if (!jf.isVisible()) {
                 jf.toFront();
-                if (!Job.BATCHMODE) jf.setVisible(true);
+                assert !Job.BATCHMODE;
+                jf.setVisible(true);
             } else 
                 jf.toFront();
         }                

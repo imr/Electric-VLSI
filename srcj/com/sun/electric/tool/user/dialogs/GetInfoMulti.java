@@ -25,11 +25,9 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -48,6 +46,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -242,7 +241,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
 		// make the list of selected objects

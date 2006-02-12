@@ -151,7 +151,8 @@ public class NccMsgsFrame {
                     placed = true;
                     jf.pack();
                 }
-                if (!Job.BATCHMODE) jf.setVisible(true);
+                assert !Job.BATCHMODE;
+                jf.setVisible(true);
             } 
             jf.toFront();
             jf.requestFocus();

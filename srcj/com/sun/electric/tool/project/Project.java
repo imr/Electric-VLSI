@@ -398,7 +398,7 @@ public class Project extends Listener
 
 		private UndoBatchesJob(int lowestBatch)
 		{
-			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Undo changes to locked cells", tool, Job.Type.UNDO, null, null, Job.Priority.USER);
 			this.lowestBatch = lowestBatch;
 			startJob();
 		}
@@ -409,7 +409,7 @@ public class Project extends Listener
 			ignoreChanges = true;
 			for(;;)
 			{
-				Undo.ChangeBatch batch = Undo.undoABatch();
+				Undo.ChangeBatch batch = Undo.undoABatch(-1);
 				if (batch == null) break;
 				if (batch.getBatchNumber() == lowestBatch) break;
 			}

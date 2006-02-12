@@ -27,13 +27,16 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.KeyBindingManager.KeyMaps;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.ToolBarButton;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -381,6 +384,7 @@ public class MenuBar extends JMenuBar
     /** For logging menu activiations */        private static MenuLogger menuLogger = new MenuLogger();
     /** For the "Repeat Last Action" command */ public static final RepeatLastCommandListener repeatLastCommandListener = new RepeatLastCommandListener();
     JMenuItem moveFull, moveHalf, moveQuarter;
+    PropertyChangeListener undoLis, redoLis;
 
     /**
      * See MenuBar(String name). This creates a MenuBar belonging
@@ -670,6 +674,10 @@ public class MenuBar extends JMenuBar
             disposeofMenu(menu);
         }
 		setUI(null);
+        UserInterfaceMain.removeUndoRedoListener(undoLis);
+		TextWindow.removeTextUndoListener(undoLis);
+        UserInterfaceMain.removeUndoRedoListener(redoLis);
+		TextWindow.removeTextUndoListener(redoLis);
     }
 
     private void disposeofMenu(JMenu menu)

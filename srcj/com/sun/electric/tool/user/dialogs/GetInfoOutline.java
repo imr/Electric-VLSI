@@ -25,23 +25,19 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.geom.Point2D;
-import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
@@ -84,7 +80,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 		initComponents();
         getRootPane().setDefaultButton(apply);
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
         // make a list of vertices

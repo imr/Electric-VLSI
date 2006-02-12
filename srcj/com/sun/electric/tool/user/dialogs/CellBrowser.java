@@ -26,15 +26,13 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.ui.PaletteFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
@@ -47,7 +45,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
@@ -125,7 +122,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         initComboBoxes();                       // set up the combo boxes
         initExtras();                           // set up an extra components
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
 		finishInitialization();
         pack();
     }
@@ -541,7 +538,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         	confirmDelete = confirmDeletions.isSelected();
         }
         setVisible(false);
-        Undo.removeDatabaseChangeListener(this);
+        UserInterfaceMain.removeDatabaseChangeListener(this);
         dispose();
     }//GEN-LAST:event_closeDialog
 

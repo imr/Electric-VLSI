@@ -92,7 +92,7 @@ public class JobTree extends DefaultMutableTreeNode {
     }
     
     private void updateJobs(List<Job> newJobs) {
-        Job.checkSwingThread();
+        assert SwingUtilities.isEventDispatchThread();
         indicesClear();
         int newJ = 0;
         for (int oldJ = 0; oldJ < jobNodes.size(); oldJ++) {

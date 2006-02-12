@@ -67,7 +67,7 @@ public class EDialog extends JDialog
 	{
 		super(parent, modal);
 
-		if (Job.BATCHMODE) return;
+        assert !Job.BATCHMODE;
 
 		thisClass = this.getClass();
 		Point pt = locations.get(thisClass);

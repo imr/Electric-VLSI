@@ -61,6 +61,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
@@ -125,7 +126,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
 /**
@@ -274,7 +274,7 @@ public class EditWindow extends JPanel
 		if (wf != null)
 		{
 			// make a highlighter for this window
-			Undo.addDatabaseChangeListener(this);
+			UserInterfaceMain.addDatabaseChangeListener(this);
 			Highlighter.addHighlightListener(this);
 			setCell(cell, VarContext.globalContext);
 		}
@@ -1052,7 +1052,7 @@ public class EditWindow extends JPanel
 
 		// remove myself from listener list
 		uninstallHighlighters();
-        Undo.removeDatabaseChangeListener(this);
+        UserInterfaceMain.removeDatabaseChangeListener(this);
 		Highlighter.removeHighlightListener(this);
 	}
 
@@ -2834,15 +2834,15 @@ public class EditWindow extends JPanel
 		highlighter.setHighlightOffset(dX, dY);
 	}
 
-	public List<Object> saveHighlightList()
+	public List<Highlight2> saveHighlightList()
 	{
-		List<Object> saveList = new ArrayList<Object>();
+		List<Highlight2> saveList = new ArrayList<Highlight2>();
 		for(Highlight2 h : highlighter.getHighlights())
 			saveList.add(h);
 		return saveList;
 	}
 
-	public void restoreHighlightList(List<Object> list)
+	public void restoreHighlightList(List<Highlight2> list)
 	{
 		highlighter.setHighlightListGeneral(list);
 	}

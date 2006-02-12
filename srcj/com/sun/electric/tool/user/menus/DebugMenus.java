@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.AnalyzeHeap;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.DumpHeap;
@@ -36,6 +37,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,7 +45,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -68,12 +69,14 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
-import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.Main;
-import com.sun.electric.database.text.WeakReferences;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -109,6 +112,13 @@ public class DebugMenus
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
 		helpMenu.addMenuItem("Make fake interval simulation window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeIntervalWaveformCommand(); }});
+
+        /****************************** Steve's TEST MENU ******************************/
+
+        MenuBar.Menu steveMenu = MenuBar.makeMenu("_Steve");
+        menuBar.add(steveMenu);
+		steveMenu.addMenuItem("Dump pulldown menus", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { dumpPulldownMenus(); }});
 
         /****************************** Russell's TEST MENU ******************************/
 
@@ -720,6 +730,41 @@ public class DebugMenus
 			}
 		}
 	}
+
+	// ---------------------- Steve's Stuff MENU -----------------
+    /**
+     * Method to dump the pulldown menus in indented style.
+     */
+    private static void dumpPulldownMenus()
+    {
+		Date now = new Date();
+    	System.out.println("Pulldown menus in Electric as of " + TextUtils.formatDate(now));
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+    	MenuBar menuBar = top.getTheMenuBar();
+        for (int i=0; i<menuBar.getMenuCount(); i++)
+        {
+            Menu menu = (Menu)menuBar.getMenu(i);
+            printIndented("\n" + menu.getText() + ":", 0);
+            addMenu(menu, 1);
+        }
+    }
+    private static void printIndented(String str, int depth)
+    {
+    	for(int i=0; i<depth*3; i++) System.out.print(" ");
+    	System.out.println(str);
+    	
+    }
+    private static void addMenu(Menu menu, int depth)
+    {
+        for (int i=0; i<menu.getItemCount(); i++)
+        {
+            JMenuItem menuItem = menu.getItem(i);
+            if (menuItem == null) { printIndented("----------", depth); continue; }
+            printIndented(menuItem.getText(), depth);
+            if (menuItem instanceof JMenu)
+                addMenu((Menu)menuItem, depth+1);              // recurse
+        }
+    }
 
 	// ---------------------- Gilda's Stuff MENU -----------------
     private static void newFill()

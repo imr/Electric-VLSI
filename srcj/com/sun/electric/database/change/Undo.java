@@ -37,22 +37,17 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
-
-import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -563,10 +558,8 @@ public class Undo
 		private Tool tool;
 		private String activity;
 //		private Cell upCell;
-		private List<Object> startingHighlights = null;				// highlights before changes made
-		private Point2D startHighlightsOffset = null;		// highlights offset before changes made
-		private List<Object> preUndoHighlights = null;				// highlights before undo of changes done
-		private Point2D preUndoHighlightsOffset = null;		// highlights offset before undo of changes done
+		private int startingHighlights = -1;				// highlights before changes made
+		private int preUndoHighlights = -1;				// highlights before undo of changes done
 
 		private ChangeBatch() {}
 		
@@ -585,6 +578,9 @@ public class Undo
 		 */
 		public int getBatchNumber() { return batchNumber; }
 
+        public int getStartingHighlights() { return startingHighlights; }
+        public int getPreUndoHighlights() { return preUndoHighlights; }
+        
 		/**
 		 * Method to return the Tool associated with this ChangeBatch.
 		 * @return the Tool associated with this ChangeBatch.
@@ -671,22 +667,16 @@ public class Undo
     /** Listeners. */
     private static EventListenerList listenerList = new EventListenerList();
 
-	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
-	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
-	private static boolean undoEnabled = false;
-	private static boolean redoEnabled = false;
-
 	/**
 	 * Method to start a new batch of changes.
 	 * @param tool the tool that is producing the activity.
 	 * @param activity a String describing the activity.
 	 * @param cell root of up-tree or null for whole database lock
 	 */
-	public static void startChanges(Tool tool, String activity, /*Cell cell,*/
-                                    List<Object> startingHighlights, Point2D startingHighlightsOffset)
+	public static void startChanges(Tool tool, String activity, int startingHighlights)
 	{
 		// close any open batch of changes
-		endChanges();
+		clearChanges();
 
 		// kill off any undone batches
 		noRedoAllowed();
@@ -703,17 +693,16 @@ public class Undo
 		currentBatch.activity = activity;
 //		currentBatch.upCell = cell;
 		currentBatch.startingHighlights = startingHighlights;
-		currentBatch.startHighlightsOffset = startingHighlightsOffset;
 
 		// put at head of list
 		doneList.add(currentBatch);
-		setUndoEnabled(true);
 
 		// kill last batch if list is full
 		if (doneList.size() > maximumBatches)
 		{
 			doneList.remove(0);
 		}
+        updateUndoRedo();
 
 		// start the batch of changes
 		Constraints.getCurrent().startBatch(tool, false);
@@ -725,7 +714,13 @@ public class Undo
 		}
 	}
 
-	/**
+    private static void clearChanges() {
+        if (currentBatch == null) return;
+        currentBatch = null;
+        throw new IllegalStateException();
+    }
+    
+    /**
 	 * Method to terminate the current batch of changes.
 	 */
 	public static void endChanges()
@@ -738,7 +733,7 @@ public class Undo
 		{
 			// remove from doneList
 			doneList.remove(currentBatch);
-			if (doneList.size() == 0) setUndoEnabled(false);
+            updateUndoRedo();
 		}
 
 		// changes made: apply final constraints to this batch of changes
@@ -754,21 +749,6 @@ public class Undo
 	public static Iterator<Cell> getChangedCells()
 	{
 		return changedCells.iterator();
-	}
-
-	/** Add a DatabaseChangeListener. It will be notified when
-	 * state of the database changes.
-	 * @param l the listener
-	 */
-	public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l)
-	{
-        listenerList.add(DatabaseChangeListener.class, l);
-	}
-
-	/** Remove a DatabaseChangeListener. */
-	public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l)
-	{
-        listenerList.remove(DatabaseChangeListener.class, l);
 	}
 
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch, boolean undo)
@@ -788,102 +768,20 @@ public class Undo
 
 		SwingUtilities.invokeLater(new DatabaseChangeRun(batch));
 	}
-
-	/** Add a property change listener. This generates Undo and Redo enabled property changes */
-	public static synchronized void addPropertyChangeListener(PropertyChangeListener l)
-	{
-		listenerList.add(PropertyChangeListener.class, l);
-	}
-
-	/** Remove a property change listener. */
-	public static synchronized void removePropertyChangeListener(PropertyChangeListener l)
-	{
-		listenerList.remove(PropertyChangeListener.class, l);
-	}
-
-    private static synchronized void firePropertyChange(PropertyChangeEvent e) {
-        Object[] listeners;
-        synchronized (Undo.class) {
-            listeners = listenerList.getListenerList();
-        }
-        // Process the listeners last to first, notifying those that are interested in this event
-        for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i] == PropertyChangeListener.class)
-                ((PropertyChangeListener)listeners[i+1]).propertyChange(e);
-        }
+    
+    private static synchronized void updateUndoRedo() {
+        ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
-
-	private static class PropertyChangeRun implements Runnable {
-		private PropertyChangeEvent e;
-		private PropertyChangeRun(PropertyChangeEvent e) { this.e = e; }
-		public void run() { firePropertyChange(e); }
-    }
-
-	private static synchronized void setUndoEnabled(boolean enabled)
-	{
-		if (enabled != undoEnabled)
-		{
-            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, propUndoEnabled, undoEnabled, enabled);
-			undoEnabled = enabled;
-            if (SwingUtilities.isEventDispatchThread())
-                firePropertyChange(e);
-            else
-                SwingUtilities.invokeLater(new PropertyChangeRun(e));
-		}
-	}
-
-	private static synchronized void setRedoEnabled(boolean enabled)
-	{
-		if (enabled != redoEnabled)
-		{
-            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, propRedoEnabled, redoEnabled, enabled);
-			redoEnabled = enabled;
-            if (SwingUtilities.isEventDispatchThread())
-                firePropertyChange(e);
-            else
-                SwingUtilities.invokeLater(new PropertyChangeRun(e));
-		}
-	}
-
-	/**
-	 * Method to tell whether undo can be done.
-	 * This is used by the tool bar to determine whether the undo button should be available.
-	 * @return true if undo can be done.
-	 */
-	public static synchronized boolean getUndoEnabled() { return undoEnabled; }
-
-	/**
-	 * Method to tell whether redo can be done.
-	 * This is used by the tool bar to determine whether the undo button should be available.
-	 * @return true if redo can be done.
-	 */
-	public static synchronized boolean getRedoEnabled() { return redoEnabled; }
 
 	private static class DatabaseChangeRun implements Runnable
 	{
 		private DatabaseChangeEvent event;
 		private DatabaseChangeRun(ChangeBatch batch) { event = new DatabaseChangeEvent(batch); }
         public void run() {
-            fireDatabaseChangeEvent(event);
+            UserInterfaceMain.fireDatabaseChangeEvent(event);
         }
 	}
 
-    /**
-     * Fire DatabaseChangeEvent to DatabaseChangeListeners.
-     * @param e DatabaseChangeEvent.
-     */
-    public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
-        Object[] listeners;
-        synchronized (Undo.class) {
-            listeners = listenerList.getListenerList();
-        }
-        // Process the listeners last to first, notifying those that are interested in this event
-        for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i] == DatabaseChangeListener.class)
-                ((DatabaseChangeListener)listeners[i+1]).databaseChanged(e);
-        }
-    }
-   
     private static void broadcastStart(boolean undoRedo) {
         // broadcast a start-batch on the first change
         for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
@@ -1182,26 +1080,26 @@ public class Undo
 	 * @return the batch number that was undone.
 	 * Returns null if nothing was undone.
 	 */
-	public static ChangeBatch undoABatch()
+	public static ChangeBatch undoABatch(int savedHighlights)
 	{
 		// save highlights for redo
-		List<Object> savedHighlights = null;
-		Point2D offset = new Point2D.Double(0, 0);
-		// for now, just save from the current window
-		UserInterface ui = Job.getUserInterface();
-		EditWindow_ wnd = ui.getCurrentEditWindow_();
-		if (wnd != null)
-		{
-			savedHighlights = wnd.saveHighlightList();
-			offset = wnd.getHighlightOffset();
-            wnd.clearHighlighting();
-            wnd.finishedHighlighting();
-//			highlighter.clear();
-//			highlighter.finished();
-		}
+//		List<Object> savedHighlights = null;
+//		Point2D offset = new Point2D.Double(0, 0);
+//		// for now, just save from the current window
+//		UserInterface ui = Job.getUserInterface();
+//		EditWindow_ wnd = ui.getCurrentEditWindow_();
+//		if (wnd != null)
+//		{
+//			savedHighlights = wnd.saveHighlightList();
+//			offset = wnd.getHighlightOffset();
+//            wnd.clearHighlighting();
+//            wnd.finishedHighlighting();
+////			highlighter.clear();
+////			highlighter.finished();
+//		}
 
 		// close out the current batch
-		endChanges();
+		clearChanges();
 
 		// get the most recent batch of changes
 		int listSize = doneList.size();
@@ -1209,12 +1107,10 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
 		doneList.remove(listSize-1);
 		undoneList.add(batch);
-		if (doneList.size() == 0) setUndoEnabled(false);
-		setRedoEnabled(true);
+        updateUndoRedo();
 
 		// save pre undo highlights
 		batch.preUndoHighlights = savedHighlights;
-		batch.preUndoHighlightsOffset = offset;
 
 		// look through the changes in this batch
         batch.reverse(true);
@@ -1226,16 +1122,16 @@ public class Undo
 		// broadcast the end-batch
 		fireEndChangeBatch(batch, true);
 
-		// restore highlights (must be done after all other tools have
-		// responded to changes)
-		if (wnd != null)
-		{
-			wnd.restoreHighlightList(batch.startingHighlights);
-			if (batch.startHighlightsOffset != null)
-				wnd.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
-											   (int)batch.startHighlightsOffset.getY());
-			wnd.finishedHighlighting();
-		}
+//		// restore highlights (must be done after all other tools have
+//		// responded to changes)
+//		if (wnd != null)
+//		{
+//			wnd.restoreHighlightList(batch.startingHighlights);
+//			if (batch.startHighlightsOffset != null)
+//				wnd.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+//											   (int)batch.startHighlightsOffset.getY());
+//			wnd.finishedHighlighting();
+//		}
 
 		// mark that this batch is undone
 //		batch.done = false;
@@ -1246,28 +1142,27 @@ public class Undo
 	 * Method to redo the last batch of changes.
 	 * @return true if a batch was redone.
 	 */
-	public static boolean redoABatch()
+	public static ChangeBatch redoABatch()
 	{
-		UserInterface ui = Job.getUserInterface();
-		EditWindow_ wnd = ui.getCurrentEditWindow_();
-		if (wnd != null)
-		{
-			wnd.clearHighlighting();
-			wnd.finishedHighlighting();
-		}
+//		UserInterface ui = Job.getUserInterface();
+//		EditWindow_ wnd = ui.getCurrentEditWindow_();
+//		if (wnd != null)
+//		{
+//			wnd.clearHighlighting();
+//			wnd.finishedHighlighting();
+//		}
 
 		// close out the current batch
-		endChanges();
+		clearChanges();
 
 		// get the most recent batch of changes
-		if (undoneList == null) return false;
+		if (undoneList == null) return null;
 		int listSize = undoneList.size();
-		if (listSize == 0) return false;
+		if (listSize == 0) return null;
 		ChangeBatch batch = (ChangeBatch)undoneList.get(listSize-1);
 		undoneList.remove(listSize-1);
 		doneList.add(batch);
-		if (undoneList.size() == 0) setRedoEnabled(false);
-		setUndoEnabled(true);
+        updateUndoRedo();
 
         batch.reverse(false);
         
@@ -1278,18 +1173,18 @@ public class Undo
 		// broadcast the end-batch
 		fireEndChangeBatch(batch, true);
 
-		// set highlights to what they were before undo
-		if (batch.preUndoHighlights != null)
-		{
-			wnd.restoreHighlightList(batch.preUndoHighlights);
-			wnd.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
-				(int)batch.preUndoHighlightsOffset.getY());
-			wnd.finishedHighlighting();
-		}
+//		// set highlights to what they were before undo
+//		if (batch.preUndoHighlights != null)
+//		{
+//			wnd.restoreHighlightList(batch.preUndoHighlights);
+//			wnd.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
+//				(int)batch.preUndoHighlightsOffset.getY());
+//			wnd.finishedHighlighting();
+//		}
 
 		// mark that this batch is redone
 //		batch.done = true;
-		return true;
+		return batch;
 	}
 
     /** 
@@ -1335,13 +1230,12 @@ public class Undo
 	public static void noUndoAllowed()
 	{
  		// properly terminate the current batch
-		endChanges();
+		clearChanges();
 
  		// kill them all
  		doneList.clear();
  		undoneList.clear();
-		setUndoEnabled(false);
-		setRedoEnabled(false);
+        updateUndoRedo();
 	}
 
 	/**
@@ -1350,10 +1244,10 @@ public class Undo
 	public static void noRedoAllowed()
 	{
 		// properly terminate the current batch
-		endChanges();
+		clearChanges();
 
 		undoneList.clear();
-		setRedoEnabled(false);
+        updateUndoRedo();
 	}
 
 	/**
@@ -1372,7 +1266,7 @@ public class Undo
 		{
 			doneList.remove(0);
 		}
-		if (doneList.size() == 0) setUndoEnabled(false);
+        updateUndoRedo();
 		return oldSize;
 	}
 

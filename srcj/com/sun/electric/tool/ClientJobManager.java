@@ -28,7 +28,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -36,6 +35,7 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -424,7 +424,7 @@ class ClientJobManager extends JobManager {
             	}
             }
             SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
-            Undo.fireDatabaseChangeEvent(event);
+            UserInterfaceMain.fireDatabaseChangeEvent(event);
         }
 	}
     

@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -233,7 +234,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         getRootPane().setDefaultButton(ok);
 
         // add myself as a listener for highlight changes
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
         // set characteristic combo box

@@ -23,17 +23,15 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Font;
 import java.awt.Point;
@@ -640,7 +638,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             }
         };
         addMouseListener(mouseListener);
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
     }
 
     private void initComboBoxes() {

@@ -25,15 +25,14 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -449,7 +448,7 @@ public class WindowFrame extends Observable
 	 */
 	private void depopulateJFrame()
 	{
-        Job.checkSwingThread();
+        assert SwingUtilities.isEventDispatchThread();
 		if (TopLevel.isMDIMode()) {
 			jif.getContentPane().remove(js);
 			jif.removeInternalFrameListener(internalWindowsEvents);
@@ -1073,7 +1072,7 @@ public class WindowFrame extends Observable
      */
     private static class LibraryTreeUpdater implements DatabaseChangeListener {
 
-        private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
+        private LibraryTreeUpdater() { UserInterfaceMain.addDatabaseChangeListener(this); }
 
         public void databaseChanged(DatabaseChangeEvent e)
         {

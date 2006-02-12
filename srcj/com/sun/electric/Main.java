@@ -41,37 +41,14 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.menus.MenuBar.Menu;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.AWTEvent;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -142,7 +119,7 @@ public final class Main
 	        System.out.println("\t-debug: debug mode. Extra information is available");
             System.out.println("\t-threads <numThreads>: recommended size of thread pool for Job execution.");
 	        System.out.println("\t-batch: running in batch mode.");
-	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
+//	        System.out.println("\t-pulldowns: list all pulldown menus in Electric"); moved to DebugMenus DN
             System.out.println("\t-server: dump trace of snapshots");
             System.out.println("\t-client: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
@@ -150,6 +127,7 @@ public final class Main
 			System.exit(0);
 		}
 
+        ActivityLogger.initialize(true, true, false);
 
 		// -debug for debugging
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
@@ -175,78 +153,28 @@ public final class Main
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
             runMode = Job.Mode.CLIENT;
         }
-        Job.setThreadMode(runMode, (runMode != Job.Mode.BATCH ? new UserInterfaceMain() : new UserInterfaceDummy()));
-
-		// see if there is a Mac OS/X interface
-		Class osXClass = null;
-		Method osXRegisterMethod = null, osXSetJobMethod = null;
-        if (runMode != Job.Mode.BATCH)
-        {
-            if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
-            {
-                try
-                {
-                    osXClass = Class.forName("com.sun.electric.MacOSXInterface");
-
-                    // find the necessary methods on the Mac OS/X class
-                    try
-                    {
-                        osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
-                        osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
-                    } catch (NoSuchMethodException e)
-                    {
-                        osXRegisterMethod = osXSetJobMethod = null;
-                    }
-                    if (osXRegisterMethod != null)
-                    {
-                        try
-                        {
-                            osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
-                        } catch (Exception e)
-                        {
-                            System.out.println("Error initializing Mac OS/X interface");
-                        }
-                    }
-                } catch (ClassNotFoundException e) {}
-            }
-    //		MacOSXInterface.registerMacOSXApplication(argsList);
-        }
-
-        ActivityLogger.initialize(true, true, false);
-        //runThreadStatusTimer();
-        new EventProcessor();
-
-		SplashWindow sw = null;
-
-		if (runMode == Job.Mode.FULL_SCREEN) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
-        TopLevel.Mode mode = null;
-        if (mdiMode) mode = TopLevel.Mode.MDI;
-        if (sdiMode) mode = TopLevel.Mode.SDI;
-		TopLevel.OSInitialize(mode);
-
-		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
+        UserInterfaceMain.Mode mode = null;
+        if (mdiMode) mode = UserInterfaceMain.Mode.MDI;
+        if (sdiMode) mode = UserInterfaceMain.Mode.SDI;
+        
+        UserInterface ui;
+        if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
+            ui = new UserInterfaceMain(argsList, mode, runMode == Job.Mode.FULL_SCREEN);
+        else
+            ui = new UserInterfaceDummy();
+        Job.setThreadMode(runMode, ui);
 
 		// initialize database
-		InitDatabase job = new InitDatabase(argsList, sw);
-		if (osXRegisterMethod != null)
-		{
-			// tell the Mac OS/X system of the initialization job
-			try
-			{
-				osXSetJobMethod.invoke(osXClass, new Object[] {job});
-			} catch (Exception e)
-			{
-				System.out.println("Error initializing Mac OS/X interface");
-			}
-		}
+		InitDatabase job = new InitDatabase(argsList);
         Job.initJobManager(numThreads, job);
 	}
 
     private static class UserInterfaceDummy implements UserInterface
 	{
+        public void finishInitialization() {}
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()
 		{
@@ -281,7 +209,15 @@ public final class Main
             System.out.println(logger.getInfo());
         }
 
-        /**
+        public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+            if (!errors.isEmpty()) System.out.println(errors.size() + " network errors in " + cell);
+        }
+    
+        public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+            if (!errors.isEmpty()) System.out.println(errors.size() + " drc errors in " + cell);
+        }
+
+         /**
          * Method to return the error message associated with the current error.
          * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
          * with associated geometry modules (if nonzero).
@@ -361,69 +297,24 @@ public final class Main
          * Prompts the user and writes the file.
          */
         public void exportPrefs() {;}
-	}
+        
+        /**
+         * Save current state of highlights and return its ID.
+         */
+        public int saveHighlights() { return 0; }
+        
+        /**
+         * Restore state of highlights by its ID.
+         */
+        public void restoreHighlights(int highlightsId) {}
+        
+        /**
+         * Show status of undo/redo buttons
+         * @param newUndoEnabled new status of undo button.
+         * @param newRedoEnabled new status of redo button.
+         */
+        public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
 
-	/**
-	 * Class to display a Splash Screen at the start of the program.
-	 */
-	private static class SplashWindow extends JFrame
-	{
-		public SplashWindow()
-		{
-			super();
-			setUndecorated(true);
-			setTitle("Electric Splash");
-			setIconImage(TopLevel.getFrameIcon().getImage());
-
-			JPanel whole = new JPanel();
-			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
-			whole.setLayout(new BorderLayout());
-
-			JLabel l = new JLabel(Resources.getResource(TopLevel.class, "SplashImage.gif"));
-			whole.add(l, BorderLayout.CENTER);
-			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
-			whole.add(v, BorderLayout.SOUTH);
-			Font font = new Font(User.getDefaultFont(), Font.BOLD, 24);
-			v.setFont(font);
-			v.setForeground(Color.BLACK);
-			v.setBackground(Color.WHITE);
-
-			getContentPane().add(whole, BorderLayout.SOUTH);
-			pack();
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			Dimension labelSize = getPreferredSize();
-			setLocation(screenSize.width/2 - (labelSize.width/2),
-				screenSize.height/2 - (labelSize.height/2));
-			WindowsEvents windowsEvents = new WindowsEvents(this);
-			addWindowListener(windowsEvents);
-			setVisible(true);
-		}
-	}
-
-	/**
-	 * This class handles deactivation of the splash screen and forces it back to the top.
-	 */
-	private static class WindowsEvents implements WindowListener
-	{
-		SplashWindow sw;
-
-		WindowsEvents(SplashWindow sw)
-		{
-			super();
-			this.sw = sw;
-		}
-
-		public void windowActivated(WindowEvent e) {}
-		public void windowClosed(WindowEvent e) {}
-		public void windowClosing(WindowEvent e) {}
-		public void windowDeiconified(WindowEvent e) {}
-		public void windowIconified(WindowEvent e) {}
-		public void windowOpened(WindowEvent e) {}
-
-		public void windowDeactivated(WindowEvent e)
-		{
-			sw.toFront();
-		}
 	}
 
 	/** check if command line option 'option' present in 
@@ -482,40 +373,6 @@ public final class Main
         new FileMenu.ReadInitialELIBs(fileURLs);
     }
 
-    /**
-     * Method to dump the pulldown menus in indented style.
-     */
-    private static void dumpPulldownMenus()
-    {
-		Date now = new Date();
-    	System.out.println("Pulldown menus in Electric as of " + TextUtils.formatDate(now));
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-    	MenuBar menuBar = top.getTheMenuBar();
-        for (int i=0; i<menuBar.getMenuCount(); i++)
-        {
-            Menu menu = (Menu)menuBar.getMenu(i);
-            printIndented("\n" + menu.getText() + ":", 0);
-            addMenu(menu, 1);
-        }
-    }
-    private static void printIndented(String str, int depth)
-    {
-    	for(int i=0; i<depth*3; i++) System.out.print(" ");
-    	System.out.println(str);
-    	
-    }
-    private static void addMenu(Menu menu, int depth)
-    {
-        for (int i=0; i<menu.getItemCount(); i++)
-        {
-            JMenuItem menuItem = menu.getItem(i);
-            if (menuItem == null) { printIndented("----------", depth); continue; }
-            printIndented(menuItem.getText(), depth);
-            if (menuItem instanceof JMenu)
-                addMenu((Menu)menuItem, depth+1);              // recurse
-        }
-    }
-
 	/**
 	 * Class to init all technologies.
 	 */
@@ -523,13 +380,11 @@ public final class Main
 	{
 		List<String> argsList;
         String beanShellScript;
-		transient SplashWindow sw;
 
-		protected InitDatabase(List<String> argsList, SplashWindow sw)
+		protected InitDatabase(List<String> argsList)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
-			this.sw = sw;
 			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
 				// do nothing, just consume option: handled in Launcher
 			}
@@ -556,29 +411,19 @@ public final class Main
 			}
 
 			openCommandLineLibs(argsList);
-            if (BATCHMODE && beanShellScript != null)
+            if (beanShellScript != null)
                 EvalJavaBsh.runScript(beanShellScript);
                 
             return true;
 		}
         
-        public void terminateIt(Throwable jobException) {
-            if (jobException != null) return;
-            
-            // finish initializing the GUI
-            if (!BATCHMODE)
-            {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        // remove the splash screen
-                        if (sw != null) sw.removeNotify();
-                        TopLevel.InitializeWindows();
-                        WindowFrame.wantToOpenCurrentLibrary(true);
-                        // run script
-                        if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
-                    }
-                });
-            }
+        public void terminateOK() {
+            Job.getUserInterface().finishInitialization();
+        }
+        
+        public void terminateFail(JobException jobException) {
+            System.out.println("Initialization failed");
+            System.exit(1);
         }
 	}
     
@@ -613,54 +458,5 @@ public final class Main
 			ex.printStackTrace();
 		}
 	}
-
-	/**
-     * Places a custom event processor on the event queue in order to
-     * catch all exceptions generated by event processing.
-     */
-    private static class EventProcessor extends EventQueue
-    {
-		private EventProcessor() {
-            if (!Job.BATCHMODE)
-            {
-            Toolkit kit = Toolkit.getDefaultToolkit();
-            kit.getSystemEventQueue().push(this);
-            }
-        }
-
-        protected void dispatchEvent(AWTEvent e) {
-            try {
-                super.dispatchEvent(e);
-            }
-            catch(Throwable ex) {
-                ex.printStackTrace(System.err);
-                ActivityLogger.logException(ex);
-                if (ex instanceof Error) throw (Error)ex;
-            }
-        }
-    }
-
-//    private static void runThreadStatusTimer() {
-//        int delay = 1000*60*10; // milliseconds
-//        Timer timer = new Timer(delay, new ThreadStatusTask());
-//        timer.start();
-//    }
-//
-//    private static class ThreadStatusTask implements ActionListener {
-//        public void actionPerformed(ActionEvent e) {
-//            Thread t = Thread.currentThread();
-//            ThreadGroup group = t.getThreadGroup();
-//            // get the top level group
-//            while (group.getParent() != null)
-//                group = group.getParent();
-//            Thread [] threads = new Thread[200];
-//            int numThreads = group.enumerate(threads, true);
-//            StringBuffer buf = new StringBuffer();
-//            for (int i=0; i<numThreads; i++) {
-//                buf.append("Thread["+i+"] "+threads[i]+": alive: "+threads[i].isAlive()+", interrupted: "+threads[i].isInterrupted()+"\n");
-//            }
-//            ActivityLogger.logThreadMessage(buf.toString());
-//        }
-//    }
 
 }

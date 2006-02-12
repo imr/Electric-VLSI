@@ -69,7 +69,6 @@ public abstract class Job implements Serializable {
     private static int socketPort = 35742; // socket port for client/server
     static final int PROTOCOL_VERSION = 0;
     public static boolean BATCHMODE = false; // to run it in batch mode
-    public static boolean NOTHREADING = false;             // to turn off Job threading
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
@@ -141,14 +140,17 @@ public abstract class Job implements Serializable {
 
     public static void setThreadMode(Mode mode, UserInterface userInterface) {
         threadMode = mode;
-        BATCHMODE = (mode == Mode.BATCH);
+        BATCHMODE = (mode == Mode.BATCH || mode == Mode.SERVER);
         currentUI = userInterface;
     }
    
     public static void initJobManager(int numThreads, Job initDatabaseJob) {
         switch (threadMode) {
             case FULL_SCREEN:
-                jobManager = new ServerJobManager(numThreads);
+                if (User.isUseClientServer())
+                    jobManager = new ServerJobManager(numThreads, socketPort);
+                else
+                    jobManager = new ServerJobManager(numThreads);
                 initDatabaseJob.startJob();
                 break;
             case BATCH:
@@ -234,9 +236,13 @@ public abstract class Job implements Serializable {
     {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
+        if (!ejob.isExamine())
+            ejob.savedHighlights = Job.getUserInterface().saveHighlights();
         jobManager.addJob(ejob, onMySnapshot);
     }
 
+    protected int getSavedHighlights() { return ejob.savedHighlights; }
+    
     /**
      * Method to remember that a field variable of the Job has been changed by the doIt() method.
      * @param variableName the name of the variable that changed.
@@ -628,17 +634,6 @@ public abstract class Job implements Serializable {
             return ((EThread)currentThread).getUserInterface();
         else
             return currentUI;
-    }
-
-    /**
-     * Asserts that this is the Swing Event thread
-     */
-    public static void checkSwingThread()
-    {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            Exception e = new Exception("Job.checkSwingThread is not in the AWT Event Thread, it is in Thread "+Thread.currentThread());
-            ActivityLogger.logException(e);
-        }
     }
 
     public static void wantUpdateGui() {

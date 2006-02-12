@@ -268,13 +268,9 @@ public class Simulation extends Listener
 
         public void terminateOK()
         {
-        	if (!Job.BATCHMODE)
-        	{
-	        	for(Cell cell : textCellsToRedraw)
-	        	{
-	        		TextWindow.updateText(cell);
-	        	}
-        	}
+            for(Cell cell : textCellsToRedraw) {
+                TextWindow.updateText(cell);
+            }
 			if (prevEngine != null)
 			{
 				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);

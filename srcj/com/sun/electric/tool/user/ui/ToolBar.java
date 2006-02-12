@@ -167,7 +167,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     //  setGridAligment is changed in GridAndAlignmentTab
 
 	private ToolBar() {
-        Undo.addPropertyChangeListener(this);
+        UserInterfaceMain.addUndoRedoListener(this);
     }
 
     /**
@@ -367,7 +367,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.undoCommand(); } });
         toolbar.undoButton.setToolTipText("Undo");
         toolbar.undoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.undoButton.setEnabled(Undo.getUndoEnabled());
+        toolbar.undoButton.setEnabled(UserInterfaceMain.getUndoEnabled());
         toolbar.add(toolbar.undoButton);
 
         // the Redo button
@@ -376,7 +376,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.redoCommand(); } });
         toolbar.redoButton.setToolTipText("Redo");
         toolbar.redoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.redoButton.setEnabled(Undo.getRedoEnabled());
+        toolbar.redoButton.setEnabled(UserInterfaceMain.getRedoEnabled());
         toolbar.add(toolbar.redoButton);
 
         toolbar.addSeparator();
@@ -774,6 +774,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             }
         }
         setUI(null);
+        UserInterfaceMain.removeUndoRedoListener(this);
     }
 
     /**
@@ -792,10 +793,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         else if (name.equals(EditWindow.propGoForwardEnabled)) {
             goForwardButton.setEnabled(enabled);
         }
-        else if (name.equals(Undo.propUndoEnabled)) {
+        else if (name.equals(UserInterfaceMain.propUndoEnabled)) {
             undoButton.setEnabled(enabled);
         }
-        else if (name.equals(Undo.propRedoEnabled)) {
+        else if (name.equals(UserInterfaceMain.propRedoEnabled)) {
             redoButton.setEnabled(enabled);
         }
     }

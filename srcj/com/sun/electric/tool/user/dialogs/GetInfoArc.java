@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.Name;
@@ -174,7 +173,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		super(parent, modal);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
-		Undo.addDatabaseChangeListener(this);
+		UserInterfaceMain.addDatabaseChangeListener(this);
 		Highlighter.addHighlightListener(this);
 
 		bigger = prefs.getBoolean("GetInfoArc-bigger", false);

@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.ui;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -45,6 +44,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -3447,7 +3447,7 @@ public class PixelDrawing
         if (!renderInfo.buildInfo(msg, font, tSize, italic, bold, underline, new Rectangle(boxedWidth, boxedHeight), null, 0))
             return null;
         EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
-        Undo.removeDatabaseChangeListener(wnd.getHighlighter());
+        UserInterfaceMain.removeDatabaseChangeListener(wnd.getHighlighter());
         wnd.setScreenSize(new Dimension(10, 10));
         return wnd.getOffscreen().renderText(renderInfo);
     }

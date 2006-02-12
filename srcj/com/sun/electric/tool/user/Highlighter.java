@@ -106,7 +106,7 @@ public class Highlighter implements DatabaseChangeListener {
         highlightList = new ArrayList<Highlight2>();
         highlightStack = new ArrayList<List<Highlight2>>();
         changed = false;
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         if (currentHighlighter == null) currentHighlighter = this;
         lastHighlightListEndObj = null;
         showNetworkLevel = 0;
@@ -120,7 +120,7 @@ public class Highlighter implements DatabaseChangeListener {
      * Destructor
      */
     public void delete() {
-        Undo.removeDatabaseChangeListener(this);
+        UserInterfaceMain.removeDatabaseChangeListener(this);
     }
 
     /**
@@ -746,12 +746,12 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public synchronized void setHighlightListGeneral(List<Object> newHighlights)
+	public synchronized void setHighlightListGeneral(List<Highlight2> newHighlights)
 	{
         clear();
-		for(Object obj : newHighlights)
+		for(Highlight2 obj : newHighlights)
 		{
-			if (obj instanceof Highlight2) highlightList.add((Highlight2)obj);
+			highlightList.add(obj);
 		}
         changed = true;
 	}
@@ -763,9 +763,9 @@ public class Highlighter implements DatabaseChangeListener {
 	public synchronized void setHighlightList(List<Highlight2> newHighlights)
 	{
         clear();
-		for(Object obj : newHighlights)
+		for(Highlight2 obj : newHighlights)
 		{
-			if (obj instanceof Highlight2) highlightList.add((Highlight2)obj);
+			highlightList.add((Highlight2)obj);
 		}
         changed = true;
 	}

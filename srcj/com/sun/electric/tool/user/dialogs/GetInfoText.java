@@ -25,8 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -61,7 +59,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -204,7 +201,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         initComponents();
         getRootPane().setDefaultButton(ok);
 
-        Undo.addDatabaseChangeListener(this);
+        UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
 
         loadTextInfo();

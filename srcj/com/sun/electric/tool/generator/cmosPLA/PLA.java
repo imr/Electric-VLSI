@@ -209,7 +209,7 @@ public class PLA
 
         public void terminateOK()
         {
-            if (newCell != null && !Job.BATCHMODE)
+            if (newCell != null)
                 WindowFrame.createEditWindow(newCell);
         }
 	}

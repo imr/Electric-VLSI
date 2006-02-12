@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -89,20 +90,7 @@ public class TopLevel extends JFrame
 		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("Macintosh");
 	}
 
-    /**
-     * Describe the windowing mode.  The current modes are MDI and SDI.
-     */
-    public static class Mode
-    {
-        private final String name;
-        private Mode(String name) { this.name = name; }
-
-        public String toString() { return name; }
-        public static final Mode MDI = new Mode("MDI");
-        public static final Mode SDI = new Mode("SDI");
-    }
-
-	/** True if in MDI mode, otherwise SDI. */				private static Mode mode;
+	/** True if in MDI mode, otherwise SDI. */				private static UserInterfaceMain.Mode mode;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The only status bar (if MDI). */					private StatusBar sb = null;
@@ -195,55 +183,48 @@ public class TopLevel extends JFrame
 	/**
 	 * Method to initialize the window system.
 	 */
-	public static void OSInitialize(Mode mode)
+	public static void OSInitialize(UserInterfaceMain.Mode mode)
 	{
 		// setup the size of the screen
-        if (!Job.BATCHMODE)
-        {
-            Toolkit tk = Toolkit.getDefaultToolkit();
-            scrnSize = tk.getScreenSize();
-            Object click = tk.getDesktopProperty("awt.multiClickInterval");
-            if (click == null) doubleClickDelay = 500; else
-                doubleClickDelay = Integer.parseInt(click.toString());
-
-            // a more advanced way of determining the size of a screen
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice [] gs = ge.getScreenDevices();
-            Rectangle [] areas = new Rectangle[gs.length];
-            if (gs.length > 0)
-            {
-                GraphicsDevice gd = gs[0];
-                GraphicsConfiguration gc = gd.getDefaultConfiguration();
-                Rectangle r = gc.getBounds();
-                scrnSize.setSize(r.width, r.height);
-            }
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        scrnSize = tk.getScreenSize();
+        Object click = tk.getDesktopProperty("awt.multiClickInterval");
+        if (click == null) doubleClickDelay = 500; else
+            doubleClickDelay = Integer.parseInt(click.toString());
+        
+        // a more advanced way of determining the size of a screen
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice [] gs = ge.getScreenDevices();
+        Rectangle [] areas = new Rectangle[gs.length];
+        if (gs.length > 0) {
+            GraphicsDevice gd = gs[0];
+            GraphicsConfiguration gc = gd.getDefaultConfiguration();
+            Rectangle r = gc.getBounds();
+            scrnSize.setSize(r.width, r.height);
         }
 		// setup specific look-and-feel
-        Mode osMode = null;
+        UserInterfaceMain.Mode osMode = null;
 		try{
 			String osName = System.getProperty("os.name").toLowerCase();
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
-				osMode = Mode.MDI;
+				osMode = UserInterfaceMain.Mode.MDI;
 
 				scrnSize.height -= 30;
-                if (!Job.BATCHMODE)
-				    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
 				os = OS.UNIX;
-                osMode = Mode.SDI;
+                osMode = UserInterfaceMain.Mode.SDI;
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-                if (!Job.BATCHMODE)
-                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
-                osMode = Mode.SDI;
-				if (!Job.BATCHMODE)
-                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+                osMode = UserInterfaceMain.Mode.SDI;
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
 
@@ -278,7 +259,7 @@ public class TopLevel extends JFrame
 			// make the desktop
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-            if (!Job.BATCHMODE) topLevel.setVisible(true);
+            topLevel.setVisible(true);
 		}
 	}
 
@@ -311,7 +292,7 @@ public class TopLevel extends JFrame
 	 * This is used on Windows.
 	 * @return true if Electric is in MDI mode.
 	 */
-	public static boolean isMDIMode() { return (mode == Mode.MDI); }
+	public static boolean isMDIMode() { return (mode == UserInterfaceMain.Mode.MDI); }
 
 	/**
 	 * Method to return messagesWindow window.
@@ -379,7 +360,7 @@ public class TopLevel extends JFrame
         private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
         public void run() {
             desktop.add(jif);
-	        if (!Job.BATCHMODE) jif.show();
+	        jif.show();
         }
     }
 
@@ -404,7 +385,7 @@ public class TopLevel extends JFrame
 
     private static synchronized void setCurrentCursorPrivate(Cursor cursor)
     {
-        if (mode == Mode.MDI) {
+        if (mode == UserInterfaceMain.Mode.MDI) {
             JFrame jf = TopLevel.getCurrentJFrame();
             jf.setCursor(cursor);
         }
@@ -417,7 +398,7 @@ public class TopLevel extends JFrame
     
     public static synchronized Iterator<MenuBar> getMenuBars() {
         ArrayList<MenuBar> menuBars = new ArrayList<MenuBar>();
-        if (mode == Mode.MDI) {
+        if (mode == UserInterfaceMain.Mode.MDI) {
             menuBars.add(topLevel.getTheMenuBar());
         } else {
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {

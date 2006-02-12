@@ -87,6 +87,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -271,7 +272,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	void redoContentTrees(List<MutableTreeNode> contentNodes)
 	{
-        Job.checkSwingThread();
+        assert SwingUtilities.isEventDispatchThread();
 
 		// remember the state of the tree
 		ArrayList<TreePath> expanded = new ArrayList<TreePath>();
@@ -1534,7 +1535,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, true);
-			if (!Job.BATCHMODE) dialog.setVisible(true);
+            assert !Job.BATCHMODE;
+			dialog.setVisible(true);
 		}
 
 		private void addToWaveform(boolean newPanel)
@@ -1651,7 +1653,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             Cell cell = (Cell)getCurrentlySelectedObject(0);
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
-            if (!Job.BATCHMODE) dialog.setVisible(true);
+            assert !Job.BATCHMODE;
+            dialog.setVisible(true);
         }
 
         private void makeNewSchematicPage()
