@@ -715,9 +715,10 @@ public class Undo
 	}
 
     private static void clearChanges() {
+        endChanges();
         if (currentBatch == null) return;
+        System.out.println("Ignored a batch " + currentBatch.activity + " of " + currentBatch.getNumChanges() + " changes");
         currentBatch = null;
-        throw new IllegalStateException();
     }
     
     /**
