@@ -641,11 +641,11 @@ public abstract class Job implements Serializable {
     }
     
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        ErrorLoggerTree.updateNetworkErrors(cell, errors);
+        currentUI.updateNetworkErrors(cell, errors);
     }
     
     public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        ErrorLoggerTree.updateDrcErrors(cell, errors);
+        currentUI.updateIncrementalDRCErrors(cell, errors);
     }
 
 	//-------------------------------JOB UI--------------------------------
