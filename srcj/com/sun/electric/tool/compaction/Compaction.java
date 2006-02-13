@@ -40,7 +40,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -114,7 +117,7 @@ public class Compaction extends Tool
 		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL);
         job.startJob();
 	}
-
+private static int limitLoops = 10;
 	/**
 	 * Class to compact a cell in a Job.
 	 */
@@ -139,6 +142,7 @@ public class Compaction extends Tool
 
 			// alternate vertical then horizontal compaction
 			boolean change = cc.compactOneDirection(curAxis);
+if (--limitLoops <= 0) change = false;
 			if (lastTime || change)
 			{
 				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
@@ -363,7 +367,7 @@ public class Compaction extends Tool
 					// no constraints: allow overlap
 					bestMotion = curLine.low - lowBound;
 				}
-				if (bestMotion > 0 || (spread && bestMotion < 0))
+				if (bestMotion > DBMath.getEpsilon() || (spread && bestMotion < -DBMath.getEpsilon()))
 				{
 					// initialize arcs: disable stretching line from sliding; make moving line rigid
 					HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
@@ -590,7 +594,7 @@ public class Compaction extends Tool
 		{
 			boolean change = false;
 			double i = line.low - lowestBound;
-			if (i > 0)
+			if (i > DBMath.getEpsilon())
 			{
 				// initialize arcs: disable stretching line from sliding; make moving line rigid
 				HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
