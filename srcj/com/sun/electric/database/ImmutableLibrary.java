@@ -163,6 +163,26 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         return new ImmutableLibrary(libId, libName, libFile, version, flags, vars);
     }
     
+    /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public int hashCodeExceptVariables() { return libId.hashCode(); }
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public boolean equalsExceptVariables(ImmutableElectricObject o) {
+        if (this == o) return true;
+        if (!(o instanceof ImmutableLibrary)) return false;
+        ImmutableLibrary that = (ImmutableLibrary)o;
+        return this.libId == that.libId && this.libName == that.libName && this.libFile == that.libFile &&
+                this.version == that.version && this.flags == that.flags;
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableCell.
 	 * @throws AssertionError if invariant is broken.

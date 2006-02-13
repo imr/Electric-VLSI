@@ -523,7 +523,31 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
                 flags, techBits, protoDescriptor, vars, ports);
     }
     
-	/**
+    /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public int hashCodeExceptVariables() { return nodeId; }
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public boolean equalsExceptVariables(ImmutableElectricObject o) {
+        if (this == o) return true;
+        if (!(o instanceof ImmutableNodeInst)) return false;
+        ImmutableNodeInst that = (ImmutableNodeInst)o;
+        return this.nodeId == that.nodeId && this.protoId == that.protoId &&
+                this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
+                this.orient == that.orient && this.anchor == that.anchor &&
+                this.width == that.width && this.height == that.height &&
+                this.flags == that.flags && this.techBits == that.techBits &&
+                this.protoDescriptor == that.protoDescriptor;
+    }
+    
+    /**
 	 * Checks invariant of this ImmutableNodeInst.
 	 * @throws AssertionError if invariant is broken.
 	 */

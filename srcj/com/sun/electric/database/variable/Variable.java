@@ -78,25 +78,22 @@ public class Variable
 		 */
 		public String getName() { return name; }
 
+        public int hashCode() { return name.hashCode(); }
+        
         /**
          * Method to determine if two Keys are equal.
          * Compares by name (case sensitive).
          * @param k the Key to compare to
          * @return true if equal, false otherwise.
          */
-        public boolean equals(Key k) { return name.equals(k.getName()); }
+        public boolean equals(Key k) { return k == this || k != null && name.equals(k.getName()); }
 
 		/**
 		 * Compares Variable Keys by their names.
 		 * @param that the other Variable Key.
 		 * @return a comparison between the Variable Keys.
 		 */
-/*5*/	public int compareTo(Key that)
-//4*/	public int compareTo(Object obj)
-		{
-//4*/			Key that = (Key)obj;
-			return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
-		}
+        public int compareTo(Key that) { return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name); }
         
         /**
          * Returns a printable version of this Key.
@@ -859,6 +856,17 @@ public class Variable
         return (check);
     }
 
+    public int hashCode() { return key.hashCode(); }
+    
+    public boolean equals(Variable that) {
+        if (this == that) return true;
+        if (that == null) return false;
+        if (this.key != that.key || !this.descriptor.equals(that.descriptor)) return false;
+        if (this.type != that.type) return false;
+        if ((this.type & ARRAY) == 0) return this.value.equals(that.value);
+        return Arrays.equals((Object[])this.value, (Object[])that.value);
+    }
+    
 	/**
 	 * Returns a printable version of this Variable.
 	 * @return a printable version of this Variable.

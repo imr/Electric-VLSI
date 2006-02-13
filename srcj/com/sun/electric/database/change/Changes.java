@@ -24,8 +24,9 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -33,7 +34,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
 
 
@@ -98,11 +98,25 @@ public interface Changes
 	void modifyExport(Export pp, ImmutableExport oldD);
 
 	/**
+	 * Method to announce a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	void modifyCell(Cell cell, ImmutableCell oD);
+
+	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
 	 * @param oCellGroup the old CellGroup of the Cell.
 	 */
 	void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup);
+
+	/**
+	 * Method to announce a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	void modifyLibrary(Library lib, ImmutableLibrary oldD);
 
 	/**
 	 * Method to announce the creation of a new ElectricObject.
@@ -128,13 +142,6 @@ public interface Changes
 	 * @param obj the ElectricObject to be redrawn.
 	 */
 	void redrawObject(ElectricObject obj);
-
-	/**
-	 * Method to announce a change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable);
 
 	/**
 	 * Method to announce that a Library has been read.

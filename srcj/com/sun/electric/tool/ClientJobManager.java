@@ -423,7 +423,7 @@ class ClientJobManager extends JobManager {
             		User.markCellForRedraw(cell, true);
             	}
             }
-            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(cellTreeChanged);
+            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(oldSnapshot, cellTreeChanged, newSnapshot);
             UserInterfaceMain.fireDatabaseChangeEvent(event);
         }
 	}
@@ -431,8 +431,8 @@ class ClientJobManager extends JobManager {
     private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
         private boolean cellTreeChanged;
         
-        SnapshotDatabaseChangeEvent(boolean cellTreeChanged) {
-            super(null);
+        SnapshotDatabaseChangeEvent(Snapshot oldSnapshot, boolean cellTreeChanged, Snapshot newSnapshot) {
+            super(oldSnapshot, newSnapshot);
             this.cellTreeChanged = cellTreeChanged;
         }
         

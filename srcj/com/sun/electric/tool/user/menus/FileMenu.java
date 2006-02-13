@@ -419,11 +419,6 @@ public class FileMenu {
         }
 
         public boolean doIt() throws JobException {
-            // open no name library first
-            Library mainLib = Library.newInstance("noname", null);
-            if (mainLib == null) return false;
-            mainLib.setCurrent();
-
             // try to open initial libraries
             boolean success = false;
             for (URL file : fileURLs) {

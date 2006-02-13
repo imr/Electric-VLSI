@@ -38,7 +38,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
@@ -76,7 +76,7 @@ import javax.swing.JTextField;
 /**
  * This is the Simulation Interface tool.
  */
-public class Simulation extends Listener
+public class Simulation extends Tool
 {
 	/** the Simulation tool. */		private static Simulation tool = new Simulation();
 

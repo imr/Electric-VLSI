@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -315,6 +316,12 @@ public final class Main
          */
         public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
 
+        /**
+         * Show new database snapshot.
+         * @param newSnapshot new snapshot.
+         */
+        public void showSnapshot(Snapshot newSnapshot) {}
+        
 	}
 
 	/** check if command line option 'option' present in 
@@ -409,6 +416,11 @@ public final class Main
 			} finally {
 				Undo.changesQuiet(false);
 			}
+
+            // open no name library first
+            Library mainLib = Library.newInstance("noname", null);
+            if (mainLib == null) return false;
+            mainLib.setCurrent();
 
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)

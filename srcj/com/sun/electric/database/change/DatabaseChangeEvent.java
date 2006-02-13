@@ -23,8 +23,12 @@
  */
 package com.sun.electric.database.change;
 
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ImmutableCell;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 
 import java.util.Iterator;
@@ -33,10 +37,13 @@ import java.util.Iterator;
  * A semantic event which indicates that Electric database changed its state.
  */
 public class DatabaseChangeEvent {
+    public final Snapshot oldSnapshot;
+    public final Snapshot newSnapshot;
 
-    private Undo.ChangeBatch batch;
-
-    public DatabaseChangeEvent(Undo.ChangeBatch batch) { this.batch = batch; }
+    public DatabaseChangeEvent(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        this.oldSnapshot = oldSnapshot;
+        this.newSnapshot = newSnapshot;
+    }
         
     /**
      * Returns true if ElectricObject eObj was created, killed or modified
@@ -46,13 +53,14 @@ public class DatabaseChangeEvent {
      */
     public boolean objectChanged(ElectricObject eObj)
     {
-        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            if (change.getObject() == eObj) {
-                return true;
-            }
-        }
-        return false;
+        return true;
+//        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
+//            Undo.Change change = (Undo.Change)it.next();
+//            if (change.getObject() == eObj) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     /**
@@ -61,22 +69,36 @@ public class DatabaseChangeEvent {
      * @return true if cell explorer tree was changed.
      */
     public boolean cellTreeChanged() {
-        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            if (change.getType() == Undo.Type.LIBRARYKILL ||
-                    change.getType() == Undo.Type.LIBRARYNEW ||
-                    change.getType() == Undo.Type.CELLKILL ||
-                    change.getType() == Undo.Type.CELLNEW ||
-                    change.getType() == Undo.Type.CELLGROUPMOD ||
-                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell)) {
-                return true;
-            }
-            if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
-                ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
-                ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
-                return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
-            }
+        if (!newSnapshot.getChangedLibraries(oldSnapshot).isEmpty()) return true;
+        if (newSnapshot.cellGroups != oldSnapshot.cellGroups) return true;
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            CellBackup newBackup = newSnapshot.getCell(cellId);
+            if (oldBackup == null || newBackup == null) return true;
+            ImmutableCell oldD = oldBackup.d;
+            ImmutableCell newD = newBackup.d;
+            if (oldD.modified != newD.modified) return true;
+            if (oldD.cellName != newD.cellName) return true;
+            if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
         }
         return false;
+//        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
+//            Undo.Change change = (Undo.Change)it.next();
+//            if (change.getType() == Undo.Type.LIBRARYKILL ||
+//                    change.getType() == Undo.Type.LIBRARYNEW ||
+//                    change.getType() == Undo.Type.CELLKILL ||
+//                    change.getType() == Undo.Type.CELLNEW ||
+//                    change.getType() == Undo.Type.CELLGROUPMOD ||
+//                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Library)) {
+//                return true;
+//            }
+//            if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
+//                ImmutableCell oldD = (ImmutableCell)change.getO1();
+//                ImmutableCell newD = (ImmutableCell)change.getObject().getImmutable();
+//                return oldD.cellName != newD.cellName ||
+//                        oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY);
+//            }
+//        }
+//        return false;
     }
 }

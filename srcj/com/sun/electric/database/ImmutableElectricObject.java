@@ -215,6 +215,20 @@ public abstract class ImmutableElectricObject {
     }
     
     /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public abstract int hashCodeExceptVariables();
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public abstract boolean equalsExceptVariables(ImmutableElectricObject o);
+    
+    /**
 	 * Checks invariant of this ImmutableElectricObject.
      * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.

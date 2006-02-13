@@ -24,9 +24,11 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -40,7 +42,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Tool;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
@@ -59,6 +60,11 @@ public class Layout extends Constraints
 
 	static final boolean DEBUG = false;
 
+    private static boolean wasChangesQuiet;
+    static Snapshot oldSnapshot;
+    private static long revisionDate;
+    private static String userName;
+
     /** Shadow Cell info */
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
     /** Map which contains temporary rigidity of ArcInsts. */ 
@@ -72,8 +78,6 @@ public class Layout extends Constraints
 	 */
 	public static Layout getConstraint() { return layoutConstraint; }
 
-    private static boolean wasChangesQuiet = false;
-    
 	/**
 	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
@@ -85,13 +89,15 @@ public class Layout extends Constraints
     
 	/**
 	 * Method to start a batch of changes.
+     * @param initialSnapshot snapshot before job changes.
 	 * @param tool the tool that generated the changes.
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
-	public void startBatch(Tool tool, boolean undoRedo)
+	public void startBatch(Snapshot initialSnapshot)
 	{
 		// force every cell to remember its current bounds
         wasChangesQuiet = false;
+        oldSnapshot = initialSnapshot; 
         cellInfos.clear();
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -108,8 +114,9 @@ public class Layout extends Constraints
 	/**
 	 * Method to do hierarchical update on any cells that changed
 	 */
-	public void endBatch()
+	public void endBatch(String userName)
 	{
+        Layout.userName = userName;
         if (DEBUG) {
             System.out.println("Temporary rigid:");
             for (Map.Entry<ArcInst,Boolean> e : tempRigid.entrySet()) {
@@ -123,6 +130,7 @@ public class Layout extends Constraints
 			{
 				Cell cell = cIt.next();
                 if (wasChangesQuiet) {
+                    cell.getTechnology();
                     cell.getBounds();
                     continue;
                 }
@@ -132,6 +140,7 @@ public class Layout extends Constraints
 
         cellInfos.clear();
         tempRigid.clear();
+        oldSnapshot = null;
 	}
 
 	/**
@@ -164,6 +173,20 @@ public class Layout extends Constraints
     }
     
 	/**
+	 * Method to handle a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	public void modifyCell(Cell cell, ImmutableCell oD) {}
+
+	/**
+	 * Method to handle a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
+
+	/**
 	 * Method to handle the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
 	 */
@@ -174,32 +197,6 @@ public class Layout extends Constraints
             newCellInfo(cell);
         else if (cell != null)
             getCellInfo(cell).newObject(obj);
-	}
-
-	/**
-	 * Method to announce a change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
-	{
-//		if (type == VPORTPROTO)
-//		{
-//			if ((stype&VCREF) != 0)
-//			{
-//				name = changedvariablename(type, skey, stype);
-//				if (estrcmp(name, x_("protoname")) == 0)
-//				{
-//					pp = (PORTPROTO *)addr;
-//					np = pp->parent;
-//					for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//					{
-//						(void)db_change((int)ni, NODEINSTMOD, ni->lowx, ni->lowy,
-//							ni->highx, ni->highy, ni->rotation, ni->transpose);
-//					}
-//				}
-//			}
-//		}
 	}
 
 	/**

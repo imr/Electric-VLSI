@@ -25,14 +25,14 @@ package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 
 import java.util.HashMap;
 
 /**
  * This is the Electrical Rule Checker tool.
  */
-public class ERC extends Listener
+public class ERC extends Tool
 {
 
 	/** the ERC tool. */		protected static ERC tool = new ERC();

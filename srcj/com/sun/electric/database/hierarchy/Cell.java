@@ -364,13 +364,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/** static list of all linked cells indexed by CellId. */		static final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
 
     /** Persistent data of this Cell. */                            private ImmutableCell d;
-	/** The CellName of the Cell. */								private CellName cellName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
-	/** The library this Cell belongs to. */						private Library lib;
-	/** The date this Cell was created. */							private Date creationDate = new Date();
-	/** The date this Cell was last modified. */					private Date revisionDate = new Date();
-	/** Internal flag bits. */										private int userBits = 0;
-	/** The basename for autonaming of instances of this Cell */	private Name basename;
+	/** The library this Cell belongs to. */						private final Library lib;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
@@ -388,9 +383,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_CORRECT_SUB - bounds are correct prvided that bounds of subcells are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
-	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
-    /** Set if Cell is modified (major or minor). */                private int modified;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
     /** Set if contents (nodes, arc, exports) were modified in this change job. */ private boolean contentsModified;
 
@@ -401,10 +394,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * This constructor should not be called.
 	 * Use the factory "newInstance" to create a Cell.
 	 */
-	private Cell(ImmutableCell d, Library lib)
+	private Cell(ImmutableCell d)
 	{
         this.d = d;
-        this.lib = lib;
+        this.lib = d.libId.inCurrentThread();
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -454,8 +447,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (cell.lowLevelPopulate(name)) return null;
 		if (cell.lowLevelLink()) return null;
 
-		// handle change control, constraint, and broadcast
-		Undo.newObject(cell);
 		return cell;
 	}
 
@@ -734,14 +725,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		checkChanging();
 		assert isLinked();
 		if (cellName == null) return;
-		if (cellName.equals(this.cellName)) return;
+		if (getCellName().equals(cellName)) return;
+
+		// remove temporarily from the library and from cell group
+		lib.removeCell(this);
+		cellGroup.remove(this);
 
 		// do the rename
-		CellName oldCellName = this.cellName;
-		lowLevelRename(cellName);
+        setD(d.withCellName(cellName), true);
 
-		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldCellName);
+        // add again to the library and to possibly to new cell group
+		lowLevelLinkCellName(true);
+		checkInvariants();
 	}
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
@@ -755,7 +750,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public static Cell lowLevelAllocate(Library lib)
 	{
 		Job.checkChanging();
-		Cell c = new Cell(ImmutableCell.newInstance(new CellId()), lib);
+        Date creationDate = new Date();
+		Cell c = new Cell(ImmutableCell.newInstance(new CellId(), lib.getId(), null, creationDate.getTime()));
 		return c;
 	}
 
@@ -790,7 +786,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			n = CellName.newName(cellName, n.getView(), n.getVersion());
 		}
 		
-		setCellName(n);
+        setD(d.withCellName(n), false);
 		return false;
 	}
 
@@ -802,14 +798,42 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		lib.checkChanging();
 		assert !isLinked();
-		if (cellName == null)
+		if (d.cellName == null)
 		{
 			System.out.println(this+" has bad name");
 			return true;
 		}
 
 		// add ourselves to the library
-		lowLevelLinkCellName();
+		lowLevelLinkCellName(true);
+
+		// success
+        CellId cellId = getD().cellId;
+        while (linkedCells.size() <= cellId.cellIndex) linkedCells.add(null);
+        linkedCells.set(cellId.cellIndex, this);
+		checkInvariants();
+        
+		// handle change control, constraint, and broadcast
+		Undo.newObject(this);
+		return false;
+	}
+
+	/**
+	 * Low-level access method to link this Cell into its library.
+	 * @return true on error.
+	 */
+	public boolean lowLevelLink_()
+	{
+		lib.checkChanging();
+		assert !isLinked();
+		if (d.cellName == null)
+		{
+			System.out.println(this+" has bad name");
+			return true;
+		}
+
+		// add ourselves to the library
+		lowLevelLinkCellName(false);
 
 		// success
         CellId cellId = getD().cellId;
@@ -838,27 +862,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         linkedCells.set(d.cellId.cellIndex, null);
 	}
 
-	/**
-	 * Low-level access method to rename a Cell.
-	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
-	 * @param newCellName the new cell name of this cell.
-	 */
-	public void lowLevelRename(CellName newCellName)
-	{
-		assert isLinked();
-		if (newCellName.equals(cellName)) return;
-
-		// remove temporarily from the library and from cell group
-		lib.removeCell(this);
-		cellGroup.remove(this);
-
-		setCellName(newCellName);
-
-		lowLevelLinkCellName();
-		checkInvariants();
-	}
-
-	private void lowLevelLinkCellName()
+	private void lowLevelLinkCellName(boolean canResolveConflict)
 	{
 		// ensure unique cell name
 		String protoName = getName();
@@ -878,10 +882,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		if (conflict)
 		{
+            assert canResolveConflict;
 			if (getVersion() > 0)
 				System.out.println("Already have cell " + getCellName() + " with version " + getVersion() + ", generating a new version");
 			CellName cn = CellName.newName(getName(), getView(), greatestVersion + 1);
-			setCellName(cn);
+            setD(d.withCellName(cn), true);
 		}
 
 		// determine the cell group
@@ -901,21 +906,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to change CellName of this Cell.
-	 * @param cellName new cell name.
-	 */
-	private void setCellName(CellName cellName)
-	{
-		this.cellName = cellName;
-
-		// prepare basename for autonaming
-		String protoName = cellName.getName();
-		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+"@0").getBasename();
-		if (basename == null)
-			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
-	}
-
-	/**
 	 * Low-level method to get the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
@@ -924,7 +914,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * This should not normally be called by any other part of the system.
 	 * @return the "user bits".
 	 */
-	public int lowLevelGetUserbits() { return userBits; }
+	public int lowLevelGetUserbits() { return d.flags; }
 
 	/**
 	 * Low-level method to set the user bits.
@@ -935,7 +925,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; Undo.otherChange(this); }
+	public void lowLevelSetUserbits(int userBits) { setD(d.withFlags(userBits), true); }
 
 	/*
 	 * Low-level method to backup this Cell to CellBackup.
@@ -955,19 +945,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ImmutableExport[] e = backupExports(oldE);
 		boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (oldBackup != null && d == oldBackup.d &&
-                cellName == oldBackup.cellName &&
 			    isMainSchematics == oldBackup.isMainSchematics &&
-                lib.getId() == oldBackup.libId &&
-                creationDate.getTime() == oldBackup.creationDate &&
-                revisionDate.getTime() == oldBackup.revisionDate &&
-                tech == oldBackup.tech &&
-                userBits == oldBackup.userBits &&
                 n == oldBackup.nodes &&
                 a == oldBackup.arcs &&
                 e == oldBackup.exports)
             return oldBackup;
-        return new CellBackup(d, cellName, isMainSchematics, lib.getId(), creationDate.getTime(), revisionDate.getTime(),
-                tech, userBits, n, a, e, cellUsages.clone());
+        return new CellBackup(d, isMainSchematics, n, a, e, cellUsages.clone());
     }
 
     private ImmutableNodeInst[] backupNodes(ImmutableNodeInst[] oldNodes) {
@@ -1081,7 +1064,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellBackup oldBackup = oldSnapshot.getCell(cellIndex);
         Cell cell;
         if (oldBackup == null) {
-            cell = new Cell(newBackup.d, Library.inCurrentThread(newBackup.libId));
+            cell = new Cell(newBackup.d);
             cell.update(newBackup, exportsModified);
             assert cell.d.cellId.cellIndex == cellIndex;
             while (linkedCells.size() <= cellIndex) linkedCells.add(null);
@@ -1104,7 +1087,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      
     public void update(CellBackup newBackup, BitSet exportsModified) {
      	this.d = newBackup.d;
-    	setCellName(newBackup.cellName);
+//    	setCellName(newBackup.cellName);
 //       	System.out.println("Update cell " + this);
        // Update NodeInsts
         nodes.clear();
@@ -2862,7 +2845,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * any view or version information.
 	 * @return the pure name of this Cell.
 	 */
-	public String getName() { return cellName.getName(); }
+	public String getName() { return getCellName().getName(); }
 
 	/**
 	 * Method to return the CellName object describing this Cell.
@@ -2870,7 +2853,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public CellName getCellName()
 	{
-		return cellName;
+		return d.cellName;
 	}
 
 	/**
@@ -3095,7 +3078,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the basename for autonaming instances of this Cell.
 	 * @return the basename for autonaming instances of this Cell.
 	 */
-	public Name getBasename() { return basename; }
+	public Name getBasename() {
+		String protoName = getName();
+		Name basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+"@0").getBasename();
+		if (basename == null)
+			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
+        return basename;
+    }
 
 	/**
 	 * Method to determine the index value which, when appended to a given string,
@@ -3262,24 +3251,46 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /**
      * Modifies persistend data of this Cell.
      * @param newD new persistent data.
+     * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
      */
-    private boolean setD(ImmutableCell newD) {
-        checkChanging();
-        ImmutableCell oldD = d;
-        if (newD == oldD) return false;
-        d = newD;
-        Undo.modifyVariables(this, oldD);
+    public boolean setD(ImmutableCell newD, boolean notify) {
+        if (isLinked()) {
+            checkChanging();
+            ImmutableCell oldD = d;
+            if (newD == oldD) return false;
+            d = newD;
+            setContentsModified();
+            if (notify)
+                Undo.modifyCell(this, oldD);
+        } else {
+            d = newD;
+        }
         return true;
     }
-
+    
     /**
      * Returns persistent data of this ElectricObject.
      * @return persistent data of this ElectricObject.
      */
     public ImmutableElectricObject getImmutable() { return d; }
     
-    public void lowLevelModifyVariables(ImmutableCell d) { this.d = d; }
+    public void lowLevelModify(ImmutableCell d) {
+        assert isLinked();
+        boolean renamed = getCellName() != d.cellName;
+        if (renamed) {
+            // remove temporarily from the library and from cell group
+            lib.removeCell(this);
+            cellGroup.remove(this);
+
+            setD(d, false);
+            lowLevelLinkCellName(false);
+            checkInvariants();
+        } else {
+            setD(d, false);
+        }
+    }
+    
         
     /**
      * Method to add a Variable on this Cell.
@@ -3287,7 +3298,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        setD(d.withVariable(var));
+        setD(d.withVariable(var), true);
     }
 
 	/**
@@ -3296,7 +3307,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void delVar(Variable.Key key)
 	{
-        setD(d.withoutVariable(key));
+        setD(d.withoutVariable(key), true);
 	}
     
     /**
@@ -3581,7 +3592,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the version number of this Cell.
 	 * @return the version number of this Cell.
 	 */
-	public int getVersion() { return cellName.getVersion(); }
+	public int getVersion() { return getCellName().getVersion(); }
 
 	/**
 	 * Method to return the number of different versions of this Cell.
@@ -3728,7 +3739,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Views include "layout", "schematics", "icon", "netlist", etc.
 	 * @return to get this Cell's View.
 	 */
-	public View getView() { return cellName.getView(); }
+	public View getView() { return getCellName().getView(); }
 
 	/**
 	 * Method to change the view of this Cell.
@@ -3895,35 +3906,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to get the creation date of this Cell.
 	 * @return the creation date of this Cell.
 	 */
-	public Date getCreationDate() { return creationDate; }
+	public Date getCreationDate() { return new Date(d.creationDate); }
 
 	/**
 	 * Method to set this Cell's creation date.
 	 * This is a low-level method and should not be called unless you know what you are doing.
 	 * @param creationDate the date of this Cell's creation.
 	 */
-	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
+	public void lowLevelSetCreationDate(Date creationDate) { setD(d.withCreationDate(creationDate.getTime()), true); }
 
 	/**
 	 * Method to return the revision date of this Cell.
 	 * @return the revision date of this Cell.
 	 */
-	public Date getRevisionDate() { return revisionDate; }
+	public Date getRevisionDate() { return new Date(d.revisionDate); }
 
 	/**
 	 * Method to set this Cell's last revision date.
 	 * This is a low-level method and should not be called unless you know what you are doing.
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
-	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
+	public void lowLevelSetRevisionDate(Date revisionDate) { setD(d.withRevisionDate(revisionDate.getTime()), true); }
 
 	/**
 	 * Method to set this Cell's revision date to the current time.
 	 */
-	public void madeRevision()
-	{
-		checkChanging();
-		revisionDate = new Date();
+	public void madeRevision() {
+        Date revisionDate = new Date();
+        setD(d.withRevisionDate(revisionDate.getTime()), true);
 	}
 
 	/**
@@ -3978,24 +3988,28 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 	/****************************** MISCELLANEOUS ******************************/
 
+    private boolean isFlag(int mask) { return (d.flags & mask) != 0; }
+    
+    private void setFlag(int mask, boolean value) { lowLevelSetUserbits(value ? d.flags | mask : d.flags & ~mask); }
+    
 	/**
 	 * Method to set this Cell so that instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 */
-	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND;  Undo.otherChange(this); }
+	public void setWantExpanded() { setFlag(WANTNEXPAND, true); }
 
 	/**
 	 * Method to set this Cell so that instances of it are "not expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 */
-	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; Undo.otherChange(this); }
+	public void clearWantExpanded() { setFlag(WANTNEXPAND, false); }
 
 	/**
 	 * Method to tell if instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * @return true if instances of it are "expanded" by when created.
 	 */
-	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0 || isIcon(); }
+	public boolean isWantExpanded() { return isFlag(WANTNEXPAND) || isIcon(); }
 
 	/**
 	 * Method to return the function of this Cell.
@@ -4008,39 +4022,39 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to set this Cell so that everything inside of it is locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; Undo.otherChange(this); }
+	public void setAllLocked() { setFlag(NPLOCKED, true); }
 
 	/**
 	 * Method to set this Cell so that everything inside of it is not locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; Undo.otherChange(this); }
+	public void clearAllLocked() { setFlag(NPLOCKED, false); }
 
 	/**
 	 * Method to tell if the contents of this Cell are locked.
 	 * Locked instances cannot be moved or deleted.
 	 * @return true if the contents of this Cell are locked.
 	 */
-	public boolean isAllLocked() { return (userBits & NPLOCKED) != 0; }
+	public boolean isAllLocked() { return isFlag(NPLOCKED); }
 
 	/**
 	 * Method to set this Cell so that all instances inside of it are locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; Undo.otherChange(this); }
+	public void setInstancesLocked() { setFlag(NPILOCKED, true); }
 
 	/**
 	 * Method to set this Cell so that all instances inside of it are not locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; Undo.otherChange(this); }
+	public void clearInstancesLocked() { setFlag(NPILOCKED, false); }
 
 	/**
 	 * Method to tell if the sub-instances in this Cell are locked.
 	 * Locked instances cannot be moved or deleted.
 	 * @return true if the sub-instances in this Cell are locked.
 	 */
-	public boolean isInstancesLocked() { return (userBits & NPILOCKED) != 0; }
+	public boolean isInstancesLocked() { return isFlag(NPILOCKED); }
 
 	/**
 	 * Method to set this Cell so that it is part of a cell library.
@@ -4048,7 +4062,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; Undo.otherChange(this); }
+	public void setInCellLibrary() { setFlag(INCELLLIBRARY, true); }
 
 	/**
 	 * Method to set this Cell so that it is not part of a cell library.
@@ -4056,7 +4070,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; Undo.otherChange(this); }
+	public void clearInCellLibrary() { setFlag(INCELLLIBRARY, false); }
 
 	/**
 	 * Method to tell if this Cell is part of a cell library.
@@ -4065,21 +4079,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 * @return true if this Cell is part of a cell library.
 	 */
-	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }
+	public boolean isInCellLibrary() { return isFlag(INCELLLIBRARY); }
 
 	/**
 	 * Method to set this Cell so that it is part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; Undo.otherChange(this); }
+	public void setInTechnologyLibrary() { setFlag(TECEDITCELL, true); }
 
 	/**
 	 * Method to set this Cell so that it is not part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; Undo.otherChange(this); }
+	public void clearInTechnologyLibrary() { setFlag(TECEDITCELL, false); }
 
 	/**
 	 * Method to tell if this Cell is part of a Technology Library.
@@ -4087,7 +4101,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 * @return true if this Cell is part of a Technology Library.
 	 */
-	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
+	public boolean isInTechnologyLibrary() { return isFlag(TECEDITCELL); }
 
     /**
 	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
@@ -4095,19 +4109,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void setModified(boolean majorChange)
     {
-        if (majorChange) modified = 1;
-        else
-        {
-            // only set it if modified != 1
-            if (modified != 1) modified = 0;
-        }
+        int newModified = majorChange ? 1 : 0;
+        if (newModified >= d.modified)
+            setD(d.withModified((byte)newModified), true);
     }
 
 	/**
 	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
      * This is done when the library contained this cell is saved to disk.
 	 */
-	public void clearModified() { modified = -1; }
+	public void clearModified() { setD(d.withModified((byte)-1), true); }
 
 	/**
 	 * Method to tell if this Cell has been modified since last save to disk.
@@ -4115,9 +4126,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public boolean isModified(boolean majorChange)
     {
-        if (majorChange) return modified == 1;
+        if (majorChange) return d.modified == 1;
         // only minor change
-        return modified == 0;
+        return d.modified == 0;
     }
 
     /**
@@ -4233,12 +4244,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * areas of the cell that are different pages.
 	 * @param multi true to make this cell multi-page.
 	 */
-	public void setMultiPage(boolean multi)
-	{
-		checkChanging();
-		if (multi) userBits |= MULTIPAGE; else
-			userBits &= ~MULTIPAGE;
-	}
+	public void setMultiPage(boolean multi) { setFlag(MULTIPAGE, multi); }
 
 	/**
 	 * Method to tell if this Cell is a multi-page drawing.
@@ -4246,7 +4252,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * areas of the cell that are different pages.
 	 * @return true if this Cell is a multi-page drawing.
 	 */
-	public boolean isMultiPage() { return (userBits & MULTIPAGE) != 0; }
+	public boolean isMultiPage() { return isFlag(MULTIPAGE); }
 	
     /**
      * Returns true if this Cell is linked into database.
@@ -4291,7 +4297,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         super.check();
         CellId cellId = getD().cellId;
 		assert linkedCells.get(cellId.cellIndex) == this;
-		assert cellName != null;
+		assert getCellName() != null;
 		assert getVersion() > 0;
 
 		for (int i = 0; i < exports.length; i++)
@@ -4478,9 +4484,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public Technology getTechnology()
 	{
-		if (tech == null)
-            tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
-		return tech;
+		if (d.tech == null)
+            setTechnology(Technology.whatTechnology(this, null, 0, 0, null, 0, 0));
+		return d.tech;
 	}
 
 	/**
@@ -4488,12 +4494,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * It can only be called for Cells because PrimitiveNodes have fixed Technology membership.
 	 * @param tech the new technology for this NodeProto (Cell).
 	 */
-	public void setTechnology(Technology tech)
-	{
-        checkChanging();
-        this.tech = tech;
-        Undo.otherChange(this);
-    }
+	public void setTechnology(Technology tech) { setD(d.withTech(tech), true); }
 
 	/**
 	 * Finds the Schematic Cell associated with this Icon Cell.

@@ -149,6 +149,7 @@ public final class Launcher
         
         String script = args[1];
         String command = program;
+        command += " -ea";
         for (int i = 2; i < args.length; i++)
             command += " " + args[i];
         command += " -jar " + jarfile + " -batch";

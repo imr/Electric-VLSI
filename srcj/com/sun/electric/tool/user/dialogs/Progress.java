@@ -56,7 +56,7 @@ public class Progress
 	 */
 	public Progress(String title)
 	{
-        assert !Job.BATCHMODE;
+        if (Job.BATCHMODE) return;
 		if (TopLevel.isMDIMode())
 		{
 			jif = new JInternalFrame(title);

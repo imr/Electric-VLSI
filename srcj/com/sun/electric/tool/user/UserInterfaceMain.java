@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -82,50 +83,66 @@ public class UserInterfaceMain implements UserInterface
 	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
     
     static volatile boolean initializationFinished = false;
+    
     private static volatile boolean undoEnabled = false;
     private static volatile boolean redoEnabled = false;
     private static final EventListenerList undoRedoListenerList = new EventListenerList();
-    
     private static EventListenerList listenerList = new EventListenerList();
+    private static Snapshot currentSnapshot = new Snapshot();
     
-    Class osXClass = null;
-    Method osXRegisterMethod = null/*, osXSetJobMethod = null*/;
-    SplashWindow sw = null;
+    private Class osXClass = null;
+    private Method osXRegisterMethod = null/*, osXSetJobMethod = null*/;
+    private SplashWindow sw = null;
  
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
- 		// see if there is a Mac OS/X interface
-        if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
-            try {
-                osXClass = Class.forName("com.sun.electric.MacOSXInterface");
-                
-                // find the necessary methods on the Mac OS/X class
-                try {
-                    osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
-//                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
-                } catch (NoSuchMethodException e) {
-                    osXRegisterMethod = /*osXSetJobMethod =*/ null;
-                }
-                if (osXRegisterMethod != null) {
-                    try {
-                        osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
-                    } catch (Exception e) {
-                        System.out.println("Error initializing Mac OS/X interface");
-                    }
-                }
-            } catch (ClassNotFoundException e) {}
-        }
-        //		MacOSXInterface.registerMacOSXApplication(argsList);
-        
-        //runThreadStatusTimer();
         new EventProcessor();
-        
-        if (showSplash)
-            sw = new SplashWindow();
-        
-        TopLevel.OSInitialize(mode);
+        SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
     
-    /**
+    private class InitializationRun implements Runnable {
+        List<String> argsList;
+        Mode mode;
+        boolean showSplash;
+        InitializationRun(List<String> argsList, Mode mode, boolean showSplash) {
+            this.argsList = argsList;
+            this.mode = mode;
+            this.showSplash = showSplash;
+        }
+        public void run() {
+            assert SwingUtilities.isEventDispatchThread();
+            // see if there is a Mac OS/X interface
+            if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
+                try {
+                    osXClass = Class.forName("com.sun.electric.MacOSXInterface");
+                    
+                    // find the necessary methods on the Mac OS/X class
+                    try {
+                        osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
+//                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+                    } catch (NoSuchMethodException e) {
+                        osXRegisterMethod = /*osXSetJobMethod =*/ null;
+                    }
+                    if (osXRegisterMethod != null) {
+                        try {
+                            osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
+                        } catch (Exception e) {
+                            System.out.println("Error initializing Mac OS/X interface");
+                        }
+                    }
+                } catch (ClassNotFoundException e) {}
+            }
+            //		MacOSXInterface.registerMacOSXApplication(argsList);
+            
+            //runThreadStatusTimer();
+            
+            if (showSplash)
+                sw = new SplashWindow();
+            
+            TopLevel.OSInitialize(mode);
+        }
+    }
+        
+   /**
      * Method is called when initialization was finished.
      */
     public void finishInitialization() {
@@ -471,7 +488,15 @@ public class UserInterfaceMain implements UserInterface
         }
     }
     
-	/**
+    /**
+     * Show new database snapshot.
+     * @param newSnapshot new snapshot.
+     */
+    public void showSnapshot(Snapshot newSnapshot) {
+            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot));
+    }
+
+    /**
 	 * Method to tell whether undo can be done.
 	 * This is used by the tool bar to determine whether the undo button should be available.
 	 * @return true if undo can be done.
@@ -547,6 +572,17 @@ public class UserInterfaceMain implements UserInterface
         }
     }
    
+	private static class DatabaseChangeRun implements Runnable
+	{
+		private Snapshot newSnapshot;
+		private DatabaseChangeRun(Snapshot newSnapshot) { this.newSnapshot = newSnapshot; }
+        public void run() {
+            DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
+            currentSnapshot = newSnapshot;
+            fireDatabaseChangeEvent(event);
+        }
+	}
+    
     private int lastId = 0;
     private ArrayList<SavedHighlights> savedHighlights = new ArrayList<SavedHighlights>();
     

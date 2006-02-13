@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
@@ -177,6 +178,12 @@ public interface UserInterface
      */
     public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled);
 
+    /**
+     * Show new database snapshot.
+     * @param newSnapshot new snapshot.
+     */
+    public void showSnapshot(Snapshot newSnapshot);
+    
     /**
      * Method is called when initialization was finished.
      */

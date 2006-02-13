@@ -26,17 +26,16 @@ package com.sun.electric.database.change;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -47,15 +46,12 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-import javax.swing.event.EventListenerList;
 /**
  * This interface defines changes that are made to the database.
  */
@@ -78,13 +74,13 @@ public class Undo
 		/** Describes a changed Export. */									EXPORTMOD,
 		/** Describes a newly-created Cell. */								CELLNEW,
 		/** Describes a deleted Cell. */									CELLKILL,
+        /** Describes a changed Cell. */                                    CELLMOD,
 		/** Describes the renaming of an arbitrary object. */				OBJECTRENAME,
 		/** Describes the redrawing of an arbitrary object. */				OBJECTREDRAW,
-		/** Describes the change of Variables on an object. */              VARIABLESMOD,
 		/** Describes a new library change */								LIBRARYNEW,
 		/** Describes a delete library change */							LIBRARYKILL,
-		/** Describes a Cell-group change */								CELLGROUPMOD,
-		/** Describes an other (non-undoable) change */						OTHERCHANGE;
+		/** Describes a changed Library. */                                 LIBRARYMOD,
+		/** Describes a Cell-group change */								CELLGROUPMOD;
     }
 
 	/**
@@ -177,6 +173,20 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.modifyExport((Export)obj, (ImmutableExport)o1);
 				}
+			} else if (type == Type.CELLMOD)
+			{
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
+				{
+					Listener listener = (Listener)it.next();
+					listener.modifyCell((Cell)obj, (ImmutableCell)o1);
+				}
+			} else if (type == Type.LIBRARYMOD)
+			{
+				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
+				{
+					Listener listener = (Listener)it.next();
+					listener.modifyLibrary((Library)obj, (ImmutableLibrary)o1);
+				}
 			} else if (type == Type.CELLGROUPMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
@@ -184,15 +194,6 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.modifyCellGroup((Cell)obj, (Cell.CellGroup)o1);
 				}
-			} else if (type == Type.VARIABLESMOD)
-			{
-				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.modifyVariables(obj, (ImmutableElectricObject)o1);
-				}
-			} else if (type == Type.OTHERCHANGE)
-            {
             }
 			broadcasting = null;
 		}
@@ -203,7 +204,7 @@ public class Undo
 		private void reverse(boolean backwards)
 		{
 			// determine what needs to be marked as changed
-			setDirty(type, obj, o1);
+//			setDirty(type, obj, o1);
 
 			if (type == Type.NODEINSTNEW)
 			{
@@ -293,8 +294,24 @@ public class Undo
 			if (type == Type.CELLKILL)
 			{
 				Cell cell = (Cell)obj;
-				cell.lowLevelLink();
+				cell.lowLevelLink_();
 				type = Type.CELLNEW;
+				return;
+			}
+			if (type == Type.CELLMOD)
+			{
+				Cell cell = (Cell)obj;
+                ImmutableCell oldD = cell.getD();
+                cell.lowLevelModify((ImmutableCell)o1);
+                o1 = oldD;
+				return;
+			}
+			if (type == Type.LIBRARYMOD)
+			{
+                Library lib = (Library)obj;
+				ImmutableLibrary oldD = lib.getD();
+                lib.lowLevelModify(oldD);
+                o1 = oldD;
 				return;
 			}
 			if (type == Type.CELLGROUPMOD)
@@ -307,35 +324,12 @@ public class Undo
 			}
 			if (type == Type.OBJECTRENAME)
 			{
-                 if (obj instanceof Cell)
-				{
-					Cell cell = (Cell)obj;
-					CellName oldName = (CellName)o1;
-					o1 = cell.getCellName();
-					cell.lowLevelRename(oldName);
-				} else if (obj instanceof Library)
-				{
-					Library lib = (Library)obj;
-					String oldName = (String)o1;
-					o1 = lib.getName();
-					lib.lowLevelRename(oldName);
-				}
+                Library lib = (Library)obj;
+                String oldName = (String)o1;
+                o1 = lib.getName();
+                lib.lowLevelRename(oldName);
 				return;
 			}
-			if (type == Type.VARIABLESMOD)
-			{
-				ImmutableElectricObject oldImmutable = obj.getImmutable();
-                if (obj instanceof Cell)
-                    ((Cell)obj).lowLevelModifyVariables((ImmutableCell)o1);
-                else if (obj instanceof Library)
-                    ((Library)obj).lowLevelModifyVariables((ImmutableLibrary)o1);
-                o1 = oldImmutable;
-				return;
-			}
-            if (type == Type.OTHERCHANGE)
-            {
-                return;
-            }
 		}
 
 		/**
@@ -368,15 +362,23 @@ public class Undo
                 if (type == Type.EXPORTMOD && pp.getNameKey() != ((ImmutableExport)o1).name)
                     modifyUsages(cell);
 				major = true;
-			} else if (type == Type.CELLNEW || type == Type.CELLKILL)
+			} else if (type == Type.CELLNEW || type == Type.CELLKILL || type == Type.CELLMOD)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
+                if (type == Type.CELLMOD && cell.getCellName() != ((ImmutableCell)o1).cellName)
+                    modifyUsages(cell);
 				major = true;
+                // major in case of CELLMOD ????
 			} else if (type == Type.CELLGROUPMOD)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
+			} else if (type == Type.LIBRARYMOD)
+			{
+				lib = (Library)obj;
+//				Variable var = (Variable)o1;
+//				major = isMajorVariable(obj, var.getKey());
 			} else if (type == Type.OBJECTREDRAW)
             {
                 return;
@@ -389,32 +391,24 @@ public class Undo
                     modifyUsages(cell);
 				}
 				major = true;   // this is major change for the library (E.g.: export names)
-			} else if (type == Type.VARIABLESMOD)
-			{
-				cell = obj.whichCell();
-				if (cell != null) lib = cell.getLibrary();
-//				Variable var = (Variable)o1;
-//				major = isMajorVariable(obj, var.getKey());
-			} else if (type == Type.OTHERCHANGE)
-            {
-                cell = obj.whichCell();
-                if (cell != null) lib = cell.getLibrary();
             }
 
 			// set "changed" and "dirty" bits
 			if (cell != null)
 			{
-				if (major)
-                    cell.madeRevision();
-                cell.setModified(major); // this will avoid marking DRC variables.
+//				if (major)
+//                    cell.madeRevision();
+//                cell.setModified(major); // this will avoid marking DRC variables.
 
-				changedCells.add(cell);
+                Boolean oldMajor = changedCells.get(cell);
+                if (oldMajor == null || !oldMajor.booleanValue() && major)
+                    changedCells.put(cell, Boolean.valueOf(major));
 			}
-			if (lib != null)
-			{
-				if (major) lib.setChangedMajor(); else
-					lib.setChangedMinor();
-			}
+//			if (lib != null)
+//			{
+//				if (major) lib.setChangedMajor(); else
+//					lib.setChangedMinor();
+//			}
 		}
 
         /**
@@ -425,8 +419,9 @@ public class Undo
             for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); ) {
                 CellUsage u = (CellUsage)it.next();
                 Cell parent = u.getParent();
-                parent.getLibrary().setChanged();
-                parent.setModified(true);
+                changedCells.put(cell, Boolean.TRUE);
+//                parent.getLibrary().setChanged();
+//                parent.setModified(true);
             }
         }
         
@@ -513,11 +508,20 @@ public class Undo
 				Cell cell = (Cell)obj;
 				return cell + " deleted";
 			}
+			if (type == Type.CELLMOD)
+			{
+				Cell cell = (Cell)obj;
+				return cell + " modified";
+			}
 			if (type == Type.CELLGROUPMOD)
 			{
 				Cell cell = (Cell)obj;
 //				Cell.CellGroup group = (Cell.CellGroup)o1;
 				return cell + " moved to group";
+			}
+			if (type == Type.LIBRARYMOD)
+			{
+				return "Changed library "+obj;
 			}
 			if (type == Type.OBJECTRENAME)
 			{
@@ -527,10 +531,6 @@ public class Undo
 			{
 				return "Redraw object " + obj;
 			}
-			if (type == Type.VARIABLESMOD)
-			{
-				return "Changed variables on "+obj;
-			}
 			if (type == Type.LIBRARYNEW)
 			{
 				return "Created "+obj;
@@ -539,10 +539,6 @@ public class Undo
 			{
 				return "Deleted "+obj;
 			}
-            if (type == Type.OTHERCHANGE)
-            {
-                return "Other (non-undoable) change in " + obj;
-            }
 			return "UNKNOWN CHANGE, type=" + type;
 		}
 	}
@@ -552,6 +548,8 @@ public class Undo
 	 */
 	public static class ChangeBatch
 	{
+//        private Snapshot oldSnapshot, newSnapshot;
+        
 		private ArrayList<Change> changes;
 		private int batchNumber;
 //		private boolean done;
@@ -561,7 +559,7 @@ public class Undo
 		private int startingHighlights = -1;				// highlights before changes made
 		private int preUndoHighlights = -1;				// highlights before undo of changes done
 
-		private ChangeBatch() {}
+		private ChangeBatch(Snapshot oldSnapshot) { /*this.oldSnapshot = oldSnapshot;*/ }
 		
 		private void add(Change change) { changes.add(change); }
 
@@ -594,23 +592,38 @@ public class Undo
 		public int getNumChanges() { return changes.size(); }
 
         public void reverse(boolean backwards) {
-            if (changes.isEmpty()) return;
-            broadcastStart(true);
-            
-            Collections.reverse(changes);
-            for(Change ch: changes) {
-                // reverse the change
-                ch.reverse(backwards);
-                // now broadcast this change
-                ch.broadcast(true);
+//            newSnapshot.checkFresh();
+            if (changes.isEmpty()) {
+//                assert newSnapshot == oldSnapshot;
+            } else {
+                broadcastStart(true);
+                
+//                Snapshot tmpSnapshot = newSnapshot;
+//                newSnapshot = oldSnapshot;
+//                oldSnapshot = tmpSnapshot;
+                
+                Collections.reverse(changes);
+                for(Change ch: changes) {
+                    // reverse the change
+                    ch.reverse(backwards);
+                    // now broadcast this change
+                    ch.broadcast(true);
+                }
             }
             
+    		// broadcast the end-batch
+            refreshCellBounds();
+            for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+                Listener listener = it.next();
+                listener.endBatch();
+            }
+//            newSnapshot.checkFresh();
         }
         
 		private void describe(String title)
 		{
 			// display the change batches
-			int nodeInst = 0, arcInst = 0, export = 0, cell = 0, object = 0, variable = 0;
+			int nodeInst = 0, arcInst = 0, export = 0, cell = 0, library = 0, object = 0;
 			int batchSize = changes.size();
 			for(int j = 0; j<batchSize; j++)
 			{
@@ -624,18 +637,15 @@ public class Undo
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
 				{
 					export++;
-				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLGROUPMOD)
+				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD || ch.getType() == Type.CELLGROUPMOD)
 				{
 					cell++;
 				} else if (ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
-				} else if (ch.getType() == Type.VARIABLESMOD)
+				} else if (ch.getType() == Type.LIBRARYMOD)
 				{
-					variable++;
-				} else if (ch.getType() == Type.OTHERCHANGE)
-                {
-                        object++;
+					library++;
                 }
 			}
 
@@ -644,8 +654,8 @@ public class Undo
 			if (arcInst != 0) message += " " + arcInst + " arcs";
 			if (export != 0) message += " " + export + " exports";
 			if (cell != 0) message += " " + cell + " cells";
+			if (library != 0) message += " " + library + " libraries";
 			if (object != 0) message += " " + object + " objects";
-			if (variable != 0) message += " " + variable + " variables";
 			System.out.println(message + ":");
 			for(int j = 0; j<batchSize; j++)
 			{
@@ -662,10 +672,7 @@ public class Undo
 	private static int overallBatchNumber = 0;
 	private static List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
 	private static List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
-	private static HashSet<Cell> changedCells = new HashSet<Cell>();
-
-    /** Listeners. */
-    private static EventListenerList listenerList = new EventListenerList();
+	private static HashMap<Cell,Boolean> changedCells = new HashMap<Cell,Boolean>();
 
 	/**
 	 * Method to start a new batch of changes.
@@ -673,7 +680,7 @@ public class Undo
 	 * @param activity a String describing the activity.
 	 * @param cell root of up-tree or null for whole database lock
 	 */
-	public static void startChanges(Tool tool, String activity, int startingHighlights)
+	public static void startChanges(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights)
 	{
 		// close any open batch of changes
 		clearChanges();
@@ -685,7 +692,7 @@ public class Undo
 		changedCells.clear();
 
 		// allocate a new change batch
-		currentBatch = new ChangeBatch();
+		currentBatch = new ChangeBatch(oldSnapshot);
 		currentBatch.changes = new ArrayList<Change>();
 		currentBatch.batchNumber = ++overallBatchNumber;
 //		currentBatch.done = true;
@@ -705,7 +712,7 @@ public class Undo
         updateUndoRedo();
 
 		// start the batch of changes
-		Constraints.getCurrent().startBatch(tool, false);
+		Constraints.getCurrent().startBatch(oldSnapshot);
 
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
@@ -738,8 +745,27 @@ public class Undo
 		}
 
 		// changes made: apply final constraints to this batch of changes
-		fireEndChangeBatch(currentBatch, false);
-
+        String userName = System.getProperty("user.name"); 
+        Constraints.getCurrent().endBatch(userName);
+        for (Cell cell: changedCells.keySet()) {
+            Boolean major = changedCells.get(cell);
+            if (major) {
+                if (!Job.BATCHMODE)
+                    cell.newVar(User.FRAME_LAST_CHANGED_BY, userName);
+                cell.setModified(true);
+                cell.getLibrary().setChangedMinor();
+                cell.getLibrary().setChangedMajor();
+            } else {
+                cell.setModified(false);
+                cell.getLibrary().setChangedMinor();
+            }
+        }
+//        currentBatch.newSnapshot = Snapshot.makeSnapshot(currentBatch.oldSnapshot);
+        for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+            Listener listener = it.next();
+            listener.endBatch();
+        }
+//        currentBatch.newSnapshot.checkFresh();
 		currentBatch = null;
 	}
 
@@ -749,39 +775,13 @@ public class Undo
 	 */
 	public static Iterator<Cell> getChangedCells()
 	{
-		return changedCells.iterator();
+		return changedCells.keySet().iterator();
 	}
 
-	private static synchronized void fireEndChangeBatch(ChangeBatch batch, boolean undo)
-	{
-        if (undo) {
-            refreshCellBounds();
-        } else {
-            Constraints.getCurrent().endBatch();
-        }
-		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-		{
-			Listener listener = (Listener)it.next();
-			listener.endBatch();
-		}
-        
-		if (Job.BATCHMODE) return;
-
-		SwingUtilities.invokeLater(new DatabaseChangeRun(batch));
-	}
     
     private static synchronized void updateUndoRedo() {
         ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
-
-	private static class DatabaseChangeRun implements Runnable
-	{
-		private DatabaseChangeEvent event;
-		private DatabaseChangeRun(ChangeBatch batch) { event = new DatabaseChangeEvent(batch); }
-        public void run() {
-            UserInterfaceMain.fireDatabaseChangeEvent(event);
-        }
-	}
 
     private static void broadcastStart(boolean undoRedo) {
         // broadcast a start-batch on the first change
@@ -807,11 +807,11 @@ public class Undo
 	 * <LI>EXPORTMOD takes o1=oldD.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
+	 * <LI>CELLMOD takes o1=oldD.
 	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
-	 * <LI>VARIABLESMOD takes o1=oldImmutable.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
-     * <LI>OTHERCHANGE takes nothing
+	 * <LI>LIBRARYMOD takes o1=oldD.
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
@@ -903,6 +903,23 @@ public class Undo
 	}
 
 	/**
+	 * Method to store a change to an Cell in the change-control system.
+	 * @param pp the Cell that was moved.
+	 * @param oD the old contents of the Cell.
+	 */
+	public static void modifyCell(Cell cell, ImmutableCell oD)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(cell, Type.CELLMOD, oD);
+		if (ch == null) return;
+
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
+		Constraints.getCurrent().modifyCell(cell, oD);
+	}
+
+	/**
 	 * Method to store a change to a Cell's CellGroup in the change-control system.
 	 * @param cell the Cell whose CellGroup is changing
 	 * @param oldGroup the old CellGroup
@@ -916,6 +933,24 @@ public class Undo
         if (currentBatch.getNumChanges() <= 1)
             broadcastStart(false);
 		ch.broadcast(false);
+	}
+
+    /*
+	 * Method to store the change to a Linrary
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public static void modifyLibrary(Library lib, ImmutableLibrary oldD)
+	{
+		if (!recordChange()) return;
+		Type type = Type.LIBRARYMOD;
+		Change ch = newChange(lib, type, oldD);
+		if (ch == null) return;
+
+        if (currentBatch.getNumChanges() <= 1)
+            broadcastStart(false);
+		ch.broadcast(false);
+		Constraints.getCurrent().modifyLibrary(lib, oldD);
 	}
 
 	/**
@@ -1006,37 +1041,6 @@ public class Undo
 		ch.broadcast(false);
 	}
 
-    /*
-	 * Method to store the change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	public static void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
-	{
-		if (!recordChange()) return;
-		Type type = Type.VARIABLESMOD;
-		Change ch = newChange(obj, type, oldImmutable);
-		if (ch == null) return;
-
-        if (currentBatch.getNumChanges() <= 1)
-            broadcastStart(false);
-		ch.broadcast(false);
-		Constraints.getCurrent().modifyVariables(obj, oldImmutable);
-	}
-
-	/**
-	 * Method to schedule an 'other' change on an ElectricObject.
-	 * @param obj the ElectricObject on which the miscellaneous change is being made.
-	 */
-    public static void otherChange(ElectricObject obj)
-    {
-        if (!recordChange()) return;
-        Change ch = Undo.newChange(obj, Type.OTHERCHANGE, null);
-        if (ch == null) return;
-        
-//        ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-    }
-    
     /**
 	 * Method to return the current change batch.
 	 * @return the current change batch (null if no changes are being done).
@@ -1070,7 +1074,7 @@ public class Undo
 	 * By calling this method, the "next change quiet" state is reset.
 	 * @return true if changes are "quiet".
 	 */
-	public static boolean recordChange()
+	private static boolean recordChange()
 	{
 		if (currentBatch == null) return false;
 		return !doChangesQuietly;
@@ -1083,22 +1087,6 @@ public class Undo
 	 */
 	public static ChangeBatch undoABatch(int savedHighlights)
 	{
-		// save highlights for redo
-//		List<Object> savedHighlights = null;
-//		Point2D offset = new Point2D.Double(0, 0);
-//		// for now, just save from the current window
-//		UserInterface ui = Job.getUserInterface();
-//		EditWindow_ wnd = ui.getCurrentEditWindow_();
-//		if (wnd != null)
-//		{
-//			savedHighlights = wnd.saveHighlightList();
-//			offset = wnd.getHighlightOffset();
-//            wnd.clearHighlighting();
-//            wnd.finishedHighlighting();
-////			highlighter.clear();
-////			highlighter.finished();
-//		}
-
 		// close out the current batch
 		clearChanges();
 
@@ -1119,23 +1107,6 @@ public class Undo
 		// Put message in Message Window
 		System.out.println("Undoing: " + batch.activity);
 //        batch.describe("Undo");
-
-		// broadcast the end-batch
-		fireEndChangeBatch(batch, true);
-
-//		// restore highlights (must be done after all other tools have
-//		// responded to changes)
-//		if (wnd != null)
-//		{
-//			wnd.restoreHighlightList(batch.startingHighlights);
-//			if (batch.startHighlightsOffset != null)
-//				wnd.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
-//											   (int)batch.startHighlightsOffset.getY());
-//			wnd.finishedHighlighting();
-//		}
-
-		// mark that this batch is undone
-//		batch.done = false;
 		return batch;
 	}
 
@@ -1145,14 +1116,6 @@ public class Undo
 	 */
 	public static ChangeBatch redoABatch()
 	{
-//		UserInterface ui = Job.getUserInterface();
-//		EditWindow_ wnd = ui.getCurrentEditWindow_();
-//		if (wnd != null)
-//		{
-//			wnd.clearHighlighting();
-//			wnd.finishedHighlighting();
-//		}
-
 		// close out the current batch
 		clearChanges();
 
@@ -1170,21 +1133,6 @@ public class Undo
         // Put message in Message Window
 		System.out.println("Redoing: " + batch.activity);
 //        batch.describe("Redo");
-
-		// broadcast the end-batch
-		fireEndChangeBatch(batch, true);
-
-//		// set highlights to what they were before undo
-//		if (batch.preUndoHighlights != null)
-//		{
-//			wnd.restoreHighlightList(batch.preUndoHighlights);
-//			wnd.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
-//				(int)batch.preUndoHighlightsOffset.getY());
-//			wnd.finishedHighlighting();
-//		}
-
-		// mark that this batch is redone
-//		batch.done = true;
 		return batch;
 	}
 

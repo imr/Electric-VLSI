@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.constraint;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -117,6 +119,12 @@ class LayoutCell {
                 }
             }
         }
+        cell.getTechnology();
+//        CellBackup oldBackup = Layout.oldSnapshot.getCell((CellId)cell.getId());
+//        CellBackup newBackup = cell.backup(oldBackup);
+//        if (newBackup != oldBackup) {
+//            
+//        }
         cell.getBounds();
         
         // Release unnecessary memory

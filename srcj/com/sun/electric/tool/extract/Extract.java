@@ -24,12 +24,12 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 
 /**
  * This is the Extraction tool.
  */
-public class Extract extends Listener
+public class Extract extends Tool
 {
 	/** the Extraction tool. */								private static Extract tool = new Extract();
 

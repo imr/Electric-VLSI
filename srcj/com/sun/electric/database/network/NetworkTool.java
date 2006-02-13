@@ -27,11 +27,12 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
@@ -474,6 +475,17 @@ public class NetworkTool extends Listener
 	}
 
 	/**
+	 * Method to handle a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	public void modifyCell(Cell cell, ImmutableCell oD) {
+        invalidate();
+		if (!debug) return;
+		System.out.println("NetworkTool.modifyCell("+cell+")");
+    }
+
+	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
 	 * @param oCellGroup the old CellGroup of the Cell.
@@ -489,7 +501,17 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
 	}
 
-	public void newObject(ElectricObject obj)
+	/**
+	 * Method to handle a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {
+        if (!debug) return;
+		System.out.println("NetworkTool.modifyLibrary(" + lib + ",_)");
+    }
+
+    public void newObject(ElectricObject obj)
 	{
 		invalidate();
 		Cell cell = obj.whichCell();
@@ -534,6 +556,8 @@ public class NetworkTool extends Listener
 	}
 
 	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {
+        if (obj instanceof Cell)
+            invalidate();
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyVariables("+obj+")");
 	}

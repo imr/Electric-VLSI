@@ -48,7 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -62,7 +62,7 @@ import java.util.List;
 /**
  * Class to implement parasitic extraction.
  */
-public class ParasiticTool extends Listener{
+public class ParasiticTool extends Tool {
 
     /** The Parasitic Extraction tool */              private static ParasiticTool tool = new ParasiticTool();
 

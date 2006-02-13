@@ -26,8 +26,10 @@
 package com.sun.electric.tool.project;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -216,19 +218,16 @@ public class Project extends Listener
 		queueCheck((Cell)pp.getParent());
 	}
 
-//	/**
-//	 * Method to handle a change to a Cell.
-//	 * @param cell the cell that was changed.
-//	 * @param oLX the old low X bound of the Cell.
-//	 * @param oHX the old high X bound of the Cell.
-//	 * @param oLY the old low Y bound of the Cell.
-//	 * @param oHY the old high Y bound of the Cell.
-//	 */
-//	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
-//	{
-//		if (ignoreChanges) return;
-//		queueCheck(cell);
-//	}
+	/**
+	 * Method to handle a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	public void modifyCell(Cell cell, ImmutableCell oD) {
+		if (ignoreChanges) return;
+        if (cellDiffers(oD, cell.getD()))
+            queueCheck(cell);
+    }
 
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
@@ -240,6 +239,13 @@ public class Project extends Listener
 		if (ignoreChanges) return;
 		queueCheck(cell);
 	}
+
+	/**
+	 * Method to handle a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.
@@ -268,16 +274,6 @@ public class Project extends Listener
 	{
 		checkObject(obj);
 	}
-
-	/**
-	 * Method to handle a change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
-    {
-        checkVariables(obj, oldImmutable);
-    }
 
 	/**
 	 * Method to announce that a Library has been read.
@@ -428,41 +424,40 @@ public class Project extends Listener
 		if (obj instanceof Cell) { queueCheck((Cell)obj);   return; }
 	}
 
-	private void checkVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
+    /**
+     * Compares two ImmutableCells. Ignores value of PROJLOCKEDKEY.
+     * @param oldD first ImmutableCell.
+     * @param newD second ImmutableCell.
+     * @param true  if two ImmutableCells differs more than by value of PROJLOCKEDKEY.
+     */
+    private boolean cellDiffers(ImmutableCell oldD, ImmutableCell newD)
 	{
-		if (ignoreChanges) return;
-		if (obj instanceof NodeInst) { queueCheck(((NodeInst)obj).getParent());   return; }
-		if (obj instanceof ArcInst) { queueCheck(((ArcInst)obj).getParent());   return; }
-		if (obj instanceof Export) { queueCheck((Cell)((Export)obj).getParent());   return; }
-		if (obj instanceof Cell)
-		{
-            ImmutableElectricObject newImmutable = obj.getImmutable();
-            if (variablesDiffers(oldImmutable, newImmutable))
-                queueCheck((Cell)obj);
-		}
-	}
-
-    private boolean variablesDiffers(ImmutableElectricObject oldImmutable, ImmutableElectricObject newImmutable)
-	{
-		int oldLength = oldImmutable.getNumVariables();
-		int newLength = newImmutable.getNumVariables();
-		int oldIndex = oldImmutable.searchVar(PROJLOCKEDKEY);
-		int newIndex = newImmutable.searchVar(PROJLOCKEDKEY);
+        if (oldD.cellName != newD.cellName) return true;
+        if (oldD.creationDate != newD.creationDate) return true;
+        if (oldD.revisionDate != newD.revisionDate) return true;
+        if (oldD.tech != newD.tech) return true;
+        if (oldD.flags != newD.flags) return true;
+        if (oldD.modified != newD.modified) return true;
+        
+		int oldLength = oldD.getNumVariables();
+		int newLength = newD.getNumVariables();
+		int oldIndex = oldD.searchVar(PROJLOCKEDKEY);
+		int newIndex = newD.searchVar(PROJLOCKEDKEY);
 		if (oldLength == newLength) {
 			if (oldIndex != newIndex) return true;
-			if (oldIndex < 0) return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldLength);
-			return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
-				variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, oldIndex + 1, oldLength - oldIndex - 1);
+			if (oldIndex < 0) return variablesDiffers(oldD, 0, newD, 0, oldLength);
+			return variablesDiffers(oldD, 0, newD, 0, oldIndex) ||
+				variablesDiffers(oldD, oldIndex + 1, newD, oldIndex + 1, oldLength - oldIndex - 1);
 		}
 		if (oldLength == newLength + 1) {
 			if (oldIndex < 0 || oldIndex != ~newIndex) return true;
-			return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
-				variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, ~newIndex, oldLength - oldIndex - 1);
+			return variablesDiffers(oldD, 0, newD, 0, oldIndex) ||
+				variablesDiffers(oldD, oldIndex + 1, newD, ~newIndex, oldLength - oldIndex - 1);
 		}
 		if (newLength == oldIndex + 1) {
 			if (newIndex < 0 || newIndex != ~oldIndex) return true;
-			return variablesDiffers(oldImmutable, 0, newImmutable, 0, newIndex) ||
-				variablesDiffers(oldImmutable, newIndex, newImmutable, newIndex + 1, newLength - newIndex - 1);
+			return variablesDiffers(oldD, 0, newD, 0, newIndex) ||
+				variablesDiffers(oldD, newIndex, newD, newIndex + 1, newLength - newIndex - 1);
 		}
 		return true;
     }

@@ -34,6 +34,8 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
@@ -214,7 +216,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 thread.setUserInterface(redirectInterface);
             }
 			if (ejob.jobType == Job.Type.CHANGE)	{
-                Undo.startChanges(job.tool, ejob.jobName, ejob.savedHighlights);
+                Undo.startChanges(currentSnapshot, job.tool, ejob.jobName, ejob.savedHighlights);
             }
             try {
                 if (!serverJob.doIt())
@@ -299,8 +301,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     
     private void updateSnapshot() {
         Snapshot oldSnapshot = currentSnapshot;
-        Snapshot newSnapshot = new Snapshot(oldSnapshot);
-        if (newSnapshot.equals(oldSnapshot)) return;
+        Snapshot newSnapshot = Snapshot.makeSnapshot(oldSnapshot);
+        if (newSnapshot == oldSnapshot) return;
+        Job.currentUI.showSnapshot(newSnapshot);
         lock();
         try {
             currentSnapshot = newSnapshot;
@@ -531,8 +534,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             return curCell;
 		}
 		public void repaintAllEditWindows() {
+            System.out.println("UserInterface.repaintAllEditWindows was called from DatabaseChangesThread");
+	    Job.currentUI.repaintAllEditWindows();
             /*throw new IllegalStateException();*/
-            Job.currentUI.repaintAllEditWindows();
         }
         
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
@@ -663,6 +667,12 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
 
+        /**
+         * Show new database snapshot.
+         * @param newSnapshot new snapshot.
+         */
+        public void showSnapshot(Snapshot newSnapshot) { throw new IllegalStateException(); }
+        
         /**
          * Method is called when initialization was finished.
          */

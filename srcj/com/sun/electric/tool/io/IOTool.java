@@ -27,11 +27,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref.Group;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.compaction.Compaction;
+import com.sun.electric.tool.Tool;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -40,7 +37,7 @@ import java.util.Date;
  * This class manages reading files in different formats.
  * The class is subclassed by the different file readers.
  */
-public class IOTool extends Listener
+public class IOTool extends Tool
 {
 	/** the IO tool. */										private static IOTool tool = new IOTool();
 

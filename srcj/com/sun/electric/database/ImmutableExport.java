@@ -240,7 +240,29 @@ public class ImmutableExport extends ImmutableElectricObject {
                 originalNodeId, originalPortId, alwaysDrawn, bodyOnly, characteristic, vars);
     }
     
-	/**
+    /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public int hashCodeExceptVariables() { return exportId.hashCode(); }
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public boolean equalsExceptVariables(ImmutableElectricObject o) {
+        if (this == o) return true;
+        if (!(o instanceof ImmutableExport)) return false;
+        ImmutableExport that = (ImmutableExport)o;
+        return this.exportId == that.exportId && this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
+                this.originalNodeId == that.originalNodeId && this.originalPortId == that.originalPortId &&
+                this.alwaysDrawn == that.alwaysDrawn && this.bodyOnly == that.bodyOnly &&
+                this.characteristic == that.characteristic;
+    }
+    
+    /**
 	 * Checks invariant of this ImmutableExport.
 	 * @throws AssertionError if invariant is broken.
 	 */

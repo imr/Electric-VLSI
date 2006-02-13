@@ -24,8 +24,9 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
@@ -34,8 +35,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
-
 
 /**
  * This class represents a Listener - a Tool which can listen to Changes.
@@ -93,11 +92,23 @@ public class Listener extends Tool implements Changes
 	 */
 	public void modifyExport(Export pp, ImmutableExport oD) {}
 	/**
+	 * Method to handle a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	public void modifyCell(Cell cell, ImmutableCell oD) {}
+	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
 	 * @param oCellGroup the old CellGroup of the Cell.
 	 */
 	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup) {}
+	/**
+	 * Method to handle a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.
@@ -120,12 +131,6 @@ public class Listener extends Tool implements Changes
 	 * @param obj the ElectricObject to be redrawn.
 	 */
 	public void redrawObject(ElectricObject obj) {}
-	/**
-	 * Method to handle a change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {}
 
 	/**
 	 * Method to announce that a Library has been read.

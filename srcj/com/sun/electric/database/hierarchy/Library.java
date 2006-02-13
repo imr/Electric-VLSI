@@ -489,7 +489,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         ImmutableLibrary oldD = d;
         if (newD == oldD) return false;
         d = newD;
-        Undo.modifyVariables(this, oldD);
+        Undo.modifyLibrary(this, oldD);
         //setBatchModified();
         return true;
     }
@@ -500,7 +500,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     public ImmutableElectricObject getImmutable() { return d; }
     
-    public void lowLevelModifyVariables(ImmutableLibrary d) { this.d = d; }
+    public void lowLevelModify(ImmutableLibrary d) { this.d = d; }
         
     /**
      * Method to add a Variable on this Library.
@@ -582,23 +582,23 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     public static boolean updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
         boolean libChanged = false;
-        for (int i = 0, maxLibs = Math.max(oldSnapshot.libBackups.size(), newSnapshot.libBackups.size()); i < maxLibs; i++) {
-            LibraryBackup oldBackup = oldSnapshot.getLib(i);
-            LibraryBackup newBackup = newSnapshot.getLib(i);
-            if (oldBackup == newBackup) continue;
+        for (LibId libId: newSnapshot.getChangedLibraries(oldSnapshot)) {
+            LibraryBackup oldBackup = oldSnapshot.getLib(libId);
+            LibraryBackup newBackup = newSnapshot.getLib(libId);
+            int libIndex = libId.libIndex;
             libChanged = true;
             if (oldBackup == null) {
                 Library lib = new Library(newBackup.d);
-                assert newBackup.d.libId.libIndex == i;
-                while (linkedLibs.size() <= i) linkedLibs.add(null);
-                Library oldLib = linkedLibs.set(i, lib);
+                assert newBackup.d.libId == libId;
+                while (linkedLibs.size() <= libIndex) linkedLibs.add(null);
+                Library oldLib = linkedLibs.set(libIndex, lib);
                 assert oldLib == null;
             } else if (newBackup == null) {
-                Library oldLib = linkedLibs.set(i, null);
+                Library oldLib = linkedLibs.set(libIndex, null);
                 assert oldLib != null;
                 oldLib.cells.clear();
             } else {
-                Library lib = linkedLibs.get(i);
+                Library lib = linkedLibs.get(libIndex);
                 lib.d = newBackup.d;
                 String libName = lib.d.libName;
                 if (!oldBackup.d.libName.equals(libName)) {
@@ -613,11 +613,10 @@ public class Library extends ElectricObject implements Comparable<Library>
         if (libChanged) {
 //            System.out.println("Libraries changed");
             libraries.clear();
-            for (int i = 0; i < linkedLibs.size(); i++) {
-                Library lib = linkedLibs.get(i);
+            for (Library lib: linkedLibs) {
                 if (lib == null) continue;
                 libraries.put(lib.getName(), lib);
-                LibraryBackup newBackup = newSnapshot.getLib(i);
+                LibraryBackup newBackup = newSnapshot.getLib(lib.getId());
                 lib.referencedLibs.clear();
                 for (int j = 0; j < newBackup.referencedLibs.length; j++)
                     lib.referencedLibs.add(inCurrentThread(newBackup.referencedLibs[j]));
@@ -638,7 +637,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             CellBackup newBackup = newSnapshot.getCell(i);
             if (oldBackup == newBackup) continue;
             if (oldBackup == null || newBackup == null ||
-                    !oldBackup.cellName.equals(newBackup.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
+                    !oldBackup.d.cellName.equals(newBackup.d.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
 //        if (cellTreeChanged)

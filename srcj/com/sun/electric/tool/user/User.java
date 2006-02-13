@@ -24,8 +24,9 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
@@ -34,6 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -230,6 +232,33 @@ public class User extends Listener
 	}
 
 	/**
+	 * Method to handle a change to a Cell.
+	 * @param cell the Cell that was changed.
+	 * @param oD the old contents of the Cell.
+	 */
+	public void modifyCell(Cell cell, ImmutableCell oD) {
+        redrawObject(cell);
+        CellName oldCellName = oD.cellName;
+        if (cell.getCellName() == oldCellName) return;
+        if (cell.isInTechnologyLibrary()) {
+            Manipulate.renamedCell(oldCellName.getName(), cell.getName());
+        }
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+            WindowFrame wf = it.next();
+            WindowContent content = wf.getContent();
+            if (content.getCell() != cell) continue;
+            content.setWindowTitle();
+        }
+    }
+
+	/**
+	 * Method to handle a change to a Library.
+	 * @param lib the Library that was changed.
+	 * @param oldD the old contents of the Library.
+	 */
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
+
+	/**
 	 * Method to handle the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
 	 */
@@ -332,29 +361,29 @@ public class User extends Listener
 		}
 	}
 
-	/**
-	 * Method to handle the renaming of an ElectricObject.
-	 * @param obj the ElectricObject that was renamed.
-	 * @param oldName the former name of that ElectricObject.
-	 */
-	public void renameObject(ElectricObject obj, Object oldName)
-	{
-		if (obj instanceof Cell)
-		{
-			Cell cell = (Cell)obj;
-			if (cell.isInTechnologyLibrary())
-			{
-				Manipulate.renamedCell((String)oldName, cell.getName());
-			}
-			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = it.next();
-				WindowContent content = wf.getContent();
-				if (content.getCell() != cell) continue;
-				content.setWindowTitle();
-			}
-		}
-	}
+//	/**
+//	 * Method to handle the renaming of an ElectricObject.
+//	 * @param obj the ElectricObject that was renamed.
+//	 * @param oldName the former name of that ElectricObject.
+//	 */
+//	public void renameObject(ElectricObject obj, Object oldName)
+//	{
+//		if (obj instanceof Cell)
+//		{
+//			Cell cell = (Cell)obj;
+//			if (cell.isInTechnologyLibrary())
+//			{
+//				Manipulate.renamedCell((String)oldName, cell.getName());
+//			}
+//			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//			{
+//				WindowFrame wf = it.next();
+//				WindowContent content = wf.getContent();
+//				if (content.getCell() != cell) continue;
+//				content.setWindowTitle();
+//			}
+//		}
+//	}
 
 	/**
 	 * Method to request that an object be redrawn.
@@ -393,13 +422,6 @@ public class User extends Listener
 	}
 
 	/**
-	 * Method to handle a change of object Variables.
-	 * @param obj the ElectricObject on which Variables changed.
-	 * @param oldImmutable the old Variables.
-	 */
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) { redrawObject(obj); }
-
-	/**
 	 * Method to announce that a Library is about to be saved to disk.
 	 * @param lib the Library that will be written.
 	 */
@@ -430,63 +452,63 @@ public class User extends Listener
 			markCellForRedraw(cell, true);
 		}
 
-		// update "last designer" field
-		if (!undoRedo)
-		{
-			String userName = System.getProperty("user.name");
-			List<Cell> updateLastDesigner = new ArrayList<Cell>();
-	
-			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (!cell.isLinked()) continue;
-
-				// see if the "last designer" should be changed on the cell
-				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);
-				if (var != null)
-				{
-					String lastDesigner = (String)var.getObject();
-					if (lastDesigner.equals(userName)) continue;
-				}
-
-				// HACK: if cell is checked-in, don't try to modify it
-				int status = Project.getCellStatus(cell);
-				if (status == Project.CHECKEDIN || status == Project.CHECKEDOUTTOOTHERS) continue;
-
-				// must update the "last designer" on this cell
-				updateLastDesigner.add(cell);
-			}
-	
-			if (updateLastDesigner.size() > 0)
-			{
-				// change the "last designer" on these cells
-				new SetLastDesigner(userName, updateLastDesigner);
-			}
-		}
+//		// update "last designer" field
+//		if (!undoRedo)
+//		{
+//			String userName = System.getProperty("user.name");
+//			List<Cell> updateLastDesigner = new ArrayList<Cell>();
+//	
+//			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
+//			{
+//				Cell cell = it.next();
+//				if (!cell.isLinked()) continue;
+//
+//				// see if the "last designer" should be changed on the cell
+//				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);
+//				if (var != null)
+//				{
+//					String lastDesigner = (String)var.getObject();
+//					if (lastDesigner.equals(userName)) continue;
+//				}
+//
+//				// HACK: if cell is checked-in, don't try to modify it
+//				int status = Project.getCellStatus(cell);
+//				if (status == Project.CHECKEDIN || status == Project.CHECKEDOUTTOOTHERS) continue;
+//
+//				// must update the "last designer" on this cell
+//				updateLastDesigner.add(cell);
+//			}
+//	
+//			if (updateLastDesigner.size() > 0)
+//			{
+//				// change the "last designer" on these cells
+//				new SetLastDesigner(userName, updateLastDesigner);
+//			}
+//		}
 	}
 
-	private static class SetLastDesigner extends Job
-	{
-		private String userName;
-		private List<Cell> updateLastDesigner;
-
-		protected SetLastDesigner(String userName, List<Cell> updateLastDesigner)
-		{
-			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.userName = userName;
-			this.updateLastDesigner = updateLastDesigner;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			for(Cell cell : updateLastDesigner)
-			{
-				cell.newVar(FRAME_LAST_CHANGED_BY, userName);
-			}
-			return true;
-		}
-	}
+//	private static class SetLastDesigner extends Job
+//	{
+//		private String userName;
+//		private List<Cell> updateLastDesigner;
+//
+//		protected SetLastDesigner(String userName, List<Cell> updateLastDesigner)
+//		{
+//			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.userName = userName;
+//			this.updateLastDesigner = updateLastDesigner;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			for(Cell cell : updateLastDesigner)
+//			{
+//				cell.newVar(FRAME_LAST_CHANGED_BY, userName);
+//			}
+//			return true;
+//		}
+//	}
 
 	/************************** TRACKING CHANGES TO CELLS **************************/
 

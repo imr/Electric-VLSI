@@ -24,7 +24,6 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -40,13 +39,14 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.Job.Priority;
+import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
@@ -59,7 +59,7 @@ import java.util.List;
 /**
  * Class to describe coverage percentage for a layer.
  */
-public class LayerCoverageTool extends Listener
+public class LayerCoverageTool extends Tool
 {
     /** the LayerCoverageTool tool. */		protected static LayerCoverageTool tool = new LayerCoverageTool();
     /**

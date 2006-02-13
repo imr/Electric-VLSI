@@ -44,7 +44,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.drc.DRC;
 
 import java.awt.geom.AffineTransform;
@@ -65,7 +65,7 @@ import java.util.List;
  * there may be objects that are not seen, causing the cell to overlap
  * more than it should.
  */
-public class Compaction extends Listener
+public class Compaction extends Tool
 {
 	/** the Compaction tool. */		private static Compaction tool = new Compaction();
 

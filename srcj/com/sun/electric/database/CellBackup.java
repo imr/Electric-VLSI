@@ -31,29 +31,17 @@ import java.io.IOException;
 public class CellBackup {
     
     /** Cell persistent data. */                                    public final ImmutableCell d;
-	/** The CellName of the Cell. */								public final CellName cellName;
 	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
-	/** The library this Cell belongs to. */						public final LibId libId;
-	/** The date this Cell was created. */							public final long creationDate;
-	/** The date this Cell was last modified. */					public final long revisionDate;
-	/** This Cell's Technology. */									public final Technology tech;
-	/** Internal flag bits. */										public final int userBits;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
     /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of ImmutableCell */
-    public CellBackup(ImmutableCell d, CellName cellName, boolean isMainSchematics, LibId libId, long creationDate, long revisionDate, Technology tech, int userBits,
+    public CellBackup(ImmutableCell d, boolean isMainSchematics,
             ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages) {
         this.d = d;
-        this.cellName = cellName;
         this.isMainSchematics = isMainSchematics;
-        this.libId = libId;
-        this.creationDate = creationDate;
-        this.revisionDate = revisionDate;
-        this.tech = tech;
-        this.userBits = userBits;
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
@@ -66,15 +54,7 @@ public class CellBackup {
      */
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
-        writer.out.writeUTF(cellName != null ? cellName.toString() : "");
         writer.out.writeBoolean(isMainSchematics);
-        writer.writeLibId(libId);
-        writer.out.writeLong(creationDate);
-        writer.out.writeLong(revisionDate);
-        writer.out.writeBoolean(tech != null);
-        if (tech != null)
-            writer.writeTechnology(tech);
-        writer.out.writeInt(userBits);
         writer.out.writeInt(nodes.length);
         for (int i = 0; i < nodes.length; i++)
             nodes[i].write(writer);
@@ -92,15 +72,7 @@ public class CellBackup {
      */
     static CellBackup read(SnapshotReader reader) throws IOException {
         ImmutableCell d = ImmutableCell.read(reader);
-        String cellNameString = reader.in.readUTF();
-        CellName cellName = cellNameString.length() > 0 ? CellName.parseName(cellNameString) : null;
         boolean isMainSchematics = reader.in.readBoolean();
-        LibId libId = reader.readLibId();
-        long creationDate = reader.in.readLong();
-        long revisionDate = reader.in.readLong();
-        boolean hasTech = reader.in.readBoolean();
-        Technology tech = hasTech ? reader.readTechnology() : null;
-        int userBits = reader.in.readInt();
         int nodesLength = reader.in.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
         int[] cellUsages = new int[0];
@@ -126,8 +98,7 @@ public class CellBackup {
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);
-        return new CellBackup(d, cellName, isMainSchematics, libId, creationDate, revisionDate, tech, userBits,
-                nodes, arcs, exports, cellUsages);
+        return new CellBackup(d, isMainSchematics, nodes, arcs, exports, cellUsages);
     }
     
     public boolean sameExports(CellBackup thatBackup) {

@@ -495,6 +495,29 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, vars);
     }
     
+    /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public int hashCodeExceptVariables() { return arcId; }
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public boolean equalsExceptVariables(ImmutableElectricObject o) {
+        if (this == o) return true;
+        if (!(o instanceof ImmutableArcInst)) return false;
+        ImmutableArcInst that = (ImmutableArcInst)o;
+        return this.arcId == that.arcId && this.protoType == that.protoType &&
+                this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
+                this.tailNodeId == that.tailNodeId && this.tailPortId == that.tailPortId && this.tailLocation == that.tailLocation &&
+                this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation == that.headLocation &&
+                this.width == that.width && this.angle == that.angle && this.flags == that.flags;
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.

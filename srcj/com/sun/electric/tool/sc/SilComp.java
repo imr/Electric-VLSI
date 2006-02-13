@@ -29,25 +29,15 @@ package com.sun.electric.tool.sc;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.compaction.Compaction;
+import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 
 /**
  * This is the Silicon Compiler tool.
  */
-public class SilComp extends Listener
+public class SilComp extends Tool
 {
 	/** the Silicon Compiler tool. */		private static SilComp tool = new SilComp();
 	public static final String SCLIBNAME = "sclib";

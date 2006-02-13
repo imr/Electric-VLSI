@@ -76,6 +76,22 @@ public class ImmutablePortInst extends ImmutableElectricObject {
         return new ImmutablePortInst(readVars(reader));
     }
     
+   /**
+     * Return a hash code value for fields of this object.
+     * Variables of objects are not compared
+     */
+    public int hashCodeExceptVariables() { return 0; }
+
+    /**
+     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if fields of objects are equal.
+     */
+    public boolean equalsExceptVariables(ImmutableElectricObject o) {
+        return (o instanceof ImmutablePortInst);
+    }
+    
  	/**
 	 * Checks invariant of this ImmutablePortInst.
 	 * @throws AssertionError if invariant is broken.

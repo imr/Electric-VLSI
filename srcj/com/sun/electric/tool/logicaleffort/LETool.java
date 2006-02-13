@@ -35,15 +35,13 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.*;
@@ -57,7 +55,7 @@ import java.util.regex.Pattern;
  *
  * @author  gainsley
  */
-public class LETool extends Listener {
+public class LETool extends Tool {
     
     /** The Logical Effort tool */              private static LETool tool = new LETool();
 
