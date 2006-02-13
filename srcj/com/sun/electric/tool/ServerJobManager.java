@@ -34,8 +34,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
@@ -532,7 +530,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             }
             return curCell;
 		}
-		public void repaintAllEditWindows() { throw new IllegalStateException(); }
+		public void repaintAllEditWindows() {
+            /*throw new IllegalStateException();*/
+            Job.currentUI.repaintAllEditWindows();
+        }
         
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
 //            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
