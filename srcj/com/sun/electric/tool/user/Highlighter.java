@@ -611,13 +611,16 @@ public class Highlighter implements DatabaseChangeListener {
 
     /** Notify listeners that highlights have changed */
     private void fireHighlightChanged() {
-        List<HighlightListener> listenersCopy;
-        synchronized(this) {
-            listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
-        }
-        for (HighlightListener l : listenersCopy) {
-            l.highlightChanged(this);
-        }
+    	if (type == SELECT_HIGHLIGHTER)
+    	{
+	        List<HighlightListener> listenersCopy;
+	        synchronized(this) {
+	            listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
+	        }
+	        for (HighlightListener l : listenersCopy) {
+	            l.highlightChanged(this);
+	        }
+    	}
         synchronized(this) {
             changed = false;
         }
@@ -625,13 +628,16 @@ public class Highlighter implements DatabaseChangeListener {
 
     /** Notify listeners that the current Highlighter has changed */
     private synchronized void fireHighlighterLostFocus(Highlighter highlighterGainedFocus) {
-        List<HighlightListener> listenersCopy;
-        synchronized(this) {
-            listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
-        }
-        for (HighlightListener l : listenersCopy) {
-            l.highlighterLostFocus(highlighterGainedFocus);
-        }
+    	if (type == SELECT_HIGHLIGHTER)
+    	{
+	        List<HighlightListener> listenersCopy;
+	        synchronized(this) {
+	            listenersCopy = new ArrayList<HighlightListener>(highlightListeners);
+	        }
+	        for (HighlightListener l : listenersCopy) {
+	            l.highlighterLostFocus(highlighterGainedFocus);
+	        }
+    	}
     }
 
     /**

@@ -50,6 +50,8 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
@@ -78,7 +80,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private ArcInst selectedArc;
     private Export selectedExport;
     private PortInst selectedPort;
-    private Variable selectedVar;
+    private Variable.Key selectedVarKey;
     private JRadioButton currentButton;
 
     private String initialName;
@@ -137,7 +139,9 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
 		// update dialog
 		if (e.objectChanged(selectedObject))
+		{
             loadAttributesInfo(true);
+		}
     }
 //     /**
 //      * Reload if the database has changed in a way we care about
@@ -181,9 +185,9 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         cellRenderer = new VariableCellRenderer(!Job.getDebug());
         list.setCellRenderer(cellRenderer);
         listPane.setViewportView(list);
-        list.addMouseListener(new java.awt.event.MouseAdapter()
+        list.addMouseListener(new MouseAdapter()
 		{
-            public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(); }
+            public void mouseClicked(MouseEvent evt) { listClick(); }
         });
 
         // have the radio buttons at the top reevaluate
@@ -263,7 +267,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         if (!varValue.equals(initialValue))
         {
             // generate Job to update value
-            ChangeAttribute job = new ChangeAttribute(var.getKey(), selectedObject, getVariableObject(varValue));
+            new ChangeAttribute(var.getKey(), selectedObject, getVariableObject(varValue));
             initialValue = varValue;
         }
 	}
@@ -317,7 +321,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	        selectedArc = null;
 	        selectedExport = null;
 	        selectedPort = null;
-	        selectedVar = null;
+	        selectedVarKey = null;
 	
 	        currentButton = currentCell;
 	
@@ -347,8 +351,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 	                    }
 	                } else if (high.isHighlightText())
 	                {
-	                	selectedVar = eobj.getVar(high.getVarKey());
-	                    if (selectedVar != null)
+	                	selectedVarKey = high.getVarKey();
+	                    if (selectedVarKey != null)
 	                    {
 	                        if (eobj instanceof NodeInst)
 	                        {
@@ -425,8 +429,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // show all attributes on the selected object
         updateList();
-        if (selectedVar != null)
-            showSelectedAttribute(selectedVar);
+        if (selectedVarKey != null)
+            showSelectedAttribute(selectedVarKey);
         else
             checkName();
     	loading = false;
@@ -451,10 +455,9 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // try to find variable
         Variable.Key varKey = Variable.newKey(varName);
-        Variable var = selectedObject.getVar(varKey);
-        if (var != null) {
+        if (varKey != null) {
             // make sure var is selected
-            showSelectedAttribute(var);
+            showSelectedAttribute(varKey);
         } else {
             // no such var, remove selection and enable new buttons
             newButton.setEnabled(true);
@@ -482,11 +485,11 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             if (cellRenderer.getShowAttrOnly()) {
                 // if only showing Attributes, only add if it is an attribute
                 if (varName.startsWith("ATTR_")) {
-                    listModel.addElement(var);
+                    listModel.addElement(var.getKey());
                 }
                 continue;
             } else {
-                listModel.addElement(var);
+                listModel.addElement(var.getKey());
             }
         }
     }
@@ -499,7 +502,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     {
         int i = list.getSelectedIndex();
         if (i < 0) return null;
-        return (Variable)list.getSelectedValue();
+        Variable.Key key = (Variable.Key)list.getSelectedValue();
+        return selectedObject.getVar(key);
     }
 
     /**
@@ -524,13 +528,14 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      * Method to display the aspects of the currently selected Variable in the dialog.
      * @param selectThis if non-null, select this variable first, and then update dialog.
      */
-    void showSelectedAttribute(Variable selectThis)
+    void showSelectedAttribute(Variable.Key selectThisKey)
     {
-        if (selectThis != null)
-            list.setSelectedValue(selectThis, true);
+        if (selectThisKey != null)
+            list.setSelectedValue(selectThisKey, true);
 
         Variable var = getSelectedVariable();
         if (var == null) return;
+        selectedVarKey = var.getKey();
 
         // set the Name field
         initialName = cellRenderer.getVariableText(var);
@@ -1123,7 +1128,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         String val = value.getText().trim();
 
         // Spawn a Job to create the Variable
-        CreateAttribute job = new CreateAttribute(varName, getVariableObject(val), selectedObject);
+        new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, set the futureVarName for the panel
         textPanel.applyChanges();
@@ -1137,7 +1142,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteButtonActionPerformed
     {//GEN-HEADEREND:event_deleteButtonActionPerformed
         // delete the attribute
-        DeleteAttribute job = new DeleteAttribute(getSelectedVariable(), selectedObject);
+        new DeleteAttribute(getSelectedVariable(), selectedObject);
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     /** Closes the dialog */

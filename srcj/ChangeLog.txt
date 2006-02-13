@@ -4,10 +4,19 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
-IMP: (2/13/06, DN) No SetLastDesignerName job in an undo list.
+BUG: (2/13/06, SMR) Curved arcs are not selectable after being read.
+FIX: In ArcInst.addVar(), check for curvature variables and update geometry.
 
-BUG: (2/13/06, DN) Cell bits are not undable.
-FIX: Add more fields to ImmutableCell.
+BUG: (2/13/06, SMR) Compaction loops infinitely (Bug #813).
+FIX: In Compaction.java, compare motion amounts against epsilon, not zero.
+
+BUG: (2/13/06, SMR) Arcs with no angle increment are always drawn horizontally.
+FIX: In InteractiveRouter.getClosestAngledPoint(), handle 0 degrees specially.
+     In RouteElementArc.addHighlightArea(), use more general code.
+
+BUG: (2/13/06, SMR) Attributes dialog loses the selected variable name when new valeus are typed.
+FIX: In Highlighter.java, fire highlight changes only for the main highligher (not the
+     mouse-over or ruler highlighters).  Also in Attributes.java, remember the selected variable.
 
 BUG: (2/10/06, GVG) Fixing error in DRC schematics due to the adding of Variables during examing job (Bug #814).
 FIX: Collect variables and then later kick a DRCUpdate job.

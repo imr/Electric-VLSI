@@ -796,6 +796,7 @@ public abstract class InteractiveRouter extends Router {
     protected static Point2D getClosestAngledPoint(Point2D startPoint, Point2D clicked,
                                                    int angleIncrement) {
         angleIncrement = Math.abs(angleIncrement);
+        if (angleIncrement == 0) return clicked;
         // don't really have to call this for angleIncr of 90 as general purpose
         // code below does right thing, but it's a lot faster
         if (angleIncrement == 90) return getClosestOrthogonalPoint(startPoint, clicked);

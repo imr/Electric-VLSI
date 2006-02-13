@@ -43,6 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -496,8 +497,25 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        setD(d.withVariable(var), true);
+        if (setD(d.withVariable(var), true))
+        {
+            // check for side-effects of the change
+            checkPossibleVariableEffects(var.getKey());
+        }
     }
+	
+	/**
+	 * Method to handle special case side-effects of setting variables on this NodeInst.
+	 * Overrides the general method on ElectricObject.
+	 * Currently it handles changes to the number-of-degrees on a circle node.
+	 * @param key the Variable key that has changed on this NodeInst.
+	 */
+	public void checkPossibleVariableEffects(Variable.Key key)
+	{
+        if (key == ARC_RADIUS) {
+			lowLevelModify(d);
+        }
+	}
 
 	/**
 	 * Method to delete a Variable from this ArcInst.
@@ -735,7 +753,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		Point2D centerPt = centers[1];
 		if (radius < 0)
 		{
-			radius = -radius;
 			centerPt = centers[0];
 		}
 
@@ -744,6 +761,15 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		int angleRange = DBMath.figureAngle(centerPt, d.tailLocation);
 		angleRange -= angleBase;
 		if (angleRange < 0) angleRange += 3600;
+
+		// force the curvature to be the smaller part of a circle (used to determine this by the reverse-ends bit)
+		if (angleRange > 1800)
+		{
+			angleBase = DBMath.figureAngle(centerPt, d.tailLocation);
+			angleRange = DBMath.figureAngle(centerPt, d.headLocation);
+			angleRange -= angleBase;
+			if (angleRange < 0) angleRange += 3600;
+		}
 
 		// determine the number of intervals to use for the arc
 		int pieces = angleRange;
@@ -755,7 +781,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		Point2D [] pointArray = new Point2D[points];
 
 		// get the inner and outer radii of the arc
-		double outerRadius = radius + wid / 2;
+		double outerRadius = pureRadius + wid / 2;
 		double innerRadius = outerRadius - wid;
 
 		// fill the polygon

@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -362,44 +363,57 @@ public class RouteElementArc extends RouteElement {
             // figure out highlight area based on arc width and start and end locations
             Point2D headPoint = headConnPoint;
             Point2D tailPoint = tailConnPoint;
-            boolean endsExtend = arcProto.isExtended();
             double offset = 0.5*getOffsetArcWidth();
-            double offsetX, offsetY;
-            double offsetEnds = endsExtend ? offset : 0;
-            Point2D head1, head2, tail1, tail2;
-            if (headPoint.getX() == tailPoint.getX()) {
-                // vertical arc
-                if (headPoint.getY() > tailPoint.getY()) {
-                    offsetX = offset;
-                    offsetY = offsetEnds;
-                } else {
-                    offsetX = offset;
-                    offsetY = -offsetEnds;
-                }
-                head1 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()+offsetY);
-                head2 = new Point2D.Double(headPoint.getX()-offsetX, headPoint.getY()+offsetY);
-                tail1 = new Point2D.Double(tailPoint.getX()+offsetX, tailPoint.getY()-offsetY);
-                tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
-            } else {
-                //assert(headPoint.getY() == tailPoint.getY());
-                if (headPoint.getX() > tailPoint.getX()) {
-                    offsetX = offsetEnds;
-                    offsetY = offset;
-                } else {
-                    offsetX = -offsetEnds;
-                    offsetY = offset;
-                }
-                head1 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()+offsetY);
-                head2 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()-offsetY);
-                tail1 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()+offsetY);
-                tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
-            }
             Cell cell = getCell();
-            highlighter.addLine(head1, tail1, cell);
-            //Highlight.addLine(headPoint, tailPoint, cell);
-            highlighter.addLine(head2, tail2, cell);
-            highlighter.addLine(head1, head2, cell);
-            highlighter.addLine(tail1, tail2, cell);
+
+            int angle = GenMath.figureAngle(headPoint, tailPoint);
+            double length = headPoint.distance(tailPoint);
+        	Poly poly = Poly.makeEndPointPoly(length, getOffsetArcWidth(), angle, headPoint, offset,
+        		tailPoint, offset, Poly.Type.FILLED);
+        	Point2D [] points = poly.getPoints();
+        	for(int i=0; i<points.length; i++)
+        	{
+        		int last = i-1;
+        		if (last < 0) last = points.length - 1;
+        		highlighter.addLine(points[last], points[i], cell);
+        	}
+        	
+//            double offsetX, offsetY;
+//            boolean endsExtend = arcProto.isExtended();
+//            double offsetEnds = endsExtend ? offset : 0;
+//            Point2D head1, head2, tail1, tail2;
+//            if (headPoint.getX() == tailPoint.getX()) {
+//                // vertical arc
+//                if (headPoint.getY() > tailPoint.getY()) {
+//                    offsetX = offset;
+//                    offsetY = offsetEnds;
+//                } else {
+//                    offsetX = offset;
+//                    offsetY = -offsetEnds;
+//                }
+//                head1 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()+offsetY);
+//                head2 = new Point2D.Double(headPoint.getX()-offsetX, headPoint.getY()+offsetY);
+//                tail1 = new Point2D.Double(tailPoint.getX()+offsetX, tailPoint.getY()-offsetY);
+//                tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
+//            } else {
+//                //assert(headPoint.getY() == tailPoint.getY());
+//                if (headPoint.getX() > tailPoint.getX()) {
+//                    offsetX = offsetEnds;
+//                    offsetY = offset;
+//                } else {
+//                    offsetX = -offsetEnds;
+//                    offsetY = offset;
+//                }
+//                head1 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()+offsetY);
+//                head2 = new Point2D.Double(headPoint.getX()+offsetX, headPoint.getY()-offsetY);
+//                tail1 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()+offsetY);
+//                tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
+//            }
+//            highlighter.addLine(head1, tail1, cell);
+//            //Highlight.addLine(headPoint, tailPoint, cell);
+//            highlighter.addLine(head2, tail2, cell);
+//            highlighter.addLine(head1, head2, cell);
+//            highlighter.addLine(tail1, tail2, cell);
         }
         if (getAction() == RouteElementAction.deleteArc) {
             highlighter.addElectricObject(arcInst, getCell());
