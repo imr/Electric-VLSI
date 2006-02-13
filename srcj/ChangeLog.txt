@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/13/06, DN) No SetLastDesignerName job in an undo list.
 
+BUG: (2/13/06, DN) Cell bits are not undable.
+FIX: Add more fields to ImmutableCell.
 
 BUG: (2/10/06, GVG) Fixing error in DRC schematics due to the adding of Variables during examing job (Bug #814).
 FIX: Collect variables and then later kick a DRCUpdate job.
