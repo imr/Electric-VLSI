@@ -165,8 +165,8 @@ public class View3DWindow extends JPanel
     private static class View3DWindowJob extends Job
     {
         private Cell cell;
-        private WindowFrame windowFrame;
-        private WindowContent view2D;
+        private transient WindowFrame windowFrame;
+        private transient WindowContent view2D;
         private boolean transPerNode;
 
         public View3DWindowJob(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
@@ -178,21 +178,24 @@ public class View3DWindow extends JPanel
             this.transPerNode = transPerNode;
 			startJob();
         }
+
         public boolean doIt() throws JobException
         {
+            return true;
+        }
+
+        public void terminateOK()
+        {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
-            if (!window.job.checkAbort())
-            {
-                windowFrame.finishWindowFrameInformation(window, cell);
-                return true;
-            }
-            return false;
+            windowFrame.finishWindowFrameInformation(window, cell);
         }
     }
 
     public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
     {
         new View3DWindowJob(cell, wf, view2D, transPerNode);
+//        View3DWindow window = new View3DWindow(cell, wf, view2D, transPerNode, this);
+//        wf.finishWindowFrameInformation(window, cell);
     }
 
     public void getObjTransform(Transform3D trans)
