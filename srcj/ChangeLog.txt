@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/13/06, DN) Regression fails, because projects settings from disk files are not reconciled.
+FIX: In LayoutLib.openLibraryForRead call readLibrary with "quick=false".
+
 BUG: (2/13/06, SMR) Curved arcs are not selectable after being read.
 FIX: In ArcInst.addVar(), check for curvature variables and update geometry.
 

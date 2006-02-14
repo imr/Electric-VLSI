@@ -122,7 +122,7 @@ public class LayoutLib {
 		Library lib = Library.findLibrary(libName);
 		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
 		if (lib==null) {
-			lib = LibraryFiles.readLibrary(libFileURL, null, type, Job.BATCHMODE);
+			lib = LibraryFiles.readLibrary(libFileURL, null, type, false);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
