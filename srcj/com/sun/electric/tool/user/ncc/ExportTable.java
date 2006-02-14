@@ -206,7 +206,7 @@ abstract class ExportTableModel extends AbstractTableModel implements HyperlinkL
         return panes[row][col];
     }
 
-    public Class getColumnClass(int c) {
+    public Class<?> getColumnClass(int c) {
         return JScrollPane.class;
     }
 

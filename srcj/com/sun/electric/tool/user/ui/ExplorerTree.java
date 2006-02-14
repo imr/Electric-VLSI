@@ -142,7 +142,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	{
 		super((TreeModel)null);
         setModel(new ExplorerTreeModel());
-        rootNode = model().rootNode;
+        rootNode = ExplorerTreeModel.rootNode;
 //		ErrorLoggerTree.updateExplorerTree(model().errorExplorerNode);
         redoContentTrees(contentNodes);
 

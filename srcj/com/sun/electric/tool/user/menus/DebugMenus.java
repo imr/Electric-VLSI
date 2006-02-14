@@ -1656,7 +1656,7 @@ public class DebugMenus
         System.gc();
         System.runFinalization();
         try {
-            Thread.currentThread().sleep(1000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {}
         countReferences("After", pool);
     }
