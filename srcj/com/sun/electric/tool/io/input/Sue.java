@@ -51,6 +51,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
@@ -263,7 +264,7 @@ public class Sue extends Input
 		{
 			Cell topCell = readFile(lib, cellName, lineReader);
 			if (topCell != null)
-				lib.setCurCell(topCell);
+				Job.getUserInterface().setCurrentCell(lib, topCell);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading Sue libraries");

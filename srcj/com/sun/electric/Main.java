@@ -189,6 +189,28 @@ public final class Main
 			if (lib == null) return null;
 			return lib.getCurCell();
         }
+
+		/**
+		 * Method to get the current Cell in a given Library.
+		 * @param lib the library to query.
+		 * @return the current Cell in the Library.
+		 * @return the current cell in the library; null if there is no current Cell.
+		 */
+		public Cell getCurrentCell(Library lib)
+		{
+			return lib.getCurCell();
+		}
+
+		/**
+		 * Method to set the current Cell in a Library.
+		 * @param lib the library in which to set a current cell.
+		 * @param curCell the new current Cell in the Library (can be null).
+		 */
+		public void setCurrentCell(Library lib, Cell curCell)
+		{
+			lib.setCurCell(curCell);
+		}
+
 		public Cell needCurrentCell()
 		{
             /** Current cell based on current library */

@@ -690,7 +690,8 @@ public class Project extends Listener
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();
-			if (lib.getCurCell() == oldCell) lib.setCurCell(newCell);
+			if (Job.getUserInterface().getCurrentCell(lib) == oldCell)
+				Job.getUserInterface().setCurrentCell(lib, newCell);
 		}
 
 		// finally delete the former cell
@@ -735,7 +736,7 @@ public class Project extends Listener
 			return true;
 		}
 
-		fLib.setCurCell(cellCopy);
+		Job.getUserInterface().setCurrentCell(fLib, cellCopy);
 		fLib.setFromDisk();
 		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true);
 		if (error)

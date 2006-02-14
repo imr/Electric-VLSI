@@ -522,6 +522,12 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 			if (lib == null) return null;
 			return lib.getCurCell();
         }
+        /** Get current cell from current library */
+		public Cell getCurrentCell(Library lib)
+        {
+			throw new IllegalStateException();
+        }
+
 		public Cell needCurrentCell()
 		{
             System.out.println("UserInterface.needCurrentCell was called from DatabaseChangesThread");
@@ -533,6 +539,17 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             }
             return curCell;
 		}
+
+		/**
+		 * Method to set the current Cell in a Library.
+		 * @param lib the library in which to set a current cell.
+		 * @param curCell the new current Cell in the Library (can be null).
+		 */
+		public void setCurrentCell(Library lib, Cell curCell)
+		{
+			throw new IllegalStateException();
+		}
+
 		public void repaintAllEditWindows() {
             System.out.println("UserInterface.repaintAllEditWindows was called from DatabaseChangesThread");
 	    Job.currentUI.repaintAllEditWindows();

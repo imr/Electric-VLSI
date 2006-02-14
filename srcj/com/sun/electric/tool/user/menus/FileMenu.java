@@ -493,7 +493,7 @@ public class FileMenu {
         Undo.noUndoAllowed();
         if (lib == null) return null;
         lib.setCurrent();
-        return lib.getCurCell();
+        return Job.getUserInterface().getCurrentCell(lib);
     }
 
     /**

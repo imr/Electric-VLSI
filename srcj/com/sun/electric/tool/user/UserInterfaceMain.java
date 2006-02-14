@@ -29,6 +29,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.text.Pref;
@@ -163,12 +164,33 @@ public class UserInterfaceMain implements UserInterface
         TopLevel.InitializeWindows();
         WindowFrame.wantToOpenCurrentLibrary(true);
     }
-    
+
     public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
 
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }
 
 	public Cell getCurrentCell() { return WindowFrame.getCurrentCell(); }
+
+	/**
+	 * Method to get the current Cell in a given Library.
+	 * @param lib the library to query.
+	 * @return the current Cell in the Library.
+	 * @return the current cell in the library; null if there is no current Cell.
+	 */
+	public Cell getCurrentCell(Library lib)
+	{
+		return lib.getCurCell();
+	}
+
+	/**
+	 * Method to set the current Cell in a Library.
+	 * @param lib the library in which to set a current cell.
+	 * @param curCell the new current Cell in the Library (can be null).
+	 */
+	public void setCurrentCell(Library lib, Cell curCell)
+	{
+		lib.setCurCell(curCell);
+	}
 
 	public Cell needCurrentCell() { return WindowFrame.needCurCell(); }
 

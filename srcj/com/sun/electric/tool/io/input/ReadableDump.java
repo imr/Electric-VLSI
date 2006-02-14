@@ -52,6 +52,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
@@ -342,7 +343,7 @@ public class ReadableDump extends LibraryFiles
 
 		if (allCellsArray == null) return true; // error
 		if (mainCell >= 0)
-			lib.setCurCell(allCellsArray[mainCell]);
+			Job.getUserInterface().setCurrentCell(lib, allCellsArray[mainCell]);
 
 		lib.clearChanged();
 		return false;

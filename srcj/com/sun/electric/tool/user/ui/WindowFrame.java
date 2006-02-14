@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -763,7 +764,7 @@ public class WindowFrame extends Observable
         Cell cell = getContent().getCell();
         if (cell != null)
         {
-            cell.getLibrary().setCurCell(cell);
+        	Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
 
             // if auto-switching technology, do it
             autoTechnologySwitch(cell, this);

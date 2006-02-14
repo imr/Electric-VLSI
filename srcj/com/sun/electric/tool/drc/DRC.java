@@ -158,7 +158,7 @@ public class DRC extends Listener
 
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
-		Cell cellToCheck = curLib.getCurCell();
+		Cell cellToCheck = Job.getUserInterface().getCurrentCell(curLib);
 		HashSet<Geometric> cellSet = null;
 
 		// get a cell to check

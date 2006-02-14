@@ -205,9 +205,9 @@ public class CellProperties extends EDialog
 		if (any)
 		{
 			Library curLib = Library.getCurrent();
-			if (lib == curLib && curLib.getCurCell() != null)
+			if (lib == curLib && Job.getUserInterface().getCurrentCell(curLib) != null)
 			{
-				cellList.setSelectedValue(curLib.getCurCell().noLibDescribe(), true);
+				cellList.setSelectedValue(Job.getUserInterface().getCurrentCell(curLib).noLibDescribe(), true);
 			} else
 			{
 				cellList.setSelectedIndex(0);

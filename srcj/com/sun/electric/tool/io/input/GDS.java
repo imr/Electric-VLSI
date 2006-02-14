@@ -52,6 +52,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
 
@@ -573,8 +574,8 @@ public class GDS extends Input
 			theCell = Cell.newInstance(theLibrary, tokenString+"{"+View.LAYOUT.getAbbreviation()+"}");
 			if (theCell == null) handleError("Failed to create structure");
 			System.out.println("Reading " + tokenString);
-			if (theLibrary.getCurCell() == null)
-				theLibrary.setCurCell(theCell);
+			if (Job.getUserInterface().getCurrentCell(theLibrary) == null)
+				Job.getUserInterface().setCurrentCell(theLibrary, theCell);
 		}
 	}
 

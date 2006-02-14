@@ -970,7 +970,7 @@ public class EditWindow extends JPanel
 		this.cellVarContext = context;
         if (cell != null) {
             Library lib = cell.getLibrary();
-            lib.setCurCell(cell);
+            Job.getUserInterface().setCurrentCell(lib, cell);
         }
 		//Library curLib = Library.getCurrent();
 		//curLib.setCurCell(cell);

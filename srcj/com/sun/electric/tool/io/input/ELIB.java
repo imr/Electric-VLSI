@@ -57,6 +57,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
@@ -918,7 +919,7 @@ public class ELIB extends LibraryFiles
 		if (curCell >= 0 && curCell < nodeProtoCount)
 		{
 			NodeProto currentCell = convertNodeProto(curCell);
-			lib.setCurCell((Cell)currentCell);
+			Job.getUserInterface().setCurrentCell(lib, (Cell)currentCell);
 		}
 
         // warn if any dummy cells were read in

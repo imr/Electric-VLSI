@@ -268,7 +268,7 @@ public class DebugMenus
         public boolean doIt() throws JobException
         {
     		Library lib = Library.getCurrent();
-    		lib.setCurCell(lib.findNodeProto(cellName));
+    		Job.getUserInterface().setCurrentCell(lib, lib.findNodeProto(cellName));
             return true;
         }
     }
@@ -287,8 +287,8 @@ public class DebugMenus
         public boolean doIt() throws JobException
         {
     		Library lib = Library.getCurrent();
-    		Cell cell = lib.getCurCell();
-    		cell.lowLevelSetRevisionDate(new Date(0));	// reset modification date for consistent output
+    		Cell cell = Job.getUserInterface().getCurrentCell(lib);
+    		if (cell != null) cell.lowLevelSetRevisionDate(new Date(0));	// reset modification date for consistent output
     		URL outURL = TextUtils.makeURLToFile(fileName);
     		lib.setLibFile(outURL);
     		lib.setName(TextUtils.getFileNameWithoutExtension(outURL));

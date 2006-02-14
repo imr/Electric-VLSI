@@ -53,6 +53,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
@@ -417,8 +418,8 @@ public class EDIF extends Input
 		if (errorCount != 0 || warningCount != 0)
 			System.out.println("A total of " + errorCount + " errors, and " + warningCount + " warnings encountered during load");
 
-		if (curLibrary.getCurCell() == null && curLibrary.getCells().hasNext())
-			curLibrary.setCurCell(curLibrary.getCells().next());
+		if (Job.getUserInterface().getCurrentCell(curLibrary) == null && curLibrary.getCells().hasNext())
+			Job.getUserInterface().setCurrentCell(curLibrary, curLibrary.getCells().next());
 		return false;
 	}
 
@@ -1562,7 +1563,7 @@ public class EDIF extends Input
 		{
 			if (cellRefProto != null)
 			{
-				curLibrary.setCurCell((Cell)cellRefProto);
+				Job.getUserInterface().setCurrentCell(curLibrary, (Cell)cellRefProto);
 			}
 		}
 	}

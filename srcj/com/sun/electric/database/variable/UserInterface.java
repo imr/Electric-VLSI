@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -50,10 +51,18 @@ public interface UserInterface
 	public EditWindow_ needCurrentEditWindow_();
 
 	/**
-	 * Method to return the current Cell.
+	 * Method to return the current Cell in the current Library.
 	 * @return the current Cell (null if none).
 	 */
 	public Cell getCurrentCell();
+
+	/**
+	 * Method to get the current Cell in a given Library.
+	 * @param lib the library to query.
+	 * @return the current Cell in the Library.
+	 * @return the current cell in the library; null if there is no current Cell.
+	 */
+	public Cell getCurrentCell(Library lib);
 
 	/**
 	 * Method to demand the current Cell.
@@ -61,6 +70,13 @@ public interface UserInterface
 	 * @return the current Cell (null if none).
 	 */
 	public Cell needCurrentCell();
+
+	/**
+	 * Method to set the current Cell in a Library.
+	 * @param lib the library in which to set a current cell.
+	 * @param curCell the new current Cell in the Library (can be null).
+	 */
+	public void setCurrentCell(Library lib, Cell curCell);
 
     /**
      * Method to adjust reference point in WindowFrame containing the cell

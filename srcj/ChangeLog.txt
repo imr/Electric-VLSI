@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/14/06, SMR) Moved all requests for the "current cell" to the UserInterface object.
+
 BUG: (2/13/06, DN) Regression fails, because projects settings from disk files are not reconciled.
 FIX: In LayoutLib.openLibraryForRead call readLibrary with "quick=false".
 

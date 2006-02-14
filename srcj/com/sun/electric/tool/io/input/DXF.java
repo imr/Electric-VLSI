@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
@@ -134,7 +135,7 @@ public class DXF extends Input
 		// make the only cell in this library
 		mainCell = Cell.makeInstance(lib, lib.getName());
 		if (mainCell == null) return true;
-		lib.setCurCell(mainCell);
+		Job.getUserInterface().setCurrentCell(lib, mainCell);
 		curCell = mainCell;
 		headerID = new ArrayList<Integer>();
 		headerText = new ArrayList<String>();
