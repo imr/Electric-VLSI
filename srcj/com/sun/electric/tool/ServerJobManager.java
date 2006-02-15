@@ -525,7 +525,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         /** Get current cell from current library */
 		public Cell getCurrentCell(Library lib)
         {
-			throw new IllegalStateException();
+			System.out.println("UserInterface.getCurrentCell(lib) was called on server");
+			return Job.currentUI.getCurrentCell(lib);
         }
 
 		public Cell needCurrentCell()
