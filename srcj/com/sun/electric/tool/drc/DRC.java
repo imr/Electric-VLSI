@@ -158,7 +158,7 @@ public class DRC extends Listener
 
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
-		Cell cellToCheck = Job.getUserInterface().getCurrentCell(curLib);
+		Cell cellToCheck = curLib.getCurCell(); //Job.getUserInterface().getCurrentCell(curLib);
 		HashSet<Geometric> cellSet = null;
 
 		// get a cell to check
@@ -247,29 +247,6 @@ public class DRC extends Listener
 	}
 
 	/****************************** DRC INTERFACE ******************************/
-
-	/**
-	 * Method to check the current cell hierarchically or
-	 * the selected area of the current cell hierarchically if areaCheck is true
-	 */
-//	public static void checkHierarchically(boolean areaCheck, GeometryHandler.GHMode mode)
-//	{
-//		Cell curCell = null;
-//		Rectangle2D bounds = null;
-//		UserInterface ui = Main.getUserInterface();
-//		if (!areaCheck)
-//		{
-//			curCell = ui.needCurrentCell();
-//		} else
-//		{
-//			EditWindow_ wnd = ui.getCurrentEditWindow_();
-//			if (wnd == null) return;
-//			bounds = wnd.getHighlightedArea();
-//			curCell = wnd.getCell();
-//		}
-//
-//        checkDRCHierarchically(curCell, bounds, mode);
-//	}
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.
@@ -375,30 +352,6 @@ public class DRC extends Listener
 			return true;
 		}
 	}
-
-//	private static class CheckSchematicHierarchically extends CheckDRCJob
-//	{
-//        /**
-//         * Check bounds within Cell.  If bounds is null, check entire cell.
-//         * @param cell
-//         */
-//		protected CheckSchematicHierarchically(Cell cell)
-//		{
-//			super("Design-Rule Check " + cell, cell, tool, Job.Priority.USER);
-////            super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//			long startTime = System.currentTimeMillis();
-//			ErrorLogger errorLog = Schematic.doCheck(cell, null);
-//			long endTime = System.currentTimeMillis();
-//			int errorCount = errorLog.getNumErrors();
-//			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-//			return true;
-//		}
-//	}
 
 	/**
 	 * Method to delete all cached date information on all cells.
