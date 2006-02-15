@@ -42,6 +42,7 @@ public class Mos extends Part {
 	public static final PartTypeTable TYPES = 
 		new PartTypeTable(new String[][] {
 			{"NMOS",         "N-Transistor"},
+			{"NMOS",         "N-Transistor-Scalable"},
 			{"NMOS-VTH",     "VTH-N-Transistor"},
 			{"NMOS-VTL",     "VTL-N-Transistor"},
 			{"NMOS-OD18",    "OD18-N-Transistor"},
@@ -52,6 +53,7 @@ public class Mos extends Part {
 			{"NMOS-NT-OD25", "NT-OD25-N-Transistor"},
 			{"NMOS-NT-OD33", "NT-OD33-N-Transistor"},
 			{"PMOS",         "P-Transistor"},
+			{"PMOS",         "P-Transistor-Scalable"},
 			{"PMOS-VTH",     "VTH-P-Transistor"},
 			{"PMOS-VTL",     "VTL-P-Transistor"},
 			{"PMOS-OD18",    "OD18-P-Transistor"},

@@ -20,6 +20,9 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
  * annotation specifying which layout transistor it matches.
  * The short names are used internally for NCC print-outs because the long
  * names are too verbose.
+ * 
+ * Scalable transistors, in the layout, have a different long name than
+ * regular transistor but map to the same type as ordinary layout transistors.
  */
 public class PartTypeTable {
 	private int numTypes = 0;
@@ -30,10 +33,11 @@ public class PartTypeTable {
 	 *  the net lists. */
 	private HashMap<String,PartType> longNameToType = new HashMap<String,PartType>();
 	private void add(String typeName, String longTypeName) {
-		PartType t = new PartType(numTypes++, typeName);
-		LayoutLib.error(nameToType.containsKey(typeName), 
-				        "duplicate type name");
-		nameToType.put(typeName, t);
+		PartType t = nameToType.get(typeName);
+		if (t==null) {
+			t = new PartType(numTypes++, typeName);
+			nameToType.put(typeName, t);
+		}
 		LayoutLib.error(longNameToType.containsKey(longTypeName), 
         				"duplicate long type name");
 		longNameToType.put(longTypeName, t);
