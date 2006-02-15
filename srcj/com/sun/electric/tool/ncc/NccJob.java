@@ -143,12 +143,6 @@ public class NccJob extends Job {
 		return options;
 	}
 	
-	private void buildNetEquivalence(NccResults results) {
-		pr("Building net equivalence tables ... ");
-		for (NccResult r: results)  r.getNetEquivalence();
-		prln("done");
-	}
-
 	// Some day we may run this on server
     public boolean doIt() throws JobException {
 		if (cellCtxts==null) throw new JobException();
@@ -156,7 +150,6 @@ public class NccJob extends Job {
 		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 				              cellCtxts[1].cell, cellCtxts[1].context, 
 					  	      options, this);
-		buildNetEquivalence(results);
 		
 		fieldVariableChanged("results");
 

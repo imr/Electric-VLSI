@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/16/06, RK) Add an NCC sub-menu that allows designer to add any NCC annotation. (Bugzilla: 646)
+
 IMP: (2/16/06, RK) Re-implemented NCC command "Copy Schematic Names to Layout". It now copies Network names for all schematic/layout cell pairs.
 
 IMP: (2/16/06, RK) Conversion of NCC to client server model

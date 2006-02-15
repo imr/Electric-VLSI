@@ -372,9 +372,27 @@ public class ToolMenu {
 		nccSubMenu.addSeparator();
 		nccSubMenu.addMenuItem("Copy Schematic _Names to Layout", null,
 		    new ActionListener() { public void actionPerformed(ActionEvent e) { new SchemNamesToLay(); } });
-		nccSubMenu.addSeparator();
-		nccSubMenu.addMenuItem("Add NCC Annotation to Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation(); } });
+
+		MenuBar.Menu nccAnnotationMenu = MenuBar.makeMenu("Add NCC _Annotation to Cell");
+		nccSubMenu.add(nccAnnotationMenu);
+		nccAnnotationMenu.addMenuItem("Exports Connected by Parent _vdd", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("exportsConnectedByParent vdd /vdd_[0-9]+/"); } });
+		nccAnnotationMenu.addMenuItem("Exports Connected By Parent _gnd", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("exportsConnectedByParent gnd /gnd_[0-9]+/"); } });
+		nccAnnotationMenu.addMenuItem("_Skip NCC", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("skipNCC <comment explaining why>"); } });
+		nccAnnotationMenu.addMenuItem("_Not a Subcircuit", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("notSubcircuit <comment explaining why>"); } });
+		nccAnnotationMenu.addMenuItem("_Flatten Instances", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("flattenInstances <list of instance names>"); } });
+		nccAnnotationMenu.addMenuItem("_Join Group", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("joinGroup <cell name>"); } });
+		nccAnnotationMenu.addMenuItem("_Transistor Type", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("transistorType <typeName>"); } });
+		nccAnnotationMenu.addMenuItem("_Resistor Type", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("resistorType <typeName>"); } });
+		nccAnnotationMenu.addMenuItem("_Black Box", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation("blackBox <comment explaining why>"); } });
 
 		//------------------- Network
 

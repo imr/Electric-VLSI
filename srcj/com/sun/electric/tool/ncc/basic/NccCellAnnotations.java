@@ -291,33 +291,47 @@ public class NccCellAnnotations {
 	/**
 	 * Class to create a Cell NCC annotation object in a new Job.
 	 */
-    private static class MakeCellAnnotation extends Job
-    {
+    private static class MakeCellAnnotation extends Job {
 		private EditWindow_ wnd;
         private Cell cell;
+        private String newAnnotation;
 
-		private MakeCellAnnotation(EditWindow_ wnd, Cell cell)
+		private MakeCellAnnotation(EditWindow_ wnd, Cell cell, String annotation)
         {
             super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.wnd = wnd;
             this.cell = cell;
+            newAnnotation = annotation;
             startJob();
         }
 
-        public boolean doIt() throws JobException
-        {
+        public boolean doIt() throws JobException {
+        	
 			Variable nccVar = cell.getVar(NCC_ANNOTATION_KEY);
-			if (nccVar == null)
-			{
+			if (nccVar == null) {
 				String [] initial = new String[1];
-				initial[0] = "* NCC Annotations";
+				initial[0] = newAnnotation;
 				TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
 				nccVar = cell.newVar(NCC_ANNOTATION_KEY, initial, td);
 				if (nccVar == null) return true;
+			} else {
+				Object oldObj = nccVar.getObject();
+				LayoutLib.error(!(oldObj instanceof String[]), "NCC annotation not String[]");
+				String[] oldVal = (String[]) oldObj;
+				TextDescriptor td = nccVar.getTextDescriptor();
+
+				int newLen = oldVal.length+1;
+				String[] newVal = new String[newLen];
+				for (int i=0; i<newLen-1; i++) newVal[i]=oldVal[i];
+				newVal[newLen-1] = newAnnotation;
+				nccVar = cell.newVar(NCC_ANNOTATION_KEY, newVal, td);
 			}
+			return true;
+        }
+        public void terminateOK() {
+        	wnd.clearHighlighting();
 			wnd.addHighlightText(cell, cell, NCC_ANNOTATION_KEY);
 			wnd.finishedHighlighting();
-			return true;
         }
     }
 
@@ -327,14 +341,14 @@ public class NccCellAnnotations {
 	 * Method to create NCC annotations in the current Cell.
 	 * Called from the menu commands.
 	 */
-	public static void makeNCCAnnotation()
+	public static void makeNCCAnnotation(String newAnnotation)
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-		new MakeCellAnnotation(wnd, cell);
+		new MakeCellAnnotation(wnd, cell, newAnnotation);
 	}
 
 	/**
