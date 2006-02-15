@@ -61,7 +61,7 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 import com.sun.electric.tool.user.ncc.ExportConflict;
-import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
+import com.sun.electric.tool.user.ncc.NccGuiInfo;
 import com.sun.electric.tool.user.ncc.UnrecognizedPart;
 
 /**
@@ -117,8 +117,9 @@ public class NccNetlist {
 	public ArrayList<Port> getPortArray() {return ports;}
 	public boolean cantBuildNetlist() {
 		return exportAssertionFailures || exportGlobalConflicts ||
-		       badTransistorType || userAbort;
+		       badTransistorType;
 	}
+	public boolean userAbort() {return userAbort;}
 	public Cell getRootCell() {return rootCell;}
 	public VarContext getRootContext() {return rootContext;}
 }
@@ -240,7 +241,7 @@ class NccCellInfo extends CellInfo {
                         ExportConflict.NetworkConflict conf = 
                             new ExportConflict.NetworkConflict(getCell(), getContext(),
                                     nm, eg.network, net);
-                        globals.getComparisonResult().addNetworkExportConflict(conf);                        
+                        globals.getNccGuiInfo().addNetworkExportConflict(conf);                        
 					}
 					if (eg.type!=type) {
 						globals.prln(
@@ -251,7 +252,7 @@ class NccCellInfo extends CellInfo {
                         ExportConflict.CharactConflict conf = 
                             new ExportConflict.CharactConflict(getCell(), getContext(),
                                     nm, type.getFullName(), eg.type.getFullName(), eg.getExport());
-                        globals.getComparisonResult().addCharactExportConflict(conf);
+                        globals.getNccGuiInfo().addCharactExportConflict(conf);
 					}
 					
 					throw new ExportGlobalConflict();
@@ -438,7 +439,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("  Unrecognized transistor type: "+typeNm);
 			
 			// GUI
-			globals.getComparisonResult().addUnrecognizedPart(
+			globals.getNccGuiInfo().addUnrecognizedPart(
                     new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
 		}
 		return t;
@@ -506,7 +507,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("  Unrecognized resistor type: "+typeNm);
 			
 			// GUI
-			globals.getComparisonResult().addUnrecognizedPart(
+			globals.getNccGuiInfo().addUnrecognizedPart(
                     new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
 		}
 		return t;
@@ -599,7 +600,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
         VarContext context = info.getContext();
         Cell cell = info.getCell();
 
-        NccComparisonMismatches cm = globals.getComparisonResult();
+        NccGuiInfo cm = globals.getNccGuiInfo();
         Object[][] items = new Object[wireToExportGlobals.keySet().size()][];
         String[][] names = new String[wireToExportGlobals.keySet().size()][];
         int j = 0;

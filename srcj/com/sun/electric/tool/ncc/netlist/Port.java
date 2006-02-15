@@ -109,6 +109,9 @@ public class Port extends NetObject {
 	}
 	public Iterator<String> getExportNames() {return names.iterator();}
 	public boolean isDeleted() {return false;}
+	public boolean isImplied() {
+        return ! getWire().getNameProxy().getNet().getExports().hasNext();
+	}
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}
 

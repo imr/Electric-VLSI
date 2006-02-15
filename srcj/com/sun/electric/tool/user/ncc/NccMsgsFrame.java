@@ -48,7 +48,7 @@ public class NccMsgsFrame {
     /** the top-level split-pane    */ private ComparisonsPane comparPane;
     
     // data variables
-    /** list of NccComparisonResult */ private List<NccComparisonMismatches> mismatches;
+    /** list of NccComparisonResult */ private List<NccGuiInfo> mismatches;
     /** NCC options                 */ private NccOptions nccOptions;
     
     public NccMsgsFrame() {
@@ -100,7 +100,7 @@ public class NccMsgsFrame {
      * @param misms  list of mismatches
      * @param options  NCC options
      */
-    public void setMismatches(List<NccComparisonMismatches> misms, NccOptions options) {
+    public void setMismatches(List<NccGuiInfo> misms, NccOptions options) {
         mismatches = misms;
         nccOptions = options;
     }

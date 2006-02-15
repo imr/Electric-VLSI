@@ -40,7 +40,7 @@ import com.sun.electric.tool.user.Highlighter;
  */
 abstract class ExportConflictTable extends ExportTable {
     protected ExportConflict[] conflicts;
-    protected ExportConflictTable(NccComparisonMismatches res) { super(res, 4); }
+    protected ExportConflictTable(NccGuiInfo res) { super(res, 4); }
     protected void postSetup() {
         getTableHeader().setReorderingAllowed(false);
         for (int col=0; col < 4; col++)
@@ -51,7 +51,7 @@ abstract class ExportConflictTable extends ExportTable {
      * This class implements the table for Export/Global Network conflicts
      */
     protected static class NetworkTable extends ExportConflictTable {
-        public NetworkTable(NccComparisonMismatches res) {
+        public NetworkTable(NccGuiInfo res) {
             super(res);
             conflicts = (ExportConflict.NetworkConflict[])result
                   .getNetworkExportConflicts().toArray(new ExportConflict.NetworkConflict[0]);
@@ -66,7 +66,7 @@ abstract class ExportConflictTable extends ExportTable {
      * This class implements the table for Export/Global Characteristics conflicts
      */
     protected static class CharacteristicsTable extends ExportConflictTable {
-        public CharacteristicsTable(NccComparisonMismatches res) {
+        public CharacteristicsTable(NccGuiInfo res) {
             super(res);
             conflicts = (ExportConflict.CharactConflict[])result
                 .getCharactExportConflicts().toArray(new ExportConflict.CharactConflict[0]);

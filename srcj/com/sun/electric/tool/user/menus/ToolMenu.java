@@ -24,6 +24,22 @@
 
 package com.sun.electric.tool.user.menus;
 
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -85,10 +101,12 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.NetEquivalence;
+import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
@@ -112,22 +130,6 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 
 /**
@@ -367,6 +369,9 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new NccJob(1); } });
 		nccSubMenu.addMenuItem("Cells from _Two Windows", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new NccJob(2); } });
+		nccSubMenu.addSeparator();
+		nccSubMenu.addMenuItem("Copy Schematic _Names to Layout", null,
+		    new ActionListener() { public void actionPerformed(ActionEvent e) { new SchemNamesToLay(); } });
 		nccSubMenu.addSeparator();
 		nccSubMenu.addMenuItem("Add NCC Annotation to Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { NccCellAnnotations.makeNCCAnnotation(); } });
@@ -626,8 +631,10 @@ public class ToolMenu {
 
             // run NCC, get results
             NccOptions options = new NccOptions();
-            NccResult result = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options, this);
-            if (result == null || !result.topologyMatch()) {
+            NccResults results = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options, this);
+            // get result of comparison of top schematic and layout Cells
+            NccResult result = results.getResultFromRootCells();
+            if (!result.match()) {
                 System.out.println("Ncc failed, can't back-annotate");
                 return false;
             }

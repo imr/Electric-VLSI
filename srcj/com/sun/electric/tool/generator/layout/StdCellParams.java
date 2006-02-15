@@ -28,10 +28,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -39,14 +40,13 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.tool.ncc.Ncc;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.NccResult;
+import com.sun.electric.tool.ncc.result.NccResults;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at
@@ -1117,9 +1117,9 @@ public class StdCellParams {
 		NccOptions options = new NccOptions();
 		options.howMuchStatus = 0;
 
-		NccResult result =
-			Ncc.compare(schem, null, layout, null, options);
-		error(!result.match(), "layout not topologically identical to schematic!");
+		NccResults results = Ncc.compare(schem, null, layout, null, options);
+		error(!results.match(), 
+			  "layout not topologically identical to schematic!");
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {

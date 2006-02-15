@@ -23,16 +23,17 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.CellUsage;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -68,7 +69,7 @@ public final class HierarchyEnumerator {
 	  * When I stored instance names as strings in NCC profiles indicated that 
 	  * almost 50% of the storage space was used in these strings and 70% of the
 	  * execution time was spent generating these Strings!!! */
-	public static abstract class NameProxy {
+	public static abstract class NameProxy implements Serializable {
 		private VarContext context;
 		private String sep;
 
@@ -94,6 +95,8 @@ public final class HierarchyEnumerator {
         }
 	}
 	public static class NetNameProxy extends NameProxy {
+	    static final long serialVersionUID = 0;
+
 		private Network net;
 		public String leafName() {
 			Iterator<String> it = net.getNames();
@@ -112,6 +115,8 @@ public final class HierarchyEnumerator {
         public Network getNet() { return net; }
 	}
 	public static class NodableNameProxy extends NameProxy {
+	    static final long serialVersionUID = 0;
+
 		private Nodable nodable;
 		public String leafName() {return nodable.getName();}
 		public NodableNameProxy(VarContext context, String sep, Nodable node) {

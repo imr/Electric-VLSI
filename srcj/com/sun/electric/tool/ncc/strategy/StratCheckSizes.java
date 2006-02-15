@@ -25,6 +25,7 @@
 /** StratFrontier finds all non-matched EquivRecords */
 
 package com.sun.electric.tool.ncc.strategy;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,22 +42,24 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.netlist.Subcircuit;
+import com.sun.electric.tool.ncc.result.PartReport;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratCheckSizes extends Strategy {
 	// ----------------------- private types ----------------------------------0
-	public static abstract class Mismatch {
+	public static abstract class Mismatch implements Serializable {
 		private StringBuffer sb = new StringBuffer();
 		private void aln(String s) {sb.append(s); sb.append("\n");}
 		public final double min, max;
-		public final Part minPart, maxPart;
+		public final PartReport minPart, maxPart;
         public final int minNdx, maxNdx;
 		Mismatch(double min, Part minPart, int minNdx, 
                  double max, Part maxPart, int maxNdx) {
 			this.min=min; this.max=max;
-			this.minPart=minPart; this.maxPart=maxPart;
             this.minNdx = minNdx; this.maxNdx = maxNdx;
+			this.minPart = new PartReport(minPart); 
+			this.maxPart = new PartReport(maxPart);
 		}
 		public double relErr() {return (max-min)/min;}
 		public double absErr() {return max-min;}
@@ -76,7 +79,7 @@ public class StratCheckSizes extends Strategy {
 				minSz = NccUtils.round(min,2);
 				maxSz = NccUtils.round(max,2);
 			}
-			aln("    "+minPart.typeString()+
+			aln("    "+minPart.getTypeString()+
 				" "+widLen()+"s don't match. "+
 				" relativeError="+relErr+"%"+
 				" absoluteError="+absErr);
@@ -86,6 +89,8 @@ public class StratCheckSizes extends Strategy {
 		}
 	}
     public static class LengthMismatch extends Mismatch {
+    	static final long serialVersionUID = 0;
+
 		public String widLen() {return "length";}
 		public String wl() {return "L";}
 		public LengthMismatch(double min, Part minPart, int minNdx, 
@@ -94,6 +99,8 @@ public class StratCheckSizes extends Strategy {
 		}
 	}
     public static class WidthMismatch extends Mismatch {
+    	static final long serialVersionUID = 0;
+
 		public String widLen() {return "width";}
 		public String wl() {return "W";}
 		public WidthMismatch(double min, Part minPart, int minNdx, 
@@ -140,7 +147,7 @@ public class StratCheckSizes extends Strategy {
     		Mismatch m = (Mismatch) it.next();
     		System.out.print(m.toString());
     	}
-        globals.getComparisonResult().setSizeMismatches(mismatches);
+        globals.getNccGuiInfo().setSizeMismatches(mismatches);
     }
 
 	private boolean matches() {return mismatches.size()==0;}

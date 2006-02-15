@@ -23,11 +23,15 @@
 */
 package com.sun.electric.tool.user.ncc;
 
+import java.io.Serializable;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 
-public class UnrecognizedPart {
+public class UnrecognizedPart implements Serializable {
+	static final long serialVersionUID = 0;
+
     private Cell cell;
     private VarContext context;
     private String name;

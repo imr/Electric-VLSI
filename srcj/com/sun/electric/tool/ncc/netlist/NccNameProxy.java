@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.ncc.netlist;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -36,7 +37,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 /** Stores the information necessary to generate an instance name for a Part 
   * It is the same as HierarchyEnumerator.NameProxy except that it removes
   * a common path prefix from the name. */
-public abstract class NccNameProxy {
+public abstract class NccNameProxy implements Serializable {
 	private String commonPathPrefix;
 	
 	public static String removePrefix(String commonPathPrefix,
@@ -80,6 +81,8 @@ public abstract class NccNameProxy {
 	}
 
 	public static class PartNameProxy extends NccNameProxy {
+    	static final long serialVersionUID = 0;
+    	
 		private NodableNameProxy nameProxy;
 		NameProxy nameProxy() {return nameProxy;}
 		public PartNameProxy(NodableNameProxy nameProxy, 
@@ -89,6 +92,8 @@ public abstract class NccNameProxy {
 		}
 	}
 	public static class WireNameProxy extends NccNameProxy {
+    	static final long serialVersionUID = 0;
+    	
 		NetNameProxy nameProxy;
 		NameProxy nameProxy() {return nameProxy;}
 		public WireNameProxy(NetNameProxy nameProxy, String commonPathPrefix) {

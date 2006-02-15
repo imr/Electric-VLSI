@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/16/06, RK) Re-implemented NCC command "Copy Schematic Names to Layout". It now copies Network names for all schematic/layout cell pairs.
+
+IMP: (2/16/06, RK) Conversion of NCC to client server model
+
 IMP: (2/14/06, SMR) Moved all requests for the "current cell" to the UserInterface object.
 
 BUG: (2/13/06, DN) Regression fails, because projects settings from disk files are not reconciled.

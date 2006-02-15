@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.result.NccResults;
 
 /** Compare potentially multiple cells in a hierarchy. 
  * <p>This is the class that should be used by programs wishing to perform
@@ -41,11 +42,11 @@ public class Ncc {
 
 	private Ncc() {}
 	
-	private NccResult compare1(CellContext cc1, CellContext cc2,
-			                   NccOptions options, Aborter aborter) {
+	private NccResults compare1(CellContext cc1, CellContext cc2,
+			                    NccOptions options, Aborter aborter) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
 			ListNccAnnotations.doYourJob(cc1.cell, cc2.cell);
-			return new NccResult(true, true, true, null);
+			return new NccResults();
 		} else {
 	    	Date before = new Date();
 			switch (options.operation) {
@@ -59,35 +60,33 @@ public class Ncc {
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
 			prln(cc1.cell+"  "+cc2.cell);
-			NccResult result = NccBottomUp.compare(cc1, cc2, options, aborter); 
+			NccResults results = NccBottomUp.compare(cc1, cc2, options, aborter); 
 
-			if (aborter.userWantsToAbort()) {
-				prln("NCC run aborted by user");
-				return result;
-			}
+			if (aborter.userWantsToAbort()) return results;
+			
 
-			prln("Summary for all cells: "+result.summary(options.checkSizes));
+			prln("Summary for all cells: "+results.summary(options.checkSizes));
 			Date after = new Date();
 			prln("NCC command completed in: "+
 			                   NccUtils.hourMinSec(before, after)+".");
 
-            if (NccGuiOptions.getBackAnnotateLayoutNetNames() && result.match())
-                NccBackAnnotate.backAnnotateNetNames(result);
-			return result;
+//            if (NccGuiOptions.getBackAnnotateLayoutNetNames() && result.match())
+//                NccBackAnnotate.backAnnotateNetNames(result);
+			return results;
 		}
     }
    
     // ------------------------- public method --------------------------------
 	/** Compare two cells. We don't need to be able to abort */
-    public static NccResult compare(Cell cell1, VarContext ctxt1, 
+    public static NccResults compare(Cell cell1, VarContext ctxt1, 
                                     Cell cell2, VarContext ctxt2, 
 									NccOptions options) {
     	return compare(cell1, ctxt1, cell2, ctxt2, options, null); 
     }
 	/** Compare two cells. We need to be able to abort */
-    public static NccResult compare(Cell cell1, VarContext ctxt1, 
-    		                        Cell cell2, VarContext ctxt2, 
-									NccOptions options, Job job) {
+    public static NccResults compare(Cell cell1, VarContext ctxt1, 
+    		                         Cell cell2, VarContext ctxt2, 
+									 NccOptions options, Job job) {
     	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
     	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();

@@ -75,9 +75,9 @@ implements PropertyChangeListener, ActionListener {
     protected String clipboard;
             
     // data holders
-    protected NccComparisonMismatches result;
+    protected NccGuiInfo result;
  
-    public ExportTable(NccComparisonMismatches res, int cols) {
+    public ExportTable(NccGuiInfo res, int cols) {
         result = res;
         numCols = cols;
     }

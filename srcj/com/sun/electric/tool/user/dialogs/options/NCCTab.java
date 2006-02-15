@@ -26,7 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import javax.swing.JPanel;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.ncc.NccGuiOptions;
+import com.sun.electric.tool.ncc.NccPreferences;
 import com.sun.electric.tool.ncc.NccOptions;
 
 /**
@@ -68,18 +68,17 @@ public class NCCTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		enableSizeChecking.setSelected(NccGuiOptions.getCheckSizes());
-		relativeSizeTolerance.setText(Double.toString(NccGuiOptions.getRelativeSizeTolerance()));
-		absoluteSizeTolerance.setText(Double.toString(NccGuiOptions.getAbsoluteSizeTolerance()));
+		enableSizeChecking.setSelected(NccPreferences.getCheckSizes());
+		relativeSizeTolerance.setText(Double.toString(NccPreferences.getRelativeSizeTolerance()));
+		absoluteSizeTolerance.setText(Double.toString(NccPreferences.getAbsoluteSizeTolerance()));
 		haltAfterFindingFirstMismatchedCell.
-			setSelected(NccGuiOptions.getHaltAfterFirstMismatch());
-        skipPassed.setSelected(NccGuiOptions.getSkipPassed());
-        maxMatched.setText(Integer.toString(NccGuiOptions.getMaxMatchedClasses()));
-        maxMismatched.setText(Integer.toString(NccGuiOptions.getMaxMismatchedClasses()));
-        maxMembers.setText(Integer.toString(NccGuiOptions.getMaxClassMembers()));
-        setOperation(NccGuiOptions.getOperation());
-        howMuchStatus.setText(Integer.toString(NccGuiOptions.getHowMuchStatus()));
-        backAnnotateLayNetNamesFromSch.setSelected(NccGuiOptions.getBackAnnotateLayoutNetNames());
+			setSelected(NccPreferences.getHaltAfterFirstMismatch());
+        skipPassed.setSelected(NccPreferences.getSkipPassed());
+        maxMatched.setText(Integer.toString(NccPreferences.getMaxMatchedClasses()));
+        maxMismatched.setText(Integer.toString(NccPreferences.getMaxMismatchedClasses()));
+        maxMembers.setText(Integer.toString(NccPreferences.getMaxClassMembers()));
+        setOperation(NccPreferences.getOperation());
+        howMuchStatus.setText(Integer.toString(NccPreferences.getHowMuchStatus()));
 	}
 
 	/**
@@ -89,49 +88,45 @@ public class NCCTab extends PreferencePanel
 	public void term()
 	{
 		boolean currBoolean = enableSizeChecking.isSelected();
-		if (currBoolean!=NccGuiOptions.getCheckSizes()) {
-			NccGuiOptions.setCheckSizes(currBoolean);
+		if (currBoolean!=NccPreferences.getCheckSizes()) {
+			NccPreferences.setCheckSizes(currBoolean);
 		}
-		double currDouble = TextUtils.atof(relativeSizeTolerance.getText(), new Double(NccGuiOptions.getRelativeSizeTolerance()));
-		if (currDouble!=NccGuiOptions.getRelativeSizeTolerance()) {
-			NccGuiOptions.setRelativeSizeTolerance(currDouble);
+		double currDouble = TextUtils.atof(relativeSizeTolerance.getText(), new Double(NccPreferences.getRelativeSizeTolerance()));
+		if (currDouble!=NccPreferences.getRelativeSizeTolerance()) {
+			NccPreferences.setRelativeSizeTolerance(currDouble);
 		}
-		currDouble = TextUtils.atof(absoluteSizeTolerance.getText(), new Double(NccGuiOptions.getAbsoluteSizeTolerance()));
-		if (currDouble!=NccGuiOptions.getAbsoluteSizeTolerance()) {
-			NccGuiOptions.setAbsoluteSizeTolerance(currDouble);
+		currDouble = TextUtils.atof(absoluteSizeTolerance.getText(), new Double(NccPreferences.getAbsoluteSizeTolerance()));
+		if (currDouble!=NccPreferences.getAbsoluteSizeTolerance()) {
+			NccPreferences.setAbsoluteSizeTolerance(currDouble);
 		}
 		currBoolean = haltAfterFindingFirstMismatchedCell.isSelected();
 		if (currBoolean!=
-			NccGuiOptions.getHaltAfterFirstMismatch()) {
-			NccGuiOptions.setHaltAfterFirstMismatch(currBoolean);
+			NccPreferences.getHaltAfterFirstMismatch()) {
+			NccPreferences.setHaltAfterFirstMismatch(currBoolean);
 		}
         currBoolean = skipPassed.isSelected();
-        if (currBoolean!=NccGuiOptions.getSkipPassed()) {
-            NccGuiOptions.setSkipPassed(currBoolean);
+        if (currBoolean!=NccPreferences.getSkipPassed()) {
+            NccPreferences.setSkipPassed(currBoolean);
         }
         int currInt = Integer.parseInt(maxMatched.getText());
-        if (currInt!=NccGuiOptions.getMaxMatchedClasses()) {
-            NccGuiOptions.setMaxMatchedClasses(currInt);
+        if (currInt!=NccPreferences.getMaxMatchedClasses()) {
+            NccPreferences.setMaxMatchedClasses(currInt);
         }
         currInt = Integer.parseInt(maxMismatched.getText());
-        if (currInt!=NccGuiOptions.getMaxMismatchedClasses()) {
-            NccGuiOptions.setMaxMismatchedClasses(currInt);
+        if (currInt!=NccPreferences.getMaxMismatchedClasses()) {
+            NccPreferences.setMaxMismatchedClasses(currInt);
         }
         currInt = Integer.parseInt(maxMembers.getText());
-        if (currInt!=NccGuiOptions.getMaxClassMembers()) {
-            NccGuiOptions.setMaxClassMembers(currInt);
+        if (currInt!=NccPreferences.getMaxClassMembers()) {
+            NccPreferences.setMaxClassMembers(currInt);
         }
         currInt = getOperation();
-        if (currInt!=NccGuiOptions.getOperation()) {
-            NccGuiOptions.setOperation(currInt);
+        if (currInt!=NccPreferences.getOperation()) {
+            NccPreferences.setOperation(currInt);
         }
         currInt = Integer.parseInt(howMuchStatus.getText());
-        if (currInt!=NccGuiOptions.getHowMuchStatus()) {
-            NccGuiOptions.setHowMuchStatus(currInt);
-        }
-        currBoolean = backAnnotateLayNetNamesFromSch.isSelected();
-        if (currBoolean != NccGuiOptions.getBackAnnotateLayoutNetNames()) {
-            NccGuiOptions.setBackAnnotateLayoutNetNames(currBoolean);
+        if (currInt!=NccPreferences.getHowMuchStatus()) {
+            NccPreferences.setHowMuchStatus(currInt);
         }
 	}
 
@@ -140,7 +135,8 @@ public class NCCTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         operationGroup = new javax.swing.ButtonGroup();
@@ -168,8 +164,6 @@ public class NCCTab extends PreferencePanel
         maxMatched = new javax.swing.JTextField();
         maxMismatched = new javax.swing.JTextField();
         maxMembers = new javax.swing.JTextField();
-        misc = new javax.swing.JPanel();
-        backAnnotateLayNetNamesFromSch = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -185,9 +179,9 @@ public class NCCTab extends PreferencePanel
 
         operation.setLayout(new java.awt.GridBagLayout());
 
-        operation.setBorder(new javax.swing.border.TitledBorder("Operation"));
-        hierAll.setText("Hierarchical Comparison");
+        operation.setBorder(javax.swing.BorderFactory.createTitledBorder("Operation"));
         operationGroup.add(hierAll);
+        hierAll.setText("Hierarchical Comparison");
         hierAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 hierAllActionPerformed(evt);
@@ -200,8 +194,8 @@ public class NCCTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         operation.add(hierAll, gridBagConstraints);
 
-        flatTop.setText("Flat Comparison");
         operationGroup.add(flatTop);
+        flatTop.setText("Flat Comparison");
         flatTop.setActionCommand("Flat NCC");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -209,8 +203,8 @@ public class NCCTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         operation.add(flatTop, gridBagConstraints);
 
-        listAnn.setText("List NCC annotations");
         operationGroup.add(listAnn);
+        listAnn.setText("List NCC annotations");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -225,7 +219,7 @@ public class NCCTab extends PreferencePanel
 
         sizeChecking.setLayout(new java.awt.GridBagLayout());
 
-        sizeChecking.setBorder(new javax.swing.border.TitledBorder("Size Checking"));
+        sizeChecking.setBorder(javax.swing.BorderFactory.createTitledBorder("Size Checking"));
         enableSizeChecking.setText("Check transistor sizes");
         enableSizeChecking.setActionCommand("Check Transistor Sizes");
         enableSizeChecking.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
@@ -275,7 +269,7 @@ public class NCCTab extends PreferencePanel
 
         checkingAllCells.setLayout(new java.awt.GridBagLayout());
 
-        checkingAllCells.setBorder(new javax.swing.border.TitledBorder("Checking All Cells"));
+        checkingAllCells.setBorder(javax.swing.BorderFactory.createTitledBorder("Checking All Cells"));
         haltAfterFindingFirstMismatchedCell.setText("Halt after finding the first mismatched cell");
         haltAfterFindingFirstMismatchedCell.setActionCommand("Halt on First Mismatched Cell");
         haltAfterFindingFirstMismatchedCell.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
@@ -302,7 +296,7 @@ public class NCCTab extends PreferencePanel
 
         progressReport.setLayout(new java.awt.GridBagLayout());
 
-        progressReport.setBorder(new javax.swing.border.TitledBorder("Reporting Progress"));
+        progressReport.setBorder(javax.swing.BorderFactory.createTitledBorder("Reporting Progress"));
         jLabel4.setText("How many status messages to print (0->few, 2->many):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -323,7 +317,7 @@ public class NCCTab extends PreferencePanel
 
         errorReport.setLayout(new java.awt.GridBagLayout());
 
-        errorReport.setBorder(new javax.swing.border.TitledBorder("Error Reporting"));
+        errorReport.setBorder(javax.swing.BorderFactory.createTitledBorder("Error Reporting"));
         jLabel1.setLabelFor(maxMatched);
         jLabel1.setText("Maximum number of matched equivalence classes to print");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -375,31 +369,13 @@ public class NCCTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         ncc.add(errorReport, gridBagConstraints);
 
-        misc.setLayout(new java.awt.GridBagLayout());
-
-        misc.setBorder(new javax.swing.border.TitledBorder("Miscellaneous"));
-        backAnnotateLayNetNamesFromSch.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        backAnnotateLayNetNamesFromSch.setText("Back-annotate layout nets with schematic net names after matching");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        misc.add(backAnnotateLayNetNamesFromSch, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        ncc.add(misc, gridBagConstraints);
-        misc.getAccessibleContext().setAccessibleName("Miscellaneous");
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         getContentPane().add(ncc, gridBagConstraints);
 
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void hierAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hierAllActionPerformed
         // TODO add your handling code here:
@@ -418,7 +394,6 @@ public class NCCTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField absoluteSizeTolerance;
-    private javax.swing.JCheckBox backAnnotateLayNetNamesFromSch;
     private javax.swing.JPanel checkingAllCells;
     private javax.swing.JCheckBox enableSizeChecking;
     private javax.swing.JPanel errorReport;
@@ -436,7 +411,6 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JTextField maxMatched;
     private javax.swing.JTextField maxMembers;
     private javax.swing.JTextField maxMismatched;
-    private javax.swing.JPanel misc;
     private javax.swing.JPanel ncc;
     private javax.swing.JPanel operation;
     private javax.swing.ButtonGroup operationGroup;

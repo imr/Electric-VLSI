@@ -39,7 +39,7 @@ class UnrecognizedPartTable extends ExportTable {
     
     UnrecognizedPart[] moses;
     
-    public UnrecognizedPartTable(NccComparisonMismatches res) {
+    public UnrecognizedPartTable(NccGuiInfo res) {
         super(res, 2);
         moses = (UnrecognizedPart[])result.getUnrecognizedParts()
                                          .toArray(new UnrecognizedPart[0]);

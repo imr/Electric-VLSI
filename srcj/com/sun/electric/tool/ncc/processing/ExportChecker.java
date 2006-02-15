@@ -175,7 +175,7 @@ public class ExportChecker {
                 em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
                 em.add(0, p1);
                 em.setValidOnlyWhenTopologyMismatch(true);
-                globals.getComparisonResult().addExportMismatch(em);
+                globals.getNccGuiInfo().addExportMismatch(em);
 			} else if (p2ports.size()==1){
 				p1ToP2.put(p1, p2ports.iterator().next());
 			} else {
@@ -188,7 +188,7 @@ public class ExportChecker {
                 em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
                 em.add(0, p1);
                 em.add(1, p2ports);
-                globals.getComparisonResult().addExportMismatch(em);                
+                globals.getNccGuiInfo().addExportMismatch(em);                
 			}
 		}
 		return match;
@@ -330,7 +330,7 @@ public class ExportChecker {
                 em.setCells(rootCells[no.circuit], rootCells[no.circuitNoMatchingPort]);
                 em.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
                 em.add(0, no.port);
-                globals.getComparisonResult().addExportMismatch(em);                
+                globals.getNccGuiInfo().addExportMismatch(em);                
                 continue;
             }
 			if (!printedHeader) {
@@ -353,7 +353,7 @@ public class ExportChecker {
             esm.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
             esm.setFirstExport(no.port);
             esm.setSuggestion((NetObject)o);
-            globals.getComparisonResult().addExportMismatch(esm);                
+            globals.getNccGuiInfo().addExportMismatch(esm);                
 		}
 		if (printedHeader) prln("");
     }
@@ -453,7 +453,7 @@ public class ExportChecker {
                     esm.setSecondExport(pn);
                     if(portOrWire != null)
                         esm.setSuggestion((NetObject)portOrWire);
-                    globals.getComparisonResult().addExportMismatch(esm);                    
+                    globals.getNccGuiInfo().addExportMismatch(esm);                    
 				}
     		}
     	}

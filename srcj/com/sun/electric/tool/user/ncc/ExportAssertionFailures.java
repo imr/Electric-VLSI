@@ -23,13 +23,17 @@
 */
 package com.sun.electric.tool.user.ncc;
 
+import java.io.Serializable;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 
 /**
  * Each object of this class holds one Export Assertion Failure
  */
-public class ExportAssertionFailures {
+public class ExportAssertionFailures implements Serializable {
+	static final long serialVersionUID = 0;
+
     /** Cell    */  private Cell cell;
     /** Context */  private VarContext context;
     

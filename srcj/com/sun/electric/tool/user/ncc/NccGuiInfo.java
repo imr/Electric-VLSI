@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: NccComparisonMismatches.java
+* File: NccGuiInfo.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -23,27 +23,27 @@
 */
 package com.sun.electric.tool.user.ncc;
    
-import java.util.Iterator;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
+import com.sun.electric.tool.ncc.result.EquivRecReport;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NccResult.CellSummary;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 
 /**
  * This class is a container for all NCC mismatch data produced by 
  * a comparison of two cells. This data is required by NCC GUI.
  */
-public class NccComparisonMismatches {
-    /** True if exports match      */   private boolean exportMatch;
-    /** True if topologies match   */   private boolean topologyMatch;
-    /** True if sizes match        */   private boolean sizeMatch;
-    /** True if sizes were checked */   private boolean sizeChecked;
+public class NccGuiInfo  implements Serializable {
+	static final long serialVersionUID = 0;
+
+	/** Results from Cell pair
+	 *  comparison */					private NccResult nccResult;
     
     /** True if top-level cells are swapped. Schematic cell is always 
      *  attempted to be displayed on the laft and the layout cell - on the right.
@@ -53,17 +53,8 @@ public class NccComparisonMismatches {
      *  cell names, cells, and contexts in the correct order. */    
     private boolean swapCells;  
     
-    /** Names of the two cells     */   private String[] cellNames;
-    /** The two cells              */   private Cell[] cells;
-    /** Contexts of the two cells  */   private VarContext[] contexts;
-    /** Summary of the two cells   */   private CellSummary summary;
-    
     /** Export mismatches          */   private List<ExportMismatch> exportMismatches;
-    /** Part/Wire mismatches (local partitioning) */
-                                        private LocalPartitionResult lpResult;
     
-    /** Part/Wire mismatches (hashcode partitioning) */                                        
-                                        private EquivRecord[] hashMismEqvRecrds;    
     /** Transistor size mismatches */   private List<StratCheckSizes.Mismatch> sizeMismatches;
     /** Some export mismatches are duplicated when suggestions are added.
      *  Suggestions are given only when topology match. 
@@ -75,16 +66,11 @@ public class NccComparisonMismatches {
     /** Network Export Conflicts  */    private List<ExportConflict.NetworkConflict> networkExportConflicts;
     /** Charact Export Conflicts  */    private List<ExportConflict.CharactConflict> charactExportConflicts;
     /** Unrecognized MOSes        */    private List<UnrecognizedPart> unrecognizedParts;
-    /** print hash code errors? */      private boolean printHashFailures;  
+    /** Mismatched EquivRecords */		private List<EquivRecReport> partRecReports, wireRecReports;
     
-    public NccComparisonMismatches() {
-        exportMatch = true;
-        topologyMatch = true;
-        sizeMatch = true;
-        sizeChecked = false;
+    public NccGuiInfo() {
         swapCells = false;
         numExportsValidOnlyWhenTopologyMismatch = 0;
-        lpResult = null;
         
         exportMismatches = new LinkedList<ExportMismatch>();
         sizeMismatches = new LinkedList<StratCheckSizes.Mismatch>();
@@ -92,46 +78,12 @@ public class NccComparisonMismatches {
         networkExportConflicts = new LinkedList<ExportConflict.NetworkConflict>();
         charactExportConflicts = new LinkedList<ExportConflict.CharactConflict>();
         unrecognizedParts = new LinkedList<UnrecognizedPart>();
+        partRecReports = new ArrayList<EquivRecReport>();
+        wireRecReports = new ArrayList<EquivRecReport>();
     }
-    
-    /** 
-     * This method should be called at the end of an NCC job, when all results 
-     * are available. This method performs cell swaps attempting to place 
-     * a schematic cell at index 0, and a layout cell at index 1. 
-     */
-    public void setGlobalData(NccGlobals globals) {
-        cellNames = globals.getRootCellNames();
-        cells = globals.getRootCells();
-        contexts = globals.getRootContexts();        
-        if (cellNames[0].indexOf("{sch}") == -1
-         && cellNames[1].indexOf("{sch}") != -1) {
-            String     s=cellNames[0];cellNames[0]=cellNames[1];cellNames[1]=s;
-            Cell       c=cells[0];    cells[0]=cells[1];        cells[1]=c;
-            VarContext vc=contexts[0];contexts[0]=contexts[1];  contexts[1]=vc;
-            swapCells = true;
-        } else
-            swapCells = false;
-        
-        sizeChecked = globals.getOptions().checkSizes;
-        printHashFailures = globals.isPrintHashFailures();
-        
-        if (lpResult == null || lpResult.matches()) {  // if no LP mismatches
-            LeafEquivRecords parts = globals.getPartLeafEquivRecs();
-            LeafEquivRecords wires = globals.getWireLeafEquivRecs();
-            hashMismEqvRecrds = new EquivRecord[parts.numNotMatched() 
-                                              + wires.numNotMatched()];
-            int i=0;
-            for (Iterator<EquivRecord> it=parts.getNotMatched(); it.hasNext(); i++)
-                hashMismEqvRecrds[i] = (EquivRecord)it.next();
-            for (Iterator<EquivRecord> it=wires.getNotMatched(); it.hasNext(); i++)
-                hashMismEqvRecrds[i] = (EquivRecord)it.next();
-        }
-        
-        summary = new CellSummary(globals.getPartCounts(),
-                                  globals.getPortCounts(),
-                                  globals.getWireCounts(),
-								  globals.cantBuildNetlistBits());
-    }
+
+    /** setNccResult should be called after NCC has returned a result */
+    public void setNccResult(NccResult r) {nccResult=r;}
     
     /**
      * This method returns the total number of valid mismatches stored in the object:
@@ -140,11 +92,7 @@ public class NccComparisonMismatches {
      * @return the total number of valid mismatches stored in the object
      */
     public int getTotalMismatchCount() {
-        int eqvRecCount = 0;
-        if (lpResult != null && !lpResult.matches()) 
-            eqvRecCount += lpResult.size();
-        else if (hashMismEqvRecrds != null && printHashFailures) 
-            eqvRecCount += hashMismEqvRecrds.length;
+        int eqvRecCount = partRecReports.size() + wireRecReports.size();
         
         return getValidExportMismatchCount() 
                + eqvRecCount   
@@ -165,39 +113,25 @@ public class NccComparisonMismatches {
         return swapCells;
     }
     
-    /**
-     * This method returns an array of two Strings representing the names of the 
+    /** This method returns an array of two Strings representing the names of the 
      * compared cells 
-     * @return an array of cell names
-     */
-    public String[] getNames() {
-        return cellNames;
-    }
+     * @return an array of cell names*/
+    public String[] getNames() {return nccResult.getRootCellNames();}
     
-    /**
-     * This method returns an array of two compared cells 
-     * @return an array of cell
-     */    
-    public Cell[] getCells() {
-        return cells;
-    }
+    /** This method returns an array of two compared cells 
+     * @return an array of cell */    
+    public Cell[] getCells() {return nccResult.getRootCells();}
     
-    /**
-     * This method returns an array of two cell contexts 
-     * @return an array cell contexts
-     */    
-    public VarContext[] getContexts() {
-        return contexts;
-    }
+    /** This method returns an array of two cell contexts 
+     * @return an array cell contexts */    
+    public VarContext[] getContexts() {return nccResult.getRootContexts();}
 
     /**
      * This method returns a CellSummary object holding number of parts, 
      * wires, and ports in each cell. 
      * @return a CellSummary with summary of the compared cells
      */    
-    public CellSummary getCellSummary() {
-        return summary;
-    }    
+    public CellSummary getCellSummary() {return nccResult.getCellSummary();}    
     
     /**
      * This method adds the provided ExportMismatch object to the list 
@@ -210,52 +144,47 @@ public class NccComparisonMismatches {
             numExportsValidOnlyWhenTopologyMismatch++;
     }
     
-    /**
-     * This method returns the list of export mismatches
-     * @return list of export mismatches 
-     */
-    public List<ExportMismatch> getExportMismatches() {
-        return exportMismatches;
+    /** This method returns the list of export mismatches
+     * @return list of export mismatches */
+    public List<ExportMismatch> getExportMismatches(){return exportMismatches;}
+    public void setPartRecReports(List<EquivRecReport> badParts) {
+    	partRecReports = badParts;
     }
+    public List<EquivRecReport> getPartRecReports() {return partRecReports;}
+    public void setWireRecReports(List<EquivRecReport> badWires) {
+    	wireRecReports = badWires;
+    }
+    public List<EquivRecReport> getWireRecReports() {return wireRecReports;}
     
-    public void setLocalPartitionResult(LocalPartitionResult lpr) {
-        lpResult = lpr;
-    }
-    public LocalPartitionResult getLocalPartitionResult() {
-        return lpResult;
-    }
-    public EquivRecord[] getHashMismatchedEquivRecords() {
-        return hashMismEqvRecrds;
-    }
-    
+    /** has hash coding mismatches */
     public boolean isHashFailuresPrinted() {
-        return printHashFailures; 
+    	// the reports, if any, are either all local partition or all 
+    	// hash code partition 
+    	if (partRecReports.size()!=0)  return partRecReports.get(0).hashMismatch();
+    	if (wireRecReports.size()!=0)  return wireRecReports.get(0).hashMismatch();
+
+    	// no partition errors at all
+    	return false;
     }
     
-    public void setMatchFlags(boolean em, boolean tm, boolean sm) {
-        exportMatch = em;
-        topologyMatch = tm;
-        sizeMatch = sm;
+    public boolean hasLocalPartitionMismatches() {
+    	if (partRecReports.size()!=0)  return !partRecReports.get(0).hashMismatch();
+    	if (wireRecReports.size()!=0)  return !wireRecReports.get(0).hashMismatch();
+
+    	// no partition errors at all
+    	return false;
     }
     
-    public boolean isExportMatch() {
-        return exportMatch;
-    }
+    public boolean isExportMatch() {return nccResult.exportMatch();}
 
-    public boolean isSizeMatch() {
-        return sizeMatch;
-    }
+    public boolean isSizeMatch() {return nccResult.sizeMatch();}
 
-    public boolean isTopologyMatch() {
-        return topologyMatch;
-    }
+    public boolean isTopologyMatch() {return nccResult.topologyMatch();}
 
-    public boolean isSizeChecked() {
-        return sizeChecked;
-    }
+    public boolean isSizeChecked() {return nccResult.getOptions().checkSizes;}
 
     public int getValidExportMismatchCount() {
-        if (topologyMatch)
+        if (isTopologyMatch())
             return exportMismatches.size() - numExportsValidOnlyWhenTopologyMismatch;
         return exportMismatches.size();
     }
@@ -293,19 +222,6 @@ public class NccComparisonMismatches {
         unrecognizedParts.add(mos);
     }
     public List<UnrecognizedPart> getUnrecognizedParts() {
-        return unrecognizedParts;
-    }
-    
-    static class CellSummary {
-        /* arrays of Part, Port, Wire counts. One array element per Circuit */
-        public final int[] numParts, numPorts, numWires;
-        public final boolean[] cantBuildNetlist;
-        public CellSummary(int[] parts, int[] ports, int[] wires, 
-        		           boolean[] cantBuildNetlistBits) {
-            numParts = parts;
-            numPorts = ports;
-            numWires = wires;
-            cantBuildNetlist = cantBuildNetlistBits;
-        }
+    	return unrecognizedParts;
     } 
 }

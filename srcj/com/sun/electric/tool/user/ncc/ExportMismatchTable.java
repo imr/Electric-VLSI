@@ -35,9 +35,9 @@ import javax.swing.border.Border;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.netlist.NetObject;
-import com.sun.electric.tool.ncc.netlist.Port;
-import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.result.NetObjReport;
+import com.sun.electric.tool.ncc.result.PortReport;
+import com.sun.electric.tool.ncc.result.WireReport;
 import com.sun.electric.tool.user.Highlighter;
 
 /**
@@ -47,7 +47,7 @@ class ExportMismatchTable extends ExportTable {
 
     ExportMismatch[] mismatches;
     
-    public ExportMismatchTable(NccComparisonMismatches res) {
+    public ExportMismatchTable(NccGuiInfo res) {
         super(res, 2);
         height = Math.min(result.getValidExportMismatchCount(), MAXROWS);
         mismatches = new ExportMismatch[height];
@@ -112,26 +112,26 @@ class MismatchTableModel extends ExportTableModel {
                 html.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 int lineNdx = cellNdx*10000;
                 if (mismatches[row] instanceof ExportMismatch.MultiMatch) {
-                    List<Port> ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
+                    List<PortReport> ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
                     // each Port has a list of Exports which are printed as hyperlinked list
-                    for (Iterator<Port> it=ports.iterator(); it.hasNext();) {
-                        appendNameOf((Port)it.next(), html, lineNdx, false, null);
+                    for (Iterator<PortReport> it=ports.iterator(); it.hasNext();) {
+                        appendNameOf((PortReport)it.next(), html, lineNdx, false, null);
                         if (it.hasNext()) html.append("<br>" + LSEP);
                         lineNdx++;
                         cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
                     }
                 } else if (mismatches[row] instanceof ExportMismatch.NameMismatch) {
                     if (j == swap) {
-                        Port port = ((ExportMismatch.NameMismatch)mismatches[row]).getFirstExport(); 
+                        PortReport port = ((ExportMismatch.NameMismatch)mismatches[row]).getFirstExport(); 
                         appendNameOf(port, html, lineNdx, false, null);
                     } else {
-                        NetObject no = ((ExportMismatch.NameMismatch)mismatches[row]).getSuggestion();
+                        NetObjReport no = ((ExportMismatch.NameMismatch)mismatches[row]).getSuggestion();
                         appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
                     }
                     lineNdx++;
                     cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
                 } else if (mismatches[row] instanceof ExportMismatch.TopologyMismatch) {
-                    Port port;
+                    PortReport port;
                     if (j == swap) {
                         port = ((ExportMismatch.TopologyMismatch)mismatches[row]).getFirstExport();
                         appendNameOf(port, html, lineNdx, true, ExportTable.RED);
@@ -141,7 +141,7 @@ class MismatchTableModel extends ExportTableModel {
                     }
                     lineNdx++;
                     if (j != swap) { // if a cell in the right column
-                        NetObject no = ((ExportMismatch.TopologyMismatch)mismatches[row]).getSuggestion();
+                        NetObjReport no = ((ExportMismatch.TopologyMismatch)mismatches[row]).getSuggestion();
                         if (no != null) {  // if suggestion exists
                             html.append("<br>");
                             appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
@@ -184,14 +184,14 @@ class MismatchTableModel extends ExportTableModel {
      * Print in default color otherwise.
      * @param sugColor  text color
      */
-    protected void appendNameOf(NetObject no, StringBuffer html, 
+    protected void appendNameOf(NetObjReport no, StringBuffer html, 
             int lineNdx, boolean doColoring, String sugColor) {
         String href = "<a style=\"text-decoration: none\" href=\"";
         String text = null;
         boolean isImpl = false;
-        if (no instanceof Port) {
-            Port port = (Port)no;
-            isImpl = isImplied(port);
+        if (no instanceof PortReport) {
+            PortReport port = (PortReport)no;
+            isImpl = port.isImplied();
             text = port.exportNamesString();
             if (doColoring) html.append("<font COLOR=\"" + sugColor + "\">");
             if (isImpl) {
@@ -202,7 +202,7 @@ class MismatchTableModel extends ExportTableModel {
                 html.append(href + lineNdx +"\">"+ text +"</a>");
                 if (doColoring) html.append("</font>");
             }
-        } else if (no instanceof Wire) {
+        } else if (no instanceof WireReport) {
             text = no.getName();
             if (doColoring) html.append("<font COLOR=\"" + sugColor + "\">");
             html.append(href + lineNdx + "\">"+ text +"</a></font>");
@@ -210,17 +210,17 @@ class MismatchTableModel extends ExportTableModel {
         }
     }
     
-    /**
-     * Detect whether a Port in mismamatch has noo Exports.
-     * If no Exports exist then the Port has  an implied Export  
-     * @param port  Port to test
-     * @return true if Port has only an implied Export, false otherwise
-     */
-    protected boolean isImplied(Port port) {
-        Iterator it=port.getWire().getNameProxy().getNet().getExports();
-        if (it.hasNext()) return false;
-        return true;
-    }
+//    /**
+//     * Detect whether a Port in mismamatch has noo Exports.
+//     * If no Exports exist then the Port has  an implied Export  
+//     * @param port  Port to test
+//     * @return true if Port has only an implied Export, false otherwise
+//     */
+//    protected boolean isImplied(PortReport port) {
+//        Iterator it=port.getWire().getNameProxy().getNet().getExports();
+//        if (it.hasNext()) return false;
+//        return true;
+//    }
     
     /**
      * Highlight Exportson Port with the provided index. 
@@ -245,16 +245,16 @@ class MismatchTableModel extends ExportTableModel {
             
         // find what to highlight 
         if (em instanceof ExportMismatch.MultiMatch) {
-            List<Port> ports = ((ExportMismatch.MultiMatch)em).getAll(col);
+            List<PortReport> ports = ((ExportMismatch.MultiMatch)em).getAll(col);
             int i;
-            Iterator<Port> it;
+            Iterator<PortReport> it;
             // go to the necessary line
             for (it=ports.iterator(), i=0; it.hasNext()&&i<line; i++,it.next());
-            Port port = (Port)it.next();
+            PortReport port = (PortReport)it.next();
             HighlightTools.highlightPortExports(highlighter, cell, port);
         } else if (em instanceof ExportMismatch.NameMismatch) {
-            Port port;
-            NetObject portOrWire;
+            PortReport port;
+            NetObjReport portOrWire;
             if (col == 0) {
                 port = ((ExportMismatch.NameMismatch)em).getFirstExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port);
@@ -263,8 +263,8 @@ class MismatchTableModel extends ExportTableModel {
                 HighlightTools.highlightPortOrWire(highlighter, cell, portOrWire);
             }
         } else if (em instanceof ExportMismatch.TopologyMismatch) {
-            Port port1, port2;
-            NetObject portOrWire;
+            PortReport port1, port2;
+            NetObjReport portOrWire;
             if (col == 0) {
                 port1 = ((ExportMismatch.TopologyMismatch)em).getFirstExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port1);

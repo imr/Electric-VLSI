@@ -49,15 +49,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.netlist.NetObject;
-import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.Wire;
-import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.ncc.result.EquivRecReport;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NetObjReport;
+import com.sun.electric.tool.ncc.result.PartReport;
+import com.sun.electric.tool.ncc.result.WireReport;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ncc.ComparisonsTree.TreeNode;
-import com.sun.electric.tool.user.ncc.NccComparisonMismatches.CellSummary;
 
 /**
  * This class implements the right side of the NCC GUI window.
@@ -111,13 +109,13 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     
     /* --- Data holders --- */
     /** Current list of mismatched comparisons */
-    private NccComparisonMismatches mismatches[];
+    private NccGuiInfo mismatches[];
     /** Current list of Wire/Part equiv. classes with mismatches */
-    private EquivRecord mismEqRecs[][];
+    private EquivRecReport mismEqRecs[][];
     /** Mismatched NetObjects in current EquivRecords */
-    private ArrayList<NetObject>[] mismNetObjs[][];
+    private List<NetObjReport>[] mismNetObjs[][];
     /** Matched NetObjects in current EquivRecords */    
-    private ArrayList<NetObject>[] matchedNetObjs[][];
+    private List<NetObjReport>[] matchedNetObjs[][];
     /** Vector of currently selected equiv. class TreeNode objects */
     private Vector<TreeNode> curEqRecNodes = new Vector<TreeNode>();
     /** Vector of equiv. class TreeNode objects that should be displayed */
@@ -152,11 +150,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     }
     
     /** Set the current set of mismatches to the provided one */
-    public void setMismatches(List<NccComparisonMismatches> misms) {
+    public void setMismatches(List<NccGuiInfo> misms) {
         mismatches = 
-            (NccComparisonMismatches[])misms.toArray(new NccComparisonMismatches[0]);
+            (NccGuiInfo[])misms.toArray(new NccGuiInfo[0]);
         // allocate arrays of for tables
-        mismEqRecs = new EquivRecord[mismatches.length][];
+        mismEqRecs = new EquivRecReport[mismatches.length][];
         mismNetObjs = new ArrayList[mismatches.length][][];
         matchedNetObjs = new ArrayList[mismatches.length][][];
         exportsPanes = new JScrollPane[mismatches.length];
@@ -193,7 +191,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
      * @param compNdx index of the comparison
      * @param equivRecs array of equiv. classes
      */
-    protected void setMismatchEquivRecs(int compNdx, EquivRecord[] equivRecs) {
+    protected void setMismatchEquivRecs(int compNdx, EquivRecReport[] equivRecs) {
         mismEqRecs[compNdx] = equivRecs;
         mismNetObjs[compNdx] = new ArrayList[equivRecs.length][];
         matchedNetObjs[compNdx] = new ArrayList[equivRecs.length][];
@@ -204,7 +202,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
      * @param compNdx  index of the comparison
      * @return  array of equiv. classes
      */
-    protected EquivRecord[] getMismatchEquivRecs(int compNdx) {
+    protected EquivRecReport[] getMismatchEquivRecs(int compNdx) {
         return mismEqRecs[compNdx];
     }    
     
@@ -411,9 +409,20 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             String partitionTitle = eqRecNode.getParent().getShortName() + " : "
                                   + eqRecNode.getShortName();
             rightSplPane.setPartitionTitle(i, partitionTitle);
-            if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted())
-                fillHashPartitionResults(eqRecNode, rightSplPane, i);
-            else
+            List<NetObjReport>[] mism = new ArrayList[2];
+
+            EquivRecReport eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
+            mism[0] = eqRec.getNotMatchedNetObjs().get(0);
+            mism[1] = eqRec.getNotMatchedNetObjs().get(1);
+            mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass] = mism;
+            List<NetObjReport>[] matched = new ArrayList[2]; 
+            matched[0] = eqRec.getMatchedNetObjs().get(0);
+            matched[1] = eqRec.getMatchedNetObjs().get(1);
+            matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass] = matched;
+
+//            if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted())
+//                fillHashPartitionResults(eqRecNode, rightSplPane, i);
+//            else
                 fillLocalPartitionResults(eqRecNode, rightSplPane, i);
         }
         setRightComponent(rightSplPane);
@@ -432,13 +441,8 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private void fillLocalPartitionResults(TreeNode node, EquivClassSplitPane pane, int row) {
         int swap = 0;
         if (mismatches[node.compNdx].isSwapCells()) swap = 1;
-        EquivRecord eqRec = mismEqRecs[node.compNdx][node.eclass];
-        LocalPartitionResult lpr = mismatches[node.compNdx].getLocalPartitionResult();
-        
-        ArrayList<NetObject>[] mism = lpr.getNotMatchedNetObjs(eqRec);
-        mismNetObjs[node.compNdx][node.eclass] = mism;
-        ArrayList<NetObject>[] matched = lpr.getMatchedNetObjs(eqRec);
-        matchedNetObjs[node.compNdx][node.eclass] = matched;
+        List<NetObjReport>[] matched = matchedNetObjs[node.compNdx][node.eclass];
+        List<NetObjReport>[] mism = mismNetObjs[node.compNdx][node.eclass];
         
         String href = "<a style=\"text-decoration: none\" href=\"";
         StringBuffer html = new StringBuffer(256);
@@ -505,57 +509,57 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         }
     }
 
-    /**
-     * Fill the provided split cell with parts or wires from compared cells that 
-     * belong to the hashcode equivalence class identified by the provided tree node.  
-     * @param node  tree node
-     * @param pane  split pane
-     * @param row  row in the split pane (>1 rows if >1 node selected)
-     */
-    private void fillHashPartitionResults(TreeNode node, EquivClassSplitPane pane, int row) {
-        int swap = 0;
-        if (mismatches[node.compNdx].isSwapCells()) swap = 1;
-        EquivRecord eqRec = mismEqRecs[node.compNdx][node.eclass];
-        
-        String href = "<a style=\"text-decoration: none\" href=\"";
-        StringBuffer html = new StringBuffer(256);
-        int cell = 0;
-        for (Iterator<Circuit> it2=eqRec.getCircuits(); it2.hasNext(); cell++) {
-            int ndx = (cell + swap)%2;
-            StringBuffer curCellText = pane.getCellPlainTextBuffer(row,ndx);
-            curCellText.setLength(0);
-            html.setLength(0);
-            // fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
-            html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
-            
-            Circuit ckt = it2.next();
-            int len = ckt.numNetObjs();
-
-            Iterator<NetObject> it3=ckt.getNetObjs();
-            for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
-                String descr = cleanNetObjectName(
-                           (it3.next()).instanceDescription());
-                
-                html.append(href + (row*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
-                curCellText.append(descr);
-                html.append("<br>");
-                curCellText.append(LSEP);
-            }
-            if (len == 0) {
-                html.append("<b>none</b>");
-                curCellText.append("none");
-            }
-            
-            html.append("</font></html>");
-            pane.setCellText(row,ndx,html.toString());
-                        
-            String title = mismatches[node.compNdx].getNames()[ndx];
-            if (node.type == TreeNode.WIRE)
-                pane.setLabelText(row,ndx, "  "+ len +" Wire(s) in " + title);
-            else
-                pane.setLabelText(row,ndx, "  "+ len +" Part(s) in " + title);
-        }
-    }
+//    /**
+//     * Fill the provided split cell with parts or wires from compared cells that 
+//     * belong to the hashcode equivalence class identified by the provided tree node.  
+//     * @param node  tree node
+//     * @param pane  split pane
+//     * @param row  row in the split pane (>1 rows if >1 node selected)
+//     */
+//    private void fillHashPartitionResults(TreeNode node, EquivClassSplitPane pane, int row) {
+//        int swap = 0;
+//        if (mismatches[node.compNdx].isSwapCells()) swap = 1;
+//        EquivRecReport eqRec = mismEqRecs[node.compNdx][node.eclass];
+//        
+//        String href = "<a style=\"text-decoration: none\" href=\"";
+//        StringBuffer html = new StringBuffer(256);
+//        int cell = 0;
+//        for (List<NetObjReport> ckt : eqRec.getNotMatchedNetObjs()) {
+//            int ndx = (cell + swap)%2;
+//            StringBuffer curCellText = pane.getCellPlainTextBuffer(row,ndx);
+//            curCellText.setLength(0);
+//            html.setLength(0);
+//            // fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
+//            html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
+//            
+//            int len = ckt.size();
+//            int k=0;
+//            for (NetObjReport r : ckt) {
+//            	if (k>=ComparisonsTree.MAX_LIST_ELEMENTS) break;
+//                String descr = cleanNetObjectName(r.instanceDescription());
+//                
+//                html.append(href + (row*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
+//                curCellText.append(descr);
+//                html.append("<br>");
+//                curCellText.append(LSEP);
+//            	k++;
+//            }
+//            if (len == 0) {
+//                html.append("<b>none</b>");
+//                curCellText.append("none");
+//            }
+//            
+//            html.append("</font></html>");
+//            pane.setCellText(row,ndx,html.toString());
+//                        
+//            String title = mismatches[node.compNdx].getNames()[ndx];
+//            if (node.type == TreeNode.WIRE)
+//                pane.setLabelText(row,ndx, "  "+ len +" Wire(s) in " + title);
+//            else
+//                pane.setLabelText(row,ndx, "  "+ len +" Part(s) in " + title);
+//        }
+//        cell++;
+//    }
     
     /**
      * Display number of parts, wires, ports in the cells in comparison
@@ -565,7 +569,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private void displayComparisonSummary(int compNdx) {
         EquivClassSplitPane rightSplPane = rightSplPanes[0];
         Cell cells[] = mismatches[compNdx].getCells();
-        CellSummary summary = mismatches[compNdx].getCellSummary();
+        NccResult.CellSummary summary = mismatches[compNdx].getCellSummary();
         StringBuffer html = new StringBuffer(256);
         int swap = 0;
         if (mismatches[compNdx].isSwapCells()) swap = 1;
@@ -576,8 +580,10 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             html.setLength(0);
             html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
             if (summary.cantBuildNetlist[ndx]) {
-            	html.append(" Can't build netlist. See errors. ");
-            	curCellText.append(" Can't build netlist. See errors. ");
+            	html.append(" Can't build netlist!<br>" +
+            			    "  Problems are listed in tree pane (left most pane). ");
+            	curCellText.append(" Can't build netlist!" + LSEP +
+            			           "  Problems are listed in tree pane (left most pane). ");
             } else {
             	html.append(summary.numParts[ndx] + " Parts<br>"
             				+ summary.numWires[ndx] + " Wires<br>"
@@ -608,48 +614,48 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         TreeNode eqRecNode = (TreeNode)curEqRecNodesToDisplay.elementAt(recNdx);
 
         // in case of hashcode partitions, get NetObject from Circuits
-        NetObject partOrWire = null;
-        if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted()) {
-            EquivRecord eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
-            int c = 0, k = 0;
-            Circuit ckt = null;
-            for (Iterator<Circuit> it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
-                if (c == cellNdx) {
-                    ckt = it.next(); 
-                    break;
-                }
-            for (Iterator<NetObject> it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
-                if (k == line) {
-                    partOrWire = it.next();
-                    break;
-                }
-        } else { // in case of LP, get the NetObjeect from the array
-            ArrayList<NetObject>[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
-            ArrayList<NetObject>[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+        NetObjReport partOrWire = null;
+//        if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted()) {
+//            EquivRecReport eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
+//            int c = 0, k = 0;
+//            Circuit ckt = null;
+//            for (Iterator<Circuit> it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
+//                if (c == cellNdx) {
+//                    ckt = it.next(); 
+//                    break;
+//                }
+//            for (Iterator<NetObjReport> it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
+//                if (k == line) {
+//                    partOrWire = it.next();
+//                    break;
+//                }
+//        } else { // in case of LP, get the NetObjeect from the array
+            List<NetObjReport>[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+            List<NetObjReport>[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
             if (line >= mism[cellNdx].size()) 
                 partOrWire = matched[cellNdx].get(line - mism[cellNdx].size());
             else
                 partOrWire = mism[cellNdx].get(line);
-        }
+//        }
         
         Cell cell = null;
         VarContext context = null;
-        if (partOrWire instanceof Part) {
-            cell = ((Part)partOrWire).getNameProxy().leafCell();
-            context = ((Part)partOrWire).getNameProxy().getContext();
-        } else if (partOrWire instanceof Wire) {
-            cell = ((Wire)partOrWire).getNameProxy().leafCell();
-            context = ((Wire)partOrWire).getNameProxy().getContext();
+        if (partOrWire instanceof PartReport) {
+            cell = ((PartReport)partOrWire).getNameProxy().leafCell();
+            context = ((PartReport)partOrWire).getNameProxy().getContext();
+        } else if (partOrWire instanceof WireReport) {
+            cell = ((WireReport)partOrWire).getNameProxy().leafCell();
+            context = ((WireReport)partOrWire).getNameProxy().getContext();
         }
         
         // find the highlighter corresponding to the cell
         Highlighter highlighter = HighlightTools.getHighlighter(cell, context);
         if (highlighter == null) return;
 
-        if (partOrWire instanceof Part)
-            HighlightTools.highlightPart(highlighter, cell, (Part)partOrWire);
-        else if (partOrWire instanceof Wire)
-            HighlightTools.highlightWire(highlighter, cell, (Wire)partOrWire);
+        if (partOrWire instanceof PartReport)
+            HighlightTools.highlightPart(highlighter, cell, (PartReport)partOrWire);
+        else if (partOrWire instanceof WireReport)
+            HighlightTools.highlightWire(highlighter, cell, (WireReport)partOrWire);
         
         highlighter.finished();
     }

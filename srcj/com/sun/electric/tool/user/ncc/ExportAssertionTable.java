@@ -44,7 +44,7 @@ class ExportAssertionTable extends ExportTable {
     
     protected ExportAssertionFailures[] failures;
     
-    protected ExportAssertionTable(NccComparisonMismatches res) {
+    protected ExportAssertionTable(NccGuiInfo res) {
         super(res, 2);
         failures = (ExportAssertionFailures[])result.getExportAssertionFailures()
                                        .toArray(new ExportAssertionFailures[0]);

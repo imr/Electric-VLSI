@@ -45,7 +45,7 @@ import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
-import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
+import com.sun.electric.tool.user.ncc.NccGuiInfo;
 
 /**
  * Generate non-recurring random integers
@@ -87,7 +87,7 @@ public class NccGlobals {
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** can't build netlist? */               private boolean[] cantBuildNetlist;
     /** print hash code errors? */            private boolean hashFailuresPrinted = false;
-    /** mismatches displayed by GUI */        private NccComparisonMismatches compMismatches;
+    /** mismatches displayed by GUI */        private NccGuiInfo nccGuiInfo;
 
     
 	// ----------------------------- private methods --------------------------
@@ -143,7 +143,7 @@ public class NccGlobals {
 	public NccGlobals(NccOptions options, Aborter aborter) {
 		this.options = options;
 		this.aborter = aborter;
-        compMismatches = new NccComparisonMismatches();
+        nccGuiInfo = new NccGuiInfo();
 	}
 	public void prln(String s) {System.out.println(s); System.out.flush();}
 	public void pr(String s) {System.out.print(s); System.out.flush();}
@@ -239,13 +239,9 @@ public class NccGlobals {
 		return equivNets;
 	}
     
-    /**
-     * Get mismatches to be displayed in the GUI
-     * @return an object with mismatches to be displayed in GUI
-     */
-    public NccComparisonMismatches getComparisonResult() {
-        return compMismatches;
-    }
+    /** Get mismatches to be displayed in the GUI
+     * @return an object with mismatches to be displayed in GUI */
+    public NccGuiInfo getNccGuiInfo() {return nccGuiInfo;}
     
     /** @return true if some netlist can't be built */
     public boolean cantBuildNetlist() {
@@ -255,11 +251,6 @@ public class NccGlobals {
     }
     /** @return true if ith netlist can't be built */
     public boolean[] cantBuildNetlistBits() {return cantBuildNetlist;}
-    
-    /** Set whether hashcode mismatches should be printed */
-    public void setPrintHashFailures(boolean b) { hashFailuresPrinted = b;    }
-    /** @return true if hashcode mismatches should be displayed, false otherwise */
-    public boolean isPrintHashFailures() { return hashFailuresPrinted; }
     
 	/** @return array of Part counts. One array element per Circuit */
     public int[] getPartCounts() { return getNetObjCounts(partLeafRecs); }

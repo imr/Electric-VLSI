@@ -23,18 +23,22 @@
 */
 package com.sun.electric.tool.user.ncc;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Port;
+import com.sun.electric.tool.ncc.result.NetObjReport;
+import com.sun.electric.tool.ncc.result.PortReport;
 
 /**
  * This class is an abstract superclass for Export mismatches
  */ 
-public abstract class ExportMismatch {
+public abstract class ExportMismatch implements Serializable {
    
     /** Cell names     */ protected String desingNames[] = new String[2];
     /** Compared Cells */ protected Cell[] cells = new Cell[2];
@@ -146,17 +150,23 @@ public abstract class ExportMismatch {
      * many-to-many Export mismatch. 
      */
     public static class MultiMatch extends ExportMismatch{
+    	static final long serialVersionUID = 0;
+
         /** Lists of mismatched exports in each Cells.
          * The stored objects are Ports on which mismatched Exports are */
-        private ArrayList ports[] = {new ArrayList(), new ArrayList()};
+        private final List<PortReport> ports[] = new ArrayList[2];
         
+        public MultiMatch() {
+        	ports[0] = new ArrayList<PortReport>();
+        	ports[1] = new ArrayList<PortReport>();
+        }
         /**
          * Add a mismatched Port. 
          * @param listIndex  Cell index
          * @param port  Port to add
          */
         public void add(int listIndex, Port port) {
-            ports[listIndex].add(port);
+            ports[listIndex].add(new PortReport(port));
         }
         
         /**
@@ -165,7 +175,7 @@ public abstract class ExportMismatch {
          * @param portSet  Ports to add
          */
         public void add(int listIndex, Set<Port> portSet) {
-            ports[listIndex].addAll(portSet);
+        	for (Port p : portSet) ports[listIndex].add(new PortReport(p));
         }
         
         /**
@@ -173,9 +183,7 @@ public abstract class ExportMismatch {
          * @param index  Cell index
          * @return the list with all Posrt for the Cell with the given index 
          */
-        public ArrayList<Port> getAll(int index) {
-            return ports[index];
-        }
+        public List<PortReport> getAll(int index) {return ports[index];}
     }
     
     
@@ -183,8 +191,10 @@ public abstract class ExportMismatch {
      * This class is a container for a suggested Export match.   
      */
     public static class NameMismatch extends ExportMismatch {
-        /** Mismatched Export in the first design */ private Port exp1;
-        /** Suggested match in the second design  */ private NetObject exp2;
+    	static final long serialVersionUID = 0;
+
+        /** Mismatched Export in the first design */ private PortReport exp1;
+        /** Suggested match in the second design  */ private NetObjReport exp2;
                                                      // exp2 is Port or Wire
         
         public NameMismatch() {
@@ -197,11 +207,15 @@ public abstract class ExportMismatch {
             nameMatch = false;
             topologyMatch = true;
         }
-        public Port      getFirstExport() { return exp1; }
-        public NetObject getSuggestion()  { return exp2; }
+        public PortReport   getFirstExport() { return exp1; }
+        public NetObjReport getSuggestion()  { return exp2; }
         
-        public void setFirstExport(Port exp1)     { this.exp1 = exp1; }
-        public void setSuggestion(NetObject exp2) { this.exp2 = exp2; }
+        public void setFirstExport(Port exp1)     { 
+        	this.exp1 = new PortReport(exp1); 
+        }
+        public void setSuggestion(NetObject exp2) { 
+        	this.exp2 = NetObjReport.newNetObjReport(exp2); 
+        }
     }
 
 
@@ -210,8 +224,10 @@ public abstract class ExportMismatch {
      * It also might have a suggested Export match.   
      */
     public static class TopologyMismatch extends ExportMismatch{
-        /** Mismatched Exports           */ private Port exp1, exp2;
-        /** Suggestion in the 2nd design */ private NetObject sug = null;
+    	static final long serialVersionUID = 0;
+
+        /** Mismatched Exports           */ private PortReport exp1, exp2;
+        /** Suggestion in the 2nd design */ private NetObjReport sug = null;
                                             // sug is Port or Wire
         
         public TopologyMismatch() {
@@ -224,12 +240,18 @@ public abstract class ExportMismatch {
             nameMatch = true;
             topologyMatch = false;
         }
-        public Port      getFirstExport()  { return exp1; }
-        public Port      getSecondExport() { return exp2; }
-        public NetObject getSuggestion()   { return sug;  }
+        public PortReport   getFirstExport()  { return exp1; }
+        public PortReport   getSecondExport() { return exp2; }
+        public NetObjReport getSuggestion()   { return sug;  }
         
-        public void setFirstExport(Port exp1)    { this.exp1 = exp1; }        
-        public void setSecondExport(Port exp2)   { this.exp2 = exp2; }
-        public void setSuggestion(NetObject sug) { this.sug = sug; }
+        public void setFirstExport(Port exp1){
+        	this.exp1 = new PortReport(exp1); 
+        }        
+        public void setSecondExport(Port exp2) {
+        	this.exp2 = new PortReport(exp2); 
+        }
+        public void setSuggestion(NetObject sug) { 
+        	this.sug = NetObjReport.newNetObjReport(sug); 
+        }
     }    
 }

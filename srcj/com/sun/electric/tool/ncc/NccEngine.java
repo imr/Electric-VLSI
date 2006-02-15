@@ -46,6 +46,7 @@ import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.processing.LocalPartitioning;
 import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
 import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
+import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -55,8 +56,12 @@ public class NccEngine {
 	private NccGlobals globals;
 
 	// ----------------------- private methods --------------------------------
-	private List<NccNetlist> buildNccNetlists(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists, 
-	                              boolean blackBox, HierarchyInfo hierInfo) {
+	// return null if user aborts
+	private List<NccNetlist> buildNccNetlists(List<Cell> cells, 
+			                                  List<VarContext> contexts, 
+			                                  List<Netlist> netlists, 
+			                                  boolean blackBox, 
+			                                  HierarchyInfo hierInfo) {
 		globals.error(cells.size()!=contexts.size() || 
 					  contexts.size()!=netlists.size(),
 					  "number of cells, contexts, and netlists must be the same");										
@@ -72,6 +77,7 @@ public class NccEngine {
 			Netlist netlist = itNet.next();
 			NccNetlist nccList = new NccNetlist(cell, context, netlist, 
 			                                    hierInfo, blackBox, globals);
+			if (nccList.userAbort()) return null;
 			nccLists.add(nccList);
 		}
 		return nccLists;
@@ -108,14 +114,15 @@ public class NccEngine {
 		}
 	}
 	
-	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
-        boolean hasError = globals.cantBuildNetlist();
-		if (globals.getRoot()==null || hasError) {
+	private NccResult designsMatch(HierarchyInfo hierInfo, 
+			                       boolean hierInfoOnly) {
+        boolean noNetlists = globals.cantBuildNetlist();
+		if (globals.getRoot()==null || noNetlists) {
 			globals.status2("empty cell or netlist error");
 			// Preserve the invariant: "part, wire, and port LeafLists exist" 
 			// even if there are no Parts and no Wires OR there is a netlist error. 
 			globals.initLeafLists();
-			return new NccResult(!hasError, !hasError, true, globals);
+			return NccResult.newResult(!noNetlists, !noNetlists, !noNetlists, globals);
 		} else {
 			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
@@ -134,23 +141,20 @@ public class NccEngine {
 			globals.status1("  Export name matching took: "+
 			                NccUtils.hourMinSec(d0, d1));
 			
-			if (globals.userWantsToAbort()) 
-				return new NccResult(true, true, true, globals);
+			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 			
 			SerialParallelMerge.doYourJob(globals);
 			Date d2 = new Date();
 			globals.status1("  Serial/parallel merge took: "+
 					        NccUtils.hourMinSec(d1, d2));
 
-			if (globals.userWantsToAbort()) 
-				return new NccResult(true, true, true, globals);
+			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
 			printWireComponentCounts();
 
 			LocalPartitioning.doYourJob(globals);
 
-			if (globals.userWantsToAbort()) 
-				return new NccResult(true, true, true, globals);
+			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
 			// Tricky: init leaf lists after Local Partitioning because Local
 			// Partitioning can make an EquivRecord change from matched to
@@ -158,7 +162,6 @@ public class NccEngine {
 			globals.initLeafLists();
 
 			LocalPartitionResult localRes = new LocalPartitionResult(globals);
-			globals.getComparisonResult().setLocalPartitionResult(localRes);
 
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 
@@ -166,17 +169,22 @@ public class NccEngine {
 
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
-			localRes.printErrorReport();
-			if (!localRes.matches()) return new NccResult(expNamesOK, false, false, globals);
-
-			if (globals.userWantsToAbort()) 
-				return new NccResult(true, true, true, globals);
+			if (!localRes.matches()) {
+				globals.getNccGuiInfo().setPartRecReports(localRes.getPartRecReports());
+				globals.getNccGuiInfo().setWireRecReports(localRes.getWireRecReports());
+				localRes.printErrorReport();
+				return NccResult.newResult(expNamesOK, false, false, globals);
+			}
+				
+			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 			
 			Date d4 = new Date();
-			if (topoOK) expCheck.suggestPortMatchesBasedOnTopology();
+			boolean expTopoOK = true;
+			if (topoOK) {
+				expCheck.suggestPortMatchesBasedOnTopology();
+				expTopoOK = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+			}
 
-			boolean expTopoOK = 
-				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
             Date d5 = new Date();
 			globals.status1("  Export checking took "+NccUtils.hourMinSec(d4, d5));
             
@@ -184,23 +192,18 @@ public class NccEngine {
 			Date d6 = new Date();
 			globals.status1("  Size checking took "+NccUtils.hourMinSec(d5, d6));
 			
-			if (!topoOK) ReportHashCodeFailure.reportHashCodeFailure(globals);
+			if (!topoOK) {
+				ReportHashCodeFailure hcf = new ReportHashCodeFailure(globals);
+				globals.getNccGuiInfo().setPartRecReports(hcf.getPartRecReports());
+				globals.getNccGuiInfo().setWireRecReports(hcf.getWireRecReports());
+			}
 
 			boolean exportsOK = expNamesOK && expTopoOK;
 			boolean topologyOK = localRes.matches() && topoOK;
-			return new NccResult(exportsOK, topologyOK, sizesOK, globals);
+			return NccResult.newResult(exportsOK, topologyOK, sizesOK, globals);
 		}
 	}
-/*    
-	private boolean netlistErrors(List nccNets) {
-		boolean netlistErrors = false;
-		for (Iterator it=nccNets.iterator(); it.hasNext();) {
-			NccNetlist nets = it.next();
-			netlistErrors |= nets.netlistErrors();
-		}
-		return netlistErrors;
-	}
-*/    
+
 	private NccResult areEquivalent(List<Cell> cells, List<VarContext> contexts, 
 					  		        List<Netlist> netlists, HierarchyInfo hierInfo,
 					  		        boolean blackBox, 
@@ -217,6 +220,9 @@ public class NccEngine {
 			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
 		Date after = new Date();
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
+
+		// null list returned means user requested abort
+		if (nccNetlists==null) return NccResult.newUserAbortResult();
         globals.setInitialNetlists(nccNetlists);
         
 		NccResult result = designsMatch(hierInfo, false);
@@ -283,12 +289,11 @@ public class NccEngine {
 		return compare2(cell1, context1, cell2, context2, hierInfo, false, 
 				        options, aborter);
 	}
-	public static boolean buildBlackBoxes(Cell cell1, VarContext ctxt1, 
+	public static NccResult buildBlackBoxes(Cell cell1, VarContext ctxt1, 
 								          Cell cell2, VarContext ctxt2,
 								          HierarchyInfo hierInfo, 
 								          NccOptions options, Aborter aborter) {
-		NccResult r = compare2(cell1, ctxt1, cell2, ctxt2, hierInfo, true, 
+		return compare2(cell1, ctxt1, cell2, ctxt2, hierInfo, true, 
 				               options, aborter);
-		return r.exportMatch();
 	}
 }

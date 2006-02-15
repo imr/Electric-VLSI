@@ -57,8 +57,10 @@ import javax.swing.tree.TreePath;
 
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
+import com.sun.electric.tool.ncc.result.EquivRecReport;
+import com.sun.electric.tool.ncc.result.NetObjReport;
 import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
+
 
 /**
  * This class implements the mismatch comparin tree displayed in the right pane 
@@ -86,9 +88,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     private boolean updateInProgress = true;
 
     /** list of current comparison mismatches */ 
-    private NccComparisonMismatches[] mismatches;
-    /** empty array of EquivRecords. Used when LP Result is null */
-    private static final EquivRecord[] emptyEquivRecs = new EquivRecord[0];
+    private NccGuiInfo[] mismatches;
     
     protected ComparisonsTree(ComparisonsPane pane, DefaultMutableTreeNode root) {
         super(root);
@@ -116,17 +116,17 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
      * Update the tree with the provided list of comparison mismatches
      * @param misms  list of comparison mismatches
      */
-    protected void update(NccComparisonMismatches[] misms) {
+    protected void update(NccGuiInfo[] misms) {
         updateInProgress = true;
         mismatches = misms;
         wireClassNodes = new WireClassNode[misms.length][];   
         root.removeAllChildren();
         DefaultMutableTreeNode compNode;
-        EquivRecord[] mismEqRecs;
+        EquivRecReport[] mismEqRecs;
         // for each comparison in the list
         for (int compNdx = 0; compNdx < mismatches.length 
                            && compNdx < MAX_COMP_NODES; compNdx++) {
-            NccComparisonMismatches cm = mismatches[compNdx];
+            NccGuiInfo cm = mismatches[compNdx];
             // compute node name from cell names
             String titles[] = cm.getNames();
             String title0 = titles[0].substring(0,titles[0].length()-5);
@@ -162,26 +162,20 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             }
             
             boolean isHashChecked = cm.isHashFailuresPrinted();
-            LocalPartitionResult lpRes = cm.getLocalPartitionResult();
-            mismEqRecs = emptyEquivRecs;
+
             // collect part/wire equiv records
-            if (!isHashChecked && lpRes != null) {  // LP parts/wires entries
-                int size = lpRes.badPartEquivRecCount() + lpRes.badWireEquivRecCount();
-                mismEqRecs = new EquivRecord[size];
-                int i = 0;
-                for (Iterator<EquivRecord> it=lpRes.getBadPartEquivRecs(); it.hasNext();)
-                    mismEqRecs[i++] = it.next();
-                for (Iterator<EquivRecord> it=lpRes.getBadWireEquivRecs(); it.hasNext();)
-                    mismEqRecs[i++] = it.next();                
-            } else if (isHashChecked) {  // hashcode parts/wires entries
-                mismEqRecs = cm.getHashMismatchedEquivRecords();
-            }
+            int size = cm.getWireRecReports().size() + cm.getPartRecReports().size();
+            mismEqRecs = new EquivRecReport[size];
+            int i=0;
+            for (EquivRecReport r : cm.getPartRecReports()) mismEqRecs[i++] = r;
+            for (EquivRecReport r : cm.getWireRecReports()) mismEqRecs[i++] = r;
+
             parentPane.setMismatchEquivRecs(compNdx, mismEqRecs);
             if (mismEqRecs != null && mismEqRecs.length > 0) {
                 // add parts entry
-                addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, lpRes, isHashChecked);
+                addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);
                 // add wires entry
-                addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, lpRes, isHashChecked);     
+                addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);     
             }
             
             
@@ -282,7 +276,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
      */
     private void addPartClasses(TreeNode compTreeNode, int compNdx, 
                                 DefaultMutableTreeNode inode, 
-                                EquivRecord[] mismEqRecs, LocalPartitionResult lpRes,
+                                EquivRecReport[] mismEqRecs,
                                 boolean isHashChecked) {
         DefaultMutableTreeNode parts, eclass;
         // add parts entry title
@@ -296,27 +290,16 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         int count=0;
         boolean truncated = false;
         for (int i=0; i<mismEqRecs.length; i++) {
-            if (isHashChecked) {
-                if (mismEqRecs[i].getNetObjType() != NetObject.Type.PART) continue;
-            } else
-                // LP Part mismatches are grouped at the beginning of mismEqRecs
-                if (lpRes.badPartEquivRecCount() <= i) break;
+            if (!mismEqRecs[i].hasParts()) continue;
                 
             count++;
             // limit output size
             if (count > MAX_CLASSES) { truncated = true; continue;}
             
-            List<String> reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
+            List<String> reasons = mismEqRecs[i].getReasons();
             StringBuffer nodeName = new StringBuffer("#"+ count + " [");
-            int size;
-            if (isHashChecked)
-                size = mismEqRecs[i].maxSize();
-            else {
-                ArrayList[] matched = lpRes.getMatchedNetObjs(mismEqRecs[i]);
-                ArrayList[] mism = lpRes.getNotMatchedNetObjs(mismEqRecs[i]);
-                size = Math.max(matched[0].size() + mism[0].size(), 
-                                matched[1].size() + mism[1].size()); 
-            }
+            int size = mismEqRecs[i].maxSize();
+
             if (size > MAX_LIST_ELEMENTS)
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
             nodeName.append(size + "]");
@@ -395,7 +378,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
      */    
     private void addWireClasses(TreeNode compTreeNode, int compNdx, 
                                 DefaultMutableTreeNode inode, 
-                                EquivRecord[] mismEqRecs, LocalPartitionResult lpRes,
+                                EquivRecReport[] mismEqRecs,
                                 boolean isHashChecked) {
         DefaultMutableTreeNode wires, eclass, node;
         // add wires entry title
@@ -407,14 +390,12 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         // add wire equivalence classes
         TreeNode wireTreeNode;
         int type = TreeNode.WIRE;
-        int count = 0, i;
+        int count = 0;
         boolean truncated = false;
-        if (isHashChecked) 
-            i = 0;
-        else // in LP wire mismatches are grouped at the end of mismEqRecs
-            i = lpRes.badPartEquivRecCount();
+
+        int i=0;
         for (; i<mismEqRecs.length; i++) {
-            if (isHashChecked && mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
+            if (mismEqRecs[i].hasParts()) continue;
             
             count++;
             // limit output size
@@ -429,7 +410,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             wires.add(eclass);
             if (!isHashChecked) {
                 String reasons[] = 
-                    (String[])mismEqRecs[i].getPartitionReasonsFromRootToMe().toArray(new String[0]);
+                    (String[])mismEqRecs[i].getReasons().toArray(new String[0]);
                 int j = 0;
                 if (reasons.length == 0) {
                     eclass.add(new DefaultMutableTreeNode(
@@ -552,7 +533,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
      */
     private void createWireClassNodes(TreeNode data, boolean areLeaves) {
         int compNdx = data.compNdx;
-        EquivRecord[] mismEqRecs = parentPane.getMismatchEquivRecs(compNdx);
+        EquivRecReport[] mismEqRecs = parentPane.getMismatchEquivRecs(compNdx);
         int count = 0, len = wireClassNodes[compNdx].length;
         // max width of the first 3 columns in node names, height of a name 
         int maxWidth0 = 0, maxWidth1 = 0, maxWidth2 = 0, height = 0;
@@ -563,50 +544,30 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         if (isHashPrinted) 
             i = 0;
         else // in LP wire mismatches are grouped at the end of mismEqRecs
-            i = mismatches[compNdx].getLocalPartitionResult().badPartEquivRecCount();
+            i = mismatches[compNdx].getPartRecReports().size();
         // for each equiv. class        
         for (; i<mismEqRecs.length; i++) {
-            if (isHashPrinted && mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) 
+            if (isHashPrinted && mismEqRecs[i].hasParts()) 
                 continue;
             count++;
             // number of classes might have been limited
             if (count > len) break;
 
-            LocalPartitionResult lpRes = null ; // LP result
-            ArrayList<NetObject>[] mism = null; // list of mismatched NetObjects from LP result  
-            if (!isHashPrinted) {
-                // get LP result and lists of matched and mismatched NetObjects
-                lpRes = mismatches[compNdx].getLocalPartitionResult(); 
-                mism = lpRes.getNotMatchedNetObjs(mismEqRecs[i]);
-            }
+            // list of mismatched NetObjects
+            List<List<NetObjReport>> mism = mismEqRecs[i].getNotMatchedNetObjs(); 
             
             JLabel labels[] = new JLabel[4];
             String descr[] = new String[2];
+
             // get names of the first wires in both cells
-            // in case of hashcode mismatches, get them from circuits
-            // in case of local partitioning, get them from LocalPartitioningResult
-            int cell=0;
             String instDescr = null;
-            if (isHashPrinted) {
-                // for each of the two compared Cells
-                for (Iterator<Circuit> it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
-                    Circuit ckt = it.next();
-                    Iterator<NetObject> it2=ckt.getNetObjs();
-                    if (it2.hasNext()) {
-                        instDescr = (it2.next()).instanceDescription();
-                        descr[cell] = createFirstWireOverview(instDescr, it2.hasNext());
-                    } else
-                        descr[cell] = "{ }";
-                }
-            } else {
-                for (; cell < 2; cell++) {
-                    if (mism[cell].size() == 0) {
-                        descr[cell] = "{ }";
-                    } else if (mism[cell].size() > 0) {
-                        instDescr = mism[cell].get(0).instanceDescription();
-                        descr[cell] =  createFirstWireOverview(instDescr, (mism[cell].size() > 1));
-                    }
-                }
+            for (int cell=0; cell < 2; cell++) {
+            	if (mism.get(cell).size() == 0) {
+            		descr[cell] = "{ }";
+            	} else if (mism.get(cell).size() > 0) {
+            		instDescr = mism.get(cell).get(0).instanceDescription();
+            		descr[cell] =  createFirstWireOverview(instDescr, (mism.get(cell).size() > 1));
+            	}
             }
             
             // create count of Wires in the class
@@ -617,7 +578,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (isHashPrinted)
                 size = mismEqRecs[i].maxSize();
             else
-                size = Math.max(mism[0].size(), mism[1].size()); 
+                size = Math.max(mism.get(0).size(), mism.get(1).size()); 
             if (size > MAX_LIST_ELEMENTS)
                 lab3Name.append("first " + MAX_LIST_ELEMENTS + " of ");
             lab3Name.append(size + "]");
@@ -728,7 +689,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         /** full name. Used in right pane row names */ private String shortName;
 
         /** If this node represents a wire class, then wireClassNum is the 
-         * index of this class in EquivRecord array of the corresponding 
+         * index of this class in EquivRecReport array of the corresponding 
          * NccComparisonResult object. Otherwise is -1. */
         private int wireClassNum = -1;
         

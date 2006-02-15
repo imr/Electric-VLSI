@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,14 +35,15 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 /** Object to map from a net in one design to the "NCC equivalent" net in the 
  * other design. */
-public class NetEquivalence {
-	protected final NetNameProxy[][] equivNets;
+public class NetEquivalence implements Serializable {
+    static final long serialVersionUID = 0;
+
+	private final NetNameProxy[][] equivNets;
 	private final int numDesigns, numNets;
 	private InstancePathToNccContext[] instToIndices;
 	/** Cache the index of the last design that satisified the last 
@@ -150,7 +152,9 @@ public class NetEquivalence {
  * VarContext tree. It searches the tree by starting at the root and matching
  * instance names to descend the hierarchy until it reaches the desired point in
  * the hierarchy. */
-class InstancePathToNccContext {
+class InstancePathToNccContext implements Serializable {
+    static final long serialVersionUID = 0;
+
 	private NccContext root;
 	private Map<VarContext,NccContext> varToNccContext = new HashMap<VarContext,NccContext>();
 	private NccContext getNccContext(VarContext vc) {
@@ -206,7 +210,9 @@ class InstancePathToNccContext {
  * NccContext has pointers from the root to the leaves while VarContext has
  * pointers from the leaves to the root. Also, the NccContext holds the indices
  * of NameProxy's at that point in the design hierarchy. */
-class NccContext {
+class NccContext implements Serializable {
+    static final long serialVersionUID = 0;
+
 	private VarContext context;
 	/** Parent of all NameProxy's at this point in the design hierarchy */ 
 	private Cell cell;

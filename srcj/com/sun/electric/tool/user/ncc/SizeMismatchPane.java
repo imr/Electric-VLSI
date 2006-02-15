@@ -54,6 +54,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.Mos;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Resistor;
+import com.sun.electric.tool.ncc.result.PartReport;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.user.Highlighter;
 
@@ -71,21 +72,11 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     private Font font = new Font("Helvetica", Font.PLAIN, 12);
     
     // data holders
-    private NccComparisonMismatches result;
+    private NccGuiInfo result;
     private StratCheckSizes.Mismatch[] mismatches;
-    private Part[][] parts;
+    private PartReport[][] parts;
     
-    private double getWidth(Part p) {
-    	return (p instanceof Mos) ? ((Mos)p).getWidth()
-    						      : ((Resistor)p).getWidth();
-    }
-    
-    private double getLength(Part p) {
-    	return (p instanceof Mos) ? ((Mos)p).getLength()
-    						      : ((Resistor)p).getLength();
-    }
-
-    public SizeMismatchPane(NccComparisonMismatches res) {
+    public SizeMismatchPane(NccGuiInfo res) {
         super(new BorderLayout());
         
         result = res;
@@ -93,7 +84,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
                                      .toArray(new StratCheckSizes.Mismatch[0]);
         int size = Math.min(mismatches.length, MAXROWS);
         if (size == 0) return;
-        parts = new Part[size][2];
+        parts = new PartReport[size][2];
         
         // compute max numbers to estimate column width
         int errColWidth = 7, widColWidth = 3, lenColWidth = 3;
@@ -101,13 +92,13 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             String err = NccUtils.round(mismatches[i].relErr()*100,1) + "";
             errColWidth = Math.max(errColWidth, err.length());
             
-            String w1 = NccUtils.round(getWidth(mismatches[i].minPart),2) + "";
-            String w2 = NccUtils.round(getWidth(mismatches[i].maxPart),2) + "";
+            String w1 = NccUtils.round(mismatches[i].minPart.getWidth(),2) + "";
+            String w2 = NccUtils.round(mismatches[i].maxPart.getWidth(),2) + "";
             int wid = Math.max(w1.length(), w2.length());
             widColWidth = Math.max(widColWidth, wid+1);
             
-            String l1 = NccUtils.round(getLength(mismatches[i].minPart),2) + "";
-            String l2 = NccUtils.round(getLength(mismatches[i].maxPart),2) + "";
+            String l1 = NccUtils.round(mismatches[i].minPart.getLength(),2) + "";
+            String l2 = NccUtils.round(mismatches[i].maxPart.getLength(),2) + "";
             int len = Math.max(l1.length(), l2.length());
             lenColWidth = Math.max(lenColWidth, len+1);
         }
@@ -220,8 +211,8 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
                 String titles[] = result.getNames();
                 name = "Name in " + titles[line];
             } else {
-                params[0] = NccUtils.round(getWidth(parts[rowNdx][line]),2) + ""; 
-                params[1] = NccUtils.round(getLength(parts[rowNdx][line]),2) + "";
+                params[0] = NccUtils.round(parts[rowNdx][line].getWidth(),2) + ""; 
+                params[1] = NccUtils.round(parts[rowNdx][line].getLength(),2) + "";
                 name = parts[rowNdx][line].instanceDescription();
             }
             JPanel subRow = createSubRow(params, paramDims, name, rowNdx, line);
@@ -323,7 +314,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     private void highlight(int index) {
         int row = index/10;
         int col = index%2;
-        Part part = parts[row][col];
+        PartReport part = parts[row][col];
         Cell cell = part.getNameProxy().leafCell();
         VarContext context = part.getNameProxy().getContext();
         

@@ -40,6 +40,7 @@ import com.sun.electric.tool.ncc.Aborter;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -141,18 +142,19 @@ public class NccUtils {
 		return time; 
 	}
 	
-	public static boolean buildBlackBoxes(CellContext c1, CellContext c2,
-								          HierarchyInfo hierInfo, 
-								          NccOptions options, Aborter aborter) {
+	public static NccResult buildBlackBoxes(CellContext c1, CellContext c2,
+								            HierarchyInfo hierInfo, 
+								            NccOptions options, 
+								            Aborter aborter) {
 		System.out.println("Build black boxes for: "+NccUtils.fullName(c1.cell)+
 						   " and: "+NccUtils.fullName(c2.cell));
 		System.out.flush();
-		boolean ok = 
+		NccResult r = 
 			NccEngine.buildBlackBoxes(c1.cell, c1.context, c2.cell, c2.context, 
 									  hierInfo, options, aborter);	                                 
-		System.out.println(ok ? "Done" : "Failed");
+		System.out.println(r.match() ? "Done" : "Failed");
 		System.out.flush();
-		return ok;
+		return r;
 	}
 
 	public static boolean sizesMatch(double w1, double w2, NccOptions opt) {

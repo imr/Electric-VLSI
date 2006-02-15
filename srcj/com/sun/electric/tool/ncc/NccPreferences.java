@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NccGuiOptions.java
+ * File: NccPreferences.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -22,20 +22,18 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc;
-import java.util.prefs.Preferences;
-
 import com.sun.electric.database.text.Pref;
 
 /**
  * Contains NCC preferences
  */
-public class NccGuiOptions {
-	public static NccGuiOptions tool = new NccGuiOptions();
+public class NccPreferences {
+	public static NccPreferences tool = new NccPreferences();
 	// per-package namespace for preferences
 	private Pref.Group prefs = Pref.groupForPackage(this.getClass());
 
 	private static Pref checkSizes = 
-		Pref.makeBooleanPref("CheckSizes", NccGuiOptions.tool.prefs, false);
+		Pref.makeBooleanPref("CheckSizes", NccPreferences.tool.prefs, false);
 	public static boolean getCheckSizes() {
 		return checkSizes.getBoolean(); 
 	}
@@ -44,7 +42,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref relativeSizeTolerance = 
-		Pref.makeDoublePref("RelativeSizeTolerance", NccGuiOptions.tool.prefs, 0.0);
+		Pref.makeDoublePref("RelativeSizeTolerance", NccPreferences.tool.prefs, 0.0);
 	public static double getRelativeSizeTolerance() {
 		return relativeSizeTolerance.getDouble(); 
 	}
@@ -53,7 +51,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref absoluteSizeTolerance = 
-		Pref.makeDoublePref("AbsoluteSizeTolerance", NccGuiOptions.tool.prefs, 0.0);
+		Pref.makeDoublePref("AbsoluteSizeTolerance", NccPreferences.tool.prefs, 0.0);
 	public static double getAbsoluteSizeTolerance() {
 		return absoluteSizeTolerance.getDouble(); 
 	}
@@ -62,7 +60,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref haltAfterFirstMismatch = 
-		Pref.makeBooleanPref("HaltAfterFirstMismatch", NccGuiOptions.tool.prefs, true);
+		Pref.makeBooleanPref("HaltAfterFirstMismatch", NccPreferences.tool.prefs, true);
 	public static boolean getHaltAfterFirstMismatch() {
 		return haltAfterFirstMismatch.getBoolean(); 
 	}
@@ -71,7 +69,7 @@ public class NccGuiOptions {
 	}
     
 	private static Pref skipPassed = 
-		Pref.makeBooleanPref("SkipPassed", NccGuiOptions.tool.prefs, false);
+		Pref.makeBooleanPref("SkipPassed", NccPreferences.tool.prefs, false);
 	public static boolean getSkipPassed() {
 		return skipPassed.getBoolean(); 
 	}
@@ -80,7 +78,7 @@ public class NccGuiOptions {
 	}
 	
 	private static Pref maxMatchedClasses =
-		Pref.makeIntPref("MaxMatchedClasses", NccGuiOptions.tool.prefs, 10);
+		Pref.makeIntPref("MaxMatchedClasses", NccPreferences.tool.prefs, 10);
 	public static int getMaxMatchedClasses() {
 		return maxMatchedClasses.getInt();
 	}
@@ -89,7 +87,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref maxMismatchedClasses =
-		Pref.makeIntPref("MaxMismatchedClasses", NccGuiOptions.tool.prefs, 10);
+		Pref.makeIntPref("MaxMismatchedClasses", NccPreferences.tool.prefs, 10);
 	public static int getMaxMismatchedClasses() {
 		return maxMismatchedClasses.getInt();
 	}
@@ -98,7 +96,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref maxClassMembers =
-		Pref.makeIntPref("MaxClassMembers", NccGuiOptions.tool.prefs, 10);
+		Pref.makeIntPref("MaxClassMembers", NccPreferences.tool.prefs, 10);
 	public static int getMaxClassMembers() {
 		return maxClassMembers.getInt();
 	}
@@ -107,7 +105,7 @@ public class NccGuiOptions {
 	}
 
 	private static Pref operation =
-		Pref.makeIntPref("Operation", NccGuiOptions.tool.prefs, NccOptions.HIER_EACH_CELL);
+		Pref.makeIntPref("Operation", NccPreferences.tool.prefs, NccOptions.HIER_EACH_CELL);
 	public static int getOperation() {
 		int op = operation.getInt();
 		// guard against corrupted preferences
@@ -125,20 +123,11 @@ public class NccGuiOptions {
 	}
 
 	private static Pref howMuchStatus =
-		Pref.makeIntPref("HowMuchStatus", NccGuiOptions.tool.prefs, 0);
+		Pref.makeIntPref("HowMuchStatus", NccPreferences.tool.prefs, 0);
 	public static int getHowMuchStatus() {
 		return boundStatus(howMuchStatus.getInt());
 	}
 	public static void setHowMuchStatus(int i) {
 		howMuchStatus.setInt(boundStatus(i));
 	}
-
-    private static Pref backAnnotateLayoutNetNames =
-        Pref.makeBooleanPref("BackAnnotateLayoutNetNames", NccGuiOptions.tool.prefs, false);
-    public static boolean getBackAnnotateLayoutNetNames() {
-        return backAnnotateLayoutNetNames.getBoolean();
-    }
-    public static void setBackAnnotateLayoutNetNames(boolean b) {
-        backAnnotateLayoutNetNames.setBoolean(b);
-    }
 }

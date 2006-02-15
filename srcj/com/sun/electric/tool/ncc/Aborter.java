@@ -23,16 +23,23 @@
 */package com.sun.electric.tool.ncc;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 
 /**
  * Indicate when user wants to abort
  */
 public class Aborter {
-	Job job;
+	private final Job job;
 	public Aborter(Job j) {job=j;}
 
 	public boolean userWantsToAbort() {
 		if (job==null) return false;
-		return job.checkAbort(); 
+		try {
+			// Eventually, job.checkAbort() will throw an exception
+			if (job.checkAbort()) throw new JobException();
+		} catch (JobException e) {
+			return true;
+		}
+		return false;
 	}
 }

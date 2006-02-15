@@ -36,16 +36,16 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.netlist.NetObject;
-import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.Port;
-import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ncc.result.NetObjReport;
+import com.sun.electric.tool.ncc.result.PartReport;
+import com.sun.electric.tool.ncc.result.PortReport;
+import com.sun.electric.tool.ncc.result.WireReport;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.Job;
 
 public class HighlightTools {
     
@@ -108,8 +108,8 @@ public class HighlightTools {
         }                
     }
     
-    public static void highlightPortExports(Highlighter highlighter, Cell cell, Port p) {
-        String name = p.getWire().getName();
+    public static void highlightPortExports(Highlighter highlighter, Cell cell, PortReport p) {
+        String name = p.getWireName();
         Netlist netlist = cell.acquireUserNetlist();
         if (netlist == null) {
             System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
@@ -126,7 +126,7 @@ public class HighlightTools {
         }
     }
 
-    public static void highlightPart(Highlighter highlighter, Cell cell, Part part) {
+    public static void highlightPart(Highlighter highlighter, Cell cell, PartReport part) {
         String name = part.getNameProxy().leafName();
         Netlist netlist = cell.acquireUserNetlist();
         if (netlist == null) {
@@ -140,7 +140,7 @@ public class HighlightTools {
         }
     }
     
-    public static void highlightWire(Highlighter highlighter, Cell cell, Wire wire) {
+    public static void highlightWire(Highlighter highlighter, Cell cell, WireReport wire) {
         String name = wire.getNameProxy().leafName();
         Netlist netlist = cell.acquireUserNetlist();
         if (netlist == null) {
@@ -159,11 +159,11 @@ public class HighlightTools {
         }
     }
 
-    public static void highlightPortOrWire(Highlighter highlighter, Cell cell, NetObject portOrWire) {
-        if (portOrWire instanceof Wire)
-            highlightWire(highlighter, cell, (Wire)portOrWire);
-        else if (portOrWire instanceof Port)
+    public static void highlightPortOrWire(Highlighter highlighter, Cell cell, NetObjReport portOrWire) {
+        if (portOrWire instanceof WireReport)
+            highlightWire(highlighter, cell, (WireReport)portOrWire);
+        else if (portOrWire instanceof PortReport)
             // highlight port exports
-            highlightPortExports(highlighter, cell, (Port)portOrWire);
+            highlightPortExports(highlighter, cell, (PortReport)portOrWire);
     }
 }

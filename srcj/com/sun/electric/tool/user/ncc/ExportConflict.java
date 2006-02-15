@@ -23,6 +23,7 @@
 */
 package com.sun.electric.tool.user.ncc;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,7 +35,7 @@ import com.sun.electric.database.variable.VarContext;
  *  This class is an abstract container for an Export Conflict.
  *  It holds Cell and Context of the conflict, and conflicting name  
  */
-public abstract class ExportConflict {
+public abstract class ExportConflict implements Serializable {
     /** Conflict Context */  protected Cell cell;
     /** Conflict Cell    */  protected VarContext context;
     /** Conflicting name */  protected String name;
@@ -63,6 +64,8 @@ public abstract class ExportConflict {
      * a conflict. 
      */
     public static class NetworkConflict extends ExportConflict {
+    	static final long serialVersionUID = 0;
+
         
         /** Local  Network          */ private Network localNet;
         /** Global Network          */ private Network globalNet;
@@ -140,6 +143,7 @@ public abstract class ExportConflict {
      * a conflict. 
      */    
     public static class CharactConflict extends ExportConflict {
+    	static final long serialVersionUID = 0;
         
         /** Local Export type  */ private String localType;
         /** Global signal type */ private String globalType;

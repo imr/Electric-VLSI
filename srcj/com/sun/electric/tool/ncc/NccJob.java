@@ -25,8 +25,6 @@ package com.sun.electric.tool.ncc;
 
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.NetworkTool;
@@ -35,15 +33,29 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.user.ncc.NccMsgsFrame;
 
-/* Implements NCC's user interface */
+/* Implements the NCC user command */
 public class NccJob extends Job {
-	public static NccResult lastResult;
-	private int numWindows;
+    static final long serialVersionUID = 0;
+
+    /** save the results from the last NCC run here */
+    private static NccResults lastResults;
+    
+	// These fields are arguments passed to server
+	private final int numWindows;
+	private final NccOptions options;
+	private final CellContext[] cellCtxts;
+	
+	// This field is the result passed from the server to the client
+	private NccResults results;
+
     static NccMsgsFrame nccgui = new NccMsgsFrame();
 
 	private void prln(String s) {System.out.println(s);}
+	private void pr(String s) {System.out.print(s);}
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
 		CellContext curCellCtxt = NccUtils.getCurrentCellContext();
@@ -114,60 +126,76 @@ public class NccJob extends Job {
 	
 	private NccOptions getOptionsFromNccConfigDialog() {
 		NccOptions options = new NccOptions();
-		options.operation = NccGuiOptions.getOperation();
+		options.operation = NccPreferences.getOperation();
 
-		options.checkSizes = NccGuiOptions.getCheckSizes();
+		options.checkSizes = NccPreferences.getCheckSizes();
 		// convert percent to fraction
-		options.relativeSizeTolerance = NccGuiOptions.getRelativeSizeTolerance()/100;
-		options.absoluteSizeTolerance = NccGuiOptions.getAbsoluteSizeTolerance();
+		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
+		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
 
-		options.skipPassed = NccGuiOptions.getSkipPassed();
-		options.howMuchStatus = NccGuiOptions.getHowMuchStatus();
-		options.haltAfterFirstMismatch = NccGuiOptions.getHaltAfterFirstMismatch();
-		options.maxMismatchedEquivRecsToPrint = NccGuiOptions.getMaxMismatchedClasses();
-		options.maxMatchedEquivRecsToPrint = NccGuiOptions.getMaxMatchedClasses();
-		options.maxEquivRecMembersToPrint = NccGuiOptions.getMaxClassMembers();
+		options.skipPassed = NccPreferences.getSkipPassed();
+		options.howMuchStatus = NccPreferences.getHowMuchStatus();
+		options.haltAfterFirstMismatch = NccPreferences.getHaltAfterFirstMismatch();
+		options.maxMismatchedEquivRecsToPrint = NccPreferences.getMaxMismatchedClasses();
+		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
+		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
 		
 		return options;
 	}
+	
+	private void buildNetEquivalence(NccResults results) {
+		pr("Building net equivalence tables ... ");
+		for (NccResult r: results)  r.getNetEquivalence();
+		prln("done");
+	}
 
+	// Some day we may run this on server
     public boolean doIt() throws JobException {
-    	lastResult = null;
-    	
-		LayoutLib.error(numWindows!=1 && numWindows!=2, 
-                        "numWindows must be 1 or 2");
-		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
-		if (cellCtxts==null) return false;
+		if (cellCtxts==null) throw new JobException();
 
-		NccOptions options = getOptionsFromNccConfigDialog();
+		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
+				              cellCtxts[1].cell, cellCtxts[1].context, 
+					  	      options, this);
+		buildNetEquivalence(results);
 		
-		NccResult result = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
-									   cellCtxts[1].cell, cellCtxts[1].context, 
-									   options, this);
-		// If the user quit then don't count on any results
-		if (checkAbort()) return true;
-		
-		lastResult = result;
-        nccgui.setMismatches(result.getAllComparisonMismatches(), options);
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                NccJob.nccgui.display();
-            }
-        });
-        
-		return result.match();
+		fieldVariableChanged("results");
+
+		return true;
+    }
+    
+    public void terminateOK() {
+    	lastResults = results;
+        nccgui.setMismatches(results.getAllComparisonMismatches(), options);
+        NccJob.nccgui.display();
     }
 
-	// ------------------------- public method --------------------------------
+	// ------------------------- public methods -------------------------------
+    
+    /** Get the results from the last NCC run. If null then there are no
+     * valid results. */
+    public static NccResults getLastNccResults() {return lastResults;}
+    	
+    /** Call this if you modify the design since the last NCC */
+    public static void invalidateLastNccResult() {lastResults=null;}
 
-	/**
-	 * @param numWindows may be 1 or 2. 1 means compare the schematic and layout 
-	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
-	 */
-	public NccJob(int numWindows) {
-		super("Run NCC", NetworkTool.getNetworkTool(), (NccGuiOptions.getBackAnnotateLayoutNetNames()?Job.Type.CHANGE:Job.Type.EXAMINE), null, null, 
-		      Job.Priority.ANALYSIS);
-		this.numWindows = numWindows;
+	/**@param numWindows may be 1 or 2. 1 means compare the schematic and layout 
+	 * views of the current window. 2 means compare the 2 Cells open in 2 
+	 * Windows. */
+	public NccJob(int numWind) {
+		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, 
+			  null, Job.Priority.ANALYSIS);
+		
+		// Set up arguments for doIt() method that is run on server
+		numWindows = numWind;
+		LayoutLib.error(numWindows!=1 && numWindows!=2, 
+		                "numWindows must be 1 or 2");
+		cellCtxts = getCellsFromWindows(numWindows);
+		
+		options = getOptionsFromNccConfigDialog();
+		
+		// abandon results from last run in order to reclaim storage
+		results = null;
+
 		startJob();
 	}
 }

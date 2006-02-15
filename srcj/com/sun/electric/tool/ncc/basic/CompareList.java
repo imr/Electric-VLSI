@@ -35,7 +35,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 /** A list of CellContexts to compare. Also, each CompareList has a 
  * boolean that says whether it's safe to compare sizes in addition to 
  * topologies. */
-public class CompareList {
+public class CompareList implements Iterable<CellContext> {
 	private final List<CellContext> cellContexts = new ArrayList<CellContext>();
 	private boolean safeToCheckSizes;
 

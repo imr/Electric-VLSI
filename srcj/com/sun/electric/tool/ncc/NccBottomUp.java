@@ -37,6 +37,8 @@ import com.sun.electric.tool.ncc.basic.CompareLists;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NccResults;
 
 class Passed {
 	private static class Pair {
@@ -118,21 +120,19 @@ public class NccBottomUp {
 
         return result;
     }
-
-	/** @return the result of comparing all Cells in compareList. If we are
-	 * supposed to build just a black box but we couldn't then return null */
-	private NccResult compareCellsInCompareList(CompareList compareList, 
-							   			        HierarchyInfo hierInfo,
-							   			        boolean blackBoxAnn,
-							   			        NccOptions options,
-												Aborter aborter) {
+	/** @return true if error building black box */
+	private boolean compareCellsInCompareList(NccResults results,
+			                                  CompareList compareList, 
+			                                  HierarchyInfo hierInfo,
+			                                  boolean blackBoxAnn,
+			                                  NccOptions options,
+			                                  Aborter aborter) {
 		// build our own list because we need to modify it
 		List<CellContext> cellCntxts = new ArrayList<CellContext>();
 		// build Set of Cells because we need to exclude them from subcircuit 
 		// detection
 		Set<Cell> compareListCells = new HashSet<Cell>();
-		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) { 
-			CellContext cc = it.next();
+		for (CellContext cc : compareList) { 
 		    cellCntxts.add(cc);
 		    compareListCells.add(cc.cell);
 		}
@@ -146,25 +146,26 @@ public class NccBottomUp {
 		if (hasNotSubcircuitAnnotation(cellCntxts))  
 			hierInfo.purgeCurrentCompareList();
 
-		NccResult result = new NccResult(true, true, true, null);
 		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
 		for (CellContext thisCC : cellCntxts) {
 			if (blackBoxAnn || 
 			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
 				if (hierInfo==null) continue;
-				boolean ok = 
-				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options, aborter);
-				if (!ok) return null;
+				NccResult r = NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, 
+						                               options, aborter);
+				results.add(r);
+				return !r.match();
 			} else {
 				hierInfo.restrictSubcktDetection(refCC, thisCC, compareListCells);
 
-				// release storage from a previous comparison
-				result.abandonNccGlobals();
+				// release storage from previous Cell pair comparisons
+				if (options.operation==NccOptions.FLAT_EACH_CELL) 
+					results.abandonPriorResults();
 				
 				NccResult r = compareAndPrintStatus(refCC.cell, refCC.context,
 						                            thisCC.cell, thisCC.context, 
 													hierInfo, options, aborter); 
-				result.andEquals(r);
+				results.add(r);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
 				
 				// Halt after first mismatch if that's what user wants
@@ -175,7 +176,7 @@ public class NccBottomUp {
 		}
 		if (!blackBoxAnn && options.operation!=NccOptions.HIER_EACH_CELL) 
 			hierInfo.purgeCurrentCompareList();
-		return result;
+		return false;
 	}
 	
 	private boolean hasNotSubcircuitAnnotation(List<CellContext> cellContextsInGroup) {
@@ -194,10 +195,10 @@ public class NccBottomUp {
 		return false;
 	}
 	
-	private NccResult processCompareLists(List<CompareList> compareLists,
-	                                      NccOptions options, 
-										  Aborter aborter) {
-		NccResult result = new NccResult(true, true, true, null);
+	private NccResults processCompareLists(List<CompareList> compareLists,
+	                                       NccOptions options, 
+										   Aborter aborter) {
+		NccResults results = new NccResults();
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator<CompareList> it=compareLists.iterator(); it.hasNext();) {
 			CompareList compareList = it.next();
@@ -215,44 +216,44 @@ public class NccBottomUp {
 				!compareList.isSafeToCheckSizes() &&
 				!blackBoxAnn) continue;
 			
-			// release storage from previous comparison
-			result.abandonNccGlobals();
+			// release storage from previous Cell pair comparisons
+			if (options.operation==NccOptions.FLAT_EACH_CELL) 
+				results.abandonPriorResults();
 			
-			NccResult r = compareCellsInCompareList(compareList, hierInfo, 
-					                                blackBoxAnn, options,
-													aborter); 
-			if (r==null) {
+			boolean blackBoxErr = 
+				compareCellsInCompareList(results, compareList, hierInfo, 
+					                      blackBoxAnn, options, aborter); 
+			if (blackBoxErr) {
 				prln(
 					"Halting multiple cell NCC because of failure to build " +
 					"a black box"
 				);
-				return result;
+				return results;
 			}
-			result.andEquals(r);
 
 			if (aborter.userWantsToAbort()) {
-				return result;
-			} else if ((!result.exportMatch() || ! result.topologyMatch()) 
+				return results;
+			} else if ((!results.exportMatch() || ! results.topologyMatch()) 
 					   && options.haltAfterFirstMismatch) {
 				// Don't stop for size mismatches
 				prln("Halting NCC after finding first mismatch");
-				return result;
+				return results;
 			}
 		}
-		return result;
+		return results;
 	}
 
-	private NccResult compareCells(CellContext cc1, CellContext cc2, 
-								   NccOptions options, Aborter aborter) {
+	private NccResults compareCells(CellContext cc1, CellContext cc2, 
+								    NccOptions options, Aborter aborter) {
 		List<CompareList> compareLists = CompareLists.getCompareLists(cc1, cc2);
 		return processCompareLists(compareLists, options, aborter);
 	}
 
 	// --------------------------- public methods -----------------------------
-	public static NccResult compare(CellContext cc1, CellContext cc2, 
-									NccOptions options, Aborter aborter) {
-		NccBottomUp ncch = new NccBottomUp();
-		return ncch.compareCells(cc1, cc2, options, aborter);
+	public static NccResults compare(CellContext cc1, CellContext cc2, 
+									 NccOptions options, Aborter aborter) {
+		NccBottomUp bo = new NccBottomUp();
+		return bo.compareCells(cc1, cc2, options, aborter);
 	}
 	public static void clearPassedHistory() {passed.clear();}
 }

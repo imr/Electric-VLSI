@@ -23,7 +23,11 @@
  */
 package com.sun.electric.tool.ncc;
 
-public class NccOptions {
+import java.io.Serializable;
+
+public class NccOptions implements Serializable {
+	static final long serialVersionUID = 0;
+	
 	/** what NCC operation to perform */
 	public static final int HIER_EACH_CELL = 0;
 	public static final int FLAT_EACH_CELL = 1;		// for regression testing
