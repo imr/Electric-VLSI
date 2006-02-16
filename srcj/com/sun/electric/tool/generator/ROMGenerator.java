@@ -315,6 +315,9 @@ public class ROMGenerator
 		double muxpoffsety = -6*lambda;
 		double foldoffsety = -8*lambda*(folds+1);
 		double ininvtoffset = (globalbits+2)*8*lambda+48*lambda;
+
+		// smr added this line to make things line-up properly
+		ininvtoffset += 44*lambda;
 	
 		double invpoffsety = -8*lambda*(folds+1)-16*lambda;
 		if (folds == 1)
@@ -3636,13 +3639,15 @@ public class ROMGenerator
 	
 		// create a cell called layoutname+lay}" in the destination library
 		Cell ininvp = Cell.newInstance(destLib, layoutname+"{lay}");
-	
+
+		double lowX = -8*lambda;
+lowX += 7*lambda;
+		double highX = (4*lambda*8*lengthbits)+24*lambda;
+highX -= 64*lambda;
 		NodeInst pwellnode =
-			makeCStyleNodeInst(pwnode,-8*lambda,(4*lambda*8*lengthbits)+24*lambda,
-										-18*lambda,10*lambda,0,0,ininvp);
+			makeCStyleNodeInst(pwnode, lowX,highX, -18*lambda,10*lambda, 0,0,ininvp);
 		NodeInst nwellnode =
-			makeCStyleNodeInst(nwnode,-8*lambda,(4*lambda*8*lengthbits)+24*lambda,
-										-36*lambda,-18*lambda,0,0,ininvp);
+			makeCStyleNodeInst(nwnode, lowX,highX, -36*lambda,-18*lambda, 0,0,ininvp);
 
 		// Create instances of objects on input inverter plane
 		x = 0;
