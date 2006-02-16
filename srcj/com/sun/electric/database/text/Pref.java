@@ -273,9 +273,8 @@ public class Pref
 
 			// reset all preferences to factory values
 			delayPrefFlushing();
-			for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+			for(Pref pref : allPrefs)
 			{
-				Pref pref = (Pref)it.next();
 				switch (pref.type)
 				{
 					case BOOLEAN:
@@ -307,9 +306,8 @@ public class Pref
 			inputStream.close();
 
 			// recache all prefs
-			for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+			for(Pref pref : allPrefs)
 			{
-				Pref pref = (Pref)it.next();
 				switch (pref.type)
 				{
 					case BOOLEAN:
@@ -334,7 +332,7 @@ public class Pref
 			// recache technology color information
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
-				Technology tech = (Technology)it.next();
+				Technology tech = it.next();
 				tech.cacheTransparentLayerColors();
 			}
 		} catch (InvalidPreferencesFormatException e)
@@ -929,16 +927,15 @@ public class Pref
 	public static Meaning getMeaningVariable(Object ownerObj, String name)
 	{
 /*
-        List list = (List)meaningPrefs.get(name);
+        List list = meaningPrefs.get(name);
         if (list == null) return null;
         for (Iterator it = list.iterator(); it.hasNext(); ) {
-            Meaning m = (Meaning)it.next();
+            Meaning m = it.next();
             if (m.eObj == eObj) return m;
         }
 */
-		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+		for(Pref pref : allPrefs)
 		{
-			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
 			if (pref.meaning.ownerObj != ownerObj) continue;
 			if (pref.name.equals(name))
@@ -958,9 +955,8 @@ public class Pref
 	public static List<Pref> getMeaningVariables(Object ownerObj)
 	{
 		ArrayList<Pref> prefs = new ArrayList<Pref>();
-		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+		for(Pref pref : allPrefs)
 		{
-			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
             if (!pref.meaning.isValidOption()) continue;
 			if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
@@ -982,7 +978,7 @@ public class Pref
 // 	{
 // 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 // 		{
-// 			Pref pref = (Pref)it.next();
+// 			Pref pref = it.next();
 // 			if (pref.meaning == null) continue;
 // 			Variable.Key key = Variable.newKey(pref.name);
 // 			if (pref.cachedObj.equals(pref.factoryObj))
@@ -1001,9 +997,8 @@ public class Pref
 	 */
 	public static void reconcileMeaningVariables(String libName, Map<Object,Map<String,Object>> meaningVariables)
 	{
-        for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+        for(Pref pref : allPrefs)
 		{
-			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
 			pref.meaning.marked = false;
 		}
@@ -1022,9 +1017,8 @@ public class Pref
                 meaningsToReconcile.add(meaning);
             }
 		}
-		for(Iterator<Pref> it = allPrefs.iterator(); it.hasNext(); )
+		for(Pref pref : allPrefs)
 		{
-			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
 			if (pref.meaning.marked) continue;
 
@@ -1056,9 +1050,8 @@ public class Pref
     {
     	// delay flushing of preferences until all chanages are made
 		delayPrefFlushing();
-        for(Iterator<Meaning> it = meaningsToReconcile.iterator(); it.hasNext(); )
+        for(Meaning meaning : meaningsToReconcile)
         {
-            Meaning meaning = (Meaning)it.next();
             Pref pref = meaning.getPref();
             Object obj = meaning.getDesiredValue();
 

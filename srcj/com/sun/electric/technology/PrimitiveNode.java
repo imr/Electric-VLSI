@@ -776,7 +776,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	private Pref getNodeProtoWidthPref(double factoryWidth)
 	{
-		Pref pref = (Pref)defaultWidthPrefs.get(this);
+		Pref pref = defaultWidthPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryWidth);
@@ -792,7 +792,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	private Pref getNodeProtoHeightPref(double factoryHeight)
 	{
-		Pref pref = (Pref)defaultHeightPrefs.get(this);
+		Pref pref = defaultHeightPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("DefaultHeightFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryHeight);

@@ -460,7 +460,7 @@ public class PixelDrawing
 		highlightingLayers = false;
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (layer.isDimmed())
 			{
 				highlightingLayers = true;
@@ -490,11 +490,8 @@ public class PixelDrawing
 			{
 				// reset cached cell counts
 				numberToReconcile = SINGLETONSTOADD;
-				for(Iterator<ExpandedCellInfo> it = expandedCells.values().iterator(); it.hasNext(); )
-				{
-					ExpandedCellInfo count = (ExpandedCellInfo)it.next();
+				for(ExpandedCellInfo count : expandedCells.values())
 					count.instanceCount = 0;
-				}
 
 				// determine which cells should be cached (must have at least 2 instances)
 				countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
@@ -636,7 +633,7 @@ public class PixelDrawing
 			boolean dimmedTransparentLayers = false;
 			for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 				if (!layer.isDimmed()) continue;
 				if (layer.getGraphics().getTransparentLayer() == 0) continue;
 				dimmedTransparentLayers = true;
@@ -650,7 +647,7 @@ public class PixelDrawing
 				for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
 				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 				{
-					Layer layer = (Layer)it.next();
+					Layer layer = it.next();
 					if (layer.isDimmed()) continue;
 					int tIndex = layer.getGraphics().getTransparentLayer();
 					if (tIndex == 0) continue;
@@ -935,7 +932,7 @@ public class PixelDrawing
         // draw all arcs
 		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)arcs.next();
+			ArcInst ai = arcs.next();
 
 			// if limiting drawing, reject when out of area
 			if (drawLimitBounds != null)
@@ -951,7 +948,7 @@ public class PixelDrawing
 		// draw all nodes
 		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nodes.next();
+			NodeInst ni = nodes.next();
 
 			// if limiting drawing, reject when out of area
 			if (drawLimitBounds != null)
@@ -1041,7 +1038,7 @@ public class PixelDrawing
 				{
 					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
 					{
-						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
+						NodeInst niOnPath = path.get(pathIndex);
 						if (niOnPath.getProto() == subCell)
 						{
 							expanded = true;
@@ -1130,7 +1127,7 @@ public class PixelDrawing
 			Iterator<Export> it = ni.getExports();
 			while (it.hasNext())
 			{
-				Export e = (Export)it.next();
+				Export e = it.next();
 				Poly poly = e.getNamePoly();
                 poly.transform(trans);
 //				if (topWnd != null && topWnd.isInPlaceEdit())
@@ -1234,13 +1231,13 @@ public class PixelDrawing
 		boolean[] shownPorts = new boolean[numPorts];
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
-			Connection con = (Connection) it.next();
+			Connection con = it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
 		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
-			Export exp = (Export) it.next();
+			Export exp = it.next();
 			PortInst pi = exp.getOriginalPort();
 			shownPorts[pi.getPortIndex()] = true;
 		}
@@ -1313,7 +1310,7 @@ public class PixelDrawing
 	{
 		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (layer == null) continue;
 			byte [][] layerBitMap = null;
 			int col = 0;
@@ -1351,7 +1348,7 @@ public class PixelDrawing
 	{
 		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (layer == null) continue;
 			EGraphics graphics = layer.getGraphics();
 			byte [][] layerBitMap = null;
@@ -1387,7 +1384,7 @@ public class PixelDrawing
 //			subTrans.preConcatenate(wnd.getInPlaceTransformIn());
 //		}
         ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
-		ExpandedCellInfo expandedCellCount = (ExpandedCellInfo)expandedCells.get(expansionKey);
+		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
 		if (expandedCellCount != null)
 		{
 			// if this combination is not used multiple times, do not cache it
@@ -1478,7 +1475,7 @@ public class PixelDrawing
 		// look for subcells
 		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nodes.next();
+			NodeInst ni = nodes.next();
 			if (!ni.isCellInstance()) continue;
 
 			// if limiting drawing, reject when out of area
@@ -1534,7 +1531,7 @@ public class PixelDrawing
 			{
 				for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
 				{
-					NodeInst niOnPath = (NodeInst)path.get(pathIndex);
+					NodeInst niOnPath = path.get(pathIndex);
 					if (niOnPath.getProto() == subCell)
 					{
 						expanded = true;
@@ -1549,7 +1546,7 @@ public class PixelDrawing
 		{
 			// construct the cell name that combines with the transformation
 			ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, subOrient);
-			ExpandedCellInfo expansionCount = (ExpandedCellInfo)expandedCells.get(expansionKey);
+			ExpandedCellInfo expansionCount = expandedCells.get(expansionKey);
 			if (expansionCount == null)
 			{
 				expansionCount = new ExpandedCellInfo();
@@ -1573,11 +1570,10 @@ public class PixelDrawing
 		if (expandedCells == null) return;
 
 		List<ExpandedCellKey> keys = new ArrayList<ExpandedCellKey>();
-		for(Iterator<ExpandedCellKey> it = expandedCells.keySet().iterator(); it.hasNext(); )
-			keys.add(it.next());
-		for(Iterator<ExpandedCellKey> it = keys.iterator(); it.hasNext(); )
+		for(ExpandedCellKey eck : expandedCells.keySet() )
+			keys.add(eck);
+		for(ExpandedCellKey expansionKey : keys)
 		{
-            ExpandedCellKey expansionKey = (ExpandedCellKey)it.next();
             if (expansionKey.cell == cell)
 				expandedCells.remove(expansionKey);
 		}
@@ -1628,10 +1624,9 @@ public class PixelDrawing
 		}
 
 		// copy the patterned opaque layers
-		for(Iterator<Layer> it = srcOffscreen.patternedOpaqueLayers.keySet().iterator(); it.hasNext(); )
+		for(Layer layer : srcOffscreen.patternedOpaqueLayers.keySet())
 		{
-			Layer layer = (Layer)it.next();
-			PatternedOpaqueLayer polSrc = (PatternedOpaqueLayer)srcOffscreen.patternedOpaqueLayers.get(layer);
+			PatternedOpaqueLayer polSrc = srcOffscreen.patternedOpaqueLayers.get(layer);
 			byte [][] srcLayerBitMap = polSrc.bitMap;
 			if (srcLayerBitMap == null) continue;
 
@@ -1665,7 +1660,7 @@ public class PixelDrawing
 			} else
 			{
 				// a lower level being copied to a low level: just copy the patterned opaque layers
-				PatternedOpaqueLayer polDest = (PatternedOpaqueLayer)patternedOpaqueLayers.get(layer);
+				PatternedOpaqueLayer polDest = patternedOpaqueLayers.get(layer);
 				if (polDest == null)
 				{
 					polDest = new PatternedOpaqueLayer();
@@ -1802,7 +1797,7 @@ public class PixelDrawing
 					if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
 					{
 						Layer layer = poly.getLayer();
-						PatternedOpaqueLayer pol = (PatternedOpaqueLayer)patternedOpaqueLayers.get(layer);
+						PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
 						if (pol == null)
 						{
 							pol = new PatternedOpaqueLayer();

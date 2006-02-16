@@ -299,10 +299,10 @@ public class ProjectSettingsFrame extends EDialog
 //		// recache all layers and their graphics
 //		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 //		{
-//			Technology tech = (Technology)it.next();
+//			Technology tech = it.next();
 //			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 //			{
-//				Layer layer = (Layer)lIt.next();
+//				Layer layer = lIt.next();
 //				layer.getGraphics().recachePrefs();
 //			}
 //		}
@@ -314,16 +314,15 @@ public class ProjectSettingsFrame extends EDialog
 //		EditWindow.repaintAllContents();
 //        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //        {
-//        	WindowFrame wf = (WindowFrame)it.next();
+//        	WindowFrame wf = it.next();
 //        	wf.loadComponentMenuForTechnology();
 //        }
 //	}
 
 	private void loadOptionPanel()
 	{
-		for(Iterator<ProjSettingsPanel> it = optionPanes.iterator(); it.hasNext(); )
+		for(ProjSettingsPanel ti : optionPanes)
 		{
-			ProjSettingsPanel ti = (ProjSettingsPanel)it.next();
 			if (ti.getName().equals(currentTabName))
 			{
 				if (!ti.isInited())
@@ -354,9 +353,8 @@ public class ProjectSettingsFrame extends EDialog
 
 			// gather preference changes on the client
 			Pref.gatherPrefChanges();
-			for(Iterator<ProjSettingsPanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
+			for(ProjSettingsPanel ti : dialog.optionPanes)
 			{
-				ProjSettingsPanel ti = (ProjSettingsPanel)it.next();
 				if (ti.isInited())
 					ti.term();
 			}

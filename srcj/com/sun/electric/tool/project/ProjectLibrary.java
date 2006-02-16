@@ -72,9 +72,8 @@ public class ProjectLibrary implements Serializable
 //			Cell c = pc.getCell();
 //			if (c != null && !c.isLinked()) System.out.println("HEY! "+c+" IS NOT LINKED");
 //		}
-//		for(Iterator<Cell> it = byCell.keySet().iterator(); it.hasNext(); )
+//		for(Cell c : byCell.keySet())
 //		{
-//			Cell c = it.next();
 //			if (c != null && !c.isLinked()) System.out.println("HEY! "+c+" IS NOT LINKED IN BYCELLS");
 //		}
 //	}
@@ -513,14 +512,14 @@ public class ProjectLibrary implements Serializable
 		for(ProjectCell pc : allCells)
 		{
 			String cellEntry = pc.describe();
-			ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
+			ProjectCell recent = mostRecent.get(cellEntry);
 			if (recent != null && recent.getVersion() > pc.getVersion()) continue;
 			mostRecent.put(cellEntry, pc);
 		}
 		for(ProjectCell pc : allCells)
 		{
 			String cellEntry = pc.describe();
-			ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
+			ProjectCell recent = mostRecent.get(cellEntry);
 			pc.setLatestVersion(recent == pc);
 		}
 		return null;

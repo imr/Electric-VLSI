@@ -1559,8 +1559,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 				if (includeLastPoint && lastMoveTo != null) pointList.add(lastMoveTo);
 				Point2D [] points = new Point2D[pointList.size()];
 				int i = 0;
-				for(Iterator<Point2D> it = pointList.iterator(); it.hasNext(); )
-					points[i++] = (Point2D)it.next();
+				for(Point2D p : pointList)
+					points[i++] = p;
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
@@ -1571,8 +1571,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 					Iterator<PolyBase> it = polyList.iterator();
 					while (it.hasNext())
 					{
-						PolyBase pn = (PolyBase)it.next();
-						if (pn.contains((Point2D)pointList.get(0)) ||
+						PolyBase pn = it.next();
+						if (pn.contains(pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
 						{
 							points = pn.getPoints();
@@ -1992,7 +1992,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     	// determine angle of intersection points
     	for(int i=initialCount; i<curveList.size(); i++)
     	{
-    		AngleList al = (AngleList)curveList.get(i);
+    		AngleList al = curveList.get(i);
     		if (al.y == yc && al.x == xc)
     		{
     			System.out.println("Warning: instability ahead");
@@ -2014,11 +2014,11 @@ public class PolyBase implements Shape, PolyNodeMerge
      	if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
     	{
     		int j = 2;
-       		AngleList al0 = (AngleList)curveList.get(0);
-       		AngleList al1 = (AngleList)curveList.get(1);
+       		AngleList al0 = curveList.get(0);
+       		AngleList al1 = curveList.get(1);
     		for(int i=2; i<curveList.size(); i++)
     		{
-        		AngleList al = (AngleList)curveList.get(i);
+        		AngleList al = curveList.get(i);
     			if (al0.angle > al1.angle)
     			{
     				if (al.angle > al0.angle ||
@@ -2028,7 +2028,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     				if (al.angle > al0.angle &&
     					al.angle < al1.angle) continue;
     			}
-    			AngleList alj = (AngleList)curveList.get(j);
+    			AngleList alj = curveList.get(j);
     			alj.x = al.x;
     			alj.y = al.y;
     			alj.angle = al.angle;
@@ -2037,10 +2037,10 @@ public class PolyBase implements Shape, PolyNodeMerge
     		while (curveList.size() > j) curveList.remove(curveList.size()-1);
 
     		// make sure the start of the arc is the first point
-       		al0 = (AngleList)curveList.get(0);
+       		al0 = curveList.get(0);
     		for(int i=0; i<curveList.size(); i++)
     		{
-        		AngleList al = (AngleList)curveList.get(i);
+        		AngleList al = curveList.get(i);
     			if (al.angle > al0.angle)
     				al.angle -= Math.PI*2.0;
     		}
@@ -2049,7 +2049,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     		// make sure all angles are negative
     		for(int i=0; i<curveList.size(); i++)
     		{
-        		AngleList al = (AngleList)curveList.get(i);
+        		AngleList al = curveList.get(i);
     			if (al.angle > 0.0) al.angle -= Math.PI*2.0;
     		}
     	}
@@ -2060,7 +2060,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     	// for full circles, add in starting point to complete circle
     	if (style != Poly.Type.CIRCLEARC && style != Poly.Type.THICKCIRCLEARC)
     	{
-    		AngleList al0 = (AngleList)curveList.get(0);
+    		AngleList al0 = curveList.get(0);
     		AngleList alNew = new AngleList(new Point2D.Double(al0.x, al0.y));
     		alNew.angle = al0.angle - Math.PI*2.0;
     		curveList.add(alNew);
@@ -2072,8 +2072,8 @@ public class PolyBase implements Shape, PolyNodeMerge
     	for(int i=1; i<curveList.size(); i++)
     	{
     		int prev = i-1;
-       		AngleList al = (AngleList)curveList.get(i);
-       		AngleList alP = (AngleList)curveList.get(prev);
+       		AngleList al = curveList.get(i);
+       		AngleList alP = curveList.get(prev);
     		double midAngle = (alP.angle + al.angle) / 2.0;
     		while (midAngle < -Math.PI) midAngle += Math.PI * 2.0;
     		double midx = xc + radius * Math.cos(midAngle);
@@ -2087,7 +2087,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     	}
     	points = new Point2D[newIn.size()];
     	for(int i=0; i<newIn.size(); i++)
-     		points[i] = (Point2D)newIn.get(i);
+     		points[i] = newIn.get(i);
     	if (style == Poly.Type.THICKCIRCLE) style = Poly.Type.THICKCIRCLEARC; else
     		if (style == Poly.Type.CIRCLE) style = Poly.Type.CIRCLEARC;
     }

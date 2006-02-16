@@ -123,7 +123,7 @@ public class PortInst extends ElectricObject
 		List<Connection> connections = new ArrayList<Connection>();
 		// get connections on NodeInst
 		for (Iterator<Connection> it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
-			Connection c = (Connection)it.next();
+			Connection c = it.next();
 			if (c.getPortInst() != this) break;
 			connections.add(c);
 		}
@@ -139,7 +139,7 @@ public class PortInst extends ElectricObject
 		List<Export> exports = new ArrayList<Export>();
 		// get exports on NodeInst
 		for (Iterator<Export> it = nodeInst.getExports(); it.hasNext(); ) {
-			Export e = (Export)it.next();
+			Export e = it.next();
 			if (e.getOriginalPort() == this)
 				exports.add(e);
 		}
@@ -160,7 +160,7 @@ public class PortInst extends ElectricObject
 		// This will also remove the connections themselves
 		for (Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			// arcs that connect from a port to itself will cause the number of connections to shrink more quickly
 			if (ai.isLinked()) ai.kill();
@@ -169,7 +169,7 @@ public class PortInst extends ElectricObject
 		// remove connected exports
 		for (Iterator<Export> it = getExports(); it.hasNext(); )
 		{
-			Export export = (Export)it.next();
+			Export export = it.next();
 			export.kill();
 		}
 	}
@@ -263,11 +263,11 @@ public class PortInst extends ElectricObject
         Set<Connection> noCheckAgain = new HashSet<Connection>();
 		for (Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
-			Connection c = (Connection)it.next();
+			Connection c = it.next();
 			boolean found = false;
 			for (Iterator<Connection> noIt = no.getConnections(); noIt.hasNext(); )
 			{
-				Connection noC = (Connection)noIt  .next();
+				Connection noC = noIt.next();
 				if (noCheckAgain.contains(noC)) continue;
 				if (c.getLocation().equals(noC.getLocation()))
 				{

@@ -503,7 +503,7 @@ public class Panel extends JPanel
 		List<WaveSignal> signals = new ArrayList<WaveSignal>();
 		for(JButton but : waveSignals.keySet())
 		{
-			WaveSignal ws = (WaveSignal)waveSignals.get(but);
+			WaveSignal ws = waveSignals.get(but);
 			signals.add(ws);
 		}
 		return signals;
@@ -515,7 +515,7 @@ public class Panel extends JPanel
 	{
 		for(JButton but : waveSignals.keySet())
 		{
-			WaveSignal ws = (WaveSignal)waveSignals.get(but);
+			WaveSignal ws = waveSignals.get(but);
 			if (ws.getSignal() == sig) return ws;
 		}
 		return null;
@@ -531,7 +531,7 @@ public class Panel extends JPanel
 	{
 		for(JButton but : waveSignals.keySet())
 		{
-			WaveSignal oWs = (WaveSignal)waveSignals.get(but);
+			WaveSignal oWs = waveSignals.get(but);
 			if (oWs == ws) return but;
 		}
 		return null;
@@ -1319,7 +1319,7 @@ public class Panel extends JPanel
 				{
                     SweepSignal ss = null;
                     if (s < waveWindow.getSweepSignals().size())
-                        ss = (SweepSignal)waveWindow.getSweepSignals().get(s);
+                        ss = waveWindow.getSweepSignals().get(s);
                     if (ss != null && !ss.isIncluded()) continue;
 					int lastX = 0, lastLY = 0, lastHY = 0;
 					int numEvents = as.getNumEvents(s);
@@ -1827,7 +1827,7 @@ public class Panel extends JPanel
 		Set<JButton> set = waveSignals.keySet();
 		if (set.size() == 0) return;
 		JButton but = set.iterator().next();
-		WaveSignal ws = (WaveSignal)waveSignals.get(but);
+		WaveSignal ws = waveSignals.get(but);
 
 		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 		{
@@ -1958,7 +1958,7 @@ public class Panel extends JPanel
 			{
                 SweepSignal ss = null;
                 if (s < waveWindow.getSweepSignals().size())
-                    ss = (SweepSignal)waveWindow.getSweepSignals().get(s);
+                    ss = waveWindow.getSweepSignals().get(s);
                 if (ss != null && !ss.isIncluded()) continue;
 				int numEvents = as.getNumEvents(s);
 				for(int i=0; i<numEvents; i++)
@@ -1991,7 +1991,7 @@ public class Panel extends JPanel
 			{
                 SweepSignal ss = null;
                 if (s < waveWindow.getSweepSignals().size())
-                    ss = (SweepSignal)waveWindow.getSweepSignals().get(s);
+                    ss = waveWindow.getSweepSignals().get(s);
                 if (ss != null && !ss.isIncluded()) continue;
 				int numEvents = as.getNumEvents(s);
                 as.getEvent(s, 0, lastResult);

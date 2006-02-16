@@ -54,7 +54,7 @@ public class Port extends NetObject {
 	}
 	public String getName() {
 		LayoutLib.error(names.size()==0, "Port with no name?");
-		return (String) names.iterator().next();
+		return names.iterator().next();
 	}
 	public Type getNetObjType() {return Type.PORT;}
 	public Iterator<NetObject> getConnected() {return (new ArrayList<NetObject>()).iterator();}
@@ -67,17 +67,15 @@ public class Port extends NetObject {
 	 * different types then return the most common type. */
 	public PortCharacteristic getType() {
 		Map<PortCharacteristic,Integer> typeToCount = new HashMap<PortCharacteristic,Integer>();
-		for (Iterator<PortCharacteristic> it=types.iterator(); it.hasNext();) {
-			PortCharacteristic t = (PortCharacteristic) it.next();
-			Integer count = (Integer) typeToCount.get(t);
+		for (PortCharacteristic t : types) {
+			Integer count = typeToCount.get(t);
 			int c = count!=null ? count.intValue() : 0;
 			typeToCount.put(t, new Integer(c+1));
 		}
 		int popularCount = 0;
 		PortCharacteristic popularType = null;
-		for (Iterator<PortCharacteristic> it=typeToCount.keySet().iterator(); it.hasNext();) {
-			PortCharacteristic t = (PortCharacteristic) it.next();
-			int count = ((Integer) typeToCount.get(t)).intValue();
+		for (PortCharacteristic t : typeToCount.keySet()) {
+			int count = typeToCount.get(t).intValue();
 			if (count>popularCount ||
 			    (count==popularCount && t!=PortCharacteristic.UNKNOWN)) {
 				popularCount = count;
@@ -100,9 +98,9 @@ public class Port extends NetObject {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ ");
 		// Sort the names
-		for (Iterator<String> it=(new TreeSet<String>(names)).iterator(); it.hasNext();) {
+		for (String s : new TreeSet<String>(names)) {
 			if (sb.length()>2)  sb.append(", ");
-			sb.append((String) it.next());
+			sb.append(s);
 		}
 		sb.append(" }");
 		return sb.toString();

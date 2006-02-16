@@ -118,10 +118,9 @@ public class ParasiticTool extends Tool {
         {
             List<Object> list = new ArrayList<Object>(transAndRCList);
 
-            for (Iterator<Network> it = netMap.keySet().iterator(); it.hasNext();)
+            for (Network net : netMap.keySet())
             {
-                Object key = it.next();
-                Object value = netMap.get(key);
+                Object value = netMap.get(net);
                 if (value != null) list.add(value);
             }
             return list;
@@ -146,10 +145,9 @@ public class ParasiticTool extends Tool {
             // Done with root cell
             if (info.getParentInfo() == null)
             {
-                for (Iterator<Network> it = netMap.keySet().iterator(); it.hasNext();)
+                for (Network net : netMap.keySet())
                 {
-                    Object obj = it.next();
-                    NetPBucket bucket = (NetPBucket)netMap.get(obj);
+                    NetPBucket bucket = netMap.get(net);
                     bucket.postProcess(false);
                 }
             }
@@ -157,7 +155,7 @@ public class ParasiticTool extends Tool {
 
         private NetPBucket getNetParasiticsBucket(Network net, HierarchyEnumerator.CellInfo info)
         {
-            NetPBucket parasiticNet = (NetPBucket)netMap.get(net);
+            NetPBucket parasiticNet = netMap.get(net);
             int numRemoveParents = context.getNumLevels();
             
             if (parasiticNet == null)
@@ -177,7 +175,7 @@ public class ParasiticTool extends Tool {
 
             for(Iterator<ArcInst> aIt = info.getCell().getArcs(); aIt.hasNext(); )
             {
-                ArcInst ai = (ArcInst)aIt.next();
+                ArcInst ai = aIt.next();
 
                 // don't count non-electrical arcs
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
@@ -433,7 +431,7 @@ public class ParasiticTool extends Tool {
 
             for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
             {
-                Geometric nGeom = (Geometric)it.next();
+                Geometric nGeom = it.next();
 			    if ((nGeom == geom)) continue;
 
                 // Touching elements out
@@ -508,7 +506,7 @@ public class ParasiticTool extends Tool {
             // Selecting arcs attached to this network
             for (Iterator<ArcInst> it = net.getArcs(); it.hasNext(); )
             {
-                ArcInst ai = (ArcInst)it.next();
+                ArcInst ai = it.next();
                 Technology tech = ai.getProto().getTechnology();
 				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
                 for(int i = 0; i < arcInstPolyList.length; i++)
@@ -530,7 +528,7 @@ public class ParasiticTool extends Tool {
 	        HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
             for (Iterator<PortInst> it = net.getPorts(); it.hasNext(); )
             {
-                PortInst pi = (PortInst)it.next();
+                PortInst pi = it.next();
                 NodeInst ni = pi.getNodeInst();
 	            if (nodeMap.get(ni) != null) continue; // Already analyzed
                 AffineTransform trans = ni.rotateOut();
@@ -557,9 +555,8 @@ public class ParasiticTool extends Tool {
                 else
                     System.out.println("Not implemented");
             }
-            for (Iterator<ParasiticValue> it = polyToCheckList.iterator(); it.hasNext(); )
+            for (ParasiticValue val : polyToCheckList)
             {
-                ParasiticValue val = (ParasiticValue)it.next();
                 System.out.println("Value " + val + " Layer " + val.elements[1].poly.getLayer());
             }
             long endTime = System.currentTimeMillis();

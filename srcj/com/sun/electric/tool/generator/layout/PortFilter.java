@@ -91,7 +91,7 @@ public abstract class PortFilter {
     public final Iterator<PortInst> filter(Iterator<PortInst> ports) {
 	ArrayList<PortInst> filtered = new ArrayList<PortInst>();
 	while (ports.hasNext()) {
-	    PortInst pi = (PortInst) ports.next();
+	    PortInst pi = ports.next();
 	    if (!skipPort(pi)) filtered.add(pi);
 	}
 	return filtered.iterator();

@@ -477,10 +477,10 @@ public class PreferencesFrame extends EDialog
 		// recache all layers and their graphics
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
+				Layer layer = lIt.next();
 				layer.getGraphics().recachePrefs();
 			}
 		}
@@ -492,16 +492,15 @@ public class PreferencesFrame extends EDialog
 		EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-        	WindowFrame wf = (WindowFrame)it.next();
+        	WindowFrame wf = it.next();
         	wf.loadComponentMenuForTechnology();
         }
 	}
 
 	private void loadOptionPanel()
 	{
-		for(Iterator<PreferencePanel> it = optionPanes.iterator(); it.hasNext(); )
+		for(PreferencePanel ti : optionPanes)
 		{
-			PreferencePanel ti = (PreferencePanel)it.next();
 			if (ti.getName().equals(currentTabName))
 			{
 				if (!ti.isInited())
@@ -532,9 +531,8 @@ public class PreferencesFrame extends EDialog
 
 			// gather preference changes on the client
 			Pref.gatherPrefChanges();
-			for(Iterator<PreferencePanel> it = dialog.optionPanes.iterator(); it.hasNext(); )
+			for(PreferencePanel ti : dialog.optionPanes)
 			{
-				PreferencePanel ti = (PreferencePanel)it.next();
 				if (ti.isInited())
 					ti.term();
 			}

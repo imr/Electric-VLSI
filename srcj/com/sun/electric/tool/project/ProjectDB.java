@@ -45,11 +45,8 @@ public class ProjectDB implements Serializable
 	List<ProjectLibrary> getProjectLibraries()
 	{
 		List<ProjectLibrary> pLibs = new ArrayList<ProjectLibrary>();
-		for(Iterator<Library> it = libraryProjectInfo.keySet().iterator(); it.hasNext(); )
-		{
-			Library lib = it.next();
+		for(Library lib : libraryProjectInfo.keySet())
 			pLibs.add(libraryProjectInfo.get(lib));
-		}
 		return pLibs;
 	}
 
@@ -63,7 +60,7 @@ public class ProjectDB implements Serializable
 	ProjectLibrary findProjectLibrary(Library lib)
 	{
 		// see if this library has a known project database
-		ProjectLibrary pl = (ProjectLibrary)libraryProjectInfo.get(lib);
+		ProjectLibrary pl = libraryProjectInfo.get(lib);
 		if (pl != null) return pl;
 		pl = ProjectLibrary.createProject(lib);
 		libraryProjectInfo.put(lib, pl);

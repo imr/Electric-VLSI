@@ -623,9 +623,8 @@ public class PostScriptColor
 
 		// otherwise find number of boxes on this layer
 		int numBoxes = 0;
-		for(Iterator<PsBox> it = flattenedBoxes[layer].iterator(); it.hasNext(); )
+		for(PsBox g : flattenedBoxes[layer])
 		{
-			PsBox g = it.next();
 			if (g.visible) numBoxes++;
 		}
 
@@ -648,9 +647,8 @@ public class PostScriptColor
 
 		// then copy the boxes into the tree
 		int i = 0;
-		for(Iterator<PsBox> it = flattenedBoxes[layer].iterator(); it.hasNext(); )
+		for(PsBox g : flattenedBoxes[layer])
 		{
-			PsBox g = it.next();
 			if (g.visible)
 			{
 				quadTrees[layer].boxes[i] = new PsBoxElement();
@@ -764,9 +762,8 @@ public class PostScriptColor
 		int numMerged = 0;
 
 		System.out.println("Merging boxes for " + totalCells + " cells...");
-		for(Iterator<PsCell> it = allCells.iterator(); it.hasNext(); )
+		for(PsCell c : allCells)
 		{
-			PsCell c = it.next();
 			boolean changed = false;
 			do {
 				changed = false;
@@ -957,9 +954,8 @@ public class PostScriptColor
 	private void recursiveFlatten(PsCell topCell, double [] m)
 	{
 		// add boxes from this cell
-		for(Iterator<PsBox> it = topCell.boxes.iterator(); it.hasNext(); )
+		for(PsBox box : topCell.boxes)
 		{
-			PsBox box = it.next();
 			if (box.visible)
 			{
 				PsBox newBox = copyBox(box, m);
@@ -968,18 +964,16 @@ public class PostScriptColor
 		}
 
 		// add polygons from this cell
-		for(Iterator<PsPoly> it = topCell.polys.iterator(); it.hasNext(); )
+		for(PsPoly poly : topCell.polys)
 		{
-			PsPoly poly = it.next();
 			PsPoly newPoly = copyPoly(poly, m);
 			flattenedPolys[newPoly.layer].add(newPoly);
 		}
 
 		// recursively traverse subinstances
 		double [] tm = new double[9];
-		for(Iterator<PsCellInst> it = topCell.inst.iterator(); it.hasNext(); )
+		for(PsCellInst inst : topCell.inst)
 		{
-			PsCellInst inst = it.next();
 			totalInstances++;
 			matrixMul(tm, inst.transform, m);
 			recursiveFlatten(inst.inst, tm);
@@ -1066,9 +1060,8 @@ public class PostScriptColor
 						TextUtils.formatDouble(allLayers[i].g) + " " +
 						TextUtils.formatDouble(allLayers[i].b) + " setrgbcolor");
 				}
-				for(Iterator<PsBox> gIt = g.iterator(); gIt.hasNext(); )
+				for(PsBox gB : g)
 				{
-					PsBox gB = gIt.next();
 					if (gB.visible)
 					{
 						double w = gB.pos[0];
@@ -1077,9 +1070,8 @@ public class PostScriptColor
 						totalBoxes++;
 					}
 				}
-				for(Iterator<PsPoly> pIt = p.iterator(); pIt.hasNext(); )
+				for(PsPoly pB : p)
 				{
-					PsPoly pB = pIt.next();
 					if (pB.coords.length > 2)
 					{
 						printWriter.println("newpath " + TextUtils.formatDouble(pB.coords[0]) + " " +
@@ -1103,9 +1095,8 @@ public class PostScriptColor
 		printWriter.println("0 0 0 setrgbcolor");
 		for(int i=0; i<psObject.headerString.length; i++)
 			printWriter.println(psObject.headerString[i]);
-		for(Iterator<PsLabel> lIt = topCell.labels.iterator(); lIt.hasNext(); )
+		for(PsLabel l : topCell.labels)
 		{
-			PsLabel l = lIt.next();
 			double size = 14;
 			TextDescriptor.Size s = l.descript.getSize();
 			if (s != null)

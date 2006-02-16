@@ -52,8 +52,8 @@ public class PartTypeTable {
 	}
 	public int log2NumTypes() {return log2NumTypes;}
 	public Iterator<PartType> iterator() {return types.iterator();}
-	public PartType get(String nm) {return (PartType) nameToType.get(nm);}
+	public PartType get(String nm) {return nameToType.get(nm);}
 	public PartType getTypeFromLongName(String nm) {
-		return (PartType) longNameToType.get(nm);
+		return longNameToType.get(nm);
 	}
 }

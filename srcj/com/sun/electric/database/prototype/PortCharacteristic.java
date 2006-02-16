@@ -133,9 +133,8 @@ public class PortCharacteristic
 	 */
 	public static PortCharacteristic findCharacteristic(String wantName)
 	{
-		for(Iterator<PortCharacteristic> it = characteristicList.values().iterator(); it.hasNext(); )
+		for(PortCharacteristic ch : characteristicList.values())
 		{
-			PortCharacteristic ch = (PortCharacteristic)it.next();
 			if (ch.name.equals(wantName)) return ch;
 		}
 		return null;
@@ -149,9 +148,8 @@ public class PortCharacteristic
 	 */
 	public static PortCharacteristic findCharacteristicShort(String shortName)
 	{
-		for(Iterator<PortCharacteristic> it = characteristicList.values().iterator(); it.hasNext(); )
+		for(PortCharacteristic ch : characteristicList.values())
 		{
-			PortCharacteristic ch = (PortCharacteristic)it.next();
 			if (ch.shortName.equals(shortName)) return ch;
 		}
 		return null;
@@ -164,8 +162,8 @@ public class PortCharacteristic
 	public static List<PortCharacteristic> getOrderedCharacteristics()
 	{
 		List<PortCharacteristic> orderedList = new ArrayList<PortCharacteristic>();
-		for(Iterator<PortCharacteristic> it = characteristicList.values().iterator(); it.hasNext(); )
-			orderedList.add(it.next());
+		for(PortCharacteristic ch : characteristicList.values())
+			orderedList.add(ch);
 		Collections.sort(orderedList, new CharacteristicOrder());
 		return orderedList;
 	}

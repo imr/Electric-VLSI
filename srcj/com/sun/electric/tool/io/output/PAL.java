@@ -97,26 +97,19 @@ public class PAL extends Output
 
 		// write the external and internal symbols
 		int pinNumber = 1;
-		for(Iterator<String> it = externalSymbols.iterator(); it.hasNext(); )
+		for(String symbol : externalSymbols)
 		{
-			String symbol = (String)it.next();
 			printWriter.println("    " + symbol + " pin " + pinNumber + ";");
 			pinNumber++;
 		}
-		for(Iterator<String> it = internalSymbols.iterator(); it.hasNext(); )
-		{
-			String symbol = (String)it.next();
+		for(String symbol : internalSymbols)
 			printWriter.println("    " + symbol + " = 0,1;");
-		}
 
 		// write the equations
 		printWriter.println("");
 		printWriter.println("equations");
-		for(Iterator<String> it = equations.iterator(); it.hasNext(); )
-		{
-			String eq = (String)it.next();
+		for(String eq : equations)
 			printWriter.println("    " + eq + ";");
-		}
 
 		// end of deck
 		printWriter.println("");
@@ -160,7 +153,7 @@ public class PAL extends Output
 			Connection outputCon = null;
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				PortInst pi = con.getPortInst();
 				if (pi.getPortProto().getName().equals("y")) { outputCon = con;   break; }
 			}
@@ -178,7 +171,7 @@ public class PAL extends Output
 			int count = 0;
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				PortInst pi = con.getPortInst();
 				if (!pi.getPortProto().getName().equals("a")) continue;
 				if (count == 1) sb.append(" " + funName);
