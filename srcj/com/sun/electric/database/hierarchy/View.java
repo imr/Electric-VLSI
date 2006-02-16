@@ -219,10 +219,10 @@ public class View implements Comparable<View>
 // 		// cannot delete views that are in use
 // 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 // 		{
-// 			Library lib = (Library)it.next();
+// 			Library lib = it.next();
 // 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 // 			{
-// 				Cell cell = (Cell)cIt.next();
+// 				Cell cell = cIt.next();
 // 				if (cell.getView() == this)
 // 				{
 // 					System.out.println("Cannot delete view " + this.getFullName() +
@@ -300,7 +300,7 @@ public class View implements Comparable<View>
 	 */
 	public static View findView(String name)
 	{
-		return (View)viewNames.get(name);
+		return viewNames.get(name);
 	}
 
 	/**

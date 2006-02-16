@@ -130,7 +130,7 @@ public abstract class Router {
                 if (e.isDone()) continue;
                 e.doAction();
                 RouteElementPort rep = (RouteElementPort)e;
-                Integer i = (Integer)nodesCreatedMap.get(rep.getPortProto().getParent());
+                Integer i = nodesCreatedMap.get(rep.getPortProto().getParent());
                 if (i == null) i = new Integer(0);
                 i = new Integer(i.intValue() + 1);
                 nodesCreatedMap.put(rep.getPortProto().getParent(), i);
@@ -143,7 +143,7 @@ public abstract class Router {
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
                 RouteElementArc rea = (RouteElementArc)e;
-                Integer i = (Integer)arcsCreatedMap.get(rea.getArcProto());
+                Integer i = arcsCreatedMap.get(rea.getArcProto());
                 if (i == null) i = new Integer(0);
                 i = new Integer(i.intValue() + 1);
                 arcsCreatedMap.put(rea.getArcProto(), i);
@@ -158,24 +158,24 @@ public abstract class Router {
                 System.out.println("Nothing wired");
             } else if (arcEntries.size() == 1 && nodeEntries.size() == 0) {
                 ArcProto ap = arcEntries.iterator().next();
-                Integer i = (Integer)arcsCreatedMap.get(ap);
+                Integer i = arcsCreatedMap.get(ap);
                 System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs");
             } else if (arcEntries.size() == 1 && nodeEntries.size() == 1) {
                 ArcProto ap = arcEntries.iterator().next();
                 NodeProto np = nodeEntries.iterator().next();
-                Integer i = (Integer)arcsCreatedMap.get(ap);
-                Integer i2 = (Integer)nodesCreatedMap.get(np);
+                Integer i = arcsCreatedMap.get(ap);
+                Integer i2 = nodesCreatedMap.get(np);
                 System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe(true)+" nodes");
             } else {
                 System.out.println("Wiring added:");
                 Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
                 Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
                 for (ArcProto ap : arcEntries) {
-                    Integer i = (Integer)arcsCreatedMap.get(ap);
+                    Integer i = arcsCreatedMap.get(ap);
                     System.out.println("    "+i+" "+ap.describe()+" arcs");
                 }
                 for (NodeProto np : nodeEntries) {
-                    Integer i = (Integer)nodesCreatedMap.get(np);
+                    Integer i = nodesCreatedMap.get(np);
                     System.out.println("    "+i+" "+np.describe(true)+" nodes");
                 }
             }

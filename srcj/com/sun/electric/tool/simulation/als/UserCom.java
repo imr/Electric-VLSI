@@ -52,10 +52,10 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport ctl = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport ctl = primHead.exList.get(0);
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
-			side[0] = (ALS.ALSExport)primHead.exList.get(1);
-			side[1] = (ALS.ALSExport)primHead.exList.get(2);
+			side[0] = primHead.exList.get(1);
+			side[1] = primHead.exList.get(2);
 
 			if (ctl.nodePtr.sumState == Stimuli.LOGIC_HIGH)
 			{
@@ -75,10 +75,10 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport ctl = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport ctl = primHead.exList.get(0);
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
-			side[0] = (ALS.ALSExport)primHead.exList.get(1);
-			side[1] = (ALS.ALSExport)primHead.exList.get(2);
+			side[0] = primHead.exList.get(1);
+			side[1] = primHead.exList.get(2);
 
 			if (ctl.nodePtr.sumState == Stimuli.LOGIC_HIGH)
 			{
@@ -109,10 +109,10 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport ctl = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport ctl = primHead.exList.get(0);
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
-			side[0] = (ALS.ALSExport)primHead.exList.get(1);
-			side[1] = (ALS.ALSExport)primHead.exList.get(2);
+			side[0] = primHead.exList.get(1);
+			side[1] = primHead.exList.get(2);
 
 			if (ctl.nodePtr.sumState == Stimuli.LOGIC_LOW)
 			{
@@ -132,10 +132,10 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport ctl = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport ctl = primHead.exList.get(0);
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
-			side[0] = (ALS.ALSExport)primHead.exList.get(1);
-			side[1] = (ALS.ALSExport)primHead.exList.get(2);
+			side[0] = primHead.exList.get(1);
+			side[1] = primHead.exList.get(2);
 
 			if (ctl.nodePtr.sumState == Stimuli.LOGIC_LOW)
 			{
@@ -163,16 +163,16 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport argPtr = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport argPtr = primHead.exList.get(0);
 			int ck = argPtr.nodePtr.sumState;
 			if (ck != Stimuli.LOGIC_LOW) return;
 
-			argPtr = (ALS.ALSExport)primHead.exList.get(1);
+			argPtr = primHead.exList.get(1);
 			int j = argPtr.nodePtr.sumState;
-			argPtr = (ALS.ALSExport)primHead.exList.get(2);
+			argPtr = primHead.exList.get(2);
 			int k = argPtr.nodePtr.sumState;
-			argPtr = (ALS.ALSExport)primHead.exList.get(3);
-			ALS.ALSExport argPtrBar = (ALS.ALSExport)primHead.exList.get(4);
+			argPtr = primHead.exList.get(3);
+			ALS.ALSExport argPtrBar = primHead.exList.get(4);
 
 			if (j == Stimuli.LOGIC_LOW)
 			{
@@ -226,11 +226,11 @@ public class UserCom
 
 		void simulate(ALS.Model primHead)
 		{
-			ALS.ALSExport argPtr = (ALS.ALSExport)primHead.exList.get(0);
+			ALS.ALSExport argPtr = primHead.exList.get(0);
 
 			// dataIn signal now selected
 			int dIn = argPtr.nodePtr.sumState;
-			argPtr = (ALS.ALSExport)primHead.exList.get(1);
+			argPtr = primHead.exList.get(1);
 
 			// clk signal now selected
 			int clk = argPtr.nodePtr.sumState;
@@ -245,7 +245,7 @@ public class UserCom
 				or LOGIC_X). */
 
 			// select dataOut signal
-			argPtr = (ALS.ALSExport)primHead.exList.get(2);
+			argPtr = primHead.exList.get(2);
 			int q = dIn;
 			scheduleNodeUpdate(primHead, argPtr, '=',
 				new Integer(q), Stimuli.GATE_STRENGTH, als.timeAbs);
@@ -270,13 +270,13 @@ public class UserCom
 		void simulate(ALS.Model primHead)
 		{
 			Iterator<ALS.ALSExport> it = primHead.exList.iterator();
-			ALS.ALSExport argPtr = (ALS.ALSExport)it.next();
+			ALS.ALSExport argPtr = it.next();
 			int state = 0;
 			for (int i = 7; i > -1; --i)
 			{
 				int bit = argPtr.nodePtr.sumState;
 				if (bit == Stimuli.LOGIC_HIGH) state += (0x01 << i);
-				argPtr = (ALS.ALSExport)it.next();
+				argPtr = it.next();
 			}
 			scheduleNodeUpdate(primHead, argPtr, '=',
 				new Integer(state), Stimuli.VDD_STRENGTH, als.timeAbs);
@@ -300,12 +300,12 @@ public class UserCom
 		void simulate(ALS.Model primHead)
 		{
 			Iterator<ALS.ALSExport> it = primHead.exList.iterator();
-			ALS.ALSExport argPtr = (ALS.ALSExport)it.next();
+			ALS.ALSExport argPtr = it.next();
 			int input = argPtr.nodePtr.sumState;
 
 			for (int i = 7; i > -1; --i)
 			{
-				argPtr = (ALS.ALSExport)it.next();
+				argPtr = it.next();
 
 				int mask = (0x01 << i);
 				if ((input & mask) != 0)
@@ -337,16 +337,16 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport argPtr = (ALS.ALSExport)primHead.exList.get(0);
+//			ALS.ALSExport argPtr = primHead.exList.get(0);
 //			int ck = argPtr.nodePtr.sumState;
 //			if (ck != Stimuli.LOGIC_HIGH) return;
 //
-//			argPtr = (ALS.ALSExport)primHead.exList.get(1);
+//			argPtr = primHead.exList.get(1);
 //			int reset = argPtr.nodePtr.sumState;
-//			argPtr = (ALS.ALSExport)primHead.exList.get(2);
+//			argPtr = primHead.exList.get(2);
 //			int count = argPtr.nodePtr.sumState;
 //			ALS.ALSExport countPtr = argPtr;
-//			argPtr = (ALS.ALSExport)primHead.exList.get(3);
+//			argPtr = primHead.exList.get(3);
 //			int out = argPtr.nodePtr.sumState;
 //
 //			if (reset == Stimuli.LOGIC_LOW)
@@ -391,8 +391,8 @@ public class UserCom
 //		{
 //			double baseDelay = 10e-6;
 //
-//			ALS.ALSExport retX = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport server = (ALS.ALSExport)primHead.exList.get(1);
+//			ALS.ALSExport retX = primHead.exList.get(0);
+//			ALS.ALSExport server = primHead.exList.get(1);
 //
 //			if (retX.nodePtr.sumState == 0) return;
 //
@@ -432,11 +432,11 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport argPtr = (ALS.ALSExport)primHead.exList.get(0);
+//			ALS.ALSExport argPtr = primHead.exList.get(0);
 //			ALS.ALSExport inputPtr = argPtr;
-//			argPtr = (ALS.ALSExport)primHead.exList.get(1);
+//			argPtr = primHead.exList.get(1);
 //			ALS.ALSExport outputPtr = argPtr;
-//			argPtr = (ALS.ALSExport)primHead.exList.get(2);
+//			argPtr = primHead.exList.get(2);
 //			ALS.ALSExport sizePtr = argPtr;
 //
 //			ALS.Func funcHead = (ALS.Func) primHead.ptr;
@@ -506,14 +506,14 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport address = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport addIn = (ALS.ALSExport)primHead.exList.get(1);
+//			ALS.ALSExport address = primHead.exList.get(0);
+//			ALS.ALSExport addIn = primHead.exList.get(1);
 //			if (address.nodePtr.sumState != addIn.nodePtr.sumState) return;
-//			ALS.ALSExport dataIn = (ALS.ALSExport)primHead.exList.get(2);
-//			ALS.ALSExport dataType = (ALS.ALSExport)primHead.exList.get(3);
-//			ALS.ALSExport remXOff = (ALS.ALSExport)primHead.exList.get(4);
-//			ALS.ALSExport addOut = (ALS.ALSExport)primHead.exList.get(5);
-//			ALS.ALSExport dataOut = (ALS.ALSExport)primHead.exList.get(6);
+//			ALS.ALSExport dataIn = primHead.exList.get(2);
+//			ALS.ALSExport dataType = primHead.exList.get(3);
+//			ALS.ALSExport remXOff = primHead.exList.get(4);
+//			ALS.ALSExport addOut = primHead.exList.get(5);
+//			ALS.ALSExport dataOut = primHead.exList.get(6);
 //
 //			scheduleNodeUpdate(primHead, addIn, '=',
 //				new Integer(0), Stimuli.VDD_STRENGTH, als.timeAbs);
@@ -575,15 +575,15 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport ck = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport aIn = (ALS.ALSExport)primHead.exList.get(1);
-//			ALS.ALSExport aLoad = (ALS.ALSExport)primHead.exList.get(2);
-//			ALS.ALSExport fIn = (ALS.ALSExport)primHead.exList.get(3);
-//			ALS.ALSExport fLoad = (ALS.ALSExport)primHead.exList.get(4);
-//			ALS.ALSExport aMid = (ALS.ALSExport)primHead.exList.get(5);
-//			ALS.ALSExport aOut = (ALS.ALSExport)primHead.exList.get(6);
-//			ALS.ALSExport fMid = (ALS.ALSExport)primHead.exList.get(7);
-//			ALS.ALSExport fOut = (ALS.ALSExport)primHead.exList.get(8);
+//			ALS.ALSExport ck = primHead.exList.get(0);
+//			ALS.ALSExport aIn = primHead.exList.get(1);
+//			ALS.ALSExport aLoad = primHead.exList.get(2);
+//			ALS.ALSExport fIn = primHead.exList.get(3);
+//			ALS.ALSExport fLoad = primHead.exList.get(4);
+//			ALS.ALSExport aMid = primHead.exList.get(5);
+//			ALS.ALSExport aOut = primHead.exList.get(6);
+//			ALS.ALSExport fMid = primHead.exList.get(7);
+//			ALS.ALSExport fOut = primHead.exList.get(8);
 //
 //			if (ck.nodePtr.sumState == Stimuli.LOGIC_HIGH)
 //			{
@@ -632,12 +632,12 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport aIn = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport fIn = (ALS.ALSExport)primHead.exList.get(1);
-//			ALS.ALSExport b = (ALS.ALSExport)primHead.exList.get(2);
-//			ALS.ALSExport msb = (ALS.ALSExport)primHead.exList.get(3);
-//			ALS.ALSExport aOut = (ALS.ALSExport)primHead.exList.get(4);
-//			ALS.ALSExport fOut = (ALS.ALSExport)primHead.exList.get(5);
+//			ALS.ALSExport aIn = primHead.exList.get(0);
+//			ALS.ALSExport fIn = primHead.exList.get(1);
+//			ALS.ALSExport b = primHead.exList.get(2);
+//			ALS.ALSExport msb = primHead.exList.get(3);
+//			ALS.ALSExport aOut = primHead.exList.get(4);
+//			ALS.ALSExport fOut = primHead.exList.get(5);
 //
 //			if (b.nodePtr.sumState == Stimuli.LOGIC_HIGH)
 //			{
@@ -681,11 +681,11 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport aIn = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport fIn = (ALS.ALSExport)primHead.exList.get(1);
-//			ALS.ALSExport pIn = (ALS.ALSExport)primHead.exList.get(2);
-//			ALS.ALSExport ck = (ALS.ALSExport)primHead.exList.get(3);
-//			ALS.ALSExport out = (ALS.ALSExport)primHead.exList.get(4);
+//			ALS.ALSExport aIn = primHead.exList.get(0);
+//			ALS.ALSExport fIn = primHead.exList.get(1);
+//			ALS.ALSExport pIn = primHead.exList.get(2);
+//			ALS.ALSExport ck = primHead.exList.get(3);
+//			ALS.ALSExport out = primHead.exList.get(4);
 //
 //			if (ck.nodePtr.sumState == Stimuli.LOGIC_LOW)
 //			{
@@ -725,15 +725,15 @@ public class UserCom
 //
 //		void simulate(ALS.Model primHead)
 //		{
-//			ALS.ALSExport ck = (ALS.ALSExport)primHead.exList.get(0);
-//			ALS.ALSExport sync = (ALS.ALSExport)primHead.exList.get(1);
-//			ALS.ALSExport loadOSR = (ALS.ALSExport)primHead.exList.get(2);
-//			ALS.ALSExport sumIn = (ALS.ALSExport)primHead.exList.get(3);
-//			ALS.ALSExport osrIn = (ALS.ALSExport)primHead.exList.get(4);
-//			ALS.ALSExport osrMid = (ALS.ALSExport)primHead.exList.get(5);
-//			ALS.ALSExport osrOut = (ALS.ALSExport)primHead.exList.get(6);
-//			ALS.ALSExport pMid = (ALS.ALSExport)primHead.exList.get(7);
-//			ALS.ALSExport pOut = (ALS.ALSExport)primHead.exList.get(8);
+//			ALS.ALSExport ck = primHead.exList.get(0);
+//			ALS.ALSExport sync = primHead.exList.get(1);
+//			ALS.ALSExport loadOSR = primHead.exList.get(2);
+//			ALS.ALSExport sumIn = primHead.exList.get(3);
+//			ALS.ALSExport osrIn = primHead.exList.get(4);
+//			ALS.ALSExport osrMid = primHead.exList.get(5);
+//			ALS.ALSExport osrOut = primHead.exList.get(6);
+//			ALS.ALSExport pMid = primHead.exList.get(7);
+//			ALS.ALSExport pOut = primHead.exList.get(8);
 //
 //			if (ck.nodePtr.sumState == Stimuli.LOGIC_HIGH)
 //			{
@@ -798,13 +798,13 @@ public class UserCom
 //		void simulate(ALS.Model primHead)
 //		{
 //			Iterator it = primHead.exList.iterator();
-//			ALS.ALSExport argPtr = (ALS.ALSExport)it.next();
+//			ALS.ALSExport argPtr = it.next();
 //			int state = 0;
 //			for (int i = 11; i > -1; --i)
 //			{
 //				int bit = argPtr.nodePtr.sumState;
 //				if (bit == Stimuli.LOGIC_HIGH) state += (0x01 << i);
-//				argPtr = (ALS.ALSExport)it.next();
+//				argPtr = it.next();
 //			}
 //
 //			scheduleNodeUpdate(primHead, argPtr, '=',

@@ -326,7 +326,7 @@ public class UpdateJob extends Job
 		{
 			ProjectCell pc = it.next();
 			String cellName = pc.getCellName() + "{" + pc.getView().getAbbreviation() + "}";
-			ProjectCell pcToGet = (ProjectCell)versionToGet.get(cellName);
+			ProjectCell pcToGet = versionToGet.get(cellName);
 			if (pcToGet != null)
 			{
 				if (pc.getVersion() <= pcToGet.getVersion()) continue;
@@ -392,7 +392,7 @@ public class UpdateJob extends Job
 		}
 		for(String cellName : versionToGet.keySet())
 		{
-			ProjectCell pc = (ProjectCell)versionToGet.get(cellName);
+			ProjectCell pc = versionToGet.get(cellName);
 			Cell oldCellAny = pl.getLibrary().findNodeProto(pc.describe());
 			Cell oldCell = pl.getLibrary().findNodeProto(pc.describeWithVersion());
 			if (oldCellAny != null && oldCellAny.getVersion() > pc.getVersion())

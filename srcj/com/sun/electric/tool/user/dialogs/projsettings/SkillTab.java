@@ -85,7 +85,7 @@ public class SkillTab extends ProjSettingsPanel
 		skillTechnology.setText("Skill layers for technology: " + curTech.getTechName());
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			String skillLayerName = layer.getSkillLayer();
 			if (skillLayerName == null) skillLayerName = "";
 			skillLayers.put(layer, skillLayerName);
@@ -142,7 +142,7 @@ public class SkillTab extends ProjSettingsPanel
 		if (spacePos >= 0) str = str.substring(0, spacePos);
 		Layer layer = curTech.findLayer(str);
 		if (layer == null) return;
-		String shownValue = (String)skillLayers.get(layer);
+		String shownValue = skillLayers.get(layer);
 		skillLayerName.setText(shownValue);
 	}
 
@@ -152,10 +152,9 @@ public class SkillTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		for(Iterator<Layer> it = skillLayers.keySet().iterator(); it.hasNext(); )
+		for(Layer layer : skillLayers.keySet())
 		{
-			Layer layer = (Layer)it.next();
-			String layerName = (String)skillLayers.get(layer);
+			String layerName = skillLayers.get(layer);
 			if (!layer.getSkillLayer().equals(layerName))
 			{
 				layer.setSkillLayer(layerName);

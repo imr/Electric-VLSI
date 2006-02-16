@@ -56,7 +56,7 @@ public class StratCountPartPinsOnWires extends Strategy {
 	
 	private void setReasons(LeafList offspring) {
 		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
-			EquivRecord r = (EquivRecord) it.next();
+			EquivRecord r = it.next();
 			int value = r.getValue();
 			String reason = value+" = number of "+pinType.description()+" ports.";
 			globals.status2(reason);
@@ -79,7 +79,7 @@ public class StratCountPartPinsOnWires extends Strategy {
 		Wire w = (Wire) n;
 		int count = 0;
 		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
-			Part p = (Part) it.next();
+			Part p = it.next();
 			count += pinType.numConnectionsToPinOfThisType(p, w);
 		}
 		return new Integer(count);

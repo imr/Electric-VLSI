@@ -709,10 +709,8 @@ public class SStep extends Eval
 			n.nFlags |= Sim.VISITED;
 			result = (n.nGateList.size() == 0) ? xChargedState[n.nPot] : chargedState[n.nPot];
 
-			for(Iterator<Sim.Trans> it = n.nTermList.iterator(); it.hasNext(); )
+			for(Sim.Trans t : n.nTermList)
 			{
-				Sim.Trans t = (Sim.Trans)it.next();
-
 				// don't bother with off transistors
 				if (t.state == Sim.OFF) continue;
 

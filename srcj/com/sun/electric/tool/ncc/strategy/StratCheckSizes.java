@@ -143,10 +143,8 @@ public class StratCheckSizes extends Strategy {
     	if (mismatches.size()==0) return; // no news is good news
     	Collections.sort(mismatches, new MismatchComparator());
     	System.out.println("  There are "+mismatches.size()+" size mismatches.");
-    	for (Iterator<Mismatch> it=mismatches.iterator(); it.hasNext();) {
-    		Mismatch m = (Mismatch) it.next();
+    	for (Mismatch m : mismatches)
     		System.out.print(m.toString());
-    	}
         globals.getNccGuiInfo().setSizeMismatches(mismatches);
     }
 

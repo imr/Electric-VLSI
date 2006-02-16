@@ -266,8 +266,7 @@ public class VerticalRoute {
 
         // resize contacts to right size, and add to route
         Dimension2D size = Router.getContactSize(vertRoute.getStart(), vertRoute.getEnd());
-        for (Iterator<RouteElement> it = vertRoute.iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
+        for (RouteElement re : vertRoute) {
             if (re instanceof RouteElementPort)
                 ((RouteElementPort)re).setNodeSize(size);
             if (!route.contains(re)) route.add(re);
@@ -296,8 +295,8 @@ public class VerticalRoute {
         if (specifiedRoute.size() == 0) return route;
         if (DEBUG) {
             System.out.println("Building route: ");
-            for (Iterator<Object> it = specifiedRoute.iterator(); it.hasNext(); ) {
-                System.out.println("  "+it.next());
+            for (Object obj : specifiedRoute) {
+                System.out.println("  "+obj);
             }
         }
 
@@ -362,18 +361,17 @@ public class VerticalRoute {
         if (allSpecifiedRoutes.size() == 0) return false;           // nothing found
 
         // choose shortest route
-        specifiedRoute = (SpecifiedRoute)allSpecifiedRoutes.get(0);
+        specifiedRoute = allSpecifiedRoutes.get(0);
         List<SpecifiedRoute> zeroLengthRoutes = new ArrayList<SpecifiedRoute>();
         for (int i=0; i<allSpecifiedRoutes.size(); i++) {
-            SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(i);
+            SpecifiedRoute r = allSpecifiedRoutes.get(i);
             if (r.size() < specifiedRoute.size()) specifiedRoute = r;
             if (r.size() == 0) zeroLengthRoutes.add(r);
         }
         // if multiple ways to connect that use only one wire, choose
         // the one that uses the current wire, if any.
         if (zeroLengthRoutes.size() > 0) {
-            for (Iterator<SpecifiedRoute> it = zeroLengthRoutes.iterator(); it.hasNext(); ) {
-                SpecifiedRoute r = (SpecifiedRoute)it.next();
+            for (SpecifiedRoute r : zeroLengthRoutes) {
                 if (r.startArc == User.getUserTool().getCurrentArcProto())
                     specifiedRoute = r;
             }
@@ -428,7 +426,7 @@ public class VerticalRoute {
         // see if we can find a port in the current technology
         // that will connect the two arcs
 		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
-			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
+			PrimitiveNode pn = nodesIt.next();
             // ignore anything that is noy CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 
@@ -445,7 +443,7 @@ public class VerticalRoute {
 
         // try all contact ports as an intermediate
 		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
-			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
+			PrimitiveNode pn = nodesIt.next();
             // ignore anything that is noy CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 
@@ -520,7 +518,7 @@ public class VerticalRoute {
             // remove shorter routes
             Iterator<SpecifiedRoute> it = null;
             for (it = allSpecifiedRoutes.iterator(); it.hasNext(); ) {
-                SpecifiedRoute r = (SpecifiedRoute)it.next();
+                SpecifiedRoute r = it.next();
                 if (r.size() > shortestLength) {
                     allSpecifiedRoutes.remove(r);
                     break;
@@ -539,7 +537,7 @@ public class VerticalRoute {
         // Because all routes should be of the
         // shortest length, just return the length of the first route
         if (allSpecifiedRoutes.size() == 0) return Integer.MAX_VALUE;
-        SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(0);
+        SpecifiedRoute r = allSpecifiedRoutes.get(0);
         return r.size();
     }
 }

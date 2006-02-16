@@ -362,7 +362,7 @@ public class VectorDrawing
 
 		static VectorCellGroup findCellGroup(Cell cell)
 		{
-			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			VectorCellGroup vcg = cachedCells.get(cell);
 			if (vcg == null)
 			{
 				vcg = new VectorCellGroup(cell);
@@ -456,7 +456,7 @@ public class VectorDrawing
 		offscreen.highlightingLayers = false;
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (layer.isDimmed())
 			{
 				offscreen.highlightingLayers = true;
@@ -599,14 +599,14 @@ public class VectorDrawing
 	{
 		for(Iterator<Variable> vIt = cell.getParameters(); vIt.hasNext(); )
 		{
-			Variable var = (Variable)vIt.next();
+			Variable var = vIt.next();
 			// this attribute is not a parameter
 			if (var.getKey() == NCCKEY) continue;
 			return true;
 		}
 //		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 //		{
-//			Variable var = (Variable)vIt.next();
+//			Variable var = vIt.next();
 //			if (var.isParam())
 //			{
 //				// this attribute is not a parameter
@@ -618,19 +618,19 @@ public class VectorDrawing
 		// look for any Java coded stuff (Logical Effort calls)
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 			{
-				Variable var = (Variable)vIt.next();
+				Variable var = vIt.next();
 				if (var.getCode() != TextDescriptor.Code.NONE) return true;
 			}
 		}
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
-				Variable var = (Variable)vIt.next();
+				Variable var = vIt.next();
 				if (var.getCode() != TextDescriptor.Code.NONE) return true;
 			}
 		}
@@ -651,7 +651,7 @@ public class VectorDrawing
 		if (cell.isLinked())
 		{
 			// cell still valid: see if it changed from last cache
-			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			VectorCellGroup vcg = cachedCells.get(cell);
 			if (vcg != null && vcg.exports != null)
 			{
 				boolean changed = false;
@@ -661,9 +661,9 @@ public class VectorDrawing
 					Iterator<VectorCellExport> cIt = vcg.exports.iterator();
 					for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 					{
-						Export e = (Export)it.next();
+						Export e = it.next();
 						if (!cIt.hasNext()) { changed = true;   break; }
-						VectorCellExport vce = (VectorCellExport)cIt.next();
+						VectorCellExport vce = cIt.next();
 						if (!vce.exportName.equals(e.getName()))  { changed = true;   break; }
 						Poly poly = e.getOriginalPort().getPoly();
 						if (vce.exportCtr.getX() != poly.getCenterX() ||
@@ -677,7 +677,7 @@ public class VectorDrawing
 				{
 					for(Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); )
 					{
-	                    CellUsage u = (CellUsage)it.next();
+	                    CellUsage u = it.next();
 						cellChanged(u.getParent());
 					}
 				}
@@ -694,11 +694,10 @@ public class VectorDrawing
 	 */
 	public static void technologyChanged(Technology tech)
 	{
-		for(Iterator<Cell> it = cachedCells.keySet().iterator(); it.hasNext(); )
+		for(Cell cell : cachedCells.keySet())
 		{
-			Cell cell = (Cell)it.next();
 			if (cell.getTechnology() != tech) continue;
-			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			VectorCellGroup vcg = cachedCells.get(cell);
 			vcg.clear();
 		}
 	}
@@ -709,14 +708,12 @@ public class VectorDrawing
 	 */
 	public static void layerVisibilityChanged()
 	{
-		for(Iterator<Cell> it = cachedCells.keySet().iterator(); it.hasNext(); )
+		for(Cell cell : cachedCells.keySet())
 		{
-			Cell cell = (Cell)it.next();
-			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
-			for(Iterator<String> oIt = vcg.orientations.keySet().iterator(); oIt.hasNext(); )
+			VectorCellGroup vcg = cachedCells.get(cell);
+			for(String orientationName : vcg.orientations.keySet())
 			{
-				String orientationName = (String)oIt.next();
-				VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
+				VectorCell vc = vcg.orientations.get(orientationName);
 				vc.fadeImageColors = null;
 				vc.fadeImage = false;
 			}
@@ -750,10 +747,9 @@ public class VectorDrawing
 		drawList(oX, oY, vc.shapes, level);
 
 		// now render subcells
-		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
+		for(VectorSubCell vsc : vc.subCells)
 		{
 			if (stopRendering) throw new AbortRenderingException();
-			VectorSubCell vsc = (VectorSubCell)it.next();
 			subCellCount++;
 
 			// get instance location
@@ -806,7 +802,7 @@ public class VectorDrawing
 				{
 					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
 					{
-						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
+						NodeInst niOnPath = path.get(pathIndex);
 						if (niOnPath.getProto() == vsc.subCell)
 						{
 							expanded = true;
@@ -890,10 +886,9 @@ public class VectorDrawing
 		throws AbortRenderingException
 	{
 		// render all shapes
-		for(Iterator<VectorBase> it = shapes.iterator(); it.hasNext(); )
+		for(VectorBase vb : shapes)
 		{
 			if (stopRendering) throw new AbortRenderingException();
-			VectorBase vb = (VectorBase)it.next();
 			if (vb.hideOnLowLevel && level != 0) continue;
 
 			// get visual characteristics of shape
@@ -1280,9 +1275,8 @@ public class VectorDrawing
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		boolean isAllTiny = true;
-		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
+		for(VectorSubCell vsc : vc.subCells)
 		{
-			VectorSubCell vsc = (VectorSubCell)it.next();
 			NodeInst ni = vsc.ni;
 			boolean expanded = ni.isExpanded();
 			if (fullInstantiate) expanded = true;
@@ -1400,19 +1394,17 @@ public class VectorDrawing
 		// now compute the color
 		Set<Layer> keys = layerAreas.keySet();
 		double totalArea = 0;
-		for(Iterator<Layer> it = keys.iterator(); it.hasNext(); )
+		for(Layer layer : keys)
 		{
-			Layer layer = (Layer)it.next();
-			MutableDouble md = (MutableDouble)layerAreas.get(layer);
+			MutableDouble md = layerAreas.get(layer);
 			totalArea += md.doubleValue();
 		}
 		double r = 0, g = 0, b = 0;
 		if (totalArea != 0)
 		{
-			for(Iterator<Layer> it = keys.iterator(); it.hasNext(); )
+			for(Layer layer : keys)
 			{
-				Layer layer = (Layer)it.next();
-				MutableDouble md = (MutableDouble)layerAreas.get(layer);
+				MutableDouble md = layerAreas.get(layer);
 				double portion = md.doubleValue() / totalArea;
 				EGraphics desc = layer.getGraphics();
 				Color col = desc.getColor();
@@ -1438,9 +1430,8 @@ public class VectorDrawing
 	private void gatherContents(VectorCell vc, HashMap<Layer,MutableDouble> layerAreas, VarContext context)
 		throws AbortRenderingException
 	{
-		for(Iterator<VectorBase> it = vc.shapes.iterator(); it.hasNext(); )
+		for(VectorBase vb : vc.shapes)
 		{
-			VectorBase vb = (VectorBase)it.next();
 			if (vb.hideOnLowLevel) continue;
 			Layer layer = vb.layer;
 			if (layer == null) continue;
@@ -1468,7 +1459,7 @@ public class VectorDrawing
 				area = radius * radius * Math.PI;
 			}
 			if (area == 0) continue;
-			MutableDouble md = (MutableDouble)layerAreas.get(layer);
+			MutableDouble md = layerAreas.get(layer);
 			if (md == null)
 			{
 				md = new MutableDouble(0);
@@ -1477,9 +1468,8 @@ public class VectorDrawing
 			md.setValue(md.doubleValue() + area);
 		}
 
-		for(Iterator<VectorSubCell> it = vc.subCells.iterator(); it.hasNext(); )
+		for(VectorSubCell vsc : vc.subCells)
 		{
-			VectorSubCell vsc = (VectorSubCell)it.next();
 			VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 			VectorCell subVC = vcg.getAnyCell();
 			VarContext subContext = context.push(vsc.ni);
@@ -1503,7 +1493,7 @@ public class VectorDrawing
 		// see if this cell's vectors are cached
 		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
 		String orientationName = makeOrientationName(prevTrans);
-		VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
+		VectorCell vc = vcg.orientations.get(orientationName);
 		
 		// if the cell is parameterized, mark it for recaching
 		if (vc != null && vc.isParameterized) vc = null;
@@ -1540,7 +1530,7 @@ public class VectorDrawing
 			vcg.sizeY = cellBounds.getHeight();
 			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
-				Export e = (Export)it.next();
+				Export e = it.next();
 				VectorCellExport vce = new VectorCellExport();
 				vce.exportName = e.getName();
 				Poly poly = e.getOriginalPort().getPoly();
@@ -1553,14 +1543,14 @@ public class VectorDrawing
 		// draw all arcs
 		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)arcs.next();
+			ArcInst ai = arcs.next();
 			drawArc(ai, trans, vc);
 		}
 
 		// draw all nodes
 		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nodes.next();
+			NodeInst ni = nodes.next();
 			drawNode(ni, trans, context, vc);
 		}
 
@@ -1580,20 +1570,14 @@ public class VectorDrawing
 		List<VectorBase> addThesePolys = addPolyToCell.get(cell);
 		if (addThesePolys != null)
 		{
-			for(Iterator<VectorBase> it = addThesePolys.iterator(); it.hasNext(); )
-			{
-				VectorBase vb = it.next();
+			for(VectorBase vb : addThesePolys)
 				vc.shapes.add(vb);
-			}
 		}
 		List<VectorSubCell> addTheseInsts = addInstToCell.get(cell);
 		if (addTheseInsts != null)
 		{
-			for(Iterator<VectorSubCell> it = addTheseInsts.iterator(); it.hasNext(); )
-			{
-				VectorSubCell vsc = it.next();
+			for(VectorSubCell vsc : addTheseInsts)
 				vc.subCells.add(vsc);
-			}
 		}
 
 		// icon cells should not get greeked because of their contents
@@ -1678,7 +1662,7 @@ public class VectorDrawing
 		Iterator<Export> it = ni.getExports();
 		while (it.hasNext())
 		{
-			Export e = (Export)it.next();
+			Export e = it.next();
 			Poly poly = e.getNamePoly();
 			Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 			TextDescriptor descript = poly.getTextDescriptor();
@@ -1739,13 +1723,13 @@ public class VectorDrawing
 		boolean[] shownPorts = new boolean[numPorts];
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
 		{
-			Connection con = (Connection) it.next();
+			Connection con = it.next();
 			PortInst pi = con.getPortInst();
 			shownPorts[pi.getPortIndex()] = true;
 		}
 		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
-			Export exp = (Export) it.next();
+			Export exp = it.next();
 			PortInst pi = exp.getOriginalPort();
 			shownPorts[pi.getPortIndex()] = true;
 		}

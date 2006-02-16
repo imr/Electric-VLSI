@@ -37,7 +37,7 @@ public class RecordList {
 	}
 
 	public RecordList() {}
-	public EquivRecord get(int ndx) {return (EquivRecord) content.get(ndx);}
+	public EquivRecord get(int ndx) {return content.get(ndx);}
 	public void add(EquivRecord x) {content.add(x);}
 	public void addAll(RecordList x) {content.addAll(x.content);}
 	public Iterator<EquivRecord> iterator(){return content.iterator();}

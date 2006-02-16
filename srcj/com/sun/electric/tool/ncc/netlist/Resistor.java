@@ -56,13 +56,13 @@ public class Resistor extends Part {
 	private static final Map<PartType,ResistorPinType> TYPE_TO_PINTYPE = new HashMap<PartType,ResistorPinType>();
 	static {
 		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
-			PartType t = (PartType) it.next();
+			PartType t = it.next();
 			PIN_TYPES.add(new ResistorPinType(t));
 		}
 	}
 	static {
 		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
-			PartType t = (PartType) it.next();
+			PartType t = it.next();
 			TYPE_TO_PINTYPE.put(t, new ResistorPinType(t));
 		}
 	}
@@ -148,7 +148,7 @@ public class Resistor extends Part {
 	
 	// Both pins of resistor have same PinType
 	public PinType getPinTypeOfNthPin(int n) {
-		return (PinType) TYPE_TO_PINTYPE.get(type);
+		return TYPE_TO_PINTYPE.get(type);
 	}
 
     // ---------- printing methods ----------

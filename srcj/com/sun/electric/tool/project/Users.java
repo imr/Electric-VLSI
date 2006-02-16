@@ -115,7 +115,7 @@ public class Users
 	 */
 	public static String getEncryptedPassword(String user)
 	{
-		return (String)usersMap.get(user);
+		return usersMap.get(user);
 	}
 
 	/**
@@ -199,7 +199,7 @@ public class Users
 
 			for(String userName : usersMap.keySet())
 			{
-				String encryptedPassword = (String)usersMap.get(userName);
+				String encryptedPassword = usersMap.get(userName);
 				printWriter.println(userName + ":" + encryptedPassword);
 			}
 

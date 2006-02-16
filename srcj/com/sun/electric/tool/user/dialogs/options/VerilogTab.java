@@ -80,11 +80,11 @@ public class VerilogTab extends PreferencePanel
 		initialVerilogBehaveFiles = new HashMap<Cell,TempPref>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			if (lib.isHidden()) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				String behaveFile = "";
 				Variable var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
 				if (var != null) behaveFile = var.getObject().toString();
@@ -93,12 +93,8 @@ public class VerilogTab extends PreferencePanel
 		}
 
 		// make list of libraries
-		/*for(Library lib: Library.getVisibleLibraries()) verLibrary.addItem(lib.getName());*/
-		for(Iterator<Library> it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
+		for(Library lib : Library.getVisibleLibraries())
 			verLibrary.addItem(lib.getName());
-		}
 		verLibrary.setSelectedItem(curLib.getName());
 		verLibrary.addActionListener(new ActionListener()
 		{
@@ -190,7 +186,7 @@ public class VerilogTab extends PreferencePanel
 		boolean notEmpty = false;
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Cell cell = it.next();
 			verilogCellListModel.addElement(cell.noLibDescribe());
 			notEmpty = true;
 		}
@@ -244,11 +240,11 @@ public class VerilogTab extends PreferencePanel
 	{
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			if (lib.isHidden()) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				TempPref pref = initialVerilogBehaveFiles.get(cell);
 				if (pref == null) continue;
 				if (!pref.getStringFactoryValue().equals(pref.getString()))

@@ -60,8 +60,8 @@ public class StratDebug extends Strategy {
 			if (!er.isBalanced() && er.getNetObjType()!=Part.Type.PORT) {
 				globals.status2(er.nameString());
 				List<String> reasons = er.getPartitionReasonsFromRootToMe();
-				for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
-					globals.status2("   "+it.next());
+				for (String s : reasons) {
+					globals.status2("   "+s);
 				}
 				super.doFor(er);
 			}

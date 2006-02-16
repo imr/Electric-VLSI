@@ -55,7 +55,7 @@ public class StratDebug2 extends Strategy {
 	
 	private boolean hasRKstuff(Circuit ckt) {
 		for (Iterator<NetObject> it=ckt.getNetObjs(); it.hasNext();) {
-			NetObject no = (NetObject) it.next();
+			NetObject no = it.next();
 			String name = no.getName();
 			if (name.indexOf("/rks_")!=-1) return true;
 			if (name.indexOf("/rkl_")!=-1) return true;
@@ -65,7 +65,7 @@ public class StratDebug2 extends Strategy {
 	
 	private boolean hasRKstuff(EquivRecord er) {
 		for (Iterator<Circuit> it=er.getCircuits(); it.hasNext();) {
-			Circuit ckt = (Circuit) it.next();
+			Circuit ckt = it.next();
 			if (hasRKstuff(ckt)) return true;			
 		}
 		return false;
@@ -77,8 +77,8 @@ public class StratDebug2 extends Strategy {
 			if (hasRKstuff(er)) {
 				globals.status2(er.nameString());
 				List<String> reasons = er.getPartitionReasonsFromRootToMe();
-				for (Iterator<String> it=reasons.iterator(); it.hasNext();) {
-					globals.status2("   "+it.next());
+				for (String s : reasons) {
+					globals.status2("   "+s);
 				}
 				super.doFor(er);
 			}

@@ -502,7 +502,7 @@ public class User extends Tool
 	 */
 	public static Rectangle2D getChangedInWindow(EditWindow wnd)
 	{
-		Rectangle2D changedArea = (Rectangle2D)changedWindowRects.get(wnd);
+		Rectangle2D changedArea = changedWindowRects.get(wnd);
 		return changedArea;
 	}
 
@@ -523,7 +523,7 @@ public class User extends Tool
 	 */
 	private static void setChangedInWindow(EditWindow wnd, Rectangle2D changedArea)
 	{
-//		Rectangle2D lastChanged = (Rectangle2D)changedWindowRects.get(wnd);
+//		Rectangle2D lastChanged = changedWindowRects.get(wnd);
 //		if (lastChanged == null) changedWindowRects.put(wnd, changedArea); else
 //		{
 //			Rectangle2D.union(lastChanged, changedArea, lastChanged);

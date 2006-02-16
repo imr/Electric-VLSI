@@ -2237,6 +2237,28 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			String convertedName = getSpiceNetName(net).replace('@', '_');
 			if (convertedName.equalsIgnoreCase(name)) return net;
 		}
+
+		// try ignoring "_" in signal names
+		for(Iterator<Network> nIt = netlist.getNetworks(); nIt.hasNext(); )
+		{
+			Network net = nIt.next();
+			String netName = getSpiceNetName(net);
+			if (netName.length() != name.length()) continue;
+			boolean matches = true;
+			for(int i=0; i<netName.length(); i++)
+			{
+				char netChar = netName.charAt(i);
+				char nameChar = name.charAt(i);
+				if (nameChar == '_')
+				{
+					if (TextUtils.isLetterOrDigit(netChar)) { matches = false;   break; }
+				} else
+				{
+					if (TextUtils.canonicChar(nameChar) != TextUtils.canonicChar(netChar)) { matches = false;   break; }
+				}
+			}
+			if (matches) return net;
+		}
 		return null;
 	}
 

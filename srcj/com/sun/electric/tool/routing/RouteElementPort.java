@@ -209,7 +209,7 @@ public class RouteElementPort extends RouteElement {
         if (getAction() == RouteElementAction.existingPortInst) {
             // find all arcs of type ap connected to this
             for (Iterator<Connection> it = portInst.getConnections(); it.hasNext(); ) {
-                Connection conn = (Connection)it.next();
+                Connection conn = it.next();
                 ArcInst arc = conn.getArc();
                 if (arc.getProto() == ap) {
                     double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();
@@ -220,8 +220,7 @@ public class RouteElementPort extends RouteElement {
 
         if (getAction() == RouteElementAction.newNode) {
             if (newArcs == null) return -1;
-            for (Iterator<RouteElementArc> it = newArcs.iterator(); it.hasNext(); ) {
-                RouteElementArc re = (RouteElementArc)it.next();
+            for (RouteElementArc re : newArcs) {
                 if (re.getArcProto() == ap) {
                     if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
                 }

@@ -56,8 +56,8 @@ public class StratAdjacent extends Strategy {
     //summarize at the end
     private LeafList summary(){
 		LeafList offspring = new LeafList();
-		for (Iterator<EquivRecord> it=adjacent.iterator(); it.hasNext();) {
-			offspring.add((EquivRecord)it.next());
+		for (EquivRecord er : adjacent) {
+			offspring.add(er);
 		}
 
 //		globals.println("StratAdjacent done - processed " +
@@ -82,12 +82,12 @@ public class StratAdjacent extends Strategy {
 	 * @return Set of adjacent EquivRecords */
 	private void addAdjacentEquivRecs(EquivRecord er){
 		for (Iterator<Circuit> ci=er.getCircuits(); ci.hasNext();) {
-			Circuit jc= (Circuit) ci.next();
+			Circuit jc= ci.next();
 			for (Iterator<NetObject> ni=jc.getNetObjs(); ni.hasNext();) {
-				NetObject netObj= (NetObject)ni.next();
+				NetObject netObj= ni.next();
 				for (Iterator<NetObject> it=netObj.getConnected(); it.hasNext();) {
 					//for each adjacent NetObject
-					netObj = (NetObject)it.next();
+					netObj = it.next();
 					EquivRecord sg = netObj.getParent().getParent();
 					if(sg.isActive()) adjacent.add(sg);
 				}

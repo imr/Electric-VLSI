@@ -56,7 +56,7 @@ public class StratPartType extends Strategy {
 	
 	private void setReasons(LeafList offspring) {
 		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
-			EquivRecord r = (EquivRecord) it.next();
+			EquivRecord r = it.next();
 			int value = r.getValue();
 			String reason = "part type is "+
 			                typeCodeToTypeName.get(new Integer(value));
@@ -80,7 +80,7 @@ public class StratPartType extends Strategy {
 		Integer typeCode = new Integer(p.typeCode());
 		String typeName = p.typeString();
 		
-		String oldTypeName = (String) typeCodeToTypeName.get(typeCode);
+		String oldTypeName = typeCodeToTypeName.get(typeCode);
 		if (oldTypeName!=null) {
 			globals.error(!typeName.equals(oldTypeName), 
 						  "type code maps to multiple type names");

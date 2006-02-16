@@ -90,8 +90,7 @@ public class StratPortName extends Strategy {
 	private void printTheMap(Map<Wire,Integer> m){
 		globals.status2("  printing an EquivRecord map of size= " + m.size());
 		if(m.size() == 0)return;
-		for (Iterator<Wire> it=m.keySet().iterator(); it.hasNext();) {
-			Wire w= (Wire)it.next();
+		for (Wire w : m.keySet()) {
 			Object oo= m.get(w);
 			if(oo == null){
 				globals.status2(" "+w.instanceDescription() + " maps to null");
@@ -104,13 +103,13 @@ public class StratPortName extends Strategy {
 	private Map<String,Wire> getMapFromExportNamesToWires(Circuit wires){
 		Map<String,Wire> out = new HashMap<String,Wire>();
 		for (Iterator<NetObject> it=wires.getNetObjs(); it.hasNext();) {
-			NetObject n= (NetObject)it.next();
+			NetObject n= it.next();
 			error(!(n instanceof Wire), "getExportMap expects only Wires");
 			Wire w= (Wire)n;
 			Port p = w.getPort();
 			if (p!=null && !p.getToBeRenamed()) {
 				for (Iterator<String> ni=p.getExportNames(); ni.hasNext();) {
-					String exportNm = (String) ni.next();
+					String exportNm = ni.next();
 					error(out.containsKey(exportNm),
 						  "different wires have the same export name?");
 					out.put(exportNm, w);
@@ -130,7 +129,7 @@ public class StratPortName extends Strategy {
 		List<Map<String,Wire>> mapPerCkt = new ArrayList<Map<String,Wire>>(); //to hold the circuit's maps
 		Set<String> keys = new HashSet<String>();
 		for (Iterator<Circuit> ci=er.getCircuits(); ci.hasNext();) {
-			Map<String,Wire> exportToWire = getMapFromExportNamesToWires((Circuit)ci.next());
+			Map<String,Wire> exportToWire = getMapFromExportNamesToWires(ci.next());
 			mapPerCkt.add(exportToWire);
 			keys.addAll(exportToWire.keySet());
 		}
@@ -138,14 +137,12 @@ public class StratPortName extends Strategy {
 		if (keys.size()==0)  return new HashMap<Wire,Integer>(); //no ports
 		HashMap<Wire,Integer> out = new HashMap<Wire,Integer>();
 		int i= 0;
-		for (Iterator<String> ki=keys.iterator(); ki.hasNext();) {
-			String key = (String)ki.next();
+		for (String key : keys) {
 			//check that all maps have this key
 			List<Wire> wires = new ArrayList<Wire>();
-			for (Iterator<Map<String,Wire>> hi=mapPerCkt.iterator(); hi.hasNext();) {
-				Map<String,Wire> map = (Map<String,Wire>)hi.next();
+			for (Map<String,Wire> map : mapPerCkt) {
 				if(map.containsKey(key)){
-					Wire w= (Wire)map.get(key);
+					Wire w= map.get(key);
 					wires.add(w);
 				}
 			}
@@ -153,8 +150,7 @@ public class StratPortName extends Strategy {
 			if(wires.size() == mapPerCkt.size()){
 				//yes it does
 				i++;
-				for (Iterator<Wire> hi= wires.iterator(); hi.hasNext();) {
-					Wire w= (Wire)hi.next();
+				for (Wire w : wires) {
 					out.put(w, new Integer(i));
 				}
 			}
@@ -193,7 +189,7 @@ public class StratPortName extends Strategy {
 		error(!(n instanceof Wire), "StratPortName expects only Wires");
 		numWiresProcessed++;
 		Wire w= (Wire)n;
-		Integer i= (Integer)theMap.get(w);
+		Integer i= theMap.get(w);
 		return i!=null ? i : new Integer(0);
 	}
 	

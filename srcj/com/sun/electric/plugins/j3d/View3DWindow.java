@@ -851,9 +851,8 @@ public class View3DWindow extends JPanel
 			highlighter2D = view2D.getHighlighter();
 			highlighter2D.clear();
 		}
-		for (Iterator<Highlight2> it = highlighter.getHighlights().iterator(); it.hasNext();)
+		for (Highlight2 h : highlighter.getHighlights())
 		{
-			Highlight2 h = it.next();
 //			Shape3D obj = (Shape3D)h.getObject();
             HighlightShape3D hObj = (HighlightShape3D)(h.getObject());
             Shape3D obj = hObj.shape;
@@ -911,17 +910,16 @@ public class View3DWindow extends JPanel
             Highlighter highlighter2D = view2D.getHighlighter();
             List<Geometric> geomList = highlighter2D.getHighlightedEObjs(true, true);
 
-            for (Iterator<Geometric> hIt = geomList.iterator(); hIt.hasNext(); )
+            for (Geometric geom : geomList)
             {
-                ElectricObject eobj = (ElectricObject)hIt.next();
+                ElectricObject eobj = (ElectricObject)geom;
 
                 List<Shape3D> list = electricObjectMap.get(eobj);
 
                 if (list == null || list.size() == 0) continue;
 
-                for (Iterator<Shape3D> lIt = list.iterator(); lIt.hasNext();)
+                for (Shape3D shape : list)
                 {
-                    Shape3D shape = (Shape3D)lIt.next();
                     highlighter.addObject(new HighlightShape3D(shape), cell);
                 }
             }
@@ -956,7 +954,7 @@ public class View3DWindow extends JPanel
 
        	for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
@@ -974,7 +972,7 @@ public class View3DWindow extends JPanel
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
@@ -994,7 +992,7 @@ public class View3DWindow extends JPanel
     {
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-            WindowFrame wf = (WindowFrame)it.next();
+            WindowFrame wf = it.next();
             WindowContent content = wf.getContent();
             if (!(content instanceof View3DWindow)) continue;
             View3DWindow wnd = (View3DWindow)content;
@@ -1157,14 +1155,14 @@ public class View3DWindow extends JPanel
 
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
-            List<Shape3D> list = (List<Shape3D>)electricObjectMap.get(ni);
+            List<Shape3D> list = electricObjectMap.get(ni);
             for (int i = 0; i < list.size(); i++)
             {
                 Shape3D obj = list.get(i);
-                TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+                TransformGroup grp = transformGroupMap.get(obj);
 
                 grp.getTransform(currXform);
                 currXform.setTranslation(newPos);
@@ -1339,7 +1337,7 @@ public class View3DWindow extends JPanel
 
 			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 			{
-				addArc((ArcInst)it.next(), rTrans, objTrans);
+				addArc(it.next(), rTrans, objTrans);
 			}
 			return true;
 		}
@@ -1420,7 +1418,7 @@ public class View3DWindow extends JPanel
 
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (ni.getProto() == Artwork.tech.pinNode)
             {
                 Rectangle2D rect = ni.getBounds();
@@ -1452,7 +1450,7 @@ public class View3DWindow extends JPanel
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)
         {
-            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)polys.get(i);
+            J3DUtils.ThreeDDemoKnot knot = polys.get(i);
             splineKeyFrames[i] = J3DUtils.getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
@@ -1491,7 +1489,7 @@ public class View3DWindow extends JPanel
         Map<TransformGroup,BranchGroup> interMap = new HashMap<TransformGroup,BranchGroup>(1);
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
             List<J3DUtils.ThreeDDemoKnot> tmpList = knotList;
@@ -1500,18 +1498,18 @@ public class View3DWindow extends JPanel
                 tmpList = J3DUtils.readDemoDataFromFile(this);
                 if (tmpList == null) continue; // nothing load
             }
-            List<Shape3D> list = (List<Shape3D>)electricObjectMap.get(ni);
+            List<Shape3D> list = electricObjectMap.get(ni);
             for (int j = 0; j < list.size(); j++)
             {
-                Shape3D obj = (Shape3D)list.get(j);
-                TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+                Shape3D obj = list.get(j);
+                TransformGroup grp = transformGroupMap.get(obj);
                 interMap = addInterpolatorPerGroup(tmpList, grp, interMap, false);
 //                BranchGroup behaviorBranch = new BranchGroup();
 //                behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
 //                TCBKeyFrame[] keyFrames = new TCBKeyFrame[tmpList.size()];
 //                for (int i = 0; i < tmpList.size(); i++)
 //                {
-//                    J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)tmpList.get(i);
+//                    J3DUtils.ThreeDDemoKnot knot = tmpList.get(i);
 //                    keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(tmpList.size()-1)), knot);
 //                }
 //                Transform3D yAxis = new Transform3D();
@@ -1555,7 +1553,7 @@ public class View3DWindow extends JPanel
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
         for (int i = 0; i < knotList.size(); i++)
         {
-            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(i);
+            J3DUtils.ThreeDDemoKnot knot = knotList.get(i);
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
         }
         Transform3D yAxis = new Transform3D();
@@ -1576,10 +1574,9 @@ public class View3DWindow extends JPanel
     public void removeInterpolator(Map<TransformGroup,BranchGroup> interMap)
     {
         canvas.resetMoveFrames();
-        for (Iterator<TransformGroup> it = interMap.keySet().iterator(); it.hasNext();)
+        for (TransformGroup grp : interMap.keySet())
         {
-            TransformGroup grp = (TransformGroup)it.next();
-            Node node = (Node)interMap.get(grp);
+            Node node = interMap.get(grp);
             grp.removeChild(node);
         }
     }
@@ -1707,9 +1704,8 @@ public class View3DWindow extends JPanel
         Shape3D shape = null;
 
 
-//        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+//        for (Highlight h : highlighter.getHighlights())
 //		{
-//			Highlight h = (Highlight)it.next();
 //			shape = (Shape3D)h.getObject();
 //            break;
 //        }
@@ -1741,11 +1737,11 @@ public class View3DWindow extends JPanel
 //            if (upperKnot == previousUpper && lowerKnot == previousLower) return;
 //            previousUpper = upperKnot;
 //            previousLower = lowerKnot;
-//            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(upperKnot-1);
+//            J3DUtils.ThreeDDemoKnot knot = knotList.get(upperKnot-1);
 //            if (knot != null && knot.shape != null)
 //                target.addChild(knot.shape);
 ////            knot.shape.getAppearance().getRenderingAttributes().setVisible(true);
-//            knot = (J3DUtils.ThreeDDemoKnot)knotList.get(lowerKnot-1);
+//            knot = knotList.get(lowerKnot-1);
 //            if (knot != null && knot.shape != null)
 ////                target.removeChild(knot.shape);
 //            knot.shape.getAppearance().getRenderingAttributes().setVisible(false);

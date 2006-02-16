@@ -127,7 +127,7 @@ public class Undo
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.newObject(obj);
 				}
 			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
@@ -135,55 +135,55 @@ public class Undo
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.killObject(obj);
 				}
 			} else if (type == Type.OBJECTRENAME) {
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.renameObject(obj, o1);
 				}
 			} else if (type == Type.NODEINSTMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyNodeInst((NodeInst)obj, (ImmutableNodeInst)o1);
 				}
 			} else if (type == Type.ARCINSTMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyArcInst((ArcInst)obj, (ImmutableArcInst)o1);
 				}
 			} else if (type == Type.EXPORTMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyExport((Export)obj, (ImmutableExport)o1);
 				}
 			} else if (type == Type.CELLMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyCell((Cell)obj, (ImmutableCell)o1);
 				}
 			} else if (type == Type.LIBRARYMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyLibrary((Library)obj, (ImmutableLibrary)o1);
 				}
 			} else if (type == Type.CELLGROUPMOD)
 			{
 				for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 				{
-					Listener listener = (Listener)it.next();
+					Listener listener = it.next();
 					listener.modifyCellGroup((Cell)obj, (Cell.CellGroup)o1);
 				}
             }
@@ -608,7 +608,7 @@ public class Undo
 
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
-			Listener listener = (Listener)it.next();
+			Listener listener = it.next();
 			listener.startBatch(tool, false);
 		}
 	}
@@ -654,7 +654,7 @@ public class Undo
     private static void broadcastStart(boolean undoRedo) {
         // broadcast a start-batch on the first change
         for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
-            Listener listener = (Listener)it.next();
+            Listener listener = it.next();
             listener.startBatch(listener, undoRedo);
         }
     }
@@ -991,9 +991,9 @@ public class Undo
      */
     private static void refreshCellBounds() {
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = (Library)it.next();
+            Library lib = it.next();
             for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
-                Cell cell = (Cell)cIt.next();
+                Cell cell = cIt.next();
                 cell.getBounds();
             }
         }

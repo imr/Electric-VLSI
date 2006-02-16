@@ -354,7 +354,7 @@ public class Spice extends Topology
 					infstr.append("\n.global");
 					for(int i=0; i<globalSize; i++)
 					{
-						Global global = (Global)globals.get(i);
+						Global global = globals.get(i);
 						String name = global.getName();
 						if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
 						if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
@@ -425,7 +425,7 @@ public class Spice extends Topology
                     infstr.append("\n.global");
                     for(int i=0; i<globalSize; i++)
                     {
-                        Global global = (Global)globals.get(i);
+                        Global global = globals.get(i);
                         String name = global.getName();
                         if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
                         if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
@@ -455,7 +455,7 @@ public class Spice extends Topology
         // create SpiceNet objects for all networks in the cell
         for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
         {
-            Network net = (Network)it.next();
+            Network net = it.next();
             // create a "SpiceNet" for the network
             SpiceNet spNet = new SpiceNet();
             spNet.network = net;
@@ -480,7 +480,7 @@ public class Spice extends Topology
             //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
             HashMap<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
             for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
-                ArcInst ai = (ArcInst)ait.next();
+                ArcInst ai = ait.next();
                 boolean ignoreArc = false;
 
                 // figure out res and cap, see if we should ignore it
@@ -566,13 +566,13 @@ public class Spice extends Topology
             // of gate together if this is layout
             for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
             {
-                NodeInst ni = (NodeInst)aIt.next();
+                NodeInst ni = aIt.next();
                 if (!ni.isCellInstance()) {
                     if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
                         PortInst gate0 = ni.getTransistorGatePort();
                         PortInst gate1 = null;
                         for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
-                            PortInst p2 = (PortInst)pit.next();
+                            PortInst p2 = pit.next();
                             if (p2 != gate0 && netList.getNetwork(gate0) == netList.getNetwork(p2))
                                 gate1 = p2;
                         }
@@ -588,11 +588,10 @@ public class Spice extends Topology
                     // list of lists of shorted exports
                     if (subNets != null) {      // subnets may be null if mixing schematics with layout technologies
                         for (Iterator<List<String>> it = subNets.getShortedExports(); it.hasNext(); ) {
-                            List<String> exports = (List<String>)it.next();
+                            List<String> exports = it.next();
                             PortInst pi1 = null;
                             // list of exports shorted together
-                            for (Iterator<String> it2 = exports.iterator(); it2.hasNext(); ) {
-                                String exportName = (String)it2.next();
+                            for (String exportName : exports) {
                                 // get portinst on node
                                 PortInst pi = ni.findPortInst(exportName);
                                 if (pi1 == null) {
@@ -610,7 +609,7 @@ public class Spice extends Topology
 		int bipolarTrans = 0, nmosTrans = 0, pmosTrans = 0;
 		for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)aIt.next();
+			NodeInst ni = aIt.next();
 			addNodeInformation(netList, spiceNetMap, ni);
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun == PrimitiveNode.Function.TRANPN || fun == PrimitiveNode.Function.TRA4NPN ||
@@ -626,7 +625,7 @@ public class Spice extends Topology
 		// accumulate geometry of all arcs
 		for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)aIt.next();
+			ArcInst ai = aIt.next();
 
 			// don't count non-electrical arcs
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
@@ -634,7 +633,7 @@ public class Spice extends Topology
 			// ignore busses
 //			if (ai->network->buswidth > 1) continue;
 			Network net = netList.getNetwork(ai, 0);
-			SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
+			SpiceNet spNet = spiceNetMap.get(net);
 			if (spNet == null) continue;
 
 			addArcInformation(spNet.merge, ai);
@@ -643,18 +642,17 @@ public class Spice extends Topology
 		// get merged polygons so far
 		for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
 		{
-			Network net = (Network)it.next();
-			SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
+			Network net = it.next();
+			SpiceNet spNet = spiceNetMap.get(net);
 			for(Iterator<Layer> lIt = spNet.merge.getKeyIterator(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
+				Layer layer = lIt.next();
 				List<PolyBase> polyList = spNet.merge.getMergedPoints(layer, true);
 				if (polyList == null) continue;
                 if (polyList.size() > 1)
                     Collections.sort(polyList, GeometryHandler.shapeSort);
-				for(Iterator<PolyBase> pIt = polyList.iterator(); pIt.hasNext(); )
+				for(PolyBase poly : polyList)
 				{
-					PolyBase poly = (PolyBase)pIt.next();
 					//Point2D [] pointList = poly.getPoints();
 					//int count = pointList.length;
 
@@ -725,7 +723,7 @@ public class Spice extends Topology
 			infstr.append(".SUBCKT " + cellName);
 			for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
 			{
-				CellSignal cs = (CellSignal)sIt.next();
+				CellSignal cs = sIt.next();
 
 				// ignore networks that aren't exported
 				PortProto pp = cs.getExport();
@@ -754,11 +752,11 @@ public class Spice extends Topology
                     // 2) join certain exports that do not have resistors on arcs between them, and record this information
                     //   so that the next level up knows to short networks connection to those exports.
                     for (Iterator<Export> it = net.getExports(); it.hasNext(); ) {
-                        Export e = (Export)it.next();
+                        Export e = it.next();
                         PortInst pi = e.getOriginalPort();
                         String name = segmentedNets.getNetName(pi);
                         // exports are shorted if their segmented net names are the same (case (2))
-                        List<String> shortedExports = (List<String>)shortedExportsMap.get(name);
+                        List<String> shortedExports = shortedExportsMap.get(name);
                         if (shortedExports == null) {
                             shortedExports = new ArrayList<String>();
                             shortedExportsMap.put(name, shortedExports);
@@ -769,8 +767,7 @@ public class Spice extends Topology
                         shortedExports.add(e.getName());
                     }
                     // record shorted exports
-                    for (Iterator<List<String>> it = shortedExportsMap.values().iterator(); it.hasNext(); ) {
-                        List<String> shortedExports = (List<String>)it.next();
+                    for (List<String> shortedExports : shortedExportsMap.values()) {
                         if (shortedExports.size() > 1) {
                             segmentedNets.addShortedExports(shortedExports);
                         }
@@ -788,7 +785,7 @@ public class Spice extends Topology
 				{
 					for(int i=0; i<globalSize; i++)
 					{
-						Global global = (Global)globals.get(i);
+						Global global = globals.get(i);
 						Network net = netList.getNetwork(global);
 						CellSignal cs = cni.getCellSignal(net);
 						infstr.append(" " + cs.getName());
@@ -804,12 +801,12 @@ public class Spice extends Topology
 				// add in parameters to this cell
 				for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
 				{
-					Variable paramVar = (Variable)it.next();
+					Variable paramVar = it.next();
 					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 				}
 //				for(Iterator it = cell.getVariables(); it.hasNext(); )
 //				{
-//					Variable paramVar = (Variable)it.next();
+//					Variable paramVar = it.next();
 //					if (!paramVar.isParam()) continue;
 //					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 //				}
@@ -822,7 +819,7 @@ public class Spice extends Topology
 			// generate pin descriptions for reference (when not using node names)
 			for(int i=0; i<globalSize; i++)
 			{
-				Global global = (Global)globals.get(i);
+				Global global = globals.get(i);
 				Network net = netList.getNetwork(global);
 				CellSignal cs = cni.getCellSignal(net);
 				multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
@@ -831,7 +828,7 @@ public class Spice extends Topology
 			// write exports to this cell
 			for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
 			{
-				CellSignal cs = (CellSignal)sIt.next();
+				CellSignal cs = sIt.next();
 
 				// ignore networks that aren't exported
 				PortProto pp = cs.getExport();
@@ -848,7 +845,7 @@ public class Spice extends Topology
 			boolean firstDecl = true;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
 				Variable cardVar = ni.getVar(SPICE_DECLARATION_KEY);
 				if (cardVar == null) continue;
@@ -864,7 +861,7 @@ public class Spice extends Topology
 		// third pass through the node list, print it this time
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
-			Nodable no = (Nodable)nIt.next();
+			Nodable no = nIt.next();
 			NodeProto niProto = no.getProto();
 
 			// handle sub-cell calls
@@ -928,7 +925,7 @@ public class Spice extends Topology
 				infstr.append(modelChar);
 				for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
-					CellSignal subCS = (CellSignal)sIt.next();
+					CellSignal subCS = sIt.next();
 
 					// ignore networks that aren't exported
 					PortProto pp = subCS.getExport();
@@ -955,7 +952,7 @@ public class Spice extends Topology
                         List<String> exportNames = new ArrayList<String>();
                         for (Iterator<Export> it = subNet.getExports(); it.hasNext(); ) {
                             // get subcell export, unless collapsed due to less than min R
-                            Export e = (Export)it.next();
+                            Export e = it.next();
                             PortInst pi = e.getOriginalPort();
                             String name = subSegmentedNets.getNetName(pi);
                             if (exportNames.contains(name)) continue;
@@ -999,7 +996,7 @@ public class Spice extends Topology
 					// add in parameters to this instance
 					for(Iterator<Variable> it = subCell.getParameters(); it.hasNext(); )
 					{
-						Variable paramVar = (Variable)it.next();
+						Variable paramVar = it.next();
 						Variable instVar = no.getVar(paramVar.getKey());
 						String paramStr = "??";
 						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
@@ -1007,7 +1004,7 @@ public class Spice extends Topology
 					}
 //					for(Iterator it = subCell.getVariables(); it.hasNext(); )
 //					{
-//						Variable paramVar = (Variable)it.next();
+//						Variable paramVar = it.next();
 //						if (!paramVar.isParam()) continue;
 //						Variable instVar = no.getVar(paramVar.getKey());
 //						String paramStr = "??";
@@ -1332,9 +1329,9 @@ public class Spice extends Topology
             }
 
 			// make sure transistor is connected to nets
-			SpiceNet spNetGate = (SpiceNet)spiceNetMap.get(gateNet);
-			SpiceNet spNetSource = (SpiceNet)spiceNetMap.get(sourceNet);
-			SpiceNet spNetDrain = (SpiceNet)spiceNetMap.get(drainNet);
+			SpiceNet spNetGate = spiceNetMap.get(gateNet);
+			SpiceNet spNetSource = spiceNetMap.get(sourceNet);
+			SpiceNet spNetDrain = spiceNetMap.get(drainNet);
 			if (spNetGate == null || spNetSource == null || spNetDrain == null) continue;
 
 			// compute area of source and drain
@@ -1405,8 +1402,7 @@ public class Spice extends Topology
                     int resCount = 0;
                     // write caps
                     multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
-                    for (Iterator<SegmentedNets.NetInfo> it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); ) {
-                        SegmentedNets.NetInfo netInfo = (SegmentedNets.NetInfo)it.next();
+                    for (SegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
                         if (netInfo.cap > cell.getTechnology().getMinCapacitance()) {
                             if (netInfo.netName.equals("gnd")) continue;           // don't write out caps from gnd to gnd
                             multiLinePrint(false, "C" + capCount + " " + netInfo.netName + " 0 " + TextUtils.formatDouble(netInfo.cap, 2) + "fF\n");
@@ -1416,8 +1412,8 @@ public class Spice extends Topology
                     // write resistors
                     multiLinePrint(true, "** Extracted Parasitic Resistors ***\n");
                     for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-                        ArcInst ai = (ArcInst)it.next();
-                        Double res = (Double)segmentedNets.arcRes.get(ai);
+                        ArcInst ai = it.next();
+                        Double res = segmentedNets.arcRes.get(ai);
                         if (res == null) continue;
                         String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
                         String n1 = segmentedNets.getNetName(ai.getTailPortInst());
@@ -1455,11 +1451,11 @@ public class Spice extends Topology
                     int capacNum = 1;
                     for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
                     {
-                        CellSignal cs = (CellSignal)sIt.next();
+                        CellSignal cs = sIt.next();
                         Network net = cs.getNetwork();
                         if (net == cni.getGroundNet()) continue;
 
-                        SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
+                        SpiceNet spNet = spiceNetMap.get(net);
                         if (spNet.nonDiffCapacitance > layoutTechnology.getMinCapacitance())
                         {
                             if (first)
@@ -1481,7 +1477,7 @@ public class Spice extends Topology
 			boolean firstDecl = true;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
 				Variable cardVar = ni.getVar(SPICE_CARD_KEY);
 				if (cardVar == null) continue;
@@ -1507,11 +1503,10 @@ public class Spice extends Topology
             }
 
             for (Iterator<List<NamePattern>> it = anna.getExportsConnected(); it.hasNext(); ) {
-                List<NamePattern> list = (List<NamePattern>)it.next();
+                List<NamePattern> list = it.next();
                 List<Network> netsToConnect = new ArrayList<Network>();
                 // each name pattern can match any number of exports in the cell
-                for (Iterator<NccCellAnnotations.NamePattern> it2 = list.iterator(); it2.hasNext(); ) {
-                    NccCellAnnotations.NamePattern pat = (NccCellAnnotations.NamePattern)it2.next();
+                for (NccCellAnnotations.NamePattern pat : list) {
                     for (Iterator<PortProto> it3 = cell.getPorts(); it3.hasNext(); ) {
                         Export e = (Export)it3.next();
                         String name = e.getName();
@@ -1526,8 +1521,7 @@ public class Spice extends Topology
                 // connect all nets in list of nets to connect
                 String name = null;
 //                int i=0;
-                for (Iterator<Network> it2 = netsToConnect.iterator(); it2.hasNext(); ) {
-                    Network net = (Network)it2.next();
+                for (Network net : netsToConnect) {
                     if (name != null) {
                         multiLinePrint(false, "R"+name+" "+name+" "+net.getName()+" 0.001\n");
                     }
@@ -1586,7 +1580,7 @@ public class Spice extends Topology
         //System.out.println("Checking Cell "+cell.describe());
         boolean mark = false;
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (!ni.isCellInstance()) continue;
             if (ni.isIconOfParent()) continue;
             if (ni.getVar(LENetlister.ATTR_LEGATE) != null) { mark = true; continue; }
@@ -1622,14 +1616,13 @@ public class Spice extends Topology
                 List<Variable> paramValues = new ArrayList<Variable>();
                 for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
                 {
-                    Variable var = (Variable)it.next();
+                    Variable var = it.next();
                     if (!no.getNodeInst().isParam(var.getKey())) continue;
 //                    if (!var.isParam()) continue;
                     paramValues.add(var);
                 }
-                for(Iterator<Variable> it = paramValues.iterator(); it.hasNext(); )
+                for(Variable var : paramValues)
                 {
-                    Variable var = (Variable)it.next();
                     String eval = var.describe(context, no);
                     //Object eval = context.evalVar(var, no);
                     if (eval == null) continue;
@@ -1643,7 +1636,7 @@ public class Spice extends Topology
         int limit = maxNameLength();
         if (limit > 0 && uniqueCellName.length() > limit)
         {
-            Integer i = (Integer)uniqueNames.get(uniqueCellName.toString());
+            Integer i = uniqueNames.get(uniqueCellName.toString());
             if (i == null) {
                 i = new Integer(uniqueID);
                 uniqueID++;
@@ -1797,7 +1790,7 @@ public class Spice extends Topology
         // Add a new PortInst net segment
         private NetInfo putSegment(PortInst pi, double cap) {
             // create new info for PortInst
-            NetInfo info = (NetInfo)segmentedNets.get(pi);
+            NetInfo info = segmentedNets.get(pi);
             if (info == null) {
                 info = new NetInfo();
                 info.netName = getNewName(pi, info);
@@ -1821,14 +1814,14 @@ public class Spice extends Topology
             if (!useParasitics || (!Simulation.isParasiticsExtractPowerGround() &&
                     isPowerGround(pi))) return cs.getName();
 
-            Integer i = (Integer)netCounters.get(net);
+            Integer i = netCounters.get(net);
             if (i == null) {
                 i = new Integer(0);
                 netCounters.put(net, i);
             }
             // get new name
             String name = info.netName;
-            Export ex = pi.getExports().hasNext() ? (Export)pi.getExports().next() : null;
+            Export ex = pi.getExports().hasNext() ? pi.getExports().next() : null;
             //if (ex != null && ex.getName().equals(cs.getName())) {
             if (ex != null) {
                 name = ex.getName();
@@ -1852,8 +1845,8 @@ public class Spice extends Topology
                 putSegment(p1, 0);
             if (!segmentedNets.containsKey(p2));
                 putSegment(p2, 0);
-            NetInfo info1 = (NetInfo)segmentedNets.get(p1);
-            NetInfo info2 = (NetInfo)segmentedNets.get(p2);
+            NetInfo info1 = segmentedNets.get(p1);
+            NetInfo info2 = segmentedNets.get(p2);
             if (info1 == info2) return;                     // already joined
             // short
             //System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
@@ -1866,10 +1859,8 @@ public class Spice extends Topology
             //info1.netName += info2.netName;
             // replace info2 with info1, info2 is no longer used
             // need to do for every portinst in merged segment
-            for (Iterator<PortInst> it = info1.joinedPorts.iterator(); it.hasNext(); ) {
-                PortInst pi = (PortInst)it.next();
+            for (PortInst pi : info1.joinedPorts)
                 segmentedNets.put(pi, info1);
-            }
         }
         // get the segment name for the portinst.
         // if no parasitics, this is just the CellSignal name.
@@ -1881,7 +1872,7 @@ public class Spice extends Topology
 //System.out.println("NETWORK NAMED "+cs.getName());
                 return cs.getName();
             }
-            NetInfo info = (NetInfo)segmentedNets.get(pi);
+            NetInfo info = segmentedNets.get(pi);
             if (info == null) {
                 info = putSegment(pi, 0);
             }
@@ -1934,14 +1925,13 @@ public class Spice extends Topology
             longArcCaps.put(ai, new Double(cap));
         }
         private double getArcCap(ArcInst ai) {
-            Double d = (Double)longArcCaps.get(ai);
+            Double d = longArcCaps.get(ai);
             return d.doubleValue();
         }
     }
 
     private SegmentedNets getSegmentedNets(Cell cell) {
-        for (Iterator<SegmentedNets> it = segmentedParasiticInfo.iterator(); it.hasNext(); ) {
-            SegmentedNets seg = (SegmentedNets)it.next();
+        for (SegmentedNets seg : segmentedParasiticInfo) {
             if (seg.cell == cell) return seg;
         }
         return null;
@@ -1963,10 +1953,9 @@ public class Spice extends Topology
             cellsToClear.add(cell);
 
             // gather capacitor updates
-            for (Iterator<SegmentedNets.NetInfo> it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); )
+            for (SegmentedNets.NetInfo info : segmentedNets.getUniqueSegments())
             {
-                SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
-                PortInst pi = (PortInst)info.joinedPorts.iterator().next();
+                PortInst pi = info.joinedPorts.iterator().next();
                 if (info.cap > cell.getTechnology().getMinCapacitance())
                 {
                 	capsOnPorts.add(pi);
@@ -1977,8 +1966,8 @@ public class Spice extends Topology
             // gather resistor updates
             for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
             {
-                ArcInst ai = (ArcInst)it.next();
-                Double res = (Double)segmentedNets.arcRes.get(ai);
+                ArcInst ai = it.next();
+                Double res = segmentedNets.arcRes.get(ai);
                 Variable var = ai.getVar(ATTR_R);
                
                 resOnArcs.add(ai);
@@ -2021,10 +2010,10 @@ public class Spice extends Topology
                 // delete all C's already on layout
                 for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                 {
-                    NodeInst ni = (NodeInst)it.next();
+                    NodeInst ni = it.next();
                     for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
                     {
-                        PortInst pi = (PortInst)pit.next();
+                        PortInst pi = pit.next();
                         Variable var = pi.getVar(ATTR_C);
                         if (var != null) pi.delVar(var.getKey());
                     }
@@ -2147,10 +2136,9 @@ public class Spice extends Topology
          */
         private void setExemptedNets(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
-            List netNames = (List)netsByCell.get(cell);
+            List<Net> netNames = netsByCell.get(cell);
             if (netNames == null) return;               // nothing for this cell
-            for (Iterator it = netNames.iterator(); it.hasNext(); ) {
-                Net n = (Net)it.next();
+            for (Net n : netNames) {
                 String netName = n.name;
                 Network net = findNetwork(info, netName);
                 if (net == null) {
@@ -2165,8 +2153,8 @@ public class Spice extends Topology
         }
 
         private Network findNetwork(HierarchyEnumerator.CellInfo info, String name) {
-            for (Iterator it = info.getNetlist().getNetworks(); it.hasNext(); ) {
-                Network net = (Network)it.next();
+            for (Iterator<Network> it = info.getNetlist().getNetworks(); it.hasNext(); ) {
+                Network net = it.next();
                 if (net.hasName(name)) return net;
             }
             return null;
@@ -2177,10 +2165,9 @@ public class Spice extends Topology
         }
 
         private double getReplacementCap(Cell cell, Network net) {
-            List netNames = (List)netsByCell.get(cell);
+            List<Net> netNames = netsByCell.get(cell);
             if (netNames == null) return 0;               // nothing for this cell
-            for (Iterator it = netNames.iterator(); it.hasNext(); ) {
-                Net n = (Net)it.next();
+            for (Net n : netNames) {
                 if (net.hasName(n.name)) {
                     return n.replacementCap;
                 }
@@ -2209,7 +2196,7 @@ public class Spice extends Topology
 			// favor "vdd" if it is present
 			for(Iterator<String> it = net.getNames(); it.hasNext(); )
 			{
-				String netName = (String)it.next();
+				String netName = it.next();
 				if (netName.equalsIgnoreCase("vdd")) return "vdd";
 			}
 		}
@@ -2226,7 +2213,7 @@ public class Spice extends Topology
 			// favor "gnd" if it is present
 			for(Iterator<String> it = net.getNames(); it.hasNext(); )
 			{
-				String netName = (String)it.next();
+				String netName = it.next();
 				if (netName.equalsIgnoreCase("gnd")) return "gnd";
 			}
 		}
@@ -2579,7 +2566,7 @@ public class Spice extends Topology
 			// leave out the gate capacitance of transistors
 			if (layer.getFunction() == Layer.Function.GATE) continue;
 
-			SpiceNet spNet = (SpiceNet)spiceNets.get(net);
+			SpiceNet spNet = spiceNets.get(net);
 			if (spNet == null) continue;
 
 			// get the area of this polygon
@@ -2673,7 +2660,7 @@ public class Spice extends Topology
     private HashMap<Cell,Boolean> checkedCells = new HashMap<Cell,Boolean>();
     private boolean cellIsEmpty(Cell cell)
     {
-        Boolean b = (Boolean)checkedCells.get(cell);
+        Boolean b = checkedCells.get(cell);
         if (b != null) return b.booleanValue();
 
         boolean empty = true;
@@ -2681,7 +2668,7 @@ public class Spice extends Topology
         List<Cell> emptyCells = new ArrayList<Cell>();
 
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
 
             // if node is a cell, check if subcell is empty
             if (ni.isCellInstance()) {
@@ -2721,10 +2708,8 @@ public class Spice extends Topology
         // empty
         if (CELLISEMPTYDEBUG && empty) {
             System.out.println(cell+" is empty and contains the following empty cells:");
-            for (Iterator<Cell> it = emptyCells.iterator(); it.hasNext(); ) {
-                Cell c = (Cell)it.next();
+            for (Cell c : emptyCells)
                 System.out.println("   "+c.describe(true));
-            }
         }
         checkedCells.put(cell, new Boolean(empty));
         return empty;

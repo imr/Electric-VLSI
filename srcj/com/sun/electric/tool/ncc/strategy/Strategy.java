@@ -73,7 +73,7 @@ public abstract class Strategy {
 	private LeafList apply(Iterator<EquivRecord> it){
 		LeafList out= new LeafList();
 		while (it.hasNext()) {
-			EquivRecord jr= (EquivRecord)it.next();
+			EquivRecord jr= it.next();
 			out.addAll(doFor(jr));
 		}
 		return out;
@@ -130,7 +130,7 @@ public abstract class Strategy {
 	EquivRecord pickAnOffspring(Integer code, LeafList g, String label) {
 		int value = code.intValue();
 		for(Iterator<EquivRecord> it=g.iterator(); it.hasNext();){
-			EquivRecord er = (EquivRecord)it.next();
+			EquivRecord er = it.next();
 			if(er.getValue()==value){
 				globals.status2(label+": "+ er.nameString());
 				return er;
@@ -144,7 +144,7 @@ public abstract class Strategy {
 	protected String offspringStats(LeafList el) {
 		int matched=0, mismatched=0, active=0;
 		for (Iterator<EquivRecord> it=el.iterator(); it.hasNext();) {
-			EquivRecord er = (EquivRecord) it.next();
+			EquivRecord er = it.next();
 			if (er.isMismatched())  mismatched++;
 			else if (er.isMatched())  matched++;
 			else active++;

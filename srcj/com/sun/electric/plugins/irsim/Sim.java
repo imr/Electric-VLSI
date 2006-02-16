@@ -109,7 +109,7 @@ public class Sim
 	 */
 	public Node findNode(String name)
 	{
-		return (Node)nodeHash.get(TextUtils.canonicString(name));
+		return nodeHash.get(TextUtils.canonicString(name));
 	}
 
 	/**
@@ -623,9 +623,8 @@ public class Sim
 	{
 		Node ndList = null;
 
-		for(Iterator<Trans> it = readTransistorList.iterator(); it.hasNext(); )
+		for(Trans t : readTransistorList)
 		{
-			Trans t = (Trans)it.next();
 			Node gate = null, src = null, drn = null;
 			for(gate = (Node)t.gate; (gate.nFlags & ALIAS) != 0; gate = gate.nLink) ;
 			for(src = t.source; (src.nFlags & ALIAS) != 0; src = src.nLink) ;
@@ -967,7 +966,7 @@ public class Sim
 			}
 			strings = new String[listOfStrings.size()];
 			for(int i=0; i<listOfStrings.size(); i++)
-				strings[i] = (String)listOfStrings.get(i);
+				strings[i] = listOfStrings.get(i);
 		}
 		return strings;
 	}
@@ -1069,9 +1068,9 @@ public class Sim
             Technology layoutTech = Schematics.getDefaultSchematicTechnology();
             double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
 			// load the circuit from memory
-			for(Iterator<Object> it = components.iterator(); it.hasNext(); )
+			for(Object obj : components)
 			{
-				ExtractedPBucket pb = (ExtractedPBucket)it.next();
+				ExtractedPBucket pb = (ExtractedPBucket)obj;
 
 				if (pb instanceof TransistorPBucket)
 				{
@@ -1368,9 +1367,8 @@ public class Sim
 		Node thisOne = n.nLink = n;
 		do
 		{
-			for(Iterator<Trans> it = thisOne.nTermList.iterator(); it.hasNext(); )
+			for(Trans t : thisOne.nTermList)
 			{
-				Trans t = (Trans)it.next();
 				if (t.state == OFF) continue;
 				if ((t.tFlags & CROSSED) != 0)	// Each transistor is crossed twice
 				{
@@ -1577,9 +1575,8 @@ public class Sim
 
 		if (nd.nGateList.size() != 0)		// recompute transistor states
 		{
-			for(Iterator<Trans> it = nd.nGateList.iterator(); it.hasNext(); )
+			for(Trans t : nd.nGateList)
 			{
-				Trans t = (Trans)it.next();
 				t.state = (byte)theModel.computeTransState(t);
 			}
 		}
@@ -1597,7 +1594,7 @@ public class Sim
 		{
 			for(int l1 = 0; l1 < nList.nTermList.size(); l1++)
 			{
-				Trans t1 = (Trans)nList.nTermList.get(l1);
+				Trans t1 = nList.nTermList.get(l1);
 				int type = t1.tType;
 				if ((type & (GATELIST | ORED)) != 0)
 					continue;	// ORED implies processed, so skip as well
@@ -1605,7 +1602,7 @@ public class Sim
 				long hval = t1.hashTerms();
 				for(int l2 = l1+1; l2 < nList.nTermList.size(); l2++)
 				{
-					Trans t2 = (Trans)nList.nTermList.get(l2);
+					Trans t2 = nList.nTermList.get(l2);
 					if (t1.gate != t2.gate || t2.hashTerms() != hval ||
 						type != (t2.tType & ~ORED))
 							continue;

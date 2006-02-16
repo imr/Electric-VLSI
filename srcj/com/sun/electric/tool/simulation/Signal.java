@@ -128,11 +128,8 @@ public class Signal
 	 */
 	public void clearBussedSignalList()
 	{
-		for(Iterator<Signal> it = bussedSignals.iterator(); it.hasNext(); )
-		{
-			Signal sig = (Signal)it.next();
+		for(Signal sig : bussedSignals)
 			sig.busCount--;
-		}
 		bussedSignals.clear();
 	}
 

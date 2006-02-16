@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/16/06, SMR) Better crossprobing with waveform window.
+
 IMP: (2/16/06, DN) Undo system reimplemented based on snapshot.
 
 BUG: (2/15/06, SMR) Selection of Exports by the "Select Object" and "Find Text"

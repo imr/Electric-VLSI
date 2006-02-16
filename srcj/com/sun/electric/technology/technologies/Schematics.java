@@ -1436,7 +1436,7 @@ public class Schematics extends Technology
 			int busCon = 0, nonBusCon = 0;
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				if (con.getArc().getProto() == bus_arc) busCon++; else
 					nonBusCon++;
 			}
@@ -1454,10 +1454,10 @@ public class Schematics extends Technology
 					{
 						for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 						{
-							Export pp = (Export)it.next();
+							Export pp = it.next();
 							for(Iterator<Connection> pIt = upni.getConnections(); pIt.hasNext(); )
 							{
-								Connection con = (Connection)pIt.next();
+								Connection con = pIt.next();
 								if (con.getPortInst().getPortProto() != pp) continue;
 								if (con.getArc().getProto() == bus_arc) busCon++; else
 									nonBusCon++;
@@ -1717,11 +1717,11 @@ public class Schematics extends Technology
 			List<PortInst> extraBlobList = null;
 			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 			{
-				PortInst pi = (PortInst)it.next();
+				PortInst pi = it.next();
 				int arcs = 0;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
-					Connection con = (Connection)cIt.next();
+					Connection con = cIt.next();
 					if (con.getPortInst() == pi) arcs++;
 				}
 				if (arcs > 1)
@@ -1738,9 +1738,8 @@ public class Schematics extends Technology
 				int fill = 0;
 				for(int i=0; i<primLayers.length; i++)
 					blobLayers[fill++] = primLayers[i];
-				for(Iterator<PortInst> it = extraBlobList.iterator(); it.hasNext(); )
+				for(PortInst pi : extraBlobList)
 				{
-					PortInst pi = (PortInst)it.next();
 					PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 					EdgeH xEdge = new EdgeH(pp.getLeft().getMultiplier(), pp.getLeft().getAdder() + blobSize);
 					blobLayers[fill++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1801,7 +1800,7 @@ public class Schematics extends Technology
 					int total = 0;
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
-						Connection con = (Connection)it.next();
+						Connection con = it.next();
 						if (con.getPortInst() == pi) total++;
 					}
 
@@ -1839,7 +1838,7 @@ public class Schematics extends Technology
 						boolean found = false;
 						for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 						{
-							Connection con = (Connection)it.next();
+							Connection con = it.next();
 							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
 							{
 								found = true;
@@ -1954,7 +1953,7 @@ public class Schematics extends Technology
 	{
 		for(Iterator<PrimitivePort> it = np.getPrimitivePorts(); it.hasNext(); )
 		{
-			PrimitivePort pp = (PrimitivePort)it.next();
+			PrimitivePort pp = it.next();
 			if (index == 0) return pp;
 			index--;
 		}
@@ -2321,14 +2320,14 @@ public class Schematics extends Technology
 			usedTechnologies.put(it.next(), new DBMath.MutableInteger(0));
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			Library lib = (Library)lIt.next();
+			Library lib = lIt.next();
 			if (lib.isHidden()) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
+				Cell cell = cIt.next();
 				Technology tech = cell.getTechnology();
 				if (tech == null) continue;
-				DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
+				DBMath.MutableInteger mi = usedTechnologies.get(tech);
 				mi.increment();
 			}
 		}
@@ -2336,8 +2335,8 @@ public class Schematics extends Technology
 		// ignore nonlayout technologies
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
+			Technology tech = it.next();
+			DBMath.MutableInteger mi = usedTechnologies.get(tech);
 			if (tech == Schematics.tech || tech == Generic.tech ||
 				tech.isNonElectrical() || tech.isNoPrimitiveNodes()) mi.setValue(-1);
 		}
@@ -2347,8 +2346,8 @@ public class Schematics extends Technology
 		Technology bestTech = null;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
+			Technology tech = it.next();
+			DBMath.MutableInteger mi = usedTechnologies.get(tech);
 			if (mi.intValue() <= bestAmount) continue;
 			bestAmount = mi.intValue();
 			bestTech = tech;
@@ -2391,7 +2390,7 @@ public class Schematics extends Technology
 	private static HashMap<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
 	private static Pref getPrefForPrimitive(PrimitiveNode np)
 	{
-		Pref pref = (Pref)primPrefs.get(np);
+		Pref pref = primPrefs.get(np);
 		if (pref == null)
 		{
 			String def = "";

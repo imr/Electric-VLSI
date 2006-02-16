@@ -79,7 +79,7 @@ public class StdCellParams {
 			double top = center + width / 2 + space;
 			double bot = center + width / 2 - space;
 			for (int i = 0; i < blockages.size(); i++) {
-				Blockage b = (Blockage) blockages.get(i);
+				Blockage b = blockages.get(i);
 				if (b.bot < top && b.top > bot)
 					return true;
 			}
@@ -706,8 +706,8 @@ public class StdCellParams {
 	public double getTrackY(int i) {
 		error(i==0, "StdCellParams.getTrackY: 0 is an illegal track index");
 		return i>0
-			? ((Double) pmosTracks.get(i - 1)).doubleValue()
-			: ((Double) nmosTracks.get(-i - 1)).doubleValue();
+			? pmosTracks.get(i - 1).doubleValue()
+			: nmosTracks.get(-i - 1).doubleValue();
 	}
 	/** A physical track number enumerates all tracks regardless of
 	 * whether the track is blocked. The value 0 is illegal. Tracks 1
@@ -722,9 +722,8 @@ public class StdCellParams {
 	/*
 	public HashMap physTracksToYCoords(HashMap physTracks) {
 	  HashMap yCoords = new HashMap();
-	  for (Iterator it=physTracks.keySet().iterator(); it.hasNext();) {
-	    String key = (String) it.next();
-	    int physTrk = ((Integer)physTracks.get(key)).intValue();
+	  for (String key : physTracks.keySet();) {
+	    int physTrk = physTracks.get(key).intValue();
 	    Double y = new Double(getPhysTrackY(physTrk));
 	    yCoords.put(key, y);
 	  }
@@ -916,13 +915,13 @@ public class StdCellParams {
 		double minX,
 		double maxX,
 		Cell cell) {
-		NodeInst first = (NodeInst) row.get(row.size() - 1);
+		NodeInst first = row.get(row.size() - 1);
 		double rowMinX = first.getBounds().getMinX();
 		if (rowMinX < minX) {
 			addPmosWell(minX, rowMinX, first.getAnchorCenterY(), cell);
 			addNmosWell(minX, rowMinX, first.getAnchorCenterY(), cell);
 		}
-		NodeInst last = (NodeInst) row.get(row.size() - 1);
+		NodeInst last = row.get(row.size() - 1);
 		double rowMaxX = last.getBounds().getMaxX();
 		if (rowMaxX < maxX) {
 			addPmosWell(rowMaxX, maxX, first.getAnchorCenterY(), cell);
@@ -1178,7 +1177,7 @@ public class StdCellParams {
 		loX = loY = Double.MAX_VALUE;
 		hiX = hiY = Double.MIN_VALUE;
 		for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
-			Rectangle2D b = ((NodeInst) it.next()).getBounds();
+			Rectangle2D b = it.next().getBounds();
 			loX = Math.min(loX, b.getMinX());
 			loY = Math.min(loY, b.getMinY());
 			hiX = Math.max(hiX, b.getMaxX());
@@ -1206,8 +1205,7 @@ public class StdCellParams {
 
 	public void validateTrackAssign(HashMap<String,Object> asgn, Cell s) {
 		HashMap<Object,String> trkToExp = new HashMap<Object,String>();
-		for (Iterator<String> it = asgn.keySet().iterator(); it.hasNext();) {
-			String k = it.next();
+		for (String k : asgn.keySet()) {
 			Object v = asgn.get(k);
 			// check types of key and value
 			error(!(k instanceof String),

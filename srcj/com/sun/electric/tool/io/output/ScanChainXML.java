@@ -382,9 +382,9 @@ public class ScanChainXML {
         Stack<Nodable> startNode = null;
         if (chainStartExports != null) {
             for (int i=0; i<chainStartExports.size(); i++) {
-                ExPort startExport = getExPort(cell, (String)chainStartExports.get(i));
+                ExPort startExport = getExPort(cell, chainStartExports.get(i));
                 if (startExport == null) {
-                    System.out.println("Cannot find export "+(String)chainStartExports.get(i)+" in cell "+cell.describe(false));
+                    System.out.println("Cannot find export "+chainStartExports.get(i)+" in cell "+cell.describe(false));
                     continue;
                 }
                 chainStartExPorts.add(startExport);
@@ -415,7 +415,7 @@ public class ScanChainXML {
     private Stack<Nodable> findStartNode(Cell cell, Stack<Nodable> context) {
         Netlist netlist = cell.getNetlist(true);
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
+            Nodable no = it.next();
             if (no.getProto().getName().equals(jtagCell.getName())) {
                 context.push(no);
                 return context;
@@ -446,7 +446,7 @@ public class ScanChainXML {
         if (startNode != null) {
             // generate a chain for each port
             for (Iterator<JtagController.Port> it = jtagController.getPorts(); it.hasNext(); ) {
-                JtagController.Port jtagPort = (JtagController.Port)it.next();
+                JtagController.Port jtagPort = it.next();
                 if (jtagPort.soutPort == null) continue;
                 if (DEBUG) System.out.println("Starting chain "+jtagPort.opcode+" from port "+jtagPort.soutPort);
 
@@ -470,8 +470,8 @@ public class ScanChainXML {
             }
         } else if (chainStartExPorts != null) {
             for (int i=0; i<chainStartExPorts.size(); i++) {
-                ExPort startExport = (ExPort)chainStartExPorts.get(i);
-                String name = (String)chainNames.get(i);
+                ExPort startExport = chainStartExPorts.get(i);
+                String name = chainNames.get(i);
                 Chain chain = new Chain(name, 0, -1);
                 System.out.println("Tracing sub-chain "+name+" from export "+startExport);
                 appendChain(chain, getOtherPorts(startExport));
@@ -499,8 +499,7 @@ public class ScanChainXML {
         out.println("<!DOCTYPE ChainG SYSTEM \"file:./ChainG.dtd\" [");
         // print all entities
         if (!FLAT) {
-            for (Iterator<Entity> it = entities.values().iterator(); it.hasNext(); ) {
-                Entity ent = (Entity)it.next();
+            for (Entity ent : entities.values()) {
                 ent.writeDefinition(out, new StringBuffer(), cellsToFlatten);
             }
             out.println("]>");
@@ -515,8 +514,7 @@ public class ScanChainXML {
         indent.append("\t");
         out.println(indent+"<chip name=\""+chipName+"\" lengthIR=\""+jtagController.lengthIR+"\">");
         indent.append("\t");
-        for (Iterator<Chain> it = chains.iterator(); it.hasNext(); ) {
-            Chain chain = (Chain)it.next();
+        for (Chain chain : chains) {
             if (chain.numScanElements() == 0) continue;
             chain.write(out, indent, null, cellsToFlatten);
             if (DEBUG) System.out.println("Double Check: chain "+chain.name+" had "+chain.numScanElements()+" scan chain elements");
@@ -588,17 +586,16 @@ public class ScanChainXML {
             subchains.add(subChain);
         }
         protected int getSubChainSize() { return subchains.size(); }
-        protected SubChainInst getSubChainInst(int i) { return (SubChainInst)subchains.get(i); }
+        protected SubChainInst getSubChainInst(int i) { return subchains.get(i); }
         protected SubChain getSubChain(int i) {
-            SubChainInst inst = (SubChainInst)subchains.get(i);
+            SubChainInst inst = subchains.get(i);
             if (inst == null) return null;
             return inst.getSubChain();
         }
         protected Iterator<SubChainInst> getSubChainInsts() { return subchains.iterator(); }
         protected Iterator<SubChain> getSubChains() {
             List<SubChain> subs = new ArrayList<SubChain>();
-            for (Iterator<SubChainInst> it = subchains.iterator(); it.hasNext(); ) {
-                SubChainInst inst = (SubChainInst)it.next();
+            for (SubChainInst inst : subchains) {
                 subs.add(inst.getSubChain());
             }
             return subs.iterator();
@@ -628,7 +625,7 @@ public class ScanChainXML {
             out.println(">");
             indent.append("\t");
             for (Iterator<SubChainInst> it = getSubChainInsts(); it.hasNext(); ) {
-                SubChainInst inst = (SubChainInst)it.next();
+                SubChainInst inst = it.next();
                 SubChain subChain = inst.getSubChain();
                 subChain.write(out, indent, inst.getName(), cellsToFlatten);
             }
@@ -641,8 +638,7 @@ public class ScanChainXML {
         protected int numScanElements() {
             int num = 0;
             if (length > 0) num += length;
-            for (Iterator<SubChainInst> it = subchains.iterator(); it.hasNext(); ) {
-                SubChainInst inst = (SubChainInst)it.next();
+            for (SubChainInst inst : subchains) {
                 SubChain sub = inst.getSubChain();
                 num += sub.numScanElements();
             }
@@ -656,7 +652,7 @@ public class ScanChainXML {
          */
         protected SubChain getLastSubChain() {
             if (subchains.size() == 0) return null;
-            SubChainInst last = (SubChainInst)subchains.get(subchains.size() - 1);
+            SubChainInst last = subchains.get(subchains.size() - 1);
             return last.getSubChain().getLastSubChain();
         }
 
@@ -672,15 +668,15 @@ public class ScanChainXML {
         protected void removePassThroughs() {
             List<SubChainInst> toRemove = new ArrayList<SubChainInst>();
             for (Iterator<SubChainInst> it2 = getSubChainInsts(); it2.hasNext(); ) {
-                SubChainInst inst = (SubChainInst)it2.next();
+                SubChainInst inst = it2.next();
                 SubChain sub = inst.getSubChain();
                 if (sub.isPassThrough()) {
                     //System.out.println("Removed pass through cell "+sub.name);
                     toRemove.add(inst);
                 }
             }
-            for (Iterator<SubChainInst> it2 = toRemove.iterator(); it2.hasNext(); ) {
-                subchains.remove(it2.next());
+            for (SubChainInst sci : toRemove) {
+                subchains.remove(sci);
             }
         }
         protected void replaceSubChainInsts(List<SubChainInst> newSubChainInsts) {
@@ -767,7 +763,7 @@ public class ScanChainXML {
             out.println(indent+"<"+deftag+" "+getKey()+" '");
             indent.append("\t");
             for (Iterator<SubChainInst> it = getSubChainInsts(); it.hasNext(); ) {
-                SubChainInst inst = (SubChainInst)it.next();
+                SubChainInst inst = it.next();
                 SubChain subChain = inst.getSubChain();
                 subChain.write(out, indent, inst.getName(), cellsToFlatten);
             }
@@ -848,12 +844,12 @@ public class ScanChainXML {
     // -------------------------------------------------------------------------
 
     private ScanChainElement getScanChainElement(String name, String sin) {
-        ScanChainElement e = (ScanChainElement)scanChainElements.get(name+"_"+sin);
+        ScanChainElement e = scanChainElements.get(name+"_"+sin);
         return e;
     }
 
     private PassThroughCell getPassThroughCell(String name, String sin) {
-        PassThroughCell p = (PassThroughCell)passThroughCells.get(name+"_"+sin);
+        PassThroughCell p = passThroughCells.get(name+"_"+sin);
         return p;
     }
 
@@ -991,7 +987,7 @@ public class ScanChainXML {
         PortInst pi = no.getNodeInst().findPortInst(portName);
         if (pi == null) return null;
         if (pi.getConnections().hasNext()) {
-            ArcInst ai = ((Connection)pi.getConnections().next()).getArc();
+            ArcInst ai = pi.getConnections().next().getArc();
             // see if there is a bus name
             Name busName = no.getParent().getNetlist(true).getBusName(ai);
             if (busName == null) {
@@ -1017,7 +1013,7 @@ public class ScanChainXML {
 
         // look up entity
         String key = cell.describe(false) + schInPort.name.toString();
-        Entity ent = (Entity)entities.get(key);
+        Entity ent = entities.get(key);
         Port outport = null;
 
         // if not found, create it now
@@ -1073,8 +1069,7 @@ public class ScanChainXML {
         ArrayList<SubChainInst> chainLastInstances = new ArrayList<SubChainInst>();
 
         // each port may or may not lead to a chain of scan chain elements
-        for (Iterator<Port> it = ports.iterator(); it.hasNext(); ) {
-            Port p = (Port)it.next();
+        for (Port p : ports) {
             SubChainInst inst = getSubChain(p);
             if (inst == null) continue;         // possible dead end
 
@@ -1120,23 +1115,22 @@ public class ScanChainXML {
             System.out.print("Error! Found more than one chain branching from port set: ");
             Port p = null;
             for (Iterator<Port> it = ports.iterator(); it.hasNext(); ) {
-                p = (Port)it.next();
+                p = it.next();
                 System.out.print(p.no.getName()+":"+p.name+", ");
             }
             System.out.println("in cell "+p.no.getParent().describe(false));
         }
         // append only chain, return last instance in chain
-        Chain temp = (Chain)possibleChains.get(0);
+        Chain temp = possibleChains.get(0);
         for (Iterator<SubChainInst> it = temp.getSubChainInsts(); it.hasNext(); ) {
-            SubChainInst inst = (SubChainInst)it.next();
+            SubChainInst inst = it.next();
             chain.addSubChainInst(inst);
         }
-        return (SubChainInst)chainLastInstances.get(0);
+        return chainLastInstances.get(0);
     }
 
     private void postProcessEntitiesRemovePassThroughs() {
-        for (Iterator<Entity> it = entities.values().iterator(); it.hasNext(); ) {
-            Entity ent = (Entity)it.next();
+        for (Entity ent : entities.values()) {
             ent.removePassThroughs();
         }
     }
@@ -1148,15 +1142,14 @@ public class ScanChainXML {
         while (reduced > 0) {
             reduced = 0;
             /* can't do this anymore with dataNet and dataNet2 attributes
-            for (Iterator it = entities.values().iterator(); it.hasNext(); ) {
-                Entity ent = (Entity)it.next();
+            for (Entity ent : entities.values()) {
                 // if lots of subchains with the same clears and access, consolidate them
                 if (ent.getSubChainSize() > 1) {
                     SubChainInst consolidated = null;
                     List newList = new ArrayList();
                     // merge subchains with the same access and clears
                     for (Iterator it2 = ent.getSubChainInsts(); it2.hasNext(); ) {
-                        SubChainInst inst = (SubChainInst)it2.next();
+                        SubChainInst inst = it2.next();
                         SubChain sub = inst.getSubChain();
                         if (sub.access == null || sub.clears == null ||
                             sub.length <= 0 || sub.getSubChainSize() > 0) {
@@ -1182,12 +1175,10 @@ public class ScanChainXML {
                 }
             }
             */
-            for (Iterator<Entity> it = entities.values().iterator(); it.hasNext(); ) {
-                Entity ent = (Entity)it.next();
-
+            for (Entity ent : entities.values()) {
                 // if only one sub chain that contains no other sub chains, fold into this
                 if (ent.length <= 0 && ent.getSubChainSize() == 1) {
-                    SubChainInst inst = (SubChainInst)ent.getSubChainInsts().next();
+                    SubChainInst inst = ent.getSubChainInsts().next();
                     SubChain sub = inst.getSubChain();
                     if (sub.length > 0 && sub.getSubChainSize() == 0 && isFlattenable(inst)) {
                         // fold into parent
@@ -1281,7 +1272,7 @@ public class ScanChainXML {
                 pp = equiv;
         }
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
+            Nodable no = it.next();
             if (no.getNodeInst() == ni) {
                 if (net == netlist.getNetwork(no, pp, inport.index)) {
                     port = new Port(inport.name, no, pp, inport.index);
@@ -1325,9 +1316,9 @@ public class ScanChainXML {
         Network net = netlist.getNetwork(inport.no, inport.pp, inport.index);
 
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
+            Nodable no = it.next();
             for (Iterator<PortProto> it2 = no.getProto().getPorts(); it2.hasNext(); ) {
-                PortProto pp = (PortProto)it2.next();
+                PortProto pp = it2.next();
 
                 Name name = pp.getNameKey();
                 for (int i=0; i<name.busWidth(); i++) {
@@ -1364,7 +1355,7 @@ public class ScanChainXML {
      */
     private Port getPort(Nodable no, String portName) {
         for (Iterator<PortProto> it = no.getProto().getPorts(); it.hasNext(); ) {
-            PortProto pp = (PortProto)it.next();
+            PortProto pp = it.next();
             Name name = pp.getNameKey();
             for (int i=0; i<name.busWidth(); i++) {
                 Name subname = name.subname(i);

@@ -109,9 +109,9 @@ public class ALS extends Engine
 		 */
 		public String toString() { return ""; }
 
-		/** Describes a minimum delay. */		public static final DelayTypes DELAY_MIN    = new DelayTypes();
-		/** Describes a typical delay. */		public static final DelayTypes DELAY_TYP    = new DelayTypes();
-		/** Describes a maximum delay. */		public static final DelayTypes DELAY_MAX    = new DelayTypes();
+		/** Describes a minimum delay. */		public static final DelayTypes DELAY_MIN = new DelayTypes();
+		/** Describes a typical delay. */		public static final DelayTypes DELAY_TYP = new DelayTypes();
+		/** Describes a maximum delay. */		public static final DelayTypes DELAY_MAX = new DelayTypes();
 	}
 
 	static class Model
@@ -168,7 +168,6 @@ public class ALS extends Engine
 		Connect         parent;
 		Connect         child;
 		Connect         next;
-//		Channel         displayPage;  /* pointer to the display page */
 	};
 
 	static class ALSExport

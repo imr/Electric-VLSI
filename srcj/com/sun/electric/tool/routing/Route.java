@@ -156,7 +156,7 @@ public class Route extends ArrayList<RouteElement> {
 
         boolean success = true;
         for (Iterator<RouteElement> it = iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
+            RouteElement re = it.next();
             if (re instanceof RouteElementArc) {
                 RouteElementArc reArc = (RouteElementArc)re;
                 if (!reArc.replaceArcEnd(bisectPin, replacement))
@@ -202,7 +202,7 @@ public class Route extends ArrayList<RouteElement> {
 
         // if any connection cannot be remade to replacement, abort
         for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
-            Connection conn = (Connection)it.next();
+            Connection conn = it.next();
             if (replacementRE.getPortProto().connectsTo(conn.getArc().getProto())) {
                 // possible to connect, check location
                 if (conn.getLocation().equals(replacementRE.getLocation())) {
@@ -236,8 +236,7 @@ public class Route extends ArrayList<RouteElement> {
             //System.out.println("Replacing "+pinRE+" with "+replacementRE);
             RouteElementPort delPort = RouteElementPort.deleteNode(ni);
             add(delPort);
-            for (Iterator<RouteElementArc> it = newElements.iterator(); it.hasNext(); ) {
-                RouteElement e = (RouteElement)it.next();
+            for (RouteElement e : newElements) {
                 add(e);
             }
         }

@@ -486,11 +486,8 @@ public class SpecialProperties
 			combo = new JComboBox();
 			int selected = 0;
 			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
-			for(Iterator<PortCharacteristic> it = characteristics.iterator(); it.hasNext(); )
-			{
-				PortCharacteristic ch = (PortCharacteristic)it.next();
+			for(PortCharacteristic ch : characteristics)
 				combo.addItem(ch.getName());
-			}
 			PortCharacteristic ch = PortCharacteristic.findCharacteristic(ni.getTechSpecific());
 			combo.setSelectedItem(ch.getName());
 			gbc = new GridBagConstraints();

@@ -113,9 +113,9 @@ public class SchemToLay {
 			
 			Iterator<PortInst> iPorts = SKIP_WIRE_PORTINSTS.filter(net.getPorts());
 			while (iPorts.hasNext()) {
-				PortInst iconPort = (PortInst) iPorts.next();
+				PortInst iconPort = iPorts.next();
 				NodeInst layInst =
-					(NodeInst) iconToLay.get(iconPort.getNodeInst());
+					iconToLay.get(iconPort.getNodeInst());
 				error(layInst==null,
 					  "SchemToLay: no layout instance for Icon? "+
 					  iconPort.getNodeInst());
@@ -131,11 +131,11 @@ public class SchemToLay {
 											   HashMap<String,Object> expTrkAsgn) {
 			Integer expTrk = null;
 			for (Iterator<Export> it=net.getExports(); it.hasNext();) {
-				String expNm = ((Export)it.next()).getName();
+				String expNm = it.next().getName();
 				if (expTrkAsgn.containsKey(expNm)) {
 					error(expTrk!=null,
 						  "more than one track assigned to segment!");
-					expTrk = (Integer) expTrkAsgn.get(expNm);
+					expTrk = (Integer)expTrkAsgn.get(expNm);
 				}
 			}
 			return expTrk;
@@ -156,7 +156,7 @@ public class SchemToLay {
 			this.exports = exports;
 			this.exportTrack = expTrk;
 			for (int i=0; i<layPorts.size(); i++) {
-				PortInst p = (PortInst)layPorts.get(i);
+				PortInst p = layPorts.get(i);
 				if (isNstk(p.getNodeInst())) nStkPorts.add(p);
 				else if (isPstk(p.getNodeInst())) pStkPorts.add(p);
 				else nonStkPorts.add(p);
@@ -209,7 +209,7 @@ public class SchemToLay {
 			double maxX = Double.NEGATIVE_INFINITY;
 			ArrayList<PortInst> ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
+				double x = LayoutLib.roundCenterX(ports.get(i));
 				minX = Math.min(minX, x);
 				maxX = Math.max(maxX, x);
 			}
@@ -220,7 +220,7 @@ public class SchemToLay {
 			double minX = Double.POSITIVE_INFINITY;
 			ArrayList<PortInst> ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
+				double x = LayoutLib.roundCenterX(ports.get(i));
 				minX = Math.min(minX, x);
 			}
 			return minX;
@@ -229,7 +229,7 @@ public class SchemToLay {
 			double maxX = Double.NEGATIVE_INFINITY;
 			ArrayList<PortInst> ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
+				double x = LayoutLib.roundCenterX(ports.get(i));
 				maxX = Math.max(maxX, x);
 			}
 			return maxX;
@@ -251,7 +251,7 @@ public class SchemToLay {
 		}
 		private boolean isBlocked(double x, double y, double w, double h) {
 			for (int i=0; i<blockages.size(); i++) {
-				Rectangle2D block = (Rectangle2D) blockages.get(i);
+				Rectangle2D block = blockages.get(i);
 				if (block.intersects(x, y, w, h)) return true;
 			}
 			return false;
@@ -489,7 +489,7 @@ public class SchemToLay {
 										StdCellParams stdCell) {
 		Iterator<NodeInst> iconInsts = schematic.getNodes();
 		while (iconInsts.hasNext()) {
-			NodeInst iconInst = (NodeInst) iconInsts.next();
+			NodeInst iconInst = iconInsts.next();
 			if (!isUsefulIconInst(iconInst, schematic)) continue;
 			Cell lay = getPurpleLay(iconInst, context, stdCell);
 			NodeInst layInst = LayoutLib.newNodeInst(lay, 0, 0, 1, 1, 0, gasp);
@@ -517,8 +517,8 @@ public class SchemToLay {
 	  } else if (!nms2.hasNext()) {
 		  return -1;
 	  }
-					String nm1 = (String) nms1.next();
-					String nm2 = (String) nms2.next();
+					String nm1 = nms1.next();
+					String nm2 = nms2.next();
 					return nm1.compareTo(nm2);
 				}
       };
@@ -545,7 +545,7 @@ public class SchemToLay {
 		ArrayList<Network> sortedNets = sortNets(nets);
 		
 		for (int i=0; i<sortedNets.size(); i++) {
-			Network net = (Network) sortedNets.get(i);
+			Network net = sortedNets.get(i);
 			RouteSeg r = new RouteSeg(net, iconToLay, expTrkAsgn);
 			
 			if (r.getAllPorts().size()==0) {
@@ -599,8 +599,8 @@ public class SchemToLay {
 	private static void metal1route(ArrayList<PortInst> ports) {
 		final double ADJACENT_DIST = 7;
 		for (int i=1; i<ports.size(); i++) {
-			PortInst prev = (PortInst) ports.get(i-1);
-			PortInst port = (PortInst) ports.get(i);
+			PortInst prev = ports.get(i-1);
+			PortInst port = ports.get(i);
 			
 			double dx = LayoutLib.roundCenterX(port) - 
 			            LayoutLib.roundCenterX(prev);
@@ -642,14 +642,14 @@ public class SchemToLay {
 		// connect RouteSeg's exports
 		Iterator<Export> expIt = r.findExports();
 		while (expIt.hasNext()) {
-			Export exp = (Export)expIt.next();
+			Export exp = expIt.next();
 			String expNm = exp.getName();
 			// Align the export with left most port
 			
 			// RKao debug
 			error(ports.size()==0, "No device ports on this net?: "+expNm);
 			
-			double x = LayoutLib.roundCenterX((PortInst)ports.get(0));
+			double x = LayoutLib.roundCenterX(ports.get(0));
 			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), Tech.m2, 
 			                    4, x, trackY);
 			route.connect(gasp.findExport(expNm));
@@ -663,7 +663,7 @@ public class SchemToLay {
 										ArrayList<RouteSeg> segs, boolean exports,
 										StdCellParams stdCell, Cell gasp) {
 		for (int i=0; i<segs.size(); i++) {
-			RouteSeg r = (RouteSeg) segs.get(i);
+			RouteSeg r = segs.get(i);
 			if (exports==r.hasExports()) connectSegment(r, trackAlloc, stdCell, gasp);
 		}
 	}
@@ -672,7 +672,7 @@ public class SchemToLay {
 	private static double estimateWireLength(ArrayList<RouteSeg> routeSegs) {
 		double len = 0;
 		for (int i=0; i<routeSegs.size(); i++) {
-			len += ((RouteSeg)routeSegs.get(i)).estimateLength();
+			len += routeSegs.get(i).estimateLength();
 		}
 		return len;
 	}
@@ -682,7 +682,7 @@ public class SchemToLay {
 		// create Placer instances
 		HashMap<PortInst,Placer.Port> portToPlacerPort = new HashMap<PortInst,Placer.Port>();
 		for (int i=0; i<insts.size(); i++) {
-			NodeInst inst = (NodeInst) insts.get(i);
+			NodeInst inst = insts.get(i);
 			//inst.alterShape(1, 1, 0, 0, 0);
 			
 			int type;
@@ -695,7 +695,7 @@ public class SchemToLay {
 			
 			Iterator<PortInst> it = inst.getPortInsts();
 			while (it.hasNext()) {
-				PortInst port = (PortInst) it.next();
+				PortInst port = it.next();
 				double x = LayoutLib.roundCenterX(port);
 				double y = LayoutLib.roundCenterY(port);
 				Placer.Port plPort = plInst.addPort(x, y);
@@ -704,13 +704,13 @@ public class SchemToLay {
 		}
 		// create Placer nets
 		for (int i=0; i<routeSegs.size(); i++) {
-			RouteSeg seg = (RouteSeg) routeSegs.get(i);
+			RouteSeg seg = routeSegs.get(i);
 			Placer.Net plNet = placer.addNet();
 			
 			ArrayList<PortInst> ports = seg.getAllPorts();
 			for (int j=0; j<ports.size(); j++) {
-				PortInst port = (PortInst) ports.get(j);
-				Placer.Port plPort = (Placer.Port) portToPlacerPort.get(port);
+				PortInst port = ports.get(j);
+				Placer.Port plPort = portToPlacerPort.get(port);
 				error(plPort==null, "can't find placer port");
 				plNet.addPort(plPort);
 			}
@@ -770,7 +770,7 @@ public class SchemToLay {
 	  // search all libraries for the wire icon
 	  Iterator it = Electric.getLibraries();
 	  while (it.hasNext()) {
-      Library lib = (Library) it.next();
+      Library lib = it.next();
       Cell wireIcon = lib.findCell("wire{ic}");  if (wireIcon==null) continue;
       PortProto a = wireIcon.findPort("a");        if (a==null) continue;
       PortProto b = wireIcon.findPort("b");        if (b==null) continue;
@@ -813,7 +813,7 @@ public class SchemToLay {
 	
 	private static PortInst findFirstPort(ArrayList<NodeInst> layInsts, String nm) {
 		for (int i=0; i<layInsts.size(); i++) {
-			NodeInst pi = (NodeInst) layInsts.get(i);
+			NodeInst pi = layInsts.get(i);
 			PortInst port = pi.findPortInst(nm);
 			if (port!=null) return port;
 		}
@@ -837,7 +837,7 @@ public class SchemToLay {
 											ArrayList<RouteSeg> routeSegs,
 											StdCellParams stdCell) {
 		for (int i=0; i<routeSegs.size(); i++) {
-			RouteSeg r = (RouteSeg) routeSegs.get(i);
+			RouteSeg r = routeSegs.get(i);
 			if (r.hasExpTrk()) {
 				trackAlloc.occupyTrack(r, stdCell.getPhysTrackY(r.getExpTrk()), 4.0);
 			}

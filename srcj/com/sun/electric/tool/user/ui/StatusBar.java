@@ -154,7 +154,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 //		{
 //			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 //			{
-//				WindowFrame wf = (WindowFrame)it.next();
+//				WindowFrame wf = it.next();
 //				StatusBar sb = wf.getFrame().getStatusBar();
 //				if (show) sb.addField(sb.fieldCoords, 3); else
 //				{
@@ -225,7 +225,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		{
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				WindowFrame wf = (WindowFrame)it.next();
+				WindowFrame wf = it.next();
 				StatusBar sb = wf.getFrame().getStatusBar();
                 if (sb != null)
 				    sb.redoStatusBar();
@@ -328,9 +328,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 return;
             }
 			NodeInst theNode = null;
-            for(Iterator<Highlight2> hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
+            for(Highlight2 h : highlighter.getHighlights())
             {
-                Highlight2 h = hIt.next();
                 if (h.isHighlightEOBJ())
                 {
                     ElectricObject eObj = (ElectricObject)h.getElectricObject();

@@ -70,7 +70,7 @@ public class StratCount extends Strategy {
 		TreeMap<Integer,NetObjStats> sizeToStats = new TreeMap<Integer,NetObjStats>();
 		void incr(NetObject.Type type, int size) {
 			Integer sz = new Integer(size);
-			NetObjStats stats = (NetObjStats) sizeToStats.get(sz);
+			NetObjStats stats = sizeToStats.get(sz);
 			if (stats==null) {
 				stats = new NetObjStats(0);
 				sizeToStats.put(sz, stats);
@@ -84,9 +84,8 @@ public class StratCount extends Strategy {
 				rightJustifyInField("#Part_Recs", FIELD_WIDTH)+
 				rightJustifyInField("#Wire_Recs", FIELD_WIDTH)+
 				rightJustifyInField("#Port_Recs", FIELD_WIDTH));
-			for (Iterator<Integer> it=sizeToStats.keySet().iterator(); it.hasNext();) {
-				Integer key = (Integer) it.next();
-				NetObjStats stats = (NetObjStats) sizeToStats.get(key);
+			for (Integer key : sizeToStats.keySet()) {
+				NetObjStats stats = sizeToStats.get(key);
 				printLine(rightJustifyInField(key.toString(), 7),
 						  stats);
 			}

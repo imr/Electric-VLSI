@@ -83,7 +83,7 @@ public class ScaleTab extends ProjSettingsPanel
 		int index = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (!tech.isScaleRelevant()) continue;
 			double shownScale = tech.getScale();
 			unitValues.put(tech, new Double(shownScale));
@@ -140,7 +140,7 @@ public class ScaleTab extends ProjSettingsPanel
 		if (spacePos >= 0) str = str.substring(0, spacePos);
 		Technology tech = Technology.findTechnology(str);
 		if (tech == null) return;
-		Double shownValue = (Double)unitValues.get(tech);
+		Double shownValue = unitValues.get(tech);
 		unitsScaleValue.setText(TextUtils.formatDouble(shownValue.doubleValue()));
 		unitsAlternateScale.setText("nanometers (" + (shownValue.doubleValue()/1000.0) + " microns)");
 	}
@@ -151,10 +151,9 @@ public class ScaleTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		for(Iterator<Technology> it = unitValues.keySet().iterator(); it.hasNext(); )
+		for(Technology tech : unitValues.keySet())
 		{
-			Technology tech = (Technology)it.next();
-			Double scaleValue = (Double)unitValues.get(tech);
+			Double scaleValue = unitValues.get(tech);
 			if (scaleValue.doubleValue() != tech.getScale())
 			{
 				tech.setScale(scaleValue.doubleValue());

@@ -273,9 +273,8 @@ public class Stimuli
 	{
 		// determine extent of the data
 		Rectangle2D bounds = null;
-		for(Iterator<Analysis> it = analysisList.iterator(); it.hasNext(); )
+		for(Analysis an : analysisList)
 		{
-			Analysis an = it.next();
 			Rectangle2D anBounds = an.getBounds();
 			if (anBounds == null) continue;
 			if (bounds == null)
@@ -295,12 +294,11 @@ public class Stimuli
 	 */
 	public boolean isAnalog()
 	{
-		for(Iterator<Analysis> it = analysisList.iterator(); it.hasNext(); )
+		for(Analysis an : analysisList)
 		{
-			Analysis an = it.next();
 			if (an.getSignals().size() > 0)
 			{
-				Signal sSig = (Signal)an.getSignals().get(0);
+				Signal sSig = an.getSignals().get(0);
 				if (sSig instanceof AnalogSignal) return true;
 			}
 		}
