@@ -76,7 +76,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		dialog.setVisible(true);
 	}
 
-	/** Creates new form Search and Replace */
+	/** Creates new form SelectObject */
 	private SelectObject(Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -199,7 +199,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 					Export pp = (Export)it.next();
 					if (s.equals(pp.getName()))
 					{
-						highlighter.addText(pp, cell, null);
+						highlighter.addText(pp, cell, Export.EXPORT_NAME);
 						break;
 					}
 				}

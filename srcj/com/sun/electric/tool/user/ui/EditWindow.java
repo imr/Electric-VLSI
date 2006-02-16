@@ -2052,7 +2052,9 @@ public class EditWindow extends JPanel
 		} else
 		{
 			ElectricObject eObj = (ElectricObject)currentStringInCell.object;
-			highlighter.addText(eObj, cell, currentStringInCell.key);
+			Variable.Key key = currentStringInCell.key;
+			if (eObj instanceof Export) key = Export.EXPORT_NAME;
+			highlighter.addText(eObj, cell, key);
 		}
 		highlighter.finished();
 		return true;	
