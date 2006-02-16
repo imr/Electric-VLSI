@@ -255,9 +255,7 @@ public class Version implements Comparable<Version>
      * @param v the object to be compared.
      * @return the result of comparison.
      */
-/*5*/public int compareTo(Version v) {
-//4*/public int compareTo(Object o) {
-//4*/	Version v = (Version)o;
+	public int compareTo(Version v) {
 
 		if (major < v.major) return -1;
 		if (major > v.major) return 1;

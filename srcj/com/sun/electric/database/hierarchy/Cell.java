@@ -2071,8 +2071,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             
             public boolean hasNext() { return nextU != null; }
             
-/*5*/       public CellUsage next() {
-//4*/       public Object next() {
+            public CellUsage next() {
                 if (nextU == null) throw new NoSuchElementException();
                 CellUsage u = nextU;
                 nextU = findNext();
@@ -2297,7 +2296,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void removeNodeName(NodeInst ni)
 	{
 		int nodeIndex = ni.getNodeIndex();
-		NodeInst removedNi = (NodeInst) nodes.remove(nodeIndex);
+		NodeInst removedNi = nodes.remove(nodeIndex);
 		assert removedNi == ni;
 		for (int i = nodeIndex; i < nodes.size(); i++)
 		{
@@ -3431,8 +3430,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             
             public boolean hasNext() { return nextU != null; }
             
-/*5*/       public CellUsage next() {
-//4*/       public Object next() {
+            public CellUsage next() {
                 if (nextU == null) throw new NoSuchElementException();
                 CellUsage u = nextU;
                 nextU = findNext();
@@ -3478,8 +3476,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		public boolean hasNext() { return ni != null; }
 
-/*5*/	public NodeInst next()
-//4*/	public Object next()
+		public NodeInst next()	
 		{
             NodeInst ni = this.ni;
             if (ni == null) throw new NoSuchElementException();

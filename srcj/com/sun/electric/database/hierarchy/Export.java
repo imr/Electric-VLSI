@@ -720,10 +720,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param that the other Export.
      * @return a comparison between the Exports.
      */
-/*5*/public int compareTo(Export that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(Export that)
 	{
-//4*/	Export that = (Export)obj;
 		if (parent != that.parent)
 		{
 			int cmp = parent.compareTo(that.parent);

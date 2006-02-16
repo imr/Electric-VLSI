@@ -300,13 +300,10 @@ public class DRCTemplate
      */
     public static class DRCTemplateSort implements Comparator<DRCTemplate>
     {
-/*5*/   public int compare(DRCTemplate d1, DRCTemplate d2)
-//4*/   public int compare(Object o1, Object o2)
+    	public int compare(DRCTemplate d1, DRCTemplate d2)
         {
-/*5*/       double bb1 = d1.value1;
-/*5*/       double bb2 = d2.value1;
-//4*/       double bb1 = ((DRCTemplate)o1).value1;
-//4*/       double bb2 = ((DRCTemplate)o2).value1;
+    		double bb1 = d1.value1;
+    		double bb2 = d2.value1;
 
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;

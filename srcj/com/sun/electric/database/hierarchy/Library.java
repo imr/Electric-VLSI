@@ -1207,10 +1207,8 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @param that the Library to be compared.
      * @return the result of comparison.
      */
-/*5*/public int compareTo(Library that)
-//4*/public int compareTo(Object o)
+	public int compareTo(Library that)
 	{
-//4*/	Library that = (Library)o;
 		return TextUtils.STRING_NUMBER_ORDER.compare(d.libName, that.d.libName);
     }
 

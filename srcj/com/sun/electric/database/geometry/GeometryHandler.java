@@ -156,13 +156,10 @@ public abstract class GeometryHandler {
      */
 	private static class ShapeSort implements Comparator<Shape>
     {
-/*5*/   public int compare(Shape s1, Shape s2)
-//4*/   public int compare(Object o1, Object o2)
+		public int compare(Shape s1, Shape s2)
         {
-/*5*/       double bb1 = s1.getBounds2D().getX();
-/*5*/       double bb2 = s2.getBounds2D().getX();
-//4*/       double bb1 = ((Shape)o1).getBounds2D().getX();
-//4*/       double bb2 = ((Shape)o2).getBounds2D().getX();
+			double bb1 = s1.getBounds2D().getX();
+			double bb2 = s2.getBounds2D().getX();
             // Sorting along X
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;
@@ -175,13 +172,10 @@ public abstract class GeometryHandler {
      */
     private static class AreaSort implements Comparator<Area>
     {
-/*5*/   public int compare(Area a1, Area a2)
-//4*/   public int compare(Object o1, Object o2)
+    	public int compare(Area a1, Area a2)
         {
-/*5*/       double bb1 = a1.getBounds2D().getX();
-/*5*/       double bb2 = a2.getBounds2D().getX();
-//4*/       double bb1 = ((Area)o1).getBounds2D().getX();
-//4*/       double bb2 = ((Area)o2).getBounds2D().getX();
+    		double bb1 = a1.getBounds2D().getX();
+    		double bb2 = a2.getBounds2D().getX();
             // Sorting along X
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;

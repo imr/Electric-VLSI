@@ -697,8 +697,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 			return pos < array.length; 
 		} 
 
-/*5*/	public Layer next() throws NoSuchElementException 
-//4*/	public Object next() throws NoSuchElementException 
+		public Layer next() throws NoSuchElementException
 		{ 
 			if (pos >= array.length) 
 				throw new NoSuchElementException(); 
@@ -1459,10 +1458,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * @param that the other PrimitiveNode.
      * @return a comparison between the PrimitiveNodes.
      */
-/*5*/public int compareTo(PrimitiveNode that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(PrimitiveNode that)
 	{
-//4*/	PrimitiveNode that = (PrimitiveNode)obj;
 		if (this.tech != that.tech)
 		{
 			int cmp = this.tech.compareTo(that.tech);

@@ -404,8 +404,7 @@ public class Layer
 		 * @param l2 another layer.
 		 * @return an integer indicating their sorting order.
 		 */
-/*5*/   public int compare(Layer l1, Layer l2)
-//4*/   private static int compareStatic(Layer l1, Layer l2)
+		public int compare(Layer l1, Layer l2)
         {
 			String s1 = l1.getName();
 			String s2 = l2.getName();;

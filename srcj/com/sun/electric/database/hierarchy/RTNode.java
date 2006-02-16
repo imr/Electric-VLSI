@@ -777,8 +777,7 @@ class RTNode
 			return nextObj != null;
 		}
 
-/*5*/	public Geometric next()
-//4*/	public Object next()
+		public Geometric next()
 		{
 			if (nextObj != null)
 			{

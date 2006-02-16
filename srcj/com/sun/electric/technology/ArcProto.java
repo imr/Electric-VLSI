@@ -867,8 +867,7 @@ public class ArcProto implements Comparable<ArcProto>
 			return pos < array.length; 
 		} 
 
-/*5*/	public Layer next() throws NoSuchElementException 
-//4*/	public Object next() throws NoSuchElementException 
+		public Layer next() throws NoSuchElementException 
 		{ 
 			if (pos >= array.length) 
 				throw new NoSuchElementException(); 
@@ -938,10 +937,8 @@ public class ArcProto implements Comparable<ArcProto>
      * @param that the other ArcProto.
      * @return a comparison between the ArcProto.
      */
-/*5*/public int compareTo(ArcProto that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(ArcProto that)
 	{
-//4*/	ArcProto that = (ArcProto)obj;
 		if (this.tech != that.tech)
 		{
 			int cmp = this.tech.compareTo(that.tech);

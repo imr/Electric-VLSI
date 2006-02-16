@@ -1189,10 +1189,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param that the other ArcInst.
      * @return a comparison between the ArcInsts.
      */
-/*5*/public int compareTo(ArcInst that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(ArcInst that)
 	{
-//4*/	ArcInst that = (ArcInst)obj;
 		int cmp;
 		if (this.parent != that.parent)
 		{

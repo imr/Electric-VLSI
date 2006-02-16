@@ -1594,11 +1594,8 @@ public class VectorDrawing
 		/**
 		 * Method to sort Objects by their string name.
 		 */
-/*5*/   public int compare(VectorBase vb1, VectorBase vb2)
-//4*/   public int compare(Object o1, Object o2)
+    	public int compare(VectorBase vb1, VectorBase vb2)
         {
-//4*/		VectorBase vb1 = (VectorBase)o1;
-//4*/		VectorBase vb2 = (VectorBase)o2;
 			int level1 = 1000, level2 = 1000;
 			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
 			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();

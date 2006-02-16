@@ -172,11 +172,8 @@ public class PortCharacteristic
 
 	static class CharacteristicOrder implements Comparator<PortCharacteristic>
 	{
-/*5*/	public int compare(PortCharacteristic c1, PortCharacteristic c2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(PortCharacteristic c1, PortCharacteristic c2)
 		{
-//4*/		PortCharacteristic c1 = (PortCharacteristic)o1;
-//4*/		PortCharacteristic c2 = (PortCharacteristic)o2;
 			return c1.order - c2.order;
 		}
 	}

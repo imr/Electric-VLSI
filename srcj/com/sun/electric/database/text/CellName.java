@@ -126,9 +126,7 @@ public class CellName implements Comparable<CellName>
      * @param that the CellName to be compared.
      * @return the result of comparison.
      */
-/*5*/public int compareTo(CellName that) {
-//4*/public int compareTo(Object o) {
-//4*/	CellName that = (CellName)o;
+	public int compareTo(CellName that) {
 		int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
 		if (cmp != 0) return cmp;
 

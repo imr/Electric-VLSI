@@ -41,8 +41,7 @@ import java.util.Set;
  */
 public class TransitiveRelation<T> {
 	private Map<T,HashSet<T>> objToRelated = new HashMap<T,HashSet<T>>();
-/*5*/public void theseAreRelated(T o1, T o2) {
-//4*/public void theseAreRelated(Object o1, Object o2) {
+	public void theseAreRelated(T o1, T o2) {
 		HashSet<T> s1 = (HashSet<T>) objToRelated.get(o1);
 		HashSet<T> s2 = (HashSet<T>) objToRelated.get(o2);
 		if (s1==null && s2==null) {

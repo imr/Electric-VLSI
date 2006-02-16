@@ -362,11 +362,8 @@ public class View implements Comparable<View>
 
 	private static class ViewByOrder implements Comparator<View>
 	{
-/*5*/	public int compare(View v1, View v2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(View v1, View v2)
 		{
-//4*/		View v1 = (View)o1;
-//4*/		View v2 = (View)o2;
 			return v1.getOrder() - v2.getOrder();
 		}
 	}
@@ -376,10 +373,8 @@ public class View implements Comparable<View>
      * @param that the View to be compared.
      * @return the result of comparison.
      */
-/*5*/public int compareTo(View that)
-//4*/public int compareTo(Object o)
+	public int compareTo(View that)
 	{
-//4*/	View that = (View)o;
 		return TextUtils.STRING_NUMBER_ORDER.compare(getAbbreviation(), that.getAbbreviation());
     }
 

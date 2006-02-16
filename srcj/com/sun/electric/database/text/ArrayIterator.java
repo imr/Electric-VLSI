@@ -30,20 +30,17 @@ import java.util.NoSuchElementException;
  * An iterator over an array.
  */
 public class ArrayIterator<E> implements Iterator<E> {
-/*5*/private final E[] array;
-//4*/private final Object[] array;
+	private final E[] array;
     private final int limit;
 	private int cursor;
 
-/*5*/private ArrayIterator(E[] array) {
-//4*/private ArrayIterator(Object[] array) {
+	private ArrayIterator(E[] array) {
         this.array = array;
         limit = array.length;
         cursor = 0;
     }
 
-/*5*/private ArrayIterator(E[] array, int start, int limit)
-//4*/private ArrayIterator(Object[] array, int start, int limit)
+	private ArrayIterator(E[] array, int start, int limit)
 	{
 		this.array = array;
         this.limit = limit;
@@ -55,8 +52,7 @@ public class ArrayIterator<E> implements Iterator<E> {
 	 * @param array array with elements or null.
 	 * @return iterator over elements of the array or NULL_ITERATOR.
 	 */
-/*5*/public static <E> Iterator<E> iterator(E[] array)
-//4*/public static Iterator iterator(Object[] array)
+	public static <E> Iterator<E> iterator(E[] array)
 	{
 		if (array != null && array.length > 0) return new ArrayIterator<E>(array);
         Iterator<E> emptyIterator = emptyIterator();
@@ -71,8 +67,7 @@ public class ArrayIterator<E> implements Iterator<E> {
 	 * @return iterator over range of elements of the array or EMPTY_ITERATOR.
      * @throws IndexOutOfBoundsException if start or limit are not correct
 	 */
-/*5*/public static <E> Iterator<E> iterator(E[] array, int start, int limit)
-//4*/public static Iterator iterator(Object[] array, int start, int limit)
+	public static <E> Iterator<E> iterator(E[] array, int start, int limit)
 	{
         if (array != null) {
             if (start >= 0 && limit <= array.length) {
@@ -110,13 +105,11 @@ public class ArrayIterator<E> implements Iterator<E> {
 	 * @return the next element in the iteration.
 	 * @exception NoSuchElementException iteration has no more elements.
 	 */
-/*5*/public E next()
-//4*/public Object next()
+	public E next()
 	{
         if (cursor >= limit)
 			throw new NoSuchElementException();
-/*5*/	E next = array[cursor];
-//4*/	Object next = array[cursor];
+		E next = array[cursor];
 		cursor++;
 		return next;
     }

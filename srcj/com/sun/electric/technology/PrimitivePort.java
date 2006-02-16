@@ -389,10 +389,8 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
      * @param that the other PrimitivePort.
      * @return a comparison between the PrimitivePorts.
      */
-/*5*/public int compareTo(PrimitivePort that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(PrimitivePort that)
 	{
-//4*/	PrimitivePort that = (PrimitivePort)obj;
 		if (this.parent != that.parent)
 		{
 			int cmp = this.parent.compareTo(that.parent);

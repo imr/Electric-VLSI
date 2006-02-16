@@ -995,11 +995,8 @@ public class Technology implements Comparable<Technology>
 
 	private static class LayerHeight implements Comparator<Layer>
 	{
-/*5*/	public int compare(Layer l1, Layer l2)
-//4*/	public int compare(Object o1, Object o2)
+		public int compare(Layer l1, Layer l2)
 		{
-//4*/		Layer l1 = (Layer)o1;
-//4*/		Layer l2 = (Layer)o2;
 			int h1 = l1.getFunction().getHeight();
 			int h2 = l2.getFunction().getHeight();
 			return h1 - h2;
@@ -3714,10 +3711,8 @@ public class Technology implements Comparable<Technology>
      * @param that the other Technology.
      * @return a comparison between the Technologies.
      */
-/*5*/public int compareTo(Technology that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(Technology that)
 	{
-//4*/	Technology that = (Technology)obj;
 		return TextUtils.STRING_NUMBER_ORDER.compare(techName, that.techName);
 	}
 

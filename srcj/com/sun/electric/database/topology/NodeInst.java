@@ -2753,10 +2753,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param that the other NodeInst.
      * @return a comparison between the NodeInsts.
      */
-/*5*/public int compareTo(NodeInst that)
-//4*/public int compareTo(Object obj)
+	public int compareTo(NodeInst that)
 	{
-//4*/	NodeInst that = (NodeInst)obj;
 		int cmp;
 		if (this.parent != that.parent)
 		{
