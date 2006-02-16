@@ -4115,7 +4115,7 @@ public class Technology implements Comparable<Technology>
 
         public boolean doIt() throws JobException
         {
-            Undo.changesQuiet(true);
+//            Undo.changesQuiet(true);
             if (library != null)
             {
                 checkLibrary(library);
@@ -4129,7 +4129,7 @@ public class Technology implements Comparable<Technology>
                     checkLibrary(lib);
                 }
             }
-            Undo.changesQuiet(false);
+//            Undo.changesQuiet(false);
             return true;
         }
     }

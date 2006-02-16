@@ -411,52 +411,11 @@ class ClientJobManager extends JobManager {
             this.newSnapshot = newSnapshot;
         }
         public void run() {
-            boolean cellTreeChanged = Library.updateAll(oldSnapshot, newSnapshot);
+            Library.checkFresh(oldSnapshot);
+            Library.undo(newSnapshot);
             NetworkTool.updateAll(oldSnapshot, newSnapshot);
-            for (int i = 0; i < newSnapshot.cellBackups.size(); i++) {
-            	CellBackup newBackup = newSnapshot.getCell(i);
-            	CellBackup oldBackup = oldSnapshot.getCell(i);
-                ERectangle newBounds = newSnapshot.getCellBounds(i);
-                ERectangle oldBounds = oldSnapshot.getCellBounds(i);
-            	if (newBackup != oldBackup || newBounds != oldBounds) {
-            		Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            		User.markCellForRedraw(cell, true);
-            	}
-            }
-            SnapshotDatabaseChangeEvent event = new SnapshotDatabaseChangeEvent(oldSnapshot, cellTreeChanged, newSnapshot);
+            DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
             UserInterfaceMain.fireDatabaseChangeEvent(event);
         }
 	}
-    
-    private static class SnapshotDatabaseChangeEvent extends DatabaseChangeEvent {
-        private boolean cellTreeChanged;
-        
-        SnapshotDatabaseChangeEvent(Snapshot oldSnapshot, boolean cellTreeChanged, Snapshot newSnapshot) {
-            super(oldSnapshot, newSnapshot);
-            this.cellTreeChanged = cellTreeChanged;
-        }
-        
-        /**
-         * Returns true if ElectricObject eObj was created, killed or modified
-         * in the new database state.
-         * @param eObj ElectricObject to test.
-         * @return true if the ElectricObject was changed.
-         */
-        public boolean objectChanged(ElectricObject eObj) { return true; }
-        
-        /**
-         * Returns true if cell explorer tree was changed
-         * in the new database state.
-         * @return true if cell explorer tree was changed.
-         */
-        public boolean cellTreeChanged() {
-            return cellTreeChanged;
-//                if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
-//                    ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
-//                    ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
-//                    return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
-//                }
-        }
-    }
-    
 }

@@ -55,7 +55,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         this.libFile = libFile;
         this.version = version;
         this.flags = flags;
-        check();
+//        check();
     }
 
 	/**

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;

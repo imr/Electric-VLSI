@@ -41,15 +41,15 @@ import com.sun.electric.database.variable.ElectricObject;
  * The methods here are overridden by the actual constraint solver.
  * At this time, there is only one solver: Layout.
  */
-public class Constraints /*implements Changes*/
+public abstract class Constraints
 {
-	private static Constraints curConstraint = new Constraints();
+	private static Constraints curConstraint = new Layout();
 
-	/**
-	 * Method to set a new current constraint system.
-	 * @param con the constraint system to become the current one.
-	 */
-	public static void setCurrent(Constraints con) { curConstraint = con; }
+//	/**
+//	 * Method to set a new current constraint system.
+//	 * @param con the constraint system to become the current one.
+//	 */
+//	public static void setCurrent(Constraints con) { curConstraint = con; }
 
 	/**
 	 * Method to return the current constraint system.
@@ -86,7 +86,7 @@ public class Constraints /*implements Changes*/
 	/**
 	 * Method to handle the end of a batch of changes.
 	 */
-	public void endBatch(String userName) {}
+	public abstract Snapshot endBatch(String userName);
 
 	/**
 	 * Method to announce a change to a NodeInst.

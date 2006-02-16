@@ -250,7 +250,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.length = length;
         this.angle = angle;
         this.flags = flags;
-        check();
+//        check();
     }
 
 	/**
@@ -270,20 +270,23 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param flags flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
      * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
-     * @throws IllegalArgumentException if name is not valid, or width is bad.
+     * @throws IllegalArgumentException if arcId, tailNodeId, headNodeId or name is not valid, or width is bad.
      */
     public static ImmutableArcInst newInstance(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             double width, int angle, int flags) {
+        if (arcId < 0) throw new IllegalArgumentException("arcId");
 		if (protoType == null) throw new NullPointerException("protoType");
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (!(width >= 0)) throw new IllegalArgumentException("width");
+        if (tailNodeId < 0) throw new IllegalArgumentException("tailNodeId");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
         if (tailLocation == null) throw new NullPointerException("tailLocation");
+        if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
         width = DBMath.round(width);
@@ -524,6 +527,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public void check() {
         check(false);
+        assert arcId >= 0;
 		assert protoType != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
@@ -531,8 +535,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             assert name.getBasename() == BASENAME && !name.isBus();
         if (nameDescriptor != null)
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
+        assert tailNodeId >= 0;
         assert tailPortId != null;
         assert tailLocation != null;
+        assert headNodeId >= 0;
         assert headPortId != null;
         assert headLocation != null;
         assert width > 0 || width == 0 && 1/width > 0;

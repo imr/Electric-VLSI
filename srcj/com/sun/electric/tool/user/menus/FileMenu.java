@@ -685,18 +685,18 @@ public class FileMenu {
             fileName = OpenFile.chooseOutputFile(FileType.libraryTypes, null, lib.getName() + "." + extension);
             if (fileName == null) return false;
             type = getLibraryFormat(fileName, type);
-            // mark for saving, all libraries that depend on this
-            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-            {
-                Library oLib = it.next();
-                if (oLib.isHidden()) continue;
-                if (oLib == lib) continue;
-                if (oLib.isChangedMajor()) continue;
-
-                // see if any cells in this library reference the renamed one
-                if (oLib.referencesLib(lib))
-                    oLib.setChangedMajor();
-            }
+//            // mark for saving, all libraries that depend on this
+//            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//            {
+//                Library oLib = it.next();
+//                if (oLib.isHidden()) continue;
+//                if (oLib == lib) continue;
+//                if (oLib.isChangedMajor()) continue;
+//
+//                // see if any cells in this library reference the renamed one
+//                if (oLib.referencesLib(lib))
+//                    oLib.setChanged();
+//            }
         }
 
         // save the library
@@ -718,7 +718,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
-            super("Write "+lib, User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER); // CHANGE because of possible renaming
             this.lib = lib;
             this.newName = newName;
             this.type = type;
@@ -1220,23 +1220,27 @@ public class FileMenu {
 			}
 
             // warn about this library
-            String how = "significantly";
-            String toolTipMessage = "Major changes include creation, deletion, or modification of circuit\n" +
-                    "elements including variable and export renaming.";
-            if (!lib.isChangedMajor())
-            {
-                how = "insignificantly";
-                toolTipMessage = "Minor changes include DRC dates, expanded flag.";
-            }
+//            String how = "significantly";
+//            String toolTipMessage = "Major changes include creation, deletion, or modification of circuit\n" +
+//                    "elements including variable and export renaming.";
+//            if (!lib.isChangedMajor())
+//            {
+//                how = "insignificantly";
+//                toolTipMessage = "Minor changes include DRC dates, expanded flag.";
+//            }
 
             String theAction = "Save before quitting?";
             if (action == 1) theAction = "Save before closing?"; else
                 if (action == 2) theAction = "Save before replacing?";
             String [] options = {"Yes", "No", "Cancel", "No to All"};
             int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
-                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
+                "Library '" + lib.getName() + "' has changed.  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                null, options, options[0], toolTipMessage);
+                null, options, options[0], null);
+//            int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
+//                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
+//                "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+//                null, options, options[0], toolTipMessage);
             if (ret == 0)
             {
                 // save the library
@@ -1399,7 +1403,7 @@ public class FileMenu {
             System.out.print("."); System.out.flush();
             URL libURL = lib.getLibFile();
             File newLibFile = null;
-            if (libURL.getPath() == null) {
+            if (libURL == null || libURL.getPath() == null) {
                 newLibFile = new File(panicDir.getAbsolutePath(), lib.getName()+type.getExtensions()[0]);
             } else {
                 File libFile = new File(libURL.getPath());

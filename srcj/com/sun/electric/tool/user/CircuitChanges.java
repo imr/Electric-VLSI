@@ -22,12 +22,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -516,7 +514,7 @@ public class CircuitChanges
 		// delete random references to this cell
 		Library lib = cell.getLibrary();
 		if (cell == Job.getUserInterface().getCurrentCell(lib))
-			Job.getUserInterface().setCurrentCell(lib, null);
+		    Job.getUserInterface().setCurrentCell(lib, null);
 
 		// close windows that reference this cell
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -1146,7 +1144,8 @@ public class CircuitChanges
 			if (unExpand) doUnExpand(ni); else
 				doExpand(ni, amount, 0);
 			if (User.isUseOlderDisplayAlgorithm())
-				Undo.redrawObject(ni);
+                User.markCellForRedraw(ni.getParent(), false);
+//				Undo.redrawObject(ni);
 		}
 		expandFlagBit = null;
 		PixelDrawing.clearSubCellCache();

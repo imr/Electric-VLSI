@@ -75,9 +75,9 @@ public class DatabaseChangeEvent {
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             CellBackup newBackup = newSnapshot.getCell(cellId);
             if (oldBackup == null || newBackup == null) return true;
+            if (oldBackup.modified != newBackup.modified) return true;
             ImmutableCell oldD = oldBackup.d;
             ImmutableCell newD = newBackup.d;
-            if (oldD.modified != newD.modified) return true;
             if (oldD.cellName != newD.cellName) return true;
             if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
         }

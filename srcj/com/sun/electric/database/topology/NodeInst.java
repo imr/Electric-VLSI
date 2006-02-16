@@ -882,8 +882,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return true;
     }
     
-    public void setDInClient(ImmutableNodeInst newD) {
-        assert Job.getRunMode() == Job.Mode.CLIENT;
+    public void setDInUndo(ImmutableNodeInst newD) {
+        checkUndoing();
         d = newD;
     }
 

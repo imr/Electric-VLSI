@@ -23,8 +23,11 @@
  */
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,9 +40,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
+import com.sun.electric.technology.Foundry.Type;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -127,8 +132,9 @@ public class DRC extends Listener
 	private static void includeGeometric(Geometric geom)
 	{
 		if (!isIncrementalDRCOn()) return;
-		Cell cell = geom.getParent();
-		synchronized (cellsToCheck)
+        Cell cell = geom.getParent();
+
+        synchronized (cellsToCheck)
 		{
 			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
 			if (cellSet == null)
@@ -138,7 +144,7 @@ public class DRC extends Listener
 			}
 			cellSet.add(geom);
 		}
-	}
+    }
 
 	private static void removeGeometric(Geometric geom)
 	{
@@ -158,7 +164,7 @@ public class DRC extends Listener
 
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
-		Cell cellToCheck = curLib.getCurCell(); //Job.getUserInterface().getCurrentCell(curLib);
+		Cell cellToCheck = Job.getUserInterface().getCurrentCell(curLib);
 		HashSet<Geometric> cellSet = null;
 
 		// get a cell to check
@@ -194,59 +200,102 @@ public class DRC extends Listener
 		}
 	}
 
-	/**
-	 * Method to announce the end of a batch of changes.
-	 */
-	public void endBatch()
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            Cell cell = Cell.inCurrentThread(cellId);
+            if (cell == null) continue;
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                ImmutableNodeInst d = ni.getD();
+                if (oldBackup == null || oldBackup.getNode(d.nodeId) != d)
+                    includeGeometric(ni);
+            }
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+                ArcInst ai = it.next();
+                ImmutableArcInst d = ai.getD();
+                if (oldBackup == null || oldBackup.getArc(d.arcId) != d)
+                    includeGeometric(ai);
+            }
+        }
 		doIncrementalDRCTask();
 	}
 
-	/**
-	 * Method to announce a change to a NodeInst.
-	 * @param ni the NodeInst that was changed.
-	 * @param oD the old contents of the NodeInst.
-	 */
-	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-	{
-		includeGeometric(ni);
-	}
-
-	/**
-	 * Method to announce a change to an ArcInst.
-	 * @param ai the ArcInst that changed.
-     * @param oD the old contents of the ArcInst.
-	 */
-	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-	{
-		includeGeometric(ai);
-	}
-
-	/**
-	 * Method to announce the creation of a new ElectricObject.
-	 * @param obj the ElectricObject that was just created.
-	 */
-	public void newObject(ElectricObject obj)
-	{
-		if (obj instanceof Geometric)
-		{
-			includeGeometric((Geometric)obj);
-		}
-	}
-
-	/**
-	 * Method to announce the deletion of an ElectricObject.
-	 * @param obj the ElectricObject that was just deleted.
-	 */
-	public void killObject(ElectricObject obj)
-	{
-		if (obj instanceof Geometric)
-		{
-			removeGeometric((Geometric)obj);
-		}
-	}
+//	/**
+//	 * Method to announce a change to a NodeInst.
+//	 * @param ni the NodeInst that was changed.
+//	 * @param oD the old contents of the NodeInst.
+//	 */
+//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
+//	{
+//		includeGeometric(ni);
+//	}
+//
+//	/**
+//	 * Method to announce a change to an ArcInst.
+//	 * @param ai the ArcInst that changed.
+//     * @param oD the old contents of the ArcInst.
+//	 */
+//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
+//	{
+//		includeGeometric(ai);
+//	}
+//
+//	/**
+//	 * Method to announce the creation of a new ElectricObject.
+//	 * @param obj the ElectricObject that was just created.
+//	 */
+//	public void newObject(ElectricObject obj)
+//	{
+//		if (obj instanceof Geometric)
+//		{
+//			includeGeometric((Geometric)obj);
+//		}
+//	}
+//
+//	/**
+//	 * Method to announce the deletion of an ElectricObject.
+//	 * @param obj the ElectricObject that was just deleted.
+//	 */
+//	public void killObject(ElectricObject obj)
+//	{
+//		if (obj instanceof Geometric)
+//		{
+//			removeGeometric((Geometric)obj);
+//		}
+//	}
 
 	/****************************** DRC INTERFACE ******************************/
+
+	/**
+	 * Method to check the current cell hierarchically or
+	 * the selected area of the current cell hierarchically if areaCheck is true
+	 */
+//	public static void checkHierarchically(boolean areaCheck, GeometryHandler.GHMode mode)
+//	{
+//		Cell curCell = null;
+//		Rectangle2D bounds = null;
+//		UserInterface ui = Main.getUserInterface();
+//		if (!areaCheck)
+//		{
+//			curCell = ui.needCurrentCell();
+//		} else
+//		{
+//			EditWindow_ wnd = ui.getCurrentEditWindow_();
+//			if (wnd == null) return;
+//			bounds = wnd.getHighlightedArea();
+//			curCell = wnd.getCell();
+//		}
+//
+//        checkDRCHierarchically(curCell, bounds, mode);
+//	}
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.
@@ -352,6 +401,30 @@ public class DRC extends Listener
 			return true;
 		}
 	}
+
+//	private static class CheckSchematicHierarchically extends CheckDRCJob
+//	{
+//        /**
+//         * Check bounds within Cell.  If bounds is null, check entire cell.
+//         * @param cell
+//         */
+//		protected CheckSchematicHierarchically(Cell cell)
+//		{
+//			super("Design-Rule Check " + cell, cell, tool, Job.Priority.USER);
+////            super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			long startTime = System.currentTimeMillis();
+//			ErrorLogger errorLog = Schematic.doCheck(cell, null);
+//			long endTime = System.currentTimeMillis();
+//			int errorCount = errorLog.getNumErrors();
+//			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+//			return true;
+//		}
+//	}
 
 	/**
 	 * Method to delete all cached date information on all cells.

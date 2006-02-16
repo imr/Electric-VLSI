@@ -25,8 +25,6 @@ package com.sun.electric;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -189,7 +187,6 @@ public final class Main
 			if (lib == null) return null;
 			return lib.getCurCell();
         }
-
 		/**
 		 * Method to get the current Cell in a given Library.
 		 * @param lib the library to query.
@@ -433,8 +430,8 @@ public final class Main
 				Tool.initAllTools();
 
 				// initialize the constraint system
-				Layout con = Layout.getConstraint();
-				Constraints.setCurrent(con);
+//				Layout con = Layout.getConstraint();
+//				Constraints.setCurrent(con);
 			} finally {
 				Undo.changesQuiet(false);
 			}

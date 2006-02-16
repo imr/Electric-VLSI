@@ -209,7 +209,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         Throwable jobException = null;
 		try {
             if (!ejob.isExamine()) {
-                thread.setCanChanging(true);
+                if (ejob.jobType == Job.Type.CHANGE)
+                    thread.setCanChanging(true);
+                else
+                    thread.setCanUndoing(true);
                 thread.setCanComputeBounds(true);
                 thread.setCanComputeNetlist(true);
                 thread.setJob(ejob);
@@ -235,6 +238,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		} finally {
 			if (!ejob.isExamine()) {
 				thread.setCanChanging(false);
+                thread.setCanUndoing(false);
                 thread.setCanComputeBounds(false);
                 thread.setCanComputeNetlist(false);
                 thread.setJob(null);
@@ -301,7 +305,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     
     private void updateSnapshot() {
         Snapshot oldSnapshot = currentSnapshot;
-        Snapshot newSnapshot = Snapshot.makeSnapshot(oldSnapshot);
+        Snapshot newSnapshot = Library.backup();
         if (newSnapshot == oldSnapshot) return;
         Job.currentUI.showSnapshot(newSnapshot);
         lock();
@@ -548,8 +552,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		 */
 		public void setCurrentCell(Library lib, Cell curCell)
 		{
-			System.out.println("UserUnterface.setCurrentCell(lib,cell) was called from DatabaseChangedThread");
-			Job.currentUI.setCurrentCell(lib, curCell);
+            System.out.println("UserInferface.setCurrentCell(lib,curCell) was called from DatabaseChangesThread");
+            Job.currentUI.setCurrentCell(lib, curCell);
 		}
 
 		public void repaintAllEditWindows() {

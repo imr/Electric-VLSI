@@ -135,7 +135,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/** Flag bits for this ImmutableNodeInst. */                    public final int flags;
     /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
 	/** Text descriptor of prototype name. */                       public final TextDescriptor protoDescriptor;
-    /** Variables on PortInsts. */                                  private final ImmutablePortInst[] ports;
+    /** Variables on PortInsts. */                                  final ImmutablePortInst[] ports;
  
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
@@ -168,7 +168,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
-        check();
+//        check();
     }
 
 	/**
@@ -186,11 +186,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
 	 * @return new ImmutableNodeInst object.
 	 * @throws NullPointerException if protoId, name, orient or anchor is null.
-     * @throws IllegalArgumentException if size is bad.
+     * @throws IllegalArgumentException if nodeId or size is bad.
 	 */
     public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int flags, int techBits, TextDescriptor protoDescriptor) {
+        if (nodeId < 0) throw new IllegalArgumentException("nodeId");
 		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
@@ -553,6 +554,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public void check() {
         check(false);
+        assert nodeId >= 0;
 		assert protoId != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();

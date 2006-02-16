@@ -775,7 +775,7 @@ public class EditMenu {
 				}
 				if (changed)
 				{
-					Undo.redrawObject(ni);
+//					Undo.redrawObject(ni);
 					changeCount++;
 				}
 			}

@@ -23,11 +23,14 @@
  */
 package com.sun.electric.database.constraint;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -46,6 +49,7 @@ import com.sun.electric.tool.Job;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -60,23 +64,25 @@ public class Layout extends Constraints
 
 	static final boolean DEBUG = false;
 
-    private static boolean wasChangesQuiet;
+    static boolean isReadingLibrary;
     static Snapshot oldSnapshot;
-    private static long revisionDate;
-    private static String userName;
+    static long revisionDate;
+    static String userName;
 
     /** Shadow Cell info */
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
     /** Map which contains temporary rigidity of ArcInsts. */ 
     private static final HashMap<ArcInst,Boolean> tempRigid = new HashMap<ArcInst,Boolean>();
+    /** Saved libraries */
+    static final HashSet<LibId> librariesWritten = new HashSet<LibId>();
     
-	private Layout() {}
+	Layout() {}
 
-	/**
-	 * Method to return the current constraint solver.
-	 * @return the current constraint solver.
-	 */
-	public static Layout getConstraint() { return layoutConstraint; }
+//	/**
+//	 * Method to return the current constraint solver.
+//	 * @return the current constraint solver.
+//	 */
+//	public static Layout getConstraint() { return layoutConstraint; }
 
 	/**
 	 * Method to set the subsequent changes to be "quiet".
@@ -84,7 +90,7 @@ public class Layout extends Constraints
      * This method is used to suppress endBatch.
 	 */
 	public static void changesQuiet(boolean quiet) {
-        wasChangesQuiet = true;
+        isReadingLibrary = true;
     }
     
 	/**
@@ -96,25 +102,17 @@ public class Layout extends Constraints
 	public void startBatch(Snapshot initialSnapshot)
 	{
 		// force every cell to remember its current bounds
-        wasChangesQuiet = false;
-        oldSnapshot = initialSnapshot; 
-        cellInfos.clear();
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-                newCellInfo(cell);
-			}
-		}
+        isReadingLibrary = false;
+        oldSnapshot = initialSnapshot;
         tempRigid.clear();
+        librariesWritten.clear();
+        makeLayoutCells();
 	}
 
 	/**
 	 * Method to do hierarchical update on any cells that changed
 	 */
-	public void endBatch(String userName)
+	public Snapshot endBatch(String userName)
 	{
         Layout.userName = userName;
         if (DEBUG) {
@@ -123,24 +121,29 @@ public class Layout extends Constraints
                 System.out.println("\t" + e.getKey() + " --> " + e.getValue());
             }
         }
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-                if (wasChangesQuiet) {
-                    cell.getTechnology();
-                    cell.getBounds();
-                    continue;
+        if (!isReadingLibrary) {
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                Library lib = it.next();
+                for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
+                    Cell cell = cIt.next();
+                    if (!cell.isLinked()) continue;
+                    LayoutCell cellInfo = getCellInfo(cell);
+                    cellInfo.compute();
                 }
-                getCellInfo(cell).compute();
-			}
-		}
+            }
+            for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                Library lib = it.next();
+                if (librariesWritten.contains(lib.getId()))
+                    lib.clearChanged();
+            }
+        }
 
         cellInfos.clear();
         tempRigid.clear();
+        librariesWritten.clear();
+        Snapshot newSnapshot = Library.backup();
         oldSnapshot = null;
+        return newSnapshot;
 	}
 
 	/**
@@ -149,6 +152,7 @@ public class Layout extends Constraints
 	 * @param oD the old contents of the NodeInst.
 	 */
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD) {
+        if (isReadingLibrary) return;
         getCellInfo(ni.getParent()).modifyNodeInst(ni, oD);
     }
 
@@ -158,6 +162,7 @@ public class Layout extends Constraints
      * @param oD the old contents of the ArcInst.
 	 */
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {
+        if (isReadingLibrary) return;
         getCellInfo(ai.getParent()).modifyArcInst(ai, oD);
     }
 
@@ -167,6 +172,7 @@ public class Layout extends Constraints
 	 * @param oldD the old contents of the Export.
 	 */
 	public void modifyExport(Export pp, ImmutableExport oldD) {
+        if (isReadingLibrary) return;
         PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oldD.originalNodeId, oldD.originalPortId);
         if (oldPi == pp.getOriginalPort()) return;
         getCellInfo((Cell)pp.getParent()).modifyExport(pp, oldPi);
@@ -190,15 +196,21 @@ public class Layout extends Constraints
 	 * Method to handle the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
 	 */
-	public void newObject(ElectricObject obj)
-	{
+	public void newObject(ElectricObject obj) {
+        if (isReadingLibrary) return;
         Cell cell = obj.whichCell();
         if (obj == cell)
-            newCellInfo(cell);
+            newCellInfo(cell, null);
         else if (cell != null)
             getCellInfo(cell).newObject(obj);
 	}
 
+	/**
+	 * Method to announce that a Library is about to be written to disk.
+	 * @param lib the Library that will be saved.
+	 */
+	public void writeLibrary(Library lib) { librariesWritten.add(lib.getId()); }
+    
 	/**
 	 * Method to set temporary rigidity on an ArcInst.
 	 * @param ai the ArcInst to make temporarily rigid/not-rigid.
@@ -241,6 +253,19 @@ public class Layout extends Constraints
     static boolean isRigid(ArcInst ai) {
         Boolean override = tempRigid.get(ai);
         return override != null ? override.booleanValue() : ai.isRigid();
+    }
+    
+    private static void makeLayoutCells() {
+        cellInfos.clear();
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = it.next();
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = cIt.next();
+                newCellInfo(cell, oldSnapshot.getCell((CellId)cell.getId()));
+			}
+		}
     }
     
 	/******************** NODE MODIFICATION CODE *************************/
@@ -320,11 +345,11 @@ public class Layout extends Constraints
         return getCellInfo(ni.getParent()).getOldD(ni);
     }
     
-    private static void newCellInfo(Cell cell) {
+    private static void newCellInfo(Cell cell, CellBackup oldBackup) {
         int cellIndex = cell.getCellIndex();
         while (cellInfos.size() <= cellIndex) cellInfos.add(null);
         assert cellInfos.get(cellIndex) == null;
-        cellInfos.set(cellIndex, new LayoutCell(cell));
+        cellInfos.set(cellIndex, new LayoutCell(cell, oldBackup));
     }
     
     static LayoutCell getCellInfo(Cell cell) {

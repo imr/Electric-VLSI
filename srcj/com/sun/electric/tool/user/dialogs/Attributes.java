@@ -697,11 +697,11 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             return true;
         }
 
-        public void terminateOK()
-        {
-            // queue it for redraw
-        	Undo.redrawObject(owner);
-        }
+//        public void terminateOK()
+//        {
+//            // queue it for redraw
+//        	Undo.redrawObject(owner);
+//        }
     }
 
     /**

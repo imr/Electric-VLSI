@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -45,6 +46,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -52,7 +54,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TextWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -178,6 +179,7 @@ public class Output
 //		Pref.installMeaningVariables();
 		
 		// make sure that this library save is announced
+        Constraints.getCurrent().writeLibrary(lib);
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = it.next();

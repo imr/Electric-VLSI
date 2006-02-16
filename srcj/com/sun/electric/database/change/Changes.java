@@ -28,6 +28,7 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -45,119 +46,116 @@ public interface Changes
 	/**
 	 * Method to initialize a tool.
 	 */
-	void init();
+	public void init();
 
 	/**
 	 * Method to make a request of a tool (not used).
 	 * @param cmd the command request.
 	 */
-	void request(String cmd);
+	public void request(String cmd);
 
 	/**
 	 * Method to examine a cell because it has changed.
 	 * @param cell the Cell to examine.
 	 */
-	void examineCell(Cell cell);
+	public void examineCell(Cell cell);
 
 	/**
 	 * Method to give a tool a chance to run.
 	 */
-	void slice();
+	public void slice();
 
 	/**
 	 * Method to announce the start of a batch of changes.
 	 * @param tool the tool that generated the changes.
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
-	void startBatch(Tool tool, boolean undoRedo);
+	public void startBatch(Tool tool, boolean undoRedo);
 
-	/**
-	 * Method to announce the end of a batch of changes.
-	 */
-	void endBatch();
+   /**
+     * Method to annonunce database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo);
 
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
 	 * @param oD the old contents of the NodeInst.
 	 */
-	void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD);
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD);
 
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
      * @param oD the old contents of the ArcInst.
 	 */
-	void modifyArcInst(ArcInst ai, ImmutableArcInst oD);
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD);
 
 	/**
 	 * Method to announce a change to an Export.
 	 * @param pp the Export that moved.
 	 * @param oldD the old contents of the Export.
 	 */
-	void modifyExport(Export pp, ImmutableExport oldD);
+	public void modifyExport(Export pp, ImmutableExport oldD);
 
 	/**
 	 * Method to announce a change to a Cell.
 	 * @param cell the Cell that was changed.
 	 * @param oD the old contents of the Cell.
 	 */
-	void modifyCell(Cell cell, ImmutableCell oD);
+	public void modifyCell(Cell cell, ImmutableCell oD);
 
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
 	 * @param oCellGroup the old CellGroup of the Cell.
 	 */
-	void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup);
+	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup);
 
 	/**
 	 * Method to announce a change to a Library.
 	 * @param lib the Library that was changed.
 	 * @param oldD the old contents of the Library.
 	 */
-	void modifyLibrary(Library lib, ImmutableLibrary oldD);
+	public void modifyLibrary(Library lib, ImmutableLibrary oldD);
 
 	/**
 	 * Method to announce the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
 	 */
-	void newObject(ElectricObject obj);
+	public void newObject(ElectricObject obj);
 
 	/**
 	 * Method to announce the deletion of an ElectricObject.
 	 * @param obj the ElectricObject that was just deleted.
 	 */
-	void killObject(ElectricObject obj);
+	public void killObject(ElectricObject obj);
 
 	/**
 	 * Method to announce the renaming of an ElectricObject.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of that ElectricObject.
 	 */
-	void renameObject(ElectricObject obj, Object oldName);
-
-	/**
-	 * Method to request that an object be redrawn.
-	 * @param obj the ElectricObject to be redrawn.
-	 */
-	void redrawObject(ElectricObject obj);
+	public void renameObject(ElectricObject obj, Object oldName);
 
 	/**
 	 * Method to announce that a Library has been read.
 	 * @param lib the Library that was read.
 	 */
-	void readLibrary(Library lib);
+	public void readLibrary(Library lib);
 
 	/**
 	 * Method to announce that a Library is about to be erased.
 	 * @param lib the Library that will be erased.
 	 */
-	void eraseLibrary(Library lib);
+	public void eraseLibrary(Library lib);
 
 	/**
 	 * Method to announce that a Library is about to be written to disk.
 	 * @param lib the Library that will be saved.
 	 */
-	void writeLibrary(Library lib);
+	public void writeLibrary(Library lib);
 }

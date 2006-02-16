@@ -34,6 +34,7 @@ abstract class EThread extends Thread {
     EJob ejob;
     
     private volatile boolean canChanging;
+    private volatile boolean canUndoing;
     private volatile boolean canComputeBounds;
     private volatile boolean canComputeNetlist;
     private volatile UserInterface userInterface;
@@ -51,6 +52,17 @@ abstract class EThread extends Thread {
         if (canChanging) return;
         IllegalStateException e = new IllegalStateException("Database changes are forbidden");
         Job.logger.logp(Level.WARNING, getClass().getName(), "checkChanging", e.getMessage(), e);
+        throw e;
+    }
+    
+	/**
+	 * Method to check whether changing of whole database is allowed.
+	 * @throws IllegalStateException if changes are not allowed.
+	 */
+	void checkUndoing() {
+        if (canUndoing) return;
+        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
+        Job.logger.logp(Level.WARNING, getClass().getName(), "checkUndoing", e.getMessage(), e);
         throw e;
     }
     
@@ -74,6 +86,7 @@ abstract class EThread extends Thread {
     }
     
     void setCanChanging(boolean value) { canChanging = value; }
+    void setCanUndoing(boolean value) { canUndoing = value; }
     void setCanComputeBounds(boolean value) { canComputeBounds = value; }
     void setCanComputeNetlist(boolean value) { canComputeNetlist = value; }
     void setUserInterface(UserInterface userInterface) { this.userInterface = userInterface; }

@@ -30,13 +30,16 @@ import java.io.IOException;
  * @author dn146861
  */
 public class LibraryBackup {
+    public static final LibraryBackup[] NULL_ARRAY = {};
     
     /** Library persistent data. */                                     public final ImmutableLibrary d;
+    /** True if library needs saving to disk. */                        public final boolean modified;
     /** Array of referenced libs */                                     public final LibId[] referencedLibs;
 
     /** Creates a new instance of LibraryBackup */
-    public LibraryBackup(ImmutableLibrary d, LibId[] referencedLibs) {
+    public LibraryBackup(ImmutableLibrary d, boolean modified, LibId[] referencedLibs) {
         this.d = d;
+        this.modified = modified;
         this.referencedLibs = referencedLibs;
     }
     
@@ -46,6 +49,7 @@ public class LibraryBackup {
      */
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
+        writer.out.writeBoolean(modified);
         writer.out.writeInt(referencedLibs.length);
         for (int i = 0; i < referencedLibs.length; i++)
             writer.writeLibId(referencedLibs[i]);
@@ -57,10 +61,21 @@ public class LibraryBackup {
      */
     static LibraryBackup read(SnapshotReader reader) throws IOException {
         ImmutableLibrary d = ImmutableLibrary.read(reader);
+        boolean modified = reader.in.readBoolean();
         int refsLength = reader.in.readInt();
         LibId[] refs = new LibId[refsLength];
         for (int i = 0; i < refsLength; i++)
             refs[i] = reader.readLibId();
-        return new LibraryBackup(d, refs);
+        return new LibraryBackup(d, modified, refs);
+    }
+    
+    /**
+	 * Checks invariant of this CellBackup.
+	 * @throws AssertionError if invariant is broken.
+	 */
+    public void check() {
+        d.check();
+        for (LibId libId: referencedLibs)
+            assert libId != null;
     }
 }

@@ -306,7 +306,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 			if (newChar.isReference())
 				pp.newVar(Export.EXPORT_REFERENCE_NAME, newRefName);
 
-			Undo.redrawObject(pp.getOriginalPort().getNodeInst());
+//			Undo.redrawObject(pp.getOriginalPort().getNodeInst());
 //				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
 			return true;
 		}

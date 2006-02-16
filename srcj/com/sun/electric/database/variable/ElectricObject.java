@@ -1166,6 +1166,21 @@ public abstract class ElectricObject // extends Observable implements Observer
 	}
 
 	/**
+	 * Routing to check whether undoing of this cell allowed or not.
+	 * By default checks whole database undo. Overriden in subclasses.
+	 */
+	public void checkUndoing() {
+//        if (!isDatabaseObject()) return;
+		Job.checkUndoing();
+// 		if (!isLinked())
+// 		{
+// 			String msg = "Changing ElectricObject is not in Database";
+//             System.out.println(msg);
+// 			ActivityLogger.logException(new IllegalStateException(msg));
+// 		}
+	}
+
+	/**
 	 * Method to make sure that this object can be examined.
 	 * Ensures that an examine job is running.
 	 */

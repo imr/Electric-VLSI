@@ -37,10 +37,8 @@ public class ImmutableCell extends ImmutableElectricObject {
 	/** The library this ImmutableCell belongs to. */			public final LibId libId;
 	/** The CellName of this ImmutableCell. */					public final CellName cellName;
 	/** The date this ImmutableCell was created. */				public final long creationDate;
-	/** The date this ImmutableCell was last modified. */		public final long revisionDate;
 	/** This ImmutableCell's Technology. */						public final Technology tech;
 	/** ImmutableCell's flags. */								public final int flags;
-    /** "Modified" flag of this ImmutableCell. */               public final byte modified;
     
 	/**
 	 * The private constructor of ImmutableCell. Use the factory "newInstance" instead.
@@ -51,21 +49,18 @@ public class ImmutableCell extends ImmutableElectricObject {
      * @param revisionDate the date this ImmutableCell was last modified.
      * @param tech the technology of this ImmutableCell.
      * @param flags flags of this ImmutableCell.
-     * @param modified "Modified" flag of this ImmutableCell.
      * @param vars array of Variables of this ImmutableCell
 	 */
      private ImmutableCell(CellId cellId, LibId libId, CellName cellName,
-             long creationDate, long revisionDate, Technology tech, int flags, byte modified, Variable[] vars) {
+             long creationDate, Technology tech, int flags, Variable[] vars) {
         super(vars);
         this.cellId = cellId;
         this.libId = libId;
         this.cellName = cellName;
         this.creationDate = creationDate;
-        this.revisionDate = revisionDate;
         this.tech = tech;
         this.flags = flags;
-        this.modified = modified;
-        check();
+//        check();
     }
 
 	/**
@@ -81,7 +76,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (cellId == null) throw new NullPointerException("cellId");
         if (libId == null) throw new NullPointerException("libId");
 //        if (cellName == null) throw new NullPointerException("cellName");
-		return new ImmutableCell(cellId, libId, cellName, creationDate, creationDate, null, 0, (byte)0, Variable.NULL_ARRAY);
+		return new ImmutableCell(cellId, libId, cellName, creationDate, null, 0, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -93,7 +88,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (this.cellName == cellName) return this;
         if (this.cellName != null && this.cellName.equals(cellName)) return this;
 		return new ImmutableCell(this.cellId, this.libId, cellName,
-                this.creationDate, this.revisionDate, this.tech, this.flags, this.modified, getVars());
+                this.creationDate, this.tech, this.flags, getVars());
 	}
 
 	/**
@@ -104,18 +99,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public ImmutableCell withCreationDate(long creationDate) {
         if (this.creationDate == creationDate) return this;
 		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                creationDate, this.revisionDate, this.tech, this.flags, this.modified, getVars());
-	}
-
-	/**
-	 * Returns ImmutableCell which differs from this ImmutableCell by revision date.
-	 * @param revisionDate new revision date.
-	 * @return ImmutableCell which differs from this ImmutableCell by revision date.
-	 */
-	public ImmutableCell withRevisionDate(long revisionDate) {
-        if (this.revisionDate == revisionDate) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, revisionDate, this.tech, this.flags, this.modified, getVars());
+                creationDate, this.tech, this.flags, getVars());
 	}
 
 	/**
@@ -126,7 +110,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public ImmutableCell withTech(Technology tech) {
         if (this.tech == tech) return this;
 		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, this.revisionDate, tech, this.flags, this.modified, getVars());
+                this.creationDate, tech, this.flags, getVars());
 	}
 
 	/**
@@ -137,20 +121,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public ImmutableCell withFlags(int flags) {
         if (this.flags == flags) return this;
 		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, this.revisionDate, this.tech, flags, this.modified, getVars());
-	}
-
-	/**
-	 * Returns ImmutableCell which differs from this ImmutableCell by "Modified" flag.
-	 * @param modified new "Modified" flags.
-	 * @return ImmutableCell which differs from this ImmutableCell by "Modified" flags.
-     * @throws IllegalArgumentException if modified is not -1, 0 or 1.
-	 */
-	public ImmutableCell withModified(byte modified) {
-        if (this.modified == modified) return this;
-        if (modified < -1 || modified > 1) throw new IllegalArgumentException("modified");
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, this.revisionDate, this.tech, this.flags, modified, getVars());
+                this.creationDate, this.tech, flags, getVars());
 	}
 
 	/**
@@ -165,7 +136,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
 		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, this.revisionDate, this.tech, this.flags, this.modified, vars);
+                this.creationDate, this.tech, this.flags, vars);
     }
     
 	/**
@@ -179,7 +150,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableCell(this.cellId, this.libId, this.cellName,
-                this.creationDate, this.revisionDate, this.tech, this.flags, this.modified, vars);
+                this.creationDate, this.tech, this.flags, vars);
     }
     
     /**
@@ -193,12 +164,10 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (cellName != null)
             writer.out.writeUTF(cellName.toString());
         writer.out.writeLong(creationDate);
-        writer.out.writeLong(revisionDate);
         writer.out.writeBoolean(tech != null);
         if (tech != null)
             writer.writeTechnology(tech);
         writer.out.writeInt(flags);
-        writer.out.writeByte(modified);
         super.write(writer);
     }
     
@@ -216,15 +185,12 @@ public class ImmutableCell extends ImmutableElectricObject {
             cellName = CellName.parseName(cellNameString);
         }
         long creationDate = reader.in.readLong();
-        long revisionDate = reader.in.readLong();
         boolean hasTech = reader.in.readBoolean();
         Technology tech = hasTech ? reader.readTechnology() : null;
         int flags = reader.in.readInt();
-        byte modified = reader.in.readByte();
         boolean hasVars = reader.in.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableCell(cellId, libId, cellName,
-                creationDate, revisionDate, tech, flags, modified, vars);
+        return new ImmutableCell(cellId, libId, cellName, creationDate, tech, flags, vars);
     }
     
     /**
@@ -244,8 +210,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (!(o instanceof ImmutableCell)) return false;
         ImmutableCell that = (ImmutableCell)o;
         return this.cellId == that.cellId && this.libId == that.libId && this.cellName == that.cellName &&
-                this.creationDate == that.creationDate && this.revisionDate == that.revisionDate &&
-                this.tech == that.tech && this.flags == that.flags && this.modified == that.modified;
+                this.creationDate == that.creationDate && this.tech == that.tech && this.flags == that.flags;
     }
     
 	/**
@@ -256,6 +221,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         check(true);
         assert cellId != null;
         assert libId != null;
-        assert -1 <= modified && modified <= 1;
+        if (cellName != null)
+            cellName.check();
 	}
 }

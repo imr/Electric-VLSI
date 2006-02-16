@@ -480,8 +480,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         return true;
     }
     
-    public void setDInClient(ImmutableArcInst newD) {
-        assert Job.getRunMode() == Job.Mode.CLIENT;
+    public void setDInUndo(ImmutableArcInst newD) {
+        checkUndoing();
         d = newD;
     }
 
@@ -907,8 +907,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (parent != null) parent.setDirty();
 	}
 	
-    public void updateGeometricInClient() {
-        assert Job.getRunMode() == Job.Mode.CLIENT;
+    public void updateGeometricInUndo() {
+        checkUndoing();
 		// compute the bounds
 		Poly poly = makePoly(d.width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());

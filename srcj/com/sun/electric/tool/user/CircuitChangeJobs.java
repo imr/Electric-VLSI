@@ -3027,20 +3027,20 @@ public class CircuitChangeJobs
 			System.out.println("Library '" + oldName + "' renamed to '" + newName + "'");
 
             // mark this library for saving
-            lib.setChanged();
-
-			// mark for saving, all libraries that depend on this
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library oLib = it.next();
-				if (oLib.isHidden()) continue;
-				if (oLib == lib) continue;
-				if (oLib.isChanged()) continue;
-	
-				// see if any cells in this library reference the renamed one
-                if (oLib.referencesLib(lib))
-                    oLib.setChanged();
-			}
+//            lib.setChanged();
+//
+//			// mark for saving, all libraries that depend on this
+//			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//			{
+//				Library oLib = it.next();
+//				if (oLib.isHidden()) continue;
+//				if (oLib == lib) continue;
+//				if (oLib.isChanged()) continue;
+//	
+//				// see if any cells in this library reference the renamed one
+//                if (oLib.referencesLib(lib))
+//                    oLib.setChanged();
+//			}
 			return true;
 		}
 	}

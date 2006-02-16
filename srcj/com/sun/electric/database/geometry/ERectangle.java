@@ -33,6 +33,7 @@ import java.awt.geom.Rectangle2D;
  * This class is used in Electric database.
  */
 public class ERectangle extends Rectangle2D.Double {
+    public static final ERectangle[] NULL_ARRAY = {};
     
     /**
      * Constructs and initializes a <code>ERectangle</code>

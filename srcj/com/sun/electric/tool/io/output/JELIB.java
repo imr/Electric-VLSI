@@ -27,7 +27,6 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -407,7 +406,6 @@ public class JELIB extends Output
 		}
 
 		// clean up and return
-		lib.clearChanged();
 		lib.setFromDisk();
 		if (!quiet) System.out.println(filePath + " written");
 		return false;

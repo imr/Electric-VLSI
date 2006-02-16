@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
+
+IMP: (2/16/06, DN) Undo system reimplemented based on snapshot.
+
 IMP: (2/15/06, RK) Make NCC recognize scalable MoCMOS transistors (Bugzilla# 602)
 
 IMP: (2/15/06, RK) Add an NCC sub-menu that allows designer to add any NCC annotation. (Bugzilla: 646)

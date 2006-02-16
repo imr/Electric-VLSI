@@ -78,7 +78,7 @@ class LayoutCell {
     private static final Integer AI_RIGID = new Integer(0);
     private static final Integer AI_FLEX = new Integer(1);
     
-    private Cell cell;
+    final Cell cell;
     private HashMap<Export,PortInst> oldExports;
     private HashMap<ArcInst,ImmutableArcInst> oldArcs;
     private LinkedHashMap<NodeInst,ImmutableNodeInst> oldNodes = new LinkedHashMap<NodeInst,ImmutableNodeInst>();
@@ -88,16 +88,21 @@ class LayoutCell {
     private boolean modified;
     /** True if change of Exports of this Cell causes recomputation of upper Cells. */
     private boolean exportsModified;
+    /** True if subcells changed names of Library:Cell:Export */
+    private boolean subcellsRenamed;
     /** True if this Cell is computed by Layout constraint system. */
     private boolean computed;
+    /** Backup of this Cell before Job */
+    private final CellBackup oldBackup;
 
 //    /** Map from ArcInst to its change clock */
 //    private HashMap<Geometric,Integer> changeClock;
     /** Set of nodes already moved not to move twice. */
     private HashSet<NodeInst> movedNodes;
     
-    LayoutCell(Cell cell) {
+    LayoutCell(Cell cell, CellBackup oldBackup) {
         this.cell = cell;
+        this.oldBackup = oldBackup;
     }
     
     /**
@@ -120,11 +125,14 @@ class LayoutCell {
             }
         }
         cell.getTechnology();
-//        CellBackup oldBackup = Layout.oldSnapshot.getCell((CellId)cell.getId());
-//        CellBackup newBackup = cell.backup(oldBackup);
-//        if (newBackup != oldBackup) {
-//            
-//        }
+        boolean justWritten = Layout.librariesWritten.contains(cell.getLibrary().getId());
+        if (justWritten)
+            cell.clearModified();
+        CellBackup newBackup = cell.backup();
+        if (newBackup != oldBackup && !justWritten) {
+            cell.madeRevision(Layout.revisionDate, Layout.userName);
+            assert cell.isModified(true);
+        }
         cell.getBounds();
         
         // Release unnecessary memory

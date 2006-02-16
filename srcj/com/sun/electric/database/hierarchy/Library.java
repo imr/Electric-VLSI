@@ -31,7 +31,7 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -45,6 +45,8 @@ import com.sun.electric.tool.user.ErrorLogger;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -71,16 +73,17 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 	// ------------------------ private data ------------------------------
 
-	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
+//	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
 //	/** set to see library in explorer */					private static final int OPENINEXPLORER =            02;
 	/** set if library came from disk */					private static final int READFROMDISK =              04;
 //	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
 //	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
-	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
+//	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
     /** persistent data of this Library. */                 private ImmutableLibrary d;
+    /** true of library needs saving. */                    private boolean modified;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
     /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
@@ -90,6 +93,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** list of linked libraries indexed by libId. */       private static final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                  private static final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
+    /** Last snapshot */                                    private static Snapshot snapshot = new Snapshot();
 
 	// ----------------- private and protected methods --------------------
 
@@ -489,6 +493,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         ImmutableLibrary oldD = d;
         if (newD == oldD) return false;
         d = newD;
+        setChanged();
         Undo.modifyLibrary(this, oldD);
         //setBatchModified();
         return true;
@@ -550,16 +555,104 @@ public class Library extends ElectricObject implements Comparable<Library>
         return inCurrentThread(d.libId) == this;
 	}
 
-	/*
+    /**
+     * Create Snapshot from the current state of Electric database.
+     * @return snapshot of the current state of Electric database.
+     */
+    public static Snapshot backup() {
+        int maxCellId = Cell.linkedCells.size() - 1;
+        while (maxCellId >= 0 && Cell.linkedCells.get(maxCellId) == null) maxCellId--;
+        CellBackup[] cellBackups = new CellBackup[maxCellId + 1];
+        for (int i = 0; i < cellBackups.length; i++) {
+            Cell cell = Cell.linkedCells.get(i);
+            if (cell != null) cellBackups[i] = cell.backup();
+        }
+        LibraryBackup[] libBackups = Library.backupLibs(snapshot.libBackups);
+        ERectangle[] cellBounds = new ERectangle[cellBackups.length];
+        int[] cellGroups = new int[cellBackups.length];
+        Arrays.fill(cellGroups, -1);
+        HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
+        boolean cellsChanged = cellBackups.length != snapshot.cellBackups.length;
+        boolean cellBoundsChanged = cellsChanged;
+        boolean cellGroupsChanged = cellsChanged;
+        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
+            if (cellBackups[cellIndex] != null) {
+                CellId cellId = CellId.getByIndex(cellIndex);
+                Cell cell = Cell.inCurrentThread(cellId);
+                
+                ERectangle oldBounds = snapshot.getCellBounds(cellIndex);
+                ERectangle newBounds = cell.getBounds();
+                if (oldBounds != null && newBounds.equals(oldBounds))
+                    newBounds = oldBounds;
+                cellBounds[cellIndex] = newBounds;
+                
+                Cell.CellGroup cellGroup = cell.getCellGroup();
+                Integer gn = groupNums.get(cellGroup);
+                if (gn == null) {
+                    gn = Integer.valueOf(groupNums.size());
+                    groupNums.put(cellGroup, gn);
+                }
+                cellGroups[cellIndex] = gn.intValue();
+            }
+            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
+            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
+            cellGroupsChanged = cellGroupsChanged || snapshot.cellGroups[cellIndex] != cellGroups[cellIndex];
+            
+        }
+        if (libBackups == snapshot.libBackups && !cellsChanged && !cellBoundsChanged && !cellGroupsChanged)
+            return snapshot;
+        if (!cellsChanged) cellBackups = snapshot.cellBackups;
+        if (!cellBoundsChanged) cellBounds = snapshot.cellBounds;
+        if (!cellGroupsChanged) cellGroups = snapshot.cellGroups;
+        snapshot = new Snapshot(cellBackups, cellGroups, cellBounds, libBackups);
+        checkFresh(snapshot);
+        return snapshot;
+    }
+
+    /*
+	 * Low-level method to backup all Libraries to array of LibraryBackups.
+     * @param oldLibs LibararyBackups in old snapshot.
+     * @return CellBackup which is the backup of this Cell.
+	 */
+    private static LibraryBackup[] backupLibs(LibraryBackup[] oldLibs) {
+        ArrayList<LibraryBackup> libBackups = new ArrayList<LibraryBackup>();
+        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            int libIndex = lib.getId().libIndex;
+            LibraryBackup oldBackup = libIndex < oldLibs.length ? oldLibs[libIndex] : null;
+            while (libBackups.size() <= libIndex) libBackups.add(null);
+            assert libBackups.get(libIndex) == null;
+            libBackups.set(libIndex, lib.backup(oldBackup));
+        }
+        if (libBackups.size() == oldLibs.length) {
+            int i;
+            for (i = 0; i < oldLibs.length; i++) {
+                if (libBackups.get(i) != oldLibs[i])
+                    break;
+            }
+            if (i == oldLibs.length) return oldLibs;
+        }
+        return libBackups.toArray(LibraryBackup.NULL_ARRAY);
+    }
+    
+    /*
 	 * Low-level method to backup this Library to LibraryBackup.
      * @return CellBackup which is the backup of this Cell.
 	 */
-    public LibraryBackup backup(LibraryBackup oldBackup) {
+    private LibraryBackup backup(LibraryBackup oldBackup) {
         LibId[] oldRefs = oldBackup != null ? oldBackup.referencedLibs : new LibId[0];
         LibId[] newRefs = backupReferencedLibs(oldRefs);
-        if (oldBackup != null && d == oldBackup.d && newRefs == oldBackup.referencedLibs)
+        if (oldBackup != null && d == oldBackup.d && modified == oldBackup.modified && newRefs == oldBackup.referencedLibs)
             return oldBackup;
-        return new LibraryBackup(d, newRefs);
+        return new LibraryBackup(d, modified, newRefs);
+    }
+    
+    private void checkFresh(LibraryBackup libBackup) {
+        assert d == libBackup.d;
+        assert modified == libBackup.modified;
+        assert libBackup.referencedLibs.length == referencedLibs.size();
+        for (int i = 0; i < libBackup.referencedLibs.length; i++)
+            assert libBackup.referencedLibs[i] == referencedLibs.get(i).getId();
     }
     
     private LibId[] backupReferencedLibs(LibId[] oldReferencedLibs) {
@@ -576,15 +669,14 @@ public class Library extends ElectricObject implements Comparable<Library>
     }
     
     /**
-     * Update database from old immutable snapshot to new immutable snapshot.
-     * @param oldSnapshot old immutable snapshot.
-     * @param newSnapshot new immutable snapshot.
+     * Force database to specified state.
+     * @param undoSnapshot old immutable snapshot.
      */
-    public static boolean updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+    public static void undo(Snapshot undoSnapshot) {
         boolean libChanged = false;
-        for (LibId libId: newSnapshot.getChangedLibraries(oldSnapshot)) {
-            LibraryBackup oldBackup = oldSnapshot.getLib(libId);
-            LibraryBackup newBackup = newSnapshot.getLib(libId);
+        for (LibId libId: undoSnapshot.getChangedLibraries(snapshot)) {
+            LibraryBackup oldBackup = snapshot.getLib(libId);
+            LibraryBackup newBackup = undoSnapshot.getLib(libId);
             int libIndex = libId.libIndex;
             libChanged = true;
             if (oldBackup == null) {
@@ -611,12 +703,12 @@ public class Library extends ElectricObject implements Comparable<Library>
             }
         }
         if (libChanged) {
-//            System.out.println("Libraries changed");
             libraries.clear();
             for (Library lib: linkedLibs) {
                 if (lib == null) continue;
                 libraries.put(lib.getName(), lib);
-                LibraryBackup newBackup = newSnapshot.getLib(lib.getId());
+                LibraryBackup newBackup = undoSnapshot.getLib(lib.getId());
+                lib.modified = newBackup.modified;
                 lib.referencedLibs.clear();
                 for (int j = 0; j < newBackup.referencedLibs.length; j++)
                     lib.referencedLibs.add(inCurrentThread(newBackup.referencedLibs[j]));
@@ -631,18 +723,16 @@ public class Library extends ElectricObject implements Comparable<Library>
 			}
         }
         
-        boolean cellTreeChanged = oldSnapshot.cellGroups != newSnapshot.cellGroups;
-        for (int i = 0, maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size()); i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
+        boolean cellTreeChanged = snapshot.cellGroups != undoSnapshot.cellGroups;
+        for (int i = 0, maxCells = Math.max(snapshot.cellBackups.length, undoSnapshot.cellBackups.length); i < maxCells; i++) {
+            CellBackup oldBackup = snapshot.getCell(i);
+            CellBackup newBackup = undoSnapshot.getCell(i);
             if (oldBackup == newBackup) continue;
             if (oldBackup == null || newBackup == null ||
                     !oldBackup.d.cellName.equals(newBackup.d.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
-//        if (cellTreeChanged)
-//            System.out.println("Cell tree changed");
-        Cell.updateAll(oldSnapshot, newSnapshot);
+        Cell.updateAll(snapshot, undoSnapshot);
         if (libChanged || cellTreeChanged) {
             for (Library lib: libraries.values())
                 lib.cells.clear();
@@ -653,7 +743,8 @@ public class Library extends ElectricObject implements Comparable<Library>
                 lib.cells.put(cell.getCellName(), cell);
             }
         }
-        return libChanged || cellTreeChanged;
+        snapshot = undoSnapshot;
+        checkFresh(undoSnapshot);
     }
     
 	/**
@@ -727,6 +818,55 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 	}
 
+    /**
+     * Checks that Electric database has the expected state.
+     * @expectedSnapshot expected state.
+     */
+    public static void checkFresh(Snapshot expectedSnapshot) {
+        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            LibraryBackup libBackup = snapshot.getLib(lib.getId());
+            assert libBackup.d == lib.getD();
+            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
+                Cell cell = cit.next();
+                CellBackup cellBackup = snapshot.getCell((CellId)cell.getId());
+                assert cellBackup.d == cell.getD();
+            }
+        }
+        for (int i = 0; i < snapshot.libBackups.length; i++) {
+            LibraryBackup libBackup = snapshot.libBackups[i];
+            if (libBackup == null) continue;
+            LibId libId = libBackup.d.libId;
+            assert libId.libIndex == i;
+            Library lib = libId.inCurrentThread();
+            lib.checkFresh(libBackup);
+        }
+        for (int i = 0; i < snapshot.cellBackups.length; i++) {
+            CellBackup cellBackup = snapshot.getCell(i);
+            if (cellBackup == null) continue;
+            CellId cellId = cellBackup.d.cellId;
+            assert cellId.cellIndex == i;
+            Cell cell = (Cell)cellId.inCurrentThread();
+            cell.checkFresh(cellBackup);
+            assert snapshot.getCellBounds(i) == cell.getBounds();
+        }
+        
+        HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
+        for (int i = 0; i < snapshot.cellBackups.length; i++) {
+            CellBackup cellBackup = snapshot.getCell(i);
+            if (cellBackup == null) continue;
+            Cell cell = Cell.inCurrentThread(cellBackup.d.cellId);
+            Cell.CellGroup cellGroup = cell.getCellGroup();
+            Integer gn = groupNums.get(cellGroup);
+            if (gn == null) {
+                gn = Integer.valueOf(groupNums.size());
+                groupNums.put(cellGroup, gn);
+            }
+            assert snapshot.cellGroups[i] == gn.intValue();
+        }
+        assert snapshot == expectedSnapshot;
+    }
+
 	private static boolean invariantsFailed = false;
 
 	/**
@@ -775,74 +915,27 @@ public class Library extends ElectricObject implements Comparable<Library>
         return (d.flags & mask) != 0;
     }
     
-    /**
-	 * Method to indicate that this Library has changed in a major way.
-	 * Major changes include creation, deletion, or modification of circuit elements.
-	 */
-	public void setChangedMajor() { setFlag(LIBCHANGEDMAJOR, true); }
-
 	/**
-	 * Method to indicate that this Library has not changed in a major way.
-	 * Major changes include creation, deletion, or modification of circuit elements.
+	 * Method to indicate that this Library has changed.
 	 */
-	private void clearChangedMajor() { clearCellChanges(); setFlag(LIBCHANGEDMAJOR, false); }
-
-	/**
-	 * Method to return true if this Library has changed in a major way.
-	 * Major changes include creation, deletion, or modification of circuit elements.
-	 * @return true if this Library has changed in a major way.
-	 */
-	public boolean isChangedMajor() { return isFlag(LIBCHANGEDMAJOR); }
-
-	/**
-	 * Method to indicate that this Library has changed in a minor way.
-	 * Minor changes include changes to text and other things that are not essential to the circuitry.
-	 */
-	public void setChangedMinor() { setFlag(LIBCHANGEDMINOR, true); }
-
-	/**
-	 * Method to indicate that this Library has not changed in a minor way.
-	 * Minor changes include changes to text and other things that are not essential to the circuitry.
-	 */
-	private void clearChangedMinor() { clearCellChanges(); setFlag(LIBCHANGEDMINOR, false); }
-
-	/**
-	 * Method to return true if this Library has changed in a minor way.
-	 * Minor changes include changes to text and other things that are not essential to the circuitry.
-	 * @return true if this Library has changed in a minor way.
-	 */
-	public boolean isChangedMinor() { return isFlag(LIBCHANGEDMINOR); }
-
-	/**
-	 * Method to indicate that this Library has changed regardless if they are major or minor.
-	 * Major changes include creation, deletion, or modification of circuit elements.
-     * Minor changes include changes to text and other things that are not essential to the circuitry.
-	 */
-	public void setChanged() { setChangedMinor(); setChangedMajor(); }
-
-	/**
-	 * Method to indicate that this Library has not changed in a major way.
-	 * Major changes include creation, deletion, or modification of circuit elements.
-	 */
-	public void clearChanged() { clearCellChanges(); clearChangedMinor(); clearChangedMajor(); }
-
-	/**
-	 * Method to return true if this Library has changed in a major way.
-	 * Major changes include creation, deletion, or modification of circuit elements.
-	 * @return true if this Library has changed in a major way.
-	 */
-	public boolean isChanged() { return isChangedMinor() || isChangedMajor(); }
-
-    /**
-     * Method to clear modified cells if changes are clear in library.
-     */
-    private void clearCellChanges()
-    {
-		for (Cell c : cells.values())
-		{
-            c.clearModified();
-		}
+	public void setChanged() {
+        checkChanging();
+        modified = true;
     }
+
+	/**
+	 * Method to indicate that this Library has not changed.
+	 */
+	public void clearChanged() {
+        checkChanging();
+        modified = false;
+    }
+
+	/**
+	 * Method to return true if this Library has changed.
+	 * @return true if this Library has changed.
+	 */
+	public boolean isChanged() { return modified; }
 
 	/**
 	 * Method to indicate that this Library came from disk.
@@ -1037,6 +1130,9 @@ public class Library extends ElectricObject implements Comparable<Library>
 		String oldName = d.libName;
 		lowLevelRename(libName);
 		Undo.renameObject(this, oldName);
+        setChanged();
+        for (Cell cell: cells.values())
+            cell.notifyRename();
 		return false;
 	}
 

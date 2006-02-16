@@ -25,12 +25,15 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -89,7 +92,7 @@ public class Project extends Listener
 	 */
 	private static class FCheck
 	{
-		Cell   entry;
+		CellId entry;
 		int    batchNumber;
 	};
 
@@ -167,113 +170,122 @@ public class Project extends Listener
 
 	/****************************** LISTENER INTERFACE ******************************/
 
-	/**
-	 * Method to handle the start of a batch of changes.
-	 * @param tool the tool that generated the changes.
-	 * @param undoRedo true if these changes are from an undo or redo command.
-	 */
-	public void startBatch(Tool tool, boolean undoRedo) {}
+//	/**
+//	 * Method to handle the start of a batch of changes.
+//	 * @param tool the tool that generated the changes.
+//	 * @param undoRedo true if these changes are from an undo or redo command.
+//	 */
+//	public void startBatch(Tool tool, boolean undoRedo) {}
 
-	/**
-	 * Method to announce the end of a batch of changes.
-	 */
-	public void endBatch()
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            CellBackup newBackup = newSnapshot.getCell(cellId);
+            if (cellChanged(oldBackup, newBackup))
+                queueCheck(cellId);
+        }
 		detectIllegalChanges();
 
 		// always reset change ignorance at the end of a batch
 		ignoreChanges = false;
 	}
 
-	/**
-	 * Method to announce a change to a NodeInst.
-	 * @param ni the NodeInst that was changed.
-	 * @param oD the old contents of the NodeInst.
-	 */
-	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-	{
-		if (ignoreChanges) return;
-		queueCheck(ni.getParent());
-	}
-
-	/**
-	 * Method to announce a change to an ArcInst.
-	 * @param ai the ArcInst that changed.
-     * @param oD the old contents of the ArcInst.
-	 */
-	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-	{
-		if (ignoreChanges) return;
-		queueCheck(ai.getParent());
-	}
-
-	/**
-	 * Method to handle a change to an Export.
-	 * @param pp the Export that moved.
-	 * @param oD the old contents of the Export.
-	 */
-	public void modifyExport(Export pp, ImmutableExport oD)
-	{
-		if (ignoreChanges) return;
-		queueCheck((Cell)pp.getParent());
-	}
-
-	/**
-	 * Method to handle a change to a Cell.
-	 * @param cell the Cell that was changed.
-	 * @param oD the old contents of the Cell.
-	 */
-	public void modifyCell(Cell cell, ImmutableCell oD) {
-		if (ignoreChanges) return;
-        if (cellDiffers(oD, cell.getD()))
-            queueCheck(cell);
-    }
-
-	/**
-	 * Method to announce a move of a Cell int CellGroup.
-	 * @param cell the cell that was moved.
-	 * @param oCellGroup the old CellGroup of the Cell.
-	 */
-	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
-	{
-		if (ignoreChanges) return;
-		queueCheck(cell);
-	}
-
-	/**
-	 * Method to handle a change to a Library.
-	 * @param lib the Library that was changed.
-	 * @param oldD the old contents of the Library.
-	 */
-	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
-
-	/**
-	 * Method to handle the creation of a new ElectricObject.
-	 * @param obj the ElectricObject that was just created.
-	 */
-	public void newObject(ElectricObject obj)
-	{
-		checkObject(obj);
-	}
-
-	/**
-	 * Method to handle the deletion of an ElectricObject.
-	 * @param obj the ElectricObject that was just deleted.
-	 */
-	public void killObject(ElectricObject obj)
-	{
-		checkObject(obj);
-	}
-
-	/**
-	 * Method to handle the renaming of an ElectricObject.
-	 * @param obj the ElectricObject that was renamed.
-	 * @param oldName the former name of that ElectricObject.
-	 */
-	public void renameObject(ElectricObject obj, Object oldName)
-	{
-		checkObject(obj);
-	}
+//	/**
+//	 * Method to announce a change to a NodeInst.
+//	 * @param ni the NodeInst that was changed.
+//	 * @param oD the old contents of the NodeInst.
+//	 */
+//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
+//	{
+//		if (ignoreChanges) return;
+//		queueCheck(ni.getParent());
+//	}
+//
+//	/**
+//	 * Method to announce a change to an ArcInst.
+//	 * @param ai the ArcInst that changed.
+//     * @param oD the old contents of the ArcInst.
+//	 */
+//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
+//	{
+//		if (ignoreChanges) return;
+//		queueCheck(ai.getParent());
+//	}
+//
+//	/**
+//	 * Method to handle a change to an Export.
+//	 * @param pp the Export that moved.
+//	 * @param oD the old contents of the Export.
+//	 */
+//	public void modifyExport(Export pp, ImmutableExport oD)
+//	{
+//		if (ignoreChanges) return;
+//		queueCheck((Cell)pp.getParent());
+//	}
+//
+//	/**
+//	 * Method to handle a change to a Cell.
+//	 * @param cell the Cell that was changed.
+//	 * @param oD the old contents of the Cell.
+//	 */
+//	public void modifyCell(Cell cell, ImmutableCell oD) {
+//		if (ignoreChanges) return;
+//        if (cellDiffers(oD, cell.getD()))
+//            queueCheck(cell);
+//    }
+//
+//	/**
+//	 * Method to announce a move of a Cell int CellGroup.
+//	 * @param cell the cell that was moved.
+//	 * @param oCellGroup the old CellGroup of the Cell.
+//	 */
+//	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
+//	{
+//		if (ignoreChanges) return;
+//		queueCheck(cell);
+//	}
+//
+//	/**
+//	 * Method to handle a change to a Library.
+//	 * @param lib the Library that was changed.
+//	 * @param oldD the old contents of the Library.
+//	 */
+//	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
+//
+//	/**
+//	 * Method to handle the creation of a new ElectricObject.
+//	 * @param obj the ElectricObject that was just created.
+//	 */
+//	public void newObject(ElectricObject obj)
+//	{
+//		checkObject(obj);
+//	}
+//
+//	/**
+//	 * Method to handle the deletion of an ElectricObject.
+//	 * @param obj the ElectricObject that was just deleted.
+//	 */
+//	public void killObject(ElectricObject obj)
+//	{
+//		checkObject(obj);
+//	}
+//
+//	/**
+//	 * Method to handle the renaming of an ElectricObject.
+//	 * @param obj the ElectricObject that was renamed.
+//	 * @param oldName the former name of that ElectricObject.
+//	 */
+//	public void renameObject(ElectricObject obj, Object oldName)
+//	{
+//		checkObject(obj);
+//	}
 
 	/**
 	 * Method to announce that a Library has been read.
@@ -296,19 +308,19 @@ public class Project extends Listener
 		}
 	}
 
-	/**
-	 * Method to announce that a Library is about to be erased.
-	 * @param lib the Library that will be erased.
-	 */
-	public void eraseLibrary(Library lib) {}
-
-	/**
-	 * Method to announce that a Library is about to be written to disk.
-	 * The method should always be called inside of a Job so that the
-	 * implementation can make changes to the database.
-	 * @param lib the Library that will be saved.
-	 */
-	public void writeLibrary(Library lib) {}
+//	/**
+//	 * Method to announce that a Library is about to be erased.
+//	 * @param lib the Library that will be erased.
+//	 */
+//	public void eraseLibrary(Library lib) {}
+//
+//	/**
+//	 * Method to announce that a Library is about to be written to disk.
+//	 * The method should always be called inside of a Job so that the
+//	 * implementation can make changes to the database.
+//	 * @param lib the Library that will be saved.
+//	 */
+//	public void writeLibrary(Library lib) {}
 
 	/****************************** LISTENER SUPPORT ******************************/
 
@@ -323,7 +335,8 @@ public class Project extends Listener
 		List<Cell> cellsThatChanged = new ArrayList<Cell>();
 		for(FCheck f : fCheckList)
 		{
-			Cell cell = f.entry;
+			Cell cell = Cell.inCurrentThread(f.entry);
+            // Cell cell = f.entry;
 			if (cell == null) continue;
 
 			// make sure cell is checked-out
@@ -415,29 +428,35 @@ public class Project extends Listener
 		}
 	}
 
-	private void checkObject(ElectricObject obj)
-	{
-		if (ignoreChanges) return;
-		if (obj instanceof NodeInst) { queueCheck(((NodeInst)obj).getParent());   return; }
-		if (obj instanceof ArcInst) { queueCheck(((ArcInst)obj).getParent());   return; }
-		if (obj instanceof Export) { queueCheck((Cell)((Export)obj).getParent());   return; }
-		if (obj instanceof Cell) { queueCheck((Cell)obj);   return; }
-	}
+//	private void checkObject(ElectricObject obj)
+//	{
+//		if (ignoreChanges) return;
+//		if (obj instanceof NodeInst) { queueCheck(((NodeInst)obj).getParent());   return; }
+//		if (obj instanceof ArcInst) { queueCheck(((ArcInst)obj).getParent());   return; }
+//		if (obj instanceof Export) { queueCheck((Cell)((Export)obj).getParent());   return; }
+//		if (obj instanceof Cell) { queueCheck((Cell)obj);   return; }
+//	}
 
     /**
-     * Compares two ImmutableCells. Ignores value of PROJLOCKEDKEY.
-     * @param oldD first ImmutableCell.
-     * @param newD second ImmutableCell.
+     * Compares two CellBackups. Ignores value of PROJLOCKEDKEY.
+     * @param oldBackup first CellBackup.
+     * @param newBackup second ImmutableCell.
      * @param true  if two ImmutableCells differs more than by value of PROJLOCKEDKEY.
      */
-    private boolean cellDiffers(ImmutableCell oldD, ImmutableCell newD)
+    private boolean cellChanged(CellBackup oldBackup, CellBackup newBackup)
 	{
-        if (oldD.cellName != newD.cellName) return true;
-        if (oldD.creationDate != newD.creationDate) return true;
-        if (oldD.revisionDate != newD.revisionDate) return true;
-        if (oldD.tech != newD.tech) return true;
-        if (oldD.flags != newD.flags) return true;
-        if (oldD.modified != newD.modified) return true;
+        if (oldBackup == null || newBackup == null) return true;
+        assert oldBackup != newBackup;
+        if (oldBackup.nodes != newBackup.nodes) return true;
+        if (oldBackup.arcs != newBackup.arcs) return true;
+        if (oldBackup.exports != newBackup.exports) return true;
+        if (oldBackup.isMainSchematics != newBackup.isMainSchematics) return true;
+        // if (oldBackup.revisionDate != newBackup.revisionDate) return true;
+        // if (oldBackup.modified != newBackup.modified) return true; // This will happen if subcells are renamed.
+        
+        ImmutableCell oldD = oldBackup.d;
+        ImmutableCell newD = newBackup.d;
+        if (!oldD.equalsExceptVariables(newD)) return true;
         
 		int oldLength = oldD.getNumVariables();
 		int newLength = newD.getNumVariables();
@@ -468,7 +487,7 @@ public class Project extends Listener
         return false;
     }
     
-	private static void queueCheck(Cell cell)
+	private static void queueCheck(CellId cellId)
 	{
 		// get the current batch number
 		Undo.ChangeBatch batch = Undo.getCurrentBatch();
@@ -478,11 +497,11 @@ public class Project extends Listener
 		// see if the cell is already queued
 		for(FCheck f : fCheckList)
 		{
-			if (f.entry == cell && f.batchNumber == batchNumber) return;
+			if (f.entry == cellId && f.batchNumber == batchNumber) return;
 		}
 
 		FCheck f = new FCheck();
-		f.entry = cell;
+		f.entry = cellId;
 		f.batchNumber = batchNumber;
 		fCheckList.add(f);
 	}
@@ -690,8 +709,7 @@ public class Project extends Listener
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();
-			if (Job.getUserInterface().getCurrentCell(lib) == oldCell)
-				Job.getUserInterface().setCurrentCell(lib, newCell);
+			if (lib.getCurCell() == oldCell) lib.setCurCell(newCell);
 		}
 
 		// finally delete the former cell
@@ -736,7 +754,7 @@ public class Project extends Listener
 			return true;
 		}
 
-		Job.getUserInterface().setCurrentCell(fLib, cellCopy);
+		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
 		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true);
 		if (error)

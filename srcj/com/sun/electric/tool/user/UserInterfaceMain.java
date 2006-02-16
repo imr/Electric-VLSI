@@ -23,10 +23,13 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -164,7 +167,7 @@ public class UserInterfaceMain implements UserInterface
         TopLevel.InitializeWindows();
         WindowFrame.wantToOpenCurrentLibrary(true);
     }
-
+    
     public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
 
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }
@@ -583,6 +586,18 @@ public class UserInterfaceMain implements UserInterface
      * @param e DatabaseChangeEvent.
      */
     public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
+        // Mark cells for redraw
+        for (int i = 0; i < e.newSnapshot.cellBackups.length; i++) {
+            CellBackup newBackup = e.newSnapshot.getCell(i);
+            CellBackup oldBackup = e.oldSnapshot.getCell(i);
+            ERectangle newBounds = e.newSnapshot.getCellBounds(i);
+            ERectangle oldBounds = e.oldSnapshot.getCellBounds(i);
+            if (newBackup != oldBackup || newBounds != oldBounds) {
+                Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
+                User.markCellForRedraw(cell, true);
+            }
+        }
+
         Object[] listeners;
         synchronized (Undo.class) {
             listeners = listenerList.getListenerList();

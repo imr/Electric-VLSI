@@ -42,7 +42,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 	/** The text descriptor of name of ImmutableExport. */          public final TextDescriptor nameDescriptor;
     /** The nodeId of original PortInst. */                         public final int originalNodeId;
     /** The PortProtoId of orignal PortInst. */                     public final PortProtoId originalPortId;
-    /** True if this ImmutableExport to be always drawn. */         public final  boolean alwaysDrawn;
+    /** True if this ImmutableExport to be always drawn. */         public final boolean alwaysDrawn;
     /** True to exclude this ImmutableExport from the icon. */      public final boolean bodyOnly;
 	/** PortCharacteristic of this ImmutableExport. */              public final PortCharacteristic characteristic;
  
@@ -70,7 +70,7 @@ public class ImmutableExport extends ImmutableElectricObject {
         this.alwaysDrawn = alwaysDrawn;
         this.bodyOnly = bodyOnly;
         this.characteristic = characteristic;
-        check();
+//        check();
     }
 
 	/**
@@ -85,6 +85,7 @@ public class ImmutableExport extends ImmutableElectricObject {
      * @param characteristic PortCharacteristic of new ImmutableExport.
 	 * @return new ImmutableExport object.
 	 * @throws NullPointerException if exportId, name, originalPortId is null.
+     * @throws IllegalArgumentException if originalNodeId is bad.
 	 */
     public static ImmutableExport newInstance(ExportId exportId, Name name, TextDescriptor nameDescriptor,
              int originalNodeId, PortProtoId originalPortId,
@@ -94,6 +95,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 //        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+        if (originalNodeId < 0) throw new IllegalArgumentException("originalNodeId");
         if (originalPortId == null) throw new NullPointerException("orignalPortId");
         if (characteristic == null) characteristic = PortCharacteristic.UNKNOWN;
 		return new ImmutableExport(exportId, name, nameDescriptor,
@@ -273,6 +275,7 @@ public class ImmutableExport extends ImmutableElectricObject {
   //      assert name.isValid() && !name.hasEmptySubnames();
         if (nameDescriptor != null)
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
+        assert originalNodeId >= 0;
         assert originalPortId != null;
         assert characteristic != null;
 	}

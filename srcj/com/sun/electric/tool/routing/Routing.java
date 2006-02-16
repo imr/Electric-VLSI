@@ -22,7 +22,11 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.routing;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -129,12 +133,15 @@ public class Routing extends Listener
 		checkAutoStitch = false;
 	}
 
-	/**
-	 * Method to announce the end of a batch of changes.
-	 */
-	public void endBatch()
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
-		if (current == null) return;
+		if (undoRedo || current == null) return;
 		if (current.numCreatedArcs > 0 || current.numCreatedNodes > 0 ||
 			current.numDeletedArcs > 0 || current.numDeletedNodes > 0)
 		{

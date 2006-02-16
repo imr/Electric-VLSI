@@ -214,7 +214,7 @@ public class CellName implements Comparable<CellName>
 		for (int i = 0; i < name.length(); i++)
 		{
 			char ch = name.charAt(i);
-			if (ch == '\n' || ch == '}' || ch == ';' || ch == '|' || ch == ':')
+			if (ch == '\n' || ch == '{' || ch == '}' || ch == ';' || ch == '|' || ch == ':')
 			{
 				System.out.println("Cell name " + name + " has invalid char '" + ch + "'");
 				return null;
@@ -240,5 +240,19 @@ public class CellName implements Comparable<CellName>
         CellName n = parseName(name);
         CellName nn = new CellName(n.getName(), view, version);
         return nn;
+    }
+    
+    /**
+	 * Checks invariant of this CellName.
+	 * @throws AssertionError if invariant is broken.
+	 */
+    public void check() {
+		assert name.length() > 0;
+		for (int i = 0; i < name.length(); i++) {
+			char ch = name.charAt(i);
+			assert ch != '\n' && ch != '{' && ch != '}' && ch != ';' && ch != '|' && ch != ':';
+		}
+        assert view != null;
+        assert version >= 0;
     }
 }

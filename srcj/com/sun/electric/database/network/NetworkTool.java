@@ -118,7 +118,8 @@ public class NetworkTool extends Listener
 	/** flag for debug print. */					static boolean debug = false;
 	/** flag for information print. */				static boolean showInfo = true;
 
-	/** NetCells. */								private static NetCell[] cells;
+    /** Database snapshot before undo */            private static Snapshot snapshotBeforeUndo = new Snapshot();
+	/** NetCells. */								private static NetCell[] cells = new NetCell[1];
 	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
 	/** Mutex object */								private static Object mutex = new Object();
 
@@ -407,34 +408,28 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.init()");
 	}
 
-	public void request(String cmd)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.request("+cmd+")");
-	}
-
-	public void examineCell(Cell cell)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.examineCell("+cell+")");
-	}
-
-	public void slice()
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.slice()");
-	}
-
 	public void startBatch(Tool tool, boolean undoRedo)
 	{
+        snapshotBeforeUndo = undoRedo ? Library.backup() : null;
 		if (!debug) return;
 		System.out.println("NetworkTool.startBatch("+tool+","+undoRedo+")");
 	}
 
-	public void endBatch()
+   /**
+     * Method to annonunce database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
 		try {
-			redoNetworkNumbering(false);
+            if (undoRedo) {
+                assert oldSnapshot == snapshotBeforeUndo;
+                updateAll(oldSnapshot, newSnapshot);
+            } else {
+                redoNetworkNumbering(false);
+            }
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 			System.err.println("Full Network renumbering after crash.");
@@ -555,13 +550,6 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
 	}
 
-	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {
-        if (obj instanceof Cell)
-            invalidate();
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyVariables("+obj+")");
-	}
-
 	public void readLibrary(Library lib)
 	{
 		if (!debug) return;
@@ -587,7 +575,7 @@ public class NetworkTool extends Listener
      */
     public static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
         invalidate();
-        int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
+        int maxCells = Math.max(oldSnapshot.cellBackups.length, newSnapshot.cellBackups.length);
         if (cells.length < maxCells) {
             NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];
             System.arraycopy(cells, 0, newCells, 0, cells.length);

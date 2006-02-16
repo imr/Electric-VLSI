@@ -2267,7 +2267,7 @@ public class EditWindow extends JPanel
 					// export name
 					Export pp = (Export)sic.object;
 					pp.rename(newString);
-					Undo.redrawObject(pp.getOriginalPort().getNodeInst());				
+//					Undo.redrawObject(pp.getOriginalPort().getNodeInst());				
 				} else if (sic.object instanceof NodeInst)
 				{
 					// node name

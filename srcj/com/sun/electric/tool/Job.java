@@ -67,7 +67,7 @@ public abstract class Job implements Serializable {
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 1; // Feb 12
+    static final int PROTOCOL_VERSION = 2; // Feb 13
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     private static final String CLASS_NAME = Job.class.getName();
@@ -600,6 +600,21 @@ public abstract class Job implements Serializable {
         } else {
             IllegalStateException e = new IllegalStateException("Database changes are forbidden");
             Job.logger.logp(Level.WARNING, CLASS_NAME, "checkChanging", e.getMessage(), e);
+            throw e;
+        }
+	}
+
+	/**
+	 * Method to check whether changing of whole database is allowed.
+	 * @throws IllegalStateException if changes are not allowed.
+	 */
+	public static void checkUndoing() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread) {
+            ((EThread)currentThread).checkUndoing();
+        } else {
+            IllegalStateException e = new IllegalStateException("Database undos are forbidden");
+            Job.logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
             throw e;
         }
 	}

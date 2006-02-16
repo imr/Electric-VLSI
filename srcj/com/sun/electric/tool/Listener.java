@@ -28,6 +28,7 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
@@ -39,7 +40,7 @@ import com.sun.electric.database.variable.ElectricObject;
 /**
  * This class represents a Listener - a Tool which can listen to Changes.
  */
-public class Listener extends Tool implements Changes
+public abstract class Listener extends Tool implements Changes
 {
 	/**
 	 * The constructor for Listener is only called by subclasses.
@@ -68,10 +69,13 @@ public class Listener extends Tool implements Changes
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
 	public void startBatch(Tool tool, boolean undoRedo) {}
-	/**
-	 * Method to handle the end of a batch of changes.
-	 */
-	public void endBatch() {}
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public abstract void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo);
 
 	/**
 	 * Method to handle a change to a NodeInst.
@@ -126,12 +130,6 @@ public class Listener extends Tool implements Changes
 	 * @param oldName the former name of that ElectricObject.
 	 */
 	public void renameObject(ElectricObject obj, Object oldName) {}
-	/**
-	 * Method to request that an object be redrawn.
-	 * @param obj the ElectricObject to be redrawn.
-	 */
-	public void redrawObject(ElectricObject obj) {}
-
 	/**
 	 * Method to announce that a Library has been read.
 	 * @param lib the Library that was read.

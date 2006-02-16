@@ -298,6 +298,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		Name oldName = getNameKey();
         parent.moveExport(portIndex, newName);
 		setD(d.withName(Name.findName(newName)), true);
+        parent.notifyRename();
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();
@@ -531,7 +532,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * Modifies persistent data of this Export.
      * @param newD new persistent data.
      */
-    void updateD(ImmutableExport newD) {
+    void setDInUndo(ImmutableExport newD) {
+        checkUndoing();
         if (newD == d) return;
         d = newD;
         if (originalPort.getNodeInst().getD().nodeId != d.originalNodeId ||

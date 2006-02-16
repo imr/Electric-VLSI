@@ -511,8 +511,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Library lib = (Library)nodeInfo;
 				if (iconLibrary == null)
 					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
-				if (lib.isChangedMajor()) setFont(boldFont);
-                else if (lib.isChangedMinor()) setFont(italicFont);
+				if (lib.isChanged()) setFont(boldFont);
 				setIcon(iconLibrary);
 			}
 			if (nodeInfo instanceof ExplorerTreeModel.CellAndCount)

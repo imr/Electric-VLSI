@@ -248,7 +248,7 @@ public class BusParameters extends EDialog
 		public boolean doIt() throws JobException
 		{
 			lib.newVar(BUS_VARIABLES, parameterList);
-			lib.setChangedMajor();
+//			lib.setChanged();
 			return true;
 		}
 	}
