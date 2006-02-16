@@ -113,12 +113,12 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         b.addActionListener(buttonLogger);
 
         // add to book-keeping
-        ArrayList<AbstractButton> buttonGroup;
+        List<AbstractButton> buttonGroup;
         if (!allButtons.containsKey(text)) {
             buttonGroup = new ArrayList<AbstractButton>();
             allButtons.put(text, buttonGroup);
         } else {
-            buttonGroup = (ArrayList<AbstractButton>)allButtons.get(text);
+            buttonGroup = allButtons.get(text);
         }
         buttonGroup.add(b);
         return b;
@@ -141,10 +141,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         if (source instanceof ToolBarButton) name = ((ToolBarButton)source).getName(); else
             name = source.getText();
         //System.out.println("ActionPerformed on Button "+name+", state is "+source.isSelected());
-        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
+        List<AbstractButton> list = allButtons.get(name);
         if (list == null) return;
-        for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
-            AbstractButton b = (AbstractButton)it.next();
+        for (AbstractButton b : list) {
             if (b == source) continue;
             String name2;
             if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
@@ -162,10 +161,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @param icon the new icon for the buttons
      */
     public static void setIconForButton(String name, Icon icon) {
-        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
+        List<AbstractButton> list = allButtons.get(name);
         if (list == null) return;
-        for (Iterator<AbstractButton> it = list.iterator(); it.hasNext(); ) {
-            AbstractButton b = (AbstractButton)it.next();
+        for (AbstractButton b : list) {
             b.setIcon(icon);
         }
     }
@@ -177,9 +175,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @return the state of the button
      */
     public static boolean getButtonState(String name) {
-        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
+        List<AbstractButton> list = allButtons.get(name);
         if (list == null || list.size() == 0) return false;
-        AbstractButton b = (AbstractButton)list.get(0);
+        AbstractButton b = list.get(0);
         return b.isSelected();
     }        
     
@@ -188,9 +186,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @param name the name of the button
      */
     public static void doClick(String name) {
-        ArrayList<AbstractButton> list = (ArrayList<AbstractButton>)allButtons.get(name);
+        List<AbstractButton> list = allButtons.get(name);
         if (list == null) return;
-        AbstractButton b = (AbstractButton)list.get(0);
+        AbstractButton b = list.get(0);
         b.doClick();
     }
 
@@ -208,7 +206,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
             removeActionListener(actionListener);
         }
         // remove hash table reference
-        ArrayList list = (ArrayList)allButtons.get(getName());
+        List<AbstractButton> list = allButtons.get(getName());
         if (list == null) return;
         list.remove(this);
     }

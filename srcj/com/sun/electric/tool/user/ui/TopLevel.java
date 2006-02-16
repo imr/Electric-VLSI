@@ -391,7 +391,7 @@ public class TopLevel extends JFrame
         }
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
-            WindowFrame wf = (WindowFrame)it.next();
+            WindowFrame wf = it.next();
             wf.setCursor(cursor);
         }
 	}

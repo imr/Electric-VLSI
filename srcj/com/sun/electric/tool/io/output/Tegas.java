@@ -146,7 +146,7 @@ public class Tegas extends Topology
 			infstr.append("INPUTS:\n");
 			for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 			{
-				CellSignal cs = (CellSignal)it.next();
+				CellSignal cs = it.next();
 				if (!cs.isExported()) continue;
 				Export e = cs.getExport();
 				if (e.getCharacteristic() != PortCharacteristic.IN) continue;
@@ -164,7 +164,7 @@ public class Tegas extends Topology
 			infstr.append("OUTPUTS:\n");
 				for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 			{
-				CellSignal cs = (CellSignal)it.next();
+				CellSignal cs = it.next();
 				if (!cs.isExported()) continue;
 				Export e = cs.getExport();
 				if (e.getCharacteristic() == PortCharacteristic.OUT)
@@ -184,7 +184,7 @@ public class Tegas extends Topology
 		Set<String> gateDeclarations = new HashSet<String>();
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			if (no.isCellInstance())
 			{
 				// This case can either be for an existing  user defined module in this
@@ -218,16 +218,14 @@ public class Tegas extends Topology
 		int numDecls = instanceDeclarations.size() + gateDeclarations.size();
 		if (numDecls > 0) writeWidthLimited("USE:\n\n");
 		int countDecls = 1;
-		for(Iterator<String> it = instanceDeclarations.iterator(); it.hasNext(); )
+		for(String decl : instanceDeclarations)
 		{
-			String decl = (String)it.next();
 			if (countDecls < numDecls) decl += ","; else decl += ";";
 			countDecls++;
 			writeWidthLimited("    " + decl + "\n");
 		}
-		for(Iterator<String> it = gateDeclarations.iterator(); it.hasNext(); )
+		for(String decl : gateDeclarations)
 		{
-			String decl = (String)it.next();
 			if (countDecls < numDecls) decl += ","; else decl += ";";
 			countDecls++;
 			writeWidthLimited("    " + decl + "\n");
@@ -242,7 +240,7 @@ public class Tegas extends Topology
 		int count = 1;
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			for(int i=0; i<2; i++)
 			{
 				if (!ai.isNegated(i)) continue;
@@ -262,7 +260,7 @@ public class Tegas extends Topology
 		int nodeCount = 1;
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			PrimitiveNode.Function fun = getNodableFunction(no);
 			if (fun.isTransistor() || fun == PrimitiveNode.Function.GATEXOR ||
 				fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
@@ -277,7 +275,7 @@ public class Tegas extends Topology
 		boolean wrotePower = false, wroteGround = false;
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
-			Nodable no = (Nodable)it.next();
+			Nodable no = it.next();
 			PrimitiveNode.Function fun = getNodableFunction(no);
 			if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART) continue;
 			if (fun == PrimitiveNode.Function.CONPOWER)
@@ -323,7 +321,7 @@ public class Tegas extends Topology
 	private String getOutputSignals(Nodable no, VarContext context, CellNetInfo cni)
 	{
 		int nodeNumber = -1;
-		Integer nodeNum = (Integer)nodeNames.get(no);
+		Integer nodeNum = nodeNames.get(no);
 		if (nodeNum != null) nodeNumber = nodeNum.intValue();
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("U" + nodeNumber + "(");
@@ -335,7 +333,7 @@ public class Tegas extends Topology
 			CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 			for(Iterator<CellSignal> it = subCni.getCellSignals(); it.hasNext(); )
 			{
-				CellSignal subCs = (CellSignal)it.next();
+				CellSignal subCs = it.next();
 				if (!subCs.isExported()) continue;
 				Export e = subCs.getExport();
 				if (e.getCharacteristic() == PortCharacteristic.IN) continue;
@@ -350,7 +348,7 @@ public class Tegas extends Topology
 			NodeInst ni = (NodeInst)no;
 			for(Iterator<PortProto> it = no.getProto().getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
+				PortProto pp = it.next();
 				if (fun.isTransistor())
 				{
 					if (pp.getName().equals("g")) continue;
@@ -361,7 +359,7 @@ public class Tegas extends Topology
 
 				for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 				{
-					Connection con = (Connection)aIt.next();
+					Connection con = aIt.next();
 					PortInst pi = con.getPortInst();
 					if (pi.getPortProto() != pp) continue;
 					ArcInst ai = con.getArc();
@@ -408,7 +406,7 @@ public class Tegas extends Topology
 			CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 			for(Iterator<CellSignal> it = subCni.getCellSignals(); it.hasNext(); )
 			{
-				CellSignal subCs = (CellSignal)it.next();
+				CellSignal subCs = it.next();
 				if (!subCs.isExported()) continue;
 				Export e = subCs.getExport();
 				if (e.getCharacteristic() == PortCharacteristic.OUT) continue;
@@ -436,7 +434,7 @@ public class Tegas extends Topology
 				boolean portWired = false;
 				for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 				{
-					Connection con = (Connection)aIt.next();
+					Connection con = aIt.next();
 					if (con.getPortInst().getPortProto() == pp)
 					{
 						if (first) first = false; else infstr.append(",");
@@ -471,13 +469,13 @@ public class Tegas extends Topology
 		int x = 0;
 		for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 		{
-			PortProto pp = (PortProto)it.next();
+			PortProto pp = it.next();
 			if (pp.getCharacteristic() == PortCharacteristic.OUT) continue;
 			String ptr = "NC";   // if no-connection write NC
 
 			for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
 			{
-				Connection con = (Connection)pIt.next();
+				Connection con = pIt.next();
 				if (con.getPortInst().getPortProto() == pp)
 				{
 					ptr = getInvertedConnectionName(con);
@@ -486,7 +484,7 @@ public class Tegas extends Topology
 			}
 			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 			{
-				Export e = (Export)eIt.next();
+				Export e = eIt.next();
 				if (e.getOriginalPort().getPortProto() == pp)
 				{
 					ptr = convertName(e.getName());
@@ -526,7 +524,7 @@ public class Tegas extends Topology
 	{
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			PortInst pi = con.getPortInst();
 			PortProto pp = pi.getPortProto();
 			if (pp.getCharacteristic() != PortCharacteristic.OUT) continue;
@@ -562,7 +560,7 @@ public class Tegas extends Topology
 		int inputs = 0;
 		for(Iterator<Connection> iIt = ni.getConnections(); iIt.hasNext(); )
 		{
-			Connection con = (Connection)iIt.next();
+			Connection con = iIt.next();
 			if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.IN) inputs++;
 		}
 		if (inputs < 2)
@@ -604,7 +602,7 @@ public class Tegas extends Topology
 	 */
 	private void writeInverter(Connection con, String str1, String str2)
 	{
-		Integer index = (Integer)implicitInverters.get(con.getArc());
+		Integer index = implicitInverters.get(con.getArc());
 		if (index == null) return;
 	
 		writeWidthLimited("I" + index + "(" + convertName(str1) + ") = NOT(" + convertName(str2) + ");\n");
@@ -630,7 +628,7 @@ public class Tegas extends Topology
 		{
 			if (ni.getNumConnections() > 0)
 			{
-				Connection con = (Connection)ni.getConnections().next();
+				Connection con = ni.getConnections().next();
 				Network net = netList.getNetwork(con.getArc(), 0);
 				String decl = net.describe(false) + " = ";
 				if (fun == PrimitiveNode.Function.CONPOWER) decl += "PWR"; else
@@ -668,7 +666,7 @@ public class Tegas extends Topology
 
 		// insert an inverter description if a negated arc attached to primitive
 		// other than AND,OR,XOR
-		Integer index = (Integer)implicitInverters.get(ai);
+		Integer index = implicitInverters.get(ai);
 		if (index != null)
 		{
 			String str = "I" + index + ".O";
@@ -794,9 +792,8 @@ public class Tegas extends Topology
 			}
 		}
 		if (str.length() < 2) return false;
-		for(Iterator<String> it = reservedWords.iterator(); it.hasNext(); )
+		for(String match : reservedWords)
 		{
-			String match = (String)it.next();
 			if (match.startsWith(str)) return true;
 		}
 		return false;

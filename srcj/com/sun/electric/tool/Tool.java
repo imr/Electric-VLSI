@@ -91,11 +91,10 @@ public class Tool implements Comparable
 	private void updateListeners()
 	{
 		listeners.clear();
-		for (Iterator<Tool> it = tools.values().iterator(); it.hasNext(); )
+		for (Tool t : tools.values())
 		{
-			Object o = it.next();
-			if (o instanceof Listener && ((Listener)o).isOn())
-				listeners.add((Listener)o);
+			if (t instanceof Listener && ((Listener)t).isOn())
+				listeners.add((Listener)t);
 		}
 	}
 
@@ -129,7 +128,7 @@ public class Tool implements Comparable
 	 */
 	public static Tool findTool(String name)
 	{
-		return (Tool)tools.get(name);
+		return tools.get(name);
 	}
 
 	/**

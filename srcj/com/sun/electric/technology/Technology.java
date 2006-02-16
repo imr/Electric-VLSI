@@ -696,13 +696,13 @@ public class Technology implements Comparable<Technology>
 		// setup mapping from pseudo-layers to real layers
 		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			int extras = layer.getFunctionExtras();
 			if ((extras & Layer.Function.PSEUDO) == 0) continue;
 			Layer.Function fun = layer.getFunction();
 			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
 			{
-				Layer oLayer = (Layer)oIt.next();
+				Layer oLayer = oIt.next();
 				int oExtras = oLayer.getFunctionExtras();
 				Layer.Function oFun = oLayer.getFunction();
 				if (oFun == fun && (oExtras == (extras & ~Layer.Function.PSEUDO)))
@@ -730,7 +730,7 @@ public class Technology implements Comparable<Technology>
 		HashMap<ArcProto,Double> arcWidths = new HashMap<ArcProto,Double>();
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			double width = ap.getDefaultWidth();
 			arcWidths.put(ap, new Double(width));
 		}
@@ -739,7 +739,7 @@ public class Technology implements Comparable<Technology>
 		HashMap<PrimitiveNode,Point2D.Double> nodeSizes = new HashMap<PrimitiveNode,Point2D.Double>();
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
 			nodeSizes.put(np, new Point2D.Double(width, height));
@@ -751,8 +751,8 @@ public class Technology implements Comparable<Technology>
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
-			Double origWidth = (Double)arcWidths.get(ap);
+			ArcProto ap = it.next();
+			Double origWidth = arcWidths.get(ap);
 			if (origWidth == null) continue;
 			double width = ap.getDefaultWidth();
 			if (origWidth.doubleValue() > width) ap.setDefaultWidth(origWidth.doubleValue());
@@ -761,8 +761,8 @@ public class Technology implements Comparable<Technology>
 		// now restore node size defaults if they are larger than what is set
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			Point2D size = (Point2D)nodeSizes.get(np);
+			PrimitiveNode np = it.next();
+			Point2D size = nodeSizes.get(np);
 			if (size == null) continue;
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
@@ -808,12 +808,12 @@ public class Technology implements Comparable<Technology>
 	public static Technology findTechnology(String name)
 	{
 		if (name == null) return null;
-		Technology tech = (Technology) technologies.get(name);
+		Technology tech = technologies.get(name);
 		if (tech != null) return tech;
 
 		for (Iterator<Technology> it = getTechnologies(); it.hasNext(); )
 		{
-			Technology t = (Technology) it.next();
+			Technology t = it.next();
 			if (t.techName.equalsIgnoreCase(name))
 				return t;
 		}
@@ -868,7 +868,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public Layer getLayer(int index)
 	{
-		return (Layer)layers.get(index);
+		return layers.get(index);
 	}
 
 	/**
@@ -889,7 +889,7 @@ public class Technology implements Comparable<Technology>
 	{
 		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
 		}
 		return null;
@@ -921,7 +921,7 @@ public class Technology implements Comparable<Technology>
         int count = 0;
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); count++)
         {
-            PrimitiveNode pn = (PrimitiveNode)it.next();
+            PrimitiveNode pn = it.next();
             if (pn.getName().equalsIgnoreCase(name))
                 return (getNumLayers() + count);
         }
@@ -946,7 +946,7 @@ public class Technology implements Comparable<Technology>
 	{
 		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
-			Layer lay = (Layer)it.next();
+			Layer lay = it.next();
 			Layer.Function lFun = lay.getFunction();
 			if (lFun == fun) return lay;
 		}
@@ -1021,12 +1021,12 @@ public class Technology implements Comparable<Technology>
 	public ArcProto findArcProto(String name)
 	{
 		if (name == null) return null;
-		ArcProto primArc = (ArcProto)arcs.get(name);
+		ArcProto primArc = arcs.get(name);
 		if (primArc != null) return primArc;
 
 		for (Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto) it.next();
+			ArcProto ap = it.next();
 			if (ap.getName().equalsIgnoreCase(name))
 				return ap;
 		}
@@ -1315,7 +1315,7 @@ public class Technology implements Comparable<Technology>
 		TreeMap<String,PrimitiveNode> sortedMap = new TreeMap<String,PrimitiveNode>(TextUtils.STRING_NUMBER_ORDER);
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode pn = (PrimitiveNode)it.next();
+			PrimitiveNode pn = it.next();
 			sortedMap.put(pn.getName(), pn);
 		}
 		return new ArrayList<PrimitiveNode>(sortedMap.values());
@@ -1329,12 +1329,12 @@ public class Technology implements Comparable<Technology>
 	public PrimitiveNode findNodeProto(String name)
 	{
 		if (name == null) return null;
-		PrimitiveNode primNode = (PrimitiveNode)nodes.get(name);
+		PrimitiveNode primNode = nodes.get(name);
 		if (primNode != null) return primNode;
 
 		for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode pn = (PrimitiveNode) it.next();
+			PrimitiveNode pn = it.next();
 			if (pn.getName().equalsIgnoreCase(name))
 				return pn;
 		}
@@ -1833,7 +1833,7 @@ public class Technology implements Comparable<Technology>
 		int numNegatingBubbles = 0;
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			if (con.isNegated()) numNegatingBubbles++;
 		}
 
@@ -1925,7 +1925,7 @@ public class Technology implements Comparable<Technology>
 			double bubbleRadius = Schematics.getNegatingBubbleSize() / 2;
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = it.next();
 				if (!con.isNegated()) continue;
 
 				// add a negating bubble
@@ -2425,7 +2425,7 @@ public class Technology implements Comparable<Technology>
 			int which = 0;
 			for(Iterator<PortProto> it = theProto.getPorts(); it.hasNext(); )
 			{
-				PortProto lpp = (PortProto)it.next();
+				PortProto lpp = it.next();
 				if (lpp == pp) break;
 				which++;
 			}
@@ -3079,7 +3079,7 @@ public class Technology implements Comparable<Technology>
 	{
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (tech == this) continue;
 			if (tech.techName.equalsIgnoreCase(techName))
 			{
@@ -3539,7 +3539,7 @@ public class Technology implements Comparable<Technology>
 		int maxTech = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			if (tech.getIndex() > maxTech) maxTech = tech.getIndex();
 		}
 		maxTech++;
@@ -3569,7 +3569,7 @@ public class Technology implements Comparable<Technology>
 		{
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				NodeProto np = ni.getProto();
 				Technology nodeTech = np.getTechnology();
 				if (ni.isCellInstance())
@@ -3596,7 +3596,7 @@ public class Technology implements Comparable<Technology>
 		{
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				useCount[ap.getTechnology().getIndex()]++;
 			}
@@ -3607,7 +3607,7 @@ public class Technology implements Comparable<Technology>
 		int bestLayout = 0;   Technology bestLayoutTech = null;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 
 			// always ignore the generic technology
 			if (tech == Generic.tech) continue;
@@ -3815,7 +3815,7 @@ public class Technology implements Comparable<Technology>
 		int index = 0;
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np == nty) break;
 			index++;
 		}
@@ -4101,7 +4101,7 @@ public class Technology implements Comparable<Technology>
 //            System.out.println("Resetting sizes in " + lib);
 //            for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
 //            {
-//                Cell cell = (Cell)itCell.next();
+//                Cell cell = itCell.next();
 //                if (cell.getView() != View.LAYOUT) continue;
 //
 //                cell.getTechnology().resetDefaultValues(cell);
@@ -4119,8 +4119,7 @@ public class Technology implements Comparable<Technology>
             {
                 for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
                 {
-                    Library lib = (Library)it.next();
-
+                    Library lib = it.next();
                     checkLibrary(lib);
                 }
             }
