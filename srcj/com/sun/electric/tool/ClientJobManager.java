@@ -413,9 +413,9 @@ class ClientJobManager extends JobManager {
         public void run() {
             Library.checkFresh(oldSnapshot);
             Library.undo(newSnapshot);
-            NetworkTool.updateAll(oldSnapshot, newSnapshot);
+//            NetworkTool.updateAll(oldSnapshot, newSnapshot);
             DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
-            UserInterfaceMain.fireDatabaseChangeEvent(event);
+//            UserInterfaceMain.fireDatabaseChangeEvent(event);
         }
 	}
 }

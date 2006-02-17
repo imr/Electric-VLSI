@@ -24,11 +24,9 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
@@ -783,7 +781,7 @@ class LayoutCell {
 		// if the arc hasn't changed yet, record this change
 		if (oldArcs == null || !oldArcs.containsKey(ai))
 		{
-			Undo.modifyArcInst(ai, oldD);
+            Constraints.getCurrent().modifyArcInst(ai, oldD); // Is it necessary ?
 			setChangeClock(ai, arctyp);
 		}
 	}

@@ -27,30 +27,22 @@ package com.sun.electric.tool.project;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
-import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.ImmutableLibrary;
-import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
@@ -181,15 +173,16 @@ public class Project extends Listener
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
      * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @param batchNumber batch nuber of a Job.
      * @undoRedo true if Job was Undo/Redo job.
      */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo)
 	{
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             CellBackup newBackup = newSnapshot.getCell(cellId);
             if (cellChanged(oldBackup, newBackup))
-                queueCheck(cellId);
+                queueCheck(cellId, batchNumber);
         }
 		detectIllegalChanges();
 
@@ -487,13 +480,8 @@ public class Project extends Listener
         return false;
     }
     
-	private static void queueCheck(CellId cellId)
+	private static void queueCheck(CellId cellId, int batchNumber)
 	{
-		// get the current batch number
-		Undo.ChangeBatch batch = Undo.getCurrentBatch();
-		if (batch == null) return;
-		int batchNumber = batch.getBatchNumber();
-
 		// see if the cell is already queued
 		for(FCheck f : fCheckList)
 		{

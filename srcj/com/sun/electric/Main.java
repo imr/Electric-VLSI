@@ -339,7 +339,7 @@ public final class Main
          * Show new database snapshot.
          * @param newSnapshot new snapshot.
          */
-        public void showSnapshot(Snapshot newSnapshot) {}
+        public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) {}
         
 	}
 

@@ -303,11 +303,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine();
     }
     
-    private void updateSnapshot() {
+    void updateSnapshot() {
         Snapshot oldSnapshot = currentSnapshot;
         Snapshot newSnapshot = Library.backup();
         if (newSnapshot == oldSnapshot) return;
-        Job.currentUI.showSnapshot(newSnapshot);
         lock();
         try {
             currentSnapshot = newSnapshot;
@@ -694,7 +693,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * Show new database snapshot.
          * @param newSnapshot new snapshot.
          */
-        public void showSnapshot(Snapshot newSnapshot) { throw new IllegalStateException(); }
+        public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) { throw new IllegalStateException(); }
         
         /**
          * Method is called when initialization was finished.

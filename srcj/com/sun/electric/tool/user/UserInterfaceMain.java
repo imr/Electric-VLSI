@@ -28,7 +28,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,6 +36,8 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -517,8 +518,8 @@ public class UserInterfaceMain implements UserInterface
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
-    public void showSnapshot(Snapshot newSnapshot) {
-            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot));
+    public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) {
+            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, batchNumber, undoRedo));
     }
 
     /**
@@ -536,14 +537,14 @@ public class UserInterfaceMain implements UserInterface
 	public static boolean getRedoEnabled() { return redoEnabled; }
 
 	/** Add a property change listener. This generates Undo and Redo enabled property changes */
-	public static void addUndoRedoListener(PropertyChangeListener l)
+	public static synchronized void addUndoRedoListener(PropertyChangeListener l)
 	{
         assert SwingUtilities.isEventDispatchThread();
 		undoRedoListenerList.add(PropertyChangeListener.class, l);
 	}
 
 	/** Remove a property change listener. */
-	public static void removeUndoRedoListener(PropertyChangeListener l)
+	public static synchronized void removeUndoRedoListener(PropertyChangeListener l)
 	{
         assert SwingUtilities.isEventDispatchThread();
 		undoRedoListenerList.remove(PropertyChangeListener.class, l);
@@ -552,7 +553,7 @@ public class UserInterfaceMain implements UserInterface
     private static void firePropertyChange(PropertyChangeEvent e) {
         assert SwingUtilities.isEventDispatchThread();
         Object[] listeners;
-        synchronized (Undo.class) {
+        synchronized (UserInterfaceMain.class) {
             listeners = undoRedoListenerList.getListenerList();
         }
         // Process the listeners last to first, notifying those that are interested in this event
@@ -585,21 +586,9 @@ public class UserInterfaceMain implements UserInterface
      * Fire DatabaseChangeEvent to DatabaseChangeListeners.
      * @param e DatabaseChangeEvent.
      */
-    public static synchronized void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
-        // Mark cells for redraw
-        for (int i = 0; i < e.newSnapshot.cellBackups.length; i++) {
-            CellBackup newBackup = e.newSnapshot.getCell(i);
-            CellBackup oldBackup = e.oldSnapshot.getCell(i);
-            ERectangle newBounds = e.newSnapshot.getCellBounds(i);
-            ERectangle oldBounds = e.oldSnapshot.getCellBounds(i);
-            if (newBackup != oldBackup || newBounds != oldBounds) {
-                Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-                User.markCellForRedraw(cell, true);
-            }
-        }
-
+    public static void fireDatabaseChangeEvent(DatabaseChangeEvent e) {
         Object[] listeners;
-        synchronized (Undo.class) {
+        synchronized (User.class) {
             listeners = listenerList.getListenerList();
         }
         // Process the listeners last to first, notifying those that are interested in this event
@@ -612,9 +601,19 @@ public class UserInterfaceMain implements UserInterface
 	private static class DatabaseChangeRun implements Runnable
 	{
 		private Snapshot newSnapshot;
-		private DatabaseChangeRun(Snapshot newSnapshot) { this.newSnapshot = newSnapshot; }
+        private int batchNumber;
+        private boolean undoRedo;
+		private DatabaseChangeRun(Snapshot newSnapshot, int batchNumber, boolean undRedo) {
+            this.newSnapshot = newSnapshot;
+            this.batchNumber = batchNumber;
+            this.undoRedo = undoRedo;
+        }
         public void run() {
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
+            for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+                Listener listener = it.next();
+                listener.endBatch(currentSnapshot, newSnapshot, batchNumber, false);
+            }
             currentSnapshot = newSnapshot;
             fireDatabaseChangeEvent(event);
         }

@@ -29,6 +29,7 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
@@ -361,7 +362,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		Undo.newObject(ni);
+		Constraints.getCurrent().newObject(ni);
 		if (protoType == Generic.tech.cellCenterNode)
     		parent.adjustReferencePoint(center.getX(), center.getY());
         if (protoType == Schematics.tech.globalNode) {
@@ -398,7 +399,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		Undo.killObject(this);
+		Constraints.getCurrent().killObject(this);
 	}
 
 	/**
@@ -458,7 +459,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             d = d.withSize(d.width + dXSize, d.height + dYSize);
         d = d.withOrient(dOrient.concatenate(d.orient));
         lowLevelModify(d);
-        Undo.modifyNodeInst(this, oldD);
+        Constraints.getCurrent().modifyNodeInst(this, oldD);
         
 //        // change the coordinates of every arc end connected to this
 //        for(Iterator<Connection> it = getConnections(); it.hasNext(); ) {
@@ -877,7 +878,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (parent != null) {
             parent.setContentsModified();
             if (notify)
-                Undo.modifyNodeInst(this, oldD);
+                Constraints.getCurrent().modifyNodeInst(this, oldD);
         }
         return true;
     }
@@ -2554,7 +2555,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
         ImmutableNodeInst oldD = d;
         lowLevelModify(d.withName(key));
-        Undo.modifyNodeInst(this, oldD);
+        Constraints.getCurrent().modifyNodeInst(this, oldD);
 		return false;
 	}
 

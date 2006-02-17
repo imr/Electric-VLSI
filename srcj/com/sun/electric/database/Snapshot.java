@@ -101,6 +101,11 @@ public class Snapshot {
         return cellIndex < cellBackups.length ? cellBackups[cellIndex] : null; 
     }
     
+    public ERectangle getCellBounds(CellId cellId) {
+        int cellIndex = cellId.cellIndex;
+        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
+    }
+    
     public ERectangle getCellBounds(int cellIndex) {
         return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
     }

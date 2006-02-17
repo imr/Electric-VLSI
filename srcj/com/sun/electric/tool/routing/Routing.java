@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -77,9 +78,11 @@ public class Routing extends Listener
 		ArcInst [] createdArcs;
 		NodeInst [] createdNodes;
 		int numDeletedArcs, numDeletedNodes;
-		ArcInst [] deletedArcs;
-		NodeInst [] deletedNodes;
-		PortProto [] deletedPorts;
+        ImmutableArcInst deletedArc;
+        CellId deletedArcParent;
+//		ArcInst [] deletedArcs;
+//		NodeInst [] deletedNodes;
+		PortProtoId [] deletedPorts;
 
 		Activity()
 		{
@@ -87,9 +90,9 @@ public class Routing extends Listener
 			numDeletedArcs = numDeletedNodes = 0;
 			createdArcs = new ArcInst[3];
 			createdNodes = new NodeInst[3];
-			deletedArcs = new ArcInst[3];
-			deletedNodes = new NodeInst[2];
-			deletedPorts = new PortProto[2];
+//			deletedArcs = new ArcInst[3];
+//			deletedNodes = new NodeInst[2];
+			deletedPorts = new PortProtoId[2];
 		}
 	}
 
@@ -122,28 +125,74 @@ public class Routing extends Listener
      */
     public static Routing getRoutingTool() { return tool; }
 
-	/**
-	 * Method to announce the start of a batch of changes.
-	 * @param tool the tool that generated the changes.
-	 * @param undoRedo true if these changes are from an undo or redo command.
-	 */
-	public void startBatch(Tool tool, boolean undoRedo)
-	{
-		current = new Activity();
-		checkAutoStitch = false;
-	}
+//	/**
+//	 * Method to announce the start of a batch of changes.
+//	 * @param tool the tool that generated the changes.
+//	 * @param undoRedo true if these changes are from an undo or redo command.
+//	 */
+//	public void startBatch(Tool tool, boolean undoRedo)
+//	{
+//		current = new Activity();
+//		checkAutoStitch = false;
+//	}
 
    /**
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
      * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @param batchNumber batch nuber of a Job.
      * @undoRedo true if Job was Undo/Redo job.
      */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo)
 	{
-		if (undoRedo || current == null) return;
-		if (current.numCreatedArcs > 0 || current.numCreatedNodes > 0 ||
-			current.numDeletedArcs > 0 || current.numDeletedNodes > 0)
+		if (undoRedo) return;
+        current = new Activity();
+        checkAutoStitch = false;
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            Cell cell = Cell.inCurrentThread(cellId);
+            if (cell == null) continue;
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            if (oldBackup == null) continue; // Don't route in new cells
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                ImmutableNodeInst d = ni.getD();
+                ImmutableNodeInst oldD = oldBackup.getNode(d.nodeId);
+                if (oldD == null) {
+                    if (current.numCreatedNodes < 3)
+                        current.createdNodes[current.numCreatedNodes++] = ni;
+                } else if (oldD != d) {
+                    checkAutoStitch = true;
+                }
+            }
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+                ArcInst ai = it.next();
+                ImmutableArcInst d = ai.getD();
+                ImmutableArcInst oldD = oldBackup.getArc(d.arcId);
+                if (oldD == null) {
+                    if (current.numCreatedArcs < 3)
+                        current.createdArcs[current.numCreatedArcs++] = ai;
+                }
+            }
+            for (ImmutableArcInst nid: oldBackup.arcs) {
+                if (nid == null) continue;
+                if (cell.getNodeById(nid.arcId) == null)
+                    current.numDeletedNodes++;
+            }
+            for (ImmutableArcInst aid: oldBackup.arcs) {
+                if (aid == null) continue;
+                if (cell.getArcById(aid.arcId) == null) {
+                    if (current.numDeletedArcs == 0) {
+                        current.deletedArc = aid;
+                        current.deletedArcParent = cell.getCellId();
+                        current.deletedPorts[0] = aid.headPortId;
+                        current.deletedPorts[1] = aid.tailPortId;
+                    }
+                    current.numDeletedArcs++;
+                }
+            }
+        }
+        
+		if (current.numCreatedArcs > 0 || current.numCreatedNodes > 0 || current.deletedArc != null)
 		{
 			past = current;
 			if (isMimicStitchOn())
@@ -160,56 +209,59 @@ public class Routing extends Listener
         current = null;
 	}
 
-	/**
-	 * Method to announce a change to a NodeInst.
-	 * @param ni the NodeInst that was changed.
-	 * @param oD the old contents of the NodeInst.
-	 */
-	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-	{
-		checkAutoStitch = true;
-	}
-
-	/**
-	 * Method to announce the creation of a new ElectricObject.
-	 * @param obj the ElectricObject that was just created.
-	 */
-	public void newObject(ElectricObject obj)
-	{
-		if (obj instanceof NodeInst)
-		{
-			checkAutoStitch = true;
-			if (current.numCreatedNodes < 3)
-				current.createdNodes[current.numCreatedNodes++] = (NodeInst)obj;
-		} else if (obj instanceof ArcInst)
-		{
-			if (current.numCreatedArcs < 3)
-				current.createdArcs[current.numCreatedArcs++] = (ArcInst)obj;
-		}
-	}
-
-	/**
-	 * Method to announce the deletion of an ElectricObject.
-	 * @param obj the ElectricObject that was just deleted.
-	 */
-	public void killObject(ElectricObject obj)
-	{
-		if (obj instanceof NodeInst)
-		{
-			if (current.numDeletedNodes < 2)
-				current.deletedNodes[current.numDeletedNodes++] = (NodeInst)obj;
-		} else if (obj instanceof ArcInst)
-		{
-			ArcInst ai = (ArcInst)obj;
-			if (current.numDeletedArcs < 3)
-				current.deletedArcs[current.numDeletedArcs++] = ai;
-			current.deletedNodes[0] = ai.getHeadPortInst().getNodeInst();
-			current.deletedPorts[0] = ai.getHeadPortInst().getPortProto();
-			current.deletedNodes[1] = ai.getTailPortInst().getNodeInst();
-			current.deletedPorts[1] = ai.getTailPortInst().getPortProto();
-			current.numDeletedNodes = 2;
-		}
-	}
+//	/**
+//	 * Method to announce a change to a NodeInst.
+//	 * @param ni the NodeInst that was changed.
+//	 * @param oD the old contents of the NodeInst.
+//	 */
+//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
+//	{
+//		checkAutoStitch = true;
+//	}
+//
+//	/**
+//	 * Method to announce the creation of a new ElectricObject.
+//	 * @param obj the ElectricObject that was just created.
+//	 */
+//	public void newObject(ElectricObject obj)
+//	{
+//		if (obj instanceof NodeInst)
+//		{
+//			checkAutoStitch = true;
+//			if (current.numCreatedNodes < 3)
+//				current.createdNodes[current.numCreatedNodes++] = (NodeInst)obj;
+//		} else if (obj instanceof ArcInst)
+//		{
+//			if (current.numCreatedArcs < 3)
+//				current.createdArcs[current.numCreatedArcs++] = (ArcInst)obj;
+//		}
+//	}
+//
+//	/**
+//	 * Method to announce the deletion of an ElectricObject.
+//	 * @param obj the ElectricObject that was just deleted.
+//	 */
+//	public void killObject(ElectricObject obj)
+//	{
+//		if (obj instanceof NodeInst)
+//		{
+//			if (current.numDeletedNodes < 2)
+//				current.deletedNodes[current.numDeletedNodes++] = (NodeInst)obj;
+//		} else if (obj instanceof ArcInst)
+//		{
+//			ArcInst ai = (ArcInst)obj;
+//            if (current.deletedArc == null) return;
+//            current.deletedArc = ai.getD();
+////			if (current.numDeletedArcs < 3)
+////				current.deletedArcs[current.numDeletedArcs++] = ai;
+//            current.deletedArcParent = ai.getParent().getCellId();
+//			current.deletedNodes[0] = ai.getHeadPortInst().getNodeInst();
+//			current.deletedPorts[0] = ai.getHeadPortInst().getPortProto().getId();
+//			current.deletedNodes[1] = ai.getTailPortInst().getNodeInst();
+//			current.deletedPorts[1] = ai.getTailPortInst().getPortProto().getId();
+//			current.numDeletedNodes = 2;
+//		}
+//	}
 
 	/****************************** COMMANDS ******************************/
 

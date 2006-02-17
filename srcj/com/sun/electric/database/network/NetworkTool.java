@@ -26,12 +26,6 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
-import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.ImmutableLibrary;
-import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -43,10 +37,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -60,7 +52,7 @@ import javax.swing.SwingUtilities;
 /**
  * This is the Network tool.
  */
-public class NetworkTool extends Listener
+public class NetworkTool extends Tool
 {
     /**
 	 * Signals that a method has been invoked at an illegal or
@@ -118,7 +110,7 @@ public class NetworkTool extends Listener
 	/** flag for debug print. */					static boolean debug = false;
 	/** flag for information print. */				static boolean showInfo = true;
 
-    /** Database snapshot before undo */            private static Snapshot snapshotBeforeUndo = new Snapshot();
+    /** Database snapshot before undo */            private static Snapshot lastSnapshot = new Snapshot();
 	/** NetCells. */								private static NetCell[] cells = new NetCell[1];
 	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
 	/** Mutex object */								private static Object mutex = new Object();
@@ -137,7 +129,7 @@ public class NetworkTool extends Listener
 	private NetworkTool()
 	{
 		super("network");
-		reload();
+//		reload();
 	}
 
     /**
@@ -146,41 +138,41 @@ public class NetworkTool extends Listener
      */
     public static NetworkTool getNetworkTool() { return tool; }
 
-	/**
-	 * Reloads cell information after major changes such as librairy read.
-	 */
-	static private void reload()
-	{
-		int maxCell = 1;
-		for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); )
-		{
-			Library lib = (Library)lit.next();
-			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell c = (Cell)cit.next();
-				while (c.getCellIndex() >= maxCell) maxCell *= 2;
-			}
-		}
-		cells = new NetCell[maxCell];
-		for (Iterator <Library>lit = Library.getLibraries(); lit.hasNext(); )
-		{
-			Library lib = (Library)lit.next();
-			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell c = (Cell)cit.next();
-				if (getNetCell(c) != null) continue;
-				if (c.isIcon() || c.isSchematic())
-					new NetSchem(c);
-				else
-					new NetCell(c);
-			}
-		}
-	}
-
-	static void exportsChanged(Cell cell) {
-		NetCell netCell = NetworkTool.getNetCell(cell);
-		netCell.exportsChanged();
-	}
+//	/**
+//	 * Reloads cell information after major changes such as librairy read.
+//	 */
+//	static private void reload()
+//	{
+//		int maxCell = 1;
+//		for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); )
+//		{
+//			Library lib = (Library)lit.next();
+//			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
+//			{
+//				Cell c = (Cell)cit.next();
+//				while (c.getCellIndex() >= maxCell) maxCell *= 2;
+//			}
+//		}
+//		cells = new NetCell[maxCell];
+//		for (Iterator <Library>lit = Library.getLibraries(); lit.hasNext(); )
+//		{
+//			Library lib = (Library)lit.next();
+//			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
+//			{
+//				Cell c = (Cell)cit.next();
+//				if (getNetCell(c) != null) continue;
+//				if (c.isIcon() || c.isSchematic())
+//					new NetSchem(c);
+//				else
+//					new NetCell(c);
+//			}
+//		}
+//	}
+//
+//	static void exportsChanged(Cell cell) {
+//		NetCell netCell = NetworkTool.getNetCell(cell);
+//		netCell.exportsChanged();
+//	}
 
 	static void setCell(Cell cell, NetCell netCell) {
 		int cellIndex = cell.getCellIndex();
@@ -205,8 +197,10 @@ public class NetworkTool extends Listener
 
         long startTime = System.currentTimeMillis();
 		if (reload) {
-			reload();
+			lastSnapshot = new Snapshot();
+            cells = new NetCell[1];
 		}
+        advanceSnapshot();
         int ncell = 0;
         for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
         {
@@ -242,18 +236,27 @@ public class NetworkTool extends Listener
 			networksValid = false;
 		}
 	}
-
-	/**
-	 * Method to set the subsequent changes to be "quiet".
-	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 */
-	public static void changesQuiet(boolean quiet) {
-		if (quiet) {
-			invalidate();
-		} else {
-			redoNetworkNumbering(true);
-		}
+    
+    private static void advanceSnapshot() {
+        assert Job.canComputeNetlist();
+        Snapshot newSnapshot = Library.backup();
+        if (newSnapshot == lastSnapshot) return;
+        assert !networksValid;
+        updateAll(lastSnapshot, newSnapshot);
+        lastSnapshot = newSnapshot;
     }
+
+//	/**
+//	 * Method to set the subsequent changes to be "quiet".
+//	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
+//	 */
+//	public static void changesQuiet(boolean quiet) {
+//		if (quiet) {
+//			invalidate();
+//		} else {
+//			redoNetworkNumbering(true);
+//		}
+//    }
 
 	/**
 	 * Method to set the level of information that is displayed.
@@ -288,6 +291,7 @@ public class NetworkTool extends Listener
 	 */
 	public static Netlist getUserNetlist(Cell cell) {
 		if (Job.canComputeNetlist()) {
+            advanceSnapshot();
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors_());
 		}
@@ -321,6 +325,7 @@ public class NetworkTool extends Listener
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
 		if (Job.canComputeNetlist()) {
+            advanceSnapshot();
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
@@ -410,7 +415,7 @@ public class NetworkTool extends Listener
 
 	public void startBatch(Tool tool, boolean undoRedo)
 	{
-        snapshotBeforeUndo = undoRedo ? Library.backup() : null;
+        invalidate();
 		if (!debug) return;
 		System.out.println("NetworkTool.startBatch("+tool+","+undoRedo+")");
 	}
@@ -424,12 +429,7 @@ public class NetworkTool extends Listener
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
 		try {
-            if (undoRedo) {
-                assert oldSnapshot == snapshotBeforeUndo;
-                updateAll(oldSnapshot, newSnapshot);
-            } else {
-                redoNetworkNumbering(false);
-            }
+            redoNetworkNumbering(false);
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 			System.err.println("Full Network renumbering after crash.");
@@ -441,139 +441,139 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.endBatch()");
 	}
 
-	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-	{
-		if (ni.getNameKey() != oD.name)	{
-            invalidate();
-            getNetCell(ni.getParent()).setNetworksDirty();
-        }
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
-	}
-
-	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-	{
-		if (ai.getNameKey() != oD.name)	{
-            invalidate();
-            getNetCell(ai.getParent()).setNetworksDirty();
-        }
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
-	}
-
-	public void modifyExport(Export pp, ImmutableExport oD)
-	{
-        invalidate();
-        exportsChanged((Cell)pp.getParent());
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyExport("+pp+","+oD+")");
-	}
-
-	/**
-	 * Method to handle a change to a Cell.
-	 * @param cell the Cell that was changed.
-	 * @param oD the old contents of the Cell.
-	 */
-	public void modifyCell(Cell cell, ImmutableCell oD) {
-        invalidate();
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyCell("+cell+")");
-    }
-
-	/**
-	 * Method to announce a move of a Cell int CellGroup.
-	 * @param cell the cell that was moved.
-	 * @param oCellGroup the old CellGroup of the Cell.
-	 */
-	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
-	{
-		invalidate();
-		if (cell.isIcon() || cell.isSchematic()) {
-			NetSchem.updateCellGroup(oCellGroup);
-			NetSchem.updateCellGroup(cell.getCellGroup());
-		}
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
-	}
-
-	/**
-	 * Method to handle a change to a Library.
-	 * @param lib the Library that was changed.
-	 * @param oldD the old contents of the Library.
-	 */
-	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {
-        if (!debug) return;
-		System.out.println("NetworkTool.modifyLibrary(" + lib + ",_)");
-    }
-
-    public void newObject(ElectricObject obj)
-	{
-		invalidate();
-		Cell cell = obj.whichCell();
-		if (obj instanceof Cell)
-		{
-			if (cell.isIcon() || cell.isSchematic())
-				new NetSchem(cell);
-			else
-				new NetCell(cell);
-		} else if (obj instanceof Export) {
-			exportsChanged(cell);
-		} else {
-			if (cell != null) getNetCell(cell).setNetworksDirty();
-		}
-		if (!debug) return;
-		System.out.println("NetworkTool.newObject("+obj+")");
-	}
-
-	public void killObject(ElectricObject obj)
-	{
-		invalidate();
-		Cell cell = obj.whichCell();
-		if (obj instanceof Cell)
-		{
-			setCell(cell, null);
-			if (cell.isIcon() || cell.isSchematic())
-				NetSchem.updateCellGroup(cell.getCellGroup());
-		} else if (obj instanceof Export) {
-            exportsChanged(cell);
-        } else {
-			if (cell != null) getNetCell(cell).setNetworksDirty();
-		}
-		if (!debug) return;
-		System.out.println("NetworkTool.killObject("+obj+")");
-	}
-
-	public void renameObject(ElectricObject obj, Object oldName)
-	{
-		invalidate();
-		if (!debug) return;
-		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
-	}
-
-	public void readLibrary(Library lib)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.readLibrary("+lib+")");
-	}
-
-	public void eraseLibrary(Library lib)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.eraseLibrary("+lib+")");
-	}
-
-	public void writeLibrary(Library lib)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.writeLibrary("+lib+")");
-	}
+//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
+//	{
+//		if (ni.getNameKey() != oD.name)	{
+//            invalidate();
+//            getNetCell(ni.getParent()).setNetworksDirty();
+//        }
+//		if (!debug) return;
+//		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
+//	}
+//
+//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
+//	{
+//		if (ai.getNameKey() != oD.name)	{
+//            invalidate();
+//            getNetCell(ai.getParent()).setNetworksDirty();
+//        }
+//		if (!debug) return;
+//		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
+//	}
+//
+//	public void modifyExport(Export pp, ImmutableExport oD)
+//	{
+//        invalidate();
+//        exportsChanged((Cell)pp.getParent());
+//		if (!debug) return;
+//		System.out.println("NetworkTool.modifyExport("+pp+","+oD+")");
+//	}
+//
+//	/**
+//	 * Method to handle a change to a Cell.
+//	 * @param cell the Cell that was changed.
+//	 * @param oD the old contents of the Cell.
+//	 */
+//	public void modifyCell(Cell cell, ImmutableCell oD) {
+//        invalidate();
+//		if (!debug) return;
+//		System.out.println("NetworkTool.modifyCell("+cell+")");
+//    }
+//
+//	/**
+//	 * Method to announce a move of a Cell int CellGroup.
+//	 * @param cell the cell that was moved.
+//	 * @param oCellGroup the old CellGroup of the Cell.
+//	 */
+//	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
+//	{
+//		invalidate();
+//		if (cell.isIcon() || cell.isSchematic()) {
+//			NetSchem.updateCellGroup(oCellGroup);
+//			NetSchem.updateCellGroup(cell.getCellGroup());
+//		}
+//		if (!debug) return;
+//		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
+//	}
+//
+//	/**
+//	 * Method to handle a change to a Library.
+//	 * @param lib the Library that was changed.
+//	 * @param oldD the old contents of the Library.
+//	 */
+//	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {
+//        if (!debug) return;
+//		System.out.println("NetworkTool.modifyLibrary(" + lib + ",_)");
+//    }
+//
+//    public void newObject(ElectricObject obj)
+//	{
+//		invalidate();
+//		Cell cell = obj.whichCell();
+//		if (obj instanceof Cell)
+//		{
+//			if (cell.isIcon() || cell.isSchematic())
+//				new NetSchem(cell);
+//			else
+//				new NetCell(cell);
+//		} else if (obj instanceof Export) {
+//			exportsChanged(cell);
+//		} else {
+//			if (cell != null) getNetCell(cell).setNetworksDirty();
+//		}
+//		if (!debug) return;
+//		System.out.println("NetworkTool.newObject("+obj+")");
+//	}
+//
+//	public void killObject(ElectricObject obj)
+//	{
+//		invalidate();
+//		Cell cell = obj.whichCell();
+//		if (obj instanceof Cell)
+//		{
+//			setCell(cell, null);
+//			if (cell.isIcon() || cell.isSchematic())
+//				NetSchem.updateCellGroup(cell.getCellGroup());
+//		} else if (obj instanceof Export) {
+//            exportsChanged(cell);
+//        } else {
+//			if (cell != null) getNetCell(cell).setNetworksDirty();
+//		}
+//		if (!debug) return;
+//		System.out.println("NetworkTool.killObject("+obj+")");
+//	}
+//
+//	public void renameObject(ElectricObject obj, Object oldName)
+//	{
+//		invalidate();
+//		if (!debug) return;
+//		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
+//	}
+//
+//	public void readLibrary(Library lib)
+//	{
+//		if (!debug) return;
+//		System.out.println("NetworkTool.readLibrary("+lib+")");
+//	}
+//
+//	public void eraseLibrary(Library lib)
+//	{
+//		if (!debug) return;
+//		System.out.println("NetworkTool.eraseLibrary("+lib+")");
+//	}
+//
+//	public void writeLibrary(Library lib)
+//	{
+//		if (!debug) return;
+//		System.out.println("NetworkTool.writeLibrary("+lib+")");
+//	}
 
     /**
      * Update network information from old immutable snapshot to new immutable snapshot.
      * @param oldSnapshot old immutable snapshot.
      * @param newSnapshot new immutable snapshot.
      */
-    public static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+    private static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
         invalidate();
         int maxCells = Math.max(oldSnapshot.cellBackups.length, newSnapshot.cellBackups.length);
         if (cells.length < maxCells) {
@@ -646,7 +646,7 @@ public class NetworkTool extends Listener
             else
                 netCell.setNetworksDirty();
         }
-        redoNetworkNumbering(false);
+ //       redoNetworkNumbering(false);
     }
     
     static void startErrorLogging(Cell cell) {

@@ -198,7 +198,7 @@ public interface UserInterface
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
-    public void showSnapshot(Snapshot newSnapshot);
+    public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo);
     
     /**
      * Method is called when initialization was finished.

@@ -23,6 +23,11 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
@@ -32,7 +37,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -55,7 +60,7 @@ import java.util.Iterator;
 /**
  * This is the User Interface tool.
  */
-public class User extends Tool
+public class User extends Listener
 {
 	// ---------------------- private and protected methods -----------------
 
@@ -66,7 +71,8 @@ public class User extends Tool
 	/** key of Variable holding user who last changed the cell. */		public static final Variable.Key FRAME_LAST_CHANGED_BY = Variable.newKey("USER_drawing_last_changed_by");
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
-	private ArcProto currentArcProto = null;
+    
+    private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
 	private boolean undoRedo;
 
@@ -491,6 +497,28 @@ public class User extends Tool
 //		}
 //	}
 
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @param batchNumber batch nuber of a Job.
+     * @undoRedo true if Job was Undo/Redo job.
+     */
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo) {
+        // Mark cells for redraw
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            CellBackup newBackup = newSnapshot.getCell(cellId);
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            ERectangle newBounds = newSnapshot.getCellBounds(cellId);
+            ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
+            if (newBackup != oldBackup || newBounds != oldBounds) {
+				if (newBackup == null) continue; // What to do with deleted cells ??
+                Cell cell = Cell.inCurrentThread(cellId);
+                User.markCellForRedraw(cell, true);
+            }
+        }
+    }
+    
 	/************************** TRACKING CHANGES TO CELLS **************************/
 
 	private static HashMap<EditWindow,Rectangle2D> changedWindowRects = new HashMap<EditWindow,Rectangle2D>();

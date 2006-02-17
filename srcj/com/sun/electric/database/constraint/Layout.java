@@ -64,7 +64,7 @@ public class Layout extends Constraints
 
 	static final boolean DEBUG = false;
 
-    static boolean isReadingLibrary;
+    static boolean doChangesQuietly;
     static Snapshot oldSnapshot;
     static long revisionDate;
     static String userName;
@@ -90,7 +90,7 @@ public class Layout extends Constraints
      * This method is used to suppress endBatch.
 	 */
 	public static void changesQuiet(boolean quiet) {
-        isReadingLibrary = true;
+        doChangesQuietly = true;
     }
     
 	/**
@@ -102,7 +102,7 @@ public class Layout extends Constraints
 	public void startBatch(Snapshot initialSnapshot)
 	{
 		// force every cell to remember its current bounds
-        isReadingLibrary = false;
+        doChangesQuietly = false;
         oldSnapshot = initialSnapshot;
         tempRigid.clear();
         librariesWritten.clear();
@@ -121,7 +121,7 @@ public class Layout extends Constraints
                 System.out.println("\t" + e.getKey() + " --> " + e.getValue());
             }
         }
-        if (!isReadingLibrary) {
+        if (!doChangesQuietly) {
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                 Library lib = it.next();
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
@@ -152,7 +152,7 @@ public class Layout extends Constraints
 	 * @param oD the old contents of the NodeInst.
 	 */
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD) {
-        if (isReadingLibrary) return;
+        if (doChangesQuietly) return;
         getCellInfo(ni.getParent()).modifyNodeInst(ni, oD);
     }
 
@@ -162,7 +162,7 @@ public class Layout extends Constraints
      * @param oD the old contents of the ArcInst.
 	 */
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {
-        if (isReadingLibrary) return;
+        if (doChangesQuietly) return;
         getCellInfo(ai.getParent()).modifyArcInst(ai, oD);
     }
 
@@ -172,7 +172,7 @@ public class Layout extends Constraints
 	 * @param oldD the old contents of the Export.
 	 */
 	public void modifyExport(Export pp, ImmutableExport oldD) {
-        if (isReadingLibrary) return;
+        if (doChangesQuietly) return;
         PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oldD.originalNodeId, oldD.originalPortId);
         if (oldPi == pp.getOriginalPort()) return;
         getCellInfo((Cell)pp.getParent()).modifyExport(pp, oldPi);
@@ -197,7 +197,7 @@ public class Layout extends Constraints
 	 * @param obj the ElectricObject that was just created.
 	 */
 	public void newObject(ElectricObject obj) {
-        if (isReadingLibrary) return;
+        if (doChangesQuietly) return;
         Cell cell = obj.whichCell();
         if (obj == cell)
             newCellInfo(cell, null);

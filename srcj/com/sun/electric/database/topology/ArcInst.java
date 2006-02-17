@@ -27,6 +27,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
@@ -43,9 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
@@ -370,7 +369,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		ai.lowLevelLink();
 
 		// handle change control, constraint, and broadcast
-		Undo.newObject(ai);
+		Constraints.getCurrent().newObject(ai);
 		return ai;
 	}
 
@@ -388,7 +387,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		Undo.killObject(this);
+		Constraints.getCurrent().killObject(this);
 	}
 
 	/**
@@ -414,7 +413,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		lowLevelModify(d.withWidth(d.width + dWidth).withLocations(tail, head));
 
 		// track the change
-		Undo.modifyArcInst(this, oldD);
+        Constraints.getCurrent().modifyArcInst(this, oldD);
 	}
 
 	/**
@@ -475,7 +474,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (parent != null) {
             parent.setContentsModified();
             if (notify)
-                Undo.modifyArcInst(this, oldD);
+                Constraints.getCurrent().modifyArcInst(this, oldD);
         }
         return true;
     }
@@ -622,7 +621,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withAngle(angle));
-        if (parent != null) Undo.modifyArcInst(this, oldD);        
+        if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 
 	/**
@@ -1087,7 +1086,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (checkNameKey(key, parent)) return true;
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withName(key));
-        Undo.modifyArcInst(this, oldD);
+        Constraints.getCurrent().modifyArcInst(this, oldD);
 		return false;
 	}
 
@@ -1217,7 +1216,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withFlag(flag, state));
-        if (parent != null) Undo.modifyArcInst(this, oldD);
+        if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
     
 	/**
@@ -1654,7 +1653,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (fromAi == null) return;
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withFlags(fromAi.d.flags).withAngle(fromAi.d.angle));
-		if (parent != null) Undo.modifyArcInst(this, oldD);
+		if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 
 //	/**

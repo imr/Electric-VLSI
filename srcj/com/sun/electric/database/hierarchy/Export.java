@@ -27,6 +27,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.ArcProto;
@@ -240,7 +241,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		if (e.lowLevelLink()) return null;
         
 		// handle change control, constraint, and broadcast
-		Undo.newObject(e);
+		Constraints.getCurrent().newObject(e);
         return e;
     }
     
@@ -267,7 +268,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		Undo.killObject(this);
+		Constraints.getCurrent().killObject(this);
 	}
 
 	/**
@@ -339,7 +340,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		lowLevelModify(d.withOriginalPort(newno.getD().nodeId, newsubpt.getId()));
 
 		// handle change control, constraint, and broadcast
-		Undo.modifyExport(this, oldD);
+		Constraints.getCurrent().modifyExport(this, oldD);
 
 		// update all port characteristics exported from this one
 		changeallports();
@@ -523,7 +524,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         if (parent != null) {
             parent.setContentsModified();
             if (notify)
-                Undo.modifyExport(this, oldD);
+                Constraints.getCurrent().modifyExport(this, oldD);
         }
         return true;
     }

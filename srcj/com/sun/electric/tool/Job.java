@@ -116,7 +116,7 @@ public abstract class Job implements Serializable {
   
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
-	static UserInterface currentUI;
+	public static UserInterface currentUI;
 
     /** delete when done if true */             /*private*/ boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;

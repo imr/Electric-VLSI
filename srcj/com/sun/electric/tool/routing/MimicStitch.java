@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -248,18 +249,25 @@ public class MimicStitch
 		if (wnd == null) return;
 
 		// determine length of deleted arc
-		ArcInst mimicAi = activity.deletedArcs[0];
-		NodeInst mimicNiHead = mimicAi.getHeadPortInst().getNodeInst();
-		NodeInst mimicNiTail = mimicAi.getTailPortInst().getNodeInst();
-		ArcProto typ = mimicAi.getProto();
-		Point2D pt0 = mimicAi.getHeadLocation();
-		Point2D pt1 = mimicAi.getTailLocation();
+		ImmutableArcInst mimicAi = activity.deletedArc;
+        Cell cell = Cell.inCurrentThread(activity.deletedArcParent);
+		NodeInst mimicNiHead = cell.getNodeById(mimicAi.headNodeId);
+		NodeInst mimicNiTail = cell.getNodeById(mimicAi.tailNodeId);
+		ArcProto typ = mimicAi.protoType;
+		Point2D pt0 = mimicAi.headLocation;
+		Point2D pt1 = mimicAi.tailLocation;
+//		ArcInst mimicAi = activity.deletedArcs[0];
+//		NodeInst mimicNiHead = mimicAi.getHeadPortInst().getNodeInst();
+//		NodeInst mimicNiTail = mimicAi.getTailPortInst().getNodeInst();
+//		ArcProto typ = mimicAi.getProto();
+//		Point2D pt0 = mimicAi.getHeadLocation();
+//		Point2D pt1 = mimicAi.getTailLocation();
 		double dist = pt0.distance(pt1);
 		int angle = 0;
 		if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
 
 		// look for a similar situation to delete
-		Cell cell = activity.deletedNodes[0].getParent();
+//		Cell cell = activity.deletedNodes[0].getParent();
 		List<PossibleArc> arcKills = new ArrayList<PossibleArc>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -285,10 +293,10 @@ public class MimicStitch
 
 			// arc must connect to the same type of port
 			boolean matchPort = false;
-			if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
-				ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) matchPort = true;
-			if (ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
-				ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) matchPort = true;
+			if (ai.getHeadPortInst().getPortProto().getId() == activity.deletedPorts[0] &&
+				ai.getTailPortInst().getPortProto().getId() == activity.deletedPorts[1]) matchPort = true;
+			if (ai.getHeadPortInst().getPortProto().getId() == activity.deletedPorts[1] &&
+				ai.getTailPortInst().getPortProto().getId() == activity.deletedPorts[0]) matchPort = true;
 			if (!matchPort) pa.situation |= LIKELYDIFFPORT;
 
 			NodeInst niHead = ai.getHeadPortInst().getNodeInst();

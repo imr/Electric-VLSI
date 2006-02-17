@@ -31,6 +31,7 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
@@ -94,6 +95,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** map of libraries sorted by name */                  private static final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
     /** Last snapshot */                                    private static Snapshot snapshot = new Snapshot();
+    /** True if database matches snapshot. */               private static boolean snapshotFresh;
 
 	// ----------------- private and protected methods --------------------
 
@@ -173,7 +175,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 
         // always broadcast library changes
 //        Undo.setNextChangeQuiet(false);
-        Undo.newObject(lib);
+        unfreshSnapshot();
+        Constraints.getCurrent().newObject(lib);
 		return lib;
         
     }
@@ -213,7 +216,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 
 		// make sure it is in the list of libraries
-		if (libraries.get(d.libName) != this)
+		if (libraries.get(getName()) != this)
 		{
 			System.out.println("Cannot delete library " + this);
 			Job.getUserInterface().showErrorMessage("Cannot delete "+toString(),
@@ -257,8 +260,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 		// remove it from the list of libraries
 		synchronized (libraries)
 		{
-			libraries.remove(d.libName);
-            linkedLibs.set(d.libId.libIndex, null);
+			libraries.remove(getName());
+            linkedLibs.set(getId().libIndex, null);
 		}
 
 		// set the new current library if appropriate
@@ -266,7 +269,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		// always broadcast library changes
 //		Undo.setNextChangeQuiet(false);
-		Undo.killObject(this);
+        unfreshSnapshot();
+		Constraints.getCurrent().killObject(this);
 		return true;
 	}
 
@@ -494,8 +498,9 @@ public class Library extends ElectricObject implements Comparable<Library>
         if (newD == oldD) return false;
         d = newD;
         setChanged();
-        Undo.modifyLibrary(this, oldD);
-        //setBatchModified();
+        assert isLinked();
+        unfreshSnapshot();
+        Constraints.getCurrent().modifyLibrary(this, oldD);
         return true;
     }
 
@@ -505,15 +510,13 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
     public ImmutableElectricObject getImmutable() { return d; }
     
-    public void lowLevelModify(ImmutableLibrary d) { this.d = d; }
-        
     /**
      * Method to add a Variable on this Library.
      * It may add repaired copy of this Variable in some cases.
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        setD(d.withVariable(var));
+        setD(getD().withVariable(var));
     }
 
 	/**
@@ -522,7 +525,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public void delVar(Variable.Key key)
 	{
-        setD(d.withoutVariable(key));
+        setD(getD().withoutVariable(key));
 	}
     
     /**
@@ -552,7 +555,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
 	public boolean isLinked()
 	{
-        return inCurrentThread(d.libId) == this;
+        return inCurrentThread(getId()) == this;
 	}
 
     /**
@@ -560,6 +563,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @return snapshot of the current state of Electric database.
      */
     public static Snapshot backup() {
+        if (snapshotFresh) return snapshot;
         int maxCellId = Cell.linkedCells.size() - 1;
         while (maxCellId >= 0 && Cell.linkedCells.get(maxCellId) == null) maxCellId--;
         CellBackup[] cellBackups = new CellBackup[maxCellId + 1];
@@ -576,11 +580,11 @@ public class Library extends ElectricObject implements Comparable<Library>
         boolean cellBoundsChanged = cellsChanged;
         boolean cellGroupsChanged = cellsChanged;
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
+            CellId cellId = CellId.getByIndex(cellIndex);
             if (cellBackups[cellIndex] != null) {
-                CellId cellId = CellId.getByIndex(cellIndex);
                 Cell cell = Cell.inCurrentThread(cellId);
                 
-                ERectangle oldBounds = snapshot.getCellBounds(cellIndex);
+                ERectangle oldBounds = snapshot.getCellBounds(cellId);
                 ERectangle newBounds = cell.getBounds();
                 if (oldBounds != null && newBounds.equals(oldBounds))
                     newBounds = oldBounds;
@@ -594,8 +598,8 @@ public class Library extends ElectricObject implements Comparable<Library>
                 }
                 cellGroups[cellIndex] = gn.intValue();
             }
-            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
-            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
+            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellId);
+            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellId);
             cellGroupsChanged = cellGroupsChanged || snapshot.cellGroups[cellIndex] != cellGroups[cellIndex];
             
         }
@@ -606,6 +610,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         if (!cellGroupsChanged) cellGroups = snapshot.cellGroups;
         snapshot = new Snapshot(cellBackups, cellGroups, cellBounds, libBackups);
         checkFresh(snapshot);
+        snapshotFresh = true;
         return snapshot;
     }
 
@@ -692,7 +697,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             } else {
                 Library lib = linkedLibs.get(libIndex);
                 lib.d = newBackup.d;
-                String libName = lib.d.libName;
+                String libName = lib.getName();
                 if (!oldBackup.d.libName.equals(libName)) {
                     Cell curCell = lib.getCurCell();
                     lib.prefs = allPrefs.node(libName);
@@ -745,6 +750,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         }
         snapshot = undoSnapshot;
         checkFresh(undoSnapshot);
+        snapshotFresh = true;
     }
     
 	/**
@@ -848,7 +854,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             assert cellId.cellIndex == i;
             Cell cell = (Cell)cellId.inCurrentThread();
             cell.checkFresh(cellBackup);
-            assert snapshot.getCellBounds(i) == cell.getBounds();
+            assert snapshot.getCellBounds(cellId) == cell.getBounds();
         }
         
         HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
@@ -909,6 +915,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 
     private void setFlag(int mask, boolean value) {
         d = d.withFlags(value ? d.flags | mask : d.flags & ~mask);
+        assert isLinked();
+        unfreshSnapshot();
     }
     
     private boolean isFlag(int mask) {
@@ -937,6 +945,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public boolean isChanged() { return modified; }
 
+    static void unfreshSnapshot() {
+        snapshotFresh = false;
+    }
+    
 	/**
 	 * Method to indicate that this Library came from disk.
 	 * Libraries that come from disk are saved without a file-selection dialog.
@@ -1129,8 +1141,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		String oldName = d.libName;
 		lowLevelRename(libName);
-		Undo.renameObject(this, oldName);
+		Constraints.getCurrent().renameObject(this, oldName);
         setChanged();
+        assert isLinked();
+        unfreshSnapshot();
         for (Cell cell: cells.values())
             cell.notifyRename();
 		return false;
@@ -1151,6 +1165,8 @@ public class Library extends ElectricObject implements Comparable<Library>
         libraries.remove(d.libName);
         d = d.withName(libName, libFile);
 		libraries.put(libName, this);
+        assert isLinked();
+        unfreshSnapshot();
         
         Cell curCell = getCurCell();
         prefs = allPrefs.node(libName);
