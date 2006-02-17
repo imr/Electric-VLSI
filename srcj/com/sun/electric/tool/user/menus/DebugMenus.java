@@ -51,6 +51,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.*;
@@ -73,10 +74,7 @@ import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.ui.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -180,6 +178,8 @@ public class DebugMenus
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("QTREE", null,
+                                new ActionListener() { public void actionPerformed(ActionEvent e) {testQTree();}});
         gildaMenu.addMenuItem("New fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();}});
         gildaMenu.addMenuItem("Dialog fill", null,
@@ -767,6 +767,31 @@ public class DebugMenus
     }
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+    private static void testQTree()
+    {
+        Cell cell = WindowFrame.getCurrentCell();
+        ObjectQTree tree = new ObjectQTree(cell.getBounds());
+        Rectangle2D searchBox = null;
+
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+            NodeProto np = ni.getProto();
+            if (np == Generic.tech.drcNode)
+                searchBox = ni.getBounds();
+            if (NodeInst.isSpecialNode(ni)) continue;
+            tree.add(ni, ni.getBounds());
+        }
+        tree.print();
+        if (searchBox != null)
+        {
+            Set set = tree.find(searchBox);
+            if (set != null)
+                for (Object obj : set)
+                    System.out.println(" Obj " + obj);
+        }
+    }
+
     private static void newFill()
     {
         Cell cell = WindowFrame.getCurrentCell();
