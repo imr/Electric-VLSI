@@ -23,18 +23,14 @@
  */
 package com.sun.electric.database.topology;
 import com.sun.electric.database.ImmutableElectricObject;
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -314,6 +310,14 @@ public class PortInst extends ElectricObject
 			return false;
 		}
 	}
+
+	/**
+	 * Returns database to which this PortInst belongs.
+	 * Some objects are not in database, for example Geometrics in PaletteFrame.
+     * Method returns null for non-database objects.
+     * @return database to which this PortInst belongs.
+	 */
+	public EDatabase getDatabase() { return nodeInst.getDatabase(); }
 
     public Poly computeTextPoly(EditWindow0 wnd, Variable var, Name name)
     {

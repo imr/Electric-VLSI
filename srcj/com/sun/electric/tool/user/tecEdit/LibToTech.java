@@ -982,7 +982,7 @@ public class LibToTech
 					for(int j=0; j<arcCells.length; j++)
 					{
 						// find arc that connects
-						Cell arcCell = (Cell)arcCells[j].inCurrentThread();
+						Cell arcCell = (Cell)arcCells[j].inServerDatabase();
 						connections[j] = null;
 						if (arcCell != null)
 						{

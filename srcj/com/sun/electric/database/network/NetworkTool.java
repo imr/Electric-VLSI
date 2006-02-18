@@ -43,6 +43,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -94,13 +95,13 @@ public class NetworkTool extends Tool
     {
 		private RenumberJob()
         {
-            super("Renumber All Networks", NetworkTool.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Renumber All Networks", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-			redoNetworkNumbering(true);
+			EDatabase.serverDatabase().getNetworkManager().redoNetworkNumbering(true);
             return true;
         }
     }
@@ -108,17 +109,11 @@ public class NetworkTool extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						private static final NetworkTool tool = new NetworkTool();
+	/** All cells have networks up-to-date */ 		static boolean networksValid = false;
+	/** Mutex object */								static Object mutex = new Object();
 	/** flag for debug print. */					static boolean debug = false;
 	/** flag for information print. */				static boolean showInfo = true;
 
-    /** Database snapshot before undo */            private static Snapshot lastSnapshot = new Snapshot();
-	/** NetCells. */								private static NetCell[] cells = new NetCell[1];
-	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
-	/** Mutex object */								private static Object mutex = new Object();
-
-    /** The cell for logging network errors */      private static Cell currentErrorCell;
-    /** buffer of highlights for next error */      private static ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
-    /** list of errors for current cell */          private static ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
     /** total number of errors for statistics */    public static int totalNumErrors = 0;
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
                                                     static final int errorSortNodes = 1;
@@ -127,125 +122,12 @@ public class NetworkTool extends Tool
 	/**
 	 * The constructor sets up the Network tool.
 	 */
-	private NetworkTool()
+	public NetworkTool()
 	{
 		super("network");
-//		reload();
-	}
-
-    /**
-     * Method to retrieve the singleton associated with the Network tool.
-     * @return the Network tool.
-     */
-    public static NetworkTool getNetworkTool() { return tool; }
-
-//	/**
-//	 * Reloads cell information after major changes such as librairy read.
-//	 */
-//	static private void reload()
-//	{
-//		int maxCell = 1;
-//		for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); )
-//		{
-//			Library lib = (Library)lit.next();
-//			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-//			{
-//				Cell c = (Cell)cit.next();
-//				while (c.getCellIndex() >= maxCell) maxCell *= 2;
-//			}
-//		}
-//		cells = new NetCell[maxCell];
-//		for (Iterator <Library>lit = Library.getLibraries(); lit.hasNext(); )
-//		{
-//			Library lib = (Library)lit.next();
-//			for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-//			{
-//				Cell c = (Cell)cit.next();
-//				if (getNetCell(c) != null) continue;
-//				if (c.isIcon() || c.isSchematic())
-//					new NetSchem(c);
-//				else
-//					new NetCell(c);
-//			}
-//		}
-//	}
-//
-//	static void exportsChanged(Cell cell) {
-//		NetCell netCell = NetworkTool.getNetCell(cell);
-//		netCell.exportsChanged();
-//	}
-
-	static void setCell(Cell cell, NetCell netCell) {
-		int cellIndex = cell.getCellIndex();
-		if (cellIndex >= cells.length)
-		{
-			int newLength = cells.length;
-			while (cellIndex >= newLength) newLength *= 2;
-			NetCell[] newCells = new NetCell[newLength];
-			for (int i = 0; i < cells.length; i++)
-				newCells[i] = cells[i];
-			cells = newCells;
-		}
-		cells[cellIndex] = netCell;
-	}
-
-	static final NetCell getNetCell(Cell cell) { return cells[cell.getCellIndex()]; }
-
-    private static void redoNetworkNumbering(boolean reload)
-    {
-		// Check that we are in changing thread
-		assert Job.canComputeNetlist();
-
-        long startTime = System.currentTimeMillis();
-		if (reload) {
-			lastSnapshot = new Snapshot();
-            cells = new NetCell[1];
-		}
-        advanceSnapshot();
-        int ncell = 0;
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = it.next();
-            // Handling clipboard case (one type of hidden libraries)
-            if (lib.isHidden()) continue;
-
-            for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-            {
-                Cell cell = (Cell)cit.next();
-                ncell++;
-                cell.getNetlist(false);
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        float finalTime = (endTime - startTime) / 1000F;
-		if (ncell != 0 && reload && showInfo)
-			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
-
-		synchronized(mutex) {
-			networksValid = true;
-			mutex.notify();
-		}
-    }
-
-	private static void invalidate() {
-		// Check that we are in changing thread
-		assert Job.canComputeNetlist();
-
-		if (!networksValid)
-			return;
-		synchronized(mutex) {
-			networksValid = false;
-		}
 	}
     
-    private static void advanceSnapshot() {
-        assert Job.canComputeNetlist();
-        Snapshot newSnapshot = EDatabase.theDatabase.backup();
-        if (newSnapshot == lastSnapshot) return;
-        assert !networksValid;
-        updateAll(lastSnapshot, newSnapshot);
-        lastSnapshot = newSnapshot;
-    }
+    public static NetworkTool getNetworkTool() { return tool; }
 
 //	/**
 //	 * Method to set the subsequent changes to be "quiet".
@@ -291,9 +173,10 @@ public class NetworkTool extends Tool
 	 * @return Netlist of this cell.
 	 */
 	public static Netlist getUserNetlist(Cell cell) {
+        NetworkManager mgr = cell.getDatabase().getNetworkManager();
 		if (Job.canComputeNetlist()) {
-            advanceSnapshot();
-			NetCell netCell = getNetCell(cell);
+            mgr.advanceSnapshot();
+			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors_());
 		}
         if (Job.getDebug() && SwingUtilities.isEventDispatchThread())
@@ -301,19 +184,19 @@ public class NetworkTool extends Tool
 			System.out.println("getUserNetlist() used in GUI thread");
 		}
 		boolean shortResistors = isIgnoreResistors_();
-		synchronized(mutex) {
-			while (!networksValid) {
+		synchronized(NetworkTool.mutex) {
+			while (!NetworkTool.networksValid) {
 				try {
 					System.out.println("Waiting for User Netlist...");
-					mutex.wait(1000);
-					if (!networksValid)
+					NetworkTool.mutex.wait(1000);
+					if (!NetworkTool.networksValid)
 						throw new NetlistNotReady();
 				} catch (InterruptedException e) {
 				} catch (NetlistNotReady e) {
 					e.printStackTrace(System.err);
 				}
 			}
-			NetCell netCell = getNetCell(cell);
+			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
 	}
@@ -325,17 +208,18 @@ public class NetworkTool extends Tool
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
+        NetworkManager mgr = cell.getDatabase().getNetworkManager();
 		if (Job.canComputeNetlist()) {
             if (!cell.isLinked())
                 return null;
-            advanceSnapshot();
-			NetCell netCell = getNetCell(cell);
+            mgr.advanceSnapshot();
+			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
-		synchronized(mutex) {
-			if (!networksValid)
+		synchronized(NetworkTool.mutex) {
+			if (!NetworkTool.networksValid)
 				throw new NetlistNotReady();
-			NetCell netCell = getNetCell(cell);
+			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
 	}
@@ -404,8 +288,6 @@ public class NetworkTool extends Tool
         return nets;
     }
 
-    /****************************** CHANGE LISTENER ******************************/
-
 	/**
 	 * Method to initialize a tool.
 	 */
@@ -416,287 +298,6 @@ public class NetworkTool extends Tool
 		System.out.println("NetworkTool.init()");
 	}
 
-	public void startBatch(Tool tool, boolean undoRedo)
-	{
-        invalidate();
-		if (!debug) return;
-		System.out.println("NetworkTool.startBatch("+tool+","+undoRedo+")");
-	}
-
-   /**
-     * Method to annonunce database changes of a Job.
-     * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @undoRedo true if Job was Undo/Redo job.
-     */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
-	{
-		try {
-            redoNetworkNumbering(false);
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			System.err.println("Full Network renumbering after crash.");
-			e.printStackTrace(System.out);
-			System.out.println("Full Network renumbering after crash.");
-			redoNetworkNumbering(true);
-		}
-		if (!debug) return;
-		System.out.println("NetworkTool.endBatch()");
-	}
-
-//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-//	{
-//		if (ni.getNameKey() != oD.name)	{
-//            invalidate();
-//            getNetCell(ni.getParent()).setNetworksDirty();
-//        }
-//		if (!debug) return;
-//		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
-//	}
-//
-//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-//	{
-//		if (ai.getNameKey() != oD.name)	{
-//            invalidate();
-//            getNetCell(ai.getParent()).setNetworksDirty();
-//        }
-//		if (!debug) return;
-//		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
-//	}
-//
-//	public void modifyExport(Export pp, ImmutableExport oD)
-//	{
-//        invalidate();
-//        exportsChanged((Cell)pp.getParent());
-//		if (!debug) return;
-//		System.out.println("NetworkTool.modifyExport("+pp+","+oD+")");
-//	}
-//
-//	/**
-//	 * Method to handle a change to a Cell.
-//	 * @param cell the Cell that was changed.
-//	 * @param oD the old contents of the Cell.
-//	 */
-//	public void modifyCell(Cell cell, ImmutableCell oD) {
-//        invalidate();
-//		if (!debug) return;
-//		System.out.println("NetworkTool.modifyCell("+cell+")");
-//    }
-//
-//	/**
-//	 * Method to announce a move of a Cell int CellGroup.
-//	 * @param cell the cell that was moved.
-//	 * @param oCellGroup the old CellGroup of the Cell.
-//	 */
-//	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
-//	{
-//		invalidate();
-//		if (cell.isIcon() || cell.isSchematic()) {
-//			NetSchem.updateCellGroup(oCellGroup);
-//			NetSchem.updateCellGroup(cell.getCellGroup());
-//		}
-//		if (!debug) return;
-//		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
-//	}
-//
-//	/**
-//	 * Method to handle a change to a Library.
-//	 * @param lib the Library that was changed.
-//	 * @param oldD the old contents of the Library.
-//	 */
-//	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {
-//        if (!debug) return;
-//		System.out.println("NetworkTool.modifyLibrary(" + lib + ",_)");
-//    }
-//
-//    public void newObject(ElectricObject obj)
-//	{
-//		invalidate();
-//		Cell cell = obj.whichCell();
-//		if (obj instanceof Cell)
-//		{
-//			if (cell.isIcon() || cell.isSchematic())
-//				new NetSchem(cell);
-//			else
-//				new NetCell(cell);
-//		} else if (obj instanceof Export) {
-//			exportsChanged(cell);
-//		} else {
-//			if (cell != null) getNetCell(cell).setNetworksDirty();
-//		}
-//		if (!debug) return;
-//		System.out.println("NetworkTool.newObject("+obj+")");
-//	}
-//
-//	public void killObject(ElectricObject obj)
-//	{
-//		invalidate();
-//		Cell cell = obj.whichCell();
-//		if (obj instanceof Cell)
-//		{
-//			setCell(cell, null);
-//			if (cell.isIcon() || cell.isSchematic())
-//				NetSchem.updateCellGroup(cell.getCellGroup());
-//		} else if (obj instanceof Export) {
-//            exportsChanged(cell);
-//        } else {
-//			if (cell != null) getNetCell(cell).setNetworksDirty();
-//		}
-//		if (!debug) return;
-//		System.out.println("NetworkTool.killObject("+obj+")");
-//	}
-//
-//	public void renameObject(ElectricObject obj, Object oldName)
-//	{
-//		invalidate();
-//		if (!debug) return;
-//		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
-//	}
-//
-//	public void readLibrary(Library lib)
-//	{
-//		if (!debug) return;
-//		System.out.println("NetworkTool.readLibrary("+lib+")");
-//	}
-//
-//	public void eraseLibrary(Library lib)
-//	{
-//		if (!debug) return;
-//		System.out.println("NetworkTool.eraseLibrary("+lib+")");
-//	}
-//
-//	public void writeLibrary(Library lib)
-//	{
-//		if (!debug) return;
-//		System.out.println("NetworkTool.writeLibrary("+lib+")");
-//	}
-
-    /**
-     * Update network information from old immutable snapshot to new immutable snapshot.
-     * @param oldSnapshot old immutable snapshot.
-     * @param newSnapshot new immutable snapshot.
-     */
-    private static void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        invalidate();
-        int maxCells = Math.max(oldSnapshot.cellBackups.length, newSnapshot.cellBackups.length);
-        if (cells.length < maxCells) {
-            NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];
-            System.arraycopy(cells, 0, newCells, 0, cells.length);
-            cells = newCells;
-        }
-        // killed Cells
-        for (int i = 0; i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup != null || oldBackup == null) continue;
-            cells[i] = null;
-        }
-        // new Cells
-        for (int i = 0; i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup == null || oldBackup != null) continue;
-            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            if (cell.isIcon() || cell.isSchematic())
-                new NetSchem(cell);
-            else
-                new NetCell(cell);
-        }
-        // Changed CellGroups
-        if (oldSnapshot.cellGroups != newSnapshot.cellGroups) {
-            // Lower Cell changed
-            for (int i = 0; i < newSnapshot.cellGroups.length; i++) {
-                if (newSnapshot.cellGroups[i] != i) continue;
-                if (i < oldSnapshot.cellGroups.length && i == oldSnapshot.cellGroups[i]) continue;
-                Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-                NetSchem.updateCellGroup(cell.getCellGroup());
-            }
-            // Lower Cell same, but some cells deleted
-            for (int i = 0; i < oldSnapshot.cellGroups.length; i++) {
-                int l = oldSnapshot.cellGroups[i];
-                if (l < 0 || l >= newSnapshot.cellGroups.length || newSnapshot.cellGroups[l] != l) continue;
-                if (i < newSnapshot.cellGroups.length && newSnapshot.cellGroups[i] == l) continue;
-                Cell cell = (Cell)CellId.getByIndex(l).inCurrentThread();
-                NetSchem.updateCellGroup(cell.getCellGroup());
-            }
-        }
-        // Main schematics changed
-        for (int i = 0; i < maxCells; i++) {
-            CellBackup newBackup = newSnapshot.getCell(i);
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            if (newBackup == null || oldBackup == null) continue;
-            if (oldBackup.isMainSchematics == newBackup.isMainSchematics) continue;
-            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            NetSchem.updateCellGroup(cell.getCellGroup());
-        }
-        // Cell contents changed
-        for (int i = 0; i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup == null || oldBackup == null) continue;
-            if (oldBackup == newBackup) continue;
-            Cell cell = (Cell)CellId.getByIndex(i).inCurrentThread();
-            boolean exportsChanged = !newBackup.sameExports(oldBackup);
-            if (!exportsChanged) {
-                for (int j = 0; j < newBackup.exports.length; j++) {
-                    if (newBackup.exports[j].name != oldBackup.exports[j].name)
-                        exportsChanged = true;
-                }
-            }
-            NetCell netCell = NetworkTool.getNetCell(cell);
-            if (exportsChanged)
-                netCell.exportsChanged();
-            else
-                netCell.setNetworksDirty();
-        }
- //       redoNetworkNumbering(false);
-    }
-    
-    static void startErrorLogging(Cell cell) {
-        currentErrorCell = cell;
-        errorHighlights.clear();
-        errors.clear();
-    }
-
-    static void pushHighlight(Export e) {
-//        assert e.getParent() == currentErrorCell;
-        errorHighlights.add(ErrorHighlight.newInstance(e));
-    }
-    
-    static void pushHighlight(Geometric geom) {
-        assert geom.getParent() == currentErrorCell;
-        errorHighlights.add(ErrorHighlight.newInstance(null, geom));
-    }
-    
-    static void pushHighlight(PortInst pi) {
-        Poly poly = pi.getPoly();
-        Point2D [] points = poly.getPoints();
-        for(int i=0; i<points.length; i++)
-        {
-            int prev = i - 1;
-            if (i == 0) prev = points.length - 1;
-            errorHighlights.add(ErrorHighlight.newInstance(currentErrorCell, points[prev], points[i]));
-        }
-        
-    }
-    
-    static void logError(String message, int sortKey) {
-        errors.add(new ErrorLogger.MessageLog(message, currentErrorCell, sortKey, errorHighlights));
-        errorHighlights.clear();
-    }
-    
-    static void logWarning(String message, int sortKey) {
-        errors.add(new ErrorLogger.WarningLog(message, currentErrorCell, sortKey, errorHighlights));
-        errorHighlights.clear();
-    }
-    
-    static void finishErrorLogging() {
-        Job.updateNetworkErrors(currentErrorCell, errors);
-        errorHighlights.clear();
-        totalNumErrors += errors.size();
-        errors.clear();
-    }
-    
 	/****************************** OPTIONS ******************************/
 
 //	private static Pref cacheUnifyPowerAndGround = Pref.makeBooleanPref("UnifyPowerAndGround", NetworkTool.tool.prefs, false);
@@ -729,9 +330,14 @@ public class NetworkTool extends Tool
 //	 */
 //	public static void setUnifyLikeNamedNets(boolean u) { cacheUnifyLikeNamedNets.setBoolean(u); }
 
-	private static Pref cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
+    private void initPrefs() {
+        if (cacheIgnoreResistors == null)
+            cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
 		"Tools/Network tab", "Networks ignore Resistors", false);
-	/**
+    }
+    
+	private static Pref cacheIgnoreResistors;
+    /**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
 	 * When included, they appear as a component with different networks on either side.

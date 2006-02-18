@@ -149,7 +149,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public NodeInst(ImmutableNodeInst d, Cell parent) {
         super(parent);
-        this.protoType = d.protoId.inCurrentThread();
+        this.protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
 
         // create all of the portInsts on this node inst
@@ -949,12 +949,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Low-level access method to link the NodeInst into its Cell.
 	 * @return true on error.
 	 */
-	public boolean lowLevelLink()
-	{
-        if (!isDatabaseObject()) {
-			System.out.println("NodeInst can't be linked because it is a dummy object");
-			return true;
-		}
+	public boolean lowLevelLink() {
+        assert getDatabase() != null;
 
 		// add to linked lists
 		if (parent.addNode(this)) return true;

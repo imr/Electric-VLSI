@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.hierarchy.EDatabase;
+
 /**
  * The NodeProtoId interface identifies a type of NodeInst .
  * It can be implemented as PrimitiveNode (for primitives from Technologies)
@@ -34,6 +36,35 @@ package com.sun.electric.database.prototype;
  */
 public interface NodeProtoId
 {
+     /**
+     * Method to return the NodeProto representing NodeProtoId in the server EDatabase.
+     * @return the NodeProto representing NodeProtoId in the server database.
+     * This method is not properly synchronized.
+     */
+    public NodeProto inServerDatabase();
+    
+    /**
+     * Method to return the NodeProto representing NodeProtoId in the client EDatabase.
+     * @return the NodeProto representing NodeProtoId in the client database.
+     * This method is not properly synchronized.
+     */
+    public NodeProto inClientDatabase();
+    
+    /**
+     * Method to return the NodeProto representing NodeProtoId in the database of current thread.
+     * @return the NodeProto representing NodeProtoId in the database of current thread.
+     * This method is not properly synchronized.
+     */
+    public NodeProto inThreadDatabase();
+    
+   /**
+     * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the NodeProto representing NodeProtoId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public NodeProto inDatabase(EDatabase database);
+    
 	/**
 	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
 	 * @return the NodeProto representing NodeProtoId in the current thread.

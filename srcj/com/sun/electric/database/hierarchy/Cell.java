@@ -122,6 +122,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public static class CellGroup
 	{
 		// private data
+        private final EDatabase database;
 		private TreeSet<Cell> cells;
 		private Cell mainSchematic;
 		private String groupName = null;
@@ -131,19 +132,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		/**
 		 * Constructs a CellGroup.
 		 */
-		private CellGroup()
+		private CellGroup(EDatabase database)
 		{
+            this.database = database;
             cells = new TreeSet<Cell>();
 		}
         
         /**
          * Constructor for Undo.
          */
-        CellGroup(TreeSet<Cell> cells, Cell mainSchematic) {
+        CellGroup(EDatabase edb, TreeSet<Cell> cells, Cell mainSchematic) {
+            this.database = edb;
             this.cells = cells;
             this.mainSchematic = mainSchematic;
-            for (Cell cell: cells)
+            if (mainSchematic != null) assert mainSchematic.getDatabase() == edb;
+            for (Cell cell: cells) {
+                assert cell.getDatabase() == edb;
                 cell.cellGroup = this;
+            }
         }
 
 		/**
@@ -331,6 +337,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			return groupName;
 		}
 
+        public EDatabase getDatabase() { return database; }
+        
 		/**
 		 * Method to check invariants in this CellGroup.
 		 * @exception AssertionError if invariants are not valid
@@ -344,7 +352,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				assert lib.contains(cell);
 				assert cell.cellGroup == this;
 			}
-			assert lib != null;
+			assert lib.getDatabase() == database;
 			if (mainSchematic != null)
 			{
 				assert containsCell(mainSchematic);
@@ -382,7 +390,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
     /** Bounds need to be recomputed. */                            private static final byte BOUNDS_RECOMPUTE = 2;
     
-    /** Database to which this Library belongs. */                  private final EDatabase edb;
+    /** Database to which this Library belongs. */                  private final EDatabase database;
     /** Persistent data of this Cell. */                            private ImmutableCell d;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private final Library lib;
@@ -418,10 +426,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * This constructor should not be called.
 	 * Use the factory "newInstance" to create a Cell.
 	 */
-	Cell(EDatabase edb, ImmutableCell d) {
-        this.edb = edb;
+	Cell(EDatabase database, ImmutableCell d) {
+        this.database = database;
         this.d = d;
-        this.lib = d.libId.inCurrentThread();
+        this.lib = database.getLib(d.libId);
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -489,10 +497,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// remove ourselves from the cellGroup.
 		lib.removeCell(this);
 		cellGroup.remove(this);
-        edb.linkedCells.set(getCellIndex(), null);
+        database.linkedCells.set(getCellIndex(), null);
 
 		// handle change control, constraint, and broadcast
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
 		Constraints.getCurrent().killObject(this);
 	}
 
@@ -773,7 +781,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     void notifyRename() {
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
             CellUsage u = it.next();
-            Cell parent = (Cell)u.parentId.inCurrentThread();
+            Cell parent = u.parentId.inDatabase(getDatabase());
             parent.setModified(false);
         }
     }
@@ -790,7 +798,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		Job.checkChanging();
         Date creationDate = new Date();
-		Cell c = new Cell(EDatabase.theDatabase, ImmutableCell.newInstance(new CellId(), lib.getId(), null, creationDate.getTime()));
+		Cell c = new Cell(lib.getDatabase(), ImmutableCell.newInstance(new CellId(), lib.getId(), null, creationDate.getTime()));
 		return c;
 	}
 
@@ -847,11 +855,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		lowLevelLinkCellName(true);
 
 		// success
-        edb.addCell(this);
+        database.addCell(this);
 		checkInvariants();
         
 		// handle change control, constraint, and broadcast
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
 		Constraints.getCurrent().newObject(this);
 		return false;
 	}
@@ -891,7 +899,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				cellGroup = c.cellGroup;
 		}
 		// still none: make a new one
-		if (cellGroup == null) cellGroup = new CellGroup();
+		if (cellGroup == null) cellGroup = new CellGroup(database);
 
 		// add ourselves to the library and to cell group
 		lib.addCell(this);
@@ -3671,7 +3679,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		if (!isLinked()) return;
 		CellGroup oldCellGroup = this.cellGroup;
-		if (cellGroup == null) cellGroup = new CellGroup();
+		if (cellGroup == null) cellGroup = new CellGroup(database);
         checkChanging();
 		if (cellGroup == this.cellGroup) return;
 		String protoName = getName();
@@ -4118,7 +4126,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void unfreshBackup() {
         cellBackupFresh = false;
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
     }
     
     /**
@@ -4247,6 +4255,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
+	 * Returns database to which this Cell belongs.
+     * @return database to which this ElectricObject belongs.
+	 */
+	public EDatabase getDatabase() { return database; } 
+
+	/**
 	 * Method to check and repair data structure errors in this Cell.
 	 */
 	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
@@ -4279,7 +4293,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
         super.check();
         CellId cellId = getD().cellId;
-		assert edb.getCell(cellId) == this;
+		assert database.getCell(cellId) == this;
 		assert getCellName() != null;
 		assert getVersion() > 0;
 

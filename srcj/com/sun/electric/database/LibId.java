@@ -23,7 +23,9 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.Job;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -75,11 +77,35 @@ public final class LibId implements Serializable
     }
     
     /**
-     * Method to return the Library representiong LibId in the current thread.
-     * @return the Library representing LibId in the current thread.
+     * Method to return the Library representing LibId in the server EDatabase.
+     * @return the Library representing LibId in the server database.
      * This method is not properly synchronized.
      */
-    public Library inCurrentThread() { return Library.inCurrentThread(this); }
+    public Library inServerDatabase() { return inDatabase(EDatabase.serverDatabase()); }
+    
+    /**
+     * Method to return the Library representing LibId in the client EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Library representing LibId in the cleint database.
+     * This method is not properly synchronized.
+     */
+    public Library inClientDatabase() { return inDatabase(EDatabase.clientDatabase()); }
+    
+    /**
+     * Method to return the Library representing LibId in the database of current thread.
+     * @param database EDatabase where to get from.
+     * @return the Library representing LibId in database of current thread.
+     * This method is not properly synchronized.
+     */
+    public Library inThreadDatabase() { return inDatabase(Job.threadDatabase()); }
+    
+    /**
+     * Method to return the Library representing LibId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Library representing LibId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public Library inDatabase(EDatabase database) { return database.getLib(this); }
     
 	/**
 	 * Returns a printable version of this CellId.

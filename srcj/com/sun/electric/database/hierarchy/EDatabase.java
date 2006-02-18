@@ -30,6 +30,7 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ActivityLogger;
 import java.util.ArrayList;
@@ -57,8 +58,12 @@ public class EDatabase {
     /** Last snapshot */                                        private Snapshot snapshot = new Snapshot();
     /** True if database matches snapshot. */                   private boolean snapshotFresh;
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
+    
+    /** Network manager for this database. */                   private final NetworkManager networkManager = new NetworkManager(this);
 
 
+    public NetworkManager getNetworkManager() { return networkManager; }
+    
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
     
     void addLib(Library lib) {
@@ -380,7 +385,7 @@ public class EDatabase {
                 mainSchematics.set(cellGroupIndex, cell);
         }
         for (int i = 0; i < groups.size(); i++)
-            new Cell.CellGroup(groups.get(i), mainSchematics.get(i));
+            new Cell.CellGroup(this, groups.get(i), mainSchematics.get(i));
     }
     
     private void updateTree(Snapshot oldSnapshot, Snapshot newSnapshot, CellId cellId, BitSet updated, BitSet exportsModified) {
@@ -436,7 +441,7 @@ public class EDatabase {
             if (libBackup == null) continue;
             LibId libId = libBackup.d.libId;
             assert libId.libIndex == i;
-            Library lib = libId.inCurrentThread();
+            Library lib = getLib(libId);
             lib.checkFresh(libBackup);
         }
         for (int i = 0; i < snapshot.cellBackups.length; i++) {
@@ -444,7 +449,7 @@ public class EDatabase {
             if (cellBackup == null) continue;
             CellId cellId = cellBackup.d.cellId;
             assert cellId.cellIndex == i;
-            Cell cell = (Cell)cellId.inCurrentThread();
+            Cell cell = getCell(cellId);
             cell.checkFresh(cellBackup);
             assert snapshot.getCellBounds(cellId) == cell.getBounds();
         }

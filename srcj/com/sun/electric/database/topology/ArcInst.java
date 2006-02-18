@@ -530,7 +530,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void lowLevelLink()
 	{
-        assert isDatabaseObject();
+        assert getDatabase() != null;
         checkChanging();
 
 		// attach this arc to the two nodes it connects

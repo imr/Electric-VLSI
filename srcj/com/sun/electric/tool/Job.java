@@ -24,13 +24,12 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 
 import java.awt.Toolkit;
 import java.io.Serializable;
@@ -39,7 +38,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 
 /**
  * Jobs are processes that will run in the background, such as 
@@ -651,6 +649,10 @@ public abstract class Job implements Serializable {
             return currentUI;
     }
 
+    public static EDatabase threadDatabase() {
+        return EDatabase.theDatabase;
+    }
+    
     public static void wantUpdateGui() {
         jobManager.wantUpdateGui();
     }

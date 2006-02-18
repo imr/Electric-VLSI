@@ -168,6 +168,7 @@ public final class Main
         Job.setThreadMode(runMode, ui);
 
 		// initialize database
+        EDatabase.serverDatabase();
 		InitDatabase job = new InitDatabase(argsList);
         Job.initJobManager(numThreads, job);
 	}

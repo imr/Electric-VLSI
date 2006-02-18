@@ -23,16 +23,12 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -41,20 +37,19 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -68,7 +63,7 @@ import java.util.prefs.Preferences;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject implements Comparable<Library>
+public class Library extends ElectricObject implements Comparable<Library>, Serializable
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
@@ -83,7 +78,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
-    /** Database to which this Library belongs. */          private final EDatabase edb;
+    /** Database to which this Library belongs. */          private final EDatabase database;
     /** persistent data of this Library. */                 private ImmutableLibrary d;
     /** true of library needs saving. */                    private boolean modified;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
@@ -99,8 +94,9 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/**
 	 * The constructor is never called.  Use the factor method "newInstance" instead.
 	 */
-	Library(EDatabase edb, ImmutableLibrary d) {
-        this.edb = edb;
+	Library(EDatabase database, ImmutableLibrary d) {
+        if (database == null) throw new NullPointerException();
+        this.database = database;
         this.d = d;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
         prefs = allPrefs.node(d.libName);
@@ -172,6 +168,28 @@ public class Library extends ElectricObject implements Comparable<Library>
         
     }
     
+    /**
+     * Method for serialization.
+     */
+    private Object writeReplace() throws ObjectStreamException {
+        return new LibraryKey(this);
+    }
+    
+    private static class LibraryKey extends EObjectInputStream.Key {
+        int libIndex;
+        
+        private LibraryKey(Library lib) {
+            assert  lib.isLinked();
+            libIndex = lib.getId().libIndex;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            Library lib = database.getLib(LibId.getByIndex(libIndex));
+            if (lib == null) throw new InvalidObjectException("Library");
+            return lib;
+        }
+    }
+         
 	/**
 	 * Method to delete this Library.
 	 * @param reason the reason for deleting this library (replacement or deletion).
@@ -190,7 +208,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (curLib == this)
 		{
 			// find another library
-			for (Library lib : edb.libraries.values())
+			for (Library lib : database.libraries.values())
 			{
 				if (lib == curLib) continue;
 				if (lib.isHidden()) continue;
@@ -207,7 +225,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 
 		// make sure it is in the list of libraries
-		if (edb.libraries.get(getName()) != this)
+		if (database.libraries.get(getName()) != this)
 		{
 			System.out.println("Cannot delete library " + this);
 			Job.getUserInterface().showErrorMessage("Cannot delete "+toString(),
@@ -217,7 +235,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
-		for (Library lib : edb.libraries.values())
+		for (Library lib : database.libraries.values())
 		{
 			if (lib == this) continue;
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
@@ -249,14 +267,14 @@ public class Library extends ElectricObject implements Comparable<Library>
 		erase();
 
 		// remove it from the list of libraries
-        edb.removeLib(getId());
+        database.removeLib(getId());
 
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
 
 		// always broadcast library changes
 //		Undo.setNextChangeQuiet(false);
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
 		Constraints.getCurrent().killObject(this);
 		return true;
 	}
@@ -486,7 +504,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         d = newD;
         setChanged();
         assert isLinked();
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
         Constraints.getCurrent().modifyLibrary(this, oldD);
         return true;
     }
@@ -539,6 +557,12 @@ public class Library extends ElectricObject implements Comparable<Library>
         return inCurrentThread(getId()) == this;
 	}
 
+	/**
+	 * Returns database to which this Library belongs.
+     * @return database to which this Library belongs.
+	 */
+	public EDatabase getDatabase() { return database; }
+
      /*
 	 * Low-level method to backup this Library to LibraryBackup.
      * @return CellBackup which is the backup of this Cell.
@@ -557,7 +581,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         this.modified = undoBackup.modified;
         referencedLibs.clear();
         for (LibId libId: undoBackup.referencedLibs)
-            referencedLibs.add(inCurrentThread(libId));
+            referencedLibs.add(database.getLib(libId));
     }
     
     void checkFresh(LibraryBackup libBackup) {
@@ -655,7 +679,7 @@ public class Library extends ElectricObject implements Comparable<Library>
     private void setFlag(int mask, boolean value) {
         d = d.withFlags(value ? d.flags | mask : d.flags & ~mask);
         assert isLinked();
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
     }
     
     private boolean isFlag(int mask) {
@@ -834,7 +858,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		Constraints.getCurrent().renameObject(this, oldName);
         setChanged();
         assert isLinked();
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
         for (Cell cell: cells.values())
             cell.notifyRename();
 		return false;
@@ -852,11 +876,11 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (extension.length() > 0) newLibFile += "." + extension;
 		URL libFile = TextUtils.makeURLToFile(newLibFile);
 
-        edb.libraries.remove(d.libName);
+        database.libraries.remove(d.libName);
         d = d.withName(libName, libFile);
-		edb.libraries.put(libName, this);
+		database.libraries.put(libName, this);
         assert isLinked();
-        edb.unfreshSnapshot();
+        database.unfreshSnapshot();
         
         Cell curCell = getCurCell();
         prefs = allPrefs.node(libName);

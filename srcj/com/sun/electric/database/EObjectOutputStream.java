@@ -107,7 +107,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof PortInst) return new EPortInst((PortInst)obj);
         if (obj instanceof Export) return new EExport((Export)obj);
         if (obj instanceof Cell) return new ECell((Cell)obj);
-        if (obj instanceof Library) return new ELibrary((Library)obj);
+//        if (obj instanceof Library) return new ELibrary((Library)obj);
         if (obj instanceof View) return new EView((View)obj);
         if (obj instanceof Technology) return new ETechnology((Technology)obj);
         if (obj instanceof PrimitiveNode) return new EPrimitiveNode((PrimitiveNode)obj);
@@ -219,20 +219,20 @@ public class EObjectOutputStream extends ObjectOutputStream {
         }
     }
     
-    private static class ELibrary implements Serializable {
-        int libIndex;
-        
-        private ELibrary(Library lib) {
-            assert  lib.isLinked();
-            libIndex = lib.getId().libIndex;
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Library lib = LibId.getByIndex(libIndex).inCurrentThread();
-            if (lib == null) throw new InvalidObjectException("Library");
-            return lib;
-        }
-    }
+//    private static class ELibrary implements Serializable {
+//        int libIndex;
+//        
+//        private ELibrary(Library lib) {
+//            assert  lib.isLinked();
+//            libIndex = lib.getId().libIndex;
+//        }
+//        
+//        private Object readResolve() throws ObjectStreamException {
+//            Library lib = LibId.getByIndex(libIndex).inCurrentThread();
+//            if (lib == null) throw new InvalidObjectException("Library");
+//            return lib;
+//        }
+//    }
     
     private static class EView implements Serializable {
         String abbreviation;

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -1185,9 +1186,17 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Ensures that an examine job is running.
 	 */
 	public void checkExamine() {
-		if (!isDatabaseObject()) return;
+		if (getDatabase() == null) return;
 		Job.checkExamine();
 	}
+
+	/**
+	 * Returns database to which this ElectricObject belongs.
+	 * Some objects are not in database, for example Geometrics in PaletteFrame.
+     * Method returns null for non-database objects.
+     * @return database to which this ElectricObject belongs.
+	 */
+	public abstract EDatabase getDatabase();
 
 	/**
 	 * Method which indicates that this object is in database.

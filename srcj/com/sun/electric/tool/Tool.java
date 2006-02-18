@@ -113,7 +113,7 @@ public class Tool implements Comparable
         Extract.getExtractTool().init();
         IOTool.getIOTool().init();
         LETool.getLETool().init();
-		NetworkTool.getNetworkTool().init();
+//		NetworkTool.getNetworkTool().init();
         ParasiticTool.getParasiticTool().init();
         Project.getProjectTool().init();
         Routing.getRoutingTool().init();

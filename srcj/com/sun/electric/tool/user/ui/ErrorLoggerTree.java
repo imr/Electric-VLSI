@@ -91,7 +91,7 @@ public class ErrorLoggerTree {
             this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
         }
         public void run() {
-            Cell cell = (Cell)cellId.inCurrentThread();
+            Cell cell = cellId.inClientDatabase();
             if (cell == null) return;
             boolean changed = networkErrorLogger.clearLogs(cell) || !errors.isEmpty();
             networkErrorLogger.addMessages(errors);
@@ -116,7 +116,7 @@ public class ErrorLoggerTree {
             this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
         }
         public void run() {
-            Cell cell = (Cell)cellId.inCurrentThread();
+            Cell cell = cellId.inClientDatabase();
             if (cell == null) return;
             boolean changed = drcErrorLogger.clearLogs(cell) || !errors.isEmpty();
             drcErrorLogger.addMessages(errors);

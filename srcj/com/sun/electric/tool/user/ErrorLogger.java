@@ -162,7 +162,7 @@ public class ErrorLogger implements Serializable
         {
             String className = this.getClass().getSimpleName();
             if (logCellId == null) return;
-            Cell logCell = (Cell)logCellId.inCurrentThread();
+            Cell logCell = logCellId.inClientDatabase();
             if (logCell == null) return;
             msg.append("\t<" + className + " message=\"" + message + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
@@ -179,7 +179,7 @@ public class ErrorLogger implements Serializable
          */
         public boolean isValid() {
             if (logCellId == null) return true;
-            if (logCellId.inCurrentThread() == null) return false;
+            if (logCellId.inClientDatabase() == null) return false;
             // check validity of highlights
             boolean allValid = true;
             for (ErrorHighlight erh : highlights) {

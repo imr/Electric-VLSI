@@ -23,16 +23,11 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.Name;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -92,11 +87,12 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Method which indicates that this object is in database.
+	 * Returns database to which this Geometric belongs.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
-	 * @return true if this object is in database.
+     * Method returns null for non-database objects.
+     * @return database to which this Geometric belongs.
 	 */
-	protected boolean isDatabaseObject() { return parent != null; }
+	public EDatabase getDatabase() { return parent != null ? parent.getDatabase() : null; }
 
 	/**
 	 * Method to write a description of this Geometric.

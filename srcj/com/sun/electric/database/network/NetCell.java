@@ -73,6 +73,7 @@ class NetCell
 	/** If bit set, netlist is valid for cell tree.*/				static final int VALID = 1;
 	/** If bit set, netlist is valid with current  equivPorts of subcells.*/static final int LOCALVALID = 2;
 
+    /** Network manager to which this NetCell belongs. */           final NetworkManager networkManager; 
 	/** Cell from database. */										final Cell cell;
 	/** Flags of this NetCell. */									int flags;
     /** The number of times this NetCell has been <i>structurally modified</i>.
@@ -110,15 +111,11 @@ class NetCell
 
 	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
-	/**
-	 * The constructor is not used.
-	 */
-	NetCell() { cell = null; }
-
 	NetCell(Cell cell)
 	{
+        this.networkManager = cell.getDatabase().getNetworkManager();
 		this.cell = cell;
-		NetworkTool.setCell(cell, this);
+		networkManager.setCell(cell, this);
 	}
 
 	final void setNetworksDirty()
@@ -147,7 +144,7 @@ class NetCell
 			CellUsage u = it.next();
             Cell parent = u.getParent();
 			if (cell.isIconOf(parent)) continue;
-			NetCell netCell = NetworkTool.getNetCell(parent);
+			NetCell netCell = networkManager.getNetCell(parent);
 			if (netCell != null) netCell.setInvalid(strong, false);
 		}
 	}
@@ -232,12 +229,12 @@ class NetCell
 			if (ni.getNameKey().isBus()) {
 				String msg = "Network: Layout " + cell + " has arrayed " + ni;
                 System.out.println(msg);
-                NetworkTool.pushHighlight(ni);
-                NetworkTool.logError(msg, NetworkTool.errorSortNodes);
+                networkManager.pushHighlight(ni);
+                networkManager.logError(msg, NetworkTool.errorSortNodes);
             }
             ErrorLogger.MessageLog log = null;
             NodeProto np = ni.getProto();
-			if (ni.isCellInstance() && NetworkTool.getNetCell((Cell)np) instanceof NetSchem ||
+			if (ni.isCellInstance() && networkManager.getNetCell((Cell)np) instanceof NetSchem ||
                 np == Generic.tech.universalPinNode ||
                 !ni.isCellInstance() && np.getTechnology() == Schematics.tech) {
                 if (strangeNodes == null)
@@ -258,8 +255,8 @@ class NetCell
             System.out.println(msg);
             List<Geometric> niList = new ArrayList<Geometric>();
             for (NodeInst ni: nodesOfType)
-                NetworkTool.pushHighlight(ni);
-            NetworkTool.logError(msg, NetworkTool.errorSortNodes);
+                networkManager.pushHighlight(ni);
+            networkManager.logError(msg, NetworkTool.errorSortNodes);
         }
 	}
 
@@ -438,8 +435,8 @@ class NetCell
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
-                        NetworkTool.pushHighlight(pi);
-                        NetworkTool.logError(msg, NetworkTool.errorSortNodes);
+                        networkManager.pushHighlight(pi);
+                        networkManager.logError(msg, NetworkTool.errorSortNodes);
                     }
 					continue;
 				}
@@ -467,8 +464,8 @@ class NetCell
                 System.out.println(msg);
                 List<Geometric> geomList = new ArrayList<Geometric>();
                 for (NodeInst ni: pinsOfType)
-                    NetworkTool.pushHighlight(ni);
-                NetworkTool.logWarning(msg, NetworkTool.errorSortNodes);
+                    networkManager.pushHighlight(ni);
+                networkManager.logWarning(msg, NetworkTool.errorSortNodes);
             }
         }
 		// showDrawns();
@@ -527,8 +524,8 @@ class NetCell
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
-                NetworkTool.pushHighlight(ai);
-                NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
+                networkManager.pushHighlight(ai);
+                networkManager.logError(msg, NetworkTool.errorSortNetworks);
             }
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
@@ -567,7 +564,7 @@ class NetCell
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = it.next();
 			if (!ni.isCellInstance()) continue;
-			NetCell netCell = NetworkTool.getNetCell((Cell)ni.getProto());
+			NetCell netCell = networkManager.getNetCell((Cell)ni.getProto());
 			if (netCell instanceof NetSchem) continue;
 			int[] eq = netCell.equivPorts;
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
@@ -660,15 +657,15 @@ class NetCell
             for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
                 Export e = (Export)cell.getPort(i);
                 if (e.getName().equals(name.toString()))
-                    NetworkTool.pushHighlight((Export)cell.getPort(i));
+                    networkManager.pushHighlight((Export)cell.getPort(i));
             }
             for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
                 if (ai.getName().equals(name.toString()))
-                	NetworkTool.pushHighlight(ai);
+                	networkManager.pushHighlight(ai);
             }
-            NetworkTool.logError(msg, NetworkTool.errorSortNetworks);
+            networkManager.logError(msg, NetworkTool.errorSortNetworks);
         }
 		else
 			netNamesToNet[nn.index] = network;
@@ -747,7 +744,7 @@ class NetCell
             Cell subCell = u.getProto();
 			if (subCell.isIconOf(cell)) continue;
 
-			NetCell netCell = NetworkTool.getNetCell(subCell);
+			NetCell netCell = networkManager.getNetCell(subCell);
 			if ((netCell.flags & VALID) == 0)
 				netCell.redoNetworks();
 		}
@@ -767,7 +764,7 @@ class NetCell
 		modCount++;
 
         // clear errors for cell
-        NetworkTool.startErrorLogging(cell);
+        networkManager.startErrorLogging(cell);
         try {
 
     		makeDrawns();
@@ -777,7 +774,7 @@ class NetCell
             if (redoNetworks1())
                 setInvalid(false, true);
         } finally {
-            NetworkTool.finishErrorLogging();
+            networkManager.finishErrorLogging();
         }
 		flags |= (LOCALVALID|VALID);
 	}
@@ -790,7 +787,7 @@ class NetCell
 //            Nodable no = it.next();
 //            if (!no.isCellInstance()) continue;
 //            Cell subCell = (Cell)no.getProto();
-//            subNetlists.put(subCell, NetworkTool.getNetlist(subCell, false));
+//            subNetlists.put(subCell, networkManager.getNetlist(subCell, false));
 //        }
 		netlist = new Netlist(this, false, numDrawns);
 

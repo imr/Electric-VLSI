@@ -25,8 +25,9 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.tool.Job;
 import java.io.ObjectStreamException;
 
 import java.io.Serializable;
@@ -217,11 +218,43 @@ public final class CellId implements NodeProtoId, Serializable
     public int newArcId() { return numArcIds++; }
     
     /**
+     * Method to return the Cell representing CellId in the server EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Cell representing CellId in the server database.
+     * This method is not properly synchronized.
+     */
+    public Cell inServerDatabase() { return inDatabase(EDatabase.serverDatabase()); }
+    
+    /**
+     * Method to return the Cell representing CellId in the clinet EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Cell representing CellId in the client database.
+     * This method is not properly synchronized.
+     */
+    public Cell inClientDatabase() { return inDatabase(EDatabase.clientDatabase()); }
+    
+    /**
+     * Method to return the Cell representing CellId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Cell representing CellId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public Cell inThreadDatabase() { return inDatabase(Job.threadDatabase()); }
+    
+    /**
+     * Method to return the Cell representing CellId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Cell representing CellId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public Cell inDatabase(EDatabase database) { return database.getCell(this); }
+    
+    /**
      * Method to return the NodeProto representiong NodeProtoId in the current thread.
      * @return the NodeProto representing NodeProtoId in the current thread.
      * This method is not properly synchronized.
      */
-    public NodeProto inCurrentThread() { return Cell.inCurrentThread(this); }
+    public Cell inCurrentThread() { return Cell.inCurrentThread(this); }
     
 	/**
 	 * Returns a printable version of this CellId.

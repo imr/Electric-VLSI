@@ -239,7 +239,7 @@ public class Manipulate
 					Variable var = ni.getVar(Info.LAYER_KEY);
 					if (var == null) continue;
 					CellId cID = (CellId)var.getObject();
-					Cell varCell = (Cell)cID.inCurrentThread();
+					Cell varCell = (Cell)cID.inServerDatabase();
 					if (varCell == np)
 					{
 						if (warning != null) warning.append(","); else
@@ -1041,7 +1041,7 @@ public class Manipulate
 		Variable var = ni.getVar(Info.LAYER_KEY);
 		if (var == null) return null;
 		CellId cID = (CellId)var.getObject();
-		Cell cell = (Cell)cID.inCurrentThread();
+		Cell cell = (Cell)cID.inServerDatabase();
 		if (cell != null)
 		{
 			// validate the reference
@@ -1605,7 +1605,7 @@ public class Manipulate
 		if (curLay != null)
 		{
 			CellId cID = (CellId)curLay.getObject();
-			Cell cell = (Cell)cID.inCurrentThread();
+			Cell cell = (Cell)cID.inServerDatabase();
 			initial = cell.getName().substring(6);
 		} else
 		{
@@ -1697,7 +1697,7 @@ public class Manipulate
 		{
 			CellId [] connects = (CellId [])var.getObject();
 			for(int i=0; i<connects.length; i++)
-				connectSet.add(connects[i].inCurrentThread());
+				connectSet.add(connects[i].inServerDatabase());
 		}
 
 		// build an array of arc connections
@@ -2005,7 +2005,7 @@ public class Manipulate
 					Variable varLay = cNi.getVar(Info.LAYER_KEY);
 					if (varLay == null) continue;
 					CellId cID = (CellId)varLay.getObject();
-					Cell varCell = (Cell)cID.inCurrentThread();
+					Cell varCell = cID.inServerDatabase();
 					if (varCell != cell) continue;
 					setPatch(cNi, li.desc);
 				}

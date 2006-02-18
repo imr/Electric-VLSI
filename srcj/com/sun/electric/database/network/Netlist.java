@@ -199,7 +199,8 @@ public class Netlist
 	 */
     public static Nodable getNodableFor(NodeInst ni, int arrayIndex) {
         Cell parent = ni.getParent();
-		NetCell netCell = NetworkTool.getNetCell(parent);
+        NetworkManager networkManager = parent.getDatabase().getNetworkManager();
+		NetCell netCell = networkManager.getNetCell(parent);
 		if (netCell == null) return null;
 //        Netlist netlist = NetworkTool.getUserNetlist(parent);
         for (Iterator<Nodable> it = netCell.getNodables(); it.hasNext(); ) {
@@ -227,7 +228,7 @@ public class Netlist
 	 */
 	public Netlist getNetlist(Nodable no) {
 		if (!no.isCellInstance()) return null;
-        return NetworkTool.getNetCell((Cell)no.getProto()).getNetlist(shortResistors);
+        return netCell.networkManager.getNetCell((Cell)no.getProto()).getNetlist(shortResistors);
 //		return subNetlists.get(no.getProto());
 	}
 

@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
@@ -573,19 +574,48 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		return pn;
 	}
 
+     /**
+     * Method to return the NodeProto representing NodeProtoId in the server EDatabase.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+	 * @return this.
+     */
+    public NodeProto inServerDatabase() { return this; }
+    
+    /**
+     * Method to return the NodeProto representing NodeProtoId in the client EDatabase.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+	 * @return this.
+     */
+    public NodeProto inClientDatabase() { return this; }
+    
+    /**
+     * Method to return the NodeProto representing NodeProtoId in the database of current thread.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+	 * @return this.
+    */
+    public NodeProto inThreadDatabase() { return this; }
+    
+   /**
+     * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+	 * @return this.
+     */
+    public PrimitiveNode inDatabase(EDatabase database) { return this; }
+    
  	/**
 	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
 	 * @return this.
 	 */
-    public NodeProto inCurrentThread() { return this; } 
+    public PrimitiveNode inCurrentThread() { return this; } 
    
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
      * @return NodeProtoId of this NodeProto.
      */
-    public NodeProtoId getId() { return this; }
+    public PrimitiveNode getId() { return this; }
     
 	/**
 	 * Method to return the name of this PrimitiveNode in the Technology.

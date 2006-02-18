@@ -30,6 +30,7 @@ import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -337,21 +338,22 @@ public class Variable
      * @return value of this variable in current thread.
      */
     public Object getObjectInCurrentThread() {
+        EDatabase database = EDatabase.theDatabase;
         switch (type) {
-            case LIBRARY: return ((LibId)value).inCurrentThread();
-            case CELL: return ((CellId)value).inCurrentThread();
+            case LIBRARY: return database.getLib((LibId)value);
+            case CELL: return database.getCell((CellId)value);
             case EXPORT: return ((ExportId)value).inCurrentThread();
             case LIBRARY|ARRAY:
                 LibId[] libIds = (LibId[])value;
                 Library[] libs = new Library[libIds.length];
                 for (int i = 0; i < libIds.length; i++)
-                    if (libIds[i] != null) libs[i] = libIds[i].inCurrentThread();
+                    if (libIds[i] != null) libs[i] = database.getLib(libIds[i]);
                 return libs;
             case CELL|ARRAY:
                 CellId[] cellIds = (CellId[])value;
                 Cell[] cells = new Cell[cellIds.length];
                 for (int i = 0; i < cellIds.length; i++)
-                    if (cellIds[i] != null) cells[i] = (Cell)cellIds[i].inCurrentThread();
+                    if (cellIds[i] != null) cells[i] = database.getCell(cellIds[i]);
                 return cells;
             case EXPORT|ARRAY:
                 ExportId[] exportIds = (ExportId[])value;
@@ -557,13 +559,14 @@ public class Variable
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
     public Object getObjectInCurrentThread(int index) {
+        EDatabase database = EDatabase.theDatabase;
         switch (type) {
             case LIBRARY|ARRAY:
                 LibId libId = ((LibId[])value)[index];
-                return libId != null ? libId.inCurrentThread() : null;
+                return libId != null ? database.getLib(libId) : null;
             case CELL|ARRAY:
                 CellId cellId = ((CellId[])value)[index];
-                return cellId != null ? cellId.inCurrentThread() : null;
+                return cellId != null ? database.getCell(cellId) : null;
             case EXPORT|ARRAY:
                 ExportId exportId = ((ExportId[])value)[index];
                 return exportId != null ? exportId.inCurrentThread() : null;

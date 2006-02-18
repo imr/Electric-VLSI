@@ -97,7 +97,7 @@ class ClientJobManager extends JobManager {
         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
         Technology.initAllTechnologies();
         User.getUserTool().init();
-        NetworkTool.getNetworkTool().init();
+//        NetworkTool.getNetworkTool().init();
         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies end");
         //Tool.initAllTools();
         SwingUtilities.invokeLater(new Runnable() {

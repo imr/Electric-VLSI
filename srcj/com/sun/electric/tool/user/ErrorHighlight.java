@@ -29,7 +29,7 @@ public abstract class ErrorHighlight implements Serializable {
         this.context = con;
     }
 
-    public Cell getCell() { return cellId != null ? (Cell)cellId.inCurrentThread() : null; }
+    public Cell getCell() { return cellId != null ? cellId.inThreadDatabase() : null; }
 
     VarContext getVarContext() { return context; }
 

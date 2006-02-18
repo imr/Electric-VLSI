@@ -23,11 +23,10 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.Job.Type;
-import java.awt.geom.Point2D;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +34,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -105,7 +103,7 @@ class EJob {
     
     Throwable deserialize() {
         try {
-            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedJob));
+            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), EDatabase.serverDatabase());
             Job job = (Job)in.readObject();
             in.close();
             job.ejob = this;
@@ -154,7 +152,7 @@ class EJob {
     Throwable deserializeResult() {
         try {
             Class jobClass = clientJob.getClass();
-            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedResult));
+            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedResult), EDatabase.clientDatabase());
             Throwable jobException = (Throwable)in.readObject();
             int numFields = in.readInt();
             for (int i = 0; i < numFields; i++) {

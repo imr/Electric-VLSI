@@ -26,7 +26,6 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -900,6 +899,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return false;
 		}
 	}
+
+	/**
+	 * Returns database to which this Export belongs.
+     * @return database to which this Export belongs.
+	 */
+	public EDatabase getDatabase() { return parent.getDatabase(); }
 
 	/**
 	 * Method to check invariants in this Export.
