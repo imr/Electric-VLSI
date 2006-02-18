@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -239,7 +240,7 @@ public class NetworkTool extends Tool
     
     private static void advanceSnapshot() {
         assert Job.canComputeNetlist();
-        Snapshot newSnapshot = Library.backup();
+        Snapshot newSnapshot = EDatabase.theDatabase.backup();
         if (newSnapshot == lastSnapshot) return;
         assert !networksValid;
         updateAll(lastSnapshot, newSnapshot);
@@ -325,6 +326,8 @@ public class NetworkTool extends Tool
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
 		if (Job.canComputeNetlist()) {
+            if (!cell.isLinked())
+                return null;
             advanceSnapshot();
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(shortResistors);

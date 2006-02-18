@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
@@ -842,7 +843,7 @@ public class FileMenu {
 	private static boolean checkInvariants()
 	{
 		// check database invariants
-		if (!Library.checkInvariants())
+		if (!EDatabase.clientDatabase().checkInvariants())
 		{
 			String [] messages = {
 				"Database invariants are not valid",

@@ -27,6 +27,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
@@ -34,8 +35,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
@@ -305,7 +304,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     
     void updateSnapshot() {
         Snapshot oldSnapshot = currentSnapshot;
-        Snapshot newSnapshot = Library.backup();
+        Snapshot newSnapshot = EDatabase.serverDatabase().backup();
         if (newSnapshot == oldSnapshot) return;
         lock();
         try {

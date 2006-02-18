@@ -23,19 +23,14 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -411,8 +406,8 @@ class ClientJobManager extends JobManager {
             this.newSnapshot = newSnapshot;
         }
         public void run() {
-            Library.checkFresh(oldSnapshot);
-            Library.undo(newSnapshot);
+            EDatabase.clientDatabase().checkFresh(oldSnapshot);
+            EDatabase.clientDatabase().undo(newSnapshot);
 //            NetworkTool.updateAll(oldSnapshot, newSnapshot);
             DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
 //            UserInterfaceMain.fireDatabaseChangeEvent(event);

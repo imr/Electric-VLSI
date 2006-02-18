@@ -23,32 +23,19 @@
  */
 package com.sun.electric.database.change;
 
-import com.sun.electric.database.CellUsage;
-import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.ImmutableLibrary;
-import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -95,27 +82,28 @@ public class Undo
 		public Tool getTool() { return tool; }
 
         public void reverse(boolean backwards) {
-            Library.checkFresh(newSnapshot);
+            EDatabase edb = EDatabase.serverDatabase();
+            edb.checkFresh(newSnapshot);
             if (newSnapshot != oldSnapshot) {
                 NetworkTool.getNetworkTool().startBatch(null, true);
-                // broadcast a start-batch on the first change
-                for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
-                    Listener listener = it.next();
-                    listener.startBatch(listener, true);
-                }
-                
+//                // broadcast a start-batch on the first change
+//                for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+//                    Listener listener = it.next();
+//                    listener.startBatch(listener, true);
+//                }
+//                
                 Snapshot tmpSnapshot = newSnapshot;
                 newSnapshot = oldSnapshot;
                 oldSnapshot = tmpSnapshot;
               
-                Library.undo(newSnapshot);
+                edb.undo(newSnapshot);
             }
             
     		// broadcast the end-batch
             refreshCellBounds();
             Job.currentUI.showSnapshot(newSnapshot, batchNumber, true);
             NetworkTool.getNetworkTool().endBatch(oldSnapshot, newSnapshot, true);
-            Library.checkFresh(newSnapshot);
+            edb.checkFresh(newSnapshot);
         }
         
 		private void describe(String title)
@@ -184,9 +172,9 @@ public class Undo
 	{
 		// if no changes were recorded, stop
 		if (currentBatch == null) return;
-
+        
 		// if no changes were recorded, stop
-		if (Library.backup() == currentBatch.oldSnapshot)
+		if (EDatabase.serverDatabase().backup() == currentBatch.oldSnapshot)
 		{
 			// remove from doneList
 			doneList.remove(currentBatch);
@@ -198,7 +186,7 @@ public class Undo
         currentBatch.newSnapshot = Constraints.getCurrent().endBatch(userName);
         Job.currentUI.showSnapshot(currentBatch.newSnapshot, currentBatch.batchNumber, false);
         NetworkTool.getNetworkTool().endBatch(currentBatch.oldSnapshot, currentBatch.newSnapshot, false);
-        Library.checkFresh(currentBatch.newSnapshot);
+        EDatabase.serverDatabase().checkFresh(currentBatch.newSnapshot);
 		currentBatch = null;
 	}
 
@@ -225,7 +213,7 @@ public class Undo
 	 * @return the previous value of the "quiet" state.
 	 */
 	public static boolean changesQuiet(boolean quiet) {
-		Library.checkInvariants();
+		EDatabase.serverDatabase().checkInvariants();
         Layout.changesQuiet(quiet);
 //		NetworkTool.changesQuiet(quiet);
 		boolean formerQuiet = doChangesQuietly;

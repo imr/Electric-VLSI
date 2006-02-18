@@ -34,6 +34,7 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
@@ -141,7 +142,7 @@ public class Layout extends Constraints
         cellInfos.clear();
         tempRigid.clear();
         librariesWritten.clear();
-        Snapshot newSnapshot = Library.backup();
+        Snapshot newSnapshot = EDatabase.serverDatabase().backup();
         oldSnapshot = null;
         return newSnapshot;
 	}

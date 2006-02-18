@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/17/06, DN) CellBackup asserts failed because of incorrect calculation of cell bounds (Bug #819)
+FIX: In Cell.getBounds() calculate bounds of subcells in case of BOUNDS_COMPUTE alse.
+
 IMP: (2/17/06, DN) Tool's deamons are called once per Job in GUI thread.
 
 IMP: (2/16/06, SMR) Better crossprobing with waveform window.
