@@ -76,91 +76,23 @@ public class NetworkManager {
 
 	final NetCell getNetCell(Cell cell) { return cells[cell.getCellIndex()]; }
 
-    void redoNetworkNumbering(boolean reload)
-    {
-		// Check that we are in changing thread
-		assert Job.canComputeNetlist();
-
-        long startTime = System.currentTimeMillis();
-		if (reload) {
-			lastSnapshot = new Snapshot();
-            cells = new NetCell[1];
-		}
-        advanceSnapshot();
-        int ncell = 0;
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = it.next();
-            // Handling clipboard case (one type of hidden libraries)
-            if (lib.isHidden()) continue;
-
-            for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-            {
-                Cell cell = (Cell)cit.next();
-                ncell++;
-                cell.getNetlist(false);
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        float finalTime = (endTime - startTime) / 1000F;
-		if (ncell != 0 && reload && NetworkTool.showInfo)
-			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
-
-		synchronized(NetworkTool.mutex) {
-			NetworkTool.networksValid = true;
-			NetworkTool.mutex.notify();
-		}
+    /**
+     * Purge memery occupied by netlists.
+     */
+    public void purge() {
+        lastSnapshot = new Snapshot();
+        cells = new NetCell[1];
     }
-
-	private void invalidate() {
-		// Check that we are in changing thread
-		assert Job.canComputeNetlist();
-
-		if (!NetworkTool.networksValid)
-			return;
-		synchronized(NetworkTool.mutex) {
-			NetworkTool.networksValid = false;
-		}
-	}
     
     void advanceSnapshot() {
-        assert Job.canComputeNetlist();
+//        assert Job.canComputeNetlist();
         Snapshot newSnapshot = EDatabase.theDatabase.backup();
         if (newSnapshot == lastSnapshot) return;
-        assert !NetworkTool.networksValid;
         updateAll(lastSnapshot, newSnapshot);
         lastSnapshot = newSnapshot;
     }
     
     /****************************** CHANGE LISTENER ******************************/
-
-	public void startBatch(Tool tool, boolean undoRedo)
-	{
-        invalidate();
-		if (!NetworkTool.debug) return;
-		System.out.println("NetworkTool.startBatch("+tool+","+undoRedo+")");
-	}
-
-   /**
-     * Method to annonunce database changes of a Job.
-     * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @undoRedo true if Job was Undo/Redo job.
-     */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
-	{
-		try {
-            redoNetworkNumbering(false);
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			System.err.println("Full Network renumbering after crash.");
-			e.printStackTrace(System.out);
-			System.out.println("Full Network renumbering after crash.");
-			redoNetworkNumbering(true);
-		}
-		if (!NetworkTool.debug) return;
-		System.out.println("NetworkTool.endBatch()");
-	}
 
     /**
      * Update network information from old immutable snapshot to new immutable snapshot.
@@ -168,7 +100,7 @@ public class NetworkManager {
      * @param newSnapshot new immutable snapshot.
      */
     private void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        invalidate();
+//        invalidate();
         int maxCells = Math.max(oldSnapshot.cellBackups.length, newSnapshot.cellBackups.length);
         if (cells.length < maxCells) {
             NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];

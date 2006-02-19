@@ -110,9 +110,6 @@ public interface UserInterface
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain);
     
-    public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors);
-    public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors);
-
     /**
      * Method to return the error message associated with the current error.
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
@@ -161,9 +158,6 @@ public interface UserInterface
     public String askForInput(Object message, String title, String def);
 
     /** For Pref */
-    public void restoreSavedBindings(boolean initialCall);
-    public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile);
-
 	/**
 	 * Method to import the preferences from an XML file.
 	 * Prompts the user and reads the file.
@@ -175,33 +169,4 @@ public interface UserInterface
 	 * Prompts the user and writes the file.
 	 */
 	public void exportPrefs();
-    
-    /**
-     * Save current state of highlights and return its ID.
-     */
-    public int saveHighlights();
-    
-    /**
-     * Restore state of highlights by its ID.
-     * @param highlightsId id of saved highlights.
-     */
-    public void restoreHighlights(int highlightsId);
-
-    /**
-     * Show status of undo/redo buttons
-     * @param newUndoEnabled new status of undo button.
-     * @param newRedoEnabled new status of redo button.
-     */
-    public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled);
-
-    /**
-     * Show new database snapshot.
-     * @param newSnapshot new snapshot.
-     */
-    public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo);
-    
-    /**
-     * Method is called when initialization was finished.
-     */
-    public void finishInitialization();
 }

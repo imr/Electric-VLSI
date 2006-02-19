@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/19/06, DN) Database access is protected by ReadWriteLock (exclusive write, shared read).
+     Netlists for cells are created by demand to save memory.
+     Drawback: GUI is inactive during library reading and other long CHANGE jobs.
+
 BUG: (2/17/06, DN) CellBackup asserts failed because of incorrect calculation of cell bounds (Bug #819)
 FIX: In Cell.getBounds() calculate bounds of subcells in case of BOUNDS_COMPUTE alse.
 

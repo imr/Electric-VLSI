@@ -85,7 +85,7 @@ public class Undo
             EDatabase edb = EDatabase.serverDatabase();
             edb.checkFresh(newSnapshot);
             if (newSnapshot != oldSnapshot) {
-                edb.getNetworkManager().startBatch(null, true);
+//                edb.getNetworkManager().startBatch(null, true);
 //                // broadcast a start-batch on the first change
 //                for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
 //                    Listener listener = it.next();
@@ -101,8 +101,8 @@ public class Undo
             
     		// broadcast the end-batch
             refreshCellBounds();
-            Job.currentUI.showSnapshot(newSnapshot, batchNumber, true);
-            edb.getNetworkManager().endBatch(oldSnapshot, newSnapshot, true);
+            Job.getExtendedUserInterface().showSnapshot(newSnapshot, batchNumber, true);
+//            edb.getNetworkManager().endBatch(oldSnapshot, newSnapshot, true);
             edb.checkFresh(newSnapshot);
         }
         
@@ -149,7 +149,7 @@ public class Undo
 
 		// start the batch of changes
 		Constraints.getCurrent().startBatch(oldSnapshot);
-        EDatabase.serverDatabase().getNetworkManager().startBatch(tool, false);
+//        EDatabase.serverDatabase().getNetworkManager().startBatch(tool, false);
 
 //		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 //		{
@@ -184,8 +184,8 @@ public class Undo
 		// changes made: apply final constraints to this batch of changes
         String userName = System.getProperty("user.name"); 
         currentBatch.newSnapshot = Constraints.getCurrent().endBatch(userName);
-        Job.currentUI.showSnapshot(currentBatch.newSnapshot, currentBatch.batchNumber, false);
-        EDatabase.serverDatabase().getNetworkManager().endBatch(currentBatch.oldSnapshot, currentBatch.newSnapshot, false);
+        Job.getExtendedUserInterface().showSnapshot(currentBatch.newSnapshot, currentBatch.batchNumber, false);
+//        EDatabase.serverDatabase().getNetworkManager().endBatch(currentBatch.oldSnapshot, currentBatch.newSnapshot, false);
         EDatabase.serverDatabase().checkFresh(currentBatch.newSnapshot);
 		currentBatch = null;
 	}

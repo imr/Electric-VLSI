@@ -24,11 +24,11 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
@@ -87,6 +87,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.prefs.BackingStoreException;
 
@@ -366,6 +367,8 @@ public class FileMenu {
 		private FileType type;
 		private Library deleteLib;
         private Cell showThisCell;
+        private HashMap<Object,Map<String,Object>> meaningVariables;
+        private Library lib;
 
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
@@ -392,8 +395,87 @@ public class FileMenu {
 					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
 				}
 			}
-			showThisCell = openALibrary(fileURL, type);
+            fieldVariableChanged("meaningVariables");
+            meaningVariables = new HashMap<Object,Map<String,Object>>();
+        	lib = LibraryFiles.readLibrary(fileURL, null, type, false, meaningVariables);
+            if (lib == null) return false;
+            fieldVariableChanged("lib");
+            // new library open: check for default "noname" library and close if empty
+            Library noname = Library.findLibrary("noname");
+            if (noname != null) {
+                if (!noname.getCells().hasNext()) {
+                    noname.kill("delete");
+                }
+            }
+            
+            // Repair libraries in case default width changes due to foundry changes
+            new Technology.ResetDefaultWidthJob(lib);
+//            Undo.noUndoAllowed();
+            lib.setCurrent();
+            showThisCell = Job.getUserInterface().getCurrentCell(lib);
 			fieldVariableChanged("showThisCell");
+			if (deleteLib != null)
+				deleteLib.kill("replace");
+			return true;
+		}
+
+        public void terminateOK()
+        {
+            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+            meaningVariables = null;
+        	doneOpeningLibrary(showThisCell);
+        }
+	}
+
+	/**
+	 * Class to import a library in a new thread.
+	 */
+	public static class ImportLibrary extends Job
+	{
+		private URL fileURL;
+		private FileType type;
+		private Library deleteLib;
+        private Cell showThisCell;
+
+		public ImportLibrary(URL fileURL, FileType type, Library deleteLib)
+		{
+			super("Import External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fileURL = fileURL;
+			this.type = type;
+			this.deleteLib = deleteLib;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// see if the former library can be deleted
+			if (deleteLib != null)
+			{
+				if (Library.getVisibleLibraries().size() > 1)
+				{
+					if (!deleteLib.kill("replace")) return false;
+					deleteLib = null;
+				} else
+				{
+					// cannot delete last library: must delete it later
+					// mangle the name so that the new one can be created
+					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
+				}
+			}
+    		Library lib = Input.importLibrary(fileURL, type);
+            if (lib == null) return false;
+            // new library open: check for default "noname" library and close if empty
+            Library noname = Library.findLibrary("noname");
+            if (noname != null) {
+                if (!noname.getCells().hasNext()) {
+                    noname.kill("delete");
+                }
+            }
+            
+//            Undo.noUndoAllowed();
+            lib.setCurrent();
+            showThisCell =  Job.getUserInterface().getCurrentCell(lib);
+ 			fieldVariableChanged("showThisCell");
 			if (deleteLib != null)
 				deleteLib.kill("replace");
 			return true;
@@ -405,13 +487,38 @@ public class FileMenu {
         }
 	}
 
+    /**
+     * Method to clean up from opening a library.
+     * Called from the "terminateOK()" method of a job.
+     */
+    private static void doneOpeningLibrary(Cell cell)
+    {
+        if (cell == null) System.out.println("No current cell in this library");
+        else if (!Job.BATCHMODE)
+        {
+            CreateCellWindow creator = new CreateCellWindow(cell);
+            if (!SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeLater(creator);
+            } else {
+                creator.run();
+            }
+        }
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run()
+            {
+                // Redo explorer trees to add new library
+                WindowFrame.wantToRedoLibraryTree();
+                WindowFrame.wantToOpenCurrentLibrary(true);
+            }});
+    }
+
 	/**
 	 * Class to read initial libraries into Electric.
 	 */
 	public static class ReadInitialELIBs extends Job
     {
         private List<URL> fileURLs;
-        private Cell showThisCell;
+//        private Cell showThisCell;
 
         public ReadInitialELIBs(List<URL> fileURLs) {
             super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -451,75 +558,17 @@ public class FileMenu {
                     }
                 }
                 if (defType == null) defType = FileType.DEFAULTLIB;
-                showThisCell = openALibrary(file, defType);
+                new ReadLibrary(file, defType, null);
+//                showThisCell = openALibrary(file, defType);
             }
-			fieldVariableChanged("showThisCell");
+//			fieldVariableChanged("showThisCell");
             return true;
         }
 
-        public void terminateOK()
-        {
-        	doneOpeningLibrary(showThisCell);
-        }
-    }
-
-    /**
-     * Method to handle reading a library.
-     * Called from the "doIt()" method of a Job.
-     */
-    private static Cell openALibrary(URL fileURL, FileType type)
-    {
-    	Library lib = null;
-    	if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.READABLEDUMP)
-        {
-    		lib = LibraryFiles.readLibrary(fileURL, null, type, false);
-        } else
-        {
-    		lib = Input.importLibrary(fileURL, type);
-        }
-        if (lib != null)
-        {
-            // new library open: check for default "noname" library and close if empty
-            Library noname = Library.findLibrary("noname");
-            if (noname != null)
-            {
-                if (!noname.getCells().hasNext())
-                {
-                    noname.kill("delete");
-                }
-            }
-        }
-        // Repair libraries in case default width changes due to foundry changes
-        new Technology.ResetDefaultWidthJob(lib);
-        Undo.noUndoAllowed();
-        if (lib == null) return null;
-        lib.setCurrent();
-        return Job.getUserInterface().getCurrentCell(lib);
-    }
-
-    /**
-     * Method to clean up from opening a library.
-     * Called from the "terminateOK()" method of a job.
-     */
-    private static void doneOpeningLibrary(Cell cell)
-    {
-        if (cell == null) System.out.println("No current cell in this library");
-        else if (!Job.BATCHMODE)
-        {
-            CreateCellWindow creator = new CreateCellWindow(cell);
-            if (!SwingUtilities.isEventDispatchThread()) {
-                SwingUtilities.invokeLater(creator);
-            } else {
-                creator.run();
-            }
-        }
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run()
-            {
-                // Redo explorer trees to add new library
-                WindowFrame.wantToRedoLibraryTree();
-                WindowFrame.wantToOpenCurrentLibrary(true);
-            }});
+//        public void terminateOK()
+//        {
+//        	doneOpeningLibrary(showThisCell);
+//        }
     }
 
 	/**

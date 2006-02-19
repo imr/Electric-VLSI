@@ -559,9 +559,9 @@ public class Project extends Listener
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
-		NetworkTool.setInformationOutput(false);
+//		NetworkTool.setInformationOutput(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
-		NetworkTool.setInformationOutput(true);
+//		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();

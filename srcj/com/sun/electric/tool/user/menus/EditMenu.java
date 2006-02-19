@@ -530,7 +530,7 @@ public class EditMenu {
 		}
         
         public void terminateOK() {
-            Job.getUserInterface().restoreHighlights(restoreHighlights);
+            Job.getExtendedUserInterface().restoreHighlights(restoreHighlights);
         }
 	}
 
@@ -575,7 +575,7 @@ public class EditMenu {
 		}
         
         public void terminateOK() {
-            Job.getUserInterface().restoreHighlights(preUndoHighlights);
+            Job.getExtendedUserInterface().restoreHighlights(preUndoHighlights);
         }
 	}
 

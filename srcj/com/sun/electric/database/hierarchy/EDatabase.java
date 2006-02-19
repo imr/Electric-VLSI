@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Electric run-time database is a graph of ElectricObjects.
@@ -60,8 +62,12 @@ public class EDatabase {
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
     
     /** Network manager for this database. */                   private final NetworkManager networkManager = new NetworkManager(this);
-
-
+    /** Lock for access to the Database. */                     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    /** True if database is locked for writing. */              private boolean exclusiveLock;
+    
+    /** Creates a new instance of EDatabase */
+    private EDatabase() {}
+    
     public NetworkManager getNetworkManager() { return networkManager; }
     
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
@@ -103,8 +109,23 @@ public class EDatabase {
     
     Cell getCell(int cellIndex) { return cellIndex < linkedCells.size() ? linkedCells.get(cellIndex) : null; } 
     
-    /** Creates a new instance of EDatabase */
-    public EDatabase() {
+    /**
+     * Locks the database for writing.
+     * Lock may be either excluseive (for writing) or shared (for reading).
+     * @param exclusive if lock is for writing.
+     */
+    public void lock(boolean exclusive) {
+        Lock lock = exclusive ? readWriteLock.writeLock() : readWriteLock.readLock();
+        lock.lock();
+        exclusiveLock = exclusive;
+    }
+    
+    /**
+     * Unlocks the database which was locked for writing.
+     */
+    public void unlock() {
+        Lock lock = exclusiveLock ? readWriteLock.writeLock() : readWriteLock.readLock();
+        lock.unlock();
     }
     
 	/**

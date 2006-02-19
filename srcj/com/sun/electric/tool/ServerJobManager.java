@@ -498,7 +498,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                         continue;
                     }
                 }
-                runJob(this, selectedEJob);
+                EDatabase database = EDatabase.theDatabase;
+                database.lock(!selectedEJob.isExamine());
+                try {
+                    runJob(this, selectedEJob);
+                } finally {
+                    database.unlock();
+                }
                 finishedEJob = selectedEJob;
                 Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);
             }
@@ -687,17 +693,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * @param newRedoEnabled new status of redo button.
          */
         public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
-
-        /**
-         * Show new database snapshot.
-         * @param newSnapshot new snapshot.
-         */
-        public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) { throw new IllegalStateException(); }
-        
-        /**
-         * Method is called when initialization was finished.
-         */
-        public void finishInitialization() {}
     }
     
 }

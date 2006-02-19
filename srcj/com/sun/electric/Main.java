@@ -23,7 +23,6 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,8 +33,8 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -160,7 +159,7 @@ public final class Main
         if (mdiMode) mode = UserInterfaceMain.Mode.MDI;
         if (sdiMode) mode = UserInterfaceMain.Mode.SDI;
         
-        UserInterface ui;
+        AbstractUserInterface ui;
         if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, runMode == Job.Mode.FULL_SCREEN);
         else
@@ -173,9 +172,8 @@ public final class Main
         Job.initJobManager(numThreads, job);
 	}
 
-    private static class UserInterfaceDummy implements UserInterface
+    private static class UserInterfaceDummy extends AbstractUserInterface
 	{
-        public void finishInitialization() {}
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()
 		{
@@ -231,15 +229,7 @@ public final class Main
             System.out.println(logger.getInfo());
         }
 
-        public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-            if (!errors.isEmpty()) System.out.println(errors.size() + " network errors in " + cell);
-        }
-    
-        public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-            if (!errors.isEmpty()) System.out.println(errors.size() + " drc errors in " + cell);
-        }
-
-         /**
+        /**
          * Method to return the error message associated with the current error.
          * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
          * with associated geometry modules (if nonzero).
@@ -302,12 +292,6 @@ public final class Main
         public String askForInput(Object message, String title, String def) { return def; }
 
         /** For Pref */
-        public void restoreSavedBindings(boolean initialCall) {;}
-        public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
-        {
-            Pref.finishPrefReconcilation(meaningsToReconcile);
-        }
-
         /**
          * Method to import the preferences from an XML file.
          * Prompts the user and reads the file.
@@ -319,30 +303,6 @@ public final class Main
          * Prompts the user and writes the file.
          */
         public void exportPrefs() {;}
-        
-        /**
-         * Save current state of highlights and return its ID.
-         */
-        public int saveHighlights() { return 0; }
-        
-        /**
-         * Restore state of highlights by its ID.
-         */
-        public void restoreHighlights(int highlightsId) {}
-        
-        /**
-         * Show status of undo/redo buttons
-         * @param newUndoEnabled new status of undo button.
-         * @param newRedoEnabled new status of redo button.
-         */
-        public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
-
-        /**
-         * Show new database snapshot.
-         * @param newSnapshot new snapshot.
-         */
-        public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) {}
-        
 	}
 
 	/** check if command line option 'option' present in 
@@ -451,7 +411,7 @@ public final class Main
 		}
         
         public void terminateOK() {
-            Job.getUserInterface().finishInitialization();
+            Job.getExtendedUserInterface().finishInitialization();
         }
         
         public void terminateFail(JobException jobException) {

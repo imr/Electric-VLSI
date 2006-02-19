@@ -114,7 +114,7 @@ public abstract class Job implements Serializable {
   
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
-	public static UserInterface currentUI;
+	static AbstractUserInterface currentUI;
 
     /** delete when done if true */             /*private*/ boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
@@ -136,7 +136,7 @@ public abstract class Job implements Serializable {
     
     transient EJob ejob;
 
-    public static void setThreadMode(Mode mode, UserInterface userInterface) {
+    public static void setThreadMode(Mode mode, AbstractUserInterface userInterface) {
         threadMode = mode;
         BATCHMODE = (mode == Mode.BATCH || mode == Mode.SERVER);
         currentUI = userInterface;
@@ -235,7 +235,7 @@ public abstract class Job implements Serializable {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
         if (!ejob.isExamine())
-            ejob.savedHighlights = Job.getUserInterface().saveHighlights();
+            ejob.savedHighlights = Job.getExtendedUserInterface().saveHighlights();
         jobManager.addJob(ejob, onMySnapshot);
     }
 
@@ -646,6 +646,13 @@ public abstract class Job implements Serializable {
         if (currentThread instanceof EThread)
             return ((EThread)currentThread).getUserInterface();
         else
+            return currentUI;
+    }
+
+    /**
+     * Low-level method. 
+     */
+    public static AbstractUserInterface getExtendedUserInterface() {
             return currentUI;
     }
 

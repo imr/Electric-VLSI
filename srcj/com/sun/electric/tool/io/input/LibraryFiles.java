@@ -46,6 +46,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
@@ -152,7 +153,29 @@ public abstract class LibraryFiles extends Input
 	 * (used when reading a library internally).
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick)
+	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
+        HashMap<Object,Map<String,Object>> meaningVariables = null;
+        if (Job.BATCHMODE) 
+            meaningVariables = new HashMap<Object,Map<String,Object>>();
+        Library lib = readLibrary(fileURL, libName, type, quick, meaningVariables);
+        if (meaningVariables != null)
+            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+	    return lib;
+    }
+    
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @param libName the name to give the library (null to derive it from the file path)
+	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
+	 * (used when reading a library internally).
+     * @param meaningVariables meaning variables for reconcillation are returned to this map.
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
+            HashMap<Object,Map<String,Object>> meaningVariables)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -167,12 +190,12 @@ public abstract class LibraryFiles extends Input
 		Library lib = null;
 		boolean formerQuiet = Undo.isChangeQuiet();
 		if (!formerQuiet) Undo.changesQuiet(true);
+        LibraryFiles.meaningVariables = meaningVariables; 
 		try {
 			// show progress
 			if (!quick) startProgressDialog("library", fileURL.getFile());
 
 			Cell.setAllowCircularLibraryDependences(true);
-            meaningVariables = new HashMap<Object,Map<String,Object>>();
 
 			StringBuffer errmsg = new StringBuffer();
 			boolean exists = TextUtils.URLExists(fileURL, errmsg);
@@ -207,14 +230,12 @@ public abstract class LibraryFiles extends Input
 			Cell.setAllowCircularLibraryDependences(false);
 		}
 		if (!formerQuiet) Undo.changesQuiet(formerQuiet);
-
+        LibraryFiles.meaningVariables = null;
 		if (lib != null && !quick)
 		{
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
-            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
-            meaningVariables = null;
 		}
 
 		errorLogger.termLogging(true);
@@ -959,6 +980,7 @@ public abstract class LibraryFiles extends Input
 	 * @param vars Variables with meaning preferences.
 	 */
     void realizeMeaningPrefs(Object obj, Variable[] vars) {
+        if (meaningVariables == null) return;
         Map<String,Object> meanings = meaningVariables.get(obj);
         if (meanings == null) {
             meanings = new HashMap<String,Object>();
