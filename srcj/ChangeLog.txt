@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/20/06, DN) Assertion in ServerJobManager and reconcilation dialog twice (Bug #820).
+FIX: Fixed as a result of general Job cleaning.
+
 IMP: (2/19/06, DN) Database access is protected by ReadWriteLock (exclusive write, shared read).
      Netlists for cells are created by demand to save memory.
      Drawback: GUI is inactive during library reading and other long CHANGE jobs.
